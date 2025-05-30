@@ -1,4 +1,4 @@
-# cbe-super-app-member-auth
+# CBE-Super-App-APi-Starter
 
 
 
@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://gitlab.com/bersufekadgetachew/cbe-super-app-member-auth.git
+git remote add origin https://gitlab.com/bersufekadgetachew/cbe-super-app-api-starter.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://gitlab.com/bersufekadgetachew/cbe-super-app-member-auth/-/settings/integrations)
+- [ ] [Set up project integrations](https://gitlab.com/bersufekadgetachew/cbe-super-app-api-starter/-/settings/integrations)
 
 ## Collaborate with your team
 
