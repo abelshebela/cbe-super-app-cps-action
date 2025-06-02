@@ -19,7 +19,6 @@ func NewHTTPServer(handlers ...inbound.Handler) *http.Server {
     r.Use(middleware.Timeout(60 * time.Second))
     r.Mount("/debug", middleware.Profiler())
 
-    // Register all handlers
     r.Route("/api", func(r chi.Router) {
         for _, handler := range handlers {
             handler.RegisterRoutes(r)

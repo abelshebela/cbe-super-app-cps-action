@@ -34,7 +34,6 @@ func (r *MongoRepository[T]) Save(ctx context.Context, entity T) error {
 }
 
 func (r *MongoRepository[T]) Update(ctx context.Context, entity T) error {
-    // Assuming entity has an ID field
     filter := bson.M{"_id": reflect.ValueOf(entity).FieldByName("ID").Interface()}
     update := bson.M{"$set": entity}
     _, err := r.dal.UpdateOne(ctx, filter, update)
