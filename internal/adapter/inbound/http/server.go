@@ -27,7 +27,7 @@ func NewHTTPServer(handlers ...inbound.Handler) *http.Server {
     })
 
     return &http.Server{
-        Addr:         ":8083",
+        Addr:         ":8080",
         Handler:      r,
         ReadTimeout:  15 * time.Second,
         WriteTimeout: 15 * time.Second,
