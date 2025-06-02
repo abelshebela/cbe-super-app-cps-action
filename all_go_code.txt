@@ -1,0 +1,474 @@
+
+// File: ./internal/domain/users/model.go
+package users
+
+import "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
+
+type LinkedAccountDetail struct {
+    AccountNumber     string `json:"account_number"`
+    AccountBranchCode string `json:"account_branch_code"`
+    LinkedBranch      string `json:"linked_branch"`
+    IsAccountActive   bool   `json:"is_account_active"`
+    Maker             string `json:"maker"`
+    Checker           string `json:"checker"`
+}
+
+type LinkedAccountResponse struct {
+    UserID         string                `json:"user_id"`
+    FullName       entities.FullName     `json:"full_name"`
+    LinkedAccounts []LinkedAccountDetail `json:"linked_accounts"`
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/domain/users/errors.go
+package users
+
+import (
+    "fmt"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+)
+
+type ServiceError struct {
+    Code    string
+    Message string
+}
+
+func (e *ServiceError) Error() string {
+    return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
+
+func NewServiceError(def common.ErrorDefinition) error {
+    return &ServiceError{
+        Code:    def.Code,
+        Message: def.Message,
+    }
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/domain/users/repository.go
+package users
+
+import (
+    "context"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
+)
+
+type UserRepository interface {
+    FindByID(ctx context.Context, id string) (*entities.User, error)
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/domain/users/service.go
+package users
+
+import (
+    "context"
+    "go.mongodb.org/mongo-driver/bson/primitive"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+    "cbe-super-app-member-users/internal/port/outbound"
+)
+
+type UserService struct {
+    repository outbound.Repository[entities.User]
+    logger     utils.Logger
+}
+
+func NewUserService(repository outbound.Repository[entities.User], logger utils.Logger) *UserService {
+    return &UserService{
+        repository: repository,
+        logger:     logger,
+    }
+}
+
+func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
+    objectID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        s.logger.Errorf("Invalid ObjectID: %v", err)
+        return nil, NewServiceError(common.DefineError.General["INVALID_ID"])
+    }
+
+    user, err := s.repository.FindByID(ctx, objectID.Hex())
+    if err != nil {
+        if err.Error() == "mongo: no documents in result" {
+            s.logger.Warnf("User with ID %s not found", id)
+            return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
+        }
+        s.logger.Errorf("Failed to fetch user with ID %s: %v", id, err)
+        return nil, NewServiceError(common.DefineError.General["INTERNAL_SERVER_ERROR"])
+    }
+
+    if user == nil {
+        s.logger.Warnf("User with ID %s not found", id)
+        return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
+    }
+
+    activeAccounts := make([]LinkedAccountDetail, 0, len(user.LinkedAccount))
+    for _, account := range user.LinkedAccount {
+        if account.IsAccountActive && account.LinkedStatus && !user.IsDeleted {
+            activeAccounts = append(activeAccounts, LinkedAccountDetail{
+                AccountNumber:     account.AccountNumber,
+                AccountBranchCode: account.AccountBranchCode,
+                LinkedBranch:      account.LinkedBranch,
+                IsAccountActive:   account.IsAccountActive,
+                Maker:             account.MakerAndChecker.Linkers.Maker,
+                Checker:           account.MakerAndChecker.Linkers.Checker,
+            })
+        }
+    }
+
+    response := &LinkedAccountResponse{
+        UserID:         user.ID.Hex(),
+        FullName:       user.FullName,
+        LinkedAccounts: activeAccounts,
+    }
+
+    s.logger.Infof("Successfully fetched active linked accounts for user ID %s", id)
+    return response, nil
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/adapter/outbound/persistence/mongo.go
+package persistence
+
+import (
+    "reflect"
+    "context"
+    "go.mongodb.org/mongo-driver/v2/bson"
+    "go.mongodb.org/mongo-driver/v2/mongo"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+    "cbe-super-app-member-users/internal/port/outbound"
+)
+
+type MongoRepository[T any] struct {
+    dal dal.MongoDal[T, T]
+}
+
+func NewMongoRepository[T any](client *mongo.Client, dbName, collectionName string) outbound.Repository[T] {
+    return &MongoRepository[T]{
+        dal: dal.NewMongoDal[T, T](client, dbName, collectionName),
+    }
+}
+
+func (r *MongoRepository[T]) FindByID(ctx context.Context, id string) (*T, error) {
+    oid, err := bson.ObjectIDFromHex(id)
+    if err != nil {
+        return nil, err
+    }
+    filter := bson.M{"_id": oid}
+    return r.dal.FindOne(ctx, filter, nil)
+}
+
+func (r *MongoRepository[T]) Save(ctx context.Context, entity T) error {
+    _, err := r.dal.InsertOne(ctx, entity)
+    return err
+}
+
+func (r *MongoRepository[T]) Update(ctx context.Context, entity T) error {
+    // Assuming entity has an ID field
+    filter := bson.M{"_id": reflect.ValueOf(entity).FieldByName("ID").Interface()}
+    update := bson.M{"$set": entity}
+    _, err := r.dal.UpdateOne(ctx, filter, update)
+    return err
+}
+
+func (r *MongoRepository[T]) Delete(ctx context.Context, id string) error {
+    oid, err := bson.ObjectIDFromHex(id)
+    if err != nil {
+        return err
+    }
+    filter := bson.M{"_id": oid}
+    return r.dal.DeleteOne(ctx, filter)
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/adapter/inbound/http/handler.go
+package http
+
+import (
+    "net/http"
+    "github.com/go-chi/chi/v5"
+    "go.mongodb.org/mongo-driver/bson/primitive"
+   app "cbe-super-app-member-users/internal/application/users"
+   domain "cbe-super-app-member-users/internal/domain/users"
+    // "cbe-super-app-member-users/internal/port/inbound"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type HTTPHandler struct {
+    appService app.ApplicationService
+    logger     utils.Logger
+}
+
+func NewHTTPHandler(appService app.ApplicationService, logger utils.Logger) *HTTPHandler {
+    return &HTTPHandler{
+        appService: appService,
+        logger:     logger,
+    }
+}
+
+func (h *HTTPHandler) RegisterRoutes(r chi.Router) chi.Router {
+    r.Get("/{id}/linked-accounts", h.FetchLinkedAccounts)
+}
+
+func (h *HTTPHandler) FetchLinkedAccounts(w http.ResponseWriter, r *http.Request) {
+    id := chi.URLParam(r, "id")
+
+    if _, err := primitive.ObjectIDFromHex(id); err != nil {
+        h.logger.Errorf("Invalid ObjectID: %v", err)
+        resp := common.Response[struct {
+            Code    string `json:"code"`
+            Message string `json:"message"`
+        }]{
+            ResponseWriter: w,
+            Status:         http.StatusBadRequest,
+            Data: struct {
+                Code    string `json:"code"`
+                Message string `json:"message"`
+            }{
+                Code:    common.DefineError.General["INVALID_ID"].Code,
+                Message: common.DefineError.General["INVALID_ID"].Message,
+            },
+        }
+        resp.SendJSON()
+        return
+    }
+
+    response, err := h.appService.FetchLinkedAccounts(r.Context(), id)
+    if err != nil {
+        h.logger.Errorf("Failed to fetch linked accounts for user ID %s: %v", id, err)
+        var resp common.Response[struct {
+            Code    string `json:"code"`
+            Message string `json:"message"`
+        }]
+        if serviceErr, ok := err.(*domain.ServiceError); ok && serviceErr.Code == "NOT_FOUND" {
+            resp = common.Response[struct {
+                Code    string `json:"code"`
+                Message string `json:"message"`
+            }]{
+                ResponseWriter: w,
+                Status:         http.StatusNotFound,
+                Data: struct {
+                    Code    string `json:"code"`
+                    Message string `json:"message"`
+                }{
+                    Code:    common.DefineError.General["NOT_FOUND"].Code,
+                    Message: serviceErr.Message,
+                },
+            }
+        } else {
+            resp = common.Response[struct {
+                Code    string `json:"code"`
+                Message string `json:"message"`
+            }]{
+                ResponseWriter: w,
+                Status:         http.StatusInternalServerError,
+                Data: struct {
+                    Code    string `json:"code"`
+                    Message string `json:"message"`
+                }{
+                    Code:    "INTERNAL_SERVER_ERROR",
+                    Message: "An unexpected error occurred.",
+                },
+            }
+        }
+        resp.SendJSON()
+        return
+    }
+
+    resp := common.Response[*domain.LinkedAccountResponse]{
+        ResponseWriter: w,
+        Status:         http.StatusOK,
+        Data:           response,
+    }
+    resp.SendJSON()
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/adapter/inbound/http/routes.go
+package http
+
+import (
+    "github.com/go-chi/chi/v5"
+)
+
+func RegisterRoutes(r chi.Router, handler *HTTPHandler) {
+    r.Get("/{id}/linked-accounts", handler.FetchLinkedAccounts)
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/adapter/inbound/http/server.go
+package http
+
+import (
+	"cbe-super-app-member-users/internal/port/inbound"
+	"net/http"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
+)
+
+func NewHTTPServer(handlers ...inbound.Handler) *http.Server {
+    r := chi.NewRouter()
+
+    // Middleware setup
+    // r.Use(middleware.ZeroLogMiddleware)
+    r.Use(middleware.Recoverer)
+    r.Use(middleware.Timeout(60 * time.Second))
+    r.Mount("/debug", middleware.Profiler())
+
+    // Register all handlers
+    r.Route("/api", func(r chi.Router) {
+        for _, handler := range handlers {
+            handler.RegisterRoutes(r)
+        }
+    })
+
+    return &http.Server{
+        Addr:         ":8083",
+        Handler:      r,
+        ReadTimeout:  15 * time.Second,
+        WriteTimeout: 15 * time.Second,
+        IdleTimeout:  60 * time.Second,
+    }
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/port/outbound/repository.go
+package outbound
+
+import "context"
+
+type Repository[T any] interface {
+    FindByID(ctx context.Context, id string) (*T, error)
+    Save(ctx context.Context, entity T) error
+    Update(ctx context.Context, entity T) error
+    Delete(ctx context.Context, id string) error
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/port/inbound/http.go
+package inbound
+
+import (
+	"net/http"
+
+	 "github.com/go-chi/chi/v5"
+)
+
+type Handler interface {
+    RegisterRoutes(r chi.Router) chi.Router
+}
+type UserPortHandler interface {
+    Handler
+    FetchLinkedAccounts(w http.ResponseWriter, r *http.Request)
+}
+--------------------------------------------------------------------------------
+
+// File: ./internal/application/users/dto.go
+
+--------------------------------------------------------------------------------
+
+// File: ./internal/application/users/service.go
+package users
+
+import (
+    "context"
+    "cbe-super-app-member-users/internal/domain/users"
+)
+
+type ApplicationService interface {
+    FetchLinkedAccounts(ctx context.Context, id string) (*users.LinkedAccountResponse, error)
+}
+
+type applicationService struct {
+    domainService *users.UserService
+}
+
+func NewApplicationService(domainService *users.UserService) ApplicationService {
+    return &applicationService{domainService: domainService}
+}
+
+func (s *applicationService) FetchLinkedAccounts(ctx context.Context, id string) (*users.LinkedAccountResponse, error) {
+    return s.domainService.ActiveLinkedAccounts(ctx, id)
+}
+--------------------------------------------------------------------------------
+
+// File: ./cmd/main.go
+package main
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	handler "cbe-super-app-member-users/internal/adapter/inbound/http"
+	"cbe-super-app-member-users/internal/adapter/outbound/persistence"
+	app "cbe-super-app-member-users/internal/application/users"
+	domain "cbe-super-app-member-users/internal/domain/users"
+
+	"github.com/rs/zerolog/log"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+func main() {
+    ctx := context.Background()
+    logger := utils.NewLogger()
+    defer logger.Sync()
+
+    // Connect to MongoDB
+    client, err := config.ConnectToMongoDB()
+    if err != nil {
+        log.Fatal().Msgf("Failed to connect to MongoDB: %v", err)
+    }
+    defer func() {
+        if err := client.Disconnect(ctx); err != nil {
+            log.Fatal().Msgf("Error disconnecting from MongoDB: %v", err)
+        }
+    }()
+
+
+    userRepo := persistence.NewMongoRepository[entities.User](client, "cbe", "users")
+    userDomainService := domain.NewUserService(userRepo, logger)
+    userAppService := app.NewApplicationService(userDomainService)
+    userHandler := handler.NewHTTPHandler(userAppService, logger)
+
+
+    srv := handler.NewHTTPServer(userHandler)
+    shutdown := make(chan error)
+
+    go func() {
+        quit := make(chan os.Signal, 1)
+        signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+        sig := <-quit
+
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        log.Info().Msgf("Received signal: %v", sig.String())
+        shutdown <- srv.Shutdown(ctx)
+    }()
+
+    log.Info().Msg("Server starting on :8083")
+    if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+        log.Error().Err(err).Msg("Server failed to start")
+        os.Exit(1)
+    }
+
+    if err := <-shutdown; err != nil {
+        log.Error().Err(err).Msg("Server shutdown failed")
+        os.Exit(1)
+    }
+    log.Info().Msg("Server stopped gracefully")
+}
+--------------------------------------------------------------------------------
