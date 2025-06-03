@@ -1,10 +1,11 @@
 package outbound
 
-import "context"
+import (
+	"context"
+	"cbe-super-app-member-users/internal/domain/users"
+)
 
-type Repository[T any] interface {
-    FindByID(ctx context.Context, id string) (*T, error)
-    Save(ctx context.Context, entity T) error
-    Update(ctx context.Context, entity T) error
-    Delete(ctx context.Context, id string) error
+type UserRepository interface {
+	FindByID(ctx context.Context, id string) (*users.User, error)
+	FindActiveLinkedAccounts(ctx context.Context, userID string) ([]users.LinkedAccountDetail, error)
 }

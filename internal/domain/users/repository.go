@@ -1,10 +1,10 @@
 package users
 
 import (
-    "context"
-    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
+	"context"
 )
 
 type UserRepository interface {
-    FindByID(ctx context.Context, id string) (*entities.User, error)
+	FindByID(ctx context.Context, id string) (*User, error)
+	FindActiveLinkedAccounts(ctx context.Context, id string) ([]LinkedAccountDetail, error)
 }
