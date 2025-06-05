@@ -7,6 +7,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"time"
+	fmt "fmt"
 )
 
 type UserService struct {
@@ -71,7 +72,6 @@ func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*Lin
 
 
 func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error) {
-	// Validate input
 	if _, err := primitive.ObjectIDFromHex(req.UserID); err != nil {
 		return "", NewServiceError(common.DefineError.General["INVALID_ID"])
 	}
@@ -109,12 +109,12 @@ func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (str
 	return otp, nil
 }
 func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerification) error {
-	// Validate inputs
+
 	if _, err := primitive.ObjectIDFromHex(verification.UserID); err != nil {
 		return NewServiceError(common.DefineError.General["INVALID_ID"])
 	}
+	
 
-	// Retrieve OTP record
 	record, err := s.repository.FindOTP(ctx, verification.UserID, verification.Email)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -123,8 +123,7 @@ func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerifi
 		s.logger.Errorf("OTP lookup failed: %v", err)
 		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
-
-	// Validate OTP
+	fmt.Println("Generating OTP for user ID:", record.OTP)
 	if record.OTP != verification.OTP {
 		return NewInvalidOTPError()
 	}
@@ -133,7 +132,6 @@ func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerifi
 		return NewExpiredOTPError()
 	}
 
-	// Update user email
 	if err := s.repository.UpdateUserEmail(ctx, verification.UserID, verification.Email); err != nil {
 		s.logger.Errorf("Email update failed: %v", err)
 		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])

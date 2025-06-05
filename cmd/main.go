@@ -14,6 +14,7 @@ import (
 	app "cbe-super-app-member-users/internal/application/users"
 	domain "cbe-super-app-member-users/internal/domain/users"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -39,7 +40,10 @@ func main() {
 	userAppService := app.NewApplicationHandler(*userDomainService)
 	userHandler := handler.NewHTTPHandler(userAppService, logger)
 
-	srv := handler.NewHTTPServer(userHandler)
+	router := chi.NewRouter()
+	handler.RegisterRoutes(router, userHandler)
+
+	srv := handler.NewHTTPServer(router)
 	shutdown := make(chan error)
 
 	go func() {
@@ -54,7 +58,7 @@ func main() {
 		shutdown <- srv.Shutdown(ctx)
 	}()
 
-	log.Info().Msg("Server starting on :8080")
+	log.Info().Msg("Server starting on :8083") 
 	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Error().Err(err).Msg("Server failed to start")
 		os.Exit(1)

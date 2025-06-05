@@ -5,7 +5,9 @@ import (
 )
 
 func RegisterRoutes(r chi.Router, handler *HTTPHandler) {
-	r.Get("/{id}/linked-accounts", handler.FetchLinkedAccounts)
-		r.Post("/{id}/email/generate-otp", handler.GenerateEmailOTP)
-	r.Post("/{id}/email/verify-otp", handler.VerifyEmailOTP)
+	userRouter := chi.NewRouter()
+	userRouter.Get("/{id}/linked-accounts", handler.FetchLinkedAccounts)
+	userRouter.Post("/{id}/email/generate-otp", handler.GenerateEmailOTP)
+	userRouter.Post("/{id}/email/verify-otp", handler.VerifyEmailOTP)
+	r.Mount("/user", userRouter)
 }

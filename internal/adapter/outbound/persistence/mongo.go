@@ -20,6 +20,8 @@ func NewMongoRepository(client *mongo.Client, dbName string) outbound.UserReposi
 	return &MongoRepository{
 		userDal:          dal.NewMongoDal[entities.User, entities.User](client, dbName, "users"),
 		linkedAccountDal: dal.NewMongoDal[entities.LinkedAccount, entities.LinkedAccount](client, dbName, "linked_accounts"),
+		otpDal: dal.NewMongoDal[entities.OTP, entities.OTP](client, dbName, "otps"),
+		
 	}
 }
 
@@ -45,14 +47,10 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*users.User,
 	}
 
 	return &users.User{
-		ID: userEntity.ID.Hex(),
-		FullName: users.FullName{
-			FirstName:  userEntity.FullName.FirstName,
-			MiddleName: userEntity.FullName.MiddleName,
-			LastName:   userEntity.FullName.LastName,
-		},
-		IsDeleted: userEntity.IsDeleted,
-	}, nil
+    ID:        userEntity.ID.Hex(),
+    FullName:  userEntity.FullName, 
+    IsDeleted: userEntity.IsDeleted,
+}, nil
 }
 
 func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID string) ([]users.LinkedAccountDetail, error) {
@@ -67,7 +65,7 @@ func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID s
 		"linked_status":    true,
 		"is_deleted":       bson.M{"$ne": true},
 	}
-	accountEntities, err := r.linkedAccountDal.Find(ctx, accountFilter, nil)
+	accountEntities, err := r.linkedAccountDal.FindAll(ctx, accountFilter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +75,7 @@ func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID s
 		linkedAccounts = append(linkedAccounts, users.LinkedAccountDetail{
 			AccountNumber:     acc.AccountNumber,
 			AccountBranchCode: acc.AccountBranchCode,
-			LinkedBranch:      acc.LinkerBranch,
+			LinkedBranch:      acc.LinkedBranch,
 			IsAccountActive:   acc.IsAccountActive,
 			LinkedStatus:      acc.LinkedStatus,
 			CurrencyCode:      acc.CurrencyCode,
@@ -100,7 +98,7 @@ func (r *MongoRepository) StoreOTP(ctx context.Context, otp *users.OTPRecord) er
 		UserCode:    otp.UserID,
 		OTPFor:      entities.OTPForChangeEmail,
 		OTPCode:     otp.OTP,
-		Email:       &otp.Email,
+		Email:       otp.Email,
 		ExpiresAt:   otp.ExpiresAt,
 		CreatedAt:   time.Now(),
 		Status:      "",
@@ -127,7 +125,7 @@ func (r *MongoRepository) FindOTP(ctx context.Context, userID, email string) (*u
 
 	return &users.OTPRecord{
 		UserID:    otpEntity.UserCode,
-		Email:     *otpEntity.Email,
+		Email:     otpEntity.Email,
 		OTP:       otpEntity.OTPCode,
 		CreatedAt: otpEntity.CreatedAt,
 		ExpiresAt: otpEntity.ExpiresAt,
