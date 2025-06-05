@@ -25,7 +25,7 @@ type LinkedAccountDetailDto struct {
 
 type LinkedAccountResponseDto struct {
 	UserID         string                  `json:"user_id"`
-	FullName       FullNameDto             `json:"full_name"`
+	FullName       string             `json:"full_name"`
 	LinkedAccounts []LinkedAccountDetailDto `json:"linked_accounts"`
 }
 
@@ -45,14 +45,10 @@ func ToLinkedAccountResponseDto(response *domain.LinkedAccountResponse) *LinkedA
 		}
 	}
 	return &LinkedAccountResponseDto{
-		UserID: response.UserID,
-		FullName: FullNameDto{
-			FirstName:  response.FullName.FirstName,
-			MiddleName: response.FullName.MiddleName,
-			LastName:   response.FullName.LastName,
-		},
-		LinkedAccounts: dtoAccounts,
-	}
+        UserID: response.UserID,
+        FullName: response.FullName,
+        LinkedAccounts: dtoAccounts,
+    }
 }
 
 

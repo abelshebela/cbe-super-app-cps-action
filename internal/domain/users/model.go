@@ -17,7 +17,7 @@ type LinkedAccountDetail struct {
 
 type User struct {
 	ID        string
-	FullName  FullName
+	FullName  string
 	IsDeleted bool
 }
 type UserEmail struct {
@@ -28,7 +28,7 @@ type UserEmail struct {
 
 type LinkedAccountResponse struct {
 	UserID         string                `json:"user_id"`
-	FullName       FullName              `json:"full_name"`
+	FullName       string              `json:"full_name"`
 	LinkedAccounts []LinkedAccountDetail `json:"linked_accounts"`
 }
 

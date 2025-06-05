@@ -8,9 +8,16 @@ import (
 	users "cbe-super-app-member-users/internal/domain/users"
 	context "context"
 	reflect "reflect"
-
+	time "time"
 	gomock "github.com/golang/mock/gomock"
 )
+type MockOTPRecord struct {
+    UserID    string
+    Email     string
+    OTP       string
+    CreatedAt time.Time
+    ExpiresAt time.Time
+}
 
 // MockUserRepository is a mock of UserRepository interface.
 type MockUserRepository struct {
