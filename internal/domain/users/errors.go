@@ -20,3 +20,16 @@ func NewServiceError(def common.ErrorDefinition) error {
 		Message: def.Message,
 	}
 }
+func NewInvalidOTPError() error {
+	return &ServiceError{
+		Code:    "INVALID_OTP",
+		Message: "The provided OTP is invalid",
+	}
+}
+
+func NewExpiredOTPError() error {
+	return &ServiceError{
+		Code:    "EXPIRED_OTP",
+		Message: "The OTP has expired",
+	}
+}

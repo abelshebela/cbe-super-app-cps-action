@@ -6,7 +6,9 @@ import (
 )
 
 type ApplicationHandler interface {
-	FetchLinkedAccounts(ctx context.Context, req FetchLinkedAccountsRequest) (*LinkedAccountResponseDto, error)
+    FetchLinkedAccounts(ctx context.Context, req FetchLinkedAccountsRequest) (*LinkedAccountResponseDto, error)
+    GenerateEmailOTP(ctx context.Context, req GenerateOTPRequest) (*GenerateOTPResponse, error)
+    VerifyEmailOTP(ctx context.Context, req VerifyOTPRequest) (*VerifyOTPResponse, error)
 }
 
 type applicationHandler struct {
@@ -23,4 +25,29 @@ func (h *applicationHandler) FetchLinkedAccounts(ctx context.Context, req FetchL
 		return nil, err
 	}
 	return ToLinkedAccountResponseDto(response), nil
+}
+
+func (h *applicationHandler) GenerateEmailOTP(ctx context.Context, req GenerateOTPRequest) (*GenerateOTPResponse, error) {
+	otp, err := h.domainService.GenerateEmailOTP(ctx, users.OTPRequest{
+		UserID: req.UserID,
+		Email:  req.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &GenerateOTPResponse{OTP: otp}, nil
+}
+
+func (h *applicationHandler) VerifyEmailOTP(ctx context.Context, req VerifyOTPRequest) (*VerifyOTPResponse, error) {
+	if err := h.domainService.VerifyEmailOTP(ctx, users.OTPVerification{
+		UserID: req.UserID,
+		Email:  req.Email,
+		OTP:    req.OTP,
+	}); err != nil {
+		return nil, err
+	}
+	return &VerifyOTPResponse{
+		Success: true,
+		Email:   req.Email,
+	}, nil
 }

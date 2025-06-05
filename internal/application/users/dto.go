@@ -54,3 +54,24 @@ func ToLinkedAccountResponseDto(response *domain.LinkedAccountResponse) *LinkedA
 		LinkedAccounts: dtoAccounts,
 	}
 }
+
+
+type GenerateOTPRequest struct {
+	UserID string `json:"user_id" binding:"required"`
+	Email  string `json:"email" binding:"required,email"`
+}
+
+type GenerateOTPResponse struct {
+	OTP string `json:"otp"`
+}
+
+type VerifyOTPRequest struct {
+	UserID string `json:"user_id" binding:"required"`
+	Email  string `json:"email" binding:"required,email"`
+	OTP    string `json:"otp" binding:"required"`
+}
+
+type VerifyOTPResponse struct {
+	Success bool   `json:"success"`
+	Email   string `json:"email"`
+}

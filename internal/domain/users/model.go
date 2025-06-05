@@ -20,9 +20,30 @@ type User struct {
 	FullName  FullName
 	IsDeleted bool
 }
+type UserEmail struct {
+	ID        string
+	Email string `json:"email" bson:"email"`
+
+}
 
 type LinkedAccountResponse struct {
 	UserID         string                `json:"user_id"`
 	FullName       FullName              `json:"full_name"`
 	LinkedAccounts []LinkedAccountDetail `json:"linked_accounts"`
+}
+
+type GenerateOTPRequest struct {
+	UserID string `json:"user_id"`
+	Email  string `json:"email"`
+}
+
+type OTPRequest struct {
+	UserID string
+	Email  string
+}
+
+type OTPVerification struct {
+	UserID string
+	Email  string
+	OTP    string
 }
