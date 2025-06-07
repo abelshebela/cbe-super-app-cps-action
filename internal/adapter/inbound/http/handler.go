@@ -45,33 +45,37 @@ func (h *HTTPHandler) sendErrorResponse(w http.ResponseWriter, status int, code,
 }
 
 func (h *HTTPHandler) FetchLinkedAccounts(w http.ResponseWriter, r *http.Request) {
-    id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 
-    if _, err := primitive.ObjectIDFromHex(id); err != nil {
-        h.logger.Errorf("Invalid ObjectID: %v", err)
-        h.sendErrorResponse(w, http.StatusBadRequest, common.DefineError.General["INVALID_ID"].Code, common.DefineError.General["INVALID_ID"].Message)
-        return
-    }
+	// Validate ID format in handler
+	if _, err := primitive.ObjectIDFromHex(id); err != nil {
+		h.logger.Errorf("Invalid ObjectID: %v", err)
+		h.sendErrorResponse(w, http.StatusBadRequest, 
+			common.DefineError.General["INVALID_ID"].Code, 
+			common.DefineError.General["INVALID_ID"].Message)
+		return
+	}
 
-    req := app.FetchLinkedAccountsRequest{UserID: id}
-    response, err := h.appHandler.FetchLinkedAccounts(r.Context(), req)
-    if err != nil {
-        h.logger.Errorf("Failed to fetch linked accounts for user ID %s: %v", id, err)
-        if serviceErr, ok := err.(*domain.ServiceError); ok {
-			
-            h.sendErrorResponse(w, http.StatusNotFound, serviceErr.Code, serviceErr.Message)
-        } else {
-            h.sendErrorResponse(w, http.StatusInternalServerError, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Message)
-        }
-        return
-    }
+	req := app.FetchLinkedAccountsRequest{UserID: id}
+	response, err := h.appHandler.FetchLinkedAccounts(r.Context(), req)
+	if err != nil {
+		h.logger.Errorf("Failed to fetch linked accounts for user ID %s: %v", id, err)
+		if serviceErr, ok := err.(*domain.ServiceError); ok {
+			h.sendErrorResponse(w, http.StatusNotFound, serviceErr.Code, serviceErr.Message)
+		} else {
+			h.sendErrorResponse(w, http.StatusInternalServerError, 
+				common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, 
+				common.DefineError.General["UNHANDLED_SERVER_ERROR"].Message)
+		}
+		return
+	}
 
-    resp := common.Response[*app.LinkedAccountResponseDto]{
-        ResponseWriter: w,
-        Status:         http.StatusOK,
-        Data:           response,
-    }
-    resp.SendJSON()
+	resp := common.Response[*app.LinkedAccountResponseDto]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           response,
+	}
+	resp.SendJSON()
 }
 
 
@@ -79,8 +83,16 @@ func (h *HTTPHandler) FetchLinkedAccounts(w http.ResponseWriter, r *http.Request
 
 func (h *HTTPHandler) GenerateEmailOTP(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var req app.GenerateOTPRequest
 	
+	if _, err := primitive.ObjectIDFromHex(id); err != nil {
+		h.logger.Errorf("Invalid ObjectID: %v", err)
+		h.sendErrorResponse(w, http.StatusBadRequest, 
+			common.DefineError.General["INVALID_ID"].Code, 
+			common.DefineError.General["INVALID_ID"].Message)
+		return
+	}
+	
+	var req app.GenerateOTPRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.sendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
 		return
@@ -88,7 +100,6 @@ func (h *HTTPHandler) GenerateEmailOTP(w http.ResponseWriter, r *http.Request) {
 	req.UserID = id
 	
 	response, err := h.appHandler.GenerateEmailOTP(r.Context(), req)
-	
 	if err != nil {
 		h.handleOTPError(w, err)
 		return
@@ -99,14 +110,24 @@ func (h *HTTPHandler) GenerateEmailOTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *HTTPHandler) VerifyEmailOTP(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var req app.VerifyOTPRequest
 	
+	
+	if _, err := primitive.ObjectIDFromHex(id); err != nil {
+		h.logger.Errorf("Invalid ObjectID: %v", err)
+		h.sendErrorResponse(w, http.StatusBadRequest, 
+			common.DefineError.General["INVALID_ID"].Code, 
+			common.DefineError.General["INVALID_ID"].Message)
+		return
+	}
+	
+	var req app.VerifyOTPRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.sendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
 		return
 	}
+	
 	req.UserID = id
-
+	
 	response, err := h.appHandler.VerifyEmailOTP(r.Context(), req)
 	if err != nil {
 		h.handleOTPError(w, err)
@@ -142,3 +163,22 @@ func (h *HTTPHandler) sendSuccessResponse(w http.ResponseWriter, status int, dat
 	}
 	resp.SendJSON()
 }
+
+// func (h *HTTPHandler) addAccount (w http.ResponseWriter, AccountNumber int) {
+// 	id := chi.URLParam(r, "id")
+// 	var req app.VerifyOTPRequest
+	
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		h.sendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+// 		return
+// 	}
+// 	req.UserID = id
+
+// 	response, err := h.appHandler.VerifyEmailOTP(r.Context(), req)
+// 	if err != nil {
+// 		h.handleOTPError(w, err)
+// 		return
+// 	}
+
+// 	resp.SendJSON()
+// }

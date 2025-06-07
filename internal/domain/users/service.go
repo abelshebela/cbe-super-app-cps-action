@@ -2,12 +2,10 @@ package users
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"time"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"time"
-	fmt "fmt"
 )
 
 type UserService struct {
@@ -23,21 +21,15 @@ func NewUserService(repository UserRepository, logger utils.Logger) *UserService
 }
 
 func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
-    objectID, err := primitive.ObjectIDFromHex(id)
-    if err != nil {
-        s.logger.Errorf("Invalid ObjectID: %v", err)
-        return nil, NewServiceError(common.DefineError.General["INVALID_ID"])
-    }
-
-    user, err := s.repository.FindByID(ctx, objectID.Hex())
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            s.logger.Warnf("User with ID %s not found", id)
-            return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
-        }
-        s.logger.Errorf("Failed to fetch user with ID %s: %v", id, err)
-        return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
-    }
+	user, err := s.repository.FindByID(ctx, id)
+	if err != nil {
+		if err == ErrNotFound {
+			s.logger.Warnf("User with ID %s not found", id)
+			return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
+		}
+		s.logger.Errorf("Failed to fetch user with ID %s: %v", id, err)
+		return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+	}
 
 	if user.IsDeleted {
 		s.logger.Infof("User with ID %s is deleted", id)
@@ -64,17 +56,11 @@ func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*Lin
 	return response, nil
 }
 
-
-
 func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error) {
-	if _, err := primitive.ObjectIDFromHex(req.UserID); err != nil {
-		return "", NewServiceError(common.DefineError.General["INVALID_ID"])
-	}
-	
 	existingUser, err := s.repository.FindByEmail(ctx, req.Email)
-	if err != nil && err != mongo.ErrNoDocuments {
+	if err != nil && err != ErrNotFound {
 		s.logger.Errorf("Email check failed: %v", err)
-		return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+		// return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
 	if existingUser != nil && existingUser.ID != req.UserID {
 		return "", NewServiceError(common.ErrorDefinition{
@@ -83,11 +69,9 @@ func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (str
 		})
 	}
 
-	
 	otp := utils.OTPGenerator(6)
 	expiresAt := time.Now().Add(5 * time.Minute)
 
-	
 	record := &OTPRecord{
 		UserID:    req.UserID,
 		Email:     req.Email,
@@ -103,27 +87,25 @@ func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (str
 
 	return otp, nil
 }
+
 func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerification) error {
-
-	if _, err := primitive.ObjectIDFromHex(verification.UserID); err != nil {
-		return NewServiceError(common.DefineError.General["INVALID_ID"])
-	}
-	
-
+	// s.logger.Errorf("OTP lookup : %v",verification )
 	record, err := s.repository.FindOTP(ctx, verification.UserID, verification.Email)
+	// s.logger.Errorf("OTP lookup : %v", record)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if err == ErrNotFound {
 			return NewInvalidOTPError()
 		}
 		s.logger.Errorf("OTP lookup failed: %v", err)
 		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
-	fmt.Println("Generating OTP for user ID:", record.OTP)
+
 	if record.OTP != verification.OTP {
 		return NewInvalidOTPError()
 	}
 
 	if time.Now().After(record.ExpiresAt) {
+		// s.logger.Errorf("vvvv", time.Now().After(record.ExpiresAt))
 		return NewExpiredOTPError()
 	}
 
