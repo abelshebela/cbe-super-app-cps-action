@@ -23,26 +23,21 @@ func NewUserService(repository UserRepository, logger utils.Logger) *UserService
 }
 
 func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		s.logger.Errorf("Invalid ObjectID: %v", err)
-		return nil, NewServiceError(common.DefineError.General["INVALID_ID"])
-	}
+    objectID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        s.logger.Errorf("Invalid ObjectID: %v", err)
+        return nil, NewServiceError(common.DefineError.General["INVALID_ID"])
+    }
 
-	user, err := s.repository.FindByID(ctx, objectID.Hex())
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Warnf("User with ID %s not found", id)
-			return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
-		}
-		s.logger.Errorf("Failed to fetch user with ID %s: %v", id, err)
-		return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
-	}
-
-	if user == nil {
-		s.logger.Warnf("User with ID %s not found", id)
-		return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
-	}
+    user, err := s.repository.FindByID(ctx, objectID.Hex())
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            s.logger.Warnf("User with ID %s not found", id)
+            return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
+        }
+        s.logger.Errorf("Failed to fetch user with ID %s: %v", id, err)
+        return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+    }
 
 	if user.IsDeleted {
 		s.logger.Infof("User with ID %s is deleted", id)

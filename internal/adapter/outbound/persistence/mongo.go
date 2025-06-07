@@ -63,7 +63,7 @@ func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID s
 		"user_id":          oid,
 		"is_account_active": true,
 		"linked_status":    true,
-		"is_deleted":       bson.M{"$ne": true},
+		// "is_deleted":       bson.M{"$ne": true},
 	}
 	accountEntities, err := r.linkedAccountDal.FindAll(ctx, accountFilter, nil)
 	if err != nil {

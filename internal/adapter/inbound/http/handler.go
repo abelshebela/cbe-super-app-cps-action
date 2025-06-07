@@ -58,6 +58,7 @@ func (h *HTTPHandler) FetchLinkedAccounts(w http.ResponseWriter, r *http.Request
     if err != nil {
         h.logger.Errorf("Failed to fetch linked accounts for user ID %s: %v", id, err)
         if serviceErr, ok := err.(*domain.ServiceError); ok {
+			
             h.sendErrorResponse(w, http.StatusNotFound, serviceErr.Code, serviceErr.Message)
         } else {
             h.sendErrorResponse(w, http.StatusInternalServerError, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Message)

@@ -58,7 +58,7 @@ func main() {
 		shutdown <- srv.Shutdown(ctx)
 	}()
 
-	log.Info().Msg("Server starting on :8083") 
+	log.Info().Msg("Server starting on :8080") 
 	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Error().Err(err).Msg("Server failed to start")
 		os.Exit(1)
