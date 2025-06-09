@@ -12,10 +12,10 @@ type ApplicationHandler interface {
 }
 
 type applicationHandler struct {
-	domainService users.UserService
+	domainService *users.UserService
 }
 
-func NewApplicationHandler(domainService users.UserService) ApplicationHandler {
+func NewApplicationHandler(domainService *users.UserService) ApplicationHandler {
 	return &applicationHandler{domainService: domainService}
 }
 

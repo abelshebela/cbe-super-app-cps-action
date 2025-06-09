@@ -1,15 +1,22 @@
 package inbound
 
 import (
-	"net/http"
-	"github.com/go-chi/chi/v5"
+    // "chi"
+    chi "github.com/go-chi/chi/v5"
+    "cbe-super-app-member-users/internal/port/inbound/users"
+    "cbe-super-app-member-users/internal/port/inbound/account"
 )
 
 type Handler interface {
-	RegisterRoutes(r chi.Router) chi.Router
+    RegisterRoutes(r chi.Router) chi.Router
 }
 
 type UserPortHandler interface {
-	Handler
-	FetchLinkedAccounts(w http.ResponseWriter, r *http.Request)
+    Handler
+    users.UserPortHandler
+}
+
+type AccountPortHandler interface {
+    Handler
+    account.AccountPortHandler
 }
