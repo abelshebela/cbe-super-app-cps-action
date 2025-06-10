@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"errors"
-	"net/http"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,7 +19,6 @@ import (
 	domainUsers "cbe-super-app-member-users/internal/domain/users"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -31,45 +29,38 @@ func main() {
 	defer logger.Sync()
 
 	uri := os.Getenv("MONGODB_URI")
-client, err := config.ConnectToMongoDB(uri)
+	client, err := config.ConnectToMongoDB(uri)
 	if err != nil {
-		log.Fatal().Msgf("Failed to connect to MongoDB: %s", err.Error())
+		log.Fatalf("Failed to connect to MongoDB: %s", err.Error())
 	}
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
-			log.Fatal().Msgf("Failed to disconnect from MongoDB: %s", err.Error())
+			log.Fatalf("Failed to disconnect from MongoDB: %s", err.Error())
 		}
 	}()
 
-	
 	repo := persistence.NewMongoRepository(client, "cbe")
 	apiClient := AccountApi.NewAccountAPIClient(logger)
-	
 
 	userDomainService := domainUsers.NewUserService(repo, logger)
-	accountService := domainAccount.NewAccountService(repo, apiClient, logger)
-	
-	
+	accountDomainService := domainAccount.NewAccountService(repo, apiClient, logger)
+
 	userAppService := appUsers.NewApplicationHandler(userDomainService)
-	accountAppService := appAccount.NewApplicationHandler(accountService)
-	
-	
+	accountAppService := appAccount.NewApplicationHandler(accountDomainService)
+
 	userHandler := httpUser.NewHTTPHandler(userAppService, logger)
 	accountHandler := httpAccount.NewHTTPHandler(accountAppService, logger)
 
-	
 	router := chi.NewRouter()
 	httpAdapter.RegisterRoutes(router, userHandler, accountHandler)
 
-	
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = ":8080"
 	}
-	srv := &http.Server{
-		Addr:    port,
-		Handler: router,
-	}
+
+	server := httpAdapter.NewHTTPServer(port, router)
+
 	shutdown := make(chan error)
 
 	go func() {
@@ -80,19 +71,19 @@ client, err := config.ConnectToMongoDB(uri)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		log.Info().Msgf("Received signal: %s", sig.String())
-		shutdown <- srv.Shutdown(ctx)
+		logger.Infof("Received signal: %s", sig.String())
+		shutdown <- server.Shutdown(ctx)
 	}()
 
-	log.Info().Msgf("Server starting on %s", port)
-	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		log.Error().Err(err).Msg("Server failed to start")
-		os.Exit(1)
+	logger.Infof("Server starting on %s", port)
+	if err := server.ListenAndServe(); err != nil {
+		logger.Errorf("Server failed to start: %v", err)
+		return
 	}
 
 	if err := <-shutdown; err != nil {
-		log.Error().Err(err).Msg("Server shutdown failed")
-		os.Exit(1)
+		logger.Errorf("Server shutdown failed: %v", err)
+		return
 	}
-	log.Info().Msg("Server stopped gracefully")
+	logger.Infof("Server stopped gracefully")
 }

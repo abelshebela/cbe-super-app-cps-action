@@ -6,7 +6,6 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
-	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.17
 	go.mongodb.org/mongo-driver v1.17.4
@@ -47,6 +46,7 @@ require (
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sagikazarmark/locafero v0.9.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect

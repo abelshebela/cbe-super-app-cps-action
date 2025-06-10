@@ -3,27 +3,28 @@ package users
 import (
 	"context"
 	"time"
-
+	userRepoPort "cbe-super-app-member-users/internal/port/outbound/users"
+	"cbe-super-app-member-users/internal/shared"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type UserService struct {
-	repository UserRepository
+	repository userRepoPort.UserRepositoryPort
 	logger     utils.Logger
 }
 
-func NewUserService(repository UserRepository, logger utils.Logger) *UserService {
+func NewUserService(repository userRepoPort.UserRepositoryPort, logger utils.Logger) *UserService {
 	return &UserService{
 		repository: repository,
 		logger:     logger,
 	}
 }
 
-func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
+func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
 	user, err := s.repository.FindByID(ctx, id)
 	if err != nil {
-		if err == ErrNotFound {
+		if err == shared.ErrNotFound {
 			s.logger.Warnf("User with ID %s not found", id)
 			return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
 		}
@@ -45,12 +46,24 @@ func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*Lin
 		s.logger.Errorf("Failed to fetch linked accounts for user ID %s: %v", id, err)
 		return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
+var linkedAccountsResponse []LinkedAccountDetail
+for _, account := range linkedAccounts {
+	linkedAccountsResponse = append(linkedAccountsResponse, LinkedAccountDetail{
+		AccountNumber:     account.AccountNumber,
+		AccountBranchCode: account.AccountBranchCode,
+		LinkedBranch:      account.LinkedBranch,
+		IsAccountActive:   account.IsAccountActive,
+		LinkedStatus:      account.LinkedStatus,
+		CurrencyCode:      account.CurrencyCode,
+	})
+}
 
-	response := &LinkedAccountResponse{
-		UserID:         user.ID,
-		FullName:       user.FullName,
-		LinkedAccounts: linkedAccounts,
-	}
+response := &LinkedAccountResponse{
+	UserID:         user.ID,
+	FullName:       user.FullName,
+	LinkedAccounts: linkedAccountsResponse,
+}
+
 
 	s.logger.Infof("Successfully fetched active linked accounts for user ID %s", id)
 	return response, nil
@@ -58,15 +71,12 @@ func (s *UserService) ActiveLinkedAccounts(ctx context.Context, id string) (*Lin
 
 func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error) {
 	existingUser, err := s.repository.FindByEmail(ctx, req.Email)
-	if err != nil && err != ErrNotFound {
+	if err != nil && err != shared.ErrNotFound {
 		s.logger.Errorf("Email check failed: %v", err)
-		// return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+		return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
 	if existingUser != nil && existingUser.ID != req.UserID {
-		return "", NewServiceError(common.ErrorDefinition{
-			Code:    "EMAIL_IN_USE",
-			Message: "Email address is already registered",
-		})
+		return "", NewInternalServiceError(shared.DefineError.OTP["EMAIL_IN_USE"])
 	}
 
 	otp := utils.OTPGenerator(6)
@@ -79,8 +89,15 @@ func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (str
 		CreatedAt: time.Now(),
 		ExpiresAt: expiresAt,
 	}
+	recordRepo := &userRepoPort.OTPRecord{
+    UserID:            record.UserID,
+	Email:             record.Email,
+	OTP:               record.OTP,
+	CreatedAt:         record.CreatedAt,
+	ExpiresAt:         record.ExpiresAt,
+}
 
-	if err := s.repository.StoreOTP(ctx, record); err != nil {
+	if err := s.repository.StoreOTP(ctx, recordRepo); err != nil {
 		s.logger.Errorf("OTP storage failed: %v", err)
 		return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
@@ -89,30 +106,31 @@ func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (str
 }
 
 func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerification) error {
-	// s.logger.Errorf("OTP lookup : %v",verification )
 	record, err := s.repository.FindOTP(ctx, verification.UserID, verification.Email)
-	// s.logger.Errorf("OTP lookup : %v", record)
 	if err != nil {
-		if err == ErrNotFound {
-			return NewInvalidOTPError()
+		if err == shared.ErrNotFound {
+			s.logger.Errorf("OTP lookup failed for user %s: no documents found", verification.UserID)
+			return NewInternalServiceError(shared.DefineError.OTP["INVALID_OTP"])
 		}
-		s.logger.Errorf("OTP lookup failed: %v", err)
+		s.logger.Errorf("OTP lookup failed for user %s: %v", verification.UserID, err)
 		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
 
 	if record.OTP != verification.OTP {
-		return NewInvalidOTPError()
+		s.logger.Warnf("Invalid OTP provided for user %s", verification.UserID)
+		return NewInternalServiceError(shared.DefineError.OTP["INVALID_OTP"])
 	}
 
 	if time.Now().After(record.ExpiresAt) {
-		// s.logger.Errorf("vvvv", time.Now().After(record.ExpiresAt))
-		return NewExpiredOTPError()
+		s.logger.Warnf("Expired OTP for user %s", verification.UserID)
+		return NewInternalServiceError(shared.DefineError.OTP["EXPIRED_OTP"])
 	}
 
 	if err := s.repository.UpdateUserEmail(ctx, verification.UserID, verification.Email); err != nil {
-		s.logger.Errorf("Email update failed: %v", err)
+		s.logger.Errorf("Email update failed for user %s: %v", verification.UserID, err)
 		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
 	}
 
+	s.logger.Infof("Email OTP verified successfully for user %s", verification.UserID)
 	return nil
 }

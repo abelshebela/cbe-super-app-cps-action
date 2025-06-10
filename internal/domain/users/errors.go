@@ -1,8 +1,8 @@
 package users
 
 import (
-	"fmt"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	"cbe-super-app-member-users/internal/shared"
 )
 
 type ServiceError struct {
@@ -11,7 +11,7 @@ type ServiceError struct {
 }
 
 func (e ServiceError) Error() string {
-	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+	return e.Message
 }
 
 func NewServiceError(def common.ErrorDefinition) ServiceError {
@@ -21,16 +21,9 @@ func NewServiceError(def common.ErrorDefinition) ServiceError {
 	}
 }
 
-func NewInvalidOTPError() ServiceError {
+func NewInternalServiceError(def shared.ErrorDefinition) ServiceError {
 	return ServiceError{
-		Code:    "INVALID_OTP",
-		Message: "The provided OTP is invalid",
-	}
-}
-
-func NewExpiredOTPError() ServiceError {
-	return ServiceError{
-		Code:    "EXPIRED_OTP",
-		Message: "The OTP has expired",
+		Code:    def.Code,
+		Message: def.Message,
 	}
 }
