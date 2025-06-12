@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
+	entities "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
 )
 
 // MockBulkCustomerRepo is a mock of BulkCustomerRepo interface.
@@ -64,27 +64,26 @@ func (mr *MockBulkCustomerRepoMockRecorder) ApproveSingleBranchDisable(ctx, acti
 }
 
 // DisableMultipleBranches mocks base method.
-func (m *MockBulkCustomerRepo) DisableMultipleBranches(ctx context.Context, branchCodes []string, cpsData string) (*action.CPSAction, error) {
+func (m *MockBulkCustomerRepo) DisableMultipleBranches(ctx context.Context, branchCodes []string) (*entities.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DisableMultipleBranches", ctx, branchCodes, cpsData)
-	ret0, _ := ret[0].(*action.CPSAction)
+	ret := m.ctrl.Call(m, "DisableMultipleBranches", ctx, branchCodes)
+	ret0, _ := ret[0].(*entities.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DisableMultipleBranches indicates an expected call of DisableMultipleBranches.
-func (mr *MockBulkCustomerRepoMockRecorder) DisableMultipleBranches(ctx, branchCodes, cpsData interface{}) *gomock.Call {
+func (mr *MockBulkCustomerRepoMockRecorder) DisableMultipleBranches(ctx, branchCodes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableMultipleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableMultipleBranches), ctx, branchCodes, cpsData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableMultipleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableMultipleBranches), ctx, branchCodes)
 }
 
 // DisableSingleBranch mocks base method.
-func (m *MockBulkCustomerRepo) DisableSingleBranch(ctx context.Context, branchCode, cpsData string) (*action.CPSAction, error) {
+func (m *MockBulkCustomerRepo) DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableSingleBranch", ctx, branchCode, cpsData)
-	ret0, _ := ret[0].(*action.CPSAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DisableSingleBranch indicates an expected call of DisableSingleBranch.
@@ -109,10 +108,10 @@ func (mr *MockBulkCustomerRepoMockRecorder) FilterMultipleBranches(ctx, region, 
 }
 
 // FilterSingleBranches mocks base method.
-func (m *MockBulkCustomerRepo) FilterSingleBranches(ctx context.Context, region, district string) ([]string, error) {
+func (m *MockBulkCustomerRepo) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FilterSingleBranches", ctx, region, district)
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].([]entities.Branch)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -26,6 +26,7 @@ const (
     ActionCreate ActionType = "CREATE"
     ActionUpdate ActionType = "UPDATE"
     ActionDelete ActionType = "DELETE"
+    ActionDisable ActionType = "DISABLE"
 )
 
 type User struct {

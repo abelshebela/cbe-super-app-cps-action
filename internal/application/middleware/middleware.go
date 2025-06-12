@@ -56,16 +56,13 @@ func AccessControl(allowedRoles []string) func(http.Handler) http.Handler {
 func AuthenticateToken(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         authHeader := r.Header.Get("Authorization")
-        fmt.Println("Authorization header:", authHeader)
 
         tokenString := ""
         if strings.HasPrefix(authHeader, "Bearer ") {
             tokenString = strings.TrimPrefix(authHeader, "Bearer ")
         }
-        fmt.Println("Token string:", tokenString)
 
         jwtSecret := []byte(viper.GetString("JwtSecretKey"))
-        fmt.Println("JWT Secret loaded:", len(jwtSecret) > 0)
 
         if tokenString == "" {
             fmt.Println("Access token required: token string is empty")
@@ -77,33 +74,28 @@ func AuthenticateToken(next http.Handler) http.Handler {
             return jwtSecret, nil
         })
         if err != nil {
-            fmt.Println("JWT parse error:", err)
             http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
             return
         }
         if !token.Valid {
-            fmt.Println("JWT token not valid")
             http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
             return
         }
 
         claims, ok := token.Claims.(jwt.MapClaims)
         if !ok {
-            fmt.Println("JWT claims type assertion failed")
             http.Error(w, "Invalid token", http.StatusUnauthorized)
             return
         }
 
         data, ok := claims["data"].(string)
         if !ok || data == "" {
-            fmt.Println("JWT claims missing 'data' or empty")
             http.Error(w, "Invalid token", http.StatusUnauthorized)
             return
         }
 
         decryptedUser, err := decryptUserData(data)
         if err != nil {
-            fmt.Println("decryptUserData error:", err)
             http.Error(w, "Invalid token", http.StatusUnauthorized)
             return
         }
@@ -111,12 +103,10 @@ func AuthenticateToken(next http.Handler) http.Handler {
         var userPayload UserPayload
         err = json.Unmarshal([]byte(decryptedUser), &userPayload)
         if err != nil {
-            fmt.Println("User payload unmarshal failed:", err)
             http.Error(w, "Invalid token payload", http.StatusUnauthorized)
             return
         }
 
-        fmt.Println("UserPayload:", userPayload)
 
         ctx := context.WithValue(r.Context(), ContextKey("user_payload"), userPayload)
         ctx = context.WithValue(ctx, ContextKey("user_role"), userPayload.UserRole)
