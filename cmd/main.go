@@ -1,0 +1,78 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/customer_handler"
+	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/customer"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/customer"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/service"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/spf13/viper"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+func main() {
+	logger := utils.NewLogger()
+
+	cfg, err := config.Load()
+	if err != nil {
+		logger.Fatalf("failed to load config %v", err)
+	}
+
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	mongoClient, err := config.ConnectToMongoDB(cfg.MongoDBURI)
+	if err != nil {
+		logger.Fatalf("failed to connect to mongo %v", err)
+	}
+	defer func() {
+		if err := mongoClient.Disconnect(context.Background()); err != nil {
+			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
+		}
+	}()
+
+	customerPersitance := customerPersistance.InitCustomerDetail(mongoClient, cfg.MongoDBDatabase,
+		viper.GetDuration("timeout"), logger)
+	customerDomain := service.IntiCustomerDomain(customerPersitance, logger)
+	customerApp := customer.InitCustomerHandler(customerDomain, logger)
+	customerRoutes := customerhandler.NewCustomerHTTPHandler(customerApp, logger)
+	customerhandler.InitCustomerRoutes(r, customerRoutes)
+
+	server := http.Server{
+		Addr:    viper.GetString("Host") + ":" + viper.GetString("Port"),
+		Handler: r,
+	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, syscall.SIGTERM)
+
+	go func() {
+		log.Println("🚀 Server started on", viper.GetString("Port"))
+		log.Printf("Server stopped with error: %v\n", server.ListenAndServe())
+	}()
+
+	sig := <-quit
+
+	log.Printf("server shutting down with signal: %v\n", sig)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("failed to shutdown gracefully with error %v", err)
+	}
+
+	log.Println("Server shutdown successfully")
+}
