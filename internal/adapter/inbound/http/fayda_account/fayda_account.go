@@ -1,14 +1,15 @@
 package faydaaccount
 
 import (
-	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
+	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/fayda_account"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -45,7 +46,6 @@ func (f FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter, 
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
-
 
 	cpsAction.MakerUser = faydaaccount.User{
 		UserCode:    user_code,

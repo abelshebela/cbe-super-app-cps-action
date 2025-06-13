@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"time"
 
-	Validation "github.com/go-ozzo/ozzo-validation/v4"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -44,8 +43,8 @@ type ActionData struct {
 }
 
 func (a ActionData) Validate() error {
-	return Validation.ValidateStruct(&a,
-		Validation.Field(&a.UseCode, validation.Required.Error("user code is required")),
+	return validation.ValidateStruct(&a,
+		validation.Field(&a.UseCode, validation.Required.Error("user code is required")),
 		validation.Field(&a.FullName, validation.Required.Error("full name is required")),
 		validation.Field(&a.PhoneNumber, validation.Required.Error("phone number is required"),
 			validation.By(ValidatePhone)),
@@ -80,7 +79,7 @@ type CPSAction struct {
 func (c CPSAction) Validate(rejectOrApprove string) error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.ActionData),
-		Validation.Field(&c.RejectedReason, validation.When(
+		validation.Field(&c.RejectedReason, validation.When(
 			rejectOrApprove == "REJECT", validation.Required, validation.Min(30).Error("minimum character should be 30"),
 			validation.Max(300).Error("maximum character should be 300"))),
 	)

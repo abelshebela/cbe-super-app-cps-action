@@ -1,13 +1,14 @@
 package middleware
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 	"encoding/json"
 	"errors"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 )
 
 type FieldError struct {
@@ -29,9 +30,9 @@ func ErrorHandler(w http.ResponseWriter, err error) {
 		res.SendJSON()
 		return
 	}
-	
+
 	err = errors.Unwrap(err)
-	
+
 	if err := json.Unmarshal([]byte(err.Error()), &errorResponse); err != nil {
 		http.Error(w, "failed to unmarshal error", http.StatusInternalServerError)
 		return
@@ -45,7 +46,6 @@ func ErrorHandler(w http.ResponseWriter, err error) {
 
 	res.SendJSON()
 }
-
 
 func ErrorFields(err error) []FieldError {
 	var errs []FieldError

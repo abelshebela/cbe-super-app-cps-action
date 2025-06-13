@@ -1,106 +1,250 @@
-package model
+package adapter
 
 import (
 	"context"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
+	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 )
 
-type MongoDal[T, K any] interface {
-	FindAll(ctx context.Context, filter, projection bson.M) ([]*K, error)
-	FindAllWithPagination(ctx context.Context, filter, projection bson.M, skip, limit int64) ([]*K, error)
-	TotalCount(ctx context.Context, filter bson.M) (int64, error)
-	FindOne(ctx context.Context, filter, projection bson.M) (*K, error)
-	InsertOne(ctx context.Context, req T) (T, error)
-	UpdateOne(ctx context.Context, filter, update bson.M) (T, error)
-	DeleteOne(ctx context.Context, filter bson.M) error
+type outboundStore struct {
+	MongoDalCPSAction *infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
+	MongoDalBPSUser   *infra_mongo.MongoDal[bps.BPSUser, bps.BPSUser]
+	MongoDalServices  *infra_mongo.MongoDal[model.Service, model.Service]
+	MongoDalMember    *infra_mongo.MongoDal[member.User, member.User]
 }
 
-type mongoDal[T any, K any] struct {
-	collection *mongo.Collection
-}
-
-func NewMongoDal[T any, K any](client *mongo.Client, dbName, collectionName string) MongoDal[T, K] {
-	collection := client.Database(dbName).Collection(collectionName)
-	return &mongoDal[T, K]{
-		collection: collection,
+func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
+	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[0])
+	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[1])
+	mongoDalService := infra_mongo.NewMongoDal[model.Service, model.Service](client, dbName, collectionNames[2])
+	mongoDalMember := infra_mongo.NewMongoDal[member.User, member.User](client, dbName, collectionNames[3])
+	return &outboundStore{
+		MongoDalCPSAction: mongoDalCPSAction,
+		MongoDalBPSUser:   mongoDalBPSUser,
+		MongoDalServices:  mongoDalService,
+		MongoDalMember:    mongoDalMember,
 	}
 }
 
-func (m *mongoDal[T, K]) FindAll(ctx context.Context, filter, projection bson.M) ([]*K, error) {
-	opts := options.Find().SetProjection(projection)
-	cursor, err := m.collection.Find(ctx, filter, opts)
+func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.Service, error) {
+	data, err := o.MongoDalServices.FindAll(ctx, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	var results []*K
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
+	var d []domain.Service
+	for _, v := range data {
+		x := domain.Service{
+			ID:             stringToPointer(v.ID.Hex()),
+			Key:            v.Key,
+			ServiceName:    v.ServiceName,
+			SingleCap:      v.SingleCap,
+			MinAmount:      v.MinAmount,
+			DailyCap:       v.DailyCap,
+			Flag:           v.Flag,
+			CreatedAt:      v.CreatedAt,
+			LastModifiedAt: v.LastModifiedAt,
+		}
+		d = append(d, x)
 	}
-	return results, nil
+	return d, nil
 }
+func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]domain.Service, error) {
+	skip := int64(offset)      // Convert offset to int64 for MongoDB compatibility
+	limitInt64 := int64(limit) // Convert limit to int64 for MongoDB compatibility
 
-func (m *mongoDal[T, K]) FindAllWithPagination(ctx context.Context, filter, projection bson.M, skip, limit int64) ([]*K, error) {
-	opts := options.Find().SetSkip(skip).SetLimit(limit).SetProjection(projection)
-	cursor, err := m.collection.Find(ctx, filter, opts)
+	data, err := o.MongoDalServices.FindAllWithPagination(ctx, nil, nil, skip, limitInt64)
 	if err != nil {
 		return nil, err
 	}
-	var results []*K
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
+
+	var d []domain.Service
+	for _, v := range data {
+		x := domain.Service{
+			ID:             stringToPointer(v.ID.Hex()),
+			Key:            v.Key,
+			ServiceName:    v.ServiceName,
+			SingleCap:      v.SingleCap,
+			MinAmount:      v.MinAmount,
+			DailyCap:       v.DailyCap,
+			Flag:           v.Flag,
+			CreatedAt:      v.CreatedAt,
+			LastModifiedAt: v.LastModifiedAt,
+		}
+		d = append(d, x)
 	}
-	return results, nil
+	return d, nil
 }
-
-func (m *mongoDal[T, K]) TotalCount(ctx context.Context, filter bson.M) (int64, error) {
-	return m.collection.CountDocuments(ctx, filter)
-}
-
-func (m *mongoDal[T, K]) FindOne(ctx context.Context, filter, projection bson.M) (*K, error) {
-	opts := options.FindOne().SetProjection(projection)
-	var result K
-	if err := m.collection.FindOne(ctx, filter, opts).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func (m *mongoDal[T, K]) InsertOne(ctx context.Context, req T) (T, error) {
-	if _, err := m.collection.InsertOne(ctx, req); err != nil {
-		var zero T
-		return zero, err
-	}
-
-	return req, nil
-}
-
-func (m *mongoDal[T, K]) UpdateOne(ctx context.Context, filter, update bson.M) (T, error) {
-	var result T
-	err := m.collection.FindOneAndUpdate(
-		ctx,
-		filter,
-		bson.M{"$set": update},
-		options.FindOneAndUpdate().SetReturnDocument(options.After),
-	).Decode(&result)
+func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain.Service, error) {
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		var zero T
-		return zero, err
+		return domain.Service{}, err
+	}
+	filter := map[string]interface{}{"_id": objID}
+	data, err := o.MongoDalServices.FindOne(ctx, filter, nil)
+	if err != nil {
+		return domain.Service{}, err
+	}
+	return domain.Service{
+		ID:             stringToPointer(data.ID.Hex()),
+		Key:            data.Key,
+		ServiceName:    data.ServiceName,
+		SingleCap:      data.SingleCap,
+		MinAmount:      data.MinAmount,
+		DailyCap:       data.DailyCap,
+		Flag:           data.Flag,
+		CreatedAt:      data.CreatedAt,
+		LastModifiedAt: data.LastModifiedAt,
+	}, nil
+}
+func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Service) error {
+	filter := map[string]interface{}{
+		"_id": service.ID,
+	}
+	update := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"key":            service.Key,
+			"serviceName":    service.ServiceName,
+			"singleCap":      service.SingleCap,
+			"minAmount":      service.MinAmount,
+			"dailyCap":       service.DailyCap,
+			"flag":           service.Flag,
+			"lastModifiedAt": service.LastModifiedAt,
+		},
+	}
+	_, err := o.MongoDalServices.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error) {
+	CpsAction := model.CPSAction{
+		ActionCode:         Action.ActionCode,
+		MakerID:            Action.MakerAndChecker.Maker.UserID,
+		MakerName:          Action.MakerAndChecker.Maker.FullName,
+		MakerPhoneNumber:   Action.MakerAndChecker.Maker.PhoneNumber,
+		CheckerID:          &Action.MakerAndChecker.Checker.UserID,
+		CheckerName:        &Action.MakerAndChecker.Checker.FullName,
+		CheckerPhoneNumber: &Action.MakerAndChecker.Checker.PhoneNumber,
+		Department:         Action.Department,
+		RejectionReason:    Action.RejectionReason,
+		PreviosAction:      struct{}{}, // Assuming this is empty for now
+		CurrentAction: model.CurrentAction{
+			Id:     Action.CurrentAction.Id,
+			Action: Action.CurrentAction.Action,
+		},
+		ActionStatus:   model.ActionStatus(Action.ActionStatus),
+		ActionType:     model.ActionType(Action.ActionType),
+		RequestAction:  model.RequestAction(Action.RequestAction),
+		CreatedAt:      Action.CreatedAt,
+		LastModifiedAt: Action.LastModifiedAt,
+	}
+	data, err := o.MongoDalCPSAction.InsertOne(ctx, CpsAction)
+	if err != nil {
+		return domain.CPSAction{}, nil
+	}
+	result := domain.CPSAction{
+		ID:              data.ID.Hex(),
+		ActionCode:      data.ActionCode,
+		Department:      data.Department,
+		RejectionReason: data.RejectionReason,
+		PreviosAction:   data.PreviosAction, // Assuming this is directly mapped
+		CurrentAction: domain.CurrentAction{
+			Id:     data.CurrentAction.Id,
+			Action: data.CurrentAction.Action,
+		},
+		ActionStatus:   domain.ActionStatus(data.ActionStatus),
+		ActionType:     domain.ActionType(data.ActionType),
+		RequestAction:  domain.RequestAction(data.RequestAction),
+		CreatedAt:      data.CreatedAt,
+		LastModifiedAt: data.LastModifiedAt,
+	}
+	return result, nil
+}
+func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAction) error {
+	CpsAction := model.CPSAction{
+		ActionCode:         Action.ActionCode,
+		MakerID:            Action.MakerAndChecker.Maker.UserID,
+		MakerName:          Action.MakerAndChecker.Maker.FullName,
+		MakerPhoneNumber:   Action.MakerAndChecker.Maker.PhoneNumber,
+		CheckerID:          &Action.MakerAndChecker.Checker.UserID,
+		CheckerName:        &Action.MakerAndChecker.Checker.FullName,
+		CheckerPhoneNumber: &Action.MakerAndChecker.Checker.PhoneNumber,
+		Department:         Action.Department,
+		RejectionReason:    Action.RejectionReason,
+		PreviosAction:      Action.PreviosAction, // Assuming this is directly mapped
+		CurrentAction: model.CurrentAction{
+			Id:     Action.CurrentAction.Id,
+			Action: Action.CurrentAction.Action,
+		},
+		ActionStatus:   model.ActionStatus(Action.ActionStatus),
+		ActionType:     model.ActionType(Action.ActionType),
+		RequestAction:  model.RequestAction(Action.RequestAction),
+		CreatedAt:      Action.CreatedAt,
+		LastModifiedAt: Action.LastModifiedAt,
+	}
+	filter := map[string]interface{}{
+		"action_code": CpsAction.ActionCode,
+	}
+	update := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"makerID":            CpsAction.MakerID,
+			"makerName":          CpsAction.MakerName,
+			"makerPhoneNumber":   CpsAction.MakerPhoneNumber,
+			"checkerID":          CpsAction.CheckerID,
+			"checkerName":        CpsAction.CheckerName,
+			"checkerPhoneNumber": CpsAction.CheckerPhoneNumber,
+			"department":         CpsAction.Department,
+			"rejectionReason":    CpsAction.RejectionReason,
+			"previosAction":      CpsAction.PreviosAction,
+			"currentAction": map[string]interface{}{
+				"id":     CpsAction.CurrentAction.Id,
+				"action": CpsAction.CurrentAction.Action,
+			},
+			"actionStatus":   CpsAction.ActionStatus,
+			"actionType":     CpsAction.ActionType,
+			"requestAction":  CpsAction.RequestAction,
+			"createdAt":      CpsAction.CreatedAt,
+			"lastModifiedAt": CpsAction.LastModifiedAt,
+		},
+	}
+	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	return err
+}
+func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string) (domain.CPSAction, error) {
+	filter := map[string]interface{}{"action_code": Action_Id}
+	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil {
+		return domain.CPSAction{}, err
+	}
+	result := domain.CPSAction{
+		ID:              data.ID.Hex(),
+		ActionCode:      data.ActionCode,
+		Department:      data.Department,
+		RejectionReason: data.RejectionReason,
+		PreviosAction:   data.PreviosAction, // Assuming this is directly mapped
+		CurrentAction: domain.CurrentAction{
+			Id:     data.CurrentAction.Id,
+			Action: data.CurrentAction.Action,
+		},
+		ActionStatus:   domain.ActionStatus(data.ActionStatus),
+		ActionType:     domain.ActionType(data.ActionType),
+		RequestAction:  domain.RequestAction(data.RequestAction),
+		CreatedAt:      data.CreatedAt,
+		LastModifiedAt: data.LastModifiedAt,
 	}
 	return result, nil
 }
 
-func (m *mongoDal[T, K]) DeleteOne(ctx context.Context, filter bson.M) error {
-	_, err := m.collection.UpdateOne(
-		ctx,
-		filter,
-		bson.M{
-			"$set": bson.M{
-				"is_deleted": true,
-			},
-		},
-	)
-	return err
+func stringToPointer(s string) *string {
+	return &s
 }

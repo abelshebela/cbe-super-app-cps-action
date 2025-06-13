@@ -6,13 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/mocks"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
-
 
 type MockLogger struct{}
 
@@ -23,7 +22,6 @@ func (m *MockLogger) Fatalf(msg string, args ...interface{}) {}
 func (m *MockLogger) Warnf(msg string, args ...interface{})  {}
 func (m *MockLogger) Sync() error                            { return nil }
 
-
 func sampleInitiateCPSAction() entity.CPSAction {
 	return entity.CPSAction{
 		ID:         "id1",
@@ -33,13 +31,13 @@ func sampleInitiateCPSAction() entity.CPSAction {
 			FullName:    "Maker User",
 			PhoneNumber: "987654321",
 		},
-		RejectedReason:    "",
-		Department:        "IT",
-		Status:            entity.ActionPending,
-		RequestAction:     entity.RequestDisableFaydaAccount,
-		ActionType:        entity.ActionCreate,
-		ActionData:        entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
-		MakerActionTime:   time.Now(),
+		RejectedReason:  "",
+		Department:      "IT",
+		Status:          entity.ActionPending,
+		RequestAction:   entity.RequestDisableFaydaAccount,
+		ActionType:      entity.ActionCreate,
+		ActionData:      entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
+		MakerActionTime: time.Now(),
 	}
 }
 
@@ -100,7 +98,7 @@ func TestInitiateDisableFaydaAccount(t *testing.T) {
 	service := InitFaydaAccountDomain(mockRepo, mockLogger)
 
 	req := sampleInitiateCPSAction()
-	resp := req 
+	resp := req
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo.EXPECT().

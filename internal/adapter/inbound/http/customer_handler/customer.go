@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/customer"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"

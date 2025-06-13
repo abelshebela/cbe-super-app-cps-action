@@ -7,8 +7,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/repository/mocks"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository/mocks"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -273,8 +273,8 @@ func TestBranchService_DisableMultipleBranches(t *testing.T) {
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockBulkCustomerRepo(ctrl)
 	service := NewBranchService(mockRepo)
-	id := utils.ObjectIDGenerator()       
-	action := &entities.CPSAction{ID: id} 
+	id := utils.ObjectIDGenerator()
+	action := &entities.CPSAction{ID: id}
 	tests := []struct {
 		name        string
 		branchCodes []string

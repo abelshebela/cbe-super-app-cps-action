@@ -37,6 +37,10 @@ type MakerAndChecker struct {
 	Checker User
 }
 
+type CurrentAction struct {
+	Id     string
+	Action bool
+}
 type CPSAction struct {
 	ID              string
 	ActionCode      string
@@ -44,7 +48,7 @@ type CPSAction struct {
 	Department      string
 	RejectionReason *string
 	PreviosAction   struct{}
-	CurrentAction   struct{}
+	CurrentAction   CurrentAction
 	ActionStatus    ActionStatus
 	ActionType      ActionType
 	RequestAction   RequestAction
@@ -115,3 +119,15 @@ const (
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 )
+
+type Service struct {
+	ID             *string
+	Key            string
+	ServiceName    string
+	SingleCap      float32
+	MinAmount      float32
+	DailyCap       float32
+	Flag           bool
+	CreatedAt      time.Time
+	LastModifiedAt time.Time
+}
