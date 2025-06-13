@@ -17,9 +17,10 @@ import (
 
 type UserPayload struct {
 	PhoneNumber string   `json:"phoneNumber,omitempty"`
-	UserRole      string   `json:"userRole,omitempty"`
+	UserRole    string   `json:"userRole,omitempty"`
 	UserID      string   `json:"userId,omitempty"`
 	BranchCode  []string `json:"branchCode,omitempty"`
+	FullName    string   `json:"fullname,omitempty"`
 }
 
 type ContextKey string

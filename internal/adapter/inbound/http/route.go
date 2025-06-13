@@ -18,3 +18,4 @@ func RegisterRoutes(router chi.Router, routes []Route) {
 		router.With(route.Middlewares...).Method(route.Method, route.Path, http.HandlerFunc(route.Handler))
 	}
 }
+

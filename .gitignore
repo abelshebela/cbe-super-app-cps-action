@@ -1,1 +1,9 @@
+tmp
+pkg
+bin
+
+.env
+test.go
+aiso/env
+.env
 .env
