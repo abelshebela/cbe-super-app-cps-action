@@ -2,6 +2,7 @@ package faydaaccount
 
 import (
 	"context"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
 
@@ -59,8 +60,9 @@ func (f FaydaHandler) InitiateDisableFaydaAccount(ctx context.Context, req CPSAc
 		MakerUser: User{
 			UserCode:    res.MakerUser.UserCode,
 			FullName:    res.MakerUser.FullName,
-			PhoneNumber: res.CheckerUser.PhoneNumber,
+			PhoneNumber: res.MakerUser.PhoneNumber,
 		},
+		ActionType: ActionType(res.ActionType),
 		ActionData: ActionData{
 			UseCode:     res.ActionData.UseCode,
 			FullName:    res.ActionData.FullName,
@@ -86,6 +88,12 @@ func (f FaydaHandler) AuthorizeFaydaAccountDisable(ctx context.Context, req CPSA
 			UserCode:    req.CheckerUser.UserCode,
 			FullName:    req.CheckerUser.FullName,
 			PhoneNumber: req.CheckerUser.PhoneNumber,
+		},
+		Department: req.Department,
+		ActionData: entity.ActionData{
+			UseCode:     req.ActionData.UseCode,
+			FullName:    req.ActionData.FullName,
+			PhoneNumber: req.ActionData.PhoneNumber,
 		},
 	}
 
@@ -116,6 +124,8 @@ func (f FaydaHandler) AuthorizeFaydaAccountDisable(ctx context.Context, req CPSA
 			PhoneNumber: res.ActionData.PhoneNumber,
 		},
 		RequestAction:     RequestAction(res.RequestAction),
+		PreviousData:      res.PreviousData,
+		CurrentData:       res.CurrentData,
 		MakerActionTime:   res.MakerActionTime,
 		CheckerActionTime: res.CheckerActionTime,
 	}, nil
@@ -136,6 +146,12 @@ func (f FaydaHandler) RejectFaydaAccountDisable(ctx context.Context, req CPSActi
 			PhoneNumber: req.CheckerUser.PhoneNumber,
 		},
 		RejectedReason: req.RejectedReason,
+		ActionData: entity.ActionData{
+			UseCode:     req.ActionData.UseCode,
+			FullName:    req.ActionData.FullName,
+			PhoneNumber: req.ActionData.PhoneNumber,
+		},
+		Department: req.Department,
 	}
 
 	res, err := f.FaydaDomain.RejectFaydaAccountDisable(ctx, cpsReq)

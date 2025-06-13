@@ -1,12 +1,13 @@
 package faydaaccount
 
 import (
-	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
 
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 
@@ -46,13 +47,13 @@ func (f FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter, 
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-
 	cpsAction.MakerUser = faydaaccount.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
 
+	cpsAction.ActionData = req
 	cpsAction.Department = department
 
 	ctx := r.Context()
@@ -91,12 +92,13 @@ func (f FaydaAccountAdapter) AuthorizeFaydaAccountDisable(w http.ResponseWriter,
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsAction.MakerUser = faydaaccount.User{
+	cpsAction.CheckerUser = faydaaccount.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
 
+	cpsAction.ActionData = req
 	cpsAction.Department = department
 
 	ctx := r.Context()
@@ -116,7 +118,7 @@ func (f FaydaAccountAdapter) AuthorizeFaydaAccountDisable(w http.ResponseWriter,
 }
 
 func (f FaydaAccountAdapter) RejectFaydaAccountDisable(w http.ResponseWriter, r *http.Request) {
-	var req faydaaccount.ActionData
+	var req faydaaccount.RejectCPSAction
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		f.logger.Errorf("failed to bind action data", err)
@@ -135,12 +137,18 @@ func (f FaydaAccountAdapter) RejectFaydaAccountDisable(w http.ResponseWriter, r 
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsAction.MakerUser = faydaaccount.User{
+	cpsAction.CheckerUser = faydaaccount.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
 
+	cpsAction.ActionData = faydaaccount.ActionData{
+		UseCode:     req.UseCode,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+	}
+	cpsAction.RejectedReason = req.RejectedReason
 	cpsAction.Department = department
 
 	ctx := r.Context()

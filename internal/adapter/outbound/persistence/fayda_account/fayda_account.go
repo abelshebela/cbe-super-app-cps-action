@@ -2,11 +2,12 @@ package faydaaccount
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/outbound"
 	"fmt"
 	"net/http"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/outbound"
 
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 
@@ -19,7 +20,6 @@ import (
 
 type FaydaAccountRepo struct {
 	client      *mongo.Client
-	timeout     time.Duration
 	logger      utils.Logger
 	cpsDal      dal.MongoDal[entity.CPSAction, entity.CPSAction]
 	customerDal dal.MongoDal[member.User, member.User]
@@ -28,12 +28,11 @@ type FaydaAccountRepo struct {
 var _ outbound.FaydaAccountRepository = (*FaydaAccountRepo)(nil)
 
 func InitFaydaAccountPersistence(client *mongo.Client, database string,
-	timeout time.Duration, logger utils.Logger) *FaydaAccountRepo {
-	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, "cps_actions")
-	customerDal := dal.NewMongoDal[member.User, member.User](client, database, "customers")
+	cpsCollection, customerCollection string, logger utils.Logger) *FaydaAccountRepo {
+	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, cpsCollection)
+	customerDal := dal.NewMongoDal[member.User, member.User](client, database, customerCollection)
 	return &FaydaAccountRepo{
 		client:      client,
-		timeout:     timeout,
 		logger:      logger,
 		cpsDal:      cpsDal,
 		customerDal: customerDal,
@@ -41,13 +40,10 @@ func InitFaydaAccountPersistence(client *mongo.Client, database string,
 }
 
 func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
-	ctx, cancel := context.WithTimeout(ctx, f.timeout)
-	defer cancel()
-
 	filter := bson.M{
-		"user_code":  req.MakerUser.UserCode,
-		"status":     entity.ActionPending,
-		"department": req.Department,
+		"maker_user.phone_number": req.MakerUser.PhoneNumber,
+		"status":                  entity.ActionPending,
+		"department":              req.Department,
 	}
 
 	projection := bson.M{
@@ -74,7 +70,40 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		return nil, err
 	}
 
+	customerFilter := bson.M{
+		"phone_number": req.ActionData.PhoneNumber,
+	}
+
+	customerProjection := bson.M{
+		"is_account_blocked": 1,
+		"user_code":          1,
+		"full_name":          1,
+		"phone_number":       1,
+	}
+
+	customer, err := f.customerDal.FindOne(ctx, customerFilter, customerProjection)
+	if err != nil {
+		f.logger.Errorf("failed to get customer account", err)
+		err = fmt.Errorf("failed to get customer account %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return nil, err
+	}
+
 	req.Status = entity.ActionPending
+	req.RequestAction = entity.RequestDisableFaydaAccount
+	req.ActionType = entity.ActionCreate
+	req.PreviousData = map[string]any{
+		"user_code":          customer.UserCode,
+		"full_name":          customer.FullName,
+		"phone_number":       customer.PhoneNumber,
+		"is_account_blocked": customer.IsAccountBlocked,
+	}
+	req.CurrentData = map[string]any{
+		"is_account_blocked": true,
+	}
+
 	req.MakerActionTime = time.Now()
 	cpsAction, err := f.cpsDal.InsertOne(ctx, req)
 	if err != nil {
@@ -90,24 +119,20 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 }
 
 func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
-	ctx, cancel := context.WithTimeout(ctx, f.timeout)
-	defer cancel()
-
 	filter := bson.M{
-		"department": req.Department,
-		"status":     entity.ActionPending,
+		"action_data.phone_number": req.ActionData.PhoneNumber,
+		"department":               req.Department,
+		"status":                   entity.ActionPending,
 	}
 
 	update := bson.M{
-		"$set": bson.M{
-			"checker_user": bson.M{
-				"full_name":    req.CheckerUser.FullName,
-				"phone_number": req.CheckerUser.PhoneNumber,
-				"user_code":    req.CheckerUser.UserCode,
-			},
-			"status":                 entity.ActionApproved,
-			"checker_action_time":    time.Now(),
+		"checker_user": bson.M{
+			"full_name":    req.CheckerUser.FullName,
+			"phone_number": req.CheckerUser.PhoneNumber,
+			"user_code":    req.CheckerUser.UserCode,
 		},
+		"status":              entity.ActionApproved,
+		"checker_action_time": time.Now(),
 	}
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -120,13 +145,11 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	}
 
 	customerFilter := bson.M{
-		"user_code": req.ActionData.UseCode,
-		"kyc": bson.M{
-			"level": 1,
-		},
+		"phone_number": req.ActionData.PhoneNumber,
+		"kyc.level":    1,
 	}
 	customerUpdate := bson.M{
-		"account_status": "DISABLED",
+		"is_account_blocked": true,
 	}
 
 	_, err = f.customerDal.UpdateOne(ctx, customerFilter, customerUpdate)
@@ -143,30 +166,27 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 }
 
 func (f *FaydaAccountRepo) RejectFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
-	ctx, cancel := context.WithTimeout(ctx, f.timeout)
-	defer cancel()
-
 	filter := bson.M{
-		"department": req.Department,
-		"status":     entity.ActionPending,
+		"action_data.phone_number": req.ActionData.PhoneNumber,
+		"department":               req.Department,
+		"status":                   entity.ActionPending,
 	}
 
 	update := bson.M{
-		"$set": bson.M{
-			"checker_user": bson.M{
-				"full_name":    req.CheckerUser.FullName,
-				"phone_number": req.CheckerUser.PhoneNumber,
-				"user_code":    req.CheckerUser.UserCode,
-			},
-			"status":                 entity.ActionRejected,
-			"rejected_action_reason": req.RejectedReason,
-			"checker_action_time":    time.Now(),
+		"checker_user": bson.M{
+			"full_name":    req.CheckerUser.FullName,
+			"phone_number": req.CheckerUser.PhoneNumber,
+			"user_code":    req.CheckerUser.UserCode,
 		},
+		"status":                 entity.ActionRejected,
+		"rejected_action_reason": req.RejectedReason,
+		"checker_action_time":    time.Now(),
 	}
+
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		f.logger.Errorf("failed to update customer status", err)
-		err = fmt.Errorf("failed to update customer status %w", constant.ErrorDefinition{
+		f.logger.Errorf("failed to update fayda customer status", err)
+		err = fmt.Errorf("failed to update fayda customer status %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})

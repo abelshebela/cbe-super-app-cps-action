@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail) {
+func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail,authMiddleware middleware.AuthMiddleware) {
 	router.Route("/api/v1/cbesuperapp/cps_action/customers", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -17,8 +17,8 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Path:    "/",
 				Handler: customerHandler.GetCustomerDetail,
 				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
 				},
 			},
 			{
@@ -26,8 +26,8 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Path:    "/{id}",
 				Handler: customerHandler.GetCustomerByID,
 				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
 				},
 			},
 		}
