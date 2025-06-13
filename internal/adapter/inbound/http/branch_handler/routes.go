@@ -9,14 +9,14 @@ import (
     sharedhttp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http"
 )
 
-func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler,authMiddleware middleware.AuthMiddleware) {
+func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler,) {
     routes := []sharedhttp.Route{
         {
             Method:  http.MethodPost,
             Path:    "/branch/filter-single",
             Handler: handler.FilterSingleBranches,
             Middlewares: []func(next http.Handler) http.Handler{
-                authMiddleware.AuthenticateToken,
+                middleware.AuthenticateToken,
                 authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
             },
         },

@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/spf13/viper"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -29,8 +28,6 @@ import (
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/fayda_account"
 	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
 	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
-
-	authMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
 )
 
 func main() {
@@ -63,27 +60,24 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	authMiddleware := authMiddleware.InitAuthMiddleware(cfg.JwtSecretKey,
-		viper.GetString("Key"), viper.GetString("IV"), logger)
-
 	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase,
 		"branches", "cps_actions", logger)
 	branchService := branch_domain.NewBranchService(branchPersistence)
 	branchHandler := branch_handler.NewBranchHandler(branchService, logger)
-	branch_handler.RegisterBranchRoutes(r, branchHandler, authMiddleware)
+	branch_handler.RegisterBranchRoutes(r, branchHandler)
 
 	customerPersitance := customerPersistance.InitCustomerDetail(mongoClient, cfg.MongoDBDatabase, "customers", logger)
 	customerDomain := service.IntiCustomerDomain(customerPersitance, logger)
 	customerApp := customer.InitCustomerHandler(customerDomain, logger)
 	customerRoutes := customerhandler.NewCustomerHTTPHandler(customerApp, logger)
-	customerhandler.InitCustomerRoutes(r, customerRoutes, authMiddleware)
+	customerhandler.InitCustomerRoutes(r, customerRoutes)
 
 	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase,
 		"cps_actions", "customers", logger)
 	faydaDomin := faydaService.InitFaydaAccountDomain(faydaPersistence, logger)
 	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
-	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMiddleware)
+	faydaRoutes.InitFaydaRoutes(r, faydaHandlers)
 
 	server := http.Server{
 		Addr:    ":8080",
