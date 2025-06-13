@@ -467,8 +467,7 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 	if err != nil {
 		return domain.CPSAction{}, err
 	}
-	var data model.CPSAction
-	data = *d[len(d)-1] // Get the last action for the maker
+	var data = *d[len(d)-1] 
 	result := domain.CPSAction{
 		ID:              data.ID.Hex(),
 		ActionCode:      data.ActionCode,

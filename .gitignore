@@ -1,5 +1,5 @@
 tmp
-pkg
+shared
 bin
 
 .env

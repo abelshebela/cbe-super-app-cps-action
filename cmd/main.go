@@ -13,7 +13,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/spf13/viper"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/shared/config"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
@@ -79,8 +81,17 @@ func main() {
 	handlers := bulkservices_inbound.NewHttpBulkService(application)
 	bulkservices_inbound.InitServiceHandlerMaker(r, handlers)
 
-	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
-	branchService := branch_domain.NewBranchService(branchPersistence)
+	branchRepo := branch_repo.NewBranchPersistence(
+		mongoClient,
+		cfg.MongoDBDatabase,
+		[]string{
+			"branches",
+			"cps_actions",
+		},
+		viper.GetDuration("timeout"),
+		logger,
+	)
+	branchService := branch_domain.NewBranchService(branchRepo)
 	branchHandler := branch_handler.NewBranchHandler(branchService, logger)
 	branch_handler.RegisterBranchRoutes(r, branchHandler)
 
@@ -101,6 +112,7 @@ func main() {
 		Handler: r,
 	}
 
+	
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 

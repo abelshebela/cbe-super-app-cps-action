@@ -50,30 +50,33 @@ func TestGetServicePaginated(t *testing.T) {
 }
 
 func TestUpdateServiceFlag(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mock_repository.NewMockRepository(ctrl)
-	serviceStore := action.NewService(mockRepo)
+    mockRepo := mock_repository.NewMockRepository(ctrl)
+    serviceStore := action.NewService(mockRepo)
 
-	ctx := context.Background()
-	serviceID := "1"
-	action_taken := true
+    ctx := context.Background()
+    serviceID := "1"
+    action_taken := true
 
-	service := action.Service{
-		ID:          stringToPointer(serviceID),
-		Key:         "service1",
-		ServiceName: "Service 1",
-		Flag:        false,
-	}
+    service := action.Service{
+        ID:          stringToPointer(serviceID),
+        Key:         "service1",
+        ServiceName: "Service 1",
+        Flag:        false,
+    }
 
-	mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(service, nil)
-	mockRepo.EXPECT().UpdateHqService(ctx, gomock.Any()).Return(nil)
+    // Add this expectation if your code calls FetchCpsActionById
+    mockRepo.EXPECT().FetchCpsActionById(ctx, serviceID).Return(action.CPSAction{}, nil)
 
-	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+    mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(service, nil)
+    mockRepo.EXPECT().UpdateHqService(ctx, gomock.Any()).Return(nil)
+
+    err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
+    if err != nil {
+        t.Fatalf("unexpected error: %v", err)
+    }
 }
 
 func TestUpdateServiceFlag_Error(t *testing.T) {

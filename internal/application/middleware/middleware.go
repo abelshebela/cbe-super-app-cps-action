@@ -58,6 +58,8 @@ func AuthenticateToken(next http.Handler) http.Handler {
 			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
 		}
 
+		
+
 		jwtSecret := []byte(viper.GetString("JwtSecretKey"))
 
 		if tokenString == "" {
@@ -98,16 +100,19 @@ func AuthenticateToken(next http.Handler) http.Handler {
 			return
 		}
 
+
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, ContextKey("branch_code"), userPayload.BranchCode)
 		ctx = context.WithValue(ctx, ContextKey("user_role"), userPayload.UserRole)
 		ctx = context.WithValue(ctx, ContextKey("user_id"), userPayload.UserID)
+		ctx = context.WithValue(ctx, ContextKey("fullname"), userPayload.FullName)
+		ctx = context.WithValue(ctx, ContextKey("phoneNumber"), userPayload.PhoneNumber)
+		ctx = context.WithValue(ctx, ContextKey("user_payload"), userPayload)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
 }
-
 func decryptUserData(data string) (string, error) {
 	keyByte := []byte(viper.GetString("Key"))
 	ivByte := []byte(viper.GetString("IV"))
@@ -133,7 +138,6 @@ func decryptUserData(data string) (string, error) {
 	decrypted := make([]byte, len(ciphertext))
 	mode.CryptBlocks(decrypted, ciphertext)
 
-	// Remove PKCS7 padding
 	decrypted, err = pkcs7Unpad(decrypted, aes.BlockSize)
 	if err != nil {
 		return "", fmt.Errorf("unpad failed: %w", err)
