@@ -7,6 +7,8 @@ const (
 	DefaultPerPage = 10
 )
 
+type ContextKey string
+
 type ErrorDefinition struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`

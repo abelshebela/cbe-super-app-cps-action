@@ -1,14 +1,14 @@
 package customerhandler
 
 import (
+	"net/http"
+	"strconv"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/customer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
-	"fmt"
-	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
@@ -30,50 +30,24 @@ func NewCustomerHTTPHandler(applicationService customer.ApplicationService, logg
 
 func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	page := query.Get("page")
-	pageInt := constant.DefaultPage
-	if page != "" {
-		var err error
-		pageInt, err = strconv.Atoi(page)
-		if err != nil {
-			c.logger.Errorf("invalid page", err)
-			err = fmt.Errorf("invalid page %w", constant.ErrorDefinition{
-				Code:    http.StatusBadRequest,
-				Message: "invalid page",
-			})
-			middleware.ErrorHandler(w, err)
-			return
-		}
-		if pageInt <= 0 {
-			pageInt = constant.DefaultPage
-		}
+
+	page := constant.DefaultPage
+	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
+		page = pageInt
 	}
 
-	perPage := query.Get("per_page")
-	perPageInt := constant.DefaultPerPage
-	if perPage != "" {
-		var err error
-		perPageInt, err = strconv.Atoi(perPage)
-		if err != nil {
-			c.logger.Errorf("invalid per page", err)
-			err = fmt.Errorf("invalid per page %w", constant.ErrorDefinition{
-				Code:    http.StatusBadRequest,
-				Message: "invalid per page",
-			})
-			middleware.ErrorHandler(w, err)
-			return
-		}
-		if perPageInt > 10 {
-			perPageInt = constant.DefaultPerPage
-		}
+	per_page := constant.DefaultPerPage
+	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
+		perPageInt <= 10 && perPageInt > 0 {
+		per_page = perPageInt
 	}
 
 	search := query.Get("search")
 	filter := query.Get("filter")
 
 	filterParams := &constant.Filter{
-		Page:    pageInt,
-		PerPage: perPageInt,
+		Page:    page,
+		PerPage: per_page,
 		Search:  search,
 		Filters: filter,
 	}
