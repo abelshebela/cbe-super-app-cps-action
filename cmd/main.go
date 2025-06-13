@@ -19,6 +19,11 @@ import (
 	"github.com/spf13/viper"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/fayda_account"
+	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/fayda_account"
+	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
+	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
 )
 
 func main() {
@@ -49,6 +54,13 @@ func main() {
 	customerApp := customer.InitCustomerHandler(customerDomain, logger)
 	customerRoutes := customerhandler.NewCustomerHTTPHandler(customerApp, logger)
 	customerhandler.InitCustomerRoutes(r, customerRoutes)
+
+	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase,
+		viper.GetDuration("timeout"), logger)
+	faydaDomin := faydaService.InitFaydaAccountDomain(faydaPersistence, logger)
+	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
+	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
+	faydaRoutes.InitFaydaRoutes(r, faydaHandlers)
 
 	server := http.Server{
 		Addr:    viper.GetString("Host") + ":" + viper.GetString("Port"),

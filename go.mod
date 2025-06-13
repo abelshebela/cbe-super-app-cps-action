@@ -4,6 +4,7 @@ go 1.24.3
 
 require (
 	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
