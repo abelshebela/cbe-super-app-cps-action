@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/repository"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
 )
 
 type branchService struct {
@@ -23,15 +23,12 @@ func (s *branchService) FilterSingleBranches(ctx context.Context, region, distri
 	return s.repo.FilterSingleBranches(ctx, region, district)
 }
 
-
-
 func (s *branchService) DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error {
-    if branchCode == "" {
-        return fmt.Errorf("branchCode is required")
-    }
-    return s.repo.DisableSingleBranch(ctx, branchCode, cpsData)
+	if branchCode == "" {
+		return fmt.Errorf("branchCode is required")
+	}
+	return s.repo.DisableSingleBranch(ctx, branchCode, cpsData)
 }
-
 
 func (s *branchService) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if actionID == "" {

@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	branchapp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/branch"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	branchapp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/branch"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 type BranchHandler struct {

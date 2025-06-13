@@ -1,15 +1,16 @@
 package customerhandler
 
 import (
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound"
 	"net/http"
+
+	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail,authMiddleware middleware.AuthMiddleware) {
+func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail) {
 	router.Route("/api/v1/cbesuperapp/cps_action/customers", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -17,8 +18,8 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Path:    "/",
 				Handler: customerHandler.GetCustomerDetail,
 				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
 				},
 			},
 			{
@@ -26,8 +27,8 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Path:    "/{id}",
 				Handler: customerHandler.GetCustomerByID,
 				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
 				},
 			},
 		}

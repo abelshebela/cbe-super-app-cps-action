@@ -12,22 +12,25 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-
+	"github.com/spf13/viper"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/branch_handler"
-	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/customer_handler"
-	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/branch"
-	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/customer"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/customer"
-	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/services"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/service"
-
-	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/fayda_account"
-	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/fayda_account"
-	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
-	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
+	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
+	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
+	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
+	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
+	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
+	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
+	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
+	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
+	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
+	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/fayda_account"
+	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
+	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 )
 
 func main() {
@@ -50,6 +53,16 @@ func main() {
 	}()
 	log.Println("Connected to MongoDB!")
 
+	dbname := cfg.MongoDBDatabase
+	//dbname := "ldap_cbs"
+	collectionNames := []string{
+		"BPSActions",
+		"BPSUsers",
+		"CPSServices",
+		"Member",
+		"linked_accounts",
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -60,7 +73,13 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase,
+	adapter_port := adapter.NewOutBoundStore(mongoClient, dbname, collectionNames)
+	domain_services := domain.NewService(adapter_port)
+	application := bulkservices_application.NewAttachDetachChecker(domain_services)
+	handlers := bulkservices_inbound.NewHttpBulkService(application)
+	bulkservices_inbound.InitServiceHandlerMaker(r, handlers)
+
+		branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase,
 		"branches", "cps_actions", logger)
 	branchService := branch_domain.NewBranchService(branchPersistence)
 	branchHandler := branch_handler.NewBranchHandler(branchService, logger)
@@ -73,14 +92,14 @@ func main() {
 	customerhandler.InitCustomerRoutes(r, customerRoutes)
 
 	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase,
-		"cps_actions", "customers", logger)
+		"cps_actions", "customers_new", logger)
 	faydaDomin := faydaService.InitFaydaAccountDomain(faydaPersistence, logger)
 	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers)
 
 	server := http.Server{
-		Addr:    ":8080",
+		Addr:    viper.GetString("Host") + ":" + viper.GetString("Port"),
 		Handler: r,
 	}
 

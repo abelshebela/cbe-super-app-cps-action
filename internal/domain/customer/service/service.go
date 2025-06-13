@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/repository"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/repository"
+
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 )
 
 type CustomerDomain struct {
@@ -22,19 +23,19 @@ func IntiCustomerDomain(customerRepo repository.CustomerRepository, logger utils
 	}
 }
 
-func (c *CustomerDomain) GetCustomersDetail(ctx context.Context,filerParams *constant.Filter) (*entity.CustomerRespose, error) {
-	customers, err := c.customerService.GetCustomersDetail(ctx,filerParams)
+func (c *CustomerDomain) GetCustomersDetail(ctx context.Context, filerParams *constant.Filter) (*entity.CustomerRespose, error) {
+	customers, err := c.customerService.GetCustomersDetail(ctx, filerParams)
 	if err != nil {
 		return nil, err
 	}
 	return customers, nil
 }
 
-func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*member.User,error) {
-	customer,err := c.customerService.GetCustomerByID(ctx,id)
+func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
+	customer, err := c.customerService.GetCustomerByID(ctx, id)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	return customer,nil
+	return customer, nil
 }

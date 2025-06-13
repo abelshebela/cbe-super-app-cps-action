@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/mocks"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 	"errors"
 	"testing"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/mocks"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
