@@ -2,13 +2,14 @@ package faydaaccount
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/outbound"
 	"fmt"
 	"net/http"
 	"time"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
+
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -105,8 +106,8 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 				"phone_number": req.CheckerUser.PhoneNumber,
 				"user_code":    req.CheckerUser.UserCode,
 			},
-			"status":                 entity.ActionApproved,
-			"checker_action_time":    time.Now(),
+			"status":              entity.ActionApproved,
+			"checker_action_time": time.Now(),
 		},
 	}
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)

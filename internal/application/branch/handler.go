@@ -3,13 +3,13 @@ package branch
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/services"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 )
 
 type ApplicationService interface {
 	FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error)
-    DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error
+	DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	FilterMultipleBranches(ctx context.Context, region, district string) ([]string, error)
@@ -32,7 +32,7 @@ func (h *Handler) FilterSingleBranches(ctx context.Context, region, district str
 }
 
 func (h *Handler) DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error {
-    return h.service.DisableSingleBranch(ctx, branchCode, cpsData)
+	return h.service.DisableSingleBranch(ctx, branchCode, cpsData)
 }
 
 func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {

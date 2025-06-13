@@ -2,15 +2,16 @@ package customer
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/outbound"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
