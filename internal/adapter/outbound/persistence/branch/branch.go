@@ -8,9 +8,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/repository"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/pkg/common"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -19,17 +19,19 @@ type BranchPersistence struct {
 	branchDal dal.MongoDal[entities.Branch, entities.Branch]
 	cpsDal    dal.MongoDal[entities.CPSAction, entities.CPSAction]
 	timeout   time.Duration
+	logger    utils.Logger
 }
 
 var _ repository.BulkCustomerRepo = (*BranchPersistence)(nil)
 
-func NewBranchPersistence(client *mongo.Client, dbName string, timeout time.Duration) *BranchPersistence {
+func NewBranchPersistence(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *BranchPersistence {
 	branchDal := dal.NewMongoDal[entities.Branch, entities.Branch](client, dbName, "branches")
 	cpsDal := dal.NewMongoDal[entities.CPSAction, entities.CPSAction](client, dbName, "cps_actions")
 	return &BranchPersistence{
 		branchDal: branchDal,
 		cpsDal:    cpsDal,
 		timeout:   timeout,
+		logger:    logger,
 	}
 }
 
@@ -51,40 +53,40 @@ func (b *BranchPersistence) FilterSingleBranches(ctx context.Context, region, di
 	return branches, nil
 }
 func (b *BranchPersistence) DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error {
-    if branchCode == "" {
-        return errors.New("branchCode is required")
-    }
+	if branchCode == "" {
+		return errors.New("branchCode is required")
+	}
 
-    filter := bson.M{
-        "action_code":    branchCode,
-        "action_status":  entities.ActionPending,
-        "action_type":    entities.ActionDisable,
-        "request_action": entities.RequestDisableSingleBranch,
-    }
-    projection := bson.M{"_id": 1}
-    existing, err := b.cpsDal.FindOne(ctx, filter, projection)
-    if err == nil && existing != nil {
-        return errors.New(common.DefineError.General["CONFLICT_KEY"].Message)
-    }
-    if err != nil && err != mongo.ErrNoDocuments {
-        return err
-    }
+	filter := bson.M{
+		"action_code":    branchCode,
+		"action_status":  entities.ActionPending,
+		"action_type":    entities.ActionDisable,
+		"request_action": entities.RequestDisableSingleBranch,
+	}
+	projection := bson.M{"_id": 1}
+	existing, err := b.cpsDal.FindOne(ctx, filter, projection)
+	if err == nil && existing != nil {
+		return errors.New(common.DefineError.General["CONFLICT_KEY"].Message)
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		return err
+	}
 
-    cpsData.ActionType = entities.ActionDisable
-    cpsData.RequestAction = entities.RequestDisableSingleBranch
-    cpsData.ActionStatus = entities.ActionPending
-    cpsData.ActionCode = branchCode
-    cpsData.CreatedAt = time.Now()
-    cpsData.LastModifiedAt = time.Now()
+	cpsData.ActionType = entities.ActionDisable
+	cpsData.RequestAction = entities.RequestDisableSingleBranch
+	cpsData.ActionStatus = entities.ActionPending
+	cpsData.ActionCode = branchCode
+	cpsData.CreatedAt = time.Now()
+	cpsData.LastModifiedAt = time.Now()
 
-    _, err = b.cpsDal.InsertOne(ctx, cpsData)
-    if err != nil {
-        if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
-            return errors.New(common.DefineError.General["CONFLICT_KEY"].Message)
-        }
-        return err
-    }
-    return nil
+	_, err = b.cpsDal.InsertOne(ctx, cpsData)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
+			return errors.New(common.DefineError.General["CONFLICT_KEY"].Message)
+		}
+		return err
+	}
+	return nil
 }
 func (b *BranchPersistence) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if actionID == "" {

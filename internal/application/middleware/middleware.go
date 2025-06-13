@@ -17,13 +17,10 @@ import (
 
 type UserPayload struct {
 	PhoneNumber string   `json:"phoneNumber,omitempty"`
-	UserRole    string   `json:"userrole,omitempty"`
+	UserRole    string   `json:"userRole,omitempty"`
 	UserID      string   `json:"userId,omitempty"`
 	BranchCode  []string `json:"branchCode,omitempty"`
 	FullName    string   `json:"fullname,omitempty"`
-	HomeBranch  string   `json:"homeBranch,omitempty"`
-	Username    string   `json:"username,omitempty"`
-	SourceApp   string   `json:"sourceApp,omitempty"`
 }
 
 type ContextKey string
@@ -54,67 +51,63 @@ func AccessControl(allowedRoles []string) func(http.Handler) http.Handler {
 }
 
 func AuthenticateToken(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        authHeader := r.Header.Get("Authorization")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		tokenString := ""
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+		}
 
-        tokenString := ""
-        if strings.HasPrefix(authHeader, "Bearer ") {
-            tokenString = strings.TrimPrefix(authHeader, "Bearer ")
-        }
+		jwtSecret := []byte(viper.GetString("JwtSecretKey"))
 
-        jwtSecret := []byte(viper.GetString("JwtSecretKey"))
+		if tokenString == "" {
+			http.Error(w, "Access token required", http.StatusUnauthorized)
+			return
+		}
 
-        if tokenString == "" {
-            fmt.Println("Access token required: token string is empty")
-            http.Error(w, "Access token required", http.StatusUnauthorized)
-            return
-        }
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return jwtSecret, nil
+		})
+		if err != nil || !token.Valid {
+			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+			return
+		}
 
-        token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-            return jwtSecret, nil
-        })
-        if err != nil {
-            http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
-            return
-        }
-        if !token.Valid {
-            http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
-            return
-        }
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
 
-        claims, ok := token.Claims.(jwt.MapClaims)
-        if !ok {
-            http.Error(w, "Invalid token", http.StatusUnauthorized)
-            return
-        }
+		data, ok := claims["data"].(string)
+		if !ok || data == "" {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
 
-        data, ok := claims["data"].(string)
-        if !ok || data == "" {
-            http.Error(w, "Invalid token", http.StatusUnauthorized)
-            return
-        }
+		decryptedUser, err := decryptUserData(data)
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
 
-        decryptedUser, err := decryptUserData(data)
-        if err != nil {
-            http.Error(w, "Invalid token", http.StatusUnauthorized)
-            return
-        }
+		var userPayload UserPayload
+		err = json.Unmarshal([]byte(decryptedUser), &userPayload)
+		if err != nil {
+			http.Error(w, "Invalid token payload", http.StatusUnauthorized)
+			return
+		}
 
-        var userPayload UserPayload
-        err = json.Unmarshal([]byte(decryptedUser), &userPayload)
-        if err != nil {
-            http.Error(w, "Invalid token payload", http.StatusUnauthorized)
-            return
-        }
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, ContextKey("branch_code"), userPayload.BranchCode)
+		ctx = context.WithValue(ctx, ContextKey("user_role"), userPayload.UserRole)
+		ctx = context.WithValue(ctx, ContextKey("user_id"), userPayload.UserID)
+		r = r.WithContext(ctx)
 
-
-        ctx := context.WithValue(r.Context(), ContextKey("user_payload"), userPayload)
-        ctx = context.WithValue(ctx, ContextKey("user_role"), userPayload.UserRole)
-        r = r.WithContext(ctx)
-
-        next.ServeHTTP(w, r)
-    })
+		next.ServeHTTP(w, r)
+	})
 }
+
 func decryptUserData(data string) (string, error) {
 	keyByte := []byte(viper.GetString("Key"))
 	ivByte := []byte(viper.GetString("IV"))

@@ -1,9 +1,10 @@
 package entities
+import (
+	"time"
 
-import( "time"
 	"go.mongodb.org/mongo-driver/v2/bson"
-
 )
+
 
 type UserType string
 
@@ -42,23 +43,24 @@ type MakerAndChecker struct {
 }
 
 type CPSAction struct {
-    ID                 string
-    ActionCode         string 
-    MakerID            string
-    MakerName          string
-    MakerPhoneNumber   string
-    CheckerID          *string
-    CheckerName        *string
-    CheckerPhoneNumber *string
-    Department         string
-    RejectionReason    *string
-    PreviosAction      struct{}
-    CurrentAction      struct{}
-    ActionStatus       ActionStatus
-    ActionType         ActionType
-    RequestAction      RequestAction
-    CreatedAt          time.Time
-    LastModifiedAt     time.Time
+    ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+    ActionCode         string          `json:"action_code" bson:"action_code"`
+    MakerID            string          `json:"maker_id" bson:"maker_id"`
+    MakerName          string          `json:"maker_name" bson:"maker_name"`
+    MakerPhoneNumber   string          `json:"maker_phone_number" bson:"maker_phone_number"`
+    CheckerID          *string         `json:"checker_id,omitempty" bson:"checker_id,omitempty"`
+    CheckerName        *string         `json:"checker_name,omitempty" bson:"checker_name,omitempty"`
+    CheckerPhoneNumber *string         `json:"checker_phone_number,omitempty" bson:"checker_phone_number,omitempty"`
+    Department         string          `json:"department" bson:"department"`
+    RejectionReason    *string         `json:"rejection_reason,omitempty" bson:"rejection_reason,omitempty"`
+    PreviosAction      []bson.M        `json:"previos_action" bson:"previos_action"`     // array of JSON objects
+    CurrentAction      []bson.M        `json:"current_action" bson:"current_action"`     // array of JSON objects
+    ActionStatus       ActionStatus    `json:"action_status" bson:"action_status"`
+    ActionType         ActionType      `json:"action_type" bson:"action_type"`
+    RequestAction      RequestAction   `json:"request_action" bson:"request_action"`
+    BranchCode         string          `json:"branch_code" bson:"branch_code"`
+    CreatedAt          time.Time       `json:"created_at" bson:"created_at"`
+    LastModifiedAt     time.Time       `json:"last_modified_at" bson:"last_modified_at"`
 }
 
 type RequestAction string
@@ -134,26 +136,14 @@ type Branch struct {
     ID             bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
     BranchCode     string        `json:"branchCode" bson:"branchCode"`
     BranchName     string        `json:"branchName" bson:"branchName"`
-    BranchRegion   string        `json:"branchRegion" bson:"branchRegion"`
-    DistrictName   string        `json:"districtName" bson:"districtName"`
+    BranchAddress  string        `json:"branchAddress" bson:"branchAddress"`
     DistrictCode   string        `json:"districtCode" bson:"districtCode"`
-    IsDeleted      bool          `json:"isDeleted" bson:"isDeleted"`
+    DistrictName   string        `json:"districtName" bson:"districtName"`
+    BranchRegion   string        `json:"branchRegion" bson:"branchRegion"`
+    Enable         bool          `json:"enable" bson:"enable"`
+    RecordStat     string        `json:"RecordStat" bson:"RecordStat"`
     CreatedAt      time.Time     `json:"createdAt" bson:"createdAt"`
-    LastModifiedAt time.Time     `json:"lastModifiedAt" bson:"lastModifiedAt"`
-}
-
-type CreateBranchRequest struct {
-	BranchCode   string `json:"branch_code" bson:"branch_code" validate:"required"`
-	BranchName   string `json:"branch_name" bson:"branch_name" validate:"required"`
-	BranchRegion string `json:"branch_region" bson:"branch_region" validate:"required"`
-	DistrictName string `json:"district_name" bson:"district_name" validate:"required"`
-	DistrictCode string `json:"district_code" bson:"district_code" validate:"required"`
-}
-
-type UpdateBranchRequest struct {
-	BranchCode   *string `json:"branch_code" bson:"branch_code" validate:"omitempty"`
-	BranchName   *string `json:"branch_name" bson:"branch_name" validate:"omitempty"`
-	BranchRegion *string `json:"branch_region" bson:"branch_region" validate:"omitempty"`
-	DistrictName *string `json:"district_name" bson:"district_name" validate:"omitempty"`
-	DistrictCode *string `json:"district_code" bson:"district_code" validate:"omitempty"`
+    UpdatedAt      time.Time     `json:"updatedAt" bson:"updatedAt"`
+    Version        int           `json:"__v" bson:"__v"`
+    Enabled        bool          `json:"enabled" bson:"enabled"`
 }

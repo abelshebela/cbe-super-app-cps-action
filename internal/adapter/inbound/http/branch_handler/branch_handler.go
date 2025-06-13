@@ -27,26 +27,25 @@ func NewBranchHandler(service branchapp.ApplicationService, logger utils.Logger)
 	}
 }
 func (h *BranchHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Region   string `json:"region"`
-		District string `json:"district"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Region) == "" || strings.TrimSpace(req.District) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
-		resp.SendJSON()
-		return
-	}
-	branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
-	if err != nil {
-		h.logger.Errorf("FilterSingleBranches failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-		resp.SendJSON()
-		return
-	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: branches}
-	resp.SendJSON()
+    var req struct {
+        Region   string `json:"region"`
+        District string `json:"district"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Region) == "" || strings.TrimSpace(req.District) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
+        resp.SendJSON()
+        return
+    }
+    branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
+    if err != nil {
+        h.logger.Errorf("FilterSingleBranches failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: branches}
+    resp.SendJSON()
 }
-
 func (h *BranchHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Request) {
     var req struct {
         BranchCode string `json:"branch_code"`
