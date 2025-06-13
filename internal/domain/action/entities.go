@@ -38,7 +38,7 @@ type MakerAndChecker struct {
 }
 
 type CurrentAction struct {
-	Id     string
+	Id     []string
 	Action bool
 }
 type CPSAction struct {
@@ -47,8 +47,8 @@ type CPSAction struct {
 	MakerAndChecker MakerAndChecker
 	Department      string
 	RejectionReason *string
-	PreviosAction   struct{}
-	CurrentAction   CurrentAction
+	PreviosAction   interface{}
+	CurrentAction   interface{}
 	ActionStatus    ActionStatus
 	ActionType      ActionType
 	RequestAction   RequestAction

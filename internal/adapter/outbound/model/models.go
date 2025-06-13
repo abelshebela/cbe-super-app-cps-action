@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -48,29 +49,29 @@ type MakerAndChecker struct {
 }
 
 type CurrentAction struct {
-	Id     string `bson:"id"`
-	Action bool   `bson:"action"`
+	Id     []string `bson:"id"`
+	Action bool     `bson:"action"`
 }
 
 type CPSAction struct {
-	ID                 bson.ObjectID `bson:"id"`
-	ActionCode         string        `bson:"action_code"` // Generated
-	MakerID            string        `bson:"maker_id"`
-	MakerName          string        `bson:"maker_name"`
-	MakerPhoneNumber   string        `bson:"maker_phone_number"`
-	Unique_ID          string        `bson:"unique_id"`
-	CheckerID          *string       `bson:"checker_id,omitempty"`
-	CheckerName        *string       `bson:"checker_name,omitempty"`
-	CheckerPhoneNumber *string       `bson:"checker_phone_number,omitempty"`
-	Department         string        `bson:"department"`
-	RejectionReason    *string       `bson:"rejection_reason,omitempty"`
-	PreviosAction      struct{}      `bson:"previos_action"`
-	CurrentAction      CurrentAction `bson:"current_action"`
-	ActionStatus       ActionStatus  `bson:"action_status"`
-	ActionType         ActionType    `bson:"action_type"`
-	RequestAction      RequestAction `bson:"request_action"`
-	CreatedAt          time.Time     `bson:"created_at"`
-	LastModifiedAt     time.Time     `bson:"last_modified_at"`
+	ID                 bson.ObjectID   `bson:"id"`
+	ActionCode         string          `bson:"action_code"` // Generated
+	MakerID            string          `bson:"maker_id"`
+	MakerName          string          `bson:"maker_name"`
+	MakerPhoneNumber   string          `bson:"maker_phone_number"`
+	Unique_ID          string          `bson:"unique_id"`
+	CheckerID          *string         `bson:"checker_id,omitempty"`
+	CheckerName        *string         `bson:"checker_name,omitempty"`
+	CheckerPhoneNumber *string         `bson:"checker_phone_number,omitempty"`
+	Department         string          `bson:"department"`
+	RejectionReason    *string         `bson:"rejection_reason,omitempty"`
+	PreviosAction      json.RawMessage `bson:"previos_action"`
+	CurrentAction      json.RawMessage `bson:"current_action"`
+	ActionStatus       ActionStatus    `bson:"action_status"`
+	ActionType         ActionType      `bson:"action_type"`
+	RequestAction      RequestAction   `bson:"request_action"`
+	CreatedAt          time.Time       `bson:"created_at"`
+	LastModifiedAt     time.Time       `bson:"last_modified_at"`
 }
 
 type RequestAction string
@@ -174,4 +175,23 @@ type LinkedAccount struct {
 	} `json:"maker_and_checker" bson:"maker_and_checker"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"  bson:"updated_at"`
+}
+
+type LinkedAccountResponse struct {
+	ID                 string `json:"id"`
+	AccountBranchType  string `json:"account_branchtype"`
+	AccountBranchCode  string `json:"account_branchcode"`
+	AccountNumber      string `json:"account_number"`
+	CustomerNumber     string `json:"customer_number"`
+	CustomerName       string `json:"customer_name"`
+	AccountDescription string `json:"account_description"`
+	PhoneNumber        string `json:"phone_number"`
+	CustomerAddress    string `json:"customer_address"`
+	DebitAllowed       bool   `json:"debit_allowed"`
+	CreditAllowed      bool   `json:"credit_allowed"`
+	AccountType        string `json:"account_type"`
+	AccountFrozen      bool   `json:"account_frozen"`
+	AccountDormant     bool   `json:"account_dormant"`
+	ActiveAccount      bool   `json:"active_account"`
+	AccountCurrency    string `json:"account_currency"`
 }

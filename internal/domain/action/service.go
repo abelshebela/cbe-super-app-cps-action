@@ -33,7 +33,7 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 		RequestAction: RequestUpdateServiceRule,
 		ActionStatus:  ActionPending,
 		CurrentAction: CurrentAction{
-			Id:     id,
+			Id:     []string{id},
 			Action: action,
 		},
 	}
@@ -59,19 +59,34 @@ func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, action_id string, 
 	if err != nil {
 		return err
 	}
-	service, err := s.repository.GetHqServiceById(ctx, cps_action.CurrentAction.Id)
+	currentAction, ok := cps_action.CurrentAction.(CurrentAction)
+	if !ok {
+		return fmt.Errorf("failed to cast CurrentAction to its expected type")
+	}
+	service, err := s.repository.GetHqServiceById(ctx, currentAction.Id[0])
 	if err != nil {
 		return err
 	}
-	service.Flag = cps_action.CurrentAction.Action
+	service.Flag = currentAction.Action
 	return s.repository.UpdateHqService(ctx, service)
 }
 
-func (s *ServiceStore) GetAccountByCif(ctx context.Context, cif string) ([]LinkedAccount, error) {
-	return s.repository.FetchAccountsByCif(ctx, cif)
+func (s *ServiceStore) GetAccountByAccount(ctx context.Context, account string) ([]LinkedAccount, error) {
+	data, err := s.repository.FetchAccountsByAccountNumber(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
-func (s *ServiceStore) RemoveCifRequest(ctx context.Context, id string, action bool, maker_id string) (string, error) {
+func (s *ServiceStore) RemoveCifRequest(ctx context.Context, id []string, action bool, maker_id string) (string, error) {
 	//create action
+	last_action, err := s.repository.FetchLastCpsActionByMakerID(ctx, maker_id)
+	if err != nil {
+		return "", err
+	}
+	if last_action.ActionStatus == ActionPending {
+		return "", fmt.Errorf("You have a pending action, please wait for it to be processed")
+	}
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	a := CPSAction{
 		ActionCode: actionId,
@@ -95,6 +110,35 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, id string, action b
 	return result.ID, nil
 }
 func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action bool, checker_id string) error {
+	cps_action, err := s.repository.FetchCpsActionById(ctx, action_id)
+	if err != nil {
+		return err
+	}
+	if action {
+		cps_action.ActionStatus = ActionApproved
+	} else {
+		cps_action.ActionStatus = ActionRejected
+	}
+	cps_action.MakerAndChecker.Checker.UserID = checker_id
+	err = s.repository.UpdateCpsAction(ctx, cps_action)
+	if err != nil {
+		return err
+	}
+	currentAction, ok := cps_action.CurrentAction.(CurrentAction)
+	if !ok {
+		return fmt.Errorf("failed to cast CurrentAction to its expected type")
+	}
+	linked_accounts, err := s.repository.FetchLinkedAccountById(ctx, currentAction.Id)
+	if err != nil {
+		return err
+	}
+	for _, account := range linked_accounts {
+		account.LinkedStatus = false
+		account.IsAccountActive = false
+		_, err = s.repository.UpdateAccount(ctx, account)
+		if err != nil {
+			return fmt.Errorf("failed to update account %s: %w", account.AccountNumber, err)
+		}
+	}
 	return nil
-	//
 }
