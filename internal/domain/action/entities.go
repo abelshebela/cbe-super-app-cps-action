@@ -131,3 +131,41 @@ type Service struct {
 	CreatedAt      time.Time
 	LastModifiedAt time.Time
 }
+type RegistrationType string
+
+const (
+	RegistrationTypeNew    RegistrationType = "NEW"
+	RegistrationTypeLinked RegistrationType = "LINKED"
+)
+
+type LinkedAccount struct {
+	ID                *string
+	UserID            *string
+	CustomerNumber    string
+	AccountNumber     string
+	AccountHolderName string
+	AccountType       string
+	BranchCode        string
+	LinkedStatus      bool
+	LastLinkedStatus  bool
+	LinkedAt          time.Time
+	LinkedBranch      string
+	RegistrationType  RegistrationType
+	IsAccountActive   bool
+	AndOrStatus       bool
+	AccountBranchCode string
+	CurrencyCode      string
+	IsMain            bool // default: false, first account: true
+	MakerAndChecker   struct {
+		Linkers struct {
+			Maker   string
+			Checker string
+		}
+		Unlinkers struct {
+			Maker   string
+			Checker string
+		}
+	}
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

@@ -43,9 +43,36 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			},
 		},
 		{
-			Method:  http.MethodGet,
+			Method:  http.MethodPost,
 			Path:    "/api/v1/cbesuperapp/cps_config/enable_disable_service_maker",
 			Handler: handler.EnableDisableServicesChecker,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/api/v1/cbesuperapp/cps_config/cif_search",
+			Handler: handler.SearchAccountByCif,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/cif_remove_maker",
+			Handler: handler.RemoveCifMaker,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/cif_remove_checker",
+			Handler: handler.RemoveCifChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
 				middleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
