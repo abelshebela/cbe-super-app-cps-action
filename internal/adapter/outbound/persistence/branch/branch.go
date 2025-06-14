@@ -19,7 +19,6 @@ type BranchPersistence struct {
 	client    *mongo.Client
 	branchDal dal.MongoDal[entities.Branch, entities.Branch]
 	cpsDal    dal.MongoDal[entities.CPSAction, entities.CPSAction]
-	timeout   time.Duration
 	logger    utils.Logger
 }
 
@@ -32,7 +31,6 @@ func NewBranchPersistence(client *mongo.Client, dbName string, collectionNames [
 		client:    client,
 		branchDal: branchDal,
 		cpsDal:    cpsDal,
-		timeout:   timeout,
 		logger:    logger,
 	}
 }

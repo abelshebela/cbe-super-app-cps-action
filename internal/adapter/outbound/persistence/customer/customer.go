@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
@@ -23,7 +23,6 @@ import (
 type CustomerDetailRepo struct {
 	client   *mongo.Client
 	mongoDal dal.MongoDal[member.User, member.User]
-	timeout  time.Duration
 	logger   utils.Logger
 }
 
@@ -51,21 +50,17 @@ func normalizePhone(search string) bson.M {
 	}
 }
 
-func InitCustomerDetail(client *mongo.Client, database string, timeout time.Duration, logger utils.Logger) *CustomerDetailRepo {
-	mongoDal := dal.NewMongoDal[member.User, member.User](client, database, "customers_new")
+func InitCustomerDetail(client *mongo.Client, database string, collection string, logger utils.Logger) *CustomerDetailRepo {
+	mongoDal := dal.NewMongoDal[member.User, member.User](client, database, collection)
 
 	return &CustomerDetailRepo{
 		client:   client,
 		mongoDal: mongoDal,
-		timeout:  timeout,
 		logger:   logger,
 	}
 }
 
 func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
-	ctx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
-
 	filter := bson.M{}
 	projection := bson.M{}
 
@@ -124,9 +119,6 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 }
 
 func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
-
 	userID, err := bson.ObjectIDFromHex(id)
 	if userID.IsZero() {
 		c.logger.Errorf("invalid id provided", err)
