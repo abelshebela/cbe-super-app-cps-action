@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/spf13/viper"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -27,6 +26,7 @@ import (
 	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
 	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/fayda_account"
+	authMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
@@ -73,31 +73,35 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	authMddleware := authMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
+
 	adapter_port := adapter.NewOutBoundStore(mongoClient, dbname, collectionNames)
 	domain_services := domain.NewService(adapter_port)
 	application := bulkservices_application.NewAttachDetachChecker(domain_services)
 	handlers := bulkservices_inbound.NewHttpBulkService(application)
-	bulkservices_inbound.InitServiceHandlerMaker(r, handlers)
+	bulkservices_inbound.InitServiceHandlerMaker(r, handlers, authMddleware)
 
-	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase,
+		"branches", "cps_actions", logger)
 	branchService := branch_domain.NewBranchService(branchPersistence)
 	branchHandler := branch_handler.NewBranchHandler(branchService, logger)
-	branch_handler.RegisterBranchRoutes(r, branchHandler)
+	branch_handler.RegisterBranchRoutes(r, branchHandler, authMddleware)
 
-	customerPersitance := customerPersistance.InitCustomerDetail(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	customerPersitance := customerPersistance.InitCustomerDetail(mongoClient, cfg.MongoDBDatabase, "customers", logger)
 	customerDomain := service.IntiCustomerDomain(customerPersitance, logger)
 	customerApp := customer.InitCustomerHandler(customerDomain, logger)
 	customerRoutes := customerhandler.NewCustomerHTTPHandler(customerApp, logger)
-	customerhandler.InitCustomerRoutes(r, customerRoutes)
+	customerhandler.InitCustomerRoutes(r, customerRoutes, authMddleware)
 
-	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase,
+		"cps_actions", "customers_new", logger)
 	faydaDomin := faydaService.InitFaydaAccountDomain(faydaPersistence, logger)
 	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
-	faydaRoutes.InitFaydaRoutes(r, faydaHandlers)
+	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMddleware)
 
 	server := http.Server{
-		Addr:    viper.GetString("Host") + ":" + viper.GetString("Port"),
+		Addr:    ":8080",
 		Handler: r,
 	}
 

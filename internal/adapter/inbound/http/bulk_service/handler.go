@@ -21,7 +21,7 @@ func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts) inbou
 	}
 }
 
-func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
+func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound,authMiddleware middleware.AuthMiddleware) {
 
 	routes := []route.Route{
 		{
@@ -29,8 +29,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			Path:    "/api/v1/cbesuperapp/cps_config/enable_disable_service_maker",
 			Handler: handler.EnableDisableServicesMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
 			},
 		},
 		{
@@ -38,8 +38,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			Path:    "/api/v1/cbesuperapp/cps_config/fetch_service",
 			Handler: handler.FetchServices,
 			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
 			},
 		},
 		{
@@ -47,8 +47,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			Path:    "/api/v1/cbesuperapp/cps_config/enable_disable_service_maker",
 			Handler: handler.EnableDisableServicesChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
 			},
 		},
 		{
@@ -56,8 +56,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			Path:    "/api/v1/cbesuperapp/cps_config/cif_search",
 			Handler: handler.SearchAccountByCif,
 			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
 			},
 		},
 		{
@@ -65,8 +65,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			Path:    "/api/v1/cbesuperapp/cps_config/cif_remove_maker",
 			Handler: handler.RemoveCifMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
 			},
 		},
 		{
@@ -74,8 +74,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound) {
 			Path:    "/api/v1/cbesuperapp/cps_config/cif_remove_checker",
 			Handler: handler.RemoveCifChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
 			},
 		},
 	}

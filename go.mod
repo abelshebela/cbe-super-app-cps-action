@@ -10,7 +10,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.17
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.19
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
 )

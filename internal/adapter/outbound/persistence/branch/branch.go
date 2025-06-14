@@ -18,19 +18,18 @@ import (
 type BranchPersistence struct {
 	branchDal dal.MongoDal[entities.Branch, entities.Branch]
 	cpsDal    dal.MongoDal[entities.CPSAction, entities.CPSAction]
-	timeout   time.Duration
 	logger    utils.Logger
 }
 
 var _ repository.BulkCustomerRepo = (*BranchPersistence)(nil)
 
-func NewBranchPersistence(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *BranchPersistence {
-	branchDal := dal.NewMongoDal[entities.Branch, entities.Branch](client, dbName, "branches")
-	cpsDal := dal.NewMongoDal[entities.CPSAction, entities.CPSAction](client, dbName, "cps_actions")
+func NewBranchPersistence(client *mongo.Client, dbName string, 
+	branchCollection,cpsCollection string, logger utils.Logger) *BranchPersistence {
+	branchDal := dal.NewMongoDal[entities.Branch, entities.Branch](client, dbName, branchCollection)
+	cpsDal := dal.NewMongoDal[entities.CPSAction, entities.CPSAction](client, dbName, cpsCollection)
 	return &BranchPersistence{
 		branchDal: branchDal,
 		cpsDal:    cpsDal,
-		timeout:   timeout,
 		logger:    logger,
 	}
 }

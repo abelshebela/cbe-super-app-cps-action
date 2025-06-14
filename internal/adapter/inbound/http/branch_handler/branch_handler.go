@@ -13,6 +13,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 type BranchHandler struct {
@@ -55,7 +56,7 @@ func (h *BranchHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Reque
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(middleware.ContextKey("user_payload")).(middleware.UserPayload)
+	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
 	if !ok {
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
 		resp.SendJSON()
@@ -107,7 +108,7 @@ func (h *BranchHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *htt
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(middleware.ContextKey("user_payload")).(middleware.UserPayload)
+	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
 	if !ok {
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
 		resp.SendJSON()
@@ -156,7 +157,7 @@ func (h *BranchHandler) DisableMultipleBranches(w http.ResponseWriter, r *http.R
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(middleware.ContextKey("user_payload")).(middleware.UserPayload)
+	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
 	if !ok {
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
 		resp.SendJSON()
@@ -188,7 +189,7 @@ func (h *BranchHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, r *htt
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(middleware.ContextKey("user_payload")).(middleware.UserPayload)
+	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
 	if !ok {
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
 		resp.SendJSON()

@@ -5,13 +5,13 @@ import (
 	"regexp"
 	"time"
 
-	validation "github.com/go-ozzo/ozzo-validation/v4"
+	Validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type User struct {
-	UserCode    string `json:"user_code" bson:"user_code"`
-	FullName    string `json:"full_name" bson:"user_code"`
-	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	UserCode    string `json:"user_code,omitempty" bson:"user_code"`
+	FullName    string `json:"full_name,omitempty" bson:"user_code"`
+	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number"`
 }
 
 type ActionStatus string
@@ -37,17 +37,17 @@ const (
 )
 
 type ActionData struct {
-	UseCode     string `json:"user_code" bson:"user_code"`
-	FullName    string `json:"full_name" bson:"full_name"`
-	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	UseCode     string `json:"user_code"`
+	FullName    string `json:"full_name"`
+	PhoneNumber string `json:"phone_number"`
 }
 
 func (a ActionData) Validate() error {
-	return validation.ValidateStruct(&a,
-		validation.Field(&a.UseCode, validation.Required.Error("user code is required")),
-		validation.Field(&a.FullName, validation.Required.Error("full name is required")),
-		validation.Field(&a.PhoneNumber, validation.Required.Error("phone number is required"),
-			validation.By(ValidatePhone)),
+	return Validation.ValidateStruct(&a,
+		Validation.Field(&a.UseCode, Validation.Required.Error("user code is required")),
+		Validation.Field(&a.FullName, Validation.Required.Error("full name is required")),
+		Validation.Field(&a.PhoneNumber, Validation.Required.Error("phone number is required"),
+			Validation.By(ValidatePhone)),
 	)
 }
 
@@ -62,25 +62,32 @@ func ValidatePhone(phone interface{}) error {
 }
 
 type CPSAction struct {
-	ID                string        `json:"id"`
-	ActionCode        string        `json:"action_code"`
+	ID                string        `json:"id,omitempty"`
+	ActionCode        string        `json:"action_code,omitempty"`
 	CheckerUser       User          `json:"checker_user"`
 	MakerUser         User          `json:"maker_user"`
-	RejectedReason    string        `json:"rejected_reason"`
-	Department        string        `json:"department"`
-	Status            ActionStatus  `json:"status"`
-	RequestAction     RequestAction `json:"request_action"`
-	ActionType        ActionType    `json:"action_type"`
+	RejectedReason    string        `json:"rejected_reason,omitempty"`
+	Department        string        `json:"department,omitempty"`
+	Status            ActionStatus  `json:"status,omitempty"`
+	RequestAction     RequestAction `json:"request_action,omitempty"`
+	ActionType        ActionType    `json:"action_type,omitempty"`
 	ActionData        ActionData    `json:"action_data"`
-	MakerActionTime   time.Time     `json:"maker_action_time"`
-	CheckerActionTime time.Time     `json:"checker_action_time"`
+	PreviousData      any           `json:"previous_action,omitempty"`
+	CurrentData       any           `json:"current_action,omitempty"`
+	MakerActionTime   time.Time     `json:"maker_action_time,omitzero"`
+	CheckerActionTime time.Time     `json:"checker_action_time,omitzero"`
+}
+
+type RejectCPSAction struct {
+	RejectedReason string `json:"rejected_reason,omitempty"`
+	ActionData
 }
 
 func (c CPSAction) Validate(rejectOrApprove string) error {
-	return validation.ValidateStruct(&c,
-		validation.Field(&c.ActionData),
-		validation.Field(&c.RejectedReason, validation.When(
-			rejectOrApprove == "REJECT", validation.Required, validation.Min(30).Error("minimum character should be 30"),
-			validation.Max(300).Error("maximum character should be 300"))),
+	return Validation.ValidateStruct(&c,
+		Validation.Field(&c.ActionData),
+		Validation.Field(&c.RejectedReason, Validation.When(
+			rejectOrApprove == "REJECT", Validation.Required, Validation.Length(30, 300).Error("length of reason should be between 30 and 300 character"),
+		)),
 	)
 }
