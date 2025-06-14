@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/spf13/viper"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -79,7 +78,7 @@ func main() {
 	handlers := bulkservices_inbound.NewHttpBulkService(application)
 	bulkservices_inbound.InitServiceHandlerMaker(r, handlers)
 
-		branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase,
+	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase,
 		"branches", "cps_actions", logger)
 	branchService := branch_domain.NewBranchService(branchPersistence)
 	branchHandler := branch_handler.NewBranchHandler(branchService, logger)
@@ -99,7 +98,7 @@ func main() {
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers)
 
 	server := http.Server{
-		Addr:    viper.GetString("Host") + ":" + viper.GetString("Port"),
+		Addr:    ":8080",
 		Handler: r,
 	}
 
