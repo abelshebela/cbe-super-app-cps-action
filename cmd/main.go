@@ -104,7 +104,7 @@ func main() {
 	customerhandler.InitCustomerRoutes(r, customerRoutes, authMddleware)
 
 	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase,
-		"cps_actions", "customers_new", logger)
+		[]string{"cps_actions", "customers"}, logger)
 	faydaDomin := faydaService.InitFaydaAccountDomain(faydaPersistence, logger)
 	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
