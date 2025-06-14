@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -14,8 +15,8 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/spf13/viper"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
@@ -111,7 +112,7 @@ func main() {
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMddleware)
 
 	server := http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + strconv.Itoa(cfg.ServerPort),
 		Handler: r,
 	}
 
