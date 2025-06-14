@@ -54,6 +54,7 @@ func (b *BranchPersistence) FilterSingleBranches(ctx context.Context, region, di
 }
 
 func (b *BranchPersistence) DisableSingleBranch(ctx context.Context, branch entities.Branch, maker entities.User) error {
+	department, _ := ctx.Value("department").(string)
 	actionCode := utils.RandomGenerator(24)
 	actionData := entities.ActionData{
 		BranchCode:    branch.BranchCode,
@@ -70,8 +71,7 @@ func (b *BranchPersistence) DisableSingleBranch(ctx context.Context, branch enti
 		MakerUser:       maker,
 		CheckerUser:     entities.User{},
 		RejectedReason:  "",
-		Department:      "",
-		Status:          entities.ActionPending,
+		Department:      department,
 		PreviousAction:  nil,
 		RequestAction:   entities.RequestDisableSingleBranch,
 		ActionType:      entities.ActionUpdate,
@@ -146,6 +146,7 @@ func (b *BranchPersistence) DisableMultipleBranches(ctx context.Context, branche
 	if len(branches) == 0 {
 		return errors.New("branches are required")
 	}
+	department, _ := ctx.Value("department").(string)
 
 	firstBranch := branches[0]
 	actionData := entities.ActionData{
@@ -170,7 +171,7 @@ func (b *BranchPersistence) DisableMultipleBranches(ctx context.Context, branche
 		MakerUser:       maker,
 		CheckerUser:     entities.User{},
 		RejectedReason:  "",
-		Department:      "",
+		Department:      department,
 		Status:          entities.ActionPending,
 		PreviousAction:  nil,
 		RequestAction:   entities.RequestDisableMultiUsers,
