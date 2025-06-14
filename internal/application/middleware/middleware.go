@@ -58,8 +58,6 @@ func AuthenticateToken(next http.Handler) http.Handler {
 			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
 		}
 
-		
-
 		jwtSecret := []byte(viper.GetString("JwtSecretKey"))
 
 		if tokenString == "" {
@@ -105,10 +103,11 @@ func AuthenticateToken(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, ContextKey("branch_code"), userPayload.BranchCode)
 		ctx = context.WithValue(ctx, ContextKey("user_role"), userPayload.UserRole)
 		ctx = context.WithValue(ctx, ContextKey("user_id"), userPayload.UserID)
-		ctx = context.WithValue(ctx, ContextKey("fullname"), userPayload.FullName)
-		ctx = context.WithValue(ctx, ContextKey("phoneNumber"), userPayload.PhoneNumber)
+		ctx = context.WithValue(ctx, ContextKey("full_name"), userPayload.FullName)
+		ctx = context.WithValue(ctx, ContextKey("phone_number"), userPayload.PhoneNumber)
 		ctx = context.WithValue(ctx, ContextKey("user_payload"), userPayload)
 		r = r.WithContext(ctx)
+
 
 		next.ServeHTTP(w, r)
 	})
