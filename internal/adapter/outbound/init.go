@@ -23,6 +23,7 @@ type outboundStore struct {
 	MongoDalMember    *infra_mongo.MongoDal[member.User, member.User]
 	MongoDalAccounts  *infra_mongo.MongoDal[model.LinkedAccount, model.LinkedAccount]
 	BpsCalls          bpscalls.BpsCallsInterface
+	MongoDalMiniApp   *infra_mongo.MongoDal[model.MiniApp, model.MiniApp]
 }
 
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
@@ -31,6 +32,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 	mongoDalService := infra_mongo.NewMongoDal[model.Service, model.Service](client, dbName, collectionNames[2])
 	mongoDalMember := infra_mongo.NewMongoDal[member.User, member.User](client, dbName, collectionNames[3])
 	mongoDalAccounts := infra_mongo.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collectionNames[4])
+	mongoDalMiniApp := infra_mongo.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collectionNames[5])
 	return &outboundStore{
 		MongoDalCPSAction: mongoDalCPSAction,
 		MongoDalBPSUser:   mongoDalBPSUser,
@@ -38,6 +40,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalMember:    mongoDalMember,
 		MongoDalAccounts:  mongoDalAccounts,
 		BpsCalls:          bpscalls.NewBpsCalls(),
+		MongoDalMiniApp:   mongoDalMiniApp,
 	}
 }
 
@@ -467,7 +470,7 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 	if err != nil {
 		return domain.CPSAction{}, err
 	}
-	var data = *d[len(d)-1] 
+	var data = *d[len(d)-1]
 	result := domain.CPSAction{
 		ID:              data.ID.Hex(),
 		ActionCode:      data.ActionCode,

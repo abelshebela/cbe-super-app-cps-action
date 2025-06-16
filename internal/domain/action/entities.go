@@ -38,11 +38,7 @@ type MakerAndChecker struct {
 }
 
 type CurrentAction struct {
-<<<<<<< HEAD
 	Id     []string
-=======
-	Id     string
->>>>>>> b69ee66 (feature added)
 	Action bool
 }
 type CPSAction struct {
@@ -51,13 +47,8 @@ type CPSAction struct {
 	MakerAndChecker MakerAndChecker
 	Department      string
 	RejectionReason *string
-<<<<<<< HEAD
 	PreviosAction   interface{}
 	CurrentAction   interface{}
-=======
-	PreviosAction   struct{}
-	CurrentAction   CurrentAction
->>>>>>> b69ee66 (feature added)
 	ActionStatus    ActionStatus
 	ActionType      ActionType
 	RequestAction   RequestAction
@@ -140,7 +131,6 @@ type Service struct {
 	CreatedAt      time.Time
 	LastModifiedAt time.Time
 }
-<<<<<<< HEAD
 type RegistrationType string
 
 const (
@@ -179,5 +169,3 @@ type LinkedAccount struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
-=======
->>>>>>> b69ee66 (feature added)

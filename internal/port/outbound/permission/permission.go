@@ -1,5 +1,7 @@
 package permission
 
+import "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+
 type PermissionRepository interface {
 	CheckPendingRequest(userCode, action string) error
 	CheckPermissionGroupExists(groupName string) bool
