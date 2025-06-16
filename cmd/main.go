@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	accountvalidation_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
+	ad_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	cpsusermaker_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
@@ -39,6 +40,7 @@ import (
 	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
 	unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
+	ad_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
 	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
@@ -49,6 +51,7 @@ import (
 	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
 	accountvalidation_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	ad_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/service"
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 	cpsusermaker_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
@@ -67,7 +70,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to load config %v", err)
 	}
-
+	//
 	mongoClient, err := config.ConnectToMongoDB(cfg.MongoDBURI)
 	if err != nil {
 		logger.Fatalf("failed to connect to mongo %v", err)
@@ -152,6 +155,12 @@ func main() {
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMddleware)
 
+	adPersistence := ad.InitAD(mongoClient, cfg.MongoDBDatabase, []string{"adverts", "cps_actions"}, logger)
+	adDomain := ad_domain.InitADDomian(adPersistence, logger)
+	adHandler := ad_handler.InitADHandler(adDomain, minioClient, "adverts", logger)
+	adAdapter := ad_adapter.InitADAdapter(adHandler, logger)
+	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
+
 	departmentPersistence := departmentPersistence.InitDepartment(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	departmentDomain := departmentService.InitDepartmentDomain(departmentPersistence, departmentPersistence, logger)
 	departmentApp := department.InitDepartmentHandler(departmentDomain, logger)
@@ -192,10 +201,6 @@ func main() {
 
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
-	adPersistence := ad.InitAD(mongoClient, cfg.MongoDBDatabase, []string{"adverts", "cps_actions"}, logger)
-	adDomain := ad_domain.InitADDomian(adPersistence, logger)
-	adHandler := ad_handler.InitADHandler(adDomain, minioClient, "adverts", logger)
-	adAdapter := ad_adapter.InitADAdapter(adHandler, logger)
 	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
 
 	server := http.Server{
