@@ -56,6 +56,7 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 	userID := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phoneNumber := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	
 
 	maker := action.User{
 		UserID:      userID,

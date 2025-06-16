@@ -43,7 +43,6 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 		MongoDalBPSUser:   mongoDalBPSUser,
 	}
 }
-
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[0])
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[1])
@@ -580,45 +579,53 @@ func stringToPointer(s string) *string {
 	return &s
 }
 func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) error {
-	department, _ := ctx.Value("department").(string)
-	actionCode := utils.RandomGenerator(24)
-	cpsAction := model.CPSAction{
-		ActionCode: actionCode,
-		MakerUser: model.User{ // If your model.CPSAction expects MakerUser
-			UserCode:    maker.UserID,
-			FullName:    maker.FullName,
-			PhoneNumber: maker.PhoneNumber,
-		},
-		Unique_ID:      user.UserCode,
-		Department:     department,
-		ActionStatus:   model.ActionPending,
-		ActionType:     model.ActionCreate,
-		RequestAction:  model.RequestUser,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	}
-	filter := bson.M{
-		"unique_id":      user.UserCode,
-		"action_status":  model.ActionPending,
-		"action_type":    model.ActionCreate,
-		"request_action": model.RequestUser,
-	}
-	projection := bson.M{"_id": 1}
-	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err == nil && existing != nil {
-		return errors.New("a pending user creation action already exists for this user code")
-	}
-	if err != nil && err != mongo.ErrNoDocuments {
-		return err
-	}
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	if err != nil {
-		if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
-			return errors.New("duplicate action code or user creation request")
-		}
-		return err
-	}
-	return nil
+    department, _ := ctx.Value("department").(string)
+    actionCode := utils.RandomGenerator(24)
+
+    prevActionJSON := json.RawMessage("null")
+    currActionJSON, _ := json.Marshal(user)
+
+    cpsAction := model.CPSAction{
+        ActionCode:    actionCode,
+        MakerUser: model.User{
+            UserCode:    maker.UserID,
+            FullName:    maker.FullName,
+            PhoneNumber: maker.PhoneNumber,
+        },
+        Unique_ID:      user.UserCode,
+        Department:     department,
+        ActionStatus:   model.ActionPending,
+        ActionType:     model.ActionCreate,
+        RequestAction:  model.RequestUser,
+        PreviosAction:  prevActionJSON,
+        CurrentAction:  currActionJSON,
+        CreatedAt:      time.Now(),
+        LastModifiedAt: time.Now(),
+    }
+
+    filter := bson.M{
+        "unique_id":      user.UserCode,
+        "action_status":  model.ActionPending,
+        "action_type":    model.ActionCreate,
+        "request_action": model.RequestUser,
+    }
+    projection := bson.M{"_id": 1}
+    existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+    if err == nil && existing != nil {
+        return errors.New("a pending user creation action already exists for this user code")
+    }
+    if err != nil && err != mongo.ErrNoDocuments {
+        return err
+    }
+
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    if err != nil {
+        if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
+            return errors.New("duplicate action code or user creation request")
+        }
+        return err
+    }
+    return nil
 }
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) error {
 	if updated.UserCode == "" {

@@ -94,14 +94,14 @@ func main() {
 	dbname := cfg.MongoDBDatabase
 	//dbname := "ldap_cbs"
 	collectionNames := []string{
-		"BPSActions",
 		"BPSUsers",
+		"cps_actions",
+		"cps_users",
 		"CPSServices",
 		"Member",
 		"linked_accounts",
 		"mini_app",
-		"cps_users",
-		"cps_actions",
+		"BPSActions",
 	}
 
 	r := chi.NewRouter()
@@ -159,7 +159,7 @@ func main() {
 	adDomain := ad_domain.InitADDomian(adPersistence, logger)
 	adHandler := ad_handler.InitADHandler(adDomain, minioClient, "adverts", logger)
 	adAdapter := ad_adapter.InitADAdapter(adHandler, logger)
-	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
+	// ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
 
 	departmentPersistence := departmentPersistence.InitDepartment(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	departmentDomain := departmentService.InitDepartmentDomain(departmentPersistence, departmentPersistence, logger)

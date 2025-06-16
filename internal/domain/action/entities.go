@@ -39,6 +39,7 @@ type CurrentAction struct {
 type CPSAction struct {
 	ID              string
 	ActionCode      string
+	UniqueID        string
 	Maker           User
 	Checker         User
 	Department      string
