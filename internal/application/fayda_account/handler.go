@@ -48,6 +48,7 @@ func (f FaydaHandler) InitiateDisableFaydaAccount(ctx context.Context, req CPSAc
 			PhoneNumber: req.ActionData.PhoneNumber,
 		},
 	}
+	cpsReq.ActionCode = utils.RandomGenerator(20)
 
 	res, err := f.FaydaDomain.InitiateDisableFaydaAccount(ctx, cpsReq)
 	if err != nil {
