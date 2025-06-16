@@ -12,9 +12,10 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 type UserPayload struct {
@@ -207,7 +208,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			return
 		}
 
-
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, constant.ContextKey("branch_code"), userPayload.BranchCode)
 		ctx = context.WithValue(ctx, constant.ContextKey("user_role"), userPayload.UserRole)
@@ -217,7 +217,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, constant.ContextKey("full_name"), userPayload.FullName)
 		ctx = context.WithValue(ctx, constant.ContextKey("department"), userPayload.Department)
 		r = r.WithContext(ctx)
-
 
 		next.ServeHTTP(w, r)
 	})

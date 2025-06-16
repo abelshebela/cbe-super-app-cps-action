@@ -3,9 +3,12 @@ package action
 import "context"
 
 type Repository interface {
+<<<<<<< HEAD
 	//GetMemberById(ctx context.Context, id string) (Member, error)
 	//UpdateMember(ctx context.Context, member Member) (Member, error)
 
+=======
+>>>>>>> b69ee66 (feature added)
 	GetAllHqServices(ctx context.Context) ([]Service, error)
 	GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]Service, error)
 	GetHqServiceById(ctx context.Context, id string) (Service, error)
@@ -14,10 +17,13 @@ type Repository interface {
 	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
 	UpdateCpsAction(ctx context.Context, Action CPSAction) error
 	FetchCpsActionById(ctx context.Context, Action_Id string) (CPSAction, error)
+<<<<<<< HEAD
 	FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (CPSAction, error)
 
 	FetchAccountsByAccountNumber(ctx context.Context, accountNumber string) ([]LinkedAccount, error)
 	FetchLinkedAccountById(ctx context.Context, id []string) ([]LinkedAccount, error)
 	UpdateAccounts(ctx context.Context, linkedAccounts []LinkedAccount) ([]LinkedAccount, error)
 	UpdateAccount(ctx context.Context, linkedAccount LinkedAccount) (LinkedAccount, error)
+=======
+>>>>>>> b69ee66 (feature added)
 }
