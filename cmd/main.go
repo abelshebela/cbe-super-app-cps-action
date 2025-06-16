@@ -30,6 +30,7 @@ import (
 	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
 	cpsusermaker_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
 	accountvalidation_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
 	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
@@ -78,14 +79,14 @@ func main() {
 	}()
 	log.Println("Connected to MongoDB!")
 
-	/* minioClient, err := config.NewMinioClient(&config.VaultConfig{
+	minioClient, err := config.NewMinioClient(&config.VaultConfig{
 		MinioEndPoint:  cfg.MinioEndPoint,
 		MinioAccessKey: cfg.MinioAccessKey,
 		MinioSecretKey: cfg.MinioSecretKey,
 	})
 	if err != nil {
 		logger.Fatalf("failed to initialize minio clinet", err)
-	} */
+	}
 
 	dbname := cfg.MongoDBDatabase
 	//dbname := "ldap_cbs"
@@ -190,6 +191,12 @@ func main() {
 	cpsUserHandler := cpsusermaker_handler.InitCPSUserMakerHandler(cpsUserService, logger)
 
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
+
+	adPersistence := ad.InitAD(mongoClient, cfg.MongoDBDatabase, []string{"adverts", "cps_actions"}, logger)
+	adDomain := ad_domain.InitADDomian(adPersistence, logger)
+	adHandler := ad_handler.InitADHandler(adDomain, minioClient, "adverts", logger)
+	adAdapter := ad_adapter.InitADAdapter(adHandler, logger)
+	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
 
 	server := http.Server{
 		Addr:    ":" + strconv.Itoa(cfg.ServerPort),
