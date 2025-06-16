@@ -1,4 +1,4 @@
-package miniapp
+package ticket
 
 import (
 	"context"
@@ -9,9 +9,10 @@ import (
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
-func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, makerId string) (string, error) {
+func (s *TicketStore) CreateTicketAction(ctx context.Context, ticket Ticket, makerId string) (string, error) {
+	//
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	previos_action := miniApp
+	previos_action := ticket
 	action := domain.CPSAction{
 		ActionCode: actionId,
 		MakerAndChecker: domain.MakerAndChecker{
@@ -24,15 +25,14 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 		ActionStatus:  domain.ActionPending,
 		PreviosAction: previos_action,
 	}
-	a, err := s.repository.CreateMiniAppAction(ctx, action)
+	a, err := s.repository.CreateTicketAction(ctx, action)
 	if err != nil {
 		return "", err
 	}
 	return a.ActionCode, nil
 }
-
-func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action bool, checkerId string) error {
-	act, err := s.repository.GetMiniAppActionId(ctx, actionId)
+func (s *TicketStore) CheckTicket(ctx context.Context, actionId string, action bool, checkerId string) error {
+	act, err := s.repository.GetTicketByActionId(ctx, actionId)
 	if err != nil {
 		return err
 	}
@@ -46,18 +46,21 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 	act.MakerAndChecker.Checker = domain.User{
 		UserID: checkerId,
 	}
-	err = s.repository.UpdateCpsAction(ctx, act)
+	err = s.repository.UpdateTicketCpsAction(ctx, act)
 	if err != nil {
 		return err
 	}
 	data := act.PreviosAction
-	miniApp, ok := data.(MiniApp)
+	miniApp, ok := data.(Ticket)
 	if !ok {
 		return fmt.Errorf("failed to cast previous action data to MiniApp")
 	}
-	err = s.repository.CreateMiniApp(ctx, miniApp)
+	err = s.repository.CreateTicket(ctx, miniApp)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+func (s *TicketStore) FetchAllTickets(ctx context.Context, limit, offset int32) ([]Ticket, error) {
+	return s.repository.FetchAllTickets(ctx, limit, offset)
 }

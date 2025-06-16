@@ -79,6 +79,7 @@ func main() {
 		"CPSServices",
 		"Member",
 		"linked_accounts",
+		"mini_app",
 	}
 
 	r := chi.NewRouter()
