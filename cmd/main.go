@@ -20,6 +20,7 @@ import (
 	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
 	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
@@ -31,6 +32,10 @@ import (
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
 	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
+	ad_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/service"
+	ad_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
+	ad_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
+
 )
 
 func main() {
@@ -52,6 +57,15 @@ func main() {
 		}
 	}()
 	log.Println("Connected to MongoDB!")
+
+	minioClient,err := config.NewMinioClient(&config.VaultConfig{
+		MinioEndPoint: cfg.MinioEndPoint,
+		MinioAccessKey: cfg.MinioAccessKey,
+		MinioSecretKey: cfg.MinioSecretKey,
+	})
+	if err != nil{
+		logger.Fatalf("failed to initialize minio clinet",err)
+	}
 
 	dbname := cfg.MongoDBDatabase
 	//dbname := "ldap_cbs"
@@ -99,6 +113,12 @@ func main() {
 	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMddleware)
+
+	adPersistence := ad.InitAD(mongoClient,cfg.MongoDBDatabase,[]string{"adverts","cps_actions"},logger)
+	adDomain := ad_domain.InitADDomian(adPersistence,logger)
+	adHandler := ad_handler.InitADHandler(adDomain,minioClient,"adverts",logger)
+	adAdapter := ad_adapter.InitADAdapter(adHandler,logger)
+	ad_adapter.InitADRoutes(r,adAdapter,authMddleware)
 
 	server := http.Server{
 		Addr:    ":8080",
