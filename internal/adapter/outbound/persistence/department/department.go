@@ -7,8 +7,8 @@ import (
   "errors"
   "log"
 
-  "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/department/entities"
-  repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/department"
+  "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+  repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

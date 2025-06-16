@@ -3,7 +3,7 @@ package department
 import (
 	"time"
 	"errors"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/department/entities"
+	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
 	  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 type Service struct {
@@ -22,34 +22,33 @@ func InitDepartmentDomain(cpsActionRepo CPSActionRepository, departmentRepo Depa
 
 func (s *Service) CreateDepartment(department string, portalCards []string, cpsAction entities.CPSAction) error {
  
-//  if ok, err := s.cpsActionRepo.CheckRequestExists(cpsAction); err != nil {
-//     return err
-//   } else if ok {
-//     return errors.New("You have a pending request for this action")
-//   }
+ if ok, err := s.cpsActionRepo.CheckRequestExists(cpsAction); err != nil {
+    return err
+  } else if ok {
+    return errors.New("You have a pending request for this action")
+  }
 
-//   if exists, err := s.departmentRepo.CheckDepartmentExists(department); err != nil {
-//     return err
-//   } else if exists {
-//     return errors.New("Department already exists")
-//   }
+  if exists, err := s.departmentRepo.CheckDepartmentExists(department); err != nil {
+    return err
+  } else if exists {
+    return errors.New("Department already exists")
+  }
 
-    //    cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	// 	cpsAction.CurrentAction = map[string]interface{}{
-	// 		"department": department,
-	// 		"department_code": utils.Random(10, &utils.PreSufix{Prefix: "DEP_"}),
-	// 		"portal_cards": portalCards,
-	// 	}
-	// 	cpsAction.MakerActionTime = time.Now()
+       cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+		cpsAction.CurrentAction = map[string]interface{}{
+			"department": department,
+			"department_code": utils.Random(10, &utils.PreSufix{Prefix: "DEP_"}),
+			"portal_cards": portalCards,
+		}
+		cpsAction.MakerActionTime = time.Now()
 
- departmentData := entities.Department{
-	DepartmentCode : utils.Random(10, &utils.PreSufix{Prefix: "DEP_"}),
-	Department : department,
-	PortalCards: portalCards,
-	CreatedAt: time.Now(),
-	LastModified: time.Now(),
- }
-  return s.departmentRepo.CreateDepartment(departmentData)
+	if err := s.cpsActionRepo.CreateCPSAction(department, portalCards, cpsAction); err != nil {	
+		return err
+	}	
+
+	s.logger.Infof("CPS action request created for department %s with action code %s", department, cpsAction.ActionCode)
+	return nil
+
 }
 
 func (s *Service) ValidateActionRequest(actionCode string, userDept string) (*entities.CPSAction, error){

@@ -1,8 +1,8 @@
 package permission
 
 import (
-	 domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/permission"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/permission/entities"
+	 domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
+	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
 	 "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

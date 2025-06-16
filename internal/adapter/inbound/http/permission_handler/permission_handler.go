@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"github.com/go-chi/chi/v5"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/permission"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound/permission"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
+	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/permission"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/permission/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 )
 
@@ -50,24 +50,17 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	userCtx := r.Context().Value(middleware.ContextKey("user_payload"))
-	user, ok := userCtx.(middleware.UserPayload)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		h.logger.Errorf("[CreatePermissionGroup] failed to extract user from context")
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusUnauthorized,
-			Data: map[string]string{"message": " unauthorized user"},
-		}
-		resp.SendJSON()
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:            user.UserID,
-		MakerName:          user.FullName,
-		MakerPhoneNumber:   user.PhoneNumber,
-		Department:         user.Department,
+		MakerID:            claims.UserID,
+		MakerName:          claims.FullName,
+		MakerPhoneNumber:   claims.PhoneNumber,
+		Department:         claims.Department,
 		ActionStatus:       entities.ActionPending,
 		ActionType:         entities.ActionCreate,
 		RequestAction:      entities.RequestPermissionGroup,
@@ -86,7 +79,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", user.UserID)
+	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", claims.UserID)
 	resp := common.Response[any]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
@@ -99,26 +92,19 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 
 func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
-	userCtx := r.Context().Value(middleware.ContextKey("user_payload"))
-	user, ok := userCtx.(middleware.UserPayload)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		h.logger.Errorf("[ApprovePermissionGroup] failed to extract user from context")
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusUnauthorized,
-			Data:           map[string]string{"message": "Unauthorized"},
-		}
-		resp.SendJSON()
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	h.logger.Infof("[ApprovePermissionGroup] approving action %s", actionCode)
 
 	checker := entities.CPSAction{
-		CheckerID:   user.UserID,
-		CheckerName: user.FullName,
-		CheckerPhoneNumber: user.PhoneNumber,
-		Department:  user.Department,
+		CheckerID:   claims.UserID,
+		CheckerName: claims.FullName,
+		CheckerPhoneNumber: claims.PhoneNumber,
+		Department:  claims.Department,
 	}
 
 	err := h.permissionService.ApprovePermissionGroup(actionCode, checker)

@@ -8,8 +8,8 @@ import (
   "fmt"
   "encoding/json"
 
-  "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/permission/entities"
-  repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/permission"
+  "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+  repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

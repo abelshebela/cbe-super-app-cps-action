@@ -6,12 +6,12 @@ import (
 	"errors"
 	"log"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/department"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/port/inbound/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
+	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/department"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/department/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	 constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -52,24 +52,27 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userCtx := r.Context().Value(middleware.ContextKey("user_payload"))
-	user, ok := userCtx.(middleware.UserPayload)
-	if !ok {
-		h.logger.Errorf("[CreateDepartment] failed to extract user from context")
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
+		h.logger.Errorf("[CreateDepartment] incomplete user information")
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusUnauthorized,
-			Data: map[string]string{"message": " unauthorized user"},
+			Data:           map[string]string{"message": "Incomplete user information"},
 		}
 		resp.SendJSON()
 		return
 	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:            user.UserID,
-		MakerName:          user.FullName,
-		MakerPhoneNumber:   user.PhoneNumber,
-		Department:         user.Department,
+		MakerID:            userID,
+		MakerName:          fullName,
+		MakerPhoneNumber:   phoneNumber,
+		Department:         department,
 		ActionStatus:       entities.ActionPending,
 		ActionType:         entities.ActionCreate,
 		RequestAction:      entities.RequestDepartment,
@@ -88,7 +91,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s", user.UserID)
+	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s", userID)
 	resp := common.Response[any]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
@@ -101,23 +104,26 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 
 func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
+   
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
 
-	userCtx := r.Context().Value(middleware.ContextKey("user_payload"))
-	user, ok := userCtx.(middleware.UserPayload)
-	if !ok {
-		h.logger.Errorf("[ApproveRequest] failed to extract user from context")
+	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
+		h.logger.Errorf("[ApproveRequest] incomplete user information")
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusUnauthorized,
-			Data:           map[string]string{"message": "Unauthorized"},
+			Data:           map[string]string{"message": "Incomplete user information"},
 		}
 		resp.SendJSON()
 		return
 	}
 
-	h.logger.Infof("[ApproveRequest] user %s is approving action %s", user.Department, actionCode)
+	h.logger.Infof("[ApproveRequest] user %s is approving action %s", department, actionCode)
 
-	cpsAction, err := h.departmentService.ValidateActionRequest(actionCode, user.Department)
+	cpsAction, err := h.departmentService.ValidateActionRequest(actionCode, department)
 	if err != nil {
 		h.logger.Errorf("[ApproveRequest] validation failed: %v", err)
 		resp := common.Response[any]{
@@ -159,9 +165,9 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 	}
 
 	checker := entities.CPSAction{
-		CheckerID : user.UserID,
-        CheckerName: user.FullName,
-		CheckerPhoneNumber: user.PhoneNumber,
+		CheckerID:          userID,
+		CheckerName:        fullName,
+		CheckerPhoneNumber: phoneNumber,
 	}
 
 	if err := h.departmentService.ApproveActionRequest(actionCode, checker); err != nil {
@@ -175,7 +181,7 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 		return
 	}
 
-	h.logger.Infof("[ApproveRequest] action %s approved by user %s", actionCode, user.UserID)
+	h.logger.Infof("[ApproveRequest] action %s approved by user %s", actionCode, userID)
 	resp := common.Response[any]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
