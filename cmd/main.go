@@ -34,6 +34,22 @@ import (
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
 	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
+	departmenthandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
+	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
+	departmentService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
+	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
+	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
+	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
+	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
+	feedbackService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
+	feedback "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
+	feedbackhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
+    unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
+    unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
+	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
+	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 )
 
 func main() {
@@ -104,12 +120,37 @@ func main() {
 	customerRoutes := customerhandler.NewCustomerHTTPHandler(customerApp, logger)
 	customerhandler.InitCustomerRoutes(r, customerRoutes, authMddleware)
 
+	feedbackPersitance := feedbackPersistence.InitFeedback(mongoClient, cfg.MongoDBDatabase, "feedbacks", logger)
+	feedbackDomain := feedbackService.InitFeedbackDomain(feedbackPersitance, logger)
+	feedbackApp := feedback.InitFeedbackHandler(feedbackDomain, logger)
+	feedbackRoutes := feedbackhandler.NewFeedbackHTTPHandler(feedbackApp, logger)
+	feedbackhandler.InitFeedbackRoutes(r, feedbackRoutes)
+
 	faydaPersistence := faydaaccount.InitFaydaAccountPersistence(mongoClient, cfg.MongoDBDatabase,
 		[]string{"cps_actions", "customers"}, logger)
 	faydaDomin := faydaService.InitFaydaAccountDomain(faydaPersistence, logger)
 	faydaApp := faydaHandler.InitFaydaHandler(faydaDomin, logger)
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMddleware)
+
+
+	departmentPersistence := departmentPersistence.InitDepartment(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	departmentDomain := departmentService.InitDepartmentDomain(departmentPersistence, departmentPersistence, logger)
+	departmentApp := department.InitDepartmentHandler(departmentDomain, logger)
+	departmentRoutes := departmenthandler.NewDepartmentHTTPHandler(departmentApp, logger)
+	departmenthandler.InitDepartmentRoutes(r, departmentRoutes, authMddleware)
+
+    permissionPersistence := permissionPersistence.InitPermission(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	permissionDomain := permissionService.InitPermissionDomain(permissionPersistence, permissionPersistence, permissionPersistence, logger)
+	permissionApp := permission.InitPermissionHandler(permissionDomain, logger)
+	permissionRoutes := permissionhandler.NewPermissionHTTPHandler(permissionApp, logger)
+	permissionhandler.InitPermissionRoutes(r, permissionRoutes, authMddleware)
+
+	unlinkRepo := unlink_outbound.NewUnlinkInfrastructure(mongoClient, cfg.MongoDBDatabase, []string{"user", "otp", "cps_action"}, logger)
+	unlinkDeviceService := unlinkDomain.NewUnlinkService(unlinkRepo)
+	unlinkDeviceApplication := unlinkApp.NewUnlinkHandler(unlinkDeviceService)
+	unlink_handler := unlinkDeviceHandler.NewHTTPUnlinkHandler(unlinkDeviceApplication, logger)
+	unlinkDeviceHandler.RegisterHTTPUnlinkRoutes(r, unlink_handler, authMddleware)
 
 	server := http.Server{
 		Addr:    ":" + strconv.Itoa(cfg.ServerPort),
