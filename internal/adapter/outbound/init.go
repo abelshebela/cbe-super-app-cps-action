@@ -3,6 +3,9 @@ package adapter
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"strings"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -13,7 +16,9 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type outboundStore struct {
@@ -24,6 +29,19 @@ type outboundStore struct {
 	MongoDalAccounts  *infra_mongo.MongoDal[model.LinkedAccount, model.LinkedAccount]
 	BpsCalls          bpscalls.BpsCallsInterface
 	MongoDalMiniApp   *infra_mongo.MongoDal[model.MiniApp, model.MiniApp]
+	MongoDalCPSUser   *infra_mongo.MongoDal[model.CPSUser, model.CPSUser]
+}
+
+func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames []string) userOutbound.OutboundInfra {
+	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[0])
+	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
+	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
+
+	return &outboundStore{
+		MongoDalCPSUser:   mongoDalCPSUser,
+		MongoDalCPSAction: mongoDalCPSAction,
+		MongoDalBPSUser:   mongoDalBPSUser,
+	}
 }
 
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
@@ -33,6 +51,8 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 	mongoDalMember := infra_mongo.NewMongoDal[member.User, member.User](client, dbName, collectionNames[3])
 	mongoDalAccounts := infra_mongo.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collectionNames[4])
 	mongoDalMiniApp := infra_mongo.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collectionNames[5])
+	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[6])
+
 	return &outboundStore{
 		MongoDalCPSAction: mongoDalCPSAction,
 		MongoDalBPSUser:   mongoDalBPSUser,
@@ -41,6 +61,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalAccounts:  mongoDalAccounts,
 		BpsCalls:          bpscalls.NewBpsCalls(),
 		MongoDalMiniApp:   mongoDalMiniApp,
+		MongoDalCPSUser:   mongoDalCPSUser,
 	}
 }
 
@@ -67,8 +88,8 @@ func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.Service,
 	return d, nil
 }
 func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]domain.Service, error) {
-	skip := int64(offset)      // Convert offset to int64 for MongoDB compatibility
-	limitInt64 := int64(limit) // Convert limit to int64 for MongoDB compatibility
+	skip := int64(offset)
+	limitInt64 := int64(limit)
 
 	data, err := o.MongoDalServices.FindAllWithPagination(ctx, nil, nil, skip, limitInt64)
 	if err != nil {
@@ -135,29 +156,39 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 	}
 	return nil
 }
+func stringPointer(s string) *string {
+	return &s
+}
 
 func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error) {
+	makerUser := model.User{
+		UserCode:    Action.Maker.UserID,
+		FullName:    Action.Maker.FullName,
+		PhoneNumber: Action.Maker.PhoneNumber,
+	}
+	checkerUser := model.User{
+		UserCode:    Action.Checker.UserID,
+		FullName:    Action.Checker.FullName,
+		PhoneNumber: Action.Checker.PhoneNumber,
+	}
+
 	CpsAction := model.CPSAction{
 		ActionCode:         Action.ActionCode,
-		MakerID:            Action.MakerAndChecker.Maker.UserID,
-		MakerName:          Action.MakerAndChecker.Maker.FullName,
-		MakerPhoneNumber:   Action.MakerAndChecker.Maker.PhoneNumber,
-		CheckerID:          &Action.MakerAndChecker.Checker.UserID,
-		CheckerName:        &Action.MakerAndChecker.Checker.FullName,
-		CheckerPhoneNumber: &Action.MakerAndChecker.Checker.PhoneNumber,
+		MakerUser:          makerUser,
+		CheckerUser:        checkerUser,
+		Unique_ID:          Action.Maker.UserID,
+		CheckerID:          stringPointer(Action.Checker.UserID),
+		CheckerName:        stringPointer(Action.Checker.FullName),
+		CheckerPhoneNumber: stringPointer(Action.Checker.PhoneNumber),
 		Department:         Action.Department,
 		RejectionReason:    Action.RejectionReason,
-		PreviosAction:      json.RawMessage("{}"), // Assuming this is empty for now
+		PreviosAction: func() json.RawMessage {
+			b, _ := json.Marshal(Action.PreviosAction)
+			return b
+		}(),
 		CurrentAction: func() json.RawMessage {
-			currentAction, ok := Action.CurrentAction.(domain.CurrentAction)
-			if !ok {
-				return json.RawMessage("{}") // Return empty JSON if type assertion fails
-			}
-			marshaled, _ := json.Marshal(model.CurrentAction{
-				Id:     currentAction.Id,
-				Action: currentAction.Action,
-			})
-			return json.RawMessage(marshaled)
+			b, _ := json.Marshal(Action.CurrentAction)
+			return b
 		}(),
 		ActionStatus:   model.ActionStatus(Action.ActionStatus),
 		ActionType:     model.ActionType(Action.ActionType),
@@ -165,32 +196,29 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 		CreatedAt:      Action.CreatedAt,
 		LastModifiedAt: Action.LastModifiedAt,
 	}
+
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, CpsAction)
 	if err != nil {
-		return domain.CPSAction{}, nil
+		return domain.CPSAction{}, err
 	}
+
 	result := domain.CPSAction{
 		ID:              data.ID.Hex(),
 		ActionCode:      data.ActionCode,
+		Maker:           Action.Maker,
+		Checker:         Action.Checker,
 		Department:      data.Department,
 		RejectionReason: data.RejectionReason,
-		PreviosAction:   data.PreviosAction, // Assuming this is directly mapped
-		CurrentAction: domain.CurrentAction{
-			Id: func() []string {
-				var currentAction model.CurrentAction
-				if err := json.Unmarshal(data.CurrentAction, &currentAction); err != nil {
-					return nil // Handle error or return empty string
-				}
-				return currentAction.Id
-			}(),
-			Action: func() bool {
-				var currentAction model.CurrentAction
-				if err := json.Unmarshal(data.CurrentAction, &currentAction); err != nil {
-					return false
-				}
-				return currentAction.Action
-			}(),
-		},
+		PreviosAction: func() interface{} {
+			var v interface{}
+			_ = json.Unmarshal(data.PreviosAction, &v)
+			return v
+		}(),
+		CurrentAction: func() interface{} {
+			var v interface{}
+			_ = json.Unmarshal(data.CurrentAction, &v)
+			return v
+		}(),
 		ActionStatus:   domain.ActionStatus(data.ActionStatus),
 		ActionType:     domain.ActionType(data.ActionType),
 		RequestAction:  domain.RequestAction(data.RequestAction),
@@ -200,36 +228,33 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 	return result, nil
 }
 func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAction) error {
+	makerUser := model.User{
+		UserCode:    Action.Maker.UserID,
+		FullName:    Action.Maker.FullName,
+		PhoneNumber: Action.Maker.PhoneNumber,
+	}
+	checkerUser := model.User{
+		UserCode:    Action.Checker.UserID,
+		FullName:    Action.Checker.FullName,
+		PhoneNumber: Action.Checker.PhoneNumber,
+	}
 	CpsAction := model.CPSAction{
 		ActionCode:         Action.ActionCode,
-		MakerID:            Action.MakerAndChecker.Maker.UserID,
-		MakerName:          Action.MakerAndChecker.Maker.FullName,
-		MakerPhoneNumber:   Action.MakerAndChecker.Maker.PhoneNumber,
-		CheckerID:          &Action.MakerAndChecker.Checker.UserID,
-		CheckerName:        &Action.MakerAndChecker.Checker.FullName,
-		CheckerPhoneNumber: &Action.MakerAndChecker.Checker.PhoneNumber,
+		MakerUser:          makerUser,
+		CheckerUser:        checkerUser,
+		Unique_ID:          Action.Maker.UserID,
+		CheckerID:          stringPointer(Action.Checker.UserID),
+		CheckerName:        stringPointer(Action.Checker.FullName),
+		CheckerPhoneNumber: stringPointer(Action.Checker.PhoneNumber),
 		Department:         Action.Department,
 		RejectionReason:    Action.RejectionReason,
-		PreviosAction:      json.RawMessage{}, // Assuming this is directly mapped
+		PreviosAction: func() json.RawMessage {
+			b, _ := json.Marshal(Action.PreviosAction)
+			return b
+		}(),
 		CurrentAction: func() json.RawMessage {
-			currentAction := model.CurrentAction{
-				Id: func() []string {
-					currentAction, ok := Action.CurrentAction.(domain.CurrentAction)
-					if !ok {
-						return nil // Handle type assertion failure
-					}
-					return currentAction.Id
-				}(),
-				Action: func() bool {
-					currentAction, ok := Action.CurrentAction.(domain.CurrentAction)
-					if !ok {
-						return false // Handle type assertion failure
-					}
-					return currentAction.Action
-				}(),
-			}
-			marshaled, _ := json.Marshal(currentAction)
-			return json.RawMessage(marshaled)
+			b, _ := json.Marshal(Action.CurrentAction)
+			return b
 		}(),
 		ActionStatus:   model.ActionStatus(Action.ActionStatus),
 		ActionType:     model.ActionType(Action.ActionType),
@@ -237,41 +262,27 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		CreatedAt:      Action.CreatedAt,
 		LastModifiedAt: Action.LastModifiedAt,
 	}
+
 	filter := map[string]interface{}{
 		"action_code": CpsAction.ActionCode,
 	}
 	update := map[string]interface{}{
 		"$set": map[string]interface{}{
-			"makerID":            CpsAction.MakerID,
-			"makerName":          CpsAction.MakerName,
-			"makerPhoneNumber":   CpsAction.MakerPhoneNumber,
-			"checkerID":          CpsAction.CheckerID,
-			"checkerName":        CpsAction.CheckerName,
-			"checkerPhoneNumber": CpsAction.CheckerPhoneNumber,
-			"department":         CpsAction.Department,
-			"rejectionReason":    CpsAction.RejectionReason,
-			"previosAction":      CpsAction.PreviosAction,
-			"currentAction": map[string]interface{}{
-				"id": func() []string {
-					var currentAction model.CurrentAction
-					if err := json.Unmarshal(CpsAction.CurrentAction, &currentAction); err != nil {
-						return nil // Handle error or return empty slice
-					}
-					return currentAction.Id
-				}(),
-				"action": func() bool {
-					var currentAction model.CurrentAction
-					if err := json.Unmarshal(CpsAction.CurrentAction, &currentAction); err != nil {
-						return false // Handle error or return default value
-					}
-					return currentAction.Action
-				}(),
-			},
-			"actionStatus":   CpsAction.ActionStatus,
-			"actionType":     CpsAction.ActionType,
-			"requestAction":  CpsAction.RequestAction,
-			"createdAt":      CpsAction.CreatedAt,
-			"lastModifiedAt": CpsAction.LastModifiedAt,
+			"maker_user":           CpsAction.MakerUser,
+			"checker_user":         CpsAction.CheckerUser,
+			"unique_id":            CpsAction.Unique_ID,
+			"checker_id":           CpsAction.CheckerID,
+			"checker_name":         CpsAction.CheckerName,
+			"checker_phone_number": CpsAction.CheckerPhoneNumber,
+			"department":           CpsAction.Department,
+			"rejection_reason":     CpsAction.RejectionReason,
+			"previos_action":       CpsAction.PreviosAction,
+			"current_action":       CpsAction.CurrentAction,
+			"action_status":        CpsAction.ActionStatus,
+			"action_type":          CpsAction.ActionType,
+			"request_action":       CpsAction.RequestAction,
+			"created_at":           CpsAction.CreatedAt,
+			"last_modified_at":     CpsAction.LastModifiedAt,
 		},
 	}
 	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
@@ -288,19 +299,19 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 		ActionCode:      data.ActionCode,
 		Department:      data.Department,
 		RejectionReason: data.RejectionReason,
-		PreviosAction:   data.PreviosAction, // Assuming this is directly mapped
+		PreviosAction:   data.PreviosAction,
 		CurrentAction: domain.CurrentAction{
 			Id: func() []string {
 				var currentAction model.CurrentAction
 				if err := json.Unmarshal(data.CurrentAction, &currentAction); err != nil {
-					return nil // Handle error or return empty slice
+					return nil
 				}
 				return currentAction.Id
 			}(),
 			Action: func() bool {
 				var currentAction model.CurrentAction
 				if err := json.Unmarshal(data.CurrentAction, &currentAction); err != nil {
-					return false // Handle error or return default value
+					return false
 				}
 				return currentAction.Action
 			}(),
@@ -567,4 +578,110 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 
 func stringToPointer(s string) *string {
 	return &s
+}
+func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) error {
+	department, _ := ctx.Value("department").(string)
+	actionCode := utils.RandomGenerator(24)
+	cpsAction := model.CPSAction{
+		ActionCode: actionCode,
+		MakerUser: model.User{ // If your model.CPSAction expects MakerUser
+			UserCode:    maker.UserID,
+			FullName:    maker.FullName,
+			PhoneNumber: maker.PhoneNumber,
+		},
+		Unique_ID:      user.UserCode,
+		Department:     department,
+		ActionStatus:   model.ActionPending,
+		ActionType:     model.ActionCreate,
+		RequestAction:  model.RequestUser,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+	}
+	filter := bson.M{
+		"unique_id":      user.UserCode,
+		"action_status":  model.ActionPending,
+		"action_type":    model.ActionCreate,
+		"request_action": model.RequestUser,
+	}
+	projection := bson.M{"_id": 1}
+	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	if err == nil && existing != nil {
+		return errors.New("a pending user creation action already exists for this user code")
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		return err
+	}
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
+			return errors.New("duplicate action code or user creation request")
+		}
+		return err
+	}
+	return nil
+}
+func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) error {
+	if updated.UserCode == "" {
+		return errors.New("userCode is required")
+	}
+	filter := bson.M{"user_code": updated.UserCode}
+	deptObjID, err := bson.ObjectIDFromHex(updated.Department)
+	if err != nil {
+		return errors.New("invalid department ObjectID")
+	}
+	mUser := model.CPSUser{
+		UserCode:     updated.UserCode,
+		Department:   deptObjID,
+		LastModified: ptrTime(time.Now()),
+	}
+	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, bson.M{"$set": mUser})
+	return err
+}
+
+func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {
+	if actionID == "" {
+		return errors.New("actionID is required")
+	}
+	filter := bson.M{"action_code": actionID}
+	update := bson.M{
+		"last_modified_at": time.Now(),
+	}
+	if approve {
+		update["action_status"] = model.ActionApproved
+	} else {
+		update["action_status"] = model.ActionRejected
+	}
+	if reason != nil {
+		update["rejection_reason"] = *reason
+	}
+	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]domain.CPSAction, error) {
+	filter := bson.M{"action_status": model.ActionPending}
+	actionPtrs, err := o.MongoDalCPSAction.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var actions []domain.CPSAction
+	for _, ptr := range actionPtrs {
+		if ptr != nil {
+			actions = append(actions, domain.CPSAction{
+				ID:             ptr.ID.Hex(),
+				ActionCode:     ptr.ActionCode,
+				Department:     ptr.Department,
+				ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
+				ActionType:     domain.ActionType(ptr.ActionType),
+				RequestAction:  domain.RequestAction(ptr.RequestAction),
+				CreatedAt:      ptr.CreatedAt,
+				LastModifiedAt: ptr.LastModifiedAt,
+			})
+		}
+	}
+	return actions, nil
+}
+
+func ptrTime(t time.Time) *time.Time {
+	return &t
 }

@@ -32,11 +32,6 @@ type User struct {
 	Timestamp   time.Time
 }
 
-type MakerAndChecker struct {
-	Maker   User
-	Checker User
-}
-
 type CurrentAction struct {
 	Id     []string
 	Action bool
@@ -44,7 +39,8 @@ type CurrentAction struct {
 type CPSAction struct {
 	ID              string
 	ActionCode      string
-	MakerAndChecker MakerAndChecker
+	Maker           User
+	Checker         User
 	Department      string
 	RejectionReason *string
 	PreviosAction   interface{}
@@ -118,6 +114,7 @@ const (
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
+	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 )
 
 type Service struct {
@@ -168,4 +165,51 @@ type LinkedAccount struct {
 	}
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Password struct {
+	Salt             string
+	CurrentPassword  string
+	OldPassword      [4]string
+	PasswordChangeAt time.Time
+}
+type CPSUser struct {
+	ID                 string
+	UserCode           string
+	FullName           string
+	Role               string
+	Department         string
+	Gender             string
+	PhoneNumber        string
+	Email              string
+	UserName           string
+	Realm              string
+	PermissionCategory []string
+	PermissionGroup    []string
+
+	Password                 Password
+	PasswordDisable          bool
+	SyncDisabled             bool
+	LoginAttemptCount        uint8
+	LastLoginAttempt         time.Time
+	NextLoginAttempt         time.Time
+	LastOnlineDate           time.Time
+	LastLogin                time.Time
+	LoginPassword            string
+	AccountAuthorizationCode string
+	UnlockAccountRequested   bool
+
+	PasswordChangedAt *time.Time
+	OTPStatus         string
+	OTPLastTriedAt    *time.Time
+	OPTLastVerifiedAt *time.Time
+	OTPVerifyCount    int
+
+	Enabled      bool
+	IsDeleted    bool
+	DateJoined   *time.Time
+	LastModified *time.Time
+
+	Country string
+	Region  string
 }

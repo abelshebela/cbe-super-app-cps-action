@@ -17,42 +17,45 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	accountvalidation_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
+	cpsusermaker_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
 	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
+	departmenthandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
 	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
+	feedbackhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
+	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
+	unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
+	cpsusermaker_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
+	accountvalidation_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
+	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
+	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
+	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
+	unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
+	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
 	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
 	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/fayda_account"
+	feedback "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
 	authMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
+	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
+	accountvalidation_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
+	cpsusermaker_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
-	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
-	departmenthandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
-	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
 	departmentService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
-	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
-	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
-	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
+	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedbackService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
-	feedback "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
-	feedbackhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
-    unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
-    unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
-	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
+	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
-	ad_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/service"
-	ad_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
-	ad_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 )
 
 func main() {
@@ -75,14 +78,14 @@ func main() {
 	}()
 	log.Println("Connected to MongoDB!")
 
-	minioClient,err := config.NewMinioClient(&config.VaultConfig{
-		MinioEndPoint: cfg.MinioEndPoint,
+	/* minioClient, err := config.NewMinioClient(&config.VaultConfig{
+		MinioEndPoint:  cfg.MinioEndPoint,
 		MinioAccessKey: cfg.MinioAccessKey,
 		MinioSecretKey: cfg.MinioSecretKey,
 	})
-	if err != nil{
-		logger.Fatalf("failed to initialize minio clinet",err)
-	}
+	if err != nil {
+		logger.Fatalf("failed to initialize minio clinet", err)
+	} */
 
 	dbname := cfg.MongoDBDatabase
 	//dbname := "ldap_cbs"
@@ -93,6 +96,8 @@ func main() {
 		"Member",
 		"linked_accounts",
 		"mini_app",
+		"cps_users",
+		"cps_actions",
 	}
 
 	r := chi.NewRouter()
@@ -146,20 +151,13 @@ func main() {
 	faydaHandlers := faydaRoutes.InitFaydaAdapter(faydaApp, logger)
 	faydaRoutes.InitFaydaRoutes(r, faydaHandlers, authMddleware)
 
-	adPersistence := ad.InitAD(mongoClient,cfg.MongoDBDatabase,[]string{"adverts","cps_actions"},logger)
-	adDomain := ad_domain.InitADDomian(adPersistence,logger)
-	adHandler := ad_handler.InitADHandler(adDomain,minioClient,"adverts",logger)
-	adAdapter := ad_adapter.InitADAdapter(adHandler,logger)
-	ad_adapter.InitADRoutes(r,adAdapter,authMddleware)
-
-
 	departmentPersistence := departmentPersistence.InitDepartment(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	departmentDomain := departmentService.InitDepartmentDomain(departmentPersistence, departmentPersistence, logger)
 	departmentApp := department.InitDepartmentHandler(departmentDomain, logger)
 	departmentRoutes := departmenthandler.NewDepartmentHTTPHandler(departmentApp, logger)
 	departmenthandler.InitDepartmentRoutes(r, departmentRoutes, authMddleware)
 
-    permissionPersistence := permissionPersistence.InitPermission(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	permissionPersistence := permissionPersistence.InitPermission(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	permissionDomain := permissionService.InitPermissionDomain(permissionPersistence, permissionPersistence, permissionPersistence, logger)
 	permissionApp := permission.InitPermissionHandler(permissionDomain, logger)
 	permissionRoutes := permissionhandler.NewPermissionHTTPHandler(permissionApp, logger)
@@ -170,6 +168,28 @@ func main() {
 	unlinkDeviceApplication := unlinkApp.NewUnlinkHandler(unlinkDeviceService)
 	unlink_handler := unlinkDeviceHandler.NewHTTPUnlinkHandler(unlinkDeviceApplication, logger)
 	unlinkDeviceHandler.RegisterHTTPUnlinkRoutes(r, unlink_handler, authMddleware)
+
+	accountvalidation_persistence := accountvalidation_persistence.InitAccountValidationPersistence(
+		mongoClient,
+		cfg.MongoDBDatabase,
+		10*time.Second,
+		logger,
+	)
+	domainAccountValidationService := accountvalidation_domain.NewService(accountvalidation_persistence, adapter_port, logger)
+
+	accountValidationApp := accountvalidation_app.NewApplication(domainAccountValidationService)
+	accountValidationHandler := accountvalidation_inbound.NewHttpAccountValidation(accountValidationApp, logger)
+	accountvalidation_inbound.InitAccountValidationHandlerMaker(r, accountValidationHandler, authMddleware)
+
+	cpsUserPersistence := cpsusermaker_persistence.NewCPSUserPersistence(
+		mongoClient,
+		cfg.MongoDBDatabase,
+		collectionNames,
+	)
+	cpsUserService := cpsusermaker_service.NewCPSUserService(cpsUserPersistence)
+	cpsUserHandler := cpsusermaker_handler.InitCPSUserMakerHandler(cpsUserService, logger)
+
+	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
 	server := http.Server{
 		Addr:    ":" + strconv.Itoa(cfg.ServerPort),
