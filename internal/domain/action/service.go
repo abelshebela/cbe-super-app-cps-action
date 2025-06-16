@@ -142,3 +142,11 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action b
 	}
 	return nil
 }
+
+/* 	service, err := s.repository.GetHqServiceById(ctx, cps_action.CurrentAction.Id)
+	if err != nil {
+		return err
+	}
+	service.Flag = cps_action.CurrentAction.Action
+	return s.repository.UpdateHqService(ctx, service)
+} */

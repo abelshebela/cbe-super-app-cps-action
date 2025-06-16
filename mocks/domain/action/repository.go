@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
@@ -50,6 +51,21 @@ func (mr *MockRepositoryMockRecorder) CreateCpsAction(ctx, Action interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCpsAction", reflect.TypeOf((*MockRepository)(nil).CreateCpsAction), ctx, Action)
 }
 
+// FetchAccountsByAccountNumber mocks base method.
+func (m *MockRepository) FetchAccountsByAccountNumber(ctx context.Context, accountNumber string) ([]action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchAccountsByAccountNumber", ctx, accountNumber)
+	ret0, _ := ret[0].([]action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchAccountsByAccountNumber indicates an expected call of FetchAccountsByAccountNumber.
+func (mr *MockRepositoryMockRecorder) FetchAccountsByAccountNumber(ctx, accountNumber interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAccountsByAccountNumber", reflect.TypeOf((*MockRepository)(nil).FetchAccountsByAccountNumber), ctx, accountNumber)
+}
+
 // FetchCpsActionById mocks base method.
 func (m *MockRepository) FetchCpsActionById(ctx context.Context, Action_Id string) (action.CPSAction, error) {
 	m.ctrl.T.Helper()
@@ -63,6 +79,36 @@ func (m *MockRepository) FetchCpsActionById(ctx context.Context, Action_Id strin
 func (mr *MockRepositoryMockRecorder) FetchCpsActionById(ctx, Action_Id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchCpsActionById", reflect.TypeOf((*MockRepository)(nil).FetchCpsActionById), ctx, Action_Id)
+}
+
+// FetchLastCpsActionByMakerID mocks base method.
+func (m *MockRepository) FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (action.CPSAction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchLastCpsActionByMakerID", ctx, makerId)
+	ret0, _ := ret[0].(action.CPSAction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchLastCpsActionByMakerID indicates an expected call of FetchLastCpsActionByMakerID.
+func (mr *MockRepositoryMockRecorder) FetchLastCpsActionByMakerID(ctx, makerId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLastCpsActionByMakerID", reflect.TypeOf((*MockRepository)(nil).FetchLastCpsActionByMakerID), ctx, makerId)
+}
+
+// FetchLinkedAccountById mocks base method.
+func (m *MockRepository) FetchLinkedAccountById(ctx context.Context, id []string) ([]action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchLinkedAccountById", ctx, id)
+	ret0, _ := ret[0].([]action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchLinkedAccountById indicates an expected call of FetchLinkedAccountById.
+func (mr *MockRepositoryMockRecorder) FetchLinkedAccountById(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLinkedAccountById", reflect.TypeOf((*MockRepository)(nil).FetchLinkedAccountById), ctx, id)
 }
 
 // GetAllHqServices mocks base method.
@@ -108,6 +154,36 @@ func (m *MockRepository) GetHqServiceById(ctx context.Context, id string) (actio
 func (mr *MockRepositoryMockRecorder) GetHqServiceById(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHqServiceById", reflect.TypeOf((*MockRepository)(nil).GetHqServiceById), ctx, id)
+}
+
+// UpdateAccount mocks base method.
+func (m *MockRepository) UpdateAccount(ctx context.Context, linkedAccount action.LinkedAccount) (action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccount", ctx, linkedAccount)
+	ret0, _ := ret[0].(action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAccount indicates an expected call of UpdateAccount.
+func (mr *MockRepositoryMockRecorder) UpdateAccount(ctx, linkedAccount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockRepository)(nil).UpdateAccount), ctx, linkedAccount)
+}
+
+// UpdateAccounts mocks base method.
+func (m *MockRepository) UpdateAccounts(ctx context.Context, linkedAccounts []action.LinkedAccount) ([]action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccounts", ctx, linkedAccounts)
+	ret0, _ := ret[0].([]action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAccounts indicates an expected call of UpdateAccounts.
+func (mr *MockRepositoryMockRecorder) UpdateAccounts(ctx, linkedAccounts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccounts", reflect.TypeOf((*MockRepository)(nil).UpdateAccounts), ctx, linkedAccounts)
 }
 
 // UpdateCpsAction mocks base method.

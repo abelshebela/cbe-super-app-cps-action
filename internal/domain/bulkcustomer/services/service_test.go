@@ -10,7 +10,6 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository/mocks"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func TestBranchService_FilterSingleBranches(t *testing.T) {
@@ -34,7 +33,7 @@ func TestBranchService_FilterSingleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterSingleBranches(gomock.Any(), "Addis", "Bole").
+					FilterSingleBranches(ctx, "Addis", "Bole").
 					Return([]entities.Branch{
 						{BranchCode: "BR001", BranchName: "Branch 1"},
 						{BranchCode: "BR002", BranchName: "Branch 2"},
@@ -60,7 +59,7 @@ func TestBranchService_FilterSingleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterSingleBranches(gomock.Any(), "Addis", "Bole").
+					FilterSingleBranches(ctx, "Addis", "Bole").
 					Return(nil, errors.New("db error"))
 			},
 			wantErr:    true,
@@ -82,6 +81,7 @@ func TestBranchService_FilterSingleBranches(t *testing.T) {
 		})
 	}
 }
+
 func TestBranchService_DisableSingleBranch(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -89,38 +89,33 @@ func TestBranchService_DisableSingleBranch(t *testing.T) {
 	mockRepo := mocks.NewMockBulkCustomerRepo(ctrl)
 	service := NewBranchService(mockRepo)
 
+	branch := entities.Branch{BranchCode: "BR001"}
+	maker := entities.User{UserCode: "U1"}
 	tests := []struct {
-		name       string
-		branchCode string
-		cpsData    entities.CPSAction
-		mockSetup  func()
-		wantErr    bool
+		name      string
+		branch    entities.Branch
+		maker     entities.User
+		mockSetup func()
+		wantErr   bool
 	}{
 		{
-			name:       "success",
-			branchCode: "BR001",
-			cpsData:    entities.CPSAction{ActionCode: "BR001"},
+			name:   "success",
+			branch: branch,
+			maker:  maker,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					DisableSingleBranch(gomock.Any(), "BR001", gomock.Any()).
+					DisableSingleBranch(ctx, branch, maker).
 					Return(nil)
 			},
 			wantErr: false,
 		},
 		{
-			name:       "missing branchCode",
-			branchCode: "",
-			cpsData:    entities.CPSAction{},
-			mockSetup:  func() {},
-			wantErr:    true,
-		},
-		{
-			name:       "repo error",
-			branchCode: "BR001",
-			cpsData:    entities.CPSAction{ActionCode: "BR001"},
+			name:   "repo error",
+			branch: branch,
+			maker:  maker,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					DisableSingleBranch(gomock.Any(), "BR001", gomock.Any()).
+					DisableSingleBranch(ctx, branch, maker).
 					Return(errors.New("db error"))
 			},
 			wantErr: true,
@@ -130,7 +125,7 @@ func TestBranchService_DisableSingleBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.DisableSingleBranch(ctx, tt.branchCode, tt.cpsData)
+			err := service.DisableSingleBranch(ctx, tt.branch, tt.maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -164,7 +159,7 @@ func TestBranchService_ApproveSingleBranchDisable(t *testing.T) {
 			reason:   &reason,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					ApproveSingleBranchDisable(gomock.Any(), "action1", true, &reason).
+					ApproveSingleBranchDisable(ctx, "action1", true, &reason).
 					Return(nil)
 			},
 			wantErr: false,
@@ -184,7 +179,7 @@ func TestBranchService_ApproveSingleBranchDisable(t *testing.T) {
 			reason:   &reason,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					ApproveSingleBranchDisable(gomock.Any(), "action1", false, &reason).
+					ApproveSingleBranchDisable(ctx, "action1", false, &reason).
 					Return(errors.New("db error"))
 			},
 			wantErr: true,
@@ -217,7 +212,7 @@ func TestBranchService_FilterMultipleBranches(t *testing.T) {
 		district   string
 		mockSetup  func()
 		wantErr    bool
-		wantResult []string
+		wantResult []entities.Branch
 	}{
 		{
 			name:     "success",
@@ -225,11 +220,17 @@ func TestBranchService_FilterMultipleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterMultipleBranches(gomock.Any(), "Addis", "Bole").
-					Return([]string{"BR003", "BR004"}, nil)
+					FilterMultipleBranches(ctx, "Addis", "Bole").
+					Return([]entities.Branch{
+						{BranchCode: "BR003"},
+						{BranchCode: "BR004"},
+					}, nil)
 			},
-			wantErr:    false,
-			wantResult: []string{"BR003", "BR004"},
+			wantErr: false,
+			wantResult: []entities.Branch{
+				{BranchCode: "BR003"},
+				{BranchCode: "BR004"},
+			},
 		},
 		{
 			name:       "missing district",
@@ -245,7 +246,7 @@ func TestBranchService_FilterMultipleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterMultipleBranches(gomock.Any(), "Addis", "Bole").
+					FilterMultipleBranches(ctx, "Addis", "Bole").
 					Return(nil, errors.New("db error"))
 			},
 			wantErr:    true,
@@ -274,61 +275,63 @@ func TestBranchService_DisableMultipleBranches(t *testing.T) {
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockBulkCustomerRepo(ctrl)
 	service := NewBranchService(mockRepo)
-	id := utils.ObjectIDGenerator()
-	action := &entities.CPSAction{ID: id}
+
+	branches := []entities.Branch{
+		{BranchCode: "BR001"},
+		{BranchCode: "BR002"},
+	}
+	maker := entities.User{UserCode: "U1"}
+
 	tests := []struct {
-		name        string
-		branchCodes []string
-		mockSetup   func()
-		wantErr     bool
-		wantResult  *entities.CPSAction
+		name      string
+		branches  []entities.Branch
+		maker     entities.User
+		mockSetup func()
+		wantErr   bool
 	}{
 		{
-			name:        "success",
-			branchCodes: []string{"BR001", "BR002"},
+			name:     "success",
+			branches: branches,
+			maker:    maker,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					DisableMultipleBranches(gomock.Any(), []string{"BR001", "BR002"}).
-					Return(action, nil)
+					DisableMultipleBranches(ctx, branches, maker).
+					Return(nil)
 			},
-			wantErr:    false,
-			wantResult: action,
+			wantErr: false,
 		},
 		{
-			name:        "missing branchCodes",
-			branchCodes: []string{},
-			mockSetup:   func() {},
-			wantErr:     true,
-			wantResult:  nil,
+			name:      "missing branches",
+			branches:  []entities.Branch{},
+			maker:     maker,
+			mockSetup: func() {},
+			wantErr:   true,
 		},
 		{
-			name:        "repo error",
-			branchCodes: []string{"BR001"},
+			name:     "repo error",
+			branches: branches,
+			maker:    maker,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					DisableMultipleBranches(gomock.Any(), []string{"BR001"}).
-					Return(nil, errors.New("db error"))
+					DisableMultipleBranches(ctx, branches, maker).
+					Return(errors.New("db error"))
 			},
-			wantErr:    true,
-			wantResult: nil,
+			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			got, err := service.DisableMultipleBranches(ctx, tt.branchCodes)
+			_, err := service.DisableMultipleBranches(ctx, tt.branches, tt.maker)
 			if tt.wantErr {
 				assert.Error(t, err)
-				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.wantResult, got)
 			}
 		})
 	}
 }
-
 func TestBranchService_ApproveBulkBranchesDisable(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -353,7 +356,7 @@ func TestBranchService_ApproveBulkBranchesDisable(t *testing.T) {
 			reason:   &reason,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					ApproveBulkBranchesDisable(gomock.Any(), "action2", true, &reason).
+					ApproveBulkBranchesDisable(ctx, "action2", true, &reason).
 					Return(nil)
 			},
 			wantErr: false,
@@ -373,7 +376,7 @@ func TestBranchService_ApproveBulkBranchesDisable(t *testing.T) {
 			reason:   &reason,
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					ApproveBulkBranchesDisable(gomock.Any(), "action2", false, &reason).
+					ApproveBulkBranchesDisable(ctx, "action2", false, &reason).
 					Return(errors.New("db error"))
 			},
 			wantErr: true,
@@ -388,6 +391,60 @@ func TestBranchService_ApproveBulkBranchesDisable(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestBranchService_GetBranchByCode(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockBulkCustomerRepo(ctrl)
+	service := NewBranchService(mockRepo)
+
+	branch := entities.Branch{BranchCode: "BR001"}
+
+	tests := []struct {
+		name      string
+		code      string
+		mockSetup func()
+		wantErr   bool
+		want      entities.Branch
+	}{
+		{
+			name: "success",
+			code: "BR001",
+			mockSetup: func() {
+				mockRepo.EXPECT().
+					GetBranchByCode(ctx, "BR001").
+					Return(branch, nil)
+			},
+			wantErr: false,
+			want:    branch,
+		},
+		{
+			name: "repo error",
+			code: "BR002",
+			mockSetup: func() {
+				mockRepo.EXPECT().
+					GetBranchByCode(ctx, "BR002").
+					Return(entities.Branch{}, errors.New("not found"))
+			},
+			wantErr: true,
+			want:    entities.Branch{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mockSetup()
+			got, err := service.GetBranchByCode(ctx, tt.code)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
 			}
 		})
 	}

@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-
 	entities "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
 )
 
@@ -65,39 +64,38 @@ func (mr *MockBulkCustomerRepoMockRecorder) ApproveSingleBranchDisable(ctx, acti
 }
 
 // DisableMultipleBranches mocks base method.
-func (m *MockBulkCustomerRepo) DisableMultipleBranches(ctx context.Context, branchCodes []string) (*entities.CPSAction, error) {
+func (m *MockBulkCustomerRepo) DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DisableMultipleBranches", ctx, branchCodes)
-	ret0, _ := ret[0].(*entities.CPSAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "DisableMultipleBranches", ctx, branches, maker)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DisableMultipleBranches indicates an expected call of DisableMultipleBranches.
-func (mr *MockBulkCustomerRepoMockRecorder) DisableMultipleBranches(ctx, branchCodes interface{}) *gomock.Call {
+func (mr *MockBulkCustomerRepoMockRecorder) DisableMultipleBranches(ctx, branches, maker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableMultipleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableMultipleBranches), ctx, branchCodes)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableMultipleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableMultipleBranches), ctx, branches, maker)
 }
 
 // DisableSingleBranch mocks base method.
-func (m *MockBulkCustomerRepo) DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error {
+func (m *MockBulkCustomerRepo) DisableSingleBranch(ctx context.Context, branch entities.Branch, maker entities.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DisableSingleBranch", ctx, branchCode, cpsData)
+	ret := m.ctrl.Call(m, "DisableSingleBranch", ctx, branch, maker)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DisableSingleBranch indicates an expected call of DisableSingleBranch.
-func (mr *MockBulkCustomerRepoMockRecorder) DisableSingleBranch(ctx, branchCode, cpsData interface{}) *gomock.Call {
+func (mr *MockBulkCustomerRepoMockRecorder) DisableSingleBranch(ctx, branch, maker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableSingleBranch", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableSingleBranch), ctx, branchCode, cpsData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableSingleBranch", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableSingleBranch), ctx, branch, maker)
 }
 
 // FilterMultipleBranches mocks base method.
-func (m *MockBulkCustomerRepo) FilterMultipleBranches(ctx context.Context, region, district string) ([]string, error) {
+func (m *MockBulkCustomerRepo) FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FilterMultipleBranches", ctx, region, district)
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].([]entities.Branch)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -121,4 +119,19 @@ func (m *MockBulkCustomerRepo) FilterSingleBranches(ctx context.Context, region,
 func (mr *MockBulkCustomerRepoMockRecorder) FilterSingleBranches(ctx, region, district interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterSingleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).FilterSingleBranches), ctx, region, district)
+}
+
+// GetBranchByCode mocks base method.
+func (m *MockBulkCustomerRepo) GetBranchByCode(ctx context.Context, branchCode string) (entities.Branch, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBranchByCode", ctx, branchCode)
+	ret0, _ := ret[0].(entities.Branch)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBranchByCode indicates an expected call of GetBranchByCode.
+func (mr *MockBulkCustomerRepoMockRecorder) GetBranchByCode(ctx, branchCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranchByCode", reflect.TypeOf((*MockBulkCustomerRepo)(nil).GetBranchByCode), ctx, branchCode)
 }

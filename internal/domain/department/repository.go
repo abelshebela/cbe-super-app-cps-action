@@ -1,0 +1,20 @@
+package department
+
+import (
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+)
+
+type CPSActionRepository interface {
+	CheckRequestExists(action entities.CPSAction) (bool, error)
+	CreateCPSAction(department string, portalCards []string, action entities.CPSAction) error
+	ValidateActionRequest(actionCode string, userDept string) (*entities.CPSAction, error)
+	FindByActionCode(code string) (*entities.CPSAction, error)
+	UpdateActionStatus(actionCode string, status string) error
+	ApproveActionRequest(actionCode string, action entities.CPSAction) error
+}
+
+type DepartmentRepository interface {
+	CheckDepartmentExists(department string) (bool, error)
+	CreateDepartment(dept entities.Department) error
+	UpdateDepartment(code string, department string, portalCards []string) error
+}

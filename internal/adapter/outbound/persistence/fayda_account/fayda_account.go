@@ -28,9 +28,9 @@ type FaydaAccountRepo struct {
 var _ outbound.FaydaAccountRepository = (*FaydaAccountRepo)(nil)
 
 func InitFaydaAccountPersistence(client *mongo.Client, database string,
-	cpsCollection, customerCollection string, logger utils.Logger) *FaydaAccountRepo {
-	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, cpsCollection)
-	customerDal := dal.NewMongoDal[member.User, member.User](client, database, customerCollection)
+	cpsCollection []string, logger utils.Logger) *FaydaAccountRepo {
+	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, cpsCollection[0])
+	customerDal := dal.NewMongoDal[member.User, member.User](client, database, cpsCollection[1])
 	return &FaydaAccountRepo{
 		client:      client,
 		logger:      logger,
