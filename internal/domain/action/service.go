@@ -2,7 +2,10 @@ package action
 
 import (
 	"context"
+<<<<<<< HEAD
 	"fmt"
+=======
+>>>>>>> b69ee66 (feature added)
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -11,10 +14,13 @@ func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset in
 	return s.repository.GetAllHqServicesPaginated(ctx, offset, limit)
 }
 func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, makerId string) (string, error) {
+<<<<<<< HEAD
 	last_action, err := s.repository.FetchLastCpsActionByMakerID(ctx, makerId)
 	if last_action.ActionStatus == ActionPending {
 		return "", fmt.Errorf("You have a pending action, please wait for it to be processed")
 	}
+=======
+>>>>>>> b69ee66 (feature added)
 	service, err := s.repository.GetHqServiceById(ctx, id)
 	if err != nil {
 		return "", err
@@ -33,7 +39,11 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 		RequestAction: RequestUpdateServiceRule,
 		ActionStatus:  ActionPending,
 		CurrentAction: CurrentAction{
+<<<<<<< HEAD
 			Id:     []string{id},
+=======
+			Id:     id,
+>>>>>>> b69ee66 (feature added)
 			Action: action,
 		},
 	}
@@ -59,6 +69,7 @@ func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, action_id string, 
 	if err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	currentAction, ok := cps_action.CurrentAction.(CurrentAction)
 	if !ok {
 		return fmt.Errorf("failed to cast CurrentAction to its expected type")
@@ -142,3 +153,12 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action b
 	}
 	return nil
 }
+=======
+	service, err := s.repository.GetHqServiceById(ctx, cps_action.CurrentAction.Id)
+	if err != nil {
+		return err
+	}
+	service.Flag = cps_action.CurrentAction.Action
+	return s.repository.UpdateHqService(ctx, service)
+}
+>>>>>>> b69ee66 (feature added)

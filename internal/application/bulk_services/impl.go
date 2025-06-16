@@ -20,6 +20,7 @@ func (a *ApplicationStore) EnableDisableServicesMaker(ctx context.Context, Servi
 func (a *ApplicationStore) EnableDisableServicesChecker(ctx context.Context, Action_id string, action bool, checkerId string) error {
 	return a.service.UpdateServiceFlag(ctx, Action_id, action, checkerId)
 }
+<<<<<<< HEAD
 
 func (a *ApplicationStore) FetchCifs(ctx context.Context, cif string) ([]domain.LinkedAccount, error) {
 	return []domain.LinkedAccount{}, nil
@@ -30,3 +31,5 @@ func (a *ApplicationStore) RemoveCifMaker(ctx context.Context, id, makerId strin
 func (a *ApplicationStore) RemoveCifChecker(ctx context.Context, Action_id string, action bool, checkerId string) error {
 	return nil
 }
+=======
+>>>>>>> b69ee66 (feature added)
