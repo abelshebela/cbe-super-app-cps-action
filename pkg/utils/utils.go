@@ -1,0 +1,182 @@
+package utils
+
+import (
+	"cbe-super-app-member-auth/pkg/config"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"math/rand"
+	"net/http"
+	"regexp"
+	"strings"
+	"time"
+)
+
+const numberic string = "0123456789"
+
+func OTPGenerator(length uint8) string {
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = numberic[r.Intn(len(numberic))]
+	}
+
+	return string(result)
+}
+func HeaderRequirement(r *http.Request, additionl []string) (string, string, string, string, string, map[string]interface{}) {
+	var headerData = make(map[string]interface{})
+	platform := r.Header.Get("platform")
+	appVersion := r.Header.Get("app_version")
+	devideuuid := r.Header.Get("device_uuid")
+	sourceapp := r.Header.Get("source_app")
+	installationdate := r.Header.Get("installation_date")
+	for _, v := range additionl {
+		headerData[v] = r.Header.Get(v)
+	}
+
+	return platform, appVersion, devideuuid, sourceapp, installationdate, headerData
+}
+func GetRandomArbitrary() (string, error) {
+	const min = 100000
+	const max = 999999
+	
+	var n int
+	for {
+		b := make([]byte, 4)
+		if _, err := rand.Read(b); err != nil {
+			return "", err
+		}
+		n = int(b[0])<<24 | int(b[1])<<16 | int(b[2])<<8 | int(b[3])
+		n = min + (n % (max - min + 1))
+		if n >= min && n <= max {
+			break
+		}
+	}
+	return fmt.Sprintf("%06d", n), nil
+}
+
+func FormatPhoneNumber(phoneNumber string) string {
+	phoneNumber = strings.TrimSpace(phoneNumber)
+	if strings.HasPrefix(phoneNumber, "0") {
+		return "+251" + phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "9") || strings.HasPrefix(phoneNumber, "7") {
+		return "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "+") {
+		return phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "251") {
+		return "+" + phoneNumber
+	}
+	return phoneNumber
+}
+
+func LocalEncryptPassword(password string, dataType string, userSalt string, action string) (string, string, error) {
+	env, _ := config.Load()
+	var signedPass, salt string
+	if dataType == "password" {
+		salt, _ = GenerateSalt(20)
+		signedPass, _ = SignWithHS256(password, salt)
+	} else {
+		signedPass = password
+	}
+
+	if action == "login" || action == "change" {
+		salt = userSalt
+		signedPass, _ = SignWithHS256(password, userSalt)
+	}
+
+	key := []byte(env.Key)
+	iv := []byte(env.Iv)
+
+	if len(key) != 32 || len(iv) != aes.BlockSize {
+		return "", salt, errors.New("invalid key or IV size")
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", salt, err
+	}
+
+	mode := cipher.NewCBCEncrypter(block, iv)
+	padLen := aes.BlockSize - len(signedPass)%aes.BlockSize
+	padding := strings.Repeat(string(byte(padLen)), padLen)
+	padded := []byte(signedPass + padding)
+	encrypted := make([]byte, len(padded))
+	mode.CryptBlocks(encrypted, padded)
+
+	return hex.EncodeToString(encrypted), salt, nil
+}
+
+func LocalDecryptPassword(encryptedHex string) (string, error) {
+
+	env, _ := config.Load()
+
+	key := []byte(env.Key)
+	iv := []byte(env.Iv)
+
+	if len(key) != 32 || len(iv) != aes.BlockSize {
+		return "", errors.New("invalid key or IV size")
+	}
+	encrypted, err := hex.DecodeString(encryptedHex)
+	if err != nil {
+		return "", err
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+	if len(encrypted)%aes.BlockSize != 0 {
+		return "", errors.New("invalid encrypted data length")
+	}
+	mode := cipher.NewCBCDecrypter(block, iv)
+	decrypted := make([]byte, len(encrypted))
+	mode.CryptBlocks(decrypted, encrypted)
+	// Remove PKCS#7 padding
+	padLen := int(decrypted[len(decrypted)-1])
+	if padLen > aes.BlockSize || padLen == 0 {
+		return "", errors.New("invalid padding")
+	}
+	return string(decrypted[:len(decrypted)-padLen]), nil
+}
+
+func GenerateSalt(length int) (string, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(bytes), nil
+}
+
+func SignWithHS256(data string, saltHex string) (string, error) {
+	key, err := hex.DecodeString(saltHex)
+	if err != nil {
+		return "", err
+	}
+
+	h := hmac.New(sha256.New, key)
+	h.Write([]byte(data))
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+func ResponseMaker(res map[string]interface{}, w http.ResponseWriter) {
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func ValidateInputNoSpecialChars(input string) error {
+	validPattern := regexp.MustCompile(`^[a-zA-Z0-9 ]*$`)
+
+	if !validPattern.MatchString(input) {
+		return errors.New("input contains special characters")
+	}
+
+	return nil
+}

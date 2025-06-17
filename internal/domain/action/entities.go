@@ -27,6 +27,7 @@ const (
 
 type User struct {
 	UserID      string
+	UserCode    string
 	FullName    string
 	PhoneNumber string
 	Timestamp   time.Time
