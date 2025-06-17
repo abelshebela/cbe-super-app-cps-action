@@ -50,6 +50,21 @@ func (mr *MockOutboundInfraMockRecorder) CreateCpsAction(ctx, Action interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCpsAction", reflect.TypeOf((*MockOutboundInfra)(nil).CreateCpsAction), ctx, Action)
 }
 
+// FetchAccountsByAccountNumber mocks base method.
+func (m *MockOutboundInfra) FetchAccountsByAccountNumber(ctx context.Context, accountNumber string) ([]action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchAccountsByAccountNumber", ctx, accountNumber)
+	ret0, _ := ret[0].([]action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchAccountsByAccountNumber indicates an expected call of FetchAccountsByAccountNumber.
+func (mr *MockOutboundInfraMockRecorder) FetchAccountsByAccountNumber(ctx, accountNumber interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchAccountsByAccountNumber", reflect.TypeOf((*MockOutboundInfra)(nil).FetchAccountsByAccountNumber), ctx, accountNumber)
+}
+
 // FetchCpsActionById mocks base method.
 func (m *MockOutboundInfra) FetchCpsActionById(ctx context.Context, Action_Id string) (action.CPSAction, error) {
 	m.ctrl.T.Helper()
@@ -65,11 +80,41 @@ func (mr *MockOutboundInfraMockRecorder) FetchCpsActionById(ctx, Action_Id inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchCpsActionById", reflect.TypeOf((*MockOutboundInfra)(nil).FetchCpsActionById), ctx, Action_Id)
 }
 
+// FetchLastCpsActionByMakerID mocks base method.
+func (m *MockOutboundInfra) FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (action.CPSAction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchLastCpsActionByMakerID", ctx, makerId)
+	ret0, _ := ret[0].(action.CPSAction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchLastCpsActionByMakerID indicates an expected call of FetchLastCpsActionByMakerID.
+func (mr *MockOutboundInfraMockRecorder) FetchLastCpsActionByMakerID(ctx, makerId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLastCpsActionByMakerID", reflect.TypeOf((*MockOutboundInfra)(nil).FetchLastCpsActionByMakerID), ctx, makerId)
+}
+
+// FetchLinkedAccountById mocks base method.
+func (m *MockOutboundInfra) FetchLinkedAccountById(ctx context.Context, id []string) ([]action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchLinkedAccountById", ctx, id)
+	ret0, _ := ret[0].([]action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchLinkedAccountById indicates an expected call of FetchLinkedAccountById.
+func (mr *MockOutboundInfraMockRecorder) FetchLinkedAccountById(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLinkedAccountById", reflect.TypeOf((*MockOutboundInfra)(nil).FetchLinkedAccountById), ctx, id)
+}
+
 // GetAllHqServices mocks base method.
-func (m *MockOutboundInfra) GetAllHqServices(ctx context.Context) ([]action.Service, error) {
+func (m *MockOutboundInfra) GetAllHqServices(ctx context.Context) ([]action.ServiceDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllHqServices", ctx)
-	ret0, _ := ret[0].([]action.Service)
+	ret0, _ := ret[0].([]action.ServiceDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,10 +126,10 @@ func (mr *MockOutboundInfraMockRecorder) GetAllHqServices(ctx interface{}) *gomo
 }
 
 // GetAllHqServicesPaginated mocks base method.
-func (m *MockOutboundInfra) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.Service, error) {
+func (m *MockOutboundInfra) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.ServiceDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllHqServicesPaginated", ctx, offset, limit)
-	ret0, _ := ret[0].([]action.Service)
+	ret0, _ := ret[0].([]action.ServiceDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -96,10 +141,10 @@ func (mr *MockOutboundInfraMockRecorder) GetAllHqServicesPaginated(ctx, offset, 
 }
 
 // GetHqServiceById mocks base method.
-func (m *MockOutboundInfra) GetHqServiceById(ctx context.Context, id string) (action.Service, error) {
+func (m *MockOutboundInfra) GetHqServiceById(ctx context.Context, id string) (action.ServiceDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHqServiceById", ctx, id)
-	ret0, _ := ret[0].(action.Service)
+	ret0, _ := ret[0].(action.ServiceDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -108,6 +153,36 @@ func (m *MockOutboundInfra) GetHqServiceById(ctx context.Context, id string) (ac
 func (mr *MockOutboundInfraMockRecorder) GetHqServiceById(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHqServiceById", reflect.TypeOf((*MockOutboundInfra)(nil).GetHqServiceById), ctx, id)
+}
+
+// UpdateAccount mocks base method.
+func (m *MockOutboundInfra) UpdateAccount(ctx context.Context, linkedAccount action.LinkedAccount) (action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccount", ctx, linkedAccount)
+	ret0, _ := ret[0].(action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAccount indicates an expected call of UpdateAccount.
+func (mr *MockOutboundInfraMockRecorder) UpdateAccount(ctx, linkedAccount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockOutboundInfra)(nil).UpdateAccount), ctx, linkedAccount)
+}
+
+// UpdateAccounts mocks base method.
+func (m *MockOutboundInfra) UpdateAccounts(ctx context.Context, linkedAccounts []action.LinkedAccount) ([]action.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccounts", ctx, linkedAccounts)
+	ret0, _ := ret[0].([]action.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAccounts indicates an expected call of UpdateAccounts.
+func (mr *MockOutboundInfraMockRecorder) UpdateAccounts(ctx, linkedAccounts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccounts", reflect.TypeOf((*MockOutboundInfra)(nil).UpdateAccounts), ctx, linkedAccounts)
 }
 
 // UpdateCpsAction mocks base method.
@@ -125,7 +200,7 @@ func (mr *MockOutboundInfraMockRecorder) UpdateCpsAction(ctx, Action interface{}
 }
 
 // UpdateHqService mocks base method.
-func (m *MockOutboundInfra) UpdateHqService(ctx context.Context, service action.Service) error {
+func (m *MockOutboundInfra) UpdateHqService(ctx context.Context, service action.ServiceDetails) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateHqService", ctx, service)
 	ret0, _ := ret[0].(error)

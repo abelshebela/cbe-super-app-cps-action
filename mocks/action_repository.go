@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
@@ -36,22 +37,22 @@ func (m *ActionRepository) FetchLastCpsActionByMakerID(ctx context.Context, make
 	return args.Get(0).(action.CPSAction), args.Error(1)
 }
 
-func (m *ActionRepository) GetAllHqServices(ctx context.Context) ([]action.Service, error) {
+func (m *ActionRepository) GetAllHqServices(ctx context.Context) ([]action.ServiceDetails, error) {
 	args := m.Called(ctx)
-	return args.Get(0).([]action.Service), args.Error(1)
+	return args.Get(0).([]action.ServiceDetails), args.Error(1)
 }
 
-func (m *ActionRepository) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.Service, error) {
+func (m *ActionRepository) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.ServiceDetails, error) {
 	args := m.Called(ctx, offset, limit)
-	return args.Get(0).([]action.Service), args.Error(1)
+	return args.Get(0).([]action.ServiceDetails), args.Error(1)
 }
 
-func (m *ActionRepository) GetHqServiceById(ctx context.Context, id string) (action.Service, error) {
+func (m *ActionRepository) GetHqServiceById(ctx context.Context, id string) (action.ServiceDetails, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(action.Service), args.Error(1)
+	return args.Get(0).(action.ServiceDetails), args.Error(1)
 }
 
-func (m *ActionRepository) UpdateHqService(ctx context.Context, service action.Service) error {
+func (m *ActionRepository) UpdateHqService(ctx context.Context, service action.ServiceDetails) error {
 	args := m.Called(ctx, service)
 	return args.Error(0)
 }

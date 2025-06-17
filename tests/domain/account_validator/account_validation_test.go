@@ -64,22 +64,22 @@ func (m *MockActionRepository) FetchLastCpsActionByMakerID(ctx context.Context, 
 	return args.Get(0).(action.CPSAction), args.Error(1)
 }
 
-func (m *MockActionRepository) GetAllHqServices(ctx context.Context) ([]action.Service, error) {
+func (m *MockActionRepository) GetAllHqServices(ctx context.Context) ([]action.ServiceDetails, error) {
 	args := m.Called(ctx)
-	return args.Get(0).([]action.Service), args.Error(1)
+	return args.Get(0).([]action.ServiceDetails), args.Error(1)
 }
 
-func (m *MockActionRepository) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.Service, error) {
+func (m *MockActionRepository) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.ServiceDetails, error) {
 	args := m.Called(ctx, offset, limit)
-	return args.Get(0).([]action.Service), args.Error(1)
+	return args.Get(0).([]action.ServiceDetails), args.Error(1)
 }
 
-func (m *MockActionRepository) GetHqServiceById(ctx context.Context, id string) (action.Service, error) {
+func (m *MockActionRepository) GetHqServiceById(ctx context.Context, id string) (action.ServiceDetails, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(action.Service), args.Error(1)
+	return args.Get(0).(action.ServiceDetails), args.Error(1)
 }
 
-func (m *MockActionRepository) UpdateHqService(ctx context.Context, service action.Service) error {
+func (m *MockActionRepository) UpdateHqService(ctx context.Context, service action.ServiceDetails) error {
 	args := m.Called(ctx, service)
 	return args.Error(0)
 }

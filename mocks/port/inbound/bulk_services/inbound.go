@@ -69,3 +69,39 @@ func (mr *MockInboundMockRecorder) FetchServices(w, r interface{}) *gomock.Call 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchServices", reflect.TypeOf((*MockInbound)(nil).FetchServices), w, r)
 }
+
+// RemoveCifChecker mocks base method.
+func (m *MockInbound) RemoveCifChecker(w http.ResponseWriter, r *http.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RemoveCifChecker", w, r)
+}
+
+// RemoveCifChecker indicates an expected call of RemoveCifChecker.
+func (mr *MockInboundMockRecorder) RemoveCifChecker(w, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveCifChecker", reflect.TypeOf((*MockInbound)(nil).RemoveCifChecker), w, r)
+}
+
+// RemoveCifMaker mocks base method.
+func (m *MockInbound) RemoveCifMaker(w http.ResponseWriter, r *http.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RemoveCifMaker", w, r)
+}
+
+// RemoveCifMaker indicates an expected call of RemoveCifMaker.
+func (mr *MockInboundMockRecorder) RemoveCifMaker(w, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveCifMaker", reflect.TypeOf((*MockInbound)(nil).RemoveCifMaker), w, r)
+}
+
+// SearchAccountByCif mocks base method.
+func (m *MockInbound) SearchAccountByCif(w http.ResponseWriter, r *http.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SearchAccountByCif", w, r)
+}
+
+// SearchAccountByCif indicates an expected call of SearchAccountByCif.
+func (mr *MockInboundMockRecorder) SearchAccountByCif(w, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchAccountByCif", reflect.TypeOf((*MockInbound)(nil).SearchAccountByCif), w, r)
+}
