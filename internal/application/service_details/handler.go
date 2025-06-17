@@ -3,9 +3,10 @@ package service_details_app
 import (
 	"context"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
