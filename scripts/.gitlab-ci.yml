@@ -4,7 +4,7 @@ stages:
 
 variables:
   IMAGE_REGISTRY: registry.eaglelionsystems.com
-  MS_NAME: cbe-supperapp-bps-auth
+  MS_NAME: cbe-supperapp-cps-action
   IMAGE_PROJECT_PATH: cbe-supperapp
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
   BRANCH_NAME_CLEAN: ${CI_COMMIT_REF_NAME}
