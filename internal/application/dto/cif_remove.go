@@ -1,8 +1,8 @@
 package dto
 
 type CifRemoveMakerRequest struct {
-	UserId string `json:"user_id"`
-	Cif    string `json:"cif"`
+	UserId string   `json:"user_id"`
+	Cif    []string `json:"cif"`
 }
 
 type CifSearchRequest struct {

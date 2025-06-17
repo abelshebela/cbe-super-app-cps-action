@@ -22,18 +22,18 @@ func TestGetServicePaginated(t *testing.T) {
 	limit := 10
 	offset := 0
 
-	expectedServices := []action.Service{
+	expectedServices := []action.ServiceDetails{
 		{
 			ID:          stringToPointer("1"),
 			Key:         "service1",
 			ServiceName: "Service 1",
-			Flag:        true,
+			Enabled:     true,
 		},
 		{
 			ID:          stringToPointer("2"),
 			Key:         "service2",
 			ServiceName: "Service 2",
-			Flag:        false,
+			Enabled:     false,
 		},
 	}
 
@@ -50,33 +50,33 @@ func TestGetServicePaginated(t *testing.T) {
 }
 
 func TestUpdateServiceFlag(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-    mockRepo := mock_repository.NewMockRepository(ctrl)
-    serviceStore := action.NewService(mockRepo)
+	mockRepo := mock_repository.NewMockRepository(ctrl)
+	serviceStore := action.NewService(mockRepo)
 
-    ctx := context.Background()
-    serviceID := "1"
-    action_taken := true
+	ctx := context.Background()
+	serviceID := "1"
+	action_taken := true
 
-    service := action.Service{
-        ID:          stringToPointer(serviceID),
-        Key:         "service1",
-        ServiceName: "Service 1",
-        Flag:        false,
-    }
+	service := action.ServiceDetails{
+		ID:          stringToPointer(serviceID),
+		Key:         "service1",
+		ServiceName: "Service 1",
+		Enabled:     false,
+	}
 
-    // Add this expectation if your code calls FetchCpsActionById
-    mockRepo.EXPECT().FetchCpsActionById(ctx, serviceID).Return(action.CPSAction{}, nil)
+	// Add this expectation if your code calls FetchCpsActionById
+	mockRepo.EXPECT().FetchCpsActionById(ctx, serviceID).Return(action.CPSAction{}, nil)
 
-    mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(service, nil)
-    mockRepo.EXPECT().UpdateHqService(ctx, gomock.Any()).Return(nil)
+	mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(service, nil)
+	mockRepo.EXPECT().UpdateHqService(ctx, gomock.Any()).Return(nil)
 
-    err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
-    if err != nil {
-        t.Fatalf("unexpected error: %v", err)
-    }
+	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestUpdateServiceFlag_Error(t *testing.T) {
@@ -90,7 +90,7 @@ func TestUpdateServiceFlag_Error(t *testing.T) {
 	serviceID := "1"
 	action_taken := true
 
-	mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(action.Service{}, errors.New("service not found"))
+	mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(action.ServiceDetails{}, errors.New("service not found"))
 
 	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
 	if err == nil {

@@ -19,15 +19,23 @@ test:
 
 mockgenOutbound:
 	mockgen -source=./internal/port/outbound/bulk_services/outbound.go -destination=./mocks/port/outbound/bulk_services/outbound.go -package=mock_outbound
+	mockgen -source=./internal/port/outbound/event/init.go -destination=./mocks/port/outbound/event/init.go -package=mock_outbound
+	mockgen -source=./internal/port/outbound/mini_app/outbound.go -destination=./mocks/port/outbound/miniapp/outbound.go -package=mock_outbound
 
 mockgenInbound:
 	mockgen -source=./internal/port/inbound/bulk_services/inbound.go -destination=./mocks/port/inbound/bulk_services/inbound.go -package=mock_inbound
-
+	mockgen -source=./internal/port/inbound/event/init.go -destination=./mocks/port/inbound/event/inbound.go -package=mock_inbound
+	mockgen -source=./internal/port/inbound/miniapp/inbound.go -destination=./mocks/port/inbound/miniapp/inbound.go -package=mock_inbound
+	
 mockgenService:
-	mockgen -source=./internal/domain/action/service_impl.go -destination=./mocks/domain/action/service_impl.go -package=mock_services
+	mockgen -source=./internal/domain/action/service_impl.go -destination=./mocks/domain/action/service_impl.go -package=mock_domain
+	mockgen -source=./internal/domain/event/service.go -destination=./mocks/domain/event/service.go -package=mock_domain
+	mockgen -source=./internal/domain/miniapp/service_impl.go -destination=./mocks/domain/action/service_impl.go -package=mock_domain
 
 mockgenRepository:
-	mockgen -source=./internal/domain/action/repository.go -destination=./mocks/domain/repository/repository.go -package=mock_repository
+	mockgen -source=./internal/domain/action/repository.go -destination=./mocks/domain/action/repository.go -package=mock_domain
+	mockgen -source=./internal/domain/event/repository.go -destination=./mocks/domain/event/repository.go -package=mock_domain
+	mockgen -source=./internal/domain/miniapp/repository.go -destination=./mocks/domain/miniapp/repository.go -package=mock_domain
 
 mockgen_Mongo:
 	mockgen -source=./internal/adapter/outbound/mongo/init.go -destination=./mocks/port/outbound/mongo/mongo.go -package=mock_mongo

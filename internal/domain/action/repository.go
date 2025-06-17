@@ -6,10 +6,10 @@ type Repository interface {
 	//GetMemberById(ctx context.Context, id string) (Member, error)
 	//UpdateMember(ctx context.Context, member Member) (Member, error)
 
-	GetAllHqServices(ctx context.Context) ([]Service, error)
-	GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]Service, error)
-	GetHqServiceById(ctx context.Context, id string) (Service, error)
-	UpdateHqService(ctx context.Context, service Service) error
+	GetAllHqServices(ctx context.Context) ([]ServiceDetails, error)
+	GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]ServiceDetails, error)
+	GetHqServiceById(ctx context.Context, id string) (ServiceDetails, error)
+	UpdateHqService(ctx context.Context, service ServiceDetails) error
 
 	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
 	UpdateCpsAction(ctx context.Context, Action CPSAction) error
