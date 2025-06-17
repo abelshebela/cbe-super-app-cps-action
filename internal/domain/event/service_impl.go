@@ -34,14 +34,14 @@ func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ti
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
 	}
-	data, err := s.repository.CreateCpsAction(ctx, a)
+	data, err := s.Repository.CreateCpsAction(ctx, a)
 	if err != nil {
 		return "", err
 	}
 	return data.ActionCode, nil
 }
 func (s *Service) ApproveEventRequest(ctx context.Context, action_id string, action_taken bool, checkerID, checkerName, checkerPhone string) error {
-	cps_action, err := s.repository.FetchCpsActionById(ctx, action_id)
+	cps_action, err := s.Repository.FetchCpsActionById(ctx, action_id)
 	if err != nil {
 		return err
 	}
@@ -60,20 +60,20 @@ func (s *Service) ApproveEventRequest(ctx context.Context, action_id string, act
 	}
 
 	cps_action.LastModifiedAt = time.Now()
-	err = s.repository.UpdateCpsAction(ctx, cps_action)
+	err = s.Repository.UpdateCpsAction(ctx, cps_action)
 	if err != nil {
 		return err
 	}
 	e.LastModifiedAt = time.Now()
 	e.Enabled = true
-	_, err = s.repository.CreateEvent(ctx, e)
+	_, err = s.Repository.CreateEvent(ctx, e)
 	if err != nil {
 		return fmt.Errorf("error: %v", err.Error())
 	}
 	return nil
 }
 func (s *Service) FetchEvent(ctx context.Context, limit, offset int) ([]Event, error) {
-	data, err := s.repository.FetchEvent(ctx, limit, offset)
+	data, err := s.Repository.FetchEvent(ctx, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (s *Service) FetchEvent(ctx context.Context, limit, offset int) ([]Event, e
 }
 
 func (s *Service) FetchEventById(ctx context.Context, event_id string) (Event, error) {
-	event, err := s.repository.FetchEventById(ctx, event_id)
+	event, err := s.Repository.FetchEventById(ctx, event_id)
 	if err != nil {
 		return Event{}, nil
 	}

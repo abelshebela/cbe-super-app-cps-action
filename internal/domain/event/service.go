@@ -10,11 +10,11 @@ type EventService interface {
 }
 
 type Service struct {
-	repository Repository
+	Repository Repository
 }
 
 func NewSerice(repository Repository) (EventService, error) {
 	return &Service{
-		repository: repository,
+		Repository: repository,
 	}, nil
 }

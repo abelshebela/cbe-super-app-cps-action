@@ -13,11 +13,11 @@ type ServiceImpl interface {
 }
 
 type ServiceStore struct {
-	repository Repository
+	Repository Repository
 }
 
 func NewService(repo Repository) ServiceImpl {
 	return &ServiceStore{
-		repository: repo,
+		Repository: repo,
 	}
 }
