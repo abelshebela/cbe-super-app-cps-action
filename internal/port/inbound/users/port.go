@@ -1,9 +1,11 @@
 package users
 
-type FullName struct {
-	FirstName  string `json:"first_name"`
-	MiddleName string `json:"middle_name"`
-	LastName   string `json:"last_name"`
+import "context"
+
+type UserPort interface {
+	FetchLinkedAccounts(ctx context.Context, userID string) (*LinkedAccountResponse, error)
+	GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error)
+	VerifyEmailOTP(ctx context.Context, verification OTPVerification) error
 }
 
 type LinkedAccountDetail struct {
@@ -15,26 +17,10 @@ type LinkedAccountDetail struct {
 	CurrencyCode      string `json:"currency_code"`
 }
 
-type User struct {
-	ID        string
-	FullName  string
-	IsDeleted bool
-}
-
-type UserEmail struct {
-	ID    string
-	Email string `json:"email" bson:"email"`
-}
-
 type LinkedAccountResponse struct {
 	UserID         string                `json:"user_id"`
 	FullName       string                `json:"full_name"`
 	LinkedAccounts []LinkedAccountDetail `json:"linked_accounts"`
-}
-
-type GenerateOTPRequest struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
 }
 
 type OTPRequest struct {

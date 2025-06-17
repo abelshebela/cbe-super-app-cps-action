@@ -8,16 +8,9 @@ import (
 	users "cbe-super-app-member-users/internal/domain/users"
 	context "context"
 	reflect "reflect"
-	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 )
-type MockOTPRecord struct {
-    UserID    string
-    Email     string
-    OTP       string
-    CreatedAt time.Time
-    ExpiresAt time.Time
-}
 
 // MockUserRepository is a mock of UserRepository interface.
 type MockUserRepository struct {
@@ -43,18 +36,18 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // FindActiveLinkedAccounts mocks base method.
-func (m *MockUserRepository) FindActiveLinkedAccounts(ctx context.Context, id string) ([]users.LinkedAccountDetail, error) {
+func (m *MockUserRepository) FindActiveLinkedAccounts(ctx context.Context, userID string) ([]users.LinkedAccountDetail, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindActiveLinkedAccounts", ctx, id)
+	ret := m.ctrl.Call(m, "FindActiveLinkedAccounts", ctx, userID)
 	ret0, _ := ret[0].([]users.LinkedAccountDetail)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindActiveLinkedAccounts indicates an expected call of FindActiveLinkedAccounts.
-func (mr *MockUserRepositoryMockRecorder) FindActiveLinkedAccounts(ctx, id interface{}) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FindActiveLinkedAccounts(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindActiveLinkedAccounts", reflect.TypeOf((*MockUserRepository)(nil).FindActiveLinkedAccounts), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindActiveLinkedAccounts", reflect.TypeOf((*MockUserRepository)(nil).FindActiveLinkedAccounts), ctx, userID)
 }
 
 // FindByEmail mocks base method.

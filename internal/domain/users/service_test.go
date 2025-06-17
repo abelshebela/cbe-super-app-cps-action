@@ -6,28 +6,27 @@ import (
 	"time"
 
 	"cbe-super-app-member-users/internal/domain/users"
+	"cbe-super-app-member-users/internal/shared"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	mocks "cbe-super-app-member-users/internal/domain/users/mocks"
+	userPortMocks "cbe-super-app-member-users/internal/port/outbound/users/mocks"
+	userPort "cbe-super-app-member-users/internal/port/outbound/users"
 )
 
-// Mock helper functions
-func MockUser() *users.User {
-	return &users.User{
+func MockPortUser() *userPort.User {
+	return &userPort.User{
 		ID:        "6644c8e37f41d2c9c1c293fa",
 		FullName:  "John Doe",
 		IsDeleted: false,
 	}
 }
 
-func MockOTPRecord(userID, email, otp string) *users.OTPRecord {
-	return &users.OTPRecord{
+func MockPortOTPRecord(userID, email, otp string) *userPort.OTPRecord {
+	return &userPort.OTPRecord{
 		UserID:    userID,
 		Email:     email,
 		OTP:       otp,
@@ -36,8 +35,8 @@ func MockOTPRecord(userID, email, otp string) *users.OTPRecord {
 	}
 }
 
-func MockLinkedAccounts() []users.LinkedAccountDetail {
-	return []users.LinkedAccountDetail{
+func MockPortLinkedAccounts() []userPort.LinkedAccountDetail {
+	return []userPort.LinkedAccountDetail{
 		{
 			AccountNumber: "9876543210",
 			CurrencyCode:  "EUR",
@@ -49,27 +48,27 @@ func MockLinkedAccounts() []users.LinkedAccountDetail {
 	}
 }
 
-// Test case for VerifyEmailOTP
 func TestVerifyEmailOTP(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger := utils.NewLogger()
-	service := users.NewUserService(mockRepo, logger)
-
-	user := MockUser()
+	user := MockPortUser()
 	userID := user.ID
 	email := "test@example.com"
 	otp := "123456"
-	verification := users.OTPVerification{
-		UserID: userID,
-		Email:  email,
-		OTP:    otp,
-	}
-	otpRecord := MockOTPRecord(userID, email, otp)
 
 	t.Run("success", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		verification := users.OTPVerification{
+			UserID: userID,
+			Email:  email,
+			OTP:    otp,
+		}
+		otpRecord := MockPortOTPRecord(userID, email, otp)
+
 		mockRepo.EXPECT().FindOTP(gomock.Any(), userID, email).Return(otpRecord, nil)
 		mockRepo.EXPECT().UpdateUserEmail(gomock.Any(), userID, email).Return(nil)
 
@@ -78,71 +77,129 @@ func TestVerifyEmailOTP(t *testing.T) {
 	})
 
 	t.Run("invalid user ID", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
 		invalidVerification := users.OTPVerification{
 			UserID: "invalid-id",
 			Email:  email,
 			OTP:    otp,
 		}
+		mockRepo.EXPECT().FindOTP(gomock.Any(), "invalid-id", email).Return(nil, shared.ErrNotFound)
+
 		err := service.VerifyEmailOTP(context.Background(), invalidVerification)
 		require.Error(t, err)
-		assert.Equal(t, common.DefineError.General["INVALID_ID"].Code, err.(*users.ServiceError).Code)
+		assert.Equal(t, shared.DefineError.OTP["INVALID_OTP"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("invalid OTP", func(t *testing.T) {
-		invalidOTPRecord := MockOTPRecord(userID, email, "654321")
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		verification := users.OTPVerification{
+			UserID: userID,
+			Email:  email,
+			OTP:    otp,
+		}
+		invalidOTPRecord := MockPortOTPRecord(userID, email, "654321")
 		mockRepo.EXPECT().FindOTP(gomock.Any(), userID, email).Return(invalidOTPRecord, nil)
 
 		err := service.VerifyEmailOTP(context.Background(), verification)
 		require.Error(t, err)
-		assert.Equal(t, "INVALID_OTP", err.(*users.ServiceError).Code)
+		assert.Equal(t, shared.DefineError.OTP["INVALID_OTP"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("expired OTP", func(t *testing.T) {
-		expiredOTPRecord := MockOTPRecord(userID, email, otp)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		verification := users.OTPVerification{
+			UserID: userID,
+			Email:  email,
+			OTP:    otp,
+		}
+		expiredOTPRecord := MockPortOTPRecord(userID, email, otp)
 		expiredOTPRecord.CreatedAt = time.Now().Add(-10 * time.Minute)
 		expiredOTPRecord.ExpiresAt = time.Now().Add(-5 * time.Minute)
 		mockRepo.EXPECT().FindOTP(gomock.Any(), userID, email).Return(expiredOTPRecord, nil)
 
 		err := service.VerifyEmailOTP(context.Background(), verification)
 		require.Error(t, err)
-		assert.Equal(t, "EXPIRED_OTP", err.(*users.ServiceError).Code)
+		assert.Equal(t, shared.DefineError.OTP["EXPIRED_OTP"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("OTP not found", func(t *testing.T) {
-		mockRepo.EXPECT().FindOTP(gomock.Any(), userID, email).Return(nil, mongo.ErrNoDocuments)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		verification := users.OTPVerification{
+			UserID: userID,
+			Email:  email,
+			OTP:    otp,
+		}
+		mockRepo.EXPECT().FindOTP(gomock.Any(), userID, email).Return(nil, shared.ErrNotFound)
 
 		err := service.VerifyEmailOTP(context.Background(), verification)
 		require.Error(t, err)
-		assert.Equal(t, "INVALID_OTP", err.(*users.ServiceError).Code)
+		assert.Equal(t, shared.DefineError.OTP["INVALID_OTP"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("update email failure", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		verification := users.OTPVerification{
+			UserID: userID,
+			Email:  email,
+			OTP:    otp,
+		}
+		otpRecord := MockPortOTPRecord(userID, email, otp)
 		mockRepo.EXPECT().FindOTP(gomock.Any(), userID, email).Return(otpRecord, nil)
-		mockRepo.EXPECT().UpdateUserEmail(gomock.Any(), userID, email).Return(mongo.ErrClientDisconnected)
+		mockRepo.EXPECT().UpdateUserEmail(gomock.Any(), userID, email).Return(assert.AnError)
 
 		err := service.VerifyEmailOTP(context.Background(), verification)
 		require.Error(t, err)
-		assert.Equal(t, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, err.(*users.ServiceError).Code)
+		assert.Equal(t, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, err.(users.ServiceError).Code)
 	})
 }
 
-func TestActiveLinkedAccounts(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger := utils.NewLogger()
-	service := users.NewUserService(mockRepo, logger)
-
-	user := MockUser()
+func TestFetchLinkedAccounts(t *testing.T) {
+	user := MockPortUser()
 	userID := user.ID
-	linkedAccounts := MockLinkedAccounts()
+	linkedAccounts := MockPortLinkedAccounts()
 
 	t.Run("success", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
 		mockRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
 		mockRepo.EXPECT().FindActiveLinkedAccounts(gomock.Any(), userID).Return(linkedAccounts, nil)
 
-		response, err := service.ActiveLinkedAccounts(context.Background(), userID)
+		response, err := service.FetchLinkedAccounts(context.Background(), userID)
 		require.NoError(t, err)
 		require.NotNil(t, response)
 		assert.Equal(t, userID, response.UserID)
@@ -155,38 +212,68 @@ func TestActiveLinkedAccounts(t *testing.T) {
 	})
 
 	t.Run("invalid ID", func(t *testing.T) {
-		_, err := service.ActiveLinkedAccounts(context.Background(), "invalid-id")
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		mockRepo.EXPECT().FindByID(gomock.Any(), "invalid-id").Return(nil, shared.ErrNotFound)
+
+		_, err := service.FetchLinkedAccounts(context.Background(), "invalid-id")
 		require.Error(t, err)
-		assert.Equal(t, common.DefineError.General["INVALID_ID"].Code, err.(*users.ServiceError).Code)
+		assert.Equal(t, common.DefineError.General["NOT_FOUND"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		mockRepo.EXPECT().FindByID(gomock.Any(), userID).Return(nil, mongo.ErrNoDocuments)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		_, err := service.ActiveLinkedAccounts(context.Background(), userID)
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		mockRepo.EXPECT().FindByID(gomock.Any(), userID).Return(nil, assert.AnError)
+
+		_, err := service.FetchLinkedAccounts(context.Background(), userID)
 		require.Error(t, err)
-		assert.Equal(t, common.DefineError.General["NOT_FOUND"].Code, err.(*users.ServiceError).Code)
+		assert.Equal(t, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("no linked accounts", func(t *testing.T) {
-		mockRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
-		mockRepo.EXPECT().FindActiveLinkedAccounts(gomock.Any(), userID).Return([]users.LinkedAccountDetail{}, nil)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		response, err := service.ActiveLinkedAccounts(context.Background(), userID)
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		mockRepo.EXPECT().FindByID(gomock.Any(), userID).Return(user, nil)
+		mockRepo.EXPECT().FindActiveLinkedAccounts(gomock.Any(), userID).Return([]userPort.LinkedAccountDetail{}, nil)
+
+		response, err := service.FetchLinkedAccounts(context.Background(), userID)
 		require.NoError(t, err)
 		require.NotNil(t, response)
 		assert.Len(t, response.LinkedAccounts, 0)
 	})
 
 	t.Run("deleted user", func(t *testing.T) {
-		deletedUser := &users.User{
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		deletedUser := &userPort.User{
 			ID:        userID,
 			FullName:  user.FullName,
 			IsDeleted: true,
 		}
 		mockRepo.EXPECT().FindByID(gomock.Any(), userID).Return(deletedUser, nil)
 
-		response, err := service.ActiveLinkedAccounts(context.Background(), userID)
+		response, err := service.FetchLinkedAccounts(context.Background(), userID)
 		require.NoError(t, err)
 		require.NotNil(t, response)
 		assert.Len(t, response.LinkedAccounts, 0)
@@ -194,25 +281,26 @@ func TestActiveLinkedAccounts(t *testing.T) {
 }
 
 func TestGenerateEmailOTP(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger := utils.NewLogger()
-	service := users.NewUserService(mockRepo, logger)
-
-	user := MockUser()
+	user := MockPortUser()
 	userID := user.ID
 	email := "test@example.com"
-	otpRequest := users.OTPRequest{
-		UserID: userID,
-		Email:  email,
-	}
 
 	t.Run("success", func(t *testing.T) {
-		mockRepo.EXPECT().FindByEmail(gomock.Any(), email).Return(nil, mongo.ErrNoDocuments)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		otpRequest := users.OTPRequest{
+			UserID: userID,
+			Email:  email,
+		}
+
+		mockRepo.EXPECT().FindByEmail(gomock.Any(), email).Return(nil, shared.ErrNotFound)
 		mockRepo.EXPECT().StoreOTP(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, otp *users.OTPRecord) error {
+			func(_ context.Context, otp *userPort.OTPRecord) error {
 				assert.Equal(t, userID, otp.UserID)
 				assert.Equal(t, email, otp.Email)
 				assert.Len(t, otp.OTP, 6)
@@ -226,34 +314,48 @@ func TestGenerateEmailOTP(t *testing.T) {
 		assert.Len(t, otp, 6)
 	})
 
-	t.Run("invalid user ID", func(t *testing.T) {
-		invalidRequest := users.OTPRequest{
-			UserID: "invalid-id",
+	t.Run("email already in use", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		otpRequest := users.OTPRequest{
+			UserID: userID,
 			Email:  email,
 		}
-		_, err := service.GenerateEmailOTP(context.Background(), invalidRequest)
-		require.Error(t, err)
-		assert.Equal(t, common.DefineError.General["INVALID_ID"].Code, err.(*users.ServiceError).Code)
-	})
 
-	t.Run("email already in use", func(t *testing.T) {
-		existingUser := &users.UserEmail{
-			ID:    primitive.NewObjectID().Hex(),
+		existingUser := &userPort.UserEmail{
+			ID:    "different-user-id",
 			Email: email,
 		}
 		mockRepo.EXPECT().FindByEmail(gomock.Any(), email).Return(existingUser, nil)
 
 		_, err := service.GenerateEmailOTP(context.Background(), otpRequest)
 		require.Error(t, err)
-		assert.Equal(t, "EMAIL_IN_USE", err.(*users.ServiceError).Code)
+		assert.Equal(t, shared.DefineError.OTP["EMAIL_IN_USE"].Code, err.(users.ServiceError).Code)
 	})
 
 	t.Run("store OTP failure", func(t *testing.T) {
-		mockRepo.EXPECT().FindByEmail(gomock.Any(), email).Return(nil, mongo.ErrNoDocuments)
-		mockRepo.EXPECT().StoreOTP(gomock.Any(), gomock.Any()).Return(mongo.ErrClientDisconnected)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockRepo := userPortMocks.NewMockUserRepositoryPort(ctrl)
+		logger := utils.NewLogger()
+		service := users.NewUserService(mockRepo, logger)
+
+		otpRequest := users.OTPRequest{
+			UserID: userID,
+			Email:  email,
+		}
+
+		mockRepo.EXPECT().FindByEmail(gomock.Any(), email).Return(nil, shared.ErrNotFound)
+		mockRepo.EXPECT().StoreOTP(gomock.Any(), gomock.Any()).Return(assert.AnError)
 
 		_, err := service.GenerateEmailOTP(context.Background(), otpRequest)
 		require.Error(t, err)
-		assert.Equal(t, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, err.(*users.ServiceError).Code)
+		assert.Equal(t, common.DefineError.General["UNHANDLED_SERVER_ERROR"].Code, err.(users.ServiceError).Code)
 	})
 }

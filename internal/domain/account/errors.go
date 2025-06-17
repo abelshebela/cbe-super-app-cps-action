@@ -1,4 +1,4 @@
-package users
+package account
 
 import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
