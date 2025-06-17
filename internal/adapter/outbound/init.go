@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -845,23 +846,98 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUs
 	return nil
 }
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) error {
-	if updated.UserCode == "" {
-		return errors.New("userCode is required")
-	}
-	filter := bson.M{"user_code": updated.UserCode}
-	deptObjID, err := bson.ObjectIDFromHex(updated.Department)
-	if err != nil {
-		return errors.New("invalid department ObjectID")
-	}
-	mUser := model.CPSUser{
-		UserCode:     updated.UserCode,
-		Department:   deptObjID,
-		LastModified: ptrTime(time.Now()),
-	}
-	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, bson.M{"$set": mUser})
-	return err
-}
+    fmt.Printf("UpdateUserRequest called with updated: %+v, maker: %+v\n", updated, maker)
 
+    if strings.TrimSpace(updated.UserCode) == "" {
+        fmt.Println("user_code is required")
+        return errors.New("user_code is required")
+    }
+
+    filter := bson.M{"user_code": updated.UserCode}
+    fmt.Printf("Fetching user with filter: %+v\n", filter)
+    modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+    if err != nil {
+        fmt.Printf("User not found: %v\n", err)
+        return errors.New("user not found")
+    }
+
+    var department string
+    if len(modelUser.Department) > 0 {
+        department = modelUser.Department.Hex()
+    }
+    var permissionCategory []string
+    for _, oid := range modelUser.PermissionCategory {
+        permissionCategory = append(permissionCategory, oid.Hex())
+    }
+    var permissionGroup []string
+    for _, oid := range modelUser.PermissionGroup {
+        permissionGroup = append(permissionGroup, oid.Hex())
+    }
+
+    prevUser := domain.CPSUser{
+        UserCode:           modelUser.UserCode,
+        UserName:           modelUser.UserName,
+        FullName:           modelUser.FullName,
+        PhoneNumber:        modelUser.PhoneNumber,
+        Role:               modelUser.Role,
+        Department:         department,
+        PermissionCategory: permissionCategory,
+        PermissionGroup:    permissionGroup,
+    }
+    fmt.Printf("Previous user: %+v\n", prevUser)
+
+    prevActionJSON, _ := json.Marshal(prevUser)
+    currActionJSON, _ := json.Marshal(updated)
+
+    updateDoc := bson.M{
+        "$set": bson.M{
+            "user_code":           updated.UserCode,
+            "user_name":           updated.UserName,
+            "full_name":           updated.FullName,
+            "phone_number":        updated.PhoneNumber,
+            "role":                updated.Role,
+            "department":          updated.Department,
+            "permission_category": updated.PermissionCategory,
+            "permission_group":    updated.PermissionGroup,
+            "last_modified":       time.Now(),
+        },
+    }
+    fmt.Printf("Updating user with updateDoc: %+v\n", updateDoc)
+    _, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
+    if err != nil {
+        fmt.Printf("Failed to update user: %v\n", err)
+        return err
+    }
+
+    actionCode := utils.RandomGenerator(24)
+    departmentCtx, _ := ctx.Value("department").(string)
+    cpsAction := model.CPSAction{
+        ActionCode:    actionCode,
+        MakerUser: model.User{
+            UserCode:    maker.UserID,
+            FullName:    maker.FullName,
+            PhoneNumber: maker.PhoneNumber,
+        },
+        Unique_ID:      updated.UserCode,
+        Department:     departmentCtx,
+        ActionStatus:   model.ActionPending,
+        ActionType:     model.ActionUpdate,
+        RequestAction:  model.RequestUser,
+        PreviosAction:  prevActionJSON,
+        CurrentAction:  currActionJSON,
+        CreatedAt:      time.Now(),
+        LastModifiedAt: time.Now(),
+    }
+    fmt.Printf("Logging update action: %+v\n", cpsAction)
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    if err != nil {
+        fmt.Printf("Failed to log update action: %v\n", err)
+        return err
+    }
+
+    fmt.Println("UpdateUserRequest completed successfully")
+    return nil
+}
 func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if actionID == "" {
 		return errors.New("actionID is required")
@@ -881,31 +957,71 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, 
 	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	return err
 }
-
-func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]domain.CPSAction, error) {
-	filter := bson.M{"action_status": model.ActionPending}
-	actionPtrs, err := o.MongoDalCPSAction.FindAll(ctx, filter, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	var actions []domain.CPSAction
-	for _, ptr := range actionPtrs {
-		if ptr != nil {
-			actions = append(actions, domain.CPSAction{
-				ID:             ptr.ID.Hex(),
-				ActionCode:     ptr.ActionCode,
-				Department:     ptr.Department,
-				ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
-				ActionType:     domain.ActionType(ptr.ActionType),
-				RequestAction:  domain.RequestAction(ptr.RequestAction),
-				CreatedAt:      ptr.CreatedAt,
-				LastModifiedAt: ptr.LastModifiedAt,
-			})
-		}
-	}
-	return actions, nil
+func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode string) ([]domain.CPSAction, error) {
+    department, _ := ctx.Value("department").(string)
+    filter := bson.M{
+        "action_status": model.ActionPending,
+        "department":    department,
+    }
+    if actionCode != "" {
+        filter["action_code"] = actionCode
+    }
+    fmt.Printf("Fetching pending actions with filter: %+v\n", filter)
+    actionPtrs, err := o.MongoDalCPSAction.FindAll(ctx, filter, bson.M{})
+    if err != nil {
+        return nil, err
+    }
+    var actions []domain.CPSAction
+    for _, ptr := range actionPtrs {
+        if ptr != nil {
+            actions = append(actions, domain.CPSAction{
+                ID:             ptr.ID.Hex(),
+                ActionCode:     ptr.ActionCode,
+                Department:     ptr.Department,
+                ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
+                ActionType:     domain.ActionType(ptr.ActionType),
+                RequestAction:  domain.RequestAction(ptr.RequestAction),
+                CreatedAt:      ptr.CreatedAt,
+                LastModifiedAt: ptr.LastModifiedAt,
+            })
+        }
+    }
+    return actions, nil
 }
 
+func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*domain.CPSUser, error) {
+    filter := bson.M{"user_code": userCode}
+    modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+    if err != nil {
+        return nil, err
+    }
+
+	var department string
+	if len(modelUser.Department) > 0 {
+		department = modelUser.Department.Hex()
+	}
+
+    var permissionCategory []string
+    for _, oid := range modelUser.PermissionCategory {
+        permissionCategory = append(permissionCategory, oid.Hex())
+    }
+    var permissionGroup []string
+    for _, oid := range modelUser.PermissionGroup {
+        permissionGroup = append(permissionGroup, oid.Hex())
+    }
+
+    user := &domain.CPSUser{
+        UserCode:           modelUser.UserCode,
+        UserName:           modelUser.UserName,
+        FullName:           modelUser.FullName,
+        PhoneNumber:        modelUser.PhoneNumber,
+        Role:               modelUser.Role,
+        Department:         department,
+        PermissionCategory: permissionCategory,
+        PermissionGroup:    permissionGroup,
+    }
+    return user, nil
+}
 func ptrTime(t time.Time) *time.Time {
 	return &t
 }

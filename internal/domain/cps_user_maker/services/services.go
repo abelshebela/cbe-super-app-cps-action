@@ -11,7 +11,8 @@ type CPSUserService interface {
     CreateUserRequest(ctx context.Context, user action.CPSUser, maker action.User) error
     UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) error
     ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error
-    GetPendingUserActions(ctx context.Context) ([]action.CPSAction, error)
+    GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
+    FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)
 }
 
 type cpsUserService struct {
@@ -34,6 +35,9 @@ func (s *cpsUserService) ApproveUserAction(ctx context.Context, actionID string,
     return s.repo.ApproveUserAction(ctx, actionID, approve, reason)
 }
 
-func (s *cpsUserService) GetPendingUserActions(ctx context.Context) ([]action.CPSAction, error) {
-    return s.repo.GetPendingUserActions(ctx)
+func (s *cpsUserService) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {
+    return s.repo.GetPendingUserActions(ctx, actionCode)
+}
+func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error) {
+    return s.repo.FetchUserByUserCode(ctx, userCode)
 }
