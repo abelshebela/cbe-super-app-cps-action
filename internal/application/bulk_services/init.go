@@ -12,7 +12,7 @@ type ApplicationAbstracts interface {
 	EnableDisableServicesChecker(ctx context.Context, Action_id string, action bool, checkerId string) error
 
 	FetchCifs(ctx context.Context, cif string) ([]domain.LinkedAccount, error)
-	RemoveCifMaker(ctx context.Context, id, makerId string) (string, error)
+	RemoveCifMaker(ctx context.Context, id []string, makerId string) (string, error)
 	RemoveCifChecker(ctx context.Context, Action_id string, action bool, checkerId string) error
 }
 type ApplicationStore struct {

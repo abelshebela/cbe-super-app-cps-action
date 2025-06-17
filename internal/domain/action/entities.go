@@ -42,9 +42,9 @@ type CPSAction struct {
 	UniqueID        string
 	Maker           User
 	Checker         User
+	Unique_ID       string
 	Department      string
 	RejectionReason *string
-	Unique_ID       string
 	PreviosAction   interface{}
 	CurrentAction   interface{}
 	ActionStatus    ActionStatus

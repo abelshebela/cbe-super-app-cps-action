@@ -1,9 +1,17 @@
 package event
 
+import (
+	"context"
+
+	entity "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+)
+
 type Repository interface {
-	GetAllEvent() ([]*EventResponse, error)
-	GetOneEvent(id string) (*EventResponse, error)
-	CreateOneEvent(req CreateEventRequest) (*Event, error)
-	UpdateOneEvent(id string, update UpdateEventRequest) (*Event, error)
-	DeleteOneEvent(id string) error
+	CreateCpsAction(ctx context.Context, Action entity.CPSAction) (entity.CPSAction, error)
+	UpdateCpsAction(ctx context.Context, Action entity.CPSAction) error
+	FetchCpsActionById(ctx context.Context, Action_Id string) (entity.CPSAction, error)
+	CreateEvent(ctx context.Context, event Event) (Event, error)
+
+	FetchEventById(ctx context.Context, event_id string) (Event, error)
+	FetchEvent(ctx context.Context, limit, offset int) ([]Event, error)
 }
