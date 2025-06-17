@@ -846,18 +846,14 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUs
 	return nil
 }
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) error {
-    fmt.Printf("UpdateUserRequest called with updated: %+v, maker: %+v\n", updated, maker)
 
     if strings.TrimSpace(updated.UserCode) == "" {
-        fmt.Println("user_code is required")
         return errors.New("user_code is required")
     }
 
     filter := bson.M{"user_code": updated.UserCode}
-    fmt.Printf("Fetching user with filter: %+v\n", filter)
     modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
     if err != nil {
-        fmt.Printf("User not found: %v\n", err)
         return errors.New("user not found")
     }
 
@@ -884,7 +880,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
         PermissionCategory: permissionCategory,
         PermissionGroup:    permissionGroup,
     }
-    fmt.Printf("Previous user: %+v\n", prevUser)
 
     prevActionJSON, _ := json.Marshal(prevUser)
     currActionJSON, _ := json.Marshal(updated)
@@ -902,7 +897,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
             "last_modified":       time.Now(),
         },
     }
-    fmt.Printf("Updating user with updateDoc: %+v\n", updateDoc)
     _, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
     if err != nil {
         fmt.Printf("Failed to update user: %v\n", err)
@@ -928,14 +922,12 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
         CreatedAt:      time.Now(),
         LastModifiedAt: time.Now(),
     }
-    fmt.Printf("Logging update action: %+v\n", cpsAction)
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     if err != nil {
         fmt.Printf("Failed to log update action: %v\n", err)
         return err
     }
 
-    fmt.Println("UpdateUserRequest completed successfully")
     return nil
 }
 func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {

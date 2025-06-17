@@ -89,11 +89,9 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 	res.SendJSON()
 }
 func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
-    fmt.Println("UpdateUserRequest handler called")
 
     var req cpsapp.UpdateUserRequest
     if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        fmt.Printf("Failed to decode request body: %v\n", err)
         err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
             Code:    http.StatusBadRequest,
             Message: "user_code is required",
@@ -101,10 +99,8 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
         middleware.ErrorHandler(w, err)
         return
     }
-    fmt.Printf("Decoded request: %+v\n", req)
 
     if strings.TrimSpace(req.UserCode) == "" {
-        fmt.Println("user_code is missing in request")
         err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
             Code:    http.StatusBadRequest,
             Message: "user_code is required",
@@ -116,10 +112,8 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
     userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
     fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
     phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-    fmt.Printf("Context userID: %s, fullName: %s, phoneNumber: %s\n", userID, fullName, phoneNumber)
 
     if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
-        fmt.Println("User info missing in context")
         err := fmt.Errorf("user info missing in context %w", constant.ErrorDefinition{
             Code:    http.StatusUnauthorized,
             Message: "user info missing in context",
@@ -138,14 +132,12 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
         PermissionCategory: req.PermissionCategory,
         PermissionGroup:    req.PermissionGroups,
     }
-    fmt.Printf("Prepared updated user: %+v\n", updated)
 
     maker := action.User{
         UserID:      userID,
         FullName:    fullName,
         PhoneNumber: phoneNumber,
     }
-    fmt.Printf("Prepared maker: %+v\n", maker)
 
     ctx := r.Context()
     if err := h.Service.UpdateUserRequest(ctx, updated, maker); err != nil {
@@ -155,7 +147,6 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
         return
     }
 
-    fmt.Println("User update successful, sending response")
     res := common.Response[string]{
         ResponseWriter: w,
         Status:         http.StatusOK,
