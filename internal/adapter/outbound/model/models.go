@@ -52,7 +52,7 @@ type User struct {
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
 type CPSAction struct {
-	ID                 bson.ObjectID   `bson:"_id,omitempty"`
+    ID                 bson.ObjectID   `bson:"_id,omitempty"` 
 	ActionCode         string          `bson:"action_code"` // Generated
 	MakerUser          User            `json:"maker_user" bson:"maker_user"`
 	CheckerUser        User            `json:"checker_user" bson:"checker_user"`
@@ -354,7 +354,7 @@ type Cap struct {
 }
 
 type ServiceDetails struct {
-	ID                 bson.ObjectID `bson:"_id,omitempty"`
+	ID                bson.ObjectID      `bson:"_id,omitempty"` 
 	ServiceCode        string        `bson:"service_code"`
 	ServiceName        string        `bson:"service_name"`
 	ServiceType        string        `bson:"service_type"`

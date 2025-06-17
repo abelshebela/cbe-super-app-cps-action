@@ -38,6 +38,7 @@ type Cap struct {
 	SingleCap uint64
 	DailyCap  uint64
 	MinAmount uint64
+	MaxAmount uint64
 }
 
 type Service struct {

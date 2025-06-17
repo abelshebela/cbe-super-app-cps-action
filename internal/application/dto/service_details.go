@@ -63,3 +63,25 @@ type ApproveServiceDetailsRequest struct {
 type ServiceDetailsErrorResponse struct {
 	Error string `json:"error"`
 }
+
+type SingleCapServiceRequest struct {
+	ServiceId string `json:"service_id"`
+	SingleCap uint64 `json:"single_cap"`
+}
+
+type DailyCapServiceRequest struct {
+	ServiceId string `json:"service_id"`
+	DailyCap  uint64 `json:"daily_cap"`
+}
+
+type TotalTransferCapRequest struct {
+	ServiceId string `json:"service_id"`
+	TotalCap  uint64 `json:"total_cap"`
+}
+
+type WholeCapServiceRequest struct {
+	ServiceId string `json:"service_id"`
+	SingleCap uint64 `json:"single_cap"`
+	DailyCap  uint64 `json:"daily_cap"`
+	TotalCap  uint64 `json:"total_cap"`
+}

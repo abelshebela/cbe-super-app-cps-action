@@ -74,11 +74,6 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to load config %v", err)
 	}
-
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
 	//
 	mongoClient, err := config.ConnectToMongoDB(cfg.MongoDBURI)
 	if err != nil {
@@ -229,7 +224,6 @@ func main() {
 		Addr:    ":8080",
 		Handler: r,
 	}
-
 	////
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
