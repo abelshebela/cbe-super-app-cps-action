@@ -26,3 +26,13 @@ func (service Service) BuildAuthTierRequest(request AmountBasedAuthRequest) (*Au
 
 	return &tier, nil
 }
+
+func (service Service) BuildAuthTierApproveRequest(id string) (string, error) {
+	auth, err := service.repo.ApproveAmountBasedAuth(service.ctx, id)
+
+	if err != nil {
+		return "", err
+	}
+
+	return auth, nil
+}

@@ -1,13 +1,25 @@
 package amount_based_auth_app
 
-import amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/amount_based_auth"
+import (
+	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/amount_based_auth"
+)
 
 type ApplicationService interface {
 	UpdateAmountBasedAuth(request amount_based_auth_domain.AmountBasedAuthRequest) (amount_based_auth_domain.AuthTier, error)
+	ApproveAmountBasedAuth(id string) (string, error)
 }
 
 type Handler struct {
 	service *amount_based_auth_domain.Service
+}
+
+func (h Handler) ApproveAmountBasedAuth(id string) (string, error) {
+	request, err := h.service.BuildAuthTierApproveRequest(id)
+	if err != nil {
+		return "", err
+	}
+
+	return request, nil
 }
 
 func (h Handler) UpdateAmountBasedAuth(request amount_based_auth_domain.AmountBasedAuthRequest) (amount_based_auth_domain.AuthTier, error) {

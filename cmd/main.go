@@ -66,7 +66,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
 	defer cancel()
 
 	branchPersistence := branch_repo.NewBranchPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)

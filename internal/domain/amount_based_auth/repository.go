@@ -7,4 +7,5 @@ import (
 
 type Repository interface {
 	UpdateAuthTier(request AmountBasedAuthRequest, ctx context.Context, logger utils.Logger) (AuthTier, error)
+	ApproveAmountBasedAuth(ctx context.Context, id string) (string, error)
 }
