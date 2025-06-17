@@ -8,7 +8,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset int) ([]Service, error) {
+func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error) {
 	return s.repository.GetAllHqServicesPaginated(ctx, offset, limit)
 }
 
@@ -21,7 +21,7 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 	if err != nil {
 		return "", err
 	}
-	service.Flag = action
+	service.Enabled = action
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 
 	a := CPSAction{
@@ -72,7 +72,7 @@ func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, action_id string, 
 	if err != nil {
 		return err
 	}
-	service.Flag = currentAction.Action
+	service.Enabled = currentAction.Action
 	return s.repository.UpdateHqService(ctx, service)
 }
 

@@ -6,7 +6,7 @@ import (
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
-func (a *ApplicationStore) FetchServices(ctx context.Context, offset, limit int) ([]domain.Service, error) {
+func (a *ApplicationStore) FetchServices(ctx context.Context, offset, limit int) ([]domain.ServiceDetails, error) {
 	data, err := a.service.GetServicePaginated(ctx, limit, offset)
 	if err != nil {
 		return nil, err

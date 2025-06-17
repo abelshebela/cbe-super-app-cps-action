@@ -7,10 +7,10 @@ import (
 )
 
 type OutboundInfra interface {
-	GetAllHqServices(ctx context.Context) ([]domain.Service, error)
-	GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]domain.Service, error)
-	GetHqServiceById(ctx context.Context, id string) (domain.Service, error)
-	UpdateHqService(ctx context.Context, service domain.Service) error
+	GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error)
+	GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]domain.ServiceDetails, error)
+	GetHqServiceById(ctx context.Context, id string) (domain.ServiceDetails, error)
+	UpdateHqService(ctx context.Context, service domain.ServiceDetails) error
 
 	CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error)
 	UpdateCpsAction(ctx context.Context, Action domain.CPSAction) error
@@ -21,6 +21,4 @@ type OutboundInfra interface {
 	FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error)
 	UpdateAccounts(ctx context.Context, linkedAccounts []domain.LinkedAccount) ([]domain.LinkedAccount, error)
 	UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error)
-
-	
 }
