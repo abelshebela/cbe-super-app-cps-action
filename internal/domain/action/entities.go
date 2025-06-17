@@ -118,6 +118,8 @@ const (
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
+	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 )
 
 type KYCLevel string
