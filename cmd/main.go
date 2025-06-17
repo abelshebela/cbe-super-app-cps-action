@@ -98,13 +98,13 @@ func main() {
 	//dbname := "ldap_cbs"
 	collectionNames := []string{
 		"BPSUsers",
-		"cps_actions",
+		"BPSActions",
 		"cps_users",
 		"CPSServices",
 		"Member",
 		"linked_accounts",
 		"mini_app",
-		"BPSActions",
+		"hq_services",
 	}
 
 	r := chi.NewRouter()
