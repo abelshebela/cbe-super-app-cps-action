@@ -33,11 +33,6 @@ type User struct {
 	Timestamp   time.Time
 }
 
-type MakerAndChecker struct {
-	Maker   User
-	Checker User
-}
-
 type CurrentAction struct {
 	Id     []string
 	Action bool
@@ -45,7 +40,10 @@ type CurrentAction struct {
 type CPSAction struct {
 	ID              string
 	ActionCode      string
-	MakerAndChecker MakerAndChecker
+	UniqueID        string
+	Maker           User
+	Checker         User
+	Unique_ID       string
 	Department      string
 	RejectionReason *string
 	PreviosAction   interface{}
@@ -119,19 +117,72 @@ const (
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
+	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
+	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
+	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 )
 
-type Service struct {
-	ID             *string
-	Key            string
-	ServiceName    string
-	SingleCap      float32
-	MinAmount      float32
-	DailyCap       float32
-	Flag           bool
-	CreatedAt      time.Time
-	LastModifiedAt time.Time
+type KYCLevel string
+
+const (
+	KYCLevelZero KYCLevel = "ZERO"
+	KYCLevelOne  KYCLevel = "ONE"
+	KYCLevelTwo  KYCLevel = "TWO"
+)
+
+type ProductCodes struct {
+	PRD    string
+	VATPRD string
+	SFPRD  string
+	TRXN   string
 }
+
+type GLEntry struct {
+	ProductAccount    string
+	ProductBranchCode string
+	ServiceAccount    string
+	ServiceBranchCode string
+	VatAccount        string
+	VatBranchCode     string
+}
+
+type Tier struct {
+	ID        *string
+	Min       uint64
+	Max       uint64
+	FeeAmount uint64
+}
+
+type Cap struct {
+	KYCLevel  KYCLevel
+	SingleCap uint64
+	DailyCap  uint64
+	MinAmount uint64
+}
+
+type ServiceDetails struct {
+	ID                 *string
+	ServiceCode        string
+	ServiceName        string
+	ServiceType        string
+	Key                string
+	Cap                Cap
+	CBEProductCodes    ProductCodes
+	CBEIFBProductCodes ProductCodes
+	AboveAmount        uint64
+	AboveServiceFee    uint64
+	PaymentType        string
+	Tiers              []Tier
+	CBEGLEntry         GLEntry
+	CBEIFBGLEntry      GLEntry
+	Enabled            bool
+	IsDeleted          bool
+	CreatedAt          time.Time
+	LastModifiedAt     time.Time
+	DeletedAt          time.Time
+}
+
 type RegistrationType string
 
 const (
@@ -169,4 +220,51 @@ type LinkedAccount struct {
 	}
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Password struct {
+	Salt             string
+	CurrentPassword  string
+	OldPassword      [4]string
+	PasswordChangeAt time.Time
+}
+type CPSUser struct {
+	ID                 string
+	UserCode           string
+	FullName           string
+	Role               string
+	Department         string
+	Gender             string
+	PhoneNumber        string
+	Email              string
+	UserName           string
+	Realm              string
+	PermissionCategory []string
+	PermissionGroup    []string
+
+	Password                 Password
+	PasswordDisable          bool
+	SyncDisabled             bool
+	LoginAttemptCount        uint8
+	LastLoginAttempt         time.Time
+	NextLoginAttempt         time.Time
+	LastOnlineDate           time.Time
+	LastLogin                time.Time
+	LoginPassword            string
+	AccountAuthorizationCode string
+	UnlockAccountRequested   bool
+
+	PasswordChangedAt *time.Time
+	OTPStatus         string
+	OTPLastTriedAt    *time.Time
+	OPTLastVerifiedAt *time.Time
+	OTPVerifyCount    int
+
+	Enabled      bool
+	IsDeleted    bool
+	DateJoined   *time.Time
+	LastModified *time.Time
+
+	Country string
+	Region  string
 }

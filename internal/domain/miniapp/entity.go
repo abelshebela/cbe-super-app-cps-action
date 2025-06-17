@@ -48,6 +48,7 @@ type MiniApp struct {
 	AppIcon           string
 	CommisonGLAccount string
 	AppType           AppType
+	MerchantID        string
 	ProductCode       []ProductCode
 	Credential        []CredentialInformation
 	IsEventMiniApp    bool

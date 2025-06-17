@@ -72,7 +72,7 @@ func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	service, err := s.appService.GetOneService(objectID)
+	service, err := s.appService.GetOneService(r.Context(), objectID)
 	if err != nil {
 		returndata["success"] = false
 		returndata["message"] = "Service not found"

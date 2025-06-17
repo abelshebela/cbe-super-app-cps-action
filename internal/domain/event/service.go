@@ -1,62 +1,20 @@
 package event
 
+import "context"
+
 type EventService interface {
-	FindAll() ([]*EventResponse, error)
-	FindOne(id string) (*EventResponse, error)
-	InsertOne(req CreateEventRequest) (*Event, error)
-	UpdateOne(id string, update UpdateEventRequest) (*Event, error)
-	DeleteOne(id string) error
+	CreateEventRequest(ctx context.Context, event Event, ticket Ticket, makerID, makerName, makerPhone string) (string, error)
+	ApproveEventRequest(ctx context.Context, action_id string, action_taken bool, checkerID, checkerName, checkerPhone string) error
+	FetchEvent(ctx context.Context, limit, offset int) ([]Event, error)
+	FetchEventById(ctx context.Context, event_id string) (Event, error)
 }
 
 type Service struct {
-	repository Repository
+	Repository Repository
 }
 
 func NewSerice(repository Repository) (EventService, error) {
 	return &Service{
-		repository: repository,
+		Repository: repository,
 	}, nil
-}
-
-func (s *Service) FindAll() ([]*EventResponse, error) {
-	adverts, err := s.repository.GetAllEvent()
-	if err != nil {
-		return nil, err
-	}
-	return adverts, nil
-}
-
-func (s *Service) FindOne(id string) (*EventResponse, error) {
-	advert, err := s.repository.GetOneEvent(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return advert, nil
-}
-
-func (s *Service) InsertOne(req CreateEventRequest) (*Event, error) {
-	advert, err := s.repository.CreateOneEvent(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return advert, nil
-}
-
-func (s *Service) UpdateOne(id string, req UpdateEventRequest) (*Event, error) {
-	advert, err := s.repository.UpdateOneEvent(id, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return advert, nil
-}
-
-func (s *Service) DeleteOne(id string) error {
-	if err := s.repository.DeleteOneEvent(id); err != nil {
-		return err
-	}
-
-	return nil
 }

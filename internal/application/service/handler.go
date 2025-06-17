@@ -18,34 +18,32 @@ import (
 )
 
 type ServiceApplication interface {
-	// GetAllService(ctx context.Context) (*[]ServiceResponse, error)
-	// UpdateService(ctx context.Context, req UpdateServiceRequest) (ServiceResponse, error)
-	// ApproveService(ctx context.Context, req UpdateServiceRequest) error
 	ValidateTiers(tiers []dto.Tier, aboveAmount float64) error
-	GetOneService(id bson.ObjectID) (*service.Service, error)
+	GetOneService(ctx context.Context, id bson.ObjectID) (*service.Service, error)
 	InitCPSAction(user cpsuser.CPSUser, actionData map[string]interface{}, requestAction, actionType string, previousData *service.Service) action.CPSAction
 	CreateAction(ctx context.Context, req action.CPSAction) error
 }
 
 type serviceApp struct {
 	serviceDomain serviceDomain.Repository
+	actionDomain  action.Repository
 	logger        utils.Logger
 }
 
-func NewServiceApp(service serviceDomain.Repository, logger utils.Logger) ServiceApplication {
+func NewServiceApp(service serviceDomain.Repository, actions action.Repository, logger utils.Logger) ServiceApplication {
 	return &serviceApp{
 		serviceDomain: service,
+		actionDomain:  actions,
 		logger:        logger,
 	}
-
 }
 
 // func (s *serviceApp) GetAllService(ctx context.Context) (*[]ServiceResponse, error) {
 
 // }
 
-func (s *serviceApp) GetOneService(id bson.ObjectID) (*service.Service, error) {
-	service, err := s.serviceDomain.GetOneService(id.String())
+func (s *serviceApp) GetOneService(ctx context.Context, id bson.ObjectID) (*service.Service, error) {
+	service, err := s.serviceDomain.GetOneServiceDetail(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +51,9 @@ func (s *serviceApp) GetOneService(id bson.ObjectID) (*service.Service, error) {
 }
 
 func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]interface{}, requestAction, actionType string, previousData *service.Service) action.CPSAction {
-	makerChecker := action.MakerAndChecker{
+
+	return action.CPSAction{
+		ActionCode: utils.ObjectIDGenerator().String(),
 		Maker: action.User{
 			UserID:      user.ID.String(),
 			FullName:    user.FullName,
@@ -61,12 +61,6 @@ func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]i
 			PhoneNumber: user.UserCode,
 			Timestamp:   time.Now(),
 		},
-	}
-
-	return action.CPSAction{
-		ActionCode:      utils.ObjectIDGenerator().String(),
-		MakerAndChecker: makerChecker,
-
 		Department:    user.Department.String(),
 		ActionStatus:  "PENDING",
 		RequestAction: action.RequestAction(requestAction),
@@ -76,10 +70,6 @@ func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]i
 		CreatedAt:     time.Now(),
 	}
 }
-
-// func (s *serviceApp) ApproveService(ctx context.Context, req UpdateServiceRequest) error {
-
-// }
 
 func (s *serviceApp) ValidateTiers(tiers []dto.Tier, aboveAmount float64) error {
 	if len(tiers) == 0 {
@@ -108,7 +98,8 @@ func (s *serviceApp) ValidateTiers(tiers []dto.Tier, aboveAmount float64) error 
 }
 
 func (s *serviceApp) CreateAction(ctx context.Context, req action.CPSAction) error {
-	err := s.serviceDomain.CreateAction(ctx, req)
+	_, err := s.actionDomain.CreateCpsAction(ctx, req)
+	// err := s.serviceDomain.CreateAction(ctx, req)
 	if err != nil {
 		return err
 	}

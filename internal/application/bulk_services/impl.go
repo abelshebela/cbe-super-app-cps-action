@@ -6,7 +6,7 @@ import (
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
-func (a *ApplicationStore) FetchServices(ctx context.Context, offset, limit int) ([]domain.Service, error) {
+func (a *ApplicationStore) FetchServices(ctx context.Context, offset, limit int) ([]domain.ServiceDetails, error) {
 	data, err := a.service.GetServicePaginated(ctx, limit, offset)
 	if err != nil {
 		return nil, err
@@ -22,11 +22,11 @@ func (a *ApplicationStore) EnableDisableServicesChecker(ctx context.Context, Act
 }
 
 func (a *ApplicationStore) FetchCifs(ctx context.Context, cif string) ([]domain.LinkedAccount, error) {
-	return []domain.LinkedAccount{}, nil
+	return a.service.GetAccountByAccount(ctx, cif)
 }
-func (a *ApplicationStore) RemoveCifMaker(ctx context.Context, id, makerId string) (string, error) {
-	return "", nil
+func (a *ApplicationStore) RemoveCifMaker(ctx context.Context, id []string, makerId string) (string, error) {
+	return a.service.RemoveCifRequest(ctx, id, true, makerId)
 }
 func (a *ApplicationStore) RemoveCifChecker(ctx context.Context, Action_id string, action bool, checkerId string) error {
-	return nil
+	return a.service.RemoveCif(ctx, Action_id, action, checkerId)
 }

@@ -2,13 +2,14 @@
 // Source: ./internal/domain/action/repository.go
 
 // Package mock_repository is a generated GoMock package.
-package mock_repository
+package mock_domain
 
 import (
 	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
@@ -111,10 +112,10 @@ func (mr *MockRepositoryMockRecorder) FetchLinkedAccountById(ctx, id interface{}
 }
 
 // GetAllHqServices mocks base method.
-func (m *MockRepository) GetAllHqServices(ctx context.Context) ([]action.Service, error) {
+func (m *MockRepository) GetAllHqServices(ctx context.Context) ([]action.ServiceDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllHqServices", ctx)
-	ret0, _ := ret[0].([]action.Service)
+	ret0, _ := ret[0].([]action.ServiceDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -126,10 +127,10 @@ func (mr *MockRepositoryMockRecorder) GetAllHqServices(ctx interface{}) *gomock.
 }
 
 // GetAllHqServicesPaginated mocks base method.
-func (m *MockRepository) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.Service, error) {
+func (m *MockRepository) GetAllHqServicesPaginated(ctx context.Context, offset, limit int) ([]action.ServiceDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllHqServicesPaginated", ctx, offset, limit)
-	ret0, _ := ret[0].([]action.Service)
+	ret0, _ := ret[0].([]action.ServiceDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -141,10 +142,10 @@ func (mr *MockRepositoryMockRecorder) GetAllHqServicesPaginated(ctx, offset, lim
 }
 
 // GetHqServiceById mocks base method.
-func (m *MockRepository) GetHqServiceById(ctx context.Context, id string) (action.Service, error) {
+func (m *MockRepository) GetHqServiceById(ctx context.Context, id string) (action.ServiceDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHqServiceById", ctx, id)
-	ret0, _ := ret[0].(action.Service)
+	ret0, _ := ret[0].(action.ServiceDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -200,7 +201,7 @@ func (mr *MockRepositoryMockRecorder) UpdateCpsAction(ctx, Action interface{}) *
 }
 
 // UpdateHqService mocks base method.
-func (m *MockRepository) UpdateHqService(ctx context.Context, service action.Service) error {
+func (m *MockRepository) UpdateHqService(ctx context.Context, service action.ServiceDetails) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateHqService", ctx, service)
 	ret0, _ := ret[0].(error)
