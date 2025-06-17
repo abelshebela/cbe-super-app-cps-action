@@ -1,0 +1,86 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_REGISTRY: registry.eaglelionsystems.com
+  MS_NAME: cbe-supperapp-bps-auth
+  IMAGE_PROJECT_PATH: cbe-supperapp
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  BRANCH_NAME_CLEAN: ${CI_COMMIT_REF_NAME}
+  IMAGE_NAME: $IMAGE_REGISTRY/$IMAGE_PROJECT_PATH/$MS_NAME-$BRANCH_NAME_CLEAN
+
+.default_template:
+  before_script:
+    - echo "VAULT_ADDR=$CI_VAULT_ADDR" > .env
+    - echo "VAULT_TOKEN=$CI_VAULT_TOKEN" >> .env
+    - echo "VAULT_PATH=$CI_VAULT_PATH" >> .env
+    - echo "IMAGE_TAG=$CI_COMMIT_SHORT_SHA" > scripts/.env
+
+# BUILD STAGE
+build-image:
+  extends: .default_template
+  stage: build
+  tags:
+   - dev
+  
+  script:
+    - echo "Logging in to Docker registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $IMAGE_REGISTRY
+    - docker build -f scripts/Dockerfile -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker push $IMAGE_NAME:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "staging"'
+    - if: '$CI_COMMIT_BRANCH == "prod"'
+  
+
+
+# Deployment STAGE
+deploy-dev:
+  extends: .default_template
+  stage: deploy
+  tags:
+   - dev
+  script:
+    - docker compose -f scripts/docker-compose.yml down
+    - docker compose -f scripts/docker-compose.yml up -d 
+  environment:
+    name: dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+      when: always
+  
+  dependencies:
+    - build-image
+
+deploy-staging:
+  extends: .default_template
+  stage: deploy
+  tags:
+   - staging
+  script:
+    - docker compose down
+    - docker compose up -d 
+  environment:
+    name: staging
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "staging"'
+      when: always
+
+deploy-prod:
+  extends: .default_template
+  stage: deploy
+  tags:
+   - prod
+  script:
+    - docker compose down
+    - docker compose up -d 
+  environment:
+    name: prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "prod"'
+      when: manual
+
