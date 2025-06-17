@@ -44,6 +44,7 @@ type CPSAction struct {
 	Checker         User
 	Department      string
 	RejectionReason *string
+	Unique_ID       string
 	PreviosAction   interface{}
 	CurrentAction   interface{}
 	ActionStatus    ActionStatus
@@ -116,6 +117,7 @@ const (
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
+	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
 )
 
 type Service struct {

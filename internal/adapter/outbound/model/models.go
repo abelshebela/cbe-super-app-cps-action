@@ -308,3 +308,62 @@ type ValidationRule struct {
 	LastModifiedAt time.Time     `json:"last_modified_at" bson:"last_modified_at"`
 	ServiceID      string        `json:"service_id" bson:"service_id"`
 }
+type KYCLevel string
+
+const (
+	KYCLevelZero KYCLevel = "ZERO"
+	KYCLevelOne  KYCLevel = "ONE"
+	KYCLevelTwo  KYCLevel = "TWO"
+)
+
+type ProductCodes struct {
+	PRD    string `bson:"prd"`
+	VATPRD string `bson:"vatprd"`
+	SFPRD  string `bson:"sfprd"`
+	TRXN   string `bson:"trxn"`
+}
+
+type GLEntry struct {
+	ProductAccount    string `bson:"product_account"`
+	ProductBranchCode string `bson:"product_branch_code"`
+	ServiceAccount    string `bson:"service_account"`
+	ServiceBranchCode string `bson:"service_branch_code"`
+	VatAccount        string `bson:"vat_account"`
+	VatBranchCode     string `bson:"vat_branch_code"`
+}
+
+type Tier struct {
+	ID        bson.ObjectID `bson:"id"`
+	Min       uint64 `bson:"min"`
+	Max       uint64 `bson:"max"`
+	FeeAmount uint64 `bson:"fee_amount"`
+}
+
+type Cap struct {
+	KYCLevel  KYCLevel `bson:"kyc_level"`
+	SingleCap uint64   `bson:"single_cap"`
+	DailyCap  uint64   `bson:"daily_cap"`
+	MinAmount uint64   `bson:"min_amount"`
+}
+
+type ServiceDetails struct {
+	ID                bson.ObjectID      `bson:"_id,omitempty"` 
+	ServiceCode        string        `bson:"service_code"`
+	ServiceName        string        `bson:"service_name"`
+	ServiceType        string        `bson:"service_type"`
+	Key                string        `bson:"key"`
+	Cap                Cap           `bson:"cap"`
+	CBEProductCodes    ProductCodes  `bson:"cbe_product_codes"`
+	CBEIFBProductCodes ProductCodes  `bson:"cbe_ifb_product_codes"`
+	AboveAmount        uint64        `bson:"above_amount"`
+	AboveServiceFee    uint64        `bson:"above_service_fee"`
+	PaymentType        string        `bson:"payment_type"`
+	Tiers              []Tier        `bson:"tiers"`
+	CBEGLEntry         GLEntry       `bson:"cbe_gl_entry"`
+	CBEIFBGLEntry      GLEntry       `bson:"cbe_ifb_gl_entry"`
+	Enabled            bool          `bson:"enabled"`
+	IsDeleted          bool          `bson:"is_deleted"`
+	CreatedAt          time.Time     `bson:"created_at"`
+	LastModifiedAt     time.Time     `bson:"last_modified_at"`
+	DeletedAt          time.Time     `bson:"deleted_at"`
+}

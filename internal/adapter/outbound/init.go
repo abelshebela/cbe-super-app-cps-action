@@ -19,28 +19,36 @@ import (
 	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 )
 
 type outboundStore struct {
-	MongoDalCPSAction *infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
-	MongoDalBPSUser   *infra_mongo.MongoDal[bps.BPSUser, bps.BPSUser]
-	MongoDalServices  *infra_mongo.MongoDal[model.Service, model.Service]
-	MongoDalMember    *infra_mongo.MongoDal[member.User, member.User]
-	MongoDalAccounts  *infra_mongo.MongoDal[model.LinkedAccount, model.LinkedAccount]
-	BpsCalls          bpscalls.BpsCallsInterface
-	MongoDalMiniApp   *infra_mongo.MongoDal[model.MiniApp, model.MiniApp]
-	MongoDalCPSUser   *infra_mongo.MongoDal[model.CPSUser, model.CPSUser]
+	MongoDalCPSAction         *infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
+	MongoDalBPSUser           *infra_mongo.MongoDal[bps.BPSUser, bps.BPSUser]
+	MongoDalServices          *infra_mongo.MongoDal[model.Service, model.Service]
+	MongoDalMember            *infra_mongo.MongoDal[member.User, member.User]
+	MongoDalAccounts          *infra_mongo.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	BpsCalls                  bpscalls.BpsCallsInterface
+	MongoDalMiniApp           *infra_mongo.MongoDal[model.MiniApp, model.MiniApp]
+	MongoDalCPSUser           *infra_mongo.MongoDal[model.CPSUser, model.CPSUser]
+	MongoDalAccountValidation *infra_mongo.MongoDal[model.ValidationRule, model.ValidationRule]
+	MongoDalServiceDetails    *infra_mongo.MongoDal[model.ServiceDetails, model.ServiceDetails]
 }
 
 func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames []string) userOutbound.OutboundInfra {
 	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
+	MongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[5])
+	MongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
 
 	return &outboundStore{
-		MongoDalCPSUser:   mongoDalCPSUser,
-		MongoDalCPSAction: mongoDalCPSAction,
-		MongoDalBPSUser:   mongoDalBPSUser,
+		MongoDalCPSUser:           mongoDalCPSUser,
+		MongoDalCPSAction:         mongoDalCPSAction,
+		MongoDalBPSUser:           mongoDalBPSUser,
+		MongoDalAccountValidation: MongoDalAccountValidation,
+		MongoDalServiceDetails:    MongoDalServiceDetails,
 	}
 }
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
@@ -61,6 +69,16 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		BpsCalls:          bpscalls.NewBpsCalls(),
 		MongoDalMiniApp:   mongoDalMiniApp,
 		MongoDalCPSUser:   mongoDalCPSUser,
+	}
+}
+
+func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
+	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
+	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "CPSActions")
+
+	return &outboundStore{
+		MongoDalServiceDetails: mongoDalServiceDetails,
+		MongoDalCPSAction:      mongoDalCPSAction,
 	}
 }
 
@@ -691,4 +709,192 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]domain.CPS
 
 func ptrTime(t time.Time) *time.Time {
 	return &t
+}
+func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
+	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*serviceDomain.Service, len(data))
+	for i, s := range data {
+		if s == nil {
+			continue
+		}
+		result[i] = &serviceDomain.Service{
+			ID:                 s.ID.Hex(),
+			ServiceCode:        s.ServiceCode,
+			ServiceName:        s.ServiceName,
+			ServiceType:        s.ServiceType,
+			Key:                s.Key,
+			Cap:                convertToServiceCap(s.Cap),
+			CBEProductCodes:    convertToServiceProductCodes(s.CBEProductCodes),
+			CBEIFBProductCodes: convertToServiceProductCodes(s.CBEIFBProductCodes),
+			AboveAmount:        s.AboveAmount,
+			AboveServiceFee:    s.AboveServiceFee,
+			PaymentType:        s.PaymentType,
+			Tiers:              convertTiers(s.Tiers),
+			CBEGLEntry:         convertToServiceGLEntry(s.CBEGLEntry),
+			CBEIFBGLEntry:      convertToServiceGLEntry(s.CBEIFBGLEntry),
+			Enabled:            s.Enabled,
+			IsDeleted:          s.IsDeleted,
+			CreatedAt:          s.CreatedAt,
+			LastModifiedAt:     s.LastModifiedAt,
+			DeletedAt:          s.DeletedAt,
+		}
+	}
+	return result, nil
+}
+
+func (o *outboundStore) GetOneServiceDetail(ctx context.Context, id string) (serviceDomain.Service, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return serviceDomain.Service{}, err
+	}
+
+	filter := map[string]interface{}{"_id": objID}
+	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
+	if err != nil {
+		return serviceDomain.Service{}, err
+	}
+
+	return serviceDomain.Service{
+		ID:                 data.ID.Hex(),
+		ServiceCode:        data.ServiceCode,
+		ServiceName:        data.ServiceName,
+		ServiceType:        data.ServiceType,
+		Key:                data.Key,
+		Cap:                convertToServiceCap(data.Cap),
+		CBEProductCodes:    convertToServiceProductCodes(data.CBEProductCodes),
+		CBEIFBProductCodes: convertToServiceProductCodes(data.CBEIFBProductCodes),
+		AboveAmount:        data.AboveAmount,
+		AboveServiceFee:    data.AboveServiceFee,
+		PaymentType:        data.PaymentType,
+		Tiers:              convertTiers(data.Tiers),
+		CBEGLEntry:         convertToServiceGLEntry(data.CBEGLEntry),
+		CBEIFBGLEntry:      convertToServiceGLEntry(data.CBEIFBGLEntry),
+		Enabled:            data.Enabled,
+		IsDeleted:          data.IsDeleted,
+		CreatedAt:          data.CreatedAt,
+		LastModifiedAt:     data.LastModifiedAt,
+		DeletedAt:          data.DeletedAt,
+	}, nil
+}
+
+func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, update serviceDomain.Service) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := map[string]interface{}{"_id": objID}
+	updateDoc := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"serviceCode":        update.ServiceCode,
+			"serviceName":        update.ServiceName,
+			"serviceType":        update.ServiceType,
+			"key":                update.Key,
+			"cap":                convertToModelCap(update.Cap),
+			"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
+			"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
+			"aboveAmount":        update.AboveAmount,
+			"aboveServiceFee":    update.AboveServiceFee,
+			"paymentType":        update.PaymentType,
+			"tiers":              convertToModelTiers(update.Tiers),
+			"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
+			"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
+			"enabled":            update.Enabled,
+			"isDeleted":          update.IsDeleted,
+			"lastModifiedAt":     update.LastModifiedAt,
+			"deletedAt":          update.DeletedAt,
+		},
+	}
+
+	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
+	return err
+}
+
+func convertToServiceCap(c model.Cap) serviceDomain.Cap {
+	return serviceDomain.Cap{
+		KYCLevel:  serviceDomain.KYCLevel(c.KYCLevel),
+		SingleCap: c.SingleCap,
+		DailyCap:  c.DailyCap,
+		MinAmount: c.MinAmount,
+	}
+}
+
+func convertToModelCap(c serviceDomain.Cap) model.Cap {
+	return model.Cap{
+		KYCLevel:  model.KYCLevel(c.KYCLevel),
+		SingleCap: c.SingleCap,
+		DailyCap:  c.DailyCap,
+		MinAmount: c.MinAmount,
+	}
+}
+
+func convertToServiceProductCodes(p model.ProductCodes) serviceDomain.ProductCodes {
+	return serviceDomain.ProductCodes{
+		PRD:    p.PRD,
+		VATPRD: p.VATPRD,
+		SFPRD:  p.SFPRD,
+		TRXN:   p.TRXN,
+	}
+}
+
+func convertToModelProductCodes(p serviceDomain.ProductCodes) model.ProductCodes {
+	return model.ProductCodes{
+		PRD:    p.PRD,
+		VATPRD: p.VATPRD,
+		SFPRD:  p.SFPRD,
+		TRXN:   p.TRXN,
+	}
+}
+
+func convertTiers(tiers []model.Tier) []serviceDomain.Tier {
+	result := make([]serviceDomain.Tier, len(tiers))
+	for i, t := range tiers {
+		result[i] = serviceDomain.Tier{
+			ID:        t.ID.Hex(),
+			Min:       t.Min,
+			Max:       t.Max,
+			FeeAmount: t.FeeAmount,
+		}
+	}
+	return result
+}
+
+func convertToModelTiers(tiers []serviceDomain.Tier) []model.Tier {
+	result := make([]model.Tier, len(tiers))
+	for i, t := range tiers {
+		objID, _ := bson.ObjectIDFromHex(t.ID)
+		result[i] = model.Tier{
+			ID:        objID,
+			Min:       t.Min,
+			Max:       t.Max,
+			FeeAmount: t.FeeAmount,
+		}
+	}
+	return result
+}
+
+func convertToServiceGLEntry(g model.GLEntry) serviceDomain.GLEntry {
+	return serviceDomain.GLEntry{
+		ProductAccount:    g.ProductAccount,
+		ProductBranchCode: g.ProductBranchCode,
+		ServiceAccount:    g.ServiceAccount,
+		ServiceBranchCode: g.ServiceBranchCode,
+		VatAccount:        g.VatAccount,
+		VatBranchCode:     g.VatBranchCode,
+	}
+}
+
+func convertToModelGLEntry(g serviceDomain.GLEntry) model.GLEntry {
+	return model.GLEntry{
+		ProductAccount:    g.ProductAccount,
+		ProductBranchCode: g.ProductBranchCode,
+		ServiceAccount:    g.ServiceAccount,
+		ServiceBranchCode: g.ServiceBranchCode,
+		VatAccount:        g.VatAccount,
+		VatBranchCode:     g.VatBranchCode,
+	}
 }
