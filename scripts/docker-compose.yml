@@ -1,0 +1,18 @@
+# supper app bps service compose file
+version: "3.8"
+
+services:
+  cbe-supperapp-cps-action:
+    image: registry.eaglelionsystems.com/cbe-supperapp/cbe-supperapp-cps-action-dev:${IMAGE_TAG}
+    container_name: cbe-supperapp-cps-action
+    ports:
+      - 5005:8080
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 100M
+        reservations:
+          cpus: '0.25'
+          memory: 75M
