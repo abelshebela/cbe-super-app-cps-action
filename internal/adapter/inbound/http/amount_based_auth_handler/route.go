@@ -15,19 +15,19 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Method:  http.MethodPut,
 				Path:    "/update",
 				Handler: handler.UpdateAmountBasedAuth,
-				//Middlewares: []func(next http.Handler) http.Handler{
-				//	authMiddleware.AuthenticateToken,
-				//	authMiddleware.AccessControl([]string{"MAKER"}),
-				//},
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{"MAKER"}),
+				},
 			},
 			{
 				Method:  http.MethodPut,
 				Path:    "/approve/{id}",
 				Handler: handler.ApproveAmountBasedAuth,
-				//Middlewares: []func(next http.Handler) http.Handler{
-				//	authMiddleware.AuthenticateToken,
-				//	authMiddleware.AccessControl([]string{"CHECKER"}),
-				//},
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{"CHECKER"}),
+				},
 			},
 		}
 		route.RegisterRoutes(r, routes)
