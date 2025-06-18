@@ -13,4 +13,7 @@ type ServiceDetailsInbound interface {
 	ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.Request)
 	ServiceDetailsSingleCapMaker(w http.ResponseWriter, r *http.Request)
 	TotalTransferCapMaker(w http.ResponseWriter, r *http.Request)
+
+	UpdateCapMinAmountHandler(w http.ResponseWriter, r *http.Request)
+	ApproveServiceDetailsHandler(w http.ResponseWriter, r *http.Request)
 }
