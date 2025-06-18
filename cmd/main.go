@@ -65,6 +65,11 @@ import (
 	portal_card_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
+
+	budgethandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
+	budgetPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/budget"
+	budgetService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget"
 )
 
 func main() {
@@ -182,6 +187,12 @@ func main() {
 	unlinkDeviceApplication := unlinkApp.NewUnlinkHandler(unlinkDeviceService)
 	unlink_handler := unlinkDeviceHandler.NewHTTPUnlinkHandler(unlinkDeviceApplication, logger)
 	unlinkDeviceHandler.RegisterHTTPUnlinkRoutes(r, unlink_handler, authMddleware)
+
+	budgetPersistence := budgetPersistence.InitBudget(mongoClient, cfg.MongoDBDatabase, []string{"icons", "colors", "cps_actions"}, logger)
+	budgetDomain := budgetService.InitBudgetDomain(budgetPersistence, logger)
+	budgetApp := budget.InitBudgetHandler(budgetDomain, minioClient, "icons", logger)
+	budgetRoutes := budgethandler.NewBudgetHTTPHandler(budgetApp, logger)
+	budgethandler.InitBudgetRoutes(r, budgetRoutes, authMddleware)
 
 	accountvalidation_persistence := accountvalidation_persistence.InitAccountValidationPersistence(
 		mongoClient,
