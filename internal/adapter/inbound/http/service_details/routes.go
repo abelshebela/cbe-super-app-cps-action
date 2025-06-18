@@ -75,6 +75,24 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 				middleware.AccessControl([]string{"MAKER"}),
 			},
 		},
+		 {
+            Method:  http.MethodPost,
+            Path:    "/api/v1/cbesuperapp/cps_config/update_min_cap",
+            Handler: handler.UpdateCapMinAmountHandler,
+            Middlewares: []func(next http.Handler) http.Handler{
+                middleware.AuthenticateToken,
+                middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+            },
+        },
+        {
+            Method:  http.MethodPost,
+            Path:    "/api/v1/cbesuperapp/cps_config/approve_service_details",
+            Handler: handler.ApproveServiceDetailsHandler,
+            Middlewares: []func(next http.Handler) http.Handler{
+                middleware.AuthenticateToken,
+                middleware.AccessControl([]string{"CHECKER"}),
+            },
+        },
 	}
 
 	route.RegisterRoutes(router, routes)

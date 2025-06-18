@@ -8,4 +8,7 @@ type Repository interface {
 	//UpdateOneServiceDetail(ctx context.Context, id string, update Service) error
 	UpdateOneServiceDetailRequest(ctx context.Context, id string, update Service) error
 	//UpdateOneSeviceDeatil(ctx context.Context, pd Service) error
+
+	UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error
+	ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
 }

@@ -245,3 +245,52 @@ func (h *HttpStore) TotalTransferCapMaker(w http.ResponseWriter, r *http.Request
 	response := res.ActionID
 	utils.WriteSuccessResponse(w, response, "success")
 }
+func (h *HttpStore) UpdateCapMinAmountHandler(w http.ResponseWriter, r *http.Request) {
+    var req dto.SingleCapServiceRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        h.handleError(w, fmt.Errorf("invalid request body"))
+        return
+    }
+
+    serviceDetails, err := h.Application.GetServiceDetailsByID(r.Context(), req.ServiceId)
+    if err != nil {
+        h.handleError(w, err)
+        return
+    }
+
+    serviceDetails.Cap.MinAmount = req.SingleCap
+
+    _, err = h.Application.UpdateServiceCap(r.Context(), req.ServiceId, &serviceDetails.Cap)
+    if err != nil {
+        h.handleError(w, err)
+        return
+    }
+
+    utils.WriteSuccessResponse(w, nil, "Minimum cap amount updated successfully")
+}
+func (h *HttpStore) ApproveServiceDetailsHandler(w http.ResponseWriter, r *http.Request) {
+    var req dto.ApproveServiceDetailsRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        h.handleError(w, fmt.Errorf("invalid request body"))
+        return
+    }
+
+    claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+    if !ok {
+        h.handleError(w, fmt.Errorf("unauthorized"))
+        return
+    }
+    req.CheckerID = claims.UserID
+
+    err := h.Application.ApproveServiceDetails(r.Context(), &req)
+    if err != nil {
+        h.handleError(w, err)
+        return
+    }
+
+    action := "approved"
+    if !req.Approve {
+        action = "rejected"
+    }
+    utils.WriteSuccessResponse(w, nil, "Service details " + action + " successfully")
+}

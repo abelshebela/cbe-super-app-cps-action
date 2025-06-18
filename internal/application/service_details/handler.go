@@ -14,6 +14,9 @@ type ApplicationAbstracts interface {
 	GetServiceDetailsByID(ctx context.Context, id string) (*dto.ServiceDetailsResponse, error)
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *dto.UpdateServiceDetailsRequest) (*dto.UpdateServiceDetailsResponse, error)
 	UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error
+	UpdateServiceCap(ctx context.Context, id string, cap *service.Cap) (*dto.ServiceDetailsResponse, error) // <-- FIXED
+	ApproveServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error                 // <-- Add this
+
 }
 
 type ApplicationStore struct {
@@ -124,4 +127,22 @@ func (a *ApplicationStore) UpdateServiceDetailsRequest(ctx context.Context, id s
 
 func (a *ApplicationStore) UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error {
 	return a.service.UpdateServiceDetails(ctx, req.ActionID, req.Approve, req.CheckerID, req.RejectionReason)
+}
+func (a *ApplicationStore) UpdateServiceCap(ctx context.Context, id string, cap *service.Cap) (*dto.ServiceDetailsResponse, error) {
+    svc, err := a.service.UpdateServiceCap(ctx, id, *cap)
+    if err != nil {
+        return nil, err
+    }
+    return &dto.ServiceDetailsResponse{
+        ID:          svc.ID,
+        ServiceID:   svc.ServiceCode,
+        ServiceCode: svc.ServiceCode,
+        ServiceName: svc.ServiceName,
+        ServiceType: svc.ServiceType,
+        Key:         svc.Key,
+        Cap:         svc.Cap,
+    }, nil
+}
+func (a *ApplicationStore) ApproveServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error {
+    return a.service.ApproveServiceDetails(ctx, req.ActionID, req.Approve, req.CheckerID, req.RejectionReason)
 }

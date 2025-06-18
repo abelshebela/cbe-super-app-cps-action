@@ -1273,3 +1273,55 @@ func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id st
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
 	return err
 }
+func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error {
+    objID, err := bson.ObjectIDFromHex(id)
+    if err != nil {
+        return err
+    }
+    filter := map[string]interface{}{"_id": objID}
+    update := map[string]interface{}{
+        "$set": map[string]interface{}{
+            "cap.min_amount":   minAmount,
+            "lastModifiedAt":   time.Now(),
+        },
+    }
+    _, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
+    return err
+}
+
+func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error {
+    action, err := o.FetchCpsActionById(ctx, actionID)
+    if err != nil {
+        return err
+    }
+
+    if action.ActionStatus != domain.ActionPending {
+        return errors.New("action is not in pending status")
+    }
+
+    action.Checker.UserID = checkerID
+    action.Checker.Timestamp = time.Now()
+    action.LastModifiedAt = time.Now()
+
+    if approve {
+        action.ActionStatus = domain.ActionApproved
+
+        serviceData, ok := action.CurrentAction.(*serviceDomain.Service)
+        if !ok {
+            return errors.New("invalid service data in action")
+        }
+        if err := o.UpdateOneServiceDetail(ctx, action.Unique_ID, *serviceData); err != nil {
+            return err
+        }
+    } else {
+        action.ActionStatus = domain.ActionRejected
+        if rejectionReason != "" {
+            action.RejectionReason = &rejectionReason
+        } else {
+            reason := "Rejected by checker"
+            action.RejectionReason = &reason
+        }
+    }
+
+    return o.UpdateCpsAction(ctx, action)
+}
