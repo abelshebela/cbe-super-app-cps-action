@@ -3,7 +3,6 @@ package ad
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -91,24 +90,6 @@ func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq CreateCPSAction
 		tempFile.Close()
 		os.Remove(filePath)
 	}()
-
-	srcFile, err := adCpsReq.ActionData.BannerImage.Open()
-	if err != nil {
-		a.logger.Errorf("failed to open uploaded image: %v", err)
-		return nil, fmt.Errorf("failed to open uploaded image: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid image file",
-		})
-	}
-	defer srcFile.Close()
-
-	if _, err := io.Copy(tempFile, srcFile); err != nil {
-		a.logger.Errorf("failed to copy file content: %v", err)
-		return nil, fmt.Errorf("failed to copy file content: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
 
 	// Save to MinIO
 	saveObj, err := a.minio.SaveObject(ctx, config.SaveObjectBody{

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 
 	accountvalidation_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	ad_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
+	bank_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
 	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	cpsusermaker_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
@@ -29,19 +29,23 @@ import (
 	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	service_details_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
+	wallet_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
 	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
 	cpsusermaker_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
 	accountvalidation_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
 	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
 	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
 	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
 	unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
 	ad_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
+	bank_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bank"
 	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
@@ -51,9 +55,11 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
 	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
 	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
+	wallet_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/wallet"
 	accountvalidation_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	ad_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/service"
+	bank_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/service"
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 	cpsusermaker_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
@@ -63,6 +69,7 @@ import (
 	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
+	wallet_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
 )
 
 func main() {
@@ -162,7 +169,7 @@ func main() {
 	adDomain := ad_domain.InitADDomian(adPersistence, logger)
 	adHandler := ad_handler.InitADHandler(adDomain, minioClient, "adverts", logger)
 	adAdapter := ad_adapter.InitADAdapter(adHandler, logger)
-	// ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
+	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
 
 	departmentPersistence := departmentPersistence.InitDepartment(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	departmentDomain := departmentService.InitDepartmentDomain(departmentPersistence, departmentPersistence, logger)
@@ -211,10 +218,20 @@ func main() {
 
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
-	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
+	bankPersistence := bank.InitBank(mongoClient, cfg.MongoDBDatabase, []string{"banks", "cps_actions"}, logger)
+	bankDomain := bank_domain.InitBankDomain(bankPersistence, minioClient, "banks", logger)
+	bankHandler := bank_handler.InitBankHanlder(bankDomain, logger)
+	bankAdapter := bank_adapter.InitBankAdapter(bankHandler, logger)
+	bank_adapter.InitBankRoutes(r, bankAdapter, authMddleware)
+
+	walletRepo := wallet.InitWallet(mongoClient, cfg.MongoDBDatabase, []string{"wallets", "cps_actions"}, logger)
+	walletDomain := wallet_domain.InitBankDomain(walletRepo, minioClient, "wallets", logger)
+	walletHandler := wallet_handler.InitWalletHanlder(walletDomain, logger)
+	walletAdapter := wallet_adapter.InitWalletAdapter(walletHandler, logger)
+	wallet_adapter.InitWalletRoutes(r, walletAdapter, authMddleware)
 
 	server := http.Server{
-		Addr:    ":" + strconv.Itoa(cfg.ServerPort),
+		Addr:    ":8080",
 		Handler: r,
 	}
 	////
@@ -237,3 +254,7 @@ func main() {
 	//
 	log.Println("Server shutdown successfully")
 }
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZjY1ZGMwMzU2MzdiYWU2NzZjNTI5NzBiOGQzM2RkYzI3YzJhYmVlNzk5YWU4MjA0MzI2MTQ3MGYwOGZlYzI2NDQ2MmVlZjY0NjM2NjlhNjZjNGFhYmQwYTVkN2ZlYWI2YzUxZjJkZWE5NGZhZTAxYWVkZTBmZDI3MjMxMTY2OWRhNjlmYzFhMTNmODRkNWM3YjQ5ZmZlOTFiNTVhYTEwMTdhODlhMTE1YzJkNjllZTU0YjA5ZTRlOTFmMTJhMzc5ZjA2NWUwMjcwY2ZjNGFjNDc4NTYzM2MyZjY5MDVmYTA3NDE5MzlkNzQ1ZTNkMDkwZjNlZDg5NjRlNWJmOWE0ZmQzODA5Y2NmZmZkYTI2MDA5YzVjYWYwMjg2ZTE2ZGNkNjc1NTdhZjc1MzIzOGIxZDBmM2Q4NDFkMmIxODdmZjlhNDhmMGI3YjA5YmI3NmZmZWUxZTk5ODI5ZTQ4YTQxNTY3OTI0YWY5YWZjMWE5ZDk0NzU4NzMyNDNjMGY3YmI4MTI4NTk4ZTJlMzU1M2ZiMjdiYzdhZGExN2Y0NmExMzU4Yzk2NDViODUyZWE2Yjk0YzIzNzFmZDQzNmIyZmEzMWE2NWYxMzQ0ODExNTA2YTMwMWVlYzAyMWFmMTcxOWY3ZDE5NDEyZjgyM2NhNDBjZDE2Mzc4YzljMTYwNGZlNzlmZDI0MWUzMTMxYTRlYjAyZGJlYmJkMjkzNDY2MDYzMyJ9.Ux6bX94CE-lodwfuXASb7cVQVG9BFXtoRN9ncHciYNo
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZjY1ZGMwMzU2MzdiYWU2NzZjNTI5NzBiOGQzM2RkYzI3YzJhYmVlNzk5YWU4MjA0MzI2MTQ3MGYwOGZlYzI2NDQ2MmVlZjY0NjM2NjlhNjZjNGFhYmQwYTVkN2ZlYWI2YzUxZjJkZWE5NGZhZTAxYWVkZTBmZDI3MjMxMTY2OWRhNjlmYzFhMTNmODRkNWM3YjQ5ZmZlOTFiNTVhYTEwMTdhODlhMTE1YzJkNjllZTU0YjA5ZTRlOTFmMTJhMzc5ZjA2NWUwMjcwY2ZjNGFjNDc4NTYzM2MyZjY5MDVmYTA3NDE5MzlkNzQ1ZTNkMDkwZjNlZDg5NjRlNWJmOWE0ZmQzODA5Y2NmZmZkYTI2MDA5YzVjYWYwMjg2ZTE2ZGNkNjc1NTdhZjc1MzIzOGIxZDBmM2Q4NDFkMmIxODdmZjlhNDhmMGI3YjA5YmI3NmZmZWUxZTk5ODI5ZTQ4YTQxNTY3OTI0YWY5YWZjMWE5ZDk0NzU4NzMyNDNjMGY3YmI4MTI4NTk4ZTJlMzU1M2ZiMjdiYzdhZGExN2Y0NmExMzU4Yzk2NDViODUyZWE2Yjk0YzIzNzFmZDQzNmIyZmEzMWE2NWYxMzQ0ODExNTA2YTMwMWVlYzAyMWFmMTcxOWY3ZDE5NDEyZjgyM2NhNDBjZDE2Mzc4YzljMTYwNGZlNzlmZDI0MWUzMTMxYTRlYjAyZGJlYmJkMjkzNDY2MDYzMyJ9.Ux6bX94CE-lodwfuXASb7cVQVG9BFXtoRN9ncHciYNo
