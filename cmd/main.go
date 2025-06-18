@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -27,6 +26,7 @@ import (
 	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
 	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
+	portal_card_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
@@ -49,6 +49,7 @@ import (
 	feedback "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
 	authMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
+	portal_card_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/portal_card"
 	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
 	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
 	accountvalidation_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
@@ -61,13 +62,13 @@ import (
 	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedbackService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
 	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
+	portal_card_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 )
 
 func main() {
 	logger := utils.NewLogger()
-	defer logger.Sync()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -107,7 +108,7 @@ func main() {
 		"hq_services",
 	}
 
-	r := chi.NewRouter()
+	// r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
@@ -201,6 +202,12 @@ func main() {
 	serviceDetailsHandler := service_details_inbound.NewHttpServiceDetails(serviceDetailsApp, logger)
 	service_details_inbound.InitServiceDetailsRoutes(r, serviceDetailsHandler, authMddleware)
 
+	portalCardStore := adapter.NewPortalCardPersistence(mongoClient, cfg.MongoDBDatabase, logger)
+	domainPortalCardService := portal_card_domain.NewPortalCardDomain(portalCardStore, logger)
+	portalCardApp := portal_card_app.NewPortalCardApp(domainPortalCardService, logger)
+	portalCardHandler := portal_card_inbound.NewportalCardHandler(portalCardApp, logger)
+	portal_card_inbound.InitPortalCardRoutes(r, portalCardHandler, authMddleware)
+
 	cpsUserPersistence := cpsusermaker_persistence.NewCPSUserPersistence(
 		mongoClient,
 		cfg.MongoDBDatabase,
@@ -214,21 +221,23 @@ func main() {
 	ad_adapter.InitADRoutes(r, adAdapter, authMddleware)
 
 	server := http.Server{
-		Addr:    ":" + strconv.Itoa(cfg.ServerPort),
+		Addr:    ":8080",
 		Handler: r,
 	}
 	////
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, syscall.SIGTERM)
 
 	go func() {
-		log.Println("🚀 Server started on", server.Addr)
+		log.Println("🚀 Server started on", viper.GetString("Port"))
 		log.Printf("Server stopped with error: %v\n", server.ListenAndServe())
 	}()
 
 	sig := <-quit
+
 	log.Printf("server shutting down with signal: %v\n", sig)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {

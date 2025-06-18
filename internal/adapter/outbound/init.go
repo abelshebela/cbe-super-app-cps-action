@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
@@ -32,6 +33,7 @@ type outboundStore struct {
 	BpsCalls                  bpscalls.BpsCallsInterface
 	MongoDalMiniApp           *infra_mongo.MongoDal[model.MiniApp, model.MiniApp]
 	MongoDalCPSUser           *infra_mongo.MongoDal[model.CPSUser, model.CPSUser]
+	MongoDalPortalCard        *infra_mongo.MongoDal[model.Card, model.Card]
 	MongoDalAccountValidation *infra_mongo.MongoDal[model.ValidationRule, model.ValidationRule]
 	MongoDalServiceDetails    *infra_mongo.MongoDal[model.ServiceDetails, model.ServiceDetails]
 }
@@ -41,6 +43,7 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
 	MongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[5])
 	MongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
+	MongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, "portal_cards")
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
 
 	return &outboundStore{
@@ -49,6 +52,7 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 		MongoDalBPSUser:           mongoDalBPSUser,
 		MongoDalAccountValidation: MongoDalAccountValidation,
 		MongoDalServiceDetails:    MongoDalServiceDetails,
+		MongoDalPortalCard:        MongoDalPortalCard,
 	}
 }
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
@@ -60,6 +64,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 	mongoDalMiniApp := infra_mongo.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collectionNames[5])
 	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[6])
 	mongoDalServiceDetail := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collectionNames[7])
+	MongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, collectionNames[7])
 
 	return &outboundStore{
 		MongoDalCPSAction:      mongoDalCPSAction,
@@ -71,6 +76,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalMiniApp:        mongoDalMiniApp,
 		MongoDalCPSUser:        mongoDalCPSUser,
 		MongoDalServiceDetails: mongoDalServiceDetail,
+		MongoDalPortalCard:     MongoDalPortalCard,
 	}
 }
 
@@ -84,6 +90,13 @@ func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger ut
 	}
 }
 
+func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
+	mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, "cbe", "portal_cards")
+
+	return &outboundStore{
+		MongoDalPortalCard: mongoDalPortalCard,
+	}
+}
 func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {
@@ -231,6 +244,28 @@ func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, l
 		d = append(d, x)
 	}
 	return d, nil
+}
+func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDomain.Card, error) {
+
+	data, err := o.MongoDalPortalCard.FindAll(ctx, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*portalCardDomain.Card, len(data))
+
+	for i, s := range data {
+		if s == nil {
+			continue
+		}
+		result[i] = &portalCardDomain.Card{
+			ID:       s.ID,
+			CardName: s.CardName,
+			SubCards: s.SubCards,
+		}
+	}
+	return result, nil
+
 }
 func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain.ServiceDetails, error) {
 	objID, err := bson.ObjectIDFromHex(id)
