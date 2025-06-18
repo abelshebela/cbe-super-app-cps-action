@@ -251,6 +251,13 @@ type MiniApp struct {
 	LastModifiedAt    time.Time               `bson:"last_modified_at"`
 	DeletedAt         time.Time               `bson:"deleted_at"`
 }
+
+type Card struct {
+	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`
+	CardName string        `bson:"card_name" json:"card_name"`
+	SubCards []string      `bson:"sub_cards" json:"sub_cards"`
+}
+
 type CPSUser struct {
 	ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode           string          `json:"user_code,omitempty" bson:"user_code,omitempty"`

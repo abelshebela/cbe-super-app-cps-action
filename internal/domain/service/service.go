@@ -5,8 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type ServiceDetails struct {
@@ -30,6 +31,7 @@ type ServiceInterface interface {
 	GetServiceDetailsByID(ctx context.Context, id string) (*Service, error)
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *Service, makerID string) (string, error)
 	UpdateServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
+	UpdateServiceCap(ctx context.Context, id string, cap Cap) (Service, error)
 }
 
 type ServiceStore struct {
@@ -117,7 +119,7 @@ func (s *ServiceStore) UpdateServiceDetails(ctx context.Context, actionID string
 			return errors.New("invalid service data in action")
 		}
 
-		if err := s.repository.UpdateOneServiceDetail(ctx, cpsAction.Unique_ID, *serviceData); err != nil {
+		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.Unique_ID, *serviceData); err != nil {
 			s.logger.Errorf("failed to update service details: %v", err)
 			return errors.New("failed to update service details")
 		}
@@ -137,6 +139,15 @@ func (s *ServiceStore) UpdateServiceDetails(ctx context.Context, actionID string
 	}
 
 	return nil
+}
+
+func (s *ServiceStore) UpdateServiceCap(ctx context.Context, id string, cap Cap) (Service, error) {
+	svc, err := s.repository.GetOneServiceDetail(ctx, id)
+	if err != nil {
+		return Service{}, err
+	}
+	svc.Cap = cap
+	return svc, s.repository.UpdateOneServiceDetailRequest(ctx, id, svc)
 }
 
 func validateService(service Service) error {

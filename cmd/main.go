@@ -20,6 +20,7 @@ import (
 	ad_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	bank_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
 	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
+	budgethandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
 	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	cpsusermaker_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
 	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
@@ -27,6 +28,7 @@ import (
 	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
 	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
+	portal_card_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	wallet_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
@@ -36,6 +38,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
 	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
+	budgetPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
@@ -46,6 +49,7 @@ import (
 	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
 	ad_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
 	bank_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bank"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
@@ -53,6 +57,7 @@ import (
 	feedback "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
 	authMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
+	portal_card_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/portal_card"
 	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
 	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
 	wallet_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/wallet"
@@ -60,6 +65,7 @@ import (
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	ad_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/service"
 	bank_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/service"
+	budgetService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget"
 	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 	cpsusermaker_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
@@ -67,6 +73,7 @@ import (
 	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedbackService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
 	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
+	portal_card_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
@@ -74,7 +81,6 @@ import (
 
 func main() {
 	logger := utils.NewLogger()
-	defer logger.Sync()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -189,6 +195,12 @@ func main() {
 	unlink_handler := unlinkDeviceHandler.NewHTTPUnlinkHandler(unlinkDeviceApplication, logger)
 	unlinkDeviceHandler.RegisterHTTPUnlinkRoutes(r, unlink_handler, authMddleware)
 
+	budgetPersistence := budgetPersistence.InitBudget(mongoClient, cfg.MongoDBDatabase, []string{"icons", "colors", "cps_actions"}, logger)
+	budgetDomain := budgetService.InitBudgetDomain(budgetPersistence, logger)
+	budgetApp := budget.InitBudgetHandler(budgetDomain, minioClient, "icons", logger)
+	budgetRoutes := budgethandler.NewBudgetHTTPHandler(budgetApp, logger)
+	budgethandler.InitBudgetRoutes(r, budgetRoutes, authMddleware)
+
 	accountvalidation_persistence := accountvalidation_persistence.InitAccountValidationPersistence(
 		mongoClient,
 		cfg.MongoDBDatabase,
@@ -207,6 +219,12 @@ func main() {
 	serviceDetailsApp := service_details_app.NewApplication(domainServiceDetailsService, logger)
 	serviceDetailsHandler := service_details_inbound.NewHttpServiceDetails(serviceDetailsApp, logger)
 	service_details_inbound.InitServiceDetailsRoutes(r, serviceDetailsHandler, authMddleware)
+
+	portalCardStore := adapter.NewPortalCardPersistence(mongoClient, cfg.MongoDBDatabase, logger)
+	domainPortalCardService := portal_card_domain.NewPortalCardDomain(portalCardStore, logger)
+	portalCardApp := portal_card_app.NewPortalCardApp(domainPortalCardService, logger)
+	portalCardHandler := portal_card_inbound.NewportalCardHandler(portalCardApp, logger)
+	portal_card_inbound.InitPortalCardRoutes(r, portalCardHandler, authMddleware)
 
 	cpsUserPersistence := cpsusermaker_persistence.NewCPSUserPersistence(
 		mongoClient,
@@ -236,16 +254,18 @@ func main() {
 	}
 	////
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, syscall.SIGTERM)
 
 	go func() {
-		log.Println("🚀 Server started on", server.Addr)
+		log.Println("🚀 Server started on", viper.GetString("Port"))
 		log.Printf("Server stopped with error: %v\n", server.ListenAndServe())
 	}()
 
 	sig := <-quit
+
 	log.Printf("server shutting down with signal: %v\n", sig)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
@@ -254,7 +274,3 @@ func main() {
 	//
 	log.Println("Server shutdown successfully")
 }
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZjY1ZGMwMzU2MzdiYWU2NzZjNTI5NzBiOGQzM2RkYzI3YzJhYmVlNzk5YWU4MjA0MzI2MTQ3MGYwOGZlYzI2NDQ2MmVlZjY0NjM2NjlhNjZjNGFhYmQwYTVkN2ZlYWI2YzUxZjJkZWE5NGZhZTAxYWVkZTBmZDI3MjMxMTY2OWRhNjlmYzFhMTNmODRkNWM3YjQ5ZmZlOTFiNTVhYTEwMTdhODlhMTE1YzJkNjllZTU0YjA5ZTRlOTFmMTJhMzc5ZjA2NWUwMjcwY2ZjNGFjNDc4NTYzM2MyZjY5MDVmYTA3NDE5MzlkNzQ1ZTNkMDkwZjNlZDg5NjRlNWJmOWE0ZmQzODA5Y2NmZmZkYTI2MDA5YzVjYWYwMjg2ZTE2ZGNkNjc1NTdhZjc1MzIzOGIxZDBmM2Q4NDFkMmIxODdmZjlhNDhmMGI3YjA5YmI3NmZmZWUxZTk5ODI5ZTQ4YTQxNTY3OTI0YWY5YWZjMWE5ZDk0NzU4NzMyNDNjMGY3YmI4MTI4NTk4ZTJlMzU1M2ZiMjdiYzdhZGExN2Y0NmExMzU4Yzk2NDViODUyZWE2Yjk0YzIzNzFmZDQzNmIyZmEzMWE2NWYxMzQ0ODExNTA2YTMwMWVlYzAyMWFmMTcxOWY3ZDE5NDEyZjgyM2NhNDBjZDE2Mzc4YzljMTYwNGZlNzlmZDI0MWUzMTMxYTRlYjAyZGJlYmJkMjkzNDY2MDYzMyJ9.Ux6bX94CE-lodwfuXASb7cVQVG9BFXtoRN9ncHciYNo
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZjY1ZGMwMzU2MzdiYWU2NzZjNTI5NzBiOGQzM2RkYzI3YzJhYmVlNzk5YWU4MjA0MzI2MTQ3MGYwOGZlYzI2NDQ2MmVlZjY0NjM2NjlhNjZjNGFhYmQwYTVkN2ZlYWI2YzUxZjJkZWE5NGZhZTAxYWVkZTBmZDI3MjMxMTY2OWRhNjlmYzFhMTNmODRkNWM3YjQ5ZmZlOTFiNTVhYTEwMTdhODlhMTE1YzJkNjllZTU0YjA5ZTRlOTFmMTJhMzc5ZjA2NWUwMjcwY2ZjNGFjNDc4NTYzM2MyZjY5MDVmYTA3NDE5MzlkNzQ1ZTNkMDkwZjNlZDg5NjRlNWJmOWE0ZmQzODA5Y2NmZmZkYTI2MDA5YzVjYWYwMjg2ZTE2ZGNkNjc1NTdhZjc1MzIzOGIxZDBmM2Q4NDFkMmIxODdmZjlhNDhmMGI3YjA5YmI3NmZmZWUxZTk5ODI5ZTQ4YTQxNTY3OTI0YWY5YWZjMWE5ZDk0NzU4NzMyNDNjMGY3YmI4MTI4NTk4ZTJlMzU1M2ZiMjdiYzdhZGExN2Y0NmExMzU4Yzk2NDViODUyZWE2Yjk0YzIzNzFmZDQzNmIyZmEzMWE2NWYxMzQ0ODExNTA2YTMwMWVlYzAyMWFmMTcxOWY3ZDE5NDEyZjgyM2NhNDBjZDE2Mzc4YzljMTYwNGZlNzlmZDI0MWUzMTMxYTRlYjAyZGJlYmJkMjkzNDY2MDYzMyJ9.Ux6bX94CE-lodwfuXASb7cVQVG9BFXtoRN9ncHciYNo
