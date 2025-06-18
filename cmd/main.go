@@ -250,9 +250,6 @@ func main() {
 		log.Printf("Server stopped with error: %v\n", server.ListenAndServe())
 	}()
 
-	sig := <-quit
-	log.Printf("server shutting down with signal: %v\n", sig)
-
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("failed to shutdown gracefully with error %v", err)
 	}
