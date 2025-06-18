@@ -442,10 +442,6 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 		return &cpsAction, nil
 	}
 
-	cpsAction.ActionData = entity.Advert{
-		Title: advert.Title,
-	}
-
 	return &cpsAction, nil
 }
 

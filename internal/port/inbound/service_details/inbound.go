@@ -9,4 +9,11 @@ type ServiceDetailsInbound interface {
 	GetServiceDetailsByID(w http.ResponseWriter, r *http.Request)
 	UpdateServiceDetailsMaker(w http.ResponseWriter, r *http.Request)
 	UpdateServiceDetailsChecker(w http.ResponseWriter, r *http.Request)
-} 
+
+	ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.Request)
+	ServiceDetailsSingleCapMaker(w http.ResponseWriter, r *http.Request)
+	TotalTransferCapMaker(w http.ResponseWriter, r *http.Request)
+
+	UpdateCapMinAmountHandler(w http.ResponseWriter, r *http.Request)
+	ApproveServiceDetailsHandler(w http.ResponseWriter, r *http.Request)
+}

@@ -6,12 +6,13 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
-	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type HttpStore struct {
@@ -125,3 +126,171 @@ func (h *HttpStore) UpdateServiceDetailsChecker(w http.ResponseWriter, r *http.R
 	utils.WriteSuccessResponse(w, nil, "Update request "+action+" successfully")
 }
 
+func (h *HttpStore) ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.Request) {
+	var req dto.DailyCapServiceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.handleError(w, fmt.Errorf("invalid request body"))
+		return
+	}
+
+	update, err := h.Application.GetServiceDetailsByID(r.Context(), req.ServiceId)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+	update.Cap.DailyCap = req.DailyCap
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		h.handleError(w, fmt.Errorf("unauthorized"))
+		return
+	}
+	res, err := h.Application.UpdateServiceDetailsRequest(r.Context(), claims.UserID, &dto.UpdateServiceDetailsRequest{
+		ID:                 update.ID,
+		ServiceID:          update.ServiceID,
+		ServiceCode:        update.ServiceCode,
+		ServiceName:        update.ServiceName,
+		ServiceType:        update.ServiceType,
+		Key:                update.Key,
+		Cap:                update.Cap,
+		CBEProductCodes:    update.CBEProductCodes,
+		CBEIFBProductCodes: update.CBEIFBProductCodes,
+		AboveAmount:        update.AboveAmount,
+		AboveServiceFee:    update.AboveServiceFee,
+		PaymentType:        update.PaymentType,
+	})
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusNoContent, "")
+		return
+	}
+	response := res.ActionID
+	utils.WriteSuccessResponse(w, response, "success")
+	//&update.MakerID = claims.UserID
+}
+func (h *HttpStore) ServiceDetailsSingleCapMaker(w http.ResponseWriter, r *http.Request) {
+	var req dto.SingleCapServiceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.handleError(w, fmt.Errorf("invalid request body"))
+		return
+	}
+
+	update, err := h.Application.GetServiceDetailsByID(r.Context(), req.ServiceId)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+	update.Cap.SingleCap = req.SingleCap
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		h.handleError(w, fmt.Errorf("unauthorized"))
+		return
+	}
+	res, err := h.Application.UpdateServiceDetailsRequest(r.Context(), claims.UserID, &dto.UpdateServiceDetailsRequest{
+		ID:                 update.ID,
+		ServiceID:          update.ServiceID,
+		ServiceCode:        update.ServiceCode,
+		ServiceName:        update.ServiceName,
+		ServiceType:        update.ServiceType,
+		Key:                update.Key,
+		Cap:                update.Cap,
+		CBEProductCodes:    update.CBEProductCodes,
+		CBEIFBProductCodes: update.CBEIFBProductCodes,
+		AboveAmount:        update.AboveAmount,
+		AboveServiceFee:    update.AboveServiceFee,
+		PaymentType:        update.PaymentType,
+	})
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusNoContent, "")
+		return
+	}
+	response := res.ActionID
+	utils.WriteSuccessResponse(w, response, "success")
+}
+
+func (h *HttpStore) TotalTransferCapMaker(w http.ResponseWriter, r *http.Request) {
+	var req dto.TotalTransferCapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.handleError(w, fmt.Errorf("invalid request body"))
+		return
+	}
+
+	update, err := h.Application.GetServiceDetailsByID(r.Context(), req.ServiceId)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+	update.Cap.MaxAmount = req.TotalCap
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		h.handleError(w, fmt.Errorf("unauthorized"))
+		return
+	}
+	res, err := h.Application.UpdateServiceDetailsRequest(r.Context(), claims.UserID, &dto.UpdateServiceDetailsRequest{
+		ID:                 update.ID,
+		ServiceID:          update.ServiceID,
+		ServiceCode:        update.ServiceCode,
+		ServiceName:        update.ServiceName,
+		ServiceType:        update.ServiceType,
+		Key:                update.Key,
+		Cap:                update.Cap,
+		CBEProductCodes:    update.CBEProductCodes,
+		CBEIFBProductCodes: update.CBEIFBProductCodes,
+		AboveAmount:        update.AboveAmount,
+		AboveServiceFee:    update.AboveServiceFee,
+		PaymentType:        update.PaymentType,
+	})
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusNoContent, "")
+		return
+	}
+	response := res.ActionID
+	utils.WriteSuccessResponse(w, response, "success")
+}
+func (h *HttpStore) UpdateCapMinAmountHandler(w http.ResponseWriter, r *http.Request) {
+    var req dto.SingleCapServiceRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        h.handleError(w, fmt.Errorf("invalid request body"))
+        return
+    }
+
+    serviceDetails, err := h.Application.GetServiceDetailsByID(r.Context(), req.ServiceId)
+    if err != nil {
+        h.handleError(w, err)
+        return
+    }
+
+    serviceDetails.Cap.MinAmount = req.SingleCap
+
+    _, err = h.Application.UpdateServiceCap(r.Context(), req.ServiceId, &serviceDetails.Cap)
+    if err != nil {
+        h.handleError(w, err)
+        return
+    }
+
+    utils.WriteSuccessResponse(w, nil, "Minimum cap amount updated successfully")
+}
+func (h *HttpStore) ApproveServiceDetailsHandler(w http.ResponseWriter, r *http.Request) {
+    var req dto.ApproveServiceDetailsRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        h.handleError(w, fmt.Errorf("invalid request body"))
+        return
+    }
+
+    claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+    if !ok {
+        h.handleError(w, fmt.Errorf("unauthorized"))
+        return
+    }
+    req.CheckerID = claims.UserID
+
+    err := h.Application.ApproveServiceDetails(r.Context(), &req)
+    if err != nil {
+        h.handleError(w, err)
+        return
+    }
+
+    action := "approved"
+    if !req.Approve {
+        action = "rejected"
+    }
+    utils.WriteSuccessResponse(w, nil, "Service details " + action + " successfully")
+}
