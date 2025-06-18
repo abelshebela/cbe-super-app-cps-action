@@ -1,0 +1,15 @@
+package repository
+
+import (
+	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+)
+
+type PasswordRuleRepository interface {
+	CreatePasswordRuleUpdateAction(ctx context.Context, rule *action.PasswordRule, maker action.User) (actionID string, err error)
+
+	ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, approve bool, checker action.User, rejectionReason *string) error
+
+	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
+}

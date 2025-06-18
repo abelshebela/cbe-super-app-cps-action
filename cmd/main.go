@@ -95,6 +95,10 @@ import (
 	//faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/fayda_account"
 	//faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
 	//faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
+
+	password_rule_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	password_rule_routes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	password_rule_services "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/services"
 )
 
 func main() {
@@ -277,6 +281,18 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	passwordRuleOutbound := adapter.NewOutboundPasswordRuleInfra(
+		mongoClient,
+		cfg.MongoDBDatabase,
+		[]string{
+			"password_rules",
+			"cps_actions",
+		},
+	)
+	passwordRuleService := password_rule_services.NewPasswordRuleService(passwordRuleOutbound)
+	passwordRuleHandler := password_rule_handler.NewPasswordRuleHTTPHandler(passwordRuleService, logger)
+	password_rule_routes.RegisterPasswordRuleRoutes(r, passwordRuleHandler, authMddleware)
+
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,
