@@ -39,6 +39,8 @@ import (
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
+
+	//faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
 	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
 	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
 	unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"

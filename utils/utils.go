@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"cbe-super-app-member-auth/pkg/config"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -15,6 +14,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 const numberic string = "0123456789"
@@ -45,7 +46,7 @@ func HeaderRequirement(r *http.Request, additionl []string) (string, string, str
 func GetRandomArbitrary() (string, error) {
 	const min = 100000
 	const max = 999999
-	
+
 	var n int
 	for {
 		b := make([]byte, 4)
@@ -91,7 +92,7 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	}
 
 	key := []byte(env.Key)
-	iv := []byte(env.Iv)
+	iv := []byte("") //env.Iv)
 
 	if len(key) != 32 || len(iv) != aes.BlockSize {
 		return "", salt, errors.New("invalid key or IV size")
@@ -117,7 +118,7 @@ func LocalDecryptPassword(encryptedHex string) (string, error) {
 	env, _ := config.Load()
 
 	key := []byte(env.Key)
-	iv := []byte(env.Iv)
+	iv := []byte("") //env.Iv)
 
 	if len(key) != 32 || len(iv) != aes.BlockSize {
 		return "", errors.New("invalid key or IV size")

@@ -1,10 +1,8 @@
 package utils
 
+/*
 import (
 	"bytes"
-	"cbe-super-app-member-auth/internal/domain/auth/entities"
-	"strconv"
-
 	"compress/zlib"
 	"crypto/aes"
 	"crypto/cipher"
@@ -12,11 +10,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"log"
+	"strconv"
 	"time"
+	//"cbe-super-app-member-auth/pkg/config"
 
-	"cbe-super-app-member-auth/pkg/config"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-member-auth/pkg/config"
 	"github.com/golang-jwt/jwt/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-member-auth/internal/domain/auth/entities"
+	//"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
+	//"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
 )
 
 type Permission struct {
@@ -116,7 +119,6 @@ func TempTokenMaker(user entities.User, permissions []string, otpFor string, add
 
 	return token.SignedString([]byte(env.JWTSecretKey))
 }
-*/
 // type User struct {
 // 	ID           string `json:"_id"`
 // 	UserCode     string `json:"userCode"`
@@ -306,3 +308,4 @@ func updateUser(user *entities.User, token, sourceapp, deviceuuid string, setpin
 func stringToUpper(s string) string {
 	return string(bytes.ToUpper([]byte(s)))
 }
+*/
