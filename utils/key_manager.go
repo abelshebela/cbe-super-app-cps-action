@@ -1,7 +1,8 @@
 package utils
 
 import (
-	"cbe-super-app-member-auth/pkg/config"
+	//"cbe-super-app-member-auth/pkg/config"
+	//"cbe-super-app-member-auth/pkg/config"
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -11,6 +12,7 @@ import (
 	"os"
 
 	vault "github.com/hashicorp/vault/api"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 var (
@@ -65,8 +67,8 @@ func GenerateAndSaveKeyPair() error {
 
 func GetPublicKey() (string, error) {
 	// Read public key from a local file instead of Vault
-	env, err := config.Load()
-	publicKey := env.ServerPublicKey
+	_, err := config.Load()
+	publicKey := "" //env.ServerPublicKey
 
 	if err != nil {
 		return "", err

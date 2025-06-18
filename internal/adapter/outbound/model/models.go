@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -52,7 +53,7 @@ type User struct {
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
 type CPSAction struct {
-    ID                 bson.ObjectID   `bson:"_id,omitempty"` 
+	ID                 bson.ObjectID   `bson:"_id,omitempty"`
 	ActionCode         string          `bson:"action_code"` // Generated
 	MakerUser          User            `json:"maker_user" bson:"maker_user"`
 	CheckerUser        User            `json:"checker_user" bson:"checker_user"`
@@ -92,6 +93,7 @@ const (
 	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
 	RequestCreateBank               RequestAction = "CREATE_BANK"
 	RequestUpdateBank               RequestAction = "UPDATE_BANK"
+	RequestDeleteBank               RequestAction = "DELETE_BANK"
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
 	RequestEnableWallet             RequestAction = "ENABLE_WALLET"
@@ -354,7 +356,7 @@ type Cap struct {
 }
 
 type ServiceDetails struct {
-	ID                bson.ObjectID      `bson:"_id,omitempty"` 
+	ID                 bson.ObjectID `bson:"_id,omitempty"`
 	ServiceCode        string        `bson:"service_code"`
 	ServiceName        string        `bson:"service_name"`
 	ServiceType        string        `bson:"service_type"`
@@ -373,4 +375,54 @@ type ServiceDetails struct {
 	CreatedAt          time.Time     `bson:"created_at"`
 	LastModifiedAt     time.Time     `bson:"last_modified_at"`
 	DeletedAt          time.Time     `bson:"deleted_at"`
+}
+
+type CreateCPSAction struct {
+	ActionCode      string        `json:"action_code" bson:"action_code"`
+	MakerUser       User          `json:"maker_user" bson:"maker_user"`
+	Department      string        `json:"department,omitempty" bson:"department"`
+	Status          ActionStatus  `json:"status,omitempty" bson:"status"`
+	RequestAction   RequestAction `json:"request_action,omitempty" bson:"request_action"`
+	ActionType      ActionType    `json:"action_type,omitempty" bson:"action_type"`
+	ActionData      any           `json:"action_data" bson:"action_data"`
+	PreviousData    any           `json:"previous_action,omitempty"`
+	CurrentData     any           `json:"current_action,omitempty"`
+	MakerActionTime time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time"`
+}
+
+type AuthorizeCPSAction struct {
+	ActionCode        string    `json:"action_code" bson:"action_code"`
+	Department        string    `json:"department,omitempty" bson:"department"`
+	CheckerUser       User      `json:"checker_user" bson:"checker_user"`
+	CheckerActionTime time.Time `json:"checker_action_time,omitzero" bson:"checker_action_time"`
+}
+
+type RejectCPSAction struct {
+	CreateCPSAction
+	CheckerUser       User      `json:"checker_user" bson:"checker_user"`
+	RejectedReason    string    `json:"rejected_reason,omitempty" bson:"rejected_reason"`
+	CheckerActionTime time.Time `json:"checker_action_time,omitzero" bson:"checker_action_time"`
+}
+
+func (r RejectCPSAction) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.RejectedReason, validation.Required, validation.Length(30, 100)),
+	)
+}
+
+type CpsAction struct {
+	ID                string        `json:"id" bson:"id"`
+	ActionCode        string        `json:"action_code" bson:"action_code"`
+	MakerUser         User          `json:"maker_user" bson:"maker_user"`
+	CheckerUser       User          `json:"checker_user,omitempty" bson:"checker_user"`
+	RejectedReason    string        `json:"rejected_reason,omitempty" bson:"rejected_reason"`
+	Department        string        `json:"department" bson:"department"`
+	Status            ActionStatus  `json:"status" bson:"status"`
+	RequestAction     RequestAction `json:"request_action" bson:"request_action"`
+	ActionType        ActionType    `json:"action_type" bson:"action_type"`
+	ActionData        any           `json:"action_data" bson:"action_data"`
+	PreviousData      any           `json:"previous_action,omitempty"`
+	CurrentData       any           `json:"current_action,omitempty"`
+	MakerActionTime   time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time"`
+	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
 }

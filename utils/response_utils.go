@@ -1,12 +1,13 @@
 package utils
 
 import (
-	"cbe-super-app-member-auth/pkg/common"
+	//"cbe-super-app-member-auth/pkg/common"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
