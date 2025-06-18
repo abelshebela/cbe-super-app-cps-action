@@ -1,0 +1,280 @@
+package account_validation
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
+	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/account_validation"
+	local_utils "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
+
+type AccountValidationRepo struct {
+	client        *mongo.Client
+	validationDal dal.MongoDal[model.ValidationRule, model.ValidationRule]
+	cpsActionDal  dal.MongoDal[model.CPSAction, model.CPSAction]
+	timeout       time.Duration
+	logger        utils.Logger
+}
+
+//	type CPSActionRepo struct {
+//		client   *mongo.Client
+//		mongoDal dal.MongoDal[model.ValidationRule, model.ValidationRule,model.CPSAction]
+//		timeout  time.Duration
+//		logger   utils.Logger
+//	}
+var _ outbound.OutboundInfra = (*AccountValidationRepo)(nil)
+var _ account_validation.Repository = (*AccountValidationRepo)(nil)
+
+func InitAccountValidationPersistence(client *mongo.Client, database string, timeout time.Duration, logger utils.Logger) *AccountValidationRepo {
+	validationDal := dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, database, "ValidationRule")
+	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, "CPSActions")
+	return &AccountValidationRepo{
+		client:        client,
+		validationDal: validationDal,
+		cpsActionDal:  cpsActionDal,
+		timeout:       timeout,
+		logger:        logger,
+	}
+}
+
+func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id string) (account_validation.ValidationRule, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	if id == "" {
+		r.logger.Errorf("invalid validation rule ID: empty")
+		return account_validation.ValidationRule{}, fmt.Errorf("invalid id provided %w", local_utils.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid id",
+		})
+	}
+
+	var objID bson.ObjectID
+	var err error
+	if objID, err = bson.ObjectIDFromHex(id); err != nil {
+
+		filter := bson.M{"_id": id}
+		projection := bson.M{}
+		rule, err := r.validationDal.FindOne(ctx, filter, projection)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				r.logger.Errorf("validation rule not found: id=%s", id)
+				return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
+					Code:    http.StatusNotFound,
+					Message: "validation rule not found",
+				})
+			}
+			r.logger.Errorf("failed to get validation rule: %v", err)
+			return account_validation.ValidationRule{}, fmt.Errorf("failed to get validation rule %w", local_utils.ErrorDefinition{
+				Code:    http.StatusInternalServerError,
+				Message: "internal server error",
+			})
+		}
+
+		if rule == nil {
+			r.logger.Errorf("validation rule not found: id=%s", id)
+			return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "validation rule not found",
+			})
+		}
+
+		return account_validation.ValidationRule{
+			ID:             rule.ID.Hex(),
+			EntityType:     rule.EntityType,
+			ValidationFor:  rule.ValidationFor,
+			Identifier:     rule.Identifier,
+			MinLength:      uint8(rule.MinLength),
+			MaxLength:      uint8(rule.MaxLength),
+			Enabled:        rule.Enabled,
+			IsDeleted:      rule.IsDeleted,
+			CreatedAt:      rule.CreatedAt,
+			LastModifiedAt: rule.LastModifiedAt,
+			ServiceID:      rule.ServiceID,
+		}, nil
+	}
+
+	// If it is a valid ObjectID, use that
+	filter := bson.M{"_id": objID}
+	projection := bson.M{}
+	rule, err := r.validationDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("validation rule not found: id=%s", id)
+			return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "validation rule not found",
+			})
+		}
+		r.logger.Errorf("failed to get validation rule: %v", err)
+		return account_validation.ValidationRule{}, fmt.Errorf("failed to get validation rule %w", local_utils.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+
+	if rule == nil {
+		r.logger.Errorf("validation rule not found: id=%s", id)
+		return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
+			Code:    http.StatusNotFound,
+			Message: "validation rule not found",
+		})
+	}
+
+	if rule.MinLength < 0 || rule.MinLength > 255 || rule.MaxLength < 0 || rule.MaxLength > 255 {
+		r.logger.Errorf("validation rule length out of uint8 range: id=%s, min_length=%d, max_length=%d", id, rule.MinLength, rule.MaxLength)
+		return account_validation.ValidationRule{}, fmt.Errorf("validation rule length out of range %w", local_utils.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "min_length or max_length out of uint8 range (0-255)",
+		})
+	}
+
+	return account_validation.ValidationRule{
+		ID:             rule.ID.Hex(),
+		EntityType:     rule.EntityType,
+		ValidationFor:  rule.ValidationFor,
+		Identifier:     rule.Identifier,
+		MinLength:      uint8(rule.MinLength),
+		MaxLength:      uint8(rule.MaxLength),
+		Enabled:        rule.Enabled,
+		IsDeleted:      rule.IsDeleted,
+		CreatedAt:      rule.CreatedAt,
+		LastModifiedAt: rule.LastModifiedAt,
+		ServiceID:      rule.ServiceID,
+	}, nil
+}
+
+func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id string, rule account_validation.ValidationRule) error {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	if id == "" {
+		r.logger.Errorf("invalid validation rule ID: empty")
+		return fmt.Errorf("invalid id provided %w", local_utils.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid id",
+		})
+	}
+
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil || objID.IsZero() {
+		r.logger.Errorf("failed to convert id to object id: %v", err)
+		return fmt.Errorf("failed to convert id to object id %w", local_utils.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid id",
+		})
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"entity_type":      rule.EntityType,
+			"validation_for":   rule.ValidationFor,
+			"identifier":       rule.Identifier,
+			"min_length":       int(rule.MinLength),
+			"max_length":       int(rule.MaxLength),
+			"enabled":          rule.Enabled,
+			"is_deleted":       rule.IsDeleted,
+			"service_id":       rule.ServiceID,
+			"last_modified_at": rule.LastModifiedAt,
+		},
+	}
+
+	filter := bson.M{"_id": objID}
+	_, err = r.validationDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("validation rule not found for update: id=%s", id)
+			return fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "validation rule not found",
+			})
+		}
+		r.logger.Errorf("failed to update validation rule: %v", err)
+		return fmt.Errorf("failed to update validation rule %w", local_utils.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+
+	r.logger.Infof("successfully updated validation rule: id=%s", id)
+	return nil
+}
+
+func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
+
+	if uniqueID == "" {
+		r.logger.Errorf("invalid unique ID: empty")
+		return nil, fmt.Errorf("invalid unique ID provided %w", local_utils.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid unique ID",
+		})
+	}
+
+	filter := bson.M{
+		"unique_id":     uniqueID,
+		"action_status": action.ActionPending,
+	}
+	projection := bson.M{}
+	r.logger.Infof("filter", filter)
+	actions, err := r.cpsActionDal.FindAll(ctx, filter, projection)
+	r.logger.Infof("lalalal", actions)
+	if err != nil {
+		r.logger.Errorf("failed to fetch pending actions for unique_id=%s: %v", uniqueID, err)
+		return nil, fmt.Errorf("failed to fetch pending actions %w", local_utils.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+
+	result := make([]action.CPSAction, 0, len(actions))
+	for _, a := range actions {
+		if a == nil {
+			continue
+		}
+		result = append(result, action.CPSAction{
+			ActionCode: a.ActionCode,
+			Maker: action.User{
+				UserID:      a.MakerUser.UserCode,
+				FullName:    a.MakerUser.FullName,
+				PhoneNumber: a.MakerUser.PhoneNumber,
+			},
+			Checker: action.User{
+				UserID:      getStringValue(a.CheckerID),
+				FullName:    getStringValue(a.CheckerName),
+				PhoneNumber: getStringValue(a.CheckerPhoneNumber),
+			},
+			Department:      a.Department,
+			ActionType:      action.ActionType(a.ActionType),
+			RequestAction:   action.RequestAction(a.RequestAction),
+			ActionStatus:    action.ActionStatus(a.ActionStatus),
+			CurrentAction:   a.CurrentAction,
+			PreviosAction:   a.PreviosAction,
+			RejectionReason: a.RejectionReason,
+			CreatedAt:       a.CreatedAt,
+			LastModifiedAt:  a.LastModifiedAt,
+			ID:              a.ID.Hex(),
+		})
+	}
+
+	r.logger.Infof("successfully fetched %d pending actions for unique_id=%s", len(result), uniqueID)
+	return result, nil
+}
+
+func getStringValue(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}

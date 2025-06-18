@@ -4,59 +4,60 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/repository"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
 )
 
-type branchService struct {
+type BranchService struct {
 	repo repository.BulkCustomerRepo
 }
 
-func NewBranchService(repo repository.BulkCustomerRepo) BranchServices {
-	return &branchService{repo: repo}
+func NewBranchService(repo repository.BulkCustomerRepo) *BranchService {
+	return &BranchService{repo: repo}
 }
 
-func (s *branchService) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+func (s *BranchService) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	if region == "" || district == "" {
 		return nil, fmt.Errorf("region and district are required")
 	}
 	return s.repo.FilterSingleBranches(ctx, region, district)
 }
 
-
-
-func (s *branchService) DisableSingleBranch(ctx context.Context, branchCode string, cpsData entities.CPSAction) error {
-    if branchCode == "" {
-        return fmt.Errorf("branchCode is required")
-    }
-    return s.repo.DisableSingleBranch(ctx, branchCode, cpsData)
+func (s *BranchService) DisableSingleBranch(ctx context.Context, branch entities.Branch, maker entities.User) error {
+	return s.repo.DisableSingleBranch(ctx, branch, maker)
 }
 
-
-func (s *branchService) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
+func (s *BranchService) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if actionID == "" {
 		return fmt.Errorf("actionID is required")
 	}
 	return s.repo.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
 }
 
-func (s *branchService) FilterMultipleBranches(ctx context.Context, region, district string) ([]string, error) {
+func (s *BranchService) FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	if region == "" || district == "" {
 		return nil, fmt.Errorf("region and district are required")
 	}
 	return s.repo.FilterMultipleBranches(ctx, region, district)
 }
-
-func (s *branchService) DisableMultipleBranches(ctx context.Context, branchCodes []string) (*entities.CPSAction, error) {
-	if len(branchCodes) == 0 {
-		return nil, fmt.Errorf("branchCodes and cpsData are required")
+func (s *BranchService) DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) (*entities.CPSAction, error) {
+	if len(branches) == 0 {
+		return nil, fmt.Errorf("branches are required")
 	}
-	return s.repo.DisableMultipleBranches(ctx, branchCodes)
+	err := s.repo.DisableMultipleBranches(ctx, branches, maker)
+	if err != nil {
+		return nil, err
+	}
+	action := &entities.CPSAction{}
+	return action, nil
 }
-
-func (s *branchService) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
+func (s *BranchService) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if actionID == "" {
 		return fmt.Errorf("actionID is required")
 	}
 	return s.repo.ApproveBulkBranchesDisable(ctx, actionID, approve, reason)
+}
+
+func (s *BranchService) GetBranchByCode(ctx context.Context, branchCode string) (entities.Branch, error) {
+	return s.repo.GetBranchByCode(ctx, branchCode)
 }

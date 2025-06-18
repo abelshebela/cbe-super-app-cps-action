@@ -2,16 +2,17 @@ package customer
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/service"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
+
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/utils"
 )
 
 type ApplicationService interface {
-	GetCustomersDeatil(ctx context.Context,filterParams *constant.Filter) (*entity.CustomerRespose, error)
+	GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
 	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
 }
 
@@ -27,8 +28,8 @@ func InitCustomerHandler(customerDomain *service.CustomerDomain, logger utils.Lo
 	}
 }
 
-func (c CustomerHandler) GetCustomersDeatil(ctx context.Context,filterParams *constant.Filter) (*entity.CustomerRespose, error) {
-	customers, err := c.domain.GetCustomersDetail(ctx,filterParams)
+func (c CustomerHandler) GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+	customers, err := c.domain.GetCustomersDetail(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}

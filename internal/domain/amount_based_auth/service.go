@@ -18,7 +18,7 @@ func NewAmountBasedAuthService(repo Repository, ctx context.Context) *Service {
 	}
 }
 
-func (service Service) BuildAuthTierRequest(request AmountBasedAuthRequest) (*AuthTier, error) {
+func (service Service) BuildAuthTierRequest(request AmountBasedAuthRequest) (*string, error) {
 	tier, err := service.repo.UpdateAuthTier(request, service.ctx, service.logger)
 	if err != nil {
 		return nil, err

@@ -11,6 +11,7 @@ const (
 )
 
 type AuthTier struct {
+	ID           string
 	MinAmount    uint64    `json:"minAmount" bson:"minAmount"`
 	MaxAmount    uint64    `json:"maxAmount" bson:"maxAmount"`
 	Method       string    `json:"method" bson:"method"`

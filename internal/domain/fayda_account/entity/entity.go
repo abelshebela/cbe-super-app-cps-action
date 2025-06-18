@@ -4,7 +4,7 @@ import "time"
 
 type User struct {
 	UserCode    string `json:"user_code" bson:"user_code"`
-	FullName    string `json:"full_name" bson:"user_code"`
+	FullName    string `json:"full_name" bson:"full_name"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
 
@@ -44,9 +44,12 @@ type CPSAction struct {
 	RejectedReason    string        `json:"rejected_reason" bson:"rejected_reason"`
 	Department        string        `json:"department" bson:"department"`
 	Status            ActionStatus  `json:"status" bson:"status"`
+	PreviousData      any           `json:"previous_action" bson:"previous_action"`
+	CurrentData       any           `json:"current_action" bson:"current_action"`
 	RequestAction     RequestAction `json:"request_action" bson:"request_action"`
 	ActionType        ActionType    `json:"action_type" bson:"action_type"`
 	ActionData        ActionData    `json:"action_data" bson:"action_data"`
 	MakerActionTime   time.Time     `json:"maker_action_time" bson:"maker_action_time"`
 	CheckerActionTime time.Time     `json:"checker_action_time" bson:"checker_action_time"`
 }
+

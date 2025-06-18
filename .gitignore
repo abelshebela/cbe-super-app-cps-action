@@ -1,7 +1,6 @@
 tmp
-pkg
 bin
-
+shared
 .env
 test.go
 aiso/env
