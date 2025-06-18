@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 )
 
 type OutboundInfra interface {
@@ -12,4 +13,6 @@ type OutboundInfra interface {
 	GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
 	ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error
 	FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)
+	UpdateOneServiceDetailRequest(ctx context.Context, id string, update service.Service) error
+	//UpdateOneSeviceDeatil(ctx context.Context, pd service.Service) error
 }
