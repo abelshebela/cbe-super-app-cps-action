@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 )
 

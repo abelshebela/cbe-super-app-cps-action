@@ -4,11 +4,13 @@ import (
 	"context"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
-func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, makerId string) (string, error) {
+func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, makerId string) (string, *common.ErrorDefinition) {
 	data := domain.MiniApp{
 		AppName:           miniApp.AppName,
 		AppIcon:           miniApp.AppIcon,
@@ -55,11 +57,27 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 	}
 	action_id, err := a.service.CreateMiniAppAction(ctx, data, makerId)
 	if err != nil {
-		return "", err
+		err_def := common.ErrorDefinition{
+			Code:    "",
+			Message: "",
+		}
+		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err.Error())
+		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
+		return "", &err_def
 	}
 	return action_id, nil
 }
 
-func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checkerId string) error {
-	return a.service.CheckMiniApp(ctx, actionId, action, checkerId)
+func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checkerId string) *common.ErrorDefinition {
+	err := a.service.CheckMiniApp(ctx, actionId, action, checkerId)
+	if err != nil {
+		err_def := common.ErrorDefinition{
+			Code:    "",
+			Message: "",
+		}
+		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err.Error())
+		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
+		return &err_def
+	}
+	return nil
 }

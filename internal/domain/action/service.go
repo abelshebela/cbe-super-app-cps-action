@@ -22,8 +22,8 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 		return "", err
 	}
 	service.Enabled = action
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-
+	//actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionId := "CPS_BNHafpP8De"
 	a := CPSAction{
 		ActionCode: actionId,
 		Maker: User{

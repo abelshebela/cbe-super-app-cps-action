@@ -74,7 +74,8 @@ func (s *ServiceStore) UpdateServiceDetailsRequest(ctx context.Context, id strin
 		return "", err
 	}
 
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	//actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionID := "CPS_BNHafpP8De"
 	cpsAction := action.CPSAction{
 		ActionCode: actionID,
 		Maker: action.User{

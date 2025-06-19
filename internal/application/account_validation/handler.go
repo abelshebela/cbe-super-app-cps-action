@@ -3,6 +3,8 @@ package accountvalidation_app
 import (
 	"context"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
 )
 
@@ -14,22 +16,22 @@ type ApplicationAbstracts interface {
 
 type ApplicationStore struct {
 	service account_validation.Service
+	Logger  utils.Logger
 }
 
-func NewApplication(service account_validation.Service) ApplicationAbstracts {
-	return &ApplicationStore{service: service}
+func NewApplication(service account_validation.Service, logger utils.Logger) ApplicationAbstracts {
+	return &ApplicationStore{service: service, Logger: logger}
 }
-
 
 func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) (account_validation.ValidationRule, error) {
-	
-    return a.service.GetAccountValidation(ctx, id)
+
+	return a.service.GetAccountValidation(ctx, id)
 }
 
 func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string) (string, error) {
-    return a.service.UpdateAccountValidationRequest(ctx, id, update, makerID)
+	return a.service.UpdateAccountValidationRequest(ctx, id, update, makerID)
 }
 
 func (a *ApplicationStore) UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string) error {
-    return a.service.UpdateAccountValidation(ctx, actionID, action, checkerID)
+	return a.service.UpdateAccountValidation(ctx, actionID, action, checkerID)
 }

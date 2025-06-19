@@ -47,8 +47,6 @@ import (
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
-
-	//faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
 	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
 	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
@@ -135,14 +133,14 @@ func main() {
 	dbname := cfg.MongoDBDatabase
 	//dbname := "ldap_cbs"
 	collectionNames := []string{
-		"BPSUsers",
-		"BPSActions",
+		"bps_user",
+		"cps_action",
 		"cps_users",
-		"CPSServices",
-		"Member",
+		"service",
+		"member",
 		"linked_accounts",
 		"mini_app",
-		"hq_services",
+		"portal_card",
 	}
 
 	r := chi.NewRouter()
@@ -157,10 +155,10 @@ func main() {
 
 	authMddleware := authMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
 
-	adapter_port := adapter.NewOutBoundStore(mongoClient, dbname, collectionNames)
-	domain_services := domain.NewService(adapter_port)
-	application := bulkservices_application.NewAttachDetachChecker(domain_services)
-	handlers := bulkservices_inbound.NewHttpBulkService(application)
+	adapter_port := adapter.NewOutBoundStore(mongoClient, dbname, collectionNames, logger)
+	domain_services := domain.NewService(adapter_port, logger)
+	application := bulkservices_application.NewAttachDetachChecker(domain_services, logger)
+	handlers := bulkservices_inbound.NewHttpBulkService(application, logger)
 	bulkservices_inbound.InitServiceHandlerMaker(r, handlers, authMddleware)
 
 	branchRepo := branch_repo.NewBranchPersistence(
@@ -234,7 +232,7 @@ func main() {
 	)
 	domainAccountValidationService := accountvalidation_domain.NewService(accountvalidation_persistence, adapter_port, logger)
 
-	accountValidationApp := accountvalidation_app.NewApplication(domainAccountValidationService)
+	accountValidationApp := accountvalidation_app.NewApplication(domainAccountValidationService, logger)
 	accountValidationHandler := accountvalidation_inbound.NewHttpAccountValidation(accountValidationApp, logger)
 	accountvalidation_inbound.InitAccountValidationHandlerMaker(r, accountValidationHandler, authMddleware)
 
