@@ -15,6 +15,8 @@ type ApplicationAbstracts interface {
 	GetServiceDetailsByID(ctx context.Context, id string) (*dto.ServiceDetailsResponse, error)
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *dto.UpdateServiceDetailsRequest) (*dto.UpdateServiceDetailsResponse, error)
 	UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error
+	UpdateServiceCap(ctx context.Context, id string, cap *service.Cap) (*dto.ServiceDetailsResponse, error) // <-- FIXED
+	ApproveServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error                 // <-- Add this
 
 	InitiateServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
 	ApproveServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
@@ -129,88 +131,4 @@ func (a *ApplicationStore) UpdateServiceDetailsRequest(ctx context.Context, id s
 
 func (a *ApplicationStore) UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error {
 	return a.service.UpdateServiceDetails(ctx, req.ActionID, req.Approve, req.CheckerID, req.RejectionReason)
-}
-
-func (a *ApplicationStore) InitiateServiceFeeUpdate(ctx context.Context, req *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error) {
-	//validation to be implimented
-
-	cpsReq := service.CPSAction{
-		ID:         req.ID,
-		ActionCode: req.ActionCode,
-		MakerUser: service.User{
-			UserCode:    req.MakerUser.UserCode,
-			FullName:    req.MakerUser.FullName,
-			PhoneNumber: req.MakerUser.PhoneNumber,
-		},
-		Department: req.Department,
-		ActionData: service.ActionData{
-			Tier: req.ActionData,
-		},
-	}
-	cpsReq.ActionCode = utils.RandomGenerator(20)
-
-	res, err := a.service.InitiateServiceFeeUpdate(ctx, cpsReq)
-	if err != nil {
-		return nil, err
-	}
-
-	return &dto.UpdateServiceDetailsResponse{
-		ActionID: res.ActionID,
-	}, nil
-}
-
-func (a *ApplicationStore) ApproveServiceFeeUpdate(ctx context.Context, req *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error) {
-	//validation going to impliment
-	cpsReq := service.CPSAction{
-		ID:         req.ID,
-		ActionCode: req.ActionCode,
-		MakerUser: service.User{
-			UserCode:    req.MakerUser.UserCode,
-			FullName:    req.MakerUser.FullName,
-			PhoneNumber: req.MakerUser.PhoneNumber,
-		},
-		Department: req.Department,
-		ActionData: service.ActionData{
-			Tier: req.ActionData,
-		},
-	}
-	cpsReq.ActionCode = utils.RandomGenerator(20)
-
-	res, err := a.service.InitiateServiceFeeUpdate(ctx, cpsReq)
-	if err != nil {
-		return nil, err
-	}
-
-	return &dto.UpdateServiceDetailsResponse{
-		ActionID: res.ActionID,
-	}, nil
-}
-
-func (a *ApplicationStore) RejectServiceFeeUpdate(ctx context.Context, req *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error) {
-	//validation going to impliment
-	cpsReq := service.CPSAction{
-		ID:         req.ID,
-		ActionCode: req.ActionCode,
-		MakerUser: service.User{
-			UserCode:    req.MakerUser.UserCode,
-			FullName:    req.MakerUser.FullName,
-			PhoneNumber: req.MakerUser.PhoneNumber,
-		},
-		RejectedReason: req.RejectedReason,
-		Department:     req.Department,
-		ActionData: service.ActionData{
-			Tier: req.ActionData,
-		},
-	}
-	cpsReq.ActionCode = utils.RandomGenerator(20)
-
-	res, err := a.service.InitiateServiceFeeUpdate(ctx, cpsReq)
-	if err != nil {
-		return nil, err
-	}
-
-	return &dto.UpdateServiceDetailsResponse{
-		ActionID: res.ActionID,
-	}, nil
-
 }

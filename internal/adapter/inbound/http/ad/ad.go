@@ -28,7 +28,7 @@ func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) inboundAd.ADAda
 		logger:    logger,
 	}
 }
-
+	
 func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	var advertReq ad.CreateAdvertRequest
 
@@ -74,11 +74,11 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 
 	file, fileHeader, err := r.FormFile("banner_image")
 	if err != nil {
+		a.logger.Errorf("banner image error: %v", err)
 		err = fmt.Errorf("failed to read banner image: %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "missing or invalid banner image",
 		})
-		a.logger.Errorf("banner image error: %v", err)
 		middleware.ErrorHandler(w, err)
 		return
 	}
@@ -224,11 +224,11 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	var req ad.UpdateAdvertRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("failed to decode advert request", err)
 		err = fmt.Errorf("failed to decode advert request error data %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid request",
 		})
-		a.logger.Errorf("failed to decode advert request", err)
 		middleware.ErrorHandler(w, err)
 		return
 	}
@@ -308,11 +308,11 @@ func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	action_code := chi.URLParam(r, "action_code")
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
+		a.logger.Errorf("failed to decode advert request", err)
 		err = fmt.Errorf("failed to decode advert request error data %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid request",
 		})
-		a.logger.Errorf("failed to decode advert request", err)
 		middleware.ErrorHandler(w, err)
 		return
 	}
