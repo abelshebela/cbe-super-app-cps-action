@@ -12,4 +12,5 @@ type PasswordRuleRepository interface {
 	ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, approve bool, checker action.User, rejectionReason *string) error
 
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
+	GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error)
 }

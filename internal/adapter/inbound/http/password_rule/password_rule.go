@@ -1,6 +1,7 @@
 package passwordrule
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
 )
 
 type PasswordRuleHTTPHandler struct {
@@ -44,6 +44,7 @@ func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWrite
     userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
     fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
     phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
 
     if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
         resp := common.Response[any]{
@@ -55,20 +56,37 @@ func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWrite
         return
     }
 
+    if strings.TrimSpace(department) == "" {
+        resp := common.Response[any]{
+            ResponseWriter: w,
+            Status:         http.StatusUnauthorized,
+            Data:           map[string]string{"message": "department is required in context"},
+        }
+        resp.SendJSON()
+        return
+    }
+
+    ctx := context.WithValue(r.Context(), "department", department)
+
     maker := action.User{
         UserID:      userID,
         FullName:    fullName,
         PhoneNumber: phoneNumber,
     }
 
-    ctx := r.Context()
     _, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker)
     if err != nil {
         h.logger.Errorf("RequestPasswordRuleUpdate failed: %v", err)
+        status := http.StatusInternalServerError
+        msg := err.Error()
+        if strings.Contains(msg, "pending action already exists") {
+            status = http.StatusConflict
+            msg = "A pending action already exists for this maker"
+        }
         resp := common.Response[any]{
             ResponseWriter: w,
-            Status:         http.StatusInternalServerError,
-            Data:           map[string]string{"message": err.Error()},
+            Status:         status,
+            Data:           map[string]string{"message": msg},
         }
         resp.SendJSON()
         return
@@ -155,6 +173,50 @@ func (h *PasswordRuleHTTPHandler) GetPasswordRuleUpdateActionByID(w http.Respons
         middleware.ErrorHandler(w, err)
         return
     }
+    res := common.Response[*action.CPSAction]{
+        ResponseWriter: w,
+        Status:         http.StatusOK,
+        Data:           result,
+    }
+    res.SendJSON()
+}
+func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http.Request) {
+    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+    userCode, _ := r.Context().Value(constant.ContextKey("user_code")).(string)
+    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+    if strings.TrimSpace(userID) == "" || strings.TrimSpace(userCode) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
+        resp := common.Response[any]{
+            ResponseWriter: w,
+            Status:         http.StatusBadRequest,
+            Data:           map[string]string{"message": "missing required user or department info"},
+        }
+        resp.SendJSON()
+        return
+    }
+
+    maker := action.User{
+        UserID:      userID,
+        UserCode:    userCode,
+        FullName:    fullName,
+        PhoneNumber: phoneNumber,
+    }
+
+    ctx := context.WithValue(r.Context(), "department", department)
+    result, err := h.service.GetUpdateAction(ctx, maker)
+    if err != nil {
+        h.logger.Errorf("GetUpdateAction failed: %v", err)
+        resp := common.Response[any]{
+            ResponseWriter: w,
+            Status:         http.StatusInternalServerError,
+            Data:           map[string]string{"message": err.Error()},
+        }
+        resp.SendJSON()
+        return
+    }
+
     res := common.Response[*action.CPSAction]{
         ResponseWriter: w,
         Status:         http.StatusOK,

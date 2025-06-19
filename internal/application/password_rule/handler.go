@@ -46,3 +46,12 @@ func (h *PasswordRuleHandler) GetPasswordRuleUpdateActionByID(ctx context.Contex
     }
     return action, nil
 }
+
+func (h *PasswordRuleHandler) GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error) {
+    action, err := h.service.GetUpdateAction(ctx, maker)
+    if err != nil {
+        h.logger.Errorf("Failed to get update action: %v", err)
+        return nil, err
+    }
+    return action, nil
+}
