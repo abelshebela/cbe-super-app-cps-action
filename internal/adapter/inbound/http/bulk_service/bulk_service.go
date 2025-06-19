@@ -16,8 +16,8 @@ func (h *HttpStore) FetchServices(w http.ResponseWriter, r *http.Request) {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "")
 		return
 	}
-	resp, err := h.Application.FetchServices(r.Context(), int(offset), int(limit))
-	if err != nil {
+	resp, common_error := h.Application.FetchServices(r.Context(), int(offset), int(limit))
+	if common_error != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "")
 		return
 	}
@@ -38,8 +38,8 @@ func (h *HttpStore) EnableDisableServicesMaker(w http.ResponseWriter, r *http.Re
 	}
 	makerId := claims.UserID
 	// TODO: Add further logic to handle the request
-	request_id, err := h.Application.EnableDisableServicesMaker(r.Context(), req.ServiceId, req.ServiceAction, makerId)
-	if err != nil {
+	request_id, common_error := h.Application.EnableDisableServicesMaker(r.Context(), req.ServiceId, req.ServiceAction, makerId)
+	if common_error != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "")
 		return
 	}
@@ -68,8 +68,8 @@ func (h *HttpStore) EnableDisableServicesChecker(w http.ResponseWriter, r *http.
 	}
 	checkerId := claims.UserID
 	// TODO: Add further logic to handle the request
-	err := h.Application.EnableDisableServicesChecker(r.Context(), req.Action_Id, req.ServiceAction, checkerId)
-	if err != nil {
+	common_error := h.Application.EnableDisableServicesChecker(r.Context(), req.Action_Id, req.ServiceAction, checkerId)
+	if common_error != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "")
 		return
 	}

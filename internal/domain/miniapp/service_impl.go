@@ -3,7 +3,7 @@ package miniapp
 import "context"
 
 type MiniAppStore struct {
-	repository Repository
+	Repository Repository
 }
 type MiniAppService interface {
 	CreateMiniAppAction(ctx context.Context, miniApp MiniApp, makerId string) (string, error)
@@ -12,6 +12,6 @@ type MiniAppService interface {
 
 func NewService(repository Repository) MiniAppService {
 	return &MiniAppStore{
-		repository: repository,
+		Repository: repository,
 	}
 }
