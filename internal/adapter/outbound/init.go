@@ -15,18 +15,18 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	bpscalls "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 type outboundStore struct {
@@ -1708,6 +1708,7 @@ func (o *outboundStore) ApproveOrRejectPasswordRuleAction(ctx context.Context, a
 		if rejectionReason != nil {
 			update["rejection_reason"] = *rejectionReason
 		}
+		//
 	}
 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, map[string]interface{}{"$set": update})
 	return err
