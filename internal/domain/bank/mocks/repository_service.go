@@ -58,6 +58,20 @@ func (mr *MockRepositoryMockRecorder) Authorize(ctx, req any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockRepository)(nil).Authorize), ctx, req)
 }
 
+// CPSActionExists mocks base method.
+func (m *MockRepository) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CPSActionExists", ctx, cpsReq)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CPSActionExists indicates an expected call of CPSActionExists.
+func (mr *MockRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CPSActionExists", reflect.TypeOf((*MockRepository)(nil).CPSActionExists), ctx, cpsReq)
+}
+
 // CreateBank mocks base method.
 func (m *MockRepository) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 	m.ctrl.T.Helper()
@@ -88,19 +102,19 @@ func (mr *MockRepositoryMockRecorder) DeleteBank(ctx, id, cpsReq any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBank", reflect.TypeOf((*MockRepository)(nil).DeleteBank), ctx, id, cpsReq)
 }
 
-// EnableOrDisableWallet mocks base method.
-func (m *MockRepository) EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+// EnableOrDisableBank mocks base method.
+func (m *MockRepository) EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnableOrDisableWallet", ctx, id, requestAction, cpsReq)
+	ret := m.ctrl.Call(m, "EnableOrDisableBank", ctx, id, requestAction, cpsReq)
 	ret0, _ := ret[0].(*model.CpsAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// EnableOrDisableWallet indicates an expected call of EnableOrDisableWallet.
-func (mr *MockRepositoryMockRecorder) EnableOrDisableWallet(ctx, id, requestAction, cpsReq any) *gomock.Call {
+// EnableOrDisableBank indicates an expected call of EnableOrDisableBank.
+func (mr *MockRepositoryMockRecorder) EnableOrDisableBank(ctx, id, requestAction, cpsReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOrDisableWallet", reflect.TypeOf((*MockRepository)(nil).EnableOrDisableWallet), ctx, id, requestAction, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOrDisableBank", reflect.TypeOf((*MockRepository)(nil).EnableOrDisableBank), ctx, id, requestAction, cpsReq)
 }
 
 // GetAllBanks mocks base method.

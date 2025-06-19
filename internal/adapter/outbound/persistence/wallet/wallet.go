@@ -35,6 +35,39 @@ func InitWallet(client *mongo.Client, database string, collections []string, log
 	}
 }
 
+func (w *Wallet) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
+	filter := bson.M{
+		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
+		"status":                  model.ActionPending,
+		"department":              cpsReq.Department,
+		"request_action":          cpsReq.RequestAction,
+	}
+
+	projection := bson.M{
+		"action_code": 1,
+	}
+
+	existingBank, err := w.cpsDal.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.logger.Errorf("failed to get bank", err)
+		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return err
+	} else if existingBank != nil {
+		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "already pending cps action present",
+		})
+		w.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
+			cpsReq.MakerUser.UserCode, cpsReq.Department)
+		return err
+	}
+
+	return nil
+}
+
 func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 	filter := bson.M{
 		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
@@ -286,9 +319,9 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 	}
 
 	walletProjection := bson.M{
-		"name": 1,
-		"code": 1,
-		"enabled":1,
+		"name":    1,
+		"code":    1,
+		"enabled": 1,
 	}
 
 	wallet, err := w.walletDal.FindOne(ctx, walletFilter, walletProjection)

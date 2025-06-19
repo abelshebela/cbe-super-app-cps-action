@@ -72,7 +72,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	// Create test data with full struct values
 	testTime := time.Now()
@@ -187,7 +187,7 @@ func TestWalletDomain_GetAllWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testWallets := []*entity.Wallet{
@@ -285,7 +285,7 @@ func TestWalletDomain_GetWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testWallet := &entity.Wallet{
@@ -353,7 +353,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testUser := model.User{
@@ -459,7 +459,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testUser := model.User{
@@ -555,7 +555,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testMakerUser := model.User{
@@ -654,7 +654,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testMakerUser := model.User{
@@ -764,7 +764,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testUser := model.User{

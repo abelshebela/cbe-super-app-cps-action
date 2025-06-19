@@ -798,7 +798,7 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 			cpsReq:        testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
+					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
@@ -831,7 +831,7 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 			cpsReq:        testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestDisableWallet, testCPSAction).
+					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableWallet, testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
@@ -864,7 +864,7 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 			cpsReq:        testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
+					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
 					Return(nil, errors.New("internal server eror"))
 			},
 			want:    nil,
@@ -875,7 +875,7 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock()
-			got, err := bankService.EnableOrDisableWallet(context.Background(), tt.id, tt.requestAction, tt.cpsReq)
+			got, err := bankService.EnableOrDisableBank(context.Background(), tt.id, tt.requestAction, tt.cpsReq)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, got)

@@ -326,9 +326,12 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
+	cpsReq.ActionData = dto.UpdateBankRequest{
+		ID: id,
+	}
 
 	ctx := r.Context()
-	cpsAction, err := b.bankHandler.EnableOrDisableWallet(ctx, id, model.RequestDisableWallet, cpsReq)
+	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestDisableBank, cpsReq)
 	if err != nil {
 		middleware.ErrorHandler(w, err)
 		return
@@ -359,9 +362,12 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
+	cpsReq.ActionData = dto.UpdateBankRequest{
+		ID: id,
+	}
 
 	ctx := r.Context()
-	cpsAction, err := b.bankHandler.EnableOrDisableWallet(ctx, id, model.RequestEnableWallet, cpsReq)
+	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestEnableBank, cpsReq)
 	if err != nil {
 		middleware.ErrorHandler(w, err)
 		return

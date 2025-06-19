@@ -16,6 +16,7 @@ type Repository interface {
 	GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error)
 	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
-	EnableOrDisableWallet(ctx context.Context, id string,
+	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+	CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error
 }
