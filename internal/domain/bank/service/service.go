@@ -32,7 +32,7 @@ type BankService interface {
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
 	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
-	EnableOrDisableWallet(ctx context.Context, id string,
+	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
 }
 
@@ -47,6 +47,12 @@ func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioC
 }
 
 func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+	req.RequestAction = model.RequestCreateBank
+	err := b.bankRepo.CPSActionExists(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
 	actionData, ok := req.ActionData.(dto.CreateBankRequest)
 	if !ok {
 		b.logger.Errorf("failed to cast action data to bank request")
@@ -138,6 +144,11 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 }
 
 func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+	req.RequestAction = model.RequestDeleteBank
+	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
+		return nil, err
+	}
+
 	cpsAction, err := b.bankRepo.DeleteBank(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -165,6 +176,10 @@ func (b *BankDomain) GetOneBank(ctx context.Context, id string) (*entity.Bank, e
 }
 
 func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+	req.RequestAction = model.RequestUpdateBank
+	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
+		return nil, err
+	}
 	cpsAction, err := b.bankRepo.UpdateBank(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -195,10 +210,15 @@ func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*mo
 	return cpsAction, nil
 }
 
-func (b *BankDomain) EnableOrDisableWallet(ctx context.Context, id string,
+func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
 	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 
-	cpsAction, err := b.bankRepo.EnableOrDisableWallet(ctx, id, requestAction, cpsReq)
+	cpsReq.RequestAction = requestAction
+	if err := b.bankRepo.CPSActionExists(ctx, cpsReq); err != nil {
+		return nil, err
+	}
+
+	cpsAction, err := b.bankRepo.EnableOrDisableBank(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err
 	}

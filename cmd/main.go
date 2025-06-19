@@ -273,7 +273,7 @@ func main() {
 	bank_adapter.InitBankRoutes(r, bankAdapter, authMddleware)
 
 	walletRepo := wallet.InitWallet(mongoClient, cfg.MongoDBDatabase, []string{"wallets", "cps_actions"}, logger)
-	walletDomain := wallet_domain.InitBankDomain(walletRepo, minioClient, "wallets", logger)
+	walletDomain := wallet_domain.InitWalletDomain(walletRepo, minioClient, "wallets", logger)
 	walletHandler := wallet_handler.InitWalletHanlder(walletDomain, logger)
 	walletAdapter := wallet_adapter.InitWalletAdapter(walletHandler, logger)
 	wallet_adapter.InitWalletRoutes(r, walletAdapter, authMddleware)

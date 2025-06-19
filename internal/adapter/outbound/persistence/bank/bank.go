@@ -33,11 +33,12 @@ func InitBank(client *mongo.Client, database string, collections []string, logge
 	}
 }
 
-func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
 	filter := bson.M{
 		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
 		"status":                  model.ActionPending,
 		"department":              cpsReq.Department,
+		"request_action":          cpsReq.RequestAction,
 	}
 
 	projection := bson.M{
@@ -51,7 +52,7 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return nil, err
+		return err
 	} else if existingBank != nil {
 		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
@@ -59,9 +60,13 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 		})
 		b.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
 			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
+		return err
 	}
 
+	return nil
+}
+
+func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 	cpsAction, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
 		ID:              bson.NewObjectID().Hex(),
 		ActionCode:      utils.RandomGenerator(20),
@@ -87,33 +92,6 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 }
 
 func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingBank, err := b.cpsDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	} else if existingBank != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
-		b.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
-	}
 
 	bankFilter := bson.M{
 		"id":         id,
@@ -245,33 +223,6 @@ func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 }
 
 func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingAd, err := b.bankDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
-		b.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
-	}
 
 	bankFilter := bson.M{
 		"id":         id,
@@ -312,6 +263,15 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("bank not found", err)
+			err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "bank not found",
+			})
+			return nil, err
+		}
+
 		b.logger.Errorf("failed to create cps action", err)
 		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
@@ -353,13 +313,24 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 		return nil, err
 	}
 
-	actionData, ok := cpsAction.ActionData.(entity.Bank)
-	if !ok {
-		b.logger.Errorf("failed to cast action data to bank entity")
-		return nil, fmt.Errorf("failed to cast: %w", constant.ErrorDefinition{
+	var actionData entity.Bank
+	data, err := bson.Marshal(cpsAction.ActionData)
+	if err != nil {
+		b.logger.Errorf("failed to marshal bson: %v", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
 		})
+		return nil, err
+	}
+
+	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
+		b.logger.Errorf("failed to unmarshal into Bank: %v", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid action data",
+		})
+		return nil, err
 	}
 
 	if cpsAction.ActionType == model.ActionCreate {
@@ -402,6 +373,14 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 
 		if actionData.BIC != "" {
 			update["bic"] = actionData.BIC
+		}
+
+		if cpsAction.RequestAction == model.RequestEnableBank {
+			update["enabled"] = true
+		}
+
+		if cpsAction.RequestAction == model.RequestDisableBank {
+			update["enabled"] = false
 		}
 
 		update["last_modified_at"] = time.Now()
@@ -478,35 +457,8 @@ func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.Cp
 	return &cpsAction, nil
 }
 
-func (b *Bank) EnableOrDisableWallet(ctx context.Context, id string,
+func (b *Bank) EnableOrDisableBank(ctx context.Context, id string,
 	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingAd, err := b.bankDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
-		b.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
-	}
 
 	bankFilter := bson.M{
 		"id":         id,
@@ -522,8 +474,16 @@ func (b *Bank) EnableOrDisableWallet(ctx context.Context, id string,
 
 	bank, err := b.bankDal.FindOne(ctx, bankFilter, bankProjection)
 	if err != nil {
-		b.logger.Errorf("failed to get wallet", err)
-		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("bank not found", err)
+			err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "bank not found",
+			})
+			return nil, err
+		}
+		b.logger.Errorf("failed to get bank", err)
+		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})

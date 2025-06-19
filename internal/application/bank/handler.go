@@ -18,7 +18,7 @@ type BankHandlerService interface {
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
 	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
-	EnableOrDisableWallet(ctx context.Context, id string,
+	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
 }
 
@@ -96,8 +96,8 @@ func (b *BankHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*m
 	return cpsAction, nil
 }
 
-func (b *BankHandler) EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	cpsAction, err := b.bankDomain.EnableOrDisableWallet(ctx, id, requestAction, cpsReq)
+func (b *BankHandler) EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	cpsAction, err := b.bankDomain.EnableOrDisableBank(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err
 	}

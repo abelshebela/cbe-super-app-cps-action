@@ -272,8 +272,8 @@ func (wa *WalletAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	var cpsReq model.RejectCPSAction
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
-		wa.logger.Errorf("failed to decode bank request", err)
-		err = fmt.Errorf("failed to decode bank request error data %w", constant.ErrorDefinition{
+		wa.logger.Errorf("failed to decode wallet request", err)
+		err = fmt.Errorf("failed to decode wallet request error data %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid request",
 		})
@@ -325,6 +325,9 @@ func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
+	cpsReq.ActionData = entity.Wallet{
+		ID: id,
+	}
 
 	ctx := r.Context()
 	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestDisableWallet, cpsReq)
@@ -358,6 +361,9 @@ func (wa *WalletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
+	cpsReq.ActionData = entity.Wallet{
+		ID: id,
+	}
 
 	ctx := r.Context()
 	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestEnableWallet, cpsReq)

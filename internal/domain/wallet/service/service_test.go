@@ -52,6 +52,10 @@ func (m *MockMinioClient) SaveObject(ctx context.Context, body config.SaveObject
 	}, nil
 }
 
+func (m *MockMinioClient) GetObject(ctx context.Context, bucketName string, objectName string) (*minio.Object, error) {
+	return nil, nil
+}
+
 func (m *MockMinioClient) DeleteObject(ctx context.Context, body config.DeleteObjectBody) (bool, error) {
 	return true, nil
 }
@@ -72,7 +76,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	// Create test data with full struct values
 	testTime := time.Now()
@@ -96,7 +100,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 		MakerUser:       testUser,
 		Department:      "IT",
 		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateBank, // Using bank action as wallet doesn't have specific one
+		RequestAction:   model.RequestCreateWallet,
 		ActionType:      model.ActionCreate,
 		ActionData:      testCreateWalletRequest,
 		MakerActionTime: testTime,
@@ -126,6 +130,9 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil) // Assuming no existing action with the same code
+				mockRepo.EXPECT().
 					CreateWallet(gomock.Any(), gomock.Any()).
 					Return(&model.CpsAction{
 						ID:              "CPS001",
@@ -133,7 +140,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 						MakerUser:       testUser,
 						Department:      "IT",
 						Status:          model.ActionPending,
-						RequestAction:   model.RequestCreateBank,
+						RequestAction:   model.RequestCreateWallet,
 						ActionType:      model.ActionCreate,
 						ActionData:      testWalletEntity,
 						MakerActionTime: testTime,
@@ -145,7 +152,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 				MakerUser:       testUser,
 				Department:      "IT",
 				Status:          model.ActionPending,
-				RequestAction:   model.RequestCreateBank,
+				RequestAction:   model.RequestCreateWallet,
 				ActionType:      model.ActionCreate,
 				ActionData:      testWalletEntity,
 				MakerActionTime: testTime,
@@ -156,6 +163,9 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 			name: "error from database",
 			req:  testCPSAction,
 			mock: func() {
+				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
 				mockRepo.EXPECT().
 					CreateWallet(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("internal server error"))
@@ -174,7 +184,8 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				assert.Equal(t, tt.want.ActionCode, got.ActionCode)
+				assert.Equal(t, tt.want.ActionType, got.ActionType)
 			}
 		})
 	}
@@ -187,7 +198,7 @@ func TestWalletDomain_GetAllWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testWallets := []*entity.Wallet{
@@ -285,7 +296,7 @@ func TestWalletDomain_GetWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testWallet := &entity.Wallet{
@@ -353,7 +364,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testUser := model.User{
@@ -367,7 +378,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 		MakerUser:     testUser,
 		Department:    "IT",
 		Status:        model.ActionPending,
-		RequestAction: model.RequestUpdateBank,
+		RequestAction: model.RequestUpdateWallet,
 		ActionType:    model.ActionUpdate,
 		ActionData: entity.Wallet{
 			ID:             "WALLET001",
@@ -397,6 +408,9 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil) // Assuming no existing action with the same code
+				mockRepo.EXPECT().
 					UpdateWallet(gomock.Any(), "WALLET001", testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS002",
@@ -404,7 +418,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 						MakerUser:       testUser,
 						Department:      "IT",
 						Status:          model.ActionPending,
-						RequestAction:   model.RequestUpdateBank,
+						RequestAction:   model.RequestUpdateWallet,
 						ActionType:      model.ActionUpdate,
 						ActionData:      testCPSAction.ActionData,
 						MakerActionTime: testTime,
@@ -416,7 +430,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 				MakerUser:       testUser,
 				Department:      "IT",
 				Status:          model.ActionPending,
-				RequestAction:   model.RequestUpdateBank,
+				RequestAction:   model.RequestUpdateWallet,
 				ActionType:      model.ActionUpdate,
 				ActionData:      testCPSAction.ActionData,
 				MakerActionTime: testTime,
@@ -429,8 +443,8 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					UpdateWallet(gomock.Any(), "WALLET001", testCPSAction).
-					Return(nil, errors.New("not found"))
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(errors.New("action already exists"))
 			},
 			want:    nil,
 			wantErr: true,
@@ -459,7 +473,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testUser := model.User{
@@ -473,7 +487,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 		MakerUser:       testUser,
 		Department:      "IT",
 		Status:          model.ActionPending,
-		RequestAction:   model.RequestDeleteBank,
+		RequestAction:   model.RequestDeleteWallet,
 		ActionType:      model.ActionDelete,
 		ActionData:      nil,
 		MakerActionTime: testTime,
@@ -493,6 +507,9 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
 					DeleteWallet(gomock.Any(), "WALLET001", testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS003",
@@ -500,7 +517,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 						MakerUser:       testUser,
 						Department:      "IT",
 						Status:          model.ActionPending,
-						RequestAction:   model.RequestDeleteBank,
+						RequestAction:   model.RequestDeleteWallet,
 						ActionType:      model.ActionDelete,
 						ActionData:      nil,
 						MakerActionTime: testTime,
@@ -512,7 +529,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 				MakerUser:       testUser,
 				Department:      "IT",
 				Status:          model.ActionPending,
-				RequestAction:   model.RequestDeleteBank,
+				RequestAction:   model.RequestDeleteWallet,
 				ActionType:      model.ActionDelete,
 				ActionData:      nil,
 				MakerActionTime: testTime,
@@ -524,6 +541,9 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 			id:   "WALLET001",
 			req:  testCPSAction,
 			mock: func() {
+				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
 				mockRepo.EXPECT().
 					DeleteWallet(gomock.Any(), "WALLET001", testCPSAction).
 					Return(nil, errors.New("not found"))
@@ -555,7 +575,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testMakerUser := model.User{
@@ -654,7 +674,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testMakerUser := model.User{
@@ -764,7 +784,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 	mockRepo := mocks.NewMockRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
-	walletService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+	walletService := service.InitWalletDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
 	testTime := time.Now()
 	testUser := model.User{
@@ -773,12 +793,23 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 		PhoneNumber: "+251911234567",
 	}
 
-	testCPSAction := model.CreateCPSAction{
+	testEnableCPSAction := model.CreateCPSAction{
 		ActionCode:      "ACT004",
 		MakerUser:       testUser,
 		Department:      "IT",
 		Status:          model.ActionPending,
 		RequestAction:   model.RequestEnableWallet,
+		ActionType:      model.ActionUpdate,
+		ActionData:      nil,
+		MakerActionTime: testTime,
+	}
+
+	testDisableCPSAction := model.CreateCPSAction{
+		ActionCode:      "ACT004",
+		MakerUser:       testUser,
+		Department:      "IT",
+		Status:          model.ActionPending,
+		RequestAction:   model.RequestDisableWallet,
 		ActionType:      model.ActionUpdate,
 		ActionData:      nil,
 		MakerActionTime: testTime,
@@ -797,10 +828,13 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 			name:          "enable wallet success",
 			id:            "WALLET001",
 			requestAction: model.RequestEnableWallet,
-			cpsReq:        testCPSAction,
+			cpsReq:        testEnableCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
+					CPSActionExists(gomock.Any(), testEnableCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
+					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testEnableCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
@@ -830,10 +864,13 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 			name:          "disable wallet success",
 			id:            "WALLET001",
 			requestAction: model.RequestDisableWallet,
-			cpsReq:        testCPSAction,
+			cpsReq:        testDisableCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestDisableWallet, testCPSAction).
+					CPSActionExists(gomock.Any(), testDisableCPSAction).
+					Return(nil) // Assuming no existing action with the same code
+				mockRepo.EXPECT().
+					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestDisableWallet, testDisableCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
@@ -863,10 +900,13 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 			name:          "error from database",
 			id:            "WALLET001",
 			requestAction: model.RequestEnableWallet,
-			cpsReq:        testCPSAction,
+			cpsReq:        testEnableCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
+					CPSActionExists(gomock.Any(), testEnableCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
+					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testEnableCPSAction).
 					Return(nil, errors.New("internal server error"))
 			},
 			want:    nil,

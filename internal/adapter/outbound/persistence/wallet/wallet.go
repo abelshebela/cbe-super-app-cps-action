@@ -35,11 +35,12 @@ func InitWallet(client *mongo.Client, database string, collections []string, log
 	}
 }
 
-func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *Wallet) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
 	filter := bson.M{
 		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
 		"status":                  model.ActionPending,
 		"department":              cpsReq.Department,
+		"request_action":          cpsReq.RequestAction,
 	}
 
 	projection := bson.M{
@@ -48,12 +49,12 @@ func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction)
 
 	existingBank, err := w.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
-		w.logger.Errorf("failed to get wallet", err)
-		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
+		w.logger.Errorf("failed to get bank", err)
+		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return nil, err
+		return err
 	} else if existingBank != nil {
 		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
@@ -61,16 +62,20 @@ func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction)
 		})
 		w.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
 			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
+		return err
 	}
 
+	return nil
+}
+
+func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 	cpsAction, err := w.cpsDal.InsertOne(ctx, model.CpsAction{
 		ID:              bson.NewObjectID().Hex(),
 		ActionCode:      utils.RandomGenerator(20),
 		MakerUser:       cpsReq.MakerUser,
 		Department:      cpsReq.Department,
 		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateBank,
+		RequestAction:   model.RequestCreateWallet,
 		ActionType:      model.ActionCreate,
 		ActionData:      cpsReq.ActionData,
 		MakerActionTime: time.Now(),
@@ -89,33 +94,6 @@ func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction)
 }
 
 func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingAd, err := w.walletDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		w.logger.Errorf("failed to get wallet", err)
-		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
-		w.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
-	}
 
 	walletFilter := bson.M{
 		"id":         id,
@@ -146,7 +124,7 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 		Status:        model.ActionPending,
 		ActionType:    model.ActionUpdate,
 		ActionData:    cpsReq.ActionData,
-		RequestAction: model.RequestUpdateBank,
+		RequestAction: model.RequestUpdateWallet,
 		PreviousData: map[string]any{
 			"name": wallet.Name,
 			"code": wallet.Code,
@@ -167,33 +145,6 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 }
 
 func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingBank, err := w.cpsDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		w.logger.Errorf("failed to get wallet", err)
-		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	} else if existingBank != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
-		w.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
-	}
 
 	walletFilter := bson.M{
 		"id":         id,
@@ -201,10 +152,9 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 	}
 
 	walletProjection := bson.M{
-		"name": 1,
-		"code": 1,
-		"bic":  1,
-		"logo": 1,
+		"name":   1,
+		"code":   1,
+		"avatar": 1,
 	}
 
 	wallet, err := w.walletDal.FindOne(ctx, walletFilter, walletProjection)
@@ -223,7 +173,7 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 		MakerUser:     cpsReq.MakerUser,
 		Department:    cpsReq.Department,
 		Status:        model.ActionPending,
-		RequestAction: model.RequestDeleteBank,
+		RequestAction: model.RequestDeleteWallet,
 		ActionType:    model.ActionDelete,
 		ActionData:    cpsReq.ActionData,
 		PreviousData: map[string]any{
@@ -252,33 +202,6 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 
 func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingAd, err := w.walletDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		w.logger.Errorf("failed to get wallet", err)
-		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
-		w.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return nil, err
-	}
 
 	walletFilter := bson.M{
 		"id":         id,
@@ -286,9 +209,9 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 	}
 
 	walletProjection := bson.M{
-		"name": 1,
-		"code": 1,
-		"enabled":1,
+		"name":    1,
+		"code":    1,
+		"enabled": 1,
 	}
 
 	wallet, err := w.walletDal.FindOne(ctx, walletFilter, walletProjection)
@@ -433,13 +356,24 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 		return nil, err
 	}
 
-	actionData, ok := cpsAction.ActionData.(entity.Wallet)
-	if !ok {
-		w.logger.Errorf("failed to cast action data to wallet entity")
-		return nil, fmt.Errorf("failed to cast: %w", constant.ErrorDefinition{
+	var actionData entity.Wallet
+	data, err := bson.Marshal(cpsAction.ActionData)
+	if err != nil {
+		w.logger.Errorf("failed to marshal bson: %v", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
 		})
+		return nil, err
+	}
+
+	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
+		w.logger.Errorf("failed to unmarshal into wallet: %v", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid action data",
+		})
+		return nil, err
 	}
 
 	if cpsAction.ActionType == model.ActionCreate {
