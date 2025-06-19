@@ -102,10 +102,10 @@ type WholeCapServiceRequest struct {
 	TotalCap  uint64 `json:"total_cap"`
 }
 
-type ServiceFeeMakerRequest struct {
-	ServiceId string `json:"service_id"`
-	Tries     []service.Tier
-}
+// type ServiceFeeMakerRequest struct {
+// 	ServiceId string `json:"service_id"`
+// 	Tries     []service.Tier
+// }
 
 type User struct {
 	UserCode    string `json:"user_code,omitempty" bson:"user_code"`
