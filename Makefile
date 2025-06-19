@@ -31,11 +31,13 @@ mockgenService:
 	mockgen -source=./internal/domain/action/service_impl.go -destination=./mocks/domain/action/service_impl.go -package=mock_domain
 	mockgen -source=./internal/domain/event/service.go -destination=./mocks/domain/event/service.go -package=mock_domain
 	mockgen -source=./internal/domain/miniapp/service_impl.go -destination=./mocks/domain/action/service_impl.go -package=mock_domain
+	mockgen -source=./internal/domain/service/service.go -destination=./mocks/domain/service/service_impl.go -package=mock_domain
 
 mockgenRepository:
 	mockgen -source=./internal/domain/action/repository.go -destination=./mocks/domain/action/repository.go -package=mock_domain
 	mockgen -source=./internal/domain/event/repository.go -destination=./mocks/domain/event/repository.go -package=mock_domain
 	mockgen -source=./internal/domain/miniapp/repository.go -destination=./mocks/domain/miniapp/repository.go -package=mock_domain
+	mockgen -source=./internal/domain/service/repository.go -destination=./mocks/domain/service/repository.go -package=mock_domain
 
 mockgen_Mongo:
 	mockgen -source=./internal/adapter/outbound/mongo/init.go -destination=./mocks/port/outbound/mongo/mongo.go -package=mock_mongo

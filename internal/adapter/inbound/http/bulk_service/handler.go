@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
@@ -13,15 +14,17 @@ import (
 
 type HttpStore struct {
 	Application bulkservices_application.ApplicationAbstracts
+	Logger      utils.Logger
 }
 
-func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts) inbound.Inbound {
+func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts, logger utils.Logger) inbound.Inbound {
 	return &HttpStore{
 		Application: app,
+		Logger:      logger,
 	}
 }
 
-func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound,authMiddleware middleware.AuthMiddleware) {
+func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
 
 	routes := []route.Route{
 		{

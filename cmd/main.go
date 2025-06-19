@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/spf13/viper"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -42,8 +47,6 @@ import (
 	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
-
-	//faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
 	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
 	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
@@ -79,6 +82,21 @@ import (
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
+	//branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/branch_handler"
+	//customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/customer_handler"
+	//branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/branch"
+	//customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/customer"
+	//"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/customer"
+	//branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/bulkcustomer/services"
+	//"gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/customer/service"
+	//faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/fayda_account"
+	//faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/fayda_account"
+	//faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
+	//faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
+
+	password_rule_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	password_rule_routes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	password_rule_services "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/services"
 )
 
 func main() {
@@ -109,17 +127,20 @@ func main() {
 		logger.Fatalf("failed to initialize minio clinet", err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
+	defer cancel()
+
 	dbname := cfg.MongoDBDatabase
 	//dbname := "ldap_cbs"
 	collectionNames := []string{
-		"BPSUsers",
-		"BPSActions",
+		"bps_user",
+		"cps_action",
 		"cps_users",
-		"CPSServices",
-		"Member",
+		"service",
+		"member",
 		"linked_accounts",
 		"mini_app",
-		"hq_services",
+		"portal_card",
 	}
 
 	r := chi.NewRouter()
@@ -134,10 +155,10 @@ func main() {
 
 	authMddleware := authMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
 
-	adapter_port := adapter.NewOutBoundStore(mongoClient, dbname, collectionNames)
-	domain_services := domain.NewService(adapter_port)
-	application := bulkservices_application.NewAttachDetachChecker(domain_services)
-	handlers := bulkservices_inbound.NewHttpBulkService(application)
+	adapter_port := adapter.NewOutBoundStore(mongoClient, dbname, collectionNames, logger)
+	domain_services := domain.NewService(adapter_port, logger)
+	application := bulkservices_application.NewAttachDetachChecker(domain_services, logger)
+	handlers := bulkservices_inbound.NewHttpBulkService(application, logger)
 	bulkservices_inbound.InitServiceHandlerMaker(r, handlers, authMddleware)
 
 	branchRepo := branch_repo.NewBranchPersistence(
@@ -211,7 +232,7 @@ func main() {
 	)
 	domainAccountValidationService := accountvalidation_domain.NewService(accountvalidation_persistence, adapter_port, logger)
 
-	accountValidationApp := accountvalidation_app.NewApplication(domainAccountValidationService)
+	accountValidationApp := accountvalidation_app.NewApplication(domainAccountValidationService, logger)
 	accountValidationHandler := accountvalidation_inbound.NewHttpAccountValidation(accountValidationApp, logger)
 	accountvalidation_inbound.InitAccountValidationHandlerMaker(r, accountValidationHandler, authMddleware)
 
@@ -231,13 +252,20 @@ func main() {
 	cpsUserPersistence := cpsusermaker_persistence.NewCPSUserPersistence(
 		mongoClient,
 		cfg.MongoDBDatabase,
-		collectionNames,
+		[]string{
+			"cps_users",        
+			"cps_actions",     
+			"BPSUsers",         
+			"CPSServices",     
+			"portal_cards",     
+			"validation_rules", 
+		},
 	)
 	cpsUserService := cpsusermaker_service.NewCPSUserService(cpsUserPersistence)
 	cpsUserHandler := cpsusermaker_handler.InitCPSUserMakerHandler(cpsUserService, logger)
-
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
+	
 	bankPersistence := bank.InitBank(mongoClient, cfg.MongoDBDatabase, []string{"banks", "cps_actions"}, logger)
 	bankDomain := bank_domain.InitBankDomain(bankPersistence, minioClient, "banks", logger)
 	bankHandler := bank_handler.InitBankHanlder(bankDomain, logger)
@@ -250,12 +278,31 @@ func main() {
 	walletAdapter := wallet_adapter.InitWalletAdapter(walletHandler, logger)
 	wallet_adapter.InitWalletRoutes(r, walletAdapter, authMddleware)
 
+	amountBasedAuthRepo := persistence.InitAmountBasedAuth(mongoClient, cfg.MongoDBDatabase, "authTier")
+	amountBasedAuthService := amount_based_auth_domain.NewAmountBasedAuthService(amountBasedAuthRepo, ctx)
+	amountBasedAuthApplication := amount_based_auth_app.AmountBasedAuthHandler(amountBasedAuthService)
+	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication)
+	amount_based_auth_handler.InitAmountBasedAuthHandler(r, amountBasedAuthHandler, authMddleware)
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	passwordRuleOutbound := adapter.NewOutboundPasswordRuleInfra(
+		mongoClient,
+		cfg.MongoDBDatabase,
+		[]string{
+			"password_rules",
+			"cps_actions",
+		},
+	)
+	passwordRuleService := password_rule_services.NewPasswordRuleService(passwordRuleOutbound)
+	passwordRuleHandler := password_rule_handler.NewPasswordRuleHTTPHandler(passwordRuleService, logger)
+	password_rule_routes.RegisterPasswordRuleRoutes(r, passwordRuleHandler, authMddleware)
+
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,
 	}
 	////
-	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, syscall.SIGTERM)
 
@@ -267,8 +314,6 @@ func main() {
 	sig := <-quit
 
 	log.Printf("server shutting down with signal: %v\n", sig)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("failed to shutdown gracefully with error %v", err)

@@ -24,6 +24,8 @@ type ServiceRepository interface {
 	GetServiceDetailsByID(ctx context.Context, id string) (ServiceDetails, error)
 	UpdateServiceDetails(ctx context.Context, id string, update ServiceDetails) error
 	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error)
+	UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error
+	ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
 }
 
 type ServiceInterface interface {
@@ -32,6 +34,13 @@ type ServiceInterface interface {
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *Service, makerID string) (string, error)
 	UpdateServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
 	UpdateServiceCap(ctx context.Context, id string, cap Cap) (Service, error)
+
+	UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error
+	ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
+
+	InitiateServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
+	ApproveServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
+	RejectServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
 }
 
 type ServiceStore struct {
@@ -65,6 +74,7 @@ func (s *ServiceStore) UpdateServiceDetailsRequest(ctx context.Context, id strin
 		return "", err
 	}
 
+	//actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	cpsAction := action.CPSAction{
 		ActionCode: actionID,
@@ -149,6 +159,31 @@ func (s *ServiceStore) UpdateServiceCap(ctx context.Context, id string, cap Cap)
 	svc.Cap = cap
 	return svc, s.repository.UpdateOneServiceDetailRequest(ctx, id, svc)
 }
+func (s *ServiceStore) InitiateServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
+	svc, err := s.repository.InitiateServiceFeeUpdate(ctx, cpsAction)
+	if err != nil {
+		var emptyResp UpdateServiceDetailsResponse
+		return emptyResp, err
+	}
+	return svc, nil
+}
+
+func (s *ServiceStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
+	svc, err := s.repository.ApproveServiceFeeUpdate(ctx, cpsAction)
+	if err != nil {
+		var emptyResp UpdateServiceDetailsResponse
+		return emptyResp, err
+	}
+	return svc, nil
+}
+func (s *ServiceStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
+	svc, err := s.repository.RejectServiceFeeUpdate(ctx, cpsAction)
+	if err != nil {
+		var emptyResp UpdateServiceDetailsResponse
+		return emptyResp, err
+	}
+	return svc, nil
+}
 
 func validateService(service Service) error {
 	if service.ServiceCode == "" {
@@ -160,6 +195,66 @@ func validateService(service Service) error {
 	if service.ServiceType == "" {
 		return errors.New("service type cannot be empty")
 	}
+	return nil
+}
+func (s *ServiceStore) UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error {
+	_, err := s.repository.GetOneServiceDetail(ctx, id)
+	if err != nil {
+		s.logger.Errorf("failed to fetch service: %v", err)
+		return errors.New("service not found")
+	}
+
+	if err := s.repository.UpdateCapMinAmount(ctx, id, minAmount); err != nil {
+		s.logger.Errorf("failed to update cap min amount: %v", err)
+		return errors.New("failed to update cap min amount")
+	}
+	return nil
+}
+
+func (s *ServiceStore) ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error {
+	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionID)
+	if err != nil {
+		s.logger.Errorf("failed to fetch CPS action: %v", err)
+		return errors.New("failed to fetch CPS action")
+	}
+
+	if cpsAction.ActionStatus != action.ActionPending {
+		return errors.New("action is not in pending status")
+	}
+	cpsAction.Checker = action.User{
+		UserID:      checkerID,
+		FullName:    "",
+		PhoneNumber: "",
+		Timestamp:   time.Now(),
+	}
+	cpsAction.LastModifiedAt = time.Now()
+	if approve {
+		cpsAction.ActionStatus = action.ActionApproved
+
+		serviceData, ok := cpsAction.CurrentAction.(*Service)
+		if !ok {
+			return errors.New("invalid service data in action")
+		}
+
+		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.Unique_ID, *serviceData); err != nil {
+			s.logger.Errorf("failed to update service details: %v", err)
+			return errors.New("failed to update service details")
+		}
+	} else {
+		cpsAction.ActionStatus = action.ActionRejected
+		cpsAction.LastModifiedAt = time.Now()
+		if rejectionReason != "" {
+			cpsAction.RejectionReason = makeStringPointer(rejectionReason)
+		} else {
+			cpsAction.RejectionReason = makeStringPointer("Rejected by checker")
+		}
+	}
+
+	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {
+		s.logger.Errorf("failed to update CPS action: %v", err)
+		return errors.New("failed to update CPS action")
+	}
+
 	return nil
 }
 

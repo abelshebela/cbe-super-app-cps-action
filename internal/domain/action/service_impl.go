@@ -1,6 +1,10 @@
 package action
 
-import "context"
+import (
+	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
 
 type ServiceImpl interface {
 	GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error)
@@ -14,10 +18,12 @@ type ServiceImpl interface {
 
 type ServiceStore struct {
 	Repository Repository
+	Logger     utils.Logger
 }
 
-func NewService(repo Repository) ServiceImpl {
+func NewService(repo Repository, logger utils.Logger) ServiceImpl {
 	return &ServiceStore{
 		Repository: repo,
+		Logger:     logger,
 	}
 }

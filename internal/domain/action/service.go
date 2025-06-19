@@ -22,10 +22,10 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 		return "", err
 	}
 	service.Enabled = action
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-
+	//actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	a := CPSAction{
-		ActionCode: actionId,
+		ActionCode: actionID,
 		Maker: User{
 			UserID: makerId,
 		},
@@ -43,7 +43,7 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 	if err != nil {
 		return "", err
 	}
-	return actionId, nil
+	return actionID, nil
 }
 
 func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, action_id string, action bool, checker_id string) error {
