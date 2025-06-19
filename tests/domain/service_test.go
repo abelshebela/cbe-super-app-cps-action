@@ -6,16 +6,17 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	mock_repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action"
+	mock_domain_action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action"
 )
 
 func TestGetServicePaginated(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mock_repository.NewMockRepository(ctrl)
+	mockRepo := mock_domain_action.NewMockRepository(ctrl)
+	// logger := utils.NewLogger()
 	serviceStore := action.NewService(mockRepo)
 
 	ctx := context.Background()
@@ -52,8 +53,8 @@ func TestGetServicePaginated(t *testing.T) {
 func TestUpdateServiceFlag(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mock_repository.NewMockRepository(ctrl)
+	mockRepo := mock_domain_action.NewMockRepository(ctrl)
+	// logger := utils.NewLogger()
 	serviceStore := action.NewService(mockRepo)
 
 	ctx := context.Background()
@@ -82,8 +83,8 @@ func TestUpdateServiceFlag(t *testing.T) {
 func TestUpdateServiceFlag_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockRepo := mock_repository.NewMockRepository(ctrl)
+	mockRepo := mock_domain_action.NewMockRepository(ctrl)
+	// logger := utils.NewLogger()
 	serviceStore := action.NewService(mockRepo)
 
 	ctx := context.Background()
