@@ -48,21 +48,21 @@ func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectio
 }
 
 func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames []string) userOutbound.OutboundInfra {
-	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[0])
-	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
-	MongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[5])
-	MongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
-	MongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, "portal_cards")
-	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
+    mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[0])
+    mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
+    mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
+    mongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[3])
+    mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collectionNames[4])
+    mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, collectionNames[5])
 
-	return &outboundStore{
-		MongoDalCPSUser:           mongoDalCPSUser,
-		MongoDalCPSAction:         mongoDalCPSAction,
-		MongoDalBPSUser:           mongoDalBPSUser,
-		MongoDalAccountValidation: MongoDalAccountValidation,
-		MongoDalServiceDetails:    MongoDalServiceDetails,
-		MongoDalPortalCard:        MongoDalPortalCard,
-	}
+    return &outboundStore{
+        MongoDalCPSUser:           mongoDalCPSUser,
+        MongoDalCPSAction:         mongoDalCPSAction,
+        MongoDalBPSUser:           mongoDalBPSUser,
+        MongoDalAccountValidation: mongoDalAccountValidation,
+        MongoDalServiceDetails:    mongoDalServiceDetails,
+        MongoDalPortalCard:        mongoDalPortalCard,
+    }
 }
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[0])

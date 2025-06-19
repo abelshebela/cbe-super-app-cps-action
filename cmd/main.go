@@ -254,13 +254,20 @@ func main() {
 	cpsUserPersistence := cpsusermaker_persistence.NewCPSUserPersistence(
 		mongoClient,
 		cfg.MongoDBDatabase,
-		collectionNames,
+		[]string{
+			"cps_users",        
+			"cps_actions",     
+			"BPSUsers",         
+			"CPSServices",     
+			"portal_cards",     
+			"validation_rules", 
+		},
 	)
 	cpsUserService := cpsusermaker_service.NewCPSUserService(cpsUserPersistence)
 	cpsUserHandler := cpsusermaker_handler.InitCPSUserMakerHandler(cpsUserService, logger)
-
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
+	
 	bankPersistence := bank.InitBank(mongoClient, cfg.MongoDBDatabase, []string{"banks", "cps_actions"}, logger)
 	bankDomain := bank_domain.InitBankDomain(bankPersistence, minioClient, "banks", logger)
 	bankHandler := bank_handler.InitBankHanlder(bankDomain, logger)
