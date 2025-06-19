@@ -1446,7 +1446,6 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
     data, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
     if err != nil {
         if err == mongo.ErrNoDocuments {
-            // No pending update action exists for this maker, return nil, nil
             return nil, nil
         }
         return nil, err

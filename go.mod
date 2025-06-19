@@ -8,15 +8,14 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang/mock v1.6.0
-	github.com/rs/zerolog v1.34.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/minio/minio-go/v7 v7.0.92
+	github.com/rs/zerolog v1.34.0
 	github.com/segmentio/kafka-go v0.4.48
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.19
-	go.mongodb.org/mongo-driver v1.17.4
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
 )
