@@ -6,6 +6,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 )
 
@@ -15,9 +16,9 @@ type ApplicationAbstracts interface {
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *dto.UpdateServiceDetailsRequest) (*dto.UpdateServiceDetailsResponse, error)
 	UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error
 
-	initiateServiceFeeUpdate(ctx context.Context) (*dto.UpdateServiceDetailsResponse, error)
-	ApproveServiceFeeUpdate(ctx context.Context) (*dto.UpdateServiceDetailsResponse, error)
-	RejectServiceFeeUpdate(ctx context.Context) (*dto.UpdateServiceDetailsResponse, error)
+	InitiateServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
+	ApproveServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
+	RejectServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
 }
 
 type ApplicationStore struct {
@@ -128,4 +129,88 @@ func (a *ApplicationStore) UpdateServiceDetailsRequest(ctx context.Context, id s
 
 func (a *ApplicationStore) UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error {
 	return a.service.UpdateServiceDetails(ctx, req.ActionID, req.Approve, req.CheckerID, req.RejectionReason)
+}
+
+func (a *ApplicationStore) InitiateServiceFeeUpdate(ctx context.Context, req *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error) {
+	//validation to be implimented
+
+	cpsReq := service.CPSAction{
+		ID:         req.ID,
+		ActionCode: req.ActionCode,
+		MakerUser: service.User{
+			UserCode:    req.MakerUser.UserCode,
+			FullName:    req.MakerUser.FullName,
+			PhoneNumber: req.MakerUser.PhoneNumber,
+		},
+		Department: req.Department,
+		ActionData: service.ActionData{
+			Tier: req.ActionData,
+		},
+	}
+	cpsReq.ActionCode = utils.RandomGenerator(20)
+
+	res, err := a.service.InitiateServiceFeeUpdate(ctx, cpsReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.UpdateServiceDetailsResponse{
+		ActionID: res.ActionID,
+	}, nil
+}
+
+func (a *ApplicationStore) ApproveServiceFeeUpdate(ctx context.Context, req *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error) {
+	//validation going to impliment
+	cpsReq := service.CPSAction{
+		ID:         req.ID,
+		ActionCode: req.ActionCode,
+		MakerUser: service.User{
+			UserCode:    req.MakerUser.UserCode,
+			FullName:    req.MakerUser.FullName,
+			PhoneNumber: req.MakerUser.PhoneNumber,
+		},
+		Department: req.Department,
+		ActionData: service.ActionData{
+			Tier: req.ActionData,
+		},
+	}
+	cpsReq.ActionCode = utils.RandomGenerator(20)
+
+	res, err := a.service.InitiateServiceFeeUpdate(ctx, cpsReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.UpdateServiceDetailsResponse{
+		ActionID: res.ActionID,
+	}, nil
+}
+
+func (a *ApplicationStore) RejectServiceFeeUpdate(ctx context.Context, req *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error) {
+	//validation going to impliment
+	cpsReq := service.CPSAction{
+		ID:         req.ID,
+		ActionCode: req.ActionCode,
+		MakerUser: service.User{
+			UserCode:    req.MakerUser.UserCode,
+			FullName:    req.MakerUser.FullName,
+			PhoneNumber: req.MakerUser.PhoneNumber,
+		},
+		RejectedReason: req.RejectedReason,
+		Department:     req.Department,
+		ActionData: service.ActionData{
+			Tier: req.ActionData,
+		},
+	}
+	cpsReq.ActionCode = utils.RandomGenerator(20)
+
+	res, err := a.service.InitiateServiceFeeUpdate(ctx, cpsReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.UpdateServiceDetailsResponse{
+		ActionID: res.ActionID,
+	}, nil
+
 }

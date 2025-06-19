@@ -11,8 +11,14 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
+
+	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 type HttpStore struct {
@@ -166,6 +172,7 @@ func (h *HttpStore) ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.R
 	utils.WriteSuccessResponse(w, response, "success")
 	//&update.MakerID = claims.UserID
 }
+
 func (h *HttpStore) ServiceDetailsSingleCapMaker(w http.ResponseWriter, r *http.Request) {
 	var req dto.SingleCapServiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -244,4 +251,142 @@ func (h *HttpStore) TotalTransferCapMaker(w http.ResponseWriter, r *http.Request
 	}
 	response := res.ActionID
 	utils.WriteSuccessResponse(w, response, "success")
+}
+
+func (h *HttpStore) InitiateServiceFeeUpdate(w http.ResponseWriter, r *http.Request) {
+	var req dto.ServiceFeeMakerRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("failed to bind action data", err)
+		err = fmt.Errorf("failed to bind error data %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	var cpsAction dto.CPSAction
+
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	cpsAction.MakerUser = dto.User{
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
+	}
+	cpsAction.ActionData = req.Tries
+	cpsAction.Department = department
+
+	ctx := r.Context()
+	updateFeeResponse, err := h.Application.InitiateServiceFeeUpdate(ctx, &cpsAction)
+
+	if err != nil {
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	res := common.Response[*dto.UpdateServiceDetailsResponse]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           updateFeeResponse,
+	}
+
+	res.SendJSON()
+
+}
+func (h *HttpStore) ApproveServiceFeeUpdate(w http.ResponseWriter, r *http.Request) {
+	var req dto.ActionData
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("failed to bind action data", err)
+		err = fmt.Errorf("failed to bind error data %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	var cpsAction dto.CPSAction
+
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	cpsAction.CheckerUser = dto.User{
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
+	}
+
+	cpsAction.ActionData = req.Tier
+	cpsAction.Department = department
+
+	ctx := r.Context()
+	updateFeeResponse, err := h.Application.ApproveServiceFeeUpdate(ctx, &cpsAction)
+
+	if err != nil {
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	res := common.Response[*dto.UpdateServiceDetailsResponse]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           updateFeeResponse,
+	}
+
+	res.SendJSON()
+}
+
+func (h *HttpStore) RejectServiceFeeUpdate(w http.ResponseWriter, r *http.Request) {
+	var req dto.RejectCPSAction
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("failed to bind action data", err)
+		err = fmt.Errorf("failed to bind error data %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+
+	}
+
+	var cpsAction dto.CPSAction
+
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	cpsAction.CheckerUser = dto.User{
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
+	}
+
+	cpsAction.ActionData = req.Tier
+	cpsAction.Department = department
+
+	ctx := r.Context()
+	authorizeFayda, err := h.Application.ApproveServiceFeeUpdate(ctx, &cpsAction)
+	if err != nil {
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	res := common.Response[*dto.UpdateServiceDetailsResponse]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           authorizeFayda,
+	}
+
+	res.SendJSON()
+
 }

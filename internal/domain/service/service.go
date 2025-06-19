@@ -32,6 +32,10 @@ type ServiceInterface interface {
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *Service, makerID string) (string, error)
 	UpdateServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
 	UpdateServiceCap(ctx context.Context, id string, cap Cap) (Service, error)
+
+	InitiateServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
+	ApproveServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
+	RejectServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
 }
 
 type ServiceStore struct {
@@ -148,6 +152,31 @@ func (s *ServiceStore) UpdateServiceCap(ctx context.Context, id string, cap Cap)
 	}
 	svc.Cap = cap
 	return svc, s.repository.UpdateOneServiceDetail(ctx, id, svc)
+}
+func (s *ServiceStore) InitiateServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
+	svc, err := s.repository.InitiateServiceFeeUpdate(ctx, cpsAction)
+	if err != nil {
+		var emptyResp UpdateServiceDetailsResponse
+		return emptyResp, err
+	}
+	return svc, nil
+}
+
+func (s *ServiceStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
+	svc, err := s.repository.ApproveServiceFeeUpdate(ctx, cpsAction)
+	if err != nil {
+		var emptyResp UpdateServiceDetailsResponse
+		return emptyResp, err
+	}
+	return svc, nil
+}
+func (s *ServiceStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
+	svc, err := s.repository.RejectServiceFeeUpdate(ctx, cpsAction)
+	if err != nil {
+		var emptyResp UpdateServiceDetailsResponse
+		return emptyResp, err
+	}
+	return svc, nil
 }
 
 func validateService(service Service) error {

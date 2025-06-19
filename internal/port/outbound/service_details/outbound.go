@@ -1,4 +1,3 @@
-
 package outbound
 
 import (
@@ -8,10 +7,14 @@ import (
 )
 
 type OutboundServiceDetailInfra interface {
-
-GetAllServiceDetails(ctx context.Context) ([]service.Service, error)
-GetOneServiceDetail(ctx context.Context, id string) (service.Service, error)
-UpdateOneServiceDetailRequest(ctx context.Context, id string, update any) error
-UpdateOneServiceDetailApprove(ctx context.Context, id string, update any) error
+	GetAllServiceDetails(ctx context.Context) ([]service.Service, error)
+	GetOneServiceDetail(ctx context.Context, id string) (service.Service, error)
+	UpdateOneServiceDetailRequest(ctx context.Context, id string, update any) error
+	UpdateOneServiceDetailApprove(ctx context.Context, id string, update any) error
 }
 
+type ServiceFee interface {
+	InitiateServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error)
+	ApproveServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error)
+	RejectServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error)
+}
