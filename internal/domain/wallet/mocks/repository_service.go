@@ -58,6 +58,20 @@ func (mr *MockRepositoryMockRecorder) Authorize(ctx, req any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockRepository)(nil).Authorize), ctx, req)
 }
 
+// CPSActionExists mocks base method.
+func (m *MockRepository) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CPSActionExists", ctx, cpsReq)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CPSActionExists indicates an expected call of CPSActionExists.
+func (mr *MockRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CPSActionExists", reflect.TypeOf((*MockRepository)(nil).CPSActionExists), ctx, cpsReq)
+}
+
 // CreateWallet mocks base method.
 func (m *MockRepository) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
 	m.ctrl.T.Helper()

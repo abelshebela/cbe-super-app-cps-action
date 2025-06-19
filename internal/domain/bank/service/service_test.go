@@ -127,6 +127,9 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
 					CreateBank(gomock.Any(), gomock.Any()).
 					Return(&model.CpsAction{
 						ID:              "CPS001",
@@ -157,6 +160,9 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 			name: "error from repository",
 			req:  testCPSAction,
 			mock: func() {
+				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
 				mockRepo.EXPECT().
 					CreateBank(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("internal server error"))
@@ -395,6 +401,9 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
 					UpdateBank(gomock.Any(), "BANK001", testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS002",
@@ -426,6 +435,9 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 			id:   "BANK001",
 			req:  testCPSAction,
 			mock: func() {
+				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
 				mockRepo.EXPECT().
 					UpdateBank(gomock.Any(), "BANK001", testCPSAction).
 					Return(nil, errors.New("not found"))
@@ -491,6 +503,9 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 			req:  testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
 					DeleteBank(gomock.Any(), "BANK001", testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS003",
@@ -522,6 +537,9 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 			id:   "BANK001",
 			req:  testCPSAction,
 			mock: func() {
+				mockRepo.EXPECT().
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
 				mockRepo.EXPECT().
 					DeleteBank(gomock.Any(), "BANK001", testCPSAction).
 					Return(nil, errors.New("not found"))
@@ -697,16 +715,16 @@ func TestBankDomain_Reject(t *testing.T) {
 				mockRepo.EXPECT().
 					Reject(gomock.Any(), testRejectReq).
 					Return(&model.CpsAction{
-						ID:             "CPS001",
-						ActionCode:     "ACT001",
-						MakerUser:      testMakerUser,
-						CheckerUser:    testCheckerUser,
-						Department:     "IT",
-						Status:         model.ActionRejected,
-						RequestAction:  model.RequestCreateBank,
-						ActionType:     model.ActionCreate,
-						ActionData:     nil,
-						RejectedReason: "Invalid bank information Invalid bank information Invalid bank information Invalid bank information",
+						ID:                "CPS001",
+						ActionCode:        "ACT001",
+						MakerUser:         testMakerUser,
+						CheckerUser:       testCheckerUser,
+						Department:        "IT",
+						Status:            model.ActionRejected,
+						RequestAction:     model.RequestCreateBank,
+						ActionType:        model.ActionCreate,
+						ActionData:        nil,
+						RejectedReason:    "Invalid bank information Invalid bank information Invalid bank information Invalid bank information",
 						MakerActionTime:   testTime,
 						CheckerActionTime: testTime,
 					}, nil)
@@ -755,7 +773,7 @@ func TestBankDomain_Reject(t *testing.T) {
 	}
 }
 
-func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
+func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -776,7 +794,18 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 		MakerUser:       testUser,
 		Department:      "IT",
 		Status:          model.ActionPending,
-		RequestAction:   model.RequestEnableWallet,
+		RequestAction:   model.RequestEnableBank,
+		ActionType:      model.ActionUpdate,
+		ActionData:      nil,
+		MakerActionTime: testTime,
+	}
+
+	testDisableCPSAction := model.CreateCPSAction{
+		ActionCode:      "ACT004",
+		MakerUser:       testUser,
+		Department:      "IT",
+		Status:          model.ActionPending,
+		RequestAction:   model.RequestDisableBank,
 		ActionType:      model.ActionUpdate,
 		ActionData:      nil,
 		MakerActionTime: testTime,
@@ -794,18 +823,21 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 		{
 			name:          "enable wallet success",
 			id:            "WALLET001",
-			requestAction: model.RequestEnableWallet,
+			requestAction: model.RequestEnableBank,
 			cpsReq:        testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
+					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
 						MakerUser:       testUser,
 						Department:      "IT",
 						Status:          model.ActionPending,
-						RequestAction:   model.RequestEnableWallet,
+						RequestAction:   model.RequestEnableBank,
 						ActionType:      model.ActionUpdate,
 						ActionData:      nil,
 						MakerActionTime: testTime,
@@ -817,7 +849,7 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 				MakerUser:       testUser,
 				Department:      "IT",
 				Status:          model.ActionPending,
-				RequestAction:   model.RequestEnableWallet,
+				RequestAction:   model.RequestEnableBank,
 				ActionType:      model.ActionUpdate,
 				ActionData:      nil,
 				MakerActionTime: testTime,
@@ -827,18 +859,21 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 		{
 			name:          "disable wallet success",
 			id:            "WALLET001",
-			requestAction: model.RequestDisableWallet,
-			cpsReq:        testCPSAction,
+			requestAction: model.RequestDisableBank,
+			cpsReq:        testDisableCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableWallet, testCPSAction).
+					CPSActionExists(gomock.Any(), testDisableCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
+					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableBank, testDisableCPSAction).
 					Return(&model.CpsAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
 						MakerUser:       testUser,
 						Department:      "IT",
 						Status:          model.ActionPending,
-						RequestAction:   model.RequestDisableWallet,
+						RequestAction:   model.RequestDisableBank,
 						ActionType:      model.ActionUpdate,
 						ActionData:      nil,
 						MakerActionTime: testTime,
@@ -850,7 +885,7 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 				MakerUser:       testUser,
 				Department:      "IT",
 				Status:          model.ActionPending,
-				RequestAction:   model.RequestDisableWallet,
+				RequestAction:   model.RequestDisableBank,
 				ActionType:      model.ActionUpdate,
 				ActionData:      nil,
 				MakerActionTime: testTime,
@@ -860,11 +895,14 @@ func TestBankDomain_EnableOrDisableWallet(t *testing.T) {
 		{
 			name:          "error from databas",
 			id:            "WALLET001",
-			requestAction: model.RequestEnableWallet,
+			requestAction: model.RequestEnableBank,
 			cpsReq:        testCPSAction,
 			mock: func() {
 				mockRepo.EXPECT().
-					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableWallet, testCPSAction).
+					CPSActionExists(gomock.Any(), testCPSAction).
+					Return(nil)
+				mockRepo.EXPECT().
+					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
 					Return(nil, errors.New("internal server eror"))
 			},
 			want:    nil,
