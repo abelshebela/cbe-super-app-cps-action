@@ -29,52 +29,58 @@ func NewPasswordRuleHTTPHandler(service services.PasswordRuleService, logger uti
 }
 
 func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r *http.Request) {
-	var req passwordrule.RequestPasswordRuleUpdateDTO
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to bind password rule update data: %v", err)
-		err = fmt.Errorf("failed to bind error data %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid request",
-		})
-		middleware.ErrorHandler(w, err)
-		return
-	}
+    var req passwordrule.RequestPasswordRuleUpdateDTO
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        h.logger.Errorf("failed to bind password rule update data: %v", err)
+        resp := common.Response[any]{
+            ResponseWriter: w,
+            Status:         http.StatusBadRequest,
+            Data:           map[string]string{"message": "invalid request"},
+        }
+        resp.SendJSON()
+        return
+    }
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
 
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
-		err := fmt.Errorf("user info missing in context %w", constant.ErrorDefinition{
-			Code:    http.StatusUnauthorized,
-			Message: "user info missing in context",
-		})
-		middleware.ErrorHandler(w, err)
-		return
-	}
+    if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
+        resp := common.Response[any]{
+            ResponseWriter: w,
+            Status:         http.StatusUnauthorized,
+            Data:           map[string]string{"message": "user info missing in context"},
+        }
+        resp.SendJSON()
+        return
+    }
 
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-	}
+    maker := action.User{
+        UserID:      userID,
+        FullName:    fullName,
+        PhoneNumber: phoneNumber,
+    }
 
-	ctx := r.Context()
-	actionID, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker)
-	if err != nil {
-		h.logger.Errorf("RequestPasswordRuleUpdate failed: %v", err)
-		middleware.ErrorHandler(w, err)
-		return
-	}
+    ctx := r.Context()
+    _, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker)
+    if err != nil {
+        h.logger.Errorf("RequestPasswordRuleUpdate failed: %v", err)
+        resp := common.Response[any]{
+            ResponseWriter: w,
+            Status:         http.StatusInternalServerError,
+            Data:           map[string]string{"message": err.Error()},
+        }
+        resp.SendJSON()
+        return
+    }
 
-	res := common.Response[string]{
-		ResponseWriter: w,
-		Status:         http.StatusCreated,
-		Data:           actionID,
-	}
-	res.SendJSON()
+    resp := common.Response[any]{
+        ResponseWriter: w,
+        Status:         http.StatusCreated,
+        Data:           map[string]string{"message": "Action created successfully"},
+    }
+    resp.SendJSON()
 }
-
 func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.ResponseWriter, r *http.Request) {
 	var req passwordrule.ApproveOrRejectPasswordRuleActionDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {

@@ -9,7 +9,9 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	e "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
 	event "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
 )
 
@@ -55,7 +57,7 @@ func (mr *MockRepositoryMockRecorder) CreateCpsAction(ctx, Action interface{}) *
 func (m *MockRepository) CreateEvent(ctx context.Context, event event.Event) (event.Event, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateEvent", ctx, event)
-	ret0, _ := ret[0].(event.Event)
+	ret0, _ := ret[0].(e.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
