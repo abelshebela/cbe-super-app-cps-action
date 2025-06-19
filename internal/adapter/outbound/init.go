@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -885,13 +888,33 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	if strings.TrimSpace(updated.UserCode) == "" {
 		return errors.New("user_code is required")
 	}
+	if strings.TrimSpace(updated.UserCode) == "" {
+		return errors.New("user_code is required")
+	}
 
 	filter := bson.M{"user_code": updated.UserCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
 		return errors.New("user not found")
 	}
+	filter := bson.M{"user_code": updated.UserCode}
+	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	if err != nil {
+		return errors.New("user not found")
+	}
 
+	var department string
+	if len(modelUser.Department) > 0 {
+		department = modelUser.Department.Hex()
+	}
+	var permissionCategory []string
+	for _, oid := range modelUser.PermissionCategory {
+		permissionCategory = append(permissionCategory, oid.Hex())
+	}
+	var permissionGroup []string
+	for _, oid := range modelUser.PermissionGroup {
+		permissionGroup = append(permissionGroup, oid.Hex())
+	}
 	var department string
 	if len(modelUser.Department) > 0 {
 		department = modelUser.Department.Hex()
@@ -915,10 +938,40 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 		PermissionCategory: permissionCategory,
 		PermissionGroup:    permissionGroup,
 	}
+	prevUser := domain.CPSUser{
+		UserCode:           modelUser.UserCode,
+		UserName:           modelUser.UserName,
+		FullName:           modelUser.FullName,
+		PhoneNumber:        modelUser.PhoneNumber,
+		Role:               modelUser.Role,
+		Department:         department,
+		PermissionCategory: permissionCategory,
+		PermissionGroup:    permissionGroup,
+	}
 
 	prevActionJSON, _ := json.Marshal(prevUser)
 	currActionJSON, _ := json.Marshal(updated)
+	prevActionJSON, _ := json.Marshal(prevUser)
+	currActionJSON, _ := json.Marshal(updated)
 
+	updateDoc := bson.M{
+		"$set": bson.M{
+			"user_code":           updated.UserCode,
+			"user_name":           updated.UserName,
+			"full_name":           updated.FullName,
+			"phone_number":        updated.PhoneNumber,
+			"role":                updated.Role,
+			"department":          updated.Department,
+			"permission_category": updated.PermissionCategory,
+			"permission_group":    updated.PermissionGroup,
+			"last_modified":       time.Now(),
+		},
+	}
+	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
+	if err != nil {
+		fmt.Printf("Failed to update user: %v\n", err)
+		return err
+	}
 	updateDoc := bson.M{
 		"$set": bson.M{
 			"user_code":           updated.UserCode,
@@ -962,7 +1015,32 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 		fmt.Printf("Failed to log update action: %v\n", err)
 		return err
 	}
+	actionCode := utils.RandomGenerator(24)
+	departmentCtx, _ := ctx.Value("department").(string)
+	cpsAction := model.CPSAction{
+		ActionCode: actionCode,
+		MakerUser: model.User{
+			UserCode:    maker.UserID,
+			FullName:    maker.FullName,
+			PhoneNumber: maker.PhoneNumber,
+		},
+		Unique_ID:      updated.UserCode,
+		Department:     departmentCtx,
+		ActionStatus:   model.ActionPending,
+		ActionType:     model.ActionUpdate,
+		RequestAction:  model.RequestUser,
+		PreviosAction:  prevActionJSON,
+		CurrentAction:  currActionJSON,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+	}
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		fmt.Printf("Failed to log update action: %v\n", err)
+		return err
+	}
 
+	return nil
 	return nil
 }
 func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {
@@ -1014,9 +1092,43 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode st
 		}
 	}
 	return actions, nil
+	department, _ := ctx.Value("department").(string)
+	filter := bson.M{
+		"action_status": model.ActionPending,
+		"department":    department,
+	}
+	if actionCode != "" {
+		filter["action_code"] = actionCode
+	}
+	fmt.Printf("Fetching pending actions with filter: %+v\n", filter)
+	actionPtrs, err := o.MongoDalCPSAction.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var actions []domain.CPSAction
+	for _, ptr := range actionPtrs {
+		if ptr != nil {
+			actions = append(actions, domain.CPSAction{
+				ID:             ptr.ID.Hex(),
+				ActionCode:     ptr.ActionCode,
+				Department:     ptr.Department,
+				ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
+				ActionType:     domain.ActionType(ptr.ActionType),
+				RequestAction:  domain.RequestAction(ptr.RequestAction),
+				CreatedAt:      ptr.CreatedAt,
+				LastModifiedAt: ptr.LastModifiedAt,
+			})
+		}
+	}
+	return actions, nil
 }
 
 func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*domain.CPSUser, error) {
+	filter := bson.M{"user_code": userCode}
+	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
 	filter := bson.M{"user_code": userCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -1036,7 +1148,26 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	for _, oid := range modelUser.PermissionGroup {
 		permissionGroup = append(permissionGroup, oid.Hex())
 	}
+	var permissionCategory []string
+	for _, oid := range modelUser.PermissionCategory {
+		permissionCategory = append(permissionCategory, oid.Hex())
+	}
+	var permissionGroup []string
+	for _, oid := range modelUser.PermissionGroup {
+		permissionGroup = append(permissionGroup, oid.Hex())
+	}
 
+	user := &domain.CPSUser{
+		UserCode:           modelUser.UserCode,
+		UserName:           modelUser.UserName,
+		FullName:           modelUser.FullName,
+		PhoneNumber:        modelUser.PhoneNumber,
+		Role:               modelUser.Role,
+		Department:         department,
+		PermissionCategory: permissionCategory,
+		PermissionGroup:    permissionGroup,
+	}
+	return user, nil
 	user := &domain.CPSUser{
 		UserCode:           modelUser.UserCode,
 		UserName:           modelUser.UserName,
@@ -1241,6 +1372,178 @@ func convertToModelGLEntry(g serviceDomain.GLEntry) model.GLEntry {
 	}
 }
 
+func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	filter := bson.M{
+		"maker_user.phone_number": req.MakerUser.PhoneNumber,
+		"status":                  "PENDING",
+		"department":              req.Department,
+	}
+
+	projection := bson.M{}
+
+	FindAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		// o.logger.Errorf("failed to get cps Action", err)
+		err = fmt.Errorf("failed to get get cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+
+	if FindAction != nil {
+		// o.logger.Infof("pending cps action present", req.MakerUser.FullName, req.MakerUser.UserCode, req.Department)
+		err = fmt.Errorf("failed to get cps action  %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "pending cps action present",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+
+	serviceFilter := bson.M{
+		"action_code": req.ActionCode,
+	}
+
+	serviceProjection := bson.M{}
+
+	// var serviceFee *service.Service
+	serviceFee, err := o.MongoDalServices.FindOne(ctx, serviceFilter, serviceProjection)
+	if err != nil {
+		// s.logger.Errorf("failed to get service", err)
+		err = fmt.Errorf("failed to get service %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	if serviceFee == nil {
+		// s.logger.Errorf("service not found")
+		err = fmt.Errorf("service not found: %w", constant.ErrorDefinition{
+			Code:    http.StatusNotFound,
+			Message: "service not found",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+
+	// Prepare CPSAction for insert (not service.Service)
+	cpsAction := model.CPSAction{
+		ActionCode: req.ActionCode,
+		MakerUser: model.User{
+			UserCode:    req.MakerUser.UserCode,
+			FullName:    req.MakerUser.FullName,
+			PhoneNumber: req.MakerUser.PhoneNumber,
+		},
+		CheckerUser: model.User{
+			UserCode:    req.CheckerUser.UserCode,
+			FullName:    req.CheckerUser.FullName,
+			PhoneNumber: req.CheckerUser.PhoneNumber,
+		},
+		Unique_ID:     req.MakerUser.UserCode,
+		Department:    req.Department,
+		ActionStatus:  model.ActionStatus("PENDING"),
+		ActionType:    model.ActionType("UPDATE_SERVICE_FEE"),
+		RequestAction: model.RequestAction("UPDATE"),
+		PreviosAction: func() json.RawMessage {
+			b, _ := json.Marshal(map[string]any{
+				"tiers": req.PreviousData,
+			})
+			return b
+		}(),
+		CurrentAction: func() json.RawMessage {
+			b, _ := json.Marshal(map[string]any{
+				"is_account_blocked": true,
+			})
+			return b
+		}(),
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+	}
+
+	req.MakerActionTime = time.Now()
+	cpsActionResult, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		// s.logger.Errorf("failed to create cps action", err)
+		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+
+	return service.UpdateServiceDetailsResponse{
+		ActionID: cpsActionResult.ActionCode,
+	}, nil
+
+}
+
+func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	filter := bson.M{
+		"action_code": cpsAction.ActionCode,
+		"status":      "PENDING",
+	}
+
+	projection := bson.M{}
+	cpsActionPtr, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	if err != nil {
+		// s.logger.Errorf("failed to find cpsActon", err)
+		err = fmt.Errorf("failed to findCpsAction %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	// Apply the update to the actual service
+	serviceFilter := bson.M{
+		"action_code": cpsActionPtr.ActionCode,
+	}
+	serviceUpdate := bson.M{
+		"set": cpsActionPtr.CurrentAction,
+	}
+	_, err = o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+	if err != nil {
+		// o.logger.Errorf("failed to update service fee", err)
+		err = fmt.Errorf("failed to update service fee %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	return service.UpdateServiceDetailsResponse{
+		ActionID: cpsActionPtr.ActionCode,
+	}, nil
+}
+
+func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	filter := bson.M{
+		"action_code": cpsAction.ActionCode,
+		"status":      "PENDING",
+	}
+
+	update := bson.M{
+		"checker_user": bson.M{
+			"full_name":    cpsAction.CheckerUser.FullName,
+			"phone_number": cpsAction.CheckerUser.PhoneNumber,
+			"user_code":    cpsAction.CheckerUser.UserCode,
+		},
+		"status":                 "REJECTED",
+		"rejected_action_reason": cpsAction.RejectedReason,
+		"checker_action_time":    time.Now(),
+	}
+
+	_, err := o.MongoDalServices.UpdateOne(ctx, filter, update)
+	if err != nil {
+		// s.logger.Errorf("failed to reject service fee update", err)
+		err = fmt.Errorf("failed to reject service fee update %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	return service.UpdateServiceDetailsResponse{
+		ActionID: cpsAction.ActionCode,
+	}, nil
+}
+
 func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id string, update serviceDomain.Service) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -1274,54 +1577,54 @@ func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id st
 	return err
 }
 func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error {
-    objID, err := bson.ObjectIDFromHex(id)
-    if err != nil {
-        return err
-    }
-    filter := map[string]interface{}{"_id": objID}
-    update := map[string]interface{}{
-        "$set": map[string]interface{}{
-            "cap.min_amount":   minAmount,
-            "lastModifiedAt":   time.Now(),
-        },
-    }
-    _, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
-    return err
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := map[string]interface{}{"_id": objID}
+	update := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"cap.min_amount": minAmount,
+			"lastModifiedAt": time.Now(),
+		},
+	}
+	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
+	return err
 }
 
 func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error {
-    action, err := o.FetchCpsActionById(ctx, actionID)
-    if err != nil {
-        return err
-    }
+	action, err := o.FetchCpsActionById(ctx, actionID)
+	if err != nil {
+		return err
+	}
 
-    if action.ActionStatus != domain.ActionPending {
-        return errors.New("action is not in pending status")
-    }
+	if action.ActionStatus != domain.ActionPending {
+		return errors.New("action is not in pending status")
+	}
 
-    action.Checker.UserID = checkerID
-    action.Checker.Timestamp = time.Now()
-    action.LastModifiedAt = time.Now()
+	action.Checker.UserID = checkerID
+	action.Checker.Timestamp = time.Now()
+	action.LastModifiedAt = time.Now()
 
-    if approve {
-        action.ActionStatus = domain.ActionApproved
+	if approve {
+		action.ActionStatus = domain.ActionApproved
 
-        serviceData, ok := action.CurrentAction.(*serviceDomain.Service)
-        if !ok {
-            return errors.New("invalid service data in action")
-        }
-        if err := o.UpdateOneServiceDetail(ctx, action.Unique_ID, *serviceData); err != nil {
-            return err
-        }
-    } else {
-        action.ActionStatus = domain.ActionRejected
-        if rejectionReason != "" {
-            action.RejectionReason = &rejectionReason
-        } else {
-            reason := "Rejected by checker"
-            action.RejectionReason = &reason
-        }
-    }
+		serviceData, ok := action.CurrentAction.(*serviceDomain.Service)
+		if !ok {
+			return errors.New("invalid service data in action")
+		}
+		if err := o.UpdateOneServiceDetail(ctx, action.Unique_ID, *serviceData); err != nil {
+			return err
+		}
+	} else {
+		action.ActionStatus = domain.ActionRejected
+		if rejectionReason != "" {
+			action.RejectionReason = &rejectionReason
+		} else {
+			reason := "Rejected by checker"
+			action.RejectionReason = &reason
+		}
+	}
 
-    return o.UpdateCpsAction(ctx, action)
+	return o.UpdateCpsAction(ctx, action)
 }
