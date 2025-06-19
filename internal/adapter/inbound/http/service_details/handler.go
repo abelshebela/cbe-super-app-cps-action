@@ -131,7 +131,35 @@ func (h *HttpStore) UpdateServiceDetailsChecker(w http.ResponseWriter, r *http.R
 	}
 	utils.WriteSuccessResponse(w, nil, "Update request "+action+" successfully")
 }
+func (h *HttpStore) ServiceFeeMaker(w http.ResponseWriter, r *http.Request) {
 
+	var request dto.ServiceFeeMakerRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		h.handleError(w, fmt.Errorf("invalid request body"))
+		return
+	}
+
+	update, err := h.Application.GetServiceDetailsByID(r.Context(), request.ServiceID)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	update.Tiers = request.Tries
+
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		h.handleError(w, fmt.Errorf("unauthorized"))
+		return
+	}
+
+	response, err := h.Application.ServiceFeeMaker(r.Context())
+
+}
+
+func (h *HttpStore) ServiceFeeApprove(w http.ResponseWriter, r *http.Request) {}
+func (h *HttpStore) ServiceFeeReject(w http.ResponseWriter, r *http.Request)  {}
 func (h *HttpStore) ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.Request) {
 	var req dto.DailyCapServiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

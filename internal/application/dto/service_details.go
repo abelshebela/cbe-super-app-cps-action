@@ -79,6 +79,17 @@ type DailyCapServiceRequest struct {
 	DailyCap  uint64 `json:"daily_cap"`
 }
 
+type Tier struct {
+	ID        string
+	Min       uint64
+	Max       uint64
+	FeeAmount uint64
+}
+type ServiceFeeMakerRequest struct {
+	ServiceID string `json:"service_id"`
+	Tries     []service.Tier
+}
+
 type TotalTransferCapRequest struct {
 	ServiceId string `json:"service_id"`
 	TotalCap  uint64 `json:"total_cap"`

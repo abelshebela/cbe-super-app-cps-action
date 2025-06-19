@@ -15,12 +15,6 @@ type ApplicationAbstracts interface {
 	GetServiceDetailsByID(ctx context.Context, id string) (*dto.ServiceDetailsResponse, error)
 	UpdateServiceDetailsRequest(ctx context.Context, id string, update *dto.UpdateServiceDetailsRequest) (*dto.UpdateServiceDetailsResponse, error)
 	UpdateServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error
-	UpdateServiceCap(ctx context.Context, id string, cap *service.Cap) (*dto.ServiceDetailsResponse, error) // <-- FIXED
-	ApproveServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error                 // <-- Add this
-
-	InitiateServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
-	ApproveServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
-	RejectServiceFeeUpdate(ctx context.Context, cpsAction *dto.CPSAction) (*dto.UpdateServiceDetailsResponse, error)
 }
 
 type ApplicationStore struct {
