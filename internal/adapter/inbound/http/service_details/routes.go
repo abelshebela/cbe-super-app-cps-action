@@ -75,24 +75,78 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 				middleware.AccessControl([]string{"MAKER"}),
 			},
 		},
-		 {
-            Method:  http.MethodPost,
-            Path:    "/api/v1/cbesuperapp/cps_config/update_min_cap",
-            Handler: handler.UpdateCapMinAmountHandler,
-            Middlewares: []func(next http.Handler) http.Handler{
-                middleware.AuthenticateToken,
-                middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
-            },
-        },
-        {
-            Method:  http.MethodPost,
-            Path:    "/api/v1/cbesuperapp/cps_config/approve_service_details",
-            Handler: handler.ApproveServiceDetailsHandler,
-            Middlewares: []func(next http.Handler) http.Handler{
-                middleware.AuthenticateToken,
-                middleware.AccessControl([]string{"CHECKER"}),
-            },
-        },
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_initiate",
+		// 	Handler: handler.ServiceFeeMaker,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		middleware.AuthenticateToken,
+		// 		middleware.AccessControl([]string{"MAKER"}),
+		// 	},
+		// },
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_Approve",
+		// 	Handler: handler.ServiceFeeApprove,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		middleware.AuthenticateToken,
+		// 		middleware.AccessControl([]string{"CHEKER"}),
+		// 	},
+		// },
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_Reject",
+		// 	Handler: handler.ServiceFeeReject,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		middleware.AuthenticateToken,
+		// 		middleware.AccessControl([]string{"CHEKER"}),
+		// 	},
+		// },
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/update_min_cap",
+			Handler: handler.UpdateCapMinAmountHandler,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/approve_service_details",
+			Handler: handler.ApproveServiceDetailsHandler,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"CHECKER"}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/service_fee_maker",
+			Handler: handler.InitiateServiceFeeUpdate,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"CHECKER"}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/service_fee_approve",
+			Handler: handler.ApproveServiceFeeUpdate,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"MAKER"}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/cps_config/total_cap_maker/service_fee_reject",
+			Handler: handler.RejectServiceFeeUpdate,
+			Middlewares: []func(next http.Handler) http.Handler{
+				middleware.AuthenticateToken,
+				middleware.AccessControl([]string{"MAKER"}),
+			},
+		},
 	}
 
 	route.RegisterRoutes(router, routes)

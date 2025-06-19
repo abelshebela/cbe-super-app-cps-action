@@ -16,4 +16,11 @@ type ServiceDetailsInbound interface {
 
 	UpdateCapMinAmountHandler(w http.ResponseWriter, r *http.Request)
 	ApproveServiceDetailsHandler(w http.ResponseWriter, r *http.Request)
+
+	InitiateServiceFeeUpdate(w http.ResponseWriter, r *http.Request)
+	ApproveServiceFeeUpdate(w http.ResponseWriter, r *http.Request)
+	RejectServiceFeeUpdate(w http.ResponseWriter, r *http.Request)
+	// ServiceFeeMaker(w http.ResponseWriter, r *http.Request)
+	// ServiceFeeApprove(w http.ResponseWriter, r *http.Request)
+	// ServiceFeeReject(w http.ResponseWriter, r *http.Request)
 }
