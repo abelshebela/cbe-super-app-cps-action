@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -20,6 +21,7 @@ import (
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
+	passwordRuleOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 )
@@ -36,23 +38,30 @@ type outboundStore struct {
 	MongoDalPortalCard        *infra_mongo.MongoDal[model.Card, model.Card]
 	MongoDalAccountValidation *infra_mongo.MongoDal[model.ValidationRule, model.ValidationRule]
 	MongoDalServiceDetails    *infra_mongo.MongoDal[model.ServiceDetails, model.ServiceDetails]
+	MongoDalPasswordRule      *infra_mongo.MongoDal[model.PasswordRule, model.PasswordRule]
+}
+
+func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectionNames []string) passwordRuleOutbound.OutboundPasswordRuleInfra {
+	mongoDalPasswordRule := infra_mongo.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collectionNames[0])
+	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
+	return &outboundStore{MongoDalPasswordRule: mongoDalPasswordRule, MongoDalCPSAction: mongoDalCPSAction}
 }
 
 func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames []string) userOutbound.OutboundInfra {
 	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
-	MongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[5])
-	MongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
-	MongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, "portal_cards")
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
+	mongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[3])
+	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collectionNames[4])
+	mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, collectionNames[5])
 
 	return &outboundStore{
 		MongoDalCPSUser:           mongoDalCPSUser,
 		MongoDalCPSAction:         mongoDalCPSAction,
 		MongoDalBPSUser:           mongoDalBPSUser,
-		MongoDalAccountValidation: MongoDalAccountValidation,
-		MongoDalServiceDetails:    MongoDalServiceDetails,
-		MongoDalPortalCard:        MongoDalPortalCard,
+		MongoDalAccountValidation: mongoDalAccountValidation,
+		MongoDalServiceDetails:    mongoDalServiceDetails,
+		MongoDalPortalCard:        mongoDalPortalCard,
 	}
 }
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string) outbound.OutboundInfra {
@@ -1274,54 +1283,187 @@ func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id st
 	return err
 }
 func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error {
-    objID, err := bson.ObjectIDFromHex(id)
-    if err != nil {
-        return err
-    }
-    filter := map[string]interface{}{"_id": objID}
-    update := map[string]interface{}{
-        "$set": map[string]interface{}{
-            "cap.min_amount":   minAmount,
-            "lastModifiedAt":   time.Now(),
-        },
-    }
-    _, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
-    return err
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := map[string]interface{}{"_id": objID}
+	update := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"cap.min_amount": minAmount,
+			"lastModifiedAt": time.Now(),
+		},
+	}
+	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
+	return err
 }
 
 func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error {
-    action, err := o.FetchCpsActionById(ctx, actionID)
-    if err != nil {
-        return err
+	action, err := o.FetchCpsActionById(ctx, actionID)
+	if err != nil {
+		return err
+	}
+
+	if action.ActionStatus != domain.ActionPending {
+		return errors.New("action is not in pending status")
+	}
+
+	action.Checker.UserID = checkerID
+	action.Checker.Timestamp = time.Now()
+	action.LastModifiedAt = time.Now()
+
+	if approve {
+		action.ActionStatus = domain.ActionApproved
+
+		serviceData, ok := action.CurrentAction.(*serviceDomain.Service)
+		if !ok {
+			return errors.New("invalid service data in action")
+		}
+		if err := o.UpdateOneServiceDetail(ctx, action.Unique_ID, *serviceData); err != nil {
+			return err
+		}
+	} else {
+		action.ActionStatus = domain.ActionRejected
+		if rejectionReason != "" {
+			action.RejectionReason = &rejectionReason
+		} else {
+			reason := "Rejected by checker"
+			action.RejectionReason = &reason
+		}
+	}
+
+	return o.UpdateCpsAction(ctx, action)
+}
+func (o *outboundStore) CreatePasswordRuleUpdateAction(ctx context.Context, rule *action.PasswordRule, maker action.User) (string, error) {
+    department, _ := ctx.Value("department").(string)
+    if strings.TrimSpace(department) == "" {
+        return "", errors.New("department is required in context")
     }
 
-    if action.ActionStatus != domain.ActionPending {
-        return errors.New("action is not in pending status")
+    filter := bson.M{
+        "department":     department,
+        "maker_user.user_code": maker.UserID, 
+        "action_status":  model.ActionPending,
+        "action_type":    model.ActionUpdate,
+    }
+    existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+    if err == nil && existing != nil {
+        return "", fmt.Errorf("pending update action already exists for this maker")
     }
 
-    action.Checker.UserID = checkerID
-    action.Checker.Timestamp = time.Now()
-    action.LastModifiedAt = time.Now()
-
-    if approve {
-        action.ActionStatus = domain.ActionApproved
-
-        serviceData, ok := action.CurrentAction.(*serviceDomain.Service)
-        if !ok {
-            return errors.New("invalid service data in action")
-        }
-        if err := o.UpdateOneServiceDetail(ctx, action.Unique_ID, *serviceData); err != nil {
-            return err
-        }
+    var prevAction json.RawMessage
+    prevRulePtr, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
+    if err == nil && prevRulePtr != nil {
+        prevAction, _ = json.Marshal(prevRulePtr)
     } else {
-        action.ActionStatus = domain.ActionRejected
-        if rejectionReason != "" {
-            action.RejectionReason = &rejectionReason
-        } else {
-            reason := "Rejected by checker"
-            action.RejectionReason = &reason
-        }
+        prevAction = json.RawMessage("null")
     }
 
-    return o.UpdateCpsAction(ctx, action)
+    currAction, _ := json.Marshal(rule)
+    cpsAction := model.CPSAction{
+        ActionCode:     utils.RandomGenerator(24),
+        MakerUser:      model.User{UserCode: maker.UserID, FullName: maker.FullName, PhoneNumber: maker.PhoneNumber},
+        Department:     department,
+        ActionStatus:   model.ActionPending,
+        ActionType:     model.ActionUpdate,
+        RequestAction:  model.RequestUpdatePasswordRule,
+        PreviosAction:  prevAction,
+        CurrentAction:  currAction,
+        CreatedAt:      time.Now(),
+        LastModifiedAt: time.Now(),
+    }
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    if err != nil {
+        return "", err
+    }
+    return cpsAction.ActionCode, nil
+}
+func (o *outboundStore) ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, approve bool, checker action.User, rejectionReason *string) error {
+	filter := map[string]interface{}{"action_code": actionID}
+	action, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil {
+		return err
+	}
+	update := map[string]interface{}{
+		"checker_user":     model.User{UserCode: checker.UserID, FullName: checker.FullName, PhoneNumber: checker.PhoneNumber},
+		"last_modified_at": time.Now(),
+	}
+	if approve {
+		update["action_status"] = model.ActionApproved
+		var rule model.PasswordRule
+		if err := json.Unmarshal(action.CurrentAction, &rule); err != nil {
+			return err
+		}
+		rule.ID = ""
+		_, err := o.MongoDalPasswordRule.InsertOne(ctx, rule)
+		if err != nil {
+			return err
+		}
+	} else {
+		update["action_status"] = model.ActionRejected
+		if rejectionReason != nil {
+			update["rejection_reason"] = *rejectionReason
+		}
+	}
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, map[string]interface{}{"$set": update})
+	return err
+}
+
+func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
+	filter := map[string]interface{}{"action_code": actionID}
+	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	result := &action.CPSAction{
+		ID:              data.ID.Hex(),
+		ActionCode:      data.ActionCode,
+		Maker:           action.User{UserID: data.MakerUser.UserCode, FullName: data.MakerUser.FullName, PhoneNumber: data.MakerUser.PhoneNumber},
+		Checker:         action.User{UserID: data.CheckerUser.UserCode, FullName: data.CheckerUser.FullName, PhoneNumber: data.CheckerUser.PhoneNumber},
+		Department:      data.Department,
+		RejectionReason: data.RejectionReason,
+		PreviosAction:   data.PreviosAction,
+		CurrentAction:   data.CurrentAction,
+		ActionStatus:    action.ActionStatus(data.ActionStatus),
+		ActionType:      action.ActionType(data.ActionType),
+		RequestAction:   action.RequestAction(data.RequestAction),
+		CreatedAt:       data.CreatedAt,
+		LastModifiedAt:  data.LastModifiedAt,
+	}
+	return result, nil
+}
+func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error) {
+    department, _ := ctx.Value("department").(string)
+    filter := bson.M{
+        "department":           department,
+        "maker.user_id":        maker.UserID,
+        "maker.user_code":      maker.UserCode,
+        "maker.full_name":      maker.FullName,
+        "maker.phone_number":   maker.PhoneNumber,
+        "action_status":        model.ActionPending,
+        "action_type":          model.ActionUpdate,
+    }
+    data, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return nil, nil
+        }
+        return nil, err
+    }
+    result := &action.CPSAction{
+        ID:              data.ID.Hex(),
+        ActionCode:      data.ActionCode,
+        Maker:           action.User{UserID: data.MakerUser.UserCode, FullName: data.MakerUser.FullName, PhoneNumber: data.MakerUser.PhoneNumber},
+        Checker:         action.User{UserID: data.CheckerUser.UserCode, FullName: data.CheckerUser.FullName, PhoneNumber: data.CheckerUser.PhoneNumber},
+        Department:      data.Department,
+        RejectionReason: data.RejectionReason,
+        PreviosAction:   data.PreviosAction,
+        CurrentAction:   data.CurrentAction,
+        ActionStatus:    action.ActionStatus(data.ActionStatus),
+        ActionType:      action.ActionType(data.ActionType),
+        RequestAction:   action.RequestAction(data.RequestAction),
+        CreatedAt:       data.CreatedAt,
+        LastModifiedAt:  data.LastModifiedAt,
+    }
+    return result, nil
 }

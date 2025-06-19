@@ -426,3 +426,16 @@ type CpsAction struct {
 	MakerActionTime   time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time"`
 	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
 }
+type PasswordRule struct {
+    ID             string    `bson:"_id,omitempty" json:"_id"`
+    PasswordId     string    `bson:"passwordId" json:"passwordId"`
+    Name           string    `bson:"name" json:"name"`
+    MinLength      int       `bson:"minLength" json:"minLength"`
+    MaxLength      int       `bson:"maxLength" json:"maxLength"`
+    Numbers        bool      `bson:"numbers" json:"numbers"`
+    CapitalLetters bool      `bson:"capitalLetters" json:"capitalLetters"`
+    SmallLetters   bool      `bson:"smallLetters" json:"smallLetters"`
+    Characters     bool      `bson:"characters" json:"characters"`
+    CreatedAt      time.Time `bson:"createdAt" json:"createdAt"`
+
+}

@@ -268,3 +268,15 @@ type CPSUser struct {
 	Country string
 	Region  string
 }
+type PasswordRule struct {
+    ID             string
+    PasswordID     string
+    Name           string
+    MinLength      int
+    MaxLength      int
+    Numbers        bool
+    CapitalLetters bool
+    SmallLetters   bool
+    Characters     bool
+    CreatedAt      time.Time
+}

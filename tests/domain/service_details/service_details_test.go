@@ -3,15 +3,20 @@ package service_details_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks"
+	mock_domain_action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action"
+	mock_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/service"
 )
 
 // NoOpLogger implements the utils.Logger interface but does nothing
@@ -25,9 +30,11 @@ func (l *NoOpLogger) Warnf(format string, args ...interface{})  {}
 func (l *NoOpLogger) Sync() error                               { return nil }
 
 func TestGetAllServiceDetails(t *testing.T) {
-	mockRepo := new(mocks.ServiceDetailsRepository)
-	mockActionRepo := new(mocks.ActionRepository)
-	logger := &NoOpLogger{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_domain.NewMockRepository(ctrl)
+	mockActionRepo := mock_domain_action.NewMockRepository(ctrl)
+	logger := utils.NewLogger()
 	service := serviceDomain.NewServiceStore(mockRepo, mockActionRepo, logger)
 
 	ctx := context.Background()
@@ -75,7 +82,8 @@ func TestGetAllServiceDetails(t *testing.T) {
 	}
 
 	t.Run("successful get all", func(t *testing.T) {
-		mockRepo.On("GetAllServiceDetails", ctx).Return(expectedServices, nil).Once()
+
+		mockRepo.EXPECT().GetAllServiceDetails(ctx).Return(expectedServices, nil).Times(1)
 
 		services, err := service.GetAllServiceDetails(ctx)
 		assert.NoError(t, err)
@@ -83,7 +91,7 @@ func TestGetAllServiceDetails(t *testing.T) {
 	})
 
 	t.Run("error getting all", func(t *testing.T) {
-		mockRepo.On("GetAllServiceDetails", ctx).Return(nil, assert.AnError).Once()
+		mockRepo.EXPECT().GetAllServiceDetails(ctx).Return(expectedServices, nil).Times(1)
 
 		services, err := service.GetAllServiceDetails(ctx)
 		assert.Error(t, err)
@@ -92,9 +100,11 @@ func TestGetAllServiceDetails(t *testing.T) {
 }
 
 func TestGetServiceDetailsByID(t *testing.T) {
-	mockRepo := new(mocks.ServiceDetailsRepository)
-	mockActionRepo := new(mocks.ActionRepository)
-	logger := &NoOpLogger{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_domain.NewMockRepository(ctrl)
+	mockActionRepo := mock_domain_action.NewMockRepository(ctrl)
+	logger := utils.NewLogger()
 	service := serviceDomain.NewServiceStore(mockRepo, mockActionRepo, logger)
 
 	ctx := context.Background()
@@ -120,7 +130,7 @@ func TestGetServiceDetailsByID(t *testing.T) {
 	}
 
 	t.Run("successful get", func(t *testing.T) {
-		mockRepo.On("GetOneServiceDetail", ctx, "test-id").Return(expectedService, nil).Once()
+		mockRepo.EXPECT().GetOneServiceDetail(ctx, "test-id").Return(expectedService, nil).Times(1)
 
 		svc, err := service.GetServiceDetailsByID(ctx, "test-id")
 		assert.NoError(t, err)
@@ -128,6 +138,7 @@ func TestGetServiceDetailsByID(t *testing.T) {
 	})
 
 	t.Run("empty id", func(t *testing.T) {
+		mockRepo.EXPECT().GetOneServiceDetail(ctx, "").Return(serviceDomain.Service{}, fmt.Errorf("service ID cannot be empty")).Times(1)
 		svc, err := service.GetServiceDetailsByID(ctx, "")
 		assert.Error(t, err)
 		assert.Nil(t, svc)
@@ -135,7 +146,7 @@ func TestGetServiceDetailsByID(t *testing.T) {
 	})
 
 	t.Run("service not found", func(t *testing.T) {
-		mockRepo.On("GetOneServiceDetail", ctx, "non-existent").Return(serviceDomain.Service{}, assert.AnError).Once()
+		mockRepo.EXPECT().GetOneServiceDetail(ctx, "non-existent").Return(serviceDomain.Service{}, assert.AnError).Times(1)
 
 		svc, err := service.GetServiceDetailsByID(ctx, "non-existent")
 		assert.Error(t, err)
@@ -144,9 +155,11 @@ func TestGetServiceDetailsByID(t *testing.T) {
 }
 
 func TestUpdateServiceDetailsRequest(t *testing.T) {
-	mockRepo := new(mocks.ServiceDetailsRepository)
-	mockActionRepo := new(mocks.ActionRepository)
-	logger := &NoOpLogger{}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_domain.NewMockRepository(ctrl)
+	mockActionRepo := mock_domain_action.NewMockRepository(ctrl)
+	logger := utils.NewLogger()
 	service := serviceDomain.NewServiceStore(mockRepo, mockActionRepo, logger)
 
 	ctx := context.Background()
@@ -175,27 +188,27 @@ func TestUpdateServiceDetailsRequest(t *testing.T) {
 	updatedService.ServiceName = "Updated Service"
 
 	t.Run("successful update request", func(t *testing.T) {
-		mockRepo.On("GetOneServiceDetail", ctx, "test-id").Return(originalService, nil).Once()
+		mockRepo.EXPECT().GetOneServiceDetail(ctx, "test-id").Return(originalService, nil).Times(1)
 
 		expectedAction := action.CPSAction{
-			ActionCode: "CPS_123",
+			ActionCode: "CPS_BNHafpP8De",
 			Maker: action.User{
 				UserID:      "maker-123",
 				FullName:    "",
 				PhoneNumber: "",
 				Timestamp:   time.Now(),
 			},
+			UniqueID:        "test-id",
 			Checker:         action.User{},
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,
 			RequestAction:   action.RequestUpdateServiceDetails,
 			ActionStatus:    action.ActionPending,
-			CreatedAt:       time.Now(),
-			LastModifiedAt:  time.Now(),
 			RejectionReason: nil,
 		}
 
-		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(expectedAction, nil).Once()
+		//actionID := "CPS_123"
+		mockActionRepo.EXPECT().CreateCpsAction(ctx, expectedAction).Return(expectedAction, nil).Times(1)
 
 		actionID, err := service.UpdateServiceDetailsRequest(ctx, "test-id", &updatedService, "maker-123")
 		assert.NoError(t, err)
@@ -204,7 +217,7 @@ func TestUpdateServiceDetailsRequest(t *testing.T) {
 	})
 
 	t.Run("service not found", func(t *testing.T) {
-		mockRepo.On("GetOneServiceDetail", ctx, "non-existent").Return(serviceDomain.Service{}, assert.AnError).Once()
+		mockRepo.EXPECT().GetOneServiceDetail(ctx, "non-existent").Return(serviceDomain.Service{}, assert.AnError).Times(1)
 
 		actionID, err := service.UpdateServiceDetailsRequest(ctx, "non-existent", &updatedService, "maker-123")
 		assert.Error(t, err)
@@ -220,7 +233,9 @@ func TestUpdateServiceDetailsRequest(t *testing.T) {
 }
 
 func TestUpdateServiceDetails(t *testing.T) {
-	mockRepo := new(mocks.ServiceDetailsRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := new(mock_domain.MockRepository)
 	mockActionRepo := new(mocks.ActionRepository)
 	logger := &NoOpLogger{}
 	service := serviceDomain.NewServiceStore(mockRepo, mockActionRepo, logger)
@@ -277,7 +292,7 @@ func TestUpdateServiceDetails(t *testing.T) {
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
-		mockRepo.On("UpdateOneServiceDetail", ctx, "test-id", mock.Anything).Return(nil).Once()
+		mockRepo.EXPECT().UpdateOneServiceDetailRequest(ctx, "test-id", gomock.Any()).Return(nil).Times(1)
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
 
 		err := service.UpdateServiceDetails(ctx, actionID, true, checkerID, "")

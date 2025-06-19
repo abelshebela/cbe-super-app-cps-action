@@ -9,6 +9,8 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
+	a "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	miniapp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/miniapp"
 )
@@ -54,7 +56,7 @@ func (mr *MockOutboundMockRecorder) CreateMiniApp(ctx, miniapp interface{}) *gom
 func (m *MockOutbound) CreateMiniAppAction(ctx context.Context, action action.CPSAction) (action.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMiniAppAction", ctx, action)
-	ret0, _ := ret[0].(action.CPSAction)
+	ret0, _ := ret[0].(a.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
