@@ -57,7 +57,7 @@ type CPSAction struct {
 	ActionCode         string          `bson:"action_code"` // Generated
 	MakerUser          User            `json:"maker_user" bson:"maker_user"`
 	CheckerUser        User            `json:"checker_user" bson:"checker_user"`
-	Unique_ID          string          `bson:"unique_id"`
+	UniqueId           string          `bson:"unique_id"`
 	CheckerID          *string         `bson:"checker_id,omitempty"`
 	CheckerName        *string         `bson:"checker_name,omitempty"`
 	CheckerPhoneNumber *string         `bson:"checker_phone_number,omitempty"`
@@ -430,15 +430,14 @@ type CpsAction struct {
 	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
 }
 type PasswordRule struct {
-    ID             string    `bson:"_id,omitempty" json:"_id"`
-    PasswordId     string    `bson:"passwordId" json:"passwordId"`
-    Name           string    `bson:"name" json:"name"`
-    MinLength      int       `bson:"minLength" json:"minLength"`
-    MaxLength      int       `bson:"maxLength" json:"maxLength"`
-    Numbers        bool      `bson:"numbers" json:"numbers"`
-    CapitalLetters bool      `bson:"capitalLetters" json:"capitalLetters"`
-    SmallLetters   bool      `bson:"smallLetters" json:"smallLetters"`
-    Characters     bool      `bson:"characters" json:"characters"`
-    CreatedAt      time.Time `bson:"createdAt" json:"createdAt"`
-
+	ID             string    `bson:"_id,omitempty" json:"_id"`
+	PasswordId     string    `bson:"passwordId" json:"passwordId"`
+	Name           string    `bson:"name" json:"name"`
+	MinLength      int       `bson:"minLength" json:"minLength"`
+	MaxLength      int       `bson:"maxLength" json:"maxLength"`
+	Numbers        bool      `bson:"numbers" json:"numbers"`
+	CapitalLetters bool      `bson:"capitalLetters" json:"capitalLetters"`
+	SmallLetters   bool      `bson:"smallLetters" json:"smallLetters"`
+	Characters     bool      `bson:"characters" json:"characters"`
+	CreatedAt      time.Time `bson:"createdAt" json:"createdAt"`
 }

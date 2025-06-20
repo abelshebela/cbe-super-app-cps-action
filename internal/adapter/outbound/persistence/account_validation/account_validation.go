@@ -37,7 +37,7 @@ var _ outbound.OutboundInfra = (*AccountValidationRepo)(nil)
 var _ account_validation.Repository = (*AccountValidationRepo)(nil)
 
 func InitAccountValidationPersistence(client *mongo.Client, database string, timeout time.Duration, logger utils.Logger) *AccountValidationRepo {
-	validationDal := dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, database, "ValidationRule")
+	validationDal := dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, database, "validation_rule")
 	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, "CPSActions")
 	return &AccountValidationRepo{
 		client:        client,
@@ -54,40 +54,27 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 
 	if id == "" {
 		r.logger.Errorf("invalid validation rule ID: empty")
-		return account_validation.ValidationRule{}, fmt.Errorf("invalid id provided %w", local_utils.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid id",
-		})
+		return account_validation.ValidationRule{}, errors.New("validation rule ID cannot be empty")
 	}
 
 	var objID bson.ObjectID
 	var err error
 	if objID, err = bson.ObjectIDFromHex(id); err != nil {
-
 		filter := bson.M{"_id": id}
 		projection := bson.M{}
 		rule, err := r.validationDal.FindOne(ctx, filter, projection)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				r.logger.Errorf("validation rule not found: id=%s", id)
-				return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
-					Code:    http.StatusNotFound,
-					Message: "validation rule not found",
-				})
+				return account_validation.ValidationRule{}, errors.New("validation rule not found")
 			}
 			r.logger.Errorf("failed to get validation rule: %v", err)
-			return account_validation.ValidationRule{}, fmt.Errorf("failed to get validation rule %w", local_utils.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return account_validation.ValidationRule{}, errors.New("failed to get validation rule")
 		}
 
 		if rule == nil {
 			r.logger.Errorf("validation rule not found: id=%s", id)
-			return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "validation rule not found",
-			})
+			return account_validation.ValidationRule{}, errors.New("validation rule not found")
 		}
 
 		return account_validation.ValidationRule{
@@ -112,32 +99,20 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			r.logger.Errorf("validation rule not found: id=%s", id)
-			return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "validation rule not found",
-			})
+			return account_validation.ValidationRule{}, errors.New("validation rule not found")
 		}
 		r.logger.Errorf("failed to get validation rule: %v", err)
-		return account_validation.ValidationRule{}, fmt.Errorf("failed to get validation rule %w", local_utils.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return account_validation.ValidationRule{}, errors.New("failed to get validation rule")
 	}
 
 	if rule == nil {
 		r.logger.Errorf("validation rule not found: id=%s", id)
-		return account_validation.ValidationRule{}, fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
-			Code:    http.StatusNotFound,
-			Message: "validation rule not found",
-		})
+		return account_validation.ValidationRule{}, errors.New("validation rule not found")
 	}
 
 	if rule.MinLength < 0 || rule.MinLength > 255 || rule.MaxLength < 0 || rule.MaxLength > 255 {
 		r.logger.Errorf("validation rule length out of uint8 range: id=%s, min_length=%d, max_length=%d", id, rule.MinLength, rule.MaxLength)
-		return account_validation.ValidationRule{}, fmt.Errorf("validation rule length out of range %w", local_utils.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "min_length or max_length out of uint8 range (0-255)",
-		})
+		return account_validation.ValidationRule{}, errors.New("validation failed: min length cannot exceed max length")
 	}
 
 	return account_validation.ValidationRule{
@@ -161,19 +136,13 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 
 	if id == "" {
 		r.logger.Errorf("invalid validation rule ID: empty")
-		return fmt.Errorf("invalid id provided %w", local_utils.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid id",
-		})
+		return errors.New("validation rule ID cannot be empty")
 	}
 
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil || objID.IsZero() {
 		r.logger.Errorf("failed to convert id to object id: %v", err)
-		return fmt.Errorf("failed to convert id to object id %w", local_utils.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid id",
-		})
+		return errors.New("validation rule ID cannot be empty")
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -194,16 +163,10 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			r.logger.Errorf("validation rule not found for update: id=%s", id)
-			return fmt.Errorf("validation rule not found %w", local_utils.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "validation rule not found",
-			})
+			return errors.New("validation rule not found")
 		}
 		r.logger.Errorf("failed to update validation rule: %v", err)
-		return fmt.Errorf("failed to update validation rule %w", local_utils.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return errors.New("failed to update validation rule")
 	}
 
 	r.logger.Infof("successfully updated validation rule: id=%s", id)

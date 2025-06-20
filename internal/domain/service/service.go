@@ -85,7 +85,7 @@ func (s *ServiceStore) UpdateServiceDetailsRequest(ctx context.Context, id strin
 			Timestamp:   time.Now(),
 		},
 		Checker:        action.User{},
-		Unique_ID:      id,
+		UniqueId:       id,
 		Department:     update.ServiceCode,
 		ActionType:     action.ActionUpdate,
 		RequestAction:  action.RequestUpdateServiceDetails,
@@ -129,7 +129,7 @@ func (s *ServiceStore) UpdateServiceDetails(ctx context.Context, actionID string
 			return errors.New("invalid service data in action")
 		}
 
-		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.Unique_ID, *serviceData); err != nil {
+		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.UniqueId, *serviceData); err != nil {
 			s.logger.Errorf("failed to update service details: %v", err)
 			return errors.New("failed to update service details")
 		}
@@ -236,7 +236,7 @@ func (s *ServiceStore) ApproveServiceDetails(ctx context.Context, actionID strin
 			return errors.New("invalid service data in action")
 		}
 
-		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.Unique_ID, *serviceData); err != nil {
+		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.UniqueId, *serviceData); err != nil {
 			s.logger.Errorf("failed to update service details: %v", err)
 			return errors.New("failed to update service details")
 		}

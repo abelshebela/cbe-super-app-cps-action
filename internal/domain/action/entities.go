@@ -40,10 +40,9 @@ type CurrentAction struct {
 type CPSAction struct {
 	ID              string
 	ActionCode      string
-	UniqueID        string
+	UniqueId        string
 	Maker           User
 	Checker         User
-	Unique_ID       string
 	Department      string
 	RejectionReason *string
 	PreviosAction   interface{}
@@ -269,14 +268,14 @@ type CPSUser struct {
 	Region  string
 }
 type PasswordRule struct {
-    ID             string
-    PasswordID     string
-    Name           string
-    MinLength      int
-    MaxLength      int
-    Numbers        bool
-    CapitalLetters bool
-    SmallLetters   bool
-    Characters     bool
-    CreatedAt      time.Time
+	ID             string
+	PasswordID     string
+	Name           string
+	MinLength      int
+	MaxLength      int
+	Numbers        bool
+	CapitalLetters bool
+	SmallLetters   bool
+	Characters     bool
+	CreatedAt      time.Time
 }
