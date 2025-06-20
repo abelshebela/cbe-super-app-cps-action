@@ -198,7 +198,7 @@ func TestUpdateServiceDetailsRequest(t *testing.T) {
 				PhoneNumber: "",
 				Timestamp:   time.Now(),
 			},
-			UniqueID:        "test-id",
+			UniqueId:        "test-id",
 			Checker:         action.User{},
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,

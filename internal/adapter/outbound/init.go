@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+ portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -20,7 +21,6 @@ import (
 	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
@@ -38,10 +38,10 @@ type outboundStore struct {
 	BpsCalls                  bpscalls.BpsCallsInterface
 	MongoDalMiniApp           *infra_mongo.MongoDal[model.MiniApp, model.MiniApp]
 	MongoDalCPSUser           *infra_mongo.MongoDal[model.CPSUser, model.CPSUser]
-	MongoDalPortalCard        *infra_mongo.MongoDal[model.Card, model.Card]
 	MongoDalAccountValidation *infra_mongo.MongoDal[model.ValidationRule, model.ValidationRule]
 	MongoDalServiceDetails    *infra_mongo.MongoDal[model.ServiceDetails, model.ServiceDetails]
 	MongoDalPasswordRule      *infra_mongo.MongoDal[model.PasswordRule, model.PasswordRule]
+	MongoDalPortalCard        *infra_mongo.MongoDal[model.Card, model.Card]
 }
 
 func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectionNames []string) passwordRuleOutbound.OutboundPasswordRuleInfra {
@@ -89,9 +89,19 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalMiniApp:        mongoDalMiniApp,
 		MongoDalCPSUser:        mongoDalCPSUser,
 		MongoDalServiceDetails: mongoDalServiceDetail,
-		MongoDalPortalCard:     MongoDalPortalCard,
+
+		MongoDalPortalCard: MongoDalPortalCard,
 	}
 }
+
+func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
+ mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, "cbe", "portal_cards")
+
+ return &outboundStore{
+  MongoDalPortalCard: mongoDalPortalCard,
+ }
+}
+
 
 func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
 	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
@@ -103,13 +113,6 @@ func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger ut
 	}
 }
 
-func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
-	mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, "cbe", "portal_cards")
-
-	return &outboundStore{
-		MongoDalPortalCard: mongoDalPortalCard,
-	}
-}
 func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {
@@ -118,7 +121,7 @@ func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceD
 	var d []domain.ServiceDetails
 	for _, v := range data {
 		x := domain.ServiceDetails{
-			ID:          stringPointer(v.ID.Hex()), // Convert bson.ObjectID to *string
+			ID:          stringPointer(v.ID.Hex()),
 			ServiceCode: "",
 			ServiceName: v.ServiceName,
 			ServiceType: "",
@@ -257,28 +260,6 @@ func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, l
 		d = append(d, x)
 	}
 	return d, nil
-}
-func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDomain.Card, error) {
-
-	data, err := o.MongoDalPortalCard.FindAll(ctx, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*portalCardDomain.Card, len(data))
-
-	for i, s := range data {
-		if s == nil {
-			continue
-		}
-		result[i] = &portalCardDomain.Card{
-			ID:       s.ID,
-			CardName: s.CardName,
-			SubCards: s.SubCards,
-		}
-	}
-	return result, nil
-
 }
 func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain.ServiceDetails, error) {
 	objID, err := bson.ObjectIDFromHex(id)
@@ -441,7 +422,7 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 		ActionCode:         Action.ActionCode,
 		MakerUser:          makerUser,
 		CheckerUser:        checkerUser,
-		Unique_ID:          Action.Maker.UserID,
+		UniqueId: func() string { if Action.UniqueId != "" { return Action.UniqueId }; return Action.Maker.UserID }(),
 		CheckerID:          stringPointer(Action.Checker.UserID),
 		CheckerName:        stringPointer(Action.Checker.FullName),
 		CheckerPhoneNumber: stringPointer(Action.Checker.PhoneNumber),
@@ -507,7 +488,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		ActionCode:         Action.ActionCode,
 		MakerUser:          makerUser,
 		CheckerUser:        checkerUser,
-		Unique_ID:          Action.Maker.UserID,
+		UniqueId:           Action.Maker.UserID,
 		CheckerID:          stringPointer(Action.Checker.UserID),
 		CheckerName:        stringPointer(Action.Checker.FullName),
 		CheckerPhoneNumber: stringPointer(Action.Checker.PhoneNumber),
@@ -535,7 +516,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		"$set": map[string]interface{}{
 			"maker_user":           CpsAction.MakerUser,
 			"checker_user":         CpsAction.CheckerUser,
-			"unique_id":            CpsAction.Unique_ID,
+			"unique_id":            CpsAction.UniqueId,
 			"checker_id":           CpsAction.CheckerID,
 			"checker_name":         CpsAction.CheckerName,
 			"checker_phone_number": CpsAction.CheckerPhoneNumber,
@@ -777,6 +758,29 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 	}
 	return result, nil
 }
+func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDomain.Card, error) {
+
+ data, err := o.MongoDalPortalCard.FindAll(ctx, nil, nil)
+ if err != nil {
+  return nil, err
+ }
+
+ result := make([]*portalCardDomain.Card, len(data))
+
+ for i, s := range data {
+  if s == nil {
+   continue
+  }
+  result[i] = &portalCardDomain.Card{
+   ID:       s.ID,
+   CardName: s.CardName,
+   SubCards: s.SubCards,
+  }
+ }
+ return result, nil
+
+}
+
 
 func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error) {
 
@@ -858,7 +862,7 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUs
 			FullName:    maker.FullName,
 			PhoneNumber: maker.PhoneNumber,
 		},
-		Unique_ID:      user.UserCode,
+		UniqueId:       user.UserCode,
 		Department:     department,
 		ActionStatus:   model.ActionPending,
 		ActionType:     model.ActionCreate,
@@ -1010,7 +1014,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 			FullName:    maker.FullName,
 			PhoneNumber: maker.PhoneNumber,
 		},
-		Unique_ID:      updated.UserCode,
+		UniqueId:       updated.UserCode,
 		Department:     departmentCtx,
 		ActionStatus:   model.ActionPending,
 		ActionType:     model.ActionUpdate,
@@ -1034,7 +1038,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	// 		FullName:    maker.FullName,
 	// 		PhoneNumber: maker.PhoneNumber,
 	// 	},
-	// 	Unique_ID:      updated.UserCode,
+	// 	UniqueId:      updated.UserCode,
 	// 	Department:     departmentCtx,
 	// 	ActionStatus:   model.ActionPending,
 	// 	ActionType:     model.ActionUpdate,
@@ -1448,7 +1452,7 @@ func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req servic
 			FullName:    req.CheckerUser.FullName,
 			PhoneNumber: req.CheckerUser.PhoneNumber,
 		},
-		Unique_ID:     req.MakerUser.UserCode,
+		UniqueId:      req.MakerUser.UserCode,
 		Department:    req.Department,
 		ActionStatus:  model.ActionStatus("PENDING"),
 		ActionType:    model.ActionType("UPDATE_SERVICE_FEE"),
@@ -1623,7 +1627,7 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 		if !ok {
 			return errors.New("invalid service data in action")
 		}
-		if err := o.UpdateOneServiceDetail(ctx, action.Unique_ID, *serviceData); err != nil {
+		if err := o.UpdateOneServiceDetail(ctx, action.UniqueId, *serviceData); err != nil {
 			return err
 		}
 	} else {

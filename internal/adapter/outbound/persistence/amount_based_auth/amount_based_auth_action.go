@@ -3,6 +3,8 @@ package persistence
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/rs/zerolog/log"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
@@ -11,7 +13,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"time"
 )
 
 type AmountBasedAuthRepo struct {
@@ -163,10 +164,9 @@ func (repo AmountBasedAuthRepo) UpdateAuthTier(request amount_based_auth_domain.
 	}
 	cpsAction := action.CPSAction{
 		ActionCode:      "",
-		UniqueID:        request.Id,
+		UniqueId:        request.Id,
 		Maker:           action.User{},
 		Checker:         action.User{},
-		Unique_ID:       request.Id,
 		Department:      "",
 		RejectionReason: nil,
 		PreviosAction:   nil,

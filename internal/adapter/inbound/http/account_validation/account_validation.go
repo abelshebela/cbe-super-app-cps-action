@@ -9,6 +9,20 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
 )
 
+var errorMap = map[string]int{
+	"validation rule ID cannot be empty":          http.StatusBadRequest,
+	"maker ID cannot be empty":                    http.StatusBadRequest,
+	"validation failed: identifier cannot be empty": http.StatusBadRequest,
+	"validation failed: min length cannot exceed max length": http.StatusBadRequest,
+	"validation failed: service ID cannot be empty": http.StatusBadRequest,
+	"validation rule not found":                    http.StatusNotFound,
+	"validation rule already has a pending action": http.StatusConflict,
+	"action ID cannot be empty":                    http.StatusBadRequest,
+	"checker ID cannot be empty":                   http.StatusBadRequest,
+	"action not found":                             http.StatusNotFound,
+	"action is not pending":                        http.StatusConflict,
+}
+
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
@@ -18,14 +32,13 @@ func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Reques
 
 	validation, err := h.Application.GetAccountValidation(r.Context(), id)
 	if err != nil {
-		switch err.Error() {
-		case "validation rule ID cannot be empty":
-			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-		case "validation rule not found":
-			utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-		default:
-			utils.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to fetch validation rule")
+		errMsg := err.Error()
+		status, ok := errorMap[errMsg]
+		if !ok {
+			status = http.StatusInternalServerError
+			errMsg = "Failed to fetch validation rule"
 		}
+		utils.WriteErrorResponse(w, status, errMsg)
 		return
 	}
 
@@ -39,24 +52,21 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 		return
 	}
 
-	claims, _ := r.Context().Value("claims").(middleware.UserPayload)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-	actionID, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID)
+	actionID, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
-		switch err.Error() {
-		case "validation rule ID cannot be empty",
-			"maker ID cannot be empty",
-			"validation failed: identifier cannot be empty",
-			"validation failed: min length cannot exceed max length",
-			"validation failed: service ID cannot be empty":
-			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-		case "validation rule not found":
-			utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-		case "validation rule already has a pending action":
-			utils.WriteErrorResponse(w, http.StatusConflict, err.Error())
-		default:
-			utils.WriteErrorResponse(w, http.StatusInternalServerError, "Update request failed")
+		errMsg := err.Error()
+		status, ok := errorMap[errMsg]
+		if !ok {
+			status = http.StatusInternalServerError
+			errMsg = "Update request failed"
 		}
+		utils.WriteErrorResponse(w, status, errMsg)
 		return
 	}
 
@@ -73,23 +83,15 @@ func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *htt
 
 	claims, _ := r.Context().Value("claims").(middleware.UserPayload)
 
-	err := h.Application.UpdateAccountValidation(r.Context(), req.ActionID, req.Approve, claims.UserID)
+	err := h.Application.UpdateAccountValidation(r.Context(), req.ActionID, req.Approve, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
-		switch err.Error() {
-		case "action ID cannot be empty",
-			"checker ID cannot be empty":
-			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-		case "action not found":
-			utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-		case "action is not pending":
-			utils.WriteErrorResponse(w, http.StatusConflict, err.Error())
-		case "validation failed: identifier cannot be empty",
-			"validation failed: min length cannot exceed max length",
-			"validation failed: service ID cannot be empty":
-			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-		default:
-			utils.WriteErrorResponse(w, http.StatusInternalServerError, "Approval process failed")
+		errMsg := err.Error()
+		status, ok := errorMap[errMsg]
+		if !ok {
+			status = http.StatusInternalServerError
+			errMsg = "Approval process failed"
 		}
+		utils.WriteErrorResponse(w, status, errMsg)
 		return
 	}
 

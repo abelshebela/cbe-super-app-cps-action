@@ -90,7 +90,7 @@ func TestService_UpdateBlockTimeRequest(t *testing.T) {
 			},
 			mockHQ: models.HQ{
 				ID:        "test-id",
-				UniqueID:  "test-unique",
+				UniqueId:  "test-unique",
 				Name:      "Test HQ",
 				BlockTime: 1800, // 30 minutes in seconds
 			},
@@ -159,7 +159,7 @@ func TestService_UpdateArchiveTimeRequest(t *testing.T) {
 			},
 			mockHQ: models.HQ{
 				ID:          "test-id",
-				UniqueID:    "test-unique",
+				UniqueId:    "test-unique",
 				Name:        "Test HQ",
 				ArchiveTime: 43200, // 12 hours in seconds
 			},
@@ -232,7 +232,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 				ActionStatus: action.ActionPending,
 				CurrentAction: models.HQ{
 					ID:        "test-id",
-					UniqueID:  "test-unique",
+					UniqueId:  "test-unique",
 					Name:      "Test HQ",
 					BlockTime: 3600,
 				},
@@ -321,7 +321,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 				ActionStatus: action.ActionPending,
 				CurrentAction: models.HQ{
 					ID:          "test-id",
-					UniqueID:    "test-unique",
+					UniqueId:    "test-unique",
 					Name:        "Test HQ",
 					ArchiveTime: 86400,
 				},

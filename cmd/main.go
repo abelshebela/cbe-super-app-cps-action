@@ -130,8 +130,8 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
 	defer cancel()
 
-	dbname := cfg.MongoDBDatabase
-	//dbname := "ldap_cbs"
+	// dbname := cfg.MongoDBDatabase
+	dbname := "ldap_cbs"
 	collectionNames := []string{
 		"bps_user",
 		"cps_action",
@@ -302,7 +302,7 @@ func main() {
 		Addr:    ":8080",
 		Handler: r,
 	}
-	////
+	
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, syscall.SIGTERM)
 

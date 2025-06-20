@@ -6,7 +6,7 @@ import (
 
 type HQ struct {
 	ID                string    `bson:"_id" json:"id"`
-	UniqueID          string    `bson:"unique_id" json:"unique_id"`
+	UniqueId          string    `bson:"unique_id" json:"unique_id"`
 	Name              string    `bson:"name" json:"name"`
 	BlockTime         uint      `bson:"block_time" json:"block_time"`
 	BlockTimeStatus   string    `bson:"block_time_status" json:"block_time_status"`
