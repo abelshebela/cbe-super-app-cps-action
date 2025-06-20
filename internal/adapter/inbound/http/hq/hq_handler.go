@@ -5,17 +5,18 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/models"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type HQHTTPHandler struct {
-	handler *hq.HQHandler
+	handler hq.ApplicationAbstracts
 	logger  utils.Logger
 }
 
-func NewHQHTTPHandler(handler *hq.HQHandler, logger utils.Logger) *HQHTTPHandler {
+func NewHQHTTPHandler(handler hq.ApplicationAbstracts, logger utils.Logger) *HQHTTPHandler {
 	return &HQHTTPHandler{
 		handler: handler,
 		logger:  logger,
@@ -42,14 +43,20 @@ func (h *HQHTTPHandler) GetHQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
-	var request models.UpdateBlockTimeRequest
+	var request dto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("failed to decode request: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
 		h.logger.Errorf("failed to update block time request: %v", err)
 		http.Error(w, "Failed to update block time request", http.StatusInternalServerError)
@@ -61,14 +68,20 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
-	var request models.UpdateArchiveTimeRequest
+	var request dto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("failed to decode request: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
 		h.logger.Errorf("failed to update archive time request: %v", err)
 		http.Error(w, "Failed to update archive time request", http.StatusInternalServerError)
@@ -80,14 +93,20 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 }
 
 func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) {
-	var request models.ApproveRejectRequest
+	var request dto.ApproveRejectRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("failed to decode request: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.handler.UpdateBlockTime(r.Context(), request); err != nil {
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.handler.UpdateBlockTime(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName); err != nil {
 		h.logger.Errorf("failed to update block time: %v", err)
 		http.Error(w, "Failed to update block time", http.StatusInternalServerError)
 		return
@@ -97,14 +116,20 @@ func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request) {
-	var request models.ApproveRejectRequest
+	var request dto.ApproveRejectRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("failed to decode request: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.handler.UpdateArchiveTime(r.Context(), request); err != nil {
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.handler.UpdateArchiveTime(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName); err != nil {
 		h.logger.Errorf("failed to update archive time: %v", err)
 		http.Error(w, "Failed to update archive time", http.StatusInternalServerError)
 		return

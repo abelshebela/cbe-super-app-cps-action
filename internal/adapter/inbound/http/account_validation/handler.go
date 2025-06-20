@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/account_validation"
-	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -31,7 +31,6 @@ type ErrorResponse struct {
 
 func (h *HttpStore) handleError(w http.ResponseWriter, err error) {
 	h.logger.Errorf("Error occurred: %v", err)
-	
 
 	statusCode := http.StatusInternalServerError
 	message := "Internal server error"
@@ -58,7 +57,6 @@ func (h *HttpStore) handleError(w http.ResponseWriter, err error) {
 	})
 }
 
-
 func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inbound, middleware middleware.AuthMiddleware) {
 	routes := []route.Route{
 		{
@@ -67,7 +65,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.FetchAccountValidation,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "CHECKER"}),
+				middleware.AccessControl([]string{"maker", "checker"}),
 			},
 		},
 		{
@@ -76,7 +74,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.UpdateAccountValidationMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				middleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -85,7 +83,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.UpdateAccountValidationChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER"}),
+				middleware.AccessControl([]string{"checker","ifb-checker"}),
 			},
 		},
 	}

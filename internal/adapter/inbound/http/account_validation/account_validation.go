@@ -81,7 +81,11 @@ func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *htt
 		return
 	}
 
-	claims, _ := r.Context().Value("claims").(middleware.UserPayload)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	err := h.Application.UpdateAccountValidation(r.Context(), req.ActionID, req.Approve, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
