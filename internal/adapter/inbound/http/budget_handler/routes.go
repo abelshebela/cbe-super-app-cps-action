@@ -19,7 +19,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.CreateBudgetIcon,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{"maker"}),
 				},
 			},
 			{
@@ -28,7 +28,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetFetchIcons,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "CHECKER"}),
+					authMiddleware.AccessControl([]string{"maker", "checker"}),
 				},
 			},
 			{
@@ -37,7 +37,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetUpdateIcon,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{"maker"}),
 				},
 			},
 			{
@@ -46,7 +46,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetCreateColor,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{"maker"}),
 				},
 			},
 			{
@@ -55,7 +55,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetFetchColors,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "CHECKER"}),
+					authMiddleware.AccessControl([]string{"maker", "checker"}),
 				},
 			},
 			
@@ -65,7 +65,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetUpdateColor,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{"maker"}),
 				},
 			},
 			{
@@ -74,7 +74,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetCheckerApproval,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 				},
 			},
 

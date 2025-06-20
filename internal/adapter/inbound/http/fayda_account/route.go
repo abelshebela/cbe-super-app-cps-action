@@ -19,7 +19,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount,authMi
 				Handler: faydaHandler.InitiateDisableFaydaAccount,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 				},
 			},
 			{
@@ -28,7 +28,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount,authMi
 				Handler: faydaHandler.AuthorizeFaydaAccountDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 				},
 			},
 			{
@@ -37,7 +37,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount,authMi
 				Handler: faydaHandler.RejectFaydaAccountDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 				},
 			},
 		}

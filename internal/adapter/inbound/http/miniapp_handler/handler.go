@@ -30,7 +30,7 @@ func InitServiceHandlerMaker(router chi.Router, handler Inbound.Inbound, authMid
 			Handler: handler.MakerCreateMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -39,7 +39,7 @@ func InitServiceHandlerMaker(router chi.Router, handler Inbound.Inbound, authMid
 			Handler: handler.CheckerMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 	}

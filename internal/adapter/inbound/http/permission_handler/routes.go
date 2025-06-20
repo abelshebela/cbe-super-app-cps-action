@@ -18,7 +18,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				Handler: permissionHandler.CreatePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{"maker"}),
 				},
 			},
 			{
@@ -27,7 +27,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				Handler: permissionHandler.ApprovePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker"}),
 				},
 			},
 		}

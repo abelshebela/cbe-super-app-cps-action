@@ -18,7 +18,7 @@ func RegisterCPSUserMakerRoutes(r chi.Router, handler inbound.CPSUserMakerHandle
 			Handler: handler.CreateUserRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func RegisterCPSUserMakerRoutes(r chi.Router, handler inbound.CPSUserMakerHandle
 			Handler: handler.UpdateUserRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func RegisterCPSUserMakerRoutes(r chi.Router, handler inbound.CPSUserMakerHandle
 			Handler: handler.ApproveUserAction,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func RegisterCPSUserMakerRoutes(r chi.Router, handler inbound.CPSUserMakerHandle
 			Handler: handler.GetPendingUserActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 	}

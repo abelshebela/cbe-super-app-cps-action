@@ -18,7 +18,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 			Handler: handler.RequestPasswordRuleUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 			Handler: handler.ApproveOrRejectPasswordRuleAction,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 			Handler: handler.GetPasswordRuleUpdateActionByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 	}

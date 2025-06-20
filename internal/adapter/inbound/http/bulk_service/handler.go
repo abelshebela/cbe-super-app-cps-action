@@ -33,7 +33,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.EnableDisableServicesMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -42,7 +42,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.FetchServices,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -51,7 +51,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.EnableDisableServicesChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -60,7 +60,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.SearchAccountByCif,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.RemoveCifMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -78,7 +78,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.RemoveCifChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 	}

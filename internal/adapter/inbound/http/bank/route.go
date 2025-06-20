@@ -18,7 +18,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.CreateOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 				},
 			},
 			{
@@ -27,7 +27,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.UpdateOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 				},
 			},
 			{
@@ -36,7 +36,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.DeleteOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 				},
 			},
 			{
@@ -45,7 +45,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.GetOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 				},
 			},
 			{
@@ -54,7 +54,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.GetAllBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 				},
 			},
 			{
@@ -63,7 +63,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 				},
 			},
 
@@ -73,7 +73,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 				},
 			},
 			{
@@ -82,7 +82,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{"macker", "ifb-maker"}),
 				},
 			},
 			{
@@ -91,7 +91,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				Handler: bank.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{"macker", "ifb-maker"}),
 				},
 			},
 		}

@@ -18,7 +18,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
             Handler: handler.FilterSingleBranches,
             Middlewares: []func(next http.Handler) http.Handler{
                 authMiddleware.AuthenticateToken,
-                authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+                authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
             },
         },
         {
@@ -27,7 +27,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
             Handler: handler.DisableSingleBranch,
             Middlewares: []func(next http.Handler) http.Handler{
                 authMiddleware.AuthenticateToken,
-                authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+                authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
             },
         },
         {
@@ -36,7 +36,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
             Handler: handler.ApproveSingleBranchDisable,
             Middlewares: []func(next http.Handler) http.Handler{
                 authMiddleware.AuthenticateToken,
-                authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+                authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
             },
         },
         {
@@ -45,7 +45,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
             Handler: handler.FilterMultipleBranches,
             Middlewares: []func(next http.Handler) http.Handler{
                 authMiddleware.AuthenticateToken,
-                authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+                authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
             },
         },
         {
@@ -54,7 +54,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
             Handler: handler.DisableMultipleBranches,
             Middlewares: []func(next http.Handler) http.Handler{
                 authMiddleware.AuthenticateToken,
-                authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+                authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
             },
         },
         {
@@ -63,7 +63,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
             Handler: handler.ApproveBulkBranchesDisable,
             Middlewares: []func(next http.Handler) http.Handler{
                 authMiddleware.AuthenticateToken,
-                authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+                authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
             },
         },
     }
