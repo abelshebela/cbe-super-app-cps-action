@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
-	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
-	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -82,6 +83,7 @@ import (
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
+
 	//branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/branch_handler"
 	//customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/customer_handler"
 	//branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/branch"
@@ -253,19 +255,18 @@ func main() {
 		mongoClient,
 		cfg.MongoDBDatabase,
 		[]string{
-			"cps_users",        
-			"cps_actions",     
-			"BPSUsers",         
-			"CPSServices",     
-			"portal_cards",     
-			"validation_rules", 
+			"cps_users",
+			"cps_actions",
+			"BPSUsers",
+			"CPSServices",
+			"portal_cards",
+			"validation_rules",
 		},
 	)
 	cpsUserService := cpsusermaker_service.NewCPSUserService(cpsUserPersistence)
 	cpsUserHandler := cpsusermaker_handler.InitCPSUserMakerHandler(cpsUserService, logger)
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
-	
 	bankPersistence := bank.InitBank(mongoClient, cfg.MongoDBDatabase, []string{"banks", "cps_actions"}, logger)
 	bankDomain := bank_domain.InitBankDomain(bankPersistence, minioClient, "banks", logger)
 	bankHandler := bank_handler.InitBankHanlder(bankDomain, logger)
@@ -278,10 +279,10 @@ func main() {
 	walletAdapter := wallet_adapter.InitWalletAdapter(walletHandler, logger)
 	wallet_adapter.InitWalletRoutes(r, walletAdapter, authMddleware)
 
-	amountBasedAuthRepo := persistence.InitAmountBasedAuth(mongoClient, cfg.MongoDBDatabase, "authTier")
-	amountBasedAuthService := amount_based_auth_domain.NewAmountBasedAuthService(amountBasedAuthRepo, ctx)
+	amountBasedAuthRepo := persistence.InitAmountBasedAuth(mongoClient, cfg.MongoDBDatabase, []string{"auth_tier", "cps_action"}, logger)
+	amountBasedAuthService := amount_based_auth_domain.NewAmountBasedAuthService(amountBasedAuthRepo, logger)
 	amountBasedAuthApplication := amount_based_auth_app.AmountBasedAuthHandler(amountBasedAuthService)
-	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication)
+	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication,logger)
 	amount_based_auth_handler.InitAmountBasedAuthHandler(r, amountBasedAuthHandler, authMddleware)
 
 	quit := make(chan os.Signal, 1)
@@ -302,7 +303,7 @@ func main() {
 		Addr:    ":8080",
 		Handler: r,
 	}
-	
+
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, syscall.SIGTERM)
 
