@@ -39,6 +39,11 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/password_rule/check",
+			Handler: handler.CheckPasswordRule,
+		},
 	}
 
 	sharedhttp.RegisterRoutes(r, routes)
