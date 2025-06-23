@@ -2,36 +2,54 @@ package amount_based_auth_domain
 
 import (
 	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service struct {
 	repo   Repository
-	ctx    context.Context
 	logger utils.Logger
 }
 
-func NewAmountBasedAuthService(repo Repository, ctx context.Context) *Service {
+func NewAmountBasedAuthService(repo Repository, logger utils.Logger) *Service {
 	return &Service{
-		repo: repo,
-		ctx:  ctx,
+		repo:   repo,
+		logger: logger,
 	}
 }
 
-func (service Service) BuildAuthTierRequest(request AmountBasedAuthRequest) (*string, error) {
-	tier, err := service.repo.UpdateAuthTier(request, service.ctx, service.logger)
+func (service *Service) UpdateAuthTier(ctx context.Context, request UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsAction, error) {
+	if err := request.Valiadate(); err != nil {
+		service.logger.Errorf("validation error: %v", err)
+		return nil, err
+	}
+
+	cpsActionRes, err := service.repo.UpdateAuthTier(ctx, request, cpsAction)
 	if err != nil {
 		return nil, err
 	}
 
-	return &tier, nil
+	return cpsActionRes, nil
 }
 
-func (service Service) BuildAuthTierApproveRequest(id string) (string, error) {
-	auth, err := service.repo.ApproveAmountBasedAuth(service.ctx, id)
-
+func (service *Service) ApproveAuthTierApprove(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsAction, error) {
+	auth, err := service.repo.ApproveAmountBasedAuth(ctx, id, cpsAction)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+
+	return auth, nil
+}
+
+func (service *Service) RejectAuthTier(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsAction, error) {
+	if err := cpsAction.Validate(); err != nil {
+		service.logger.Errorf("validation error: %v", err)
+		return nil, err
+	}
+	auth, err := service.repo.RejectAmountBasedAuth(ctx, id, cpsAction)
+	if err != nil {
+		return nil, err
 	}
 
 	return auth, nil

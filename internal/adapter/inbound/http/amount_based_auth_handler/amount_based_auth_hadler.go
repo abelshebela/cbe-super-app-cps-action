@@ -2,14 +2,20 @@ package amount_based_auth_handler
 
 import (
 	"encoding/json"
+	"fmt"
+
 	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+
+	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"net/http"
 )
 
 type AmountBasedAuthHandler struct {
@@ -21,38 +27,51 @@ type Resp struct {
 	message string
 }
 
-func (a AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(id)
-	if err != nil {
-		return
+func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService, logger utils.Logger) inbound.AmountBasedAuthHandler {
+	return &AmountBasedAuthHandler{
+		amountBasedAuthService: service,
+		logger:                 logger,
 	}
-
-	r2 := Resp{
-		message: amountBasedAuth,
-	}
-	response := common.Response[any]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           r2.message,
-	}
-
-	response.SendJSON()
 }
 
-func (a AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	var request amount_based_auth_domain.AmountBasedAuthRequest
-	err := json.NewDecoder(r.Body).Decode(&request)
+func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var request amount_based_auth_domain.UpdateAmountBasedAuth
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		a.logger.Errorf("failed to decode request body: %v", err)
+		err := fmt.Errorf("failed to decode request body: %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	var cpsActionRequest model.CreateCPSAction
+
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	cpsActionRequest.MakerUser = model.User{
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
+	}
+	cpsActionRequest.Department = department
+	request.Id = id
+	cpsActionRequest.CurrentData = request
+
+	ctx := r.Context()
+	amountBasedAuth, err := a.amountBasedAuthService.UpdateAmountBasedAuth(ctx, request, cpsActionRequest)
 	if err != nil {
+		middleware.ErrorHandler(w, err)
 		return
 	}
 
-	amountBasedAuth, err2 := a.amountBasedAuthService.UpdateAmountBasedAuth(request)
-	if err2 != nil {
-		return
-	}
-
-	response := common.Response[any]{
+	response := common.Response[*model.CpsAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           amountBasedAuth,
@@ -62,8 +81,78 @@ func (a AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *
 
 }
 
-func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService) inbound.AmountBasedAuthHandler {
-	return &AmountBasedAuthHandler{
-		amountBasedAuthService: service,
+func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	ctx := r.Context()
+
+	var cpsReq model.AuthorizeCPSAction
+
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	cpsReq.CheckerUser = model.User{
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
 	}
+	cpsReq.Department = department
+
+	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(ctx, id, cpsReq)
+	if err != nil {
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	response := common.Response[*model.CpsAction]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           amountBasedAuth,
+	}
+
+	response.SendJSON()
+}
+
+func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var cpsReq model.RejectCPSAction
+
+	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
+		a.logger.Errorf("failed to decode amount based auth request", err)
+		err = fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	cpsReq.CheckerUser = model.User{
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
+	}
+	cpsReq.Department = department
+
+	ctx := r.Context()
+	rejectAction, err := a.amountBasedAuthService.RejectAmountBasedAuth(ctx, id,cpsReq)
+	if err != nil {
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	res := common.Response[*model.CpsAction]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           rejectAction,
+	}
+	res.SendJSON()
 }

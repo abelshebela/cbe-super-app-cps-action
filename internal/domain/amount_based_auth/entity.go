@@ -5,18 +5,18 @@ import "time"
 type Method string
 
 const (
-	OTP        Method = "otp"
-	OPEN       Method = "open"
-	OTPANDPINT Method = "otp+pin"
+	OPEN      Method = "OPEN"
+	PIN       Method = "PIN"
+	OTPANDPIN Method = "OTP_PIN"
 )
 
 type AuthTier struct {
-	ID           string
-	MinAmount    uint64    `json:"minAmount" bson:"minAmount"`
-	MaxAmount    uint64    `json:"maxAmount" bson:"maxAmount"`
-	Method       string    `json:"method" bson:"method"`
+	ID           string    `json:"id" bson:"id"`
+	MinAmount    uint64    `json:"min_amount" bson:"min_amount"`
+	MaxAmount    uint64    `json:"max_amount" bson:"max_amount"`
+	Method       Method    `json:"method" bson:"method"`
 	Enabled      bool      `json:"enabled" bson:"enabled"`
-	IsDeleted    bool      `json:"isDeleted" bson:"isDeleted"`
-	CreatedAt    time.Time `json:"createdAt" bson:"createdAt"`
-	LastModified time.Time `json:"lastModified" bson:"lastModified"`
+	IsDeleted    bool      `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
+	LastModified time.Time `json:"last_modified" bson:"last_modified"`
 }
