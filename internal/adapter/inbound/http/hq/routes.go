@@ -17,7 +17,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 			Handler: handler.GetHQ,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -26,7 +26,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 			Handler: handler.UpdateBlockTimeRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -35,7 +35,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 			Handler: handler.UpdateArchiveTimeRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -44,7 +44,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 			Handler: handler.UpdateBlockTime,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -53,7 +53,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 			Handler: handler.UpdateArchiveTime,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+				authMiddleware.AccessControl([]string{"checker", "ifb-cheker"}),
 			},
 		},
 	}

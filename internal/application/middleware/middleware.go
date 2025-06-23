@@ -19,12 +19,14 @@ import (
 )
 
 type UserPayload struct {
-	PhoneNumber string   `json:"phone_number,omitempty"`
-	UserRole    string   `json:"user_role,omitempty"`
+	PhoneNumber string   `json:"phoneNumber,omitempty"`
+	UserName    string   `json:"UserName,omitempty"`
+	UserRole    string   `json:"userrole,omitempty"`
+	UserRealm   string   `json:"realm,omitempty"`
 	UserID      string   `json:"user_id,omitempty"`
 	BranchCode  []string `json:"branch_code,omitempty"`
 	UserCode    string   `json:"user_code,omitempty"`
-	FullName    string   `json:"full_name,omitempty"`
+	FullName    string   `json:"fullname,omitempty"`
 	Department  string   `json:"department,omitempty"`
 }
 

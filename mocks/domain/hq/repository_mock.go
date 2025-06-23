@@ -4,23 +4,23 @@ import (
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/models"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 )
 
 type MockRepository struct {
-	GetHQByIDFunc                     func(ctx context.Context, id string) (models.HQ, error)
-	UpdateHQFunc                      func(ctx context.Context, id string, hq models.HQ) error
+	GetHQByIDFunc                     func(ctx context.Context, id string) (hq.HQ, error)
+	UpdateHQFunc                      func(ctx context.Context, id string, hq hq.HQ) error
 	FetchPendingActionsByUniqueIDFunc func(ctx context.Context, uniqueID string) ([]action.CPSAction, error)
 }
 
-func (m *MockRepository) GetHQByID(ctx context.Context, id string) (models.HQ, error) {
+func (m *MockRepository) GetHQByID(ctx context.Context, id string) (hq.HQ, error) {
 	if m.GetHQByIDFunc != nil {
 		return m.GetHQByIDFunc(ctx, id)
 	}
-	return models.HQ{}, nil
+	return hq.HQ{}, nil
 }
 
-func (m *MockRepository) UpdateHQ(ctx context.Context, id string, hq models.HQ) error {
+func (m *MockRepository) UpdateHQ(ctx context.Context, id string, hq hq.HQ) error {
 	if m.UpdateHQFunc != nil {
 		return m.UpdateHQFunc(ctx, id, hq)
 	}

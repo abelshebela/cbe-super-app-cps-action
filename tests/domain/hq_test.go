@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 	hqdomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/models"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 	actionmock "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action/action_manual_mock"
 	hqmock "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/hq"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -17,28 +17,28 @@ func TestService_GetHQ(t *testing.T) {
 	tests := []struct {
 		name          string
 		id            string
-		mockHQ        models.HQ
+		mockHQ        hq.HQ
 		mockError     error
 		expectedError bool
 	}{
 		{
 			name:          "success",
 			id:            "test-id",
-			mockHQ:        models.HQ{ID: "test-id", Name: "Test HQ"},
+			mockHQ:        hq.HQ{ID: "test-id", Name: "Test HQ"},
 			mockError:     nil,
 			expectedError: false,
 		},
 		{
 			name:          "empty id",
 			id:            "",
-			mockHQ:        models.HQ{},
+			mockHQ:        hq.HQ{},
 			mockError:     nil,
 			expectedError: true,
 		},
 		{
 			name:          "repository error",
 			id:            "test-id",
-			mockHQ:        models.HQ{},
+			mockHQ:        hq.HQ{},
 			mockError:     errors.New("repository error"),
 			expectedError: true,
 		},
@@ -47,7 +47,7 @@ func TestService_GetHQ(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &hqmock.MockRepository{
-				GetHQByIDFunc: func(ctx context.Context, id string) (models.HQ, error) {
+				GetHQByIDFunc: func(ctx context.Context, id string) (hq.HQ, error) {
 					return tt.mockHQ, tt.mockError
 				},
 			}
@@ -77,20 +77,20 @@ func TestService_GetHQ(t *testing.T) {
 func TestService_UpdateBlockTimeRequest(t *testing.T) {
 	tests := []struct {
 		name          string
-		request       models.UpdateBlockTimeRequest
-		mockHQ        models.HQ
+		request       hq.UpdateBlockTimeRequest
+		mockHQ        hq.HQ
 		mockError     error
 		expectedError bool
 	}{
 		{
 			name: "success",
-			request: models.UpdateBlockTimeRequest{
+			request: hq.UpdateBlockTimeRequest{
 				MakerID:   "test-id",
 				BlockTime: 3600, // 1 hour in seconds
 			},
-			mockHQ: models.HQ{
+			mockHQ: hq.HQ{
 				ID:        "test-id",
-				UniqueId:  "test-unique",
+				
 				Name:      "Test HQ",
 				BlockTime: 1800, // 30 minutes in seconds
 			},
@@ -99,11 +99,11 @@ func TestService_UpdateBlockTimeRequest(t *testing.T) {
 		},
 		{
 			name: "repository error",
-			request: models.UpdateBlockTimeRequest{
+			request: hq.UpdateBlockTimeRequest{
 				MakerID:   "test-id",
 				BlockTime: 3600,
 			},
-			mockHQ:        models.HQ{},
+			mockHQ:        hq.HQ{},
 			mockError:     errors.New("repository error"),
 			expectedError: true,
 		},
@@ -112,7 +112,7 @@ func TestService_UpdateBlockTimeRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &hqmock.MockRepository{
-				GetHQByIDFunc: func(ctx context.Context, id string) (models.HQ, error) {
+				GetHQByIDFunc: func(ctx context.Context, id string) (hq.HQ, error) {
 					return tt.mockHQ, tt.mockError
 				},
 			}
@@ -146,20 +146,20 @@ func TestService_UpdateBlockTimeRequest(t *testing.T) {
 func TestService_UpdateArchiveTimeRequest(t *testing.T) {
 	tests := []struct {
 		name          string
-		request       models.UpdateArchiveTimeRequest
-		mockHQ        models.HQ
+		request       hq.UpdateArchiveTimeRequest
+		mockHQ        hq.HQ
 		mockError     error
 		expectedError bool
 	}{
 		{
 			name: "success",
-			request: models.UpdateArchiveTimeRequest{
+			request: hq.UpdateArchiveTimeRequest{
 				MakerID:     "test-id",
 				ArchiveTime: 86400, // 24 hours in seconds
 			},
-			mockHQ: models.HQ{
+			mockHQ: hq.HQ{
 				ID:          "test-id",
-				UniqueId:    "test-unique",
+				
 				Name:        "Test HQ",
 				ArchiveTime: 43200, // 12 hours in seconds
 			},
@@ -168,11 +168,11 @@ func TestService_UpdateArchiveTimeRequest(t *testing.T) {
 		},
 		{
 			name: "repository error",
-			request: models.UpdateArchiveTimeRequest{
+			request: hq.UpdateArchiveTimeRequest{
 				MakerID:     "test-id",
 				ArchiveTime: 86400,
 			},
-			mockHQ:        models.HQ{},
+			mockHQ:        hq.HQ{},
 			mockError:     errors.New("repository error"),
 			expectedError: true,
 		},
@@ -181,7 +181,7 @@ func TestService_UpdateArchiveTimeRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &hqmock.MockRepository{
-				GetHQByIDFunc: func(ctx context.Context, id string) (models.HQ, error) {
+				GetHQByIDFunc: func(ctx context.Context, id string) (hq.HQ, error) {
 					return tt.mockHQ, tt.mockError
 				},
 			}
@@ -215,14 +215,14 @@ func TestService_UpdateArchiveTimeRequest(t *testing.T) {
 func TestService_UpdateBlockTime(t *testing.T) {
 	tests := []struct {
 		name          string
-		request       models.ApproveRejectRequest
+		request       hq.ApproveRejectRequest
 		mockAction    action.CPSAction
 		mockError     error
 		expectedError bool
 	}{
 		{
 			name: "success approve",
-			request: models.ApproveRejectRequest{
+			request: hq.ApproveRejectRequest{
 				ActionCode: "test-action",
 				CheckerID:  "test-checker",
 				Approved:   true,
@@ -230,9 +230,9 @@ func TestService_UpdateBlockTime(t *testing.T) {
 			mockAction: action.CPSAction{
 				ActionCode:   "test-action",
 				ActionStatus: action.ActionPending,
-				CurrentAction: models.HQ{
+				CurrentAction: hq.HQ{
 					ID:        "test-id",
-					UniqueId:  "test-unique",
+					
 					Name:      "Test HQ",
 					BlockTime: 3600,
 				},
@@ -242,7 +242,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 		},
 		{
 			name: "success reject",
-			request: models.ApproveRejectRequest{
+			request: hq.ApproveRejectRequest{
 				ActionCode: "test-action",
 				CheckerID:  "test-checker",
 				Approved:   false,
@@ -256,7 +256,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 		},
 		{
 			name: "action not found",
-			request: models.ApproveRejectRequest{
+			request: hq.ApproveRejectRequest{
 				ActionCode: "test-action",
 				CheckerID:  "test-checker",
 				Approved:   true,
@@ -270,7 +270,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &hqmock.MockRepository{
-				UpdateHQFunc: func(ctx context.Context, id string, hq models.HQ) error {
+				UpdateHQFunc: func(ctx context.Context, id string, hq hq.HQ) error {
 					return nil
 				},
 			}
@@ -304,14 +304,14 @@ func TestService_UpdateBlockTime(t *testing.T) {
 func TestService_UpdateArchiveTime(t *testing.T) {
 	tests := []struct {
 		name          string
-		request       models.ApproveRejectRequest
+		request       hq.ApproveRejectRequest
 		mockAction    action.CPSAction
 		mockError     error
 		expectedError bool
 	}{
 		{
 			name: "success approve",
-			request: models.ApproveRejectRequest{
+			request: hq.ApproveRejectRequest{
 				ActionCode: "test-action",
 				CheckerID:  "test-checker",
 				Approved:   true,
@@ -319,9 +319,9 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 			mockAction: action.CPSAction{
 				ActionCode:   "test-action",
 				ActionStatus: action.ActionPending,
-				CurrentAction: models.HQ{
+				CurrentAction: hq.HQ{
 					ID:          "test-id",
-					UniqueId:    "test-unique",
+					
 					Name:        "Test HQ",
 					ArchiveTime: 86400,
 				},
@@ -331,7 +331,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 		},
 		{
 			name: "success reject",
-			request: models.ApproveRejectRequest{
+			request: hq.ApproveRejectRequest{
 				ActionCode: "test-action",
 				CheckerID:  "test-checker",
 				Approved:   false,
@@ -345,7 +345,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 		},
 		{
 			name: "action not found",
-			request: models.ApproveRejectRequest{
+			request: hq.ApproveRejectRequest{
 				ActionCode: "test-action",
 				CheckerID:  "test-checker",
 				Approved:   true,
@@ -359,7 +359,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &hqmock.MockRepository{
-				UpdateHQFunc: func(ctx context.Context, id string, hq models.HQ) error {
+				UpdateHQFunc: func(ctx context.Context, id string, hq hq.HQ) error {
 					return nil
 				},
 			}

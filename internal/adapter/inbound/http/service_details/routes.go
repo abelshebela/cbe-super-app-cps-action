@@ -18,7 +18,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.GetAllServiceDetails,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "CHECKER"}),
+				middleware.AccessControl([]string{"maker", "checker"}),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.GetServiceDetailsByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "CHECKER"}),
+				middleware.AccessControl([]string{"maker", "checker"}),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.UpdateServiceDetailsMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				middleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.UpdateServiceDetailsChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER"}),
+				middleware.AccessControl([]string{"checker"}),
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ServiceDetailsDailyCapMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER"}),
+				middleware.AccessControl([]string{"maker"}),
 			},
 		},
 		{
@@ -63,7 +63,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ServiceDetailsSingleCapMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER"}),
+				middleware.AccessControl([]string{"maker"}),
 			},
 		},
 		{
@@ -72,7 +72,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.TotalTransferCapMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER"}),
+				middleware.AccessControl([]string{"maker"}),
 			},
 		},
 		// {
@@ -108,7 +108,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.UpdateCapMinAmountHandler,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+				middleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 		{
@@ -117,7 +117,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ApproveServiceDetailsHandler,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER"}),
+				middleware.AccessControl([]string{"checker"}),
 			},
 		},
 		{
@@ -126,7 +126,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.InitiateServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"CHECKER"}),
+				middleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 		{
@@ -135,7 +135,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ApproveServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER"}),
+				middleware.AccessControl([]string{"maker"}),
 			},
 		},
 		{
@@ -144,7 +144,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.RejectServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"MAKER"}),
+				middleware.AccessControl([]string{"maker", "ifb-maker"}),
 			},
 		},
 	}

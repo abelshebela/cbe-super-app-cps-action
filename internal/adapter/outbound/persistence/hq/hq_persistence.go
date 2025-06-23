@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/models"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
+
+	models "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -30,7 +32,7 @@ func NewHQPersistence(client *mongo.Client, dbName string, timeout time.Duration
 	}
 }
 
-func (p *HQPersistence) GetHQByID(ctx context.Context, id string) (models.HQ, error) {
+func (p *HQPersistence) GetHQByID(ctx context.Context, id string) (hq.HQ, error) {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
@@ -38,26 +40,34 @@ func (p *HQPersistence) GetHQByID(ctx context.Context, id string) (models.HQ, er
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			p.logger.Errorf("HQ not found", "id", id)
-			return models.HQ{}, err
+			return hq.HQ{}, err
 		}
 		p.logger.Errorf("failed to fetch HQ: %v", err)
-		return models.HQ{}, err
+		return hq.HQ{}, err
 	}
-	return *result, nil
+	return modelToDomainHQ(*result), nil
 }
 
-func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update models.HQ) error {
+func modelToDomainHQ(m models.HQ) hq.HQ {
+	return hq.HQ{
+		ID:           m.ID,
+		Name:         m.Name,
+		BlockTime:    m.BlockTime,
+		ArchiveTime:  m.ArchiveTime,
+		CreatedAt:    m.CreatedAt,
+		LastModified: m.LastModifiedAt,
+	}
+}
+
+func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) error {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
 	updateDoc := bson.M{
 		"block_time":          update.BlockTime,
-		"block_time_status":   update.BlockTimeStatus,
 		"archive_time":        update.ArchiveTime,
-		"archive_time_status": update.ArchiveTimeStatus,
 		"last_modified_at":    time.Now(),
 	}
-
 	_, err := p.hqDal.UpdateOne(ctx, bson.M{"_id": id}, updateDoc)
 	if err != nil {
 		p.logger.Errorf("failed to update HQ: %v", err)

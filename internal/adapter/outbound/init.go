@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
- portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
+
+	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -95,13 +96,12 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 }
 
 func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
- mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, "cbe", "portal_cards")
+	mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, "cbe", "portal_cards")
 
- return &outboundStore{
-  MongoDalPortalCard: mongoDalPortalCard,
- }
+	return &outboundStore{
+		MongoDalPortalCard: mongoDalPortalCard,
+	}
 }
-
 
 func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
 	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
@@ -419,10 +419,15 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 	}
 
 	CpsAction := model.CPSAction{
-		ActionCode:         Action.ActionCode,
-		MakerUser:          makerUser,
-		CheckerUser:        checkerUser,
-		UniqueId: func() string { if Action.UniqueId != "" { return Action.UniqueId }; return Action.Maker.UserID }(),
+		ActionCode:  Action.ActionCode,
+		MakerUser:   makerUser,
+		CheckerUser: checkerUser,
+		UniqueId: func() string {
+			if Action.UniqueId != "" {
+				return Action.UniqueId
+			}
+			return Action.Maker.UserID
+		}(),
 		CheckerID:          stringPointer(Action.Checker.UserID),
 		CheckerName:        stringPointer(Action.Checker.FullName),
 		CheckerPhoneNumber: stringPointer(Action.Checker.PhoneNumber),
@@ -760,27 +765,26 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 }
 func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDomain.Card, error) {
 
- data, err := o.MongoDalPortalCard.FindAll(ctx, nil, nil)
- if err != nil {
-  return nil, err
- }
+	data, err := o.MongoDalPortalCard.FindAll(ctx, nil, nil)
+	if err != nil {
+		return nil, err
+	}
 
- result := make([]*portalCardDomain.Card, len(data))
+	result := make([]*portalCardDomain.Card, len(data))
 
- for i, s := range data {
-  if s == nil {
-   continue
-  }
-  result[i] = &portalCardDomain.Card{
-   ID:       s.ID,
-   CardName: s.CardName,
-   SubCards: s.SubCards,
-  }
- }
- return result, nil
+	for i, s := range data {
+		if s == nil {
+			continue
+		}
+		result[i] = &portalCardDomain.Card{
+			ID:       s.ID,
+			CardName: s.CardName,
+			SubCards: s.SubCards,
+		}
+	}
+	return result, nil
 
 }
-
 
 func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error) {
 
@@ -1506,7 +1510,7 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction s
 		})
 		return service.UpdateServiceDetailsResponse{}, err
 	}
-	// Apply the update to the actual service
+	
 	serviceFilter := bson.M{
 		"action_code": cpsActionPtr.ActionCode,
 	}
@@ -1775,4 +1779,26 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		LastModifiedAt:  data.LastModifiedAt,
 	}
 	return result, nil
+}
+
+
+func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error) {
+	ruleModel, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
+	if err != nil || ruleModel == nil {
+		return nil, err
+	}
+
+	rule := &action.PasswordRule{
+		ID:             ruleModel.ID,
+		PasswordID:     ruleModel.PasswordId, 
+		Name:           ruleModel.Name,
+		MinLength:      ruleModel.MinLength,
+		MaxLength:      ruleModel.MaxLength,
+		Numbers:        ruleModel.Numbers,
+		CapitalLetters: ruleModel.CapitalLetters,
+		SmallLetters:   ruleModel.SmallLetters,
+		Characters:     ruleModel.Characters,
+		CreatedAt:      ruleModel.CreatedAt,
+	}
+	return rule, nil
 }

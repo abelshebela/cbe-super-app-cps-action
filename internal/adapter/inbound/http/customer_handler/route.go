@@ -19,7 +19,7 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Handler: customerHandler.GetCustomerDetail,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 				},
 			},
 			{
@@ -28,7 +28,7 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Handler: customerHandler.GetCustomerByID,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER", "CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
 				},
 			},
 		}

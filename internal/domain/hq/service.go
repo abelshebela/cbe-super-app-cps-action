@@ -1,4 +1,4 @@
-package domain
+package hq
 
 import (
 	"context"
@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/models"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service interface {
-	GetHQ(ctx context.Context, id string) (models.HQ, error)
-	UpdateBlockTimeRequest(ctx context.Context, request models.UpdateBlockTimeRequest) (string, error)
-	UpdateArchiveTimeRequest(ctx context.Context, request models.UpdateArchiveTimeRequest) (string, error)
-	UpdateBlockTime(ctx context.Context, request models.ApproveRejectRequest) error
-	UpdateArchiveTime(ctx context.Context, request models.ApproveRejectRequest) error
+	GetHQ(ctx context.Context, id string) (HQ, error)
+	UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (string, error)
+	UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (string, error)
+	UpdateBlockTime(ctx context.Context, request ApproveRejectRequest) error
+	UpdateArchiveTime(ctx context.Context, request ApproveRejectRequest) error
 }
 
 type ServiceStore struct {
@@ -33,22 +33,22 @@ func NewService(repo Repository, actionRepo action.Repository, logger utils.Logg
 	}
 }
 
-func (s *ServiceStore) GetHQ(ctx context.Context, id string) (models.HQ, error) {
+func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 	if id == "" {
 		s.logger.Errorf("HQ ID is empty")
-		return models.HQ{}, errors.New("HQ ID cannot be empty")
+		return HQ{}, errors.New("HQ ID cannot be empty")
 	}
 	s.logger.Infof("fetching HQ", "id", id)
 
 	hq, err := s.repository.GetHQByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
-		return models.HQ{}, err
+		return HQ{}, err
 	}
 	return hq, nil
 }
 
-func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request models.UpdateBlockTimeRequest) (string, error) {
+func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (string, error) {
 	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
@@ -61,7 +61,6 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request model
 		return "", errors.New("failed to marshal previous action")
 	}
 
-	// Create a copy of the original HQ and update the block time
 	updatedHQ := originalHQ
 	updatedHQ.BlockTime = request.BlockTime
 	currentActionJSON, err := json.Marshal(updatedHQ)
@@ -79,12 +78,12 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request model
 		ActionCode: actionID,
 		Maker: action.User{
 			UserID:      request.MakerID,
-			FullName:    "",
-			PhoneNumber: "",
+			FullName:    request.MakerName,
+			PhoneNumber: request.MakerPhone,
 			Timestamp:   time.Now(),
 		},
 		Checker:         action.User{},
-		Department:      originalHQ.UniqueId,
+		Department:      originalHQ.Name,
 		ActionType:      action.ActionUpdate,
 		RequestAction:   action.RequestUpdateHQBlockTime,
 		ActionStatus:    action.ActionPending,
@@ -104,7 +103,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request model
 	return createdAction.ActionCode, nil
 }
 
-func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request models.UpdateArchiveTimeRequest) (string, error) {
+func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (string, error) {
 	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
@@ -134,12 +133,12 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request mod
 		ActionCode: actionID,
 		Maker: action.User{
 			UserID:      request.MakerID,
-			FullName:    "",
-			PhoneNumber: "",
+			FullName:    request.MakerName,
+			PhoneNumber: request.MakerPhone,
 			Timestamp:   time.Now(),
 		},
 		Checker:         action.User{},
-		Department:      originalHQ.UniqueId,
+		Department:      originalHQ.ID,
 		ActionType:      action.ActionUpdate,
 		RequestAction:   action.RequestUpdateHQArchiveTime,
 		ActionStatus:    action.ActionPending,
@@ -159,7 +158,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request mod
 	return createdAction.ActionCode, nil
 }
 
-func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request models.ApproveRejectRequest) error {
+func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejectRequest) error {
 	if request.ActionCode == "" {
 		s.logger.Errorf("action ID is empty")
 		return errors.New("action ID cannot be empty")
@@ -185,14 +184,14 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request models.Appro
 
 	cpsAction.Checker = action.User{
 		UserID:      request.CheckerID,
-		FullName:    "",
-		PhoneNumber: "",
+		FullName:    request.CheckerName,
+		PhoneNumber: request.CheckerPhone,
 		Timestamp:   time.Now(),
 	}
 	cpsAction.LastModifiedAt = time.Now()
 
 	if request.Approved {
-		var updatedHQ models.HQ
+		var updatedHQ HQ
 		var currentActionBytes []byte
 		switch v := cpsAction.CurrentAction.(type) {
 		case json.RawMessage:
@@ -237,7 +236,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request models.Appro
 	return nil
 }
 
-func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request models.ApproveRejectRequest) error {
+func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRejectRequest) error {
 	if request.ActionCode == "" {
 		s.logger.Errorf("action ID is empty")
 		return errors.New("action ID cannot be empty")
@@ -263,14 +262,14 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request models.App
 
 	cpsAction.Checker = action.User{
 		UserID:      request.CheckerID,
-		FullName:    "",
-		PhoneNumber: "",
+		FullName:    request.CheckerName,
+		PhoneNumber: request.CheckerPhone,
 		Timestamp:   time.Now(),
 	}
 	cpsAction.LastModifiedAt = time.Now()
 
 	if request.Approved {
-		var updatedHQ models.HQ
+		var updatedHQ HQ
 		var currentActionBytes []byte
 		switch v := cpsAction.CurrentAction.(type) {
 		case json.RawMessage:

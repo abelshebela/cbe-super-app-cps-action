@@ -2,16 +2,19 @@ package main
 
 import (
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
-	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
-	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	// "testing/quick"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -82,6 +85,7 @@ import (
 	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
+
 	//branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/branch_handler"
 	//customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/customer_handler"
 	//branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/outbound/persistence/branch"
@@ -94,8 +98,12 @@ import (
 	//faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
 	//faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
 
+	hq_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	password_rule_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	password_rule_routes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	hq_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
+	application_hq "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
+	hq_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 	password_rule_services "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/services"
 )
 
@@ -140,6 +148,7 @@ func main() {
 		"member",
 		"linked_accounts",
 		"mini_app",
+
 		"portal_card",
 	}
 
@@ -253,19 +262,18 @@ func main() {
 		mongoClient,
 		cfg.MongoDBDatabase,
 		[]string{
-			"cps_users",        
-			"cps_actions",     
-			"BPSUsers",         
-			"CPSServices",     
-			"portal_cards",     
-			"validation_rules", 
+			"cps_users",
+			"cps_actions",
+			"BPSUsers",
+			"CPSServices",
+			"portal_cards",
+			"validation_rules",
 		},
 	)
 	cpsUserService := cpsusermaker_service.NewCPSUserService(cpsUserPersistence)
 	cpsUserHandler := cpsusermaker_handler.InitCPSUserMakerHandler(cpsUserService, logger)
 	cpsusermaker_handler.RegisterCPSUserMakerRoutes(r, cpsUserHandler, authMddleware)
 
-	
 	bankPersistence := bank.InitBank(mongoClient, cfg.MongoDBDatabase, []string{"banks", "cps_actions"}, logger)
 	bankDomain := bank_domain.InitBankDomain(bankPersistence, minioClient, "banks", logger)
 	bankHandler := bank_handler.InitBankHanlder(bankDomain, logger)
@@ -297,12 +305,16 @@ func main() {
 	passwordRuleService := password_rule_services.NewPasswordRuleService(passwordRuleOutbound)
 	passwordRuleHandler := password_rule_handler.NewPasswordRuleHTTPHandler(passwordRuleService, logger)
 	password_rule_routes.RegisterPasswordRuleRoutes(r, passwordRuleHandler, authMddleware)
-
+	hq_persistence := hq_persistence.NewHQPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
+	hqService := hq_service.NewService(hq_persistence, adapter_port, logger)
+	hqApp := application_hq.NewApplication(hqService, logger)
+	hqHandler := hq_handler.NewHQHTTPHandler(hqApp, logger)
+	hq_handler.InitHQRoutes(r, hqHandler, authMddleware)
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,
 	}
-	
+
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, syscall.SIGTERM)
 

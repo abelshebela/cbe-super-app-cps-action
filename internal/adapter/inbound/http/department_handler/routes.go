@@ -18,7 +18,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				Handler: departmentHandler.CreateDepartment,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{"maker"}),
 				},
 			},
 			{
@@ -27,7 +27,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				Handler: departmentHandler.ApproveDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{"checker"}),
 				},
 			},
 		}
