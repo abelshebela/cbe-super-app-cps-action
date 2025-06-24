@@ -9,7 +9,7 @@ pipeline {
         ENV_FILE_PATH = "./env"
         HARBOR_PRODJECT = "cbe-supperapp"
         REGISTRY_ADDRESS = credentials("REGISTRY_ADDRESS")
-        REPO_ADDRESS = "https://github.com/CBE-Super-App/cbe-super-app-bps-action.git"
+        REPO_ADDRESS = "https://github.com/CBE-Super-App/cbe-super-app-cps-action.git"
         PROJECT_ROOT_PATH = "/data/cbe-super-app/"
     }
 
