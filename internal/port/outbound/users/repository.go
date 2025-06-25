@@ -12,6 +12,8 @@ type UserRepositoryPort interface {
 	StoreOTP(ctx context.Context, otp *OTPRecord) error
 	FindOTP(ctx context.Context, userID, email string) (*OTPRecord, error)
 	UpdateUserEmail(ctx context.Context, userID, email string) error
+	UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error
+	DeleteOtp(ctx context.Context, id string) error
 }
 
 type User struct {

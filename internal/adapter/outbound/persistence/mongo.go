@@ -2,17 +2,22 @@ package persistence
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
+	userPort "cbe-super-app-member-users/internal/domain/users"
 	accountPort "cbe-super-app-member-users/internal/port/outbound/account"
-	userPort "cbe-super-app-member-users/internal/port/outbound/users"
-	local "cbe-super-app-member-users/internal/shared"
+
+	entities "cbe-super-app-member-users/internal/adapter/outbound/model"
+
 	dal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	entities "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type MongoRepository struct {
 	userDal          dal.MongoDal[entities.User, entities.User]
@@ -22,16 +27,17 @@ type MongoRepository struct {
 
 func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
 	return &MongoRepository{
-		userDal:          dal.NewMongoDal[entities.User, entities.User](client, dbName, "users"),
+		userDal:          dal.NewMongoDal[entities.User, entities.User](client, dbName, "user"),
 		linkedAccountDal: dal.NewMongoDal[entities.LinkedAccount, entities.LinkedAccount](client, dbName, "linked_accounts"),
-		otpDal:           dal.NewMongoDal[entities.OTP, entities.OTP](client, dbName, "otps"),
+		otpDal:           dal.NewMongoDal[entities.OTP, entities.OTP](client, dbName, "otp"),
 	}
 }
 
 func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.User, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
+	// fmt.Println("hello there ")
+	oid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, local.ErrNotFound
+		return nil, ErrNotFound
 	}
 
 	userFilter := bson.M{
@@ -41,22 +47,23 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 	userEntity, err := r.userDal.FindOne(ctx, userFilter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, local.ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
 
 	return &userPort.User{
 		ID:        userEntity.ID.Hex(),
+		Email:     userEntity.Email,
 		FullName:  userEntity.FullName,
 		IsDeleted: userEntity.IsDeleted,
 	}, nil
 }
 
 func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID string) ([]userPort.LinkedAccountDetail, error) {
-	oid, err := primitive.ObjectIDFromHex(userID)
+	oid, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, local.ErrNotFound
+		return nil, ErrNotFound
 	}
 
 	accountFilter := bson.M{
@@ -107,17 +114,20 @@ func (r *MongoRepository) FindOTP(ctx context.Context, userID, email string) (*u
 		"otp_for":    entities.OTPForChangeEmail,
 		"is_deleted": bson.M{"$ne": true},
 		"status":     bson.M{"$ne": entities.Verified},
+		"expires_at": bson.M{"$gt": time.Now()},
 	}
 
 	otpEntity, err := r.otpDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, local.ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
 
 	return &userPort.OTPRecord{
+		ID:        otpEntity.ID.Hex(),
+		UserCode:  otpEntity.UserCode,
 		UserID:    otpEntity.UserCode,
 		Email:     otpEntity.Email,
 		OTP:       otpEntity.OTPCode,
@@ -127,17 +137,15 @@ func (r *MongoRepository) FindOTP(ctx context.Context, userID, email string) (*u
 }
 
 func (r *MongoRepository) UpdateUserEmail(ctx context.Context, userID, email string) error {
-	oid, err := primitive.ObjectIDFromHex(userID)
+	oid, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		return local.ErrNotFound
+		return ErrNotFound
 	}
 
 	filter := bson.M{"_id": oid}
 	update := bson.M{
-		"$set": bson.M{
-			"Email":            email,
-			"last_modified_at": time.Now(),
-		},
+		"email":            email,
+		"last_modified_at": time.Now(),
 	}
 
 	_, err = r.userDal.UpdateOne(ctx, filter, update)
@@ -146,14 +154,14 @@ func (r *MongoRepository) UpdateUserEmail(ctx context.Context, userID, email str
 
 func (r *MongoRepository) FindByEmail(ctx context.Context, email string) (*userPort.UserEmail, error) {
 	filter := bson.M{
-		"email":      email,
-		"is_deleted": bson.M{"$ne": true},
+		"email": email,
+		// "is_deleted": bson.M{"$ne": true},
 	}
 
 	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, local.ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -165,9 +173,10 @@ func (r *MongoRepository) FindByEmail(ctx context.Context, email string) (*userP
 }
 
 func (r *MongoRepository) FindAccountUserByID(ctx context.Context, id string) (*accountPort.AccountUser, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
+	// fmt.Printf("lalalal", id)
+	oid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, local.ErrNotFound
+		return nil, ErrNotFound
 	}
 
 	userFilter := bson.M{
@@ -177,7 +186,7 @@ func (r *MongoRepository) FindAccountUserByID(ctx context.Context, id string) (*
 	userEntity, err := r.userDal.FindOne(ctx, userFilter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, local.ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -194,29 +203,28 @@ func (r *MongoRepository) FindAccountUserByID(ctx context.Context, id string) (*
 }
 
 func (r *MongoRepository) UpdateUserCustomerNumber(ctx context.Context, userId string, customerNumber string) error {
-	oid, err := primitive.ObjectIDFromHex(userId)
+	oid, err := bson.ObjectIDFromHex(userId)
 	if err != nil {
-		return local.ErrNotFound
+		fmt.Printf("Error converting userId to ObjectID: %v\n", err)
+		return ErrNotFound
 	}
 
 	filter := bson.M{
 		"_id": oid,
 	}
 	update := bson.M{
-		"$set": bson.M{
-			"customer_number":   customerNumber,
-			"last_modified_at": time.Now().UTC(),
-		},
+		"customer_number":  customerNumber,
+		"last_modified_at": time.Now().UTC(),
 	}
-
 	_, err = r.userDal.UpdateOne(ctx, filter, update)
+	fmt.Printf("Error converting userId to ObjectID: %v\n", err)
 	return err
 }
 
 func (r *MongoRepository) CreateLinkedAccount(ctx context.Context, acc *accountPort.LinkedAccount) error {
-	oid, err := primitive.ObjectIDFromHex(acc.UserID)
+	oid, err := bson.ObjectIDFromHex(acc.UserID)
 	if err != nil {
-		return local.ErrNotFound
+		return ErrNotFound
 	}
 
 	linkedAccount := entities.LinkedAccount{
@@ -240,4 +248,49 @@ func (r *MongoRepository) CreateLinkedAccount(ctx context.Context, acc *accountP
 
 	_, err = r.linkedAccountDal.InsertOne(ctx, linkedAccount)
 	return err
+}
+
+func (r *MongoRepository) UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return ErrNotFound
+	}
+	fmt.Printf("UpdateProfileImageURL called with id: %s (type: %T)\n", oid, oid)
+	fmt.Printf("oid type: %T, oid value: %v\n", oid, oid)
+	userFilter := bson.M{
+		"_id": oid,
+		// "is_deleted": bson.M{"$ne": true},
+	}
+
+	updateProfileURL := bson.M{
+		"avatar": imageURL,
+	}
+	fmt.Printf("Updating avatar with URL: %s\n", imageURL)
+
+	_, err = r.userDal.UpdateOne(ctx, userFilter, updateProfileURL)
+	if err != nil {
+		return err
+	}
+	user, _ := r.userDal.FindOne(ctx, bson.M{"_id": oid}, bson.M{})
+	fmt.Println("Stored avatar URL:", user.Avatar)
+
+	return nil
+}
+
+func (r *MongoRepository) DeleteOtp(ctx context.Context, ID string) error {
+	oid, err := bson.ObjectIDFromHex(ID)
+	if err != nil {
+		return ErrNotFound
+	}
+	filter := bson.M{"_id": oid}
+
+	err = r.otpDal.DeleteOne(
+		ctx,
+		filter,
+	)
+	if err != nil {
+		fmt.Printf("Error deleting OTP records: %v\n", err)
+		return fmt.Errorf("failed to delete OTP records: %v", err)
+	}
+	return nil
 }

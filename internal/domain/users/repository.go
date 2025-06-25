@@ -2,7 +2,7 @@ package users
 
 import (
 	"context"
-	"time"
+	"errors"
 )
 
 type UserRepository interface {
@@ -12,12 +12,12 @@ type UserRepository interface {
 	StoreOTP(ctx context.Context, otp *OTPRecord) error
 	FindOTP(ctx context.Context, userID, email string) (*OTPRecord, error)
 	UpdateUserEmail(ctx context.Context, userID, email string) error
+	UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error
+	DeleteOtp(ctx context.Context, id string) (error )
 }
 
-type OTPRecord struct {
-	UserID    string
-	Email     string
-	OTP       string
-	CreatedAt time.Time
-	ExpiresAt time.Time
-}
+
+
+var (
+	ErrNotFound = errors.New("not found")
+)
