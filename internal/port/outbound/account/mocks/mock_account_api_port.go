@@ -35,16 +35,16 @@ func (m *MockAccountAPIPort) EXPECT() *MockAccountAPIPortMockRecorder {
 }
 
 // LookupAccountByPhone mocks base method.
-func (m *MockAccountAPIPort) LookupAccountByPhone(ctx context.Context, phoneNumber string) (bool, error) {
+func (m *MockAccountAPIPort) LookupAccountByPhone(ctx context.Context, phoneNumber, PhoneLookupUrl string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LookupAccountByPhone", ctx, phoneNumber)
+	ret := m.ctrl.Call(m, "LookupAccountByPhone", ctx, phoneNumber, PhoneLookupUrl)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LookupAccountByPhone indicates an expected call of LookupAccountByPhone.
-func (mr *MockAccountAPIPortMockRecorder) LookupAccountByPhone(ctx, phoneNumber interface{}) *gomock.Call {
+func (mr *MockAccountAPIPortMockRecorder) LookupAccountByPhone(ctx, phoneNumber, PhoneLookupUrl interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupAccountByPhone", reflect.TypeOf((*MockAccountAPIPort)(nil).LookupAccountByPhone), ctx, phoneNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupAccountByPhone", reflect.TypeOf((*MockAccountAPIPort)(nil).LookupAccountByPhone), ctx, phoneNumber, PhoneLookupUrl)
 }

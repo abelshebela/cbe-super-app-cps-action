@@ -1,6 +1,16 @@
-package users
+package users_inbound
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
+
+type InBound interface {
+	FetchLinkedAccounts(w http.ResponseWriter, r *http.Request)
+	GenerateEmailOTP(w http.ResponseWriter, r *http.Request)
+	VerifyEmailOTP(w http.ResponseWriter, r *http.Request)
+	UpdateProfilePicture(w http.ResponseWriter, r *http.Request)
+}
 
 type UserPort interface {
 	FetchLinkedAccounts(ctx context.Context, userID string) (*LinkedAccountResponse, error)
@@ -33,3 +43,4 @@ type OTPVerification struct {
 	Email  string
 	OTP    string
 }
+

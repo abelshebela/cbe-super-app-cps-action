@@ -3,14 +3,17 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
-	httpAdapter "cbe-super-app-member-users/internal/adapter/inbound/http"
-	httpAccount "cbe-super-app-member-users/internal/adapter/inbound/http/account"
-	httpUser "cbe-super-app-member-users/internal/adapter/inbound/http/users"
+	AccountAdapter "cbe-super-app-member-users/internal/adapter/inbound/http/account"
+	accountRoutes "cbe-super-app-member-users/internal/adapter/inbound/http/account"
+	UsersAdapter "cbe-super-app-member-users/internal/adapter/inbound/http/users"
+	userRoutes "cbe-super-app-member-users/internal/adapter/inbound/http/users"
 	AccountApi "cbe-super-app-member-users/internal/adapter/outbound/api"
 	persistence "cbe-super-app-member-users/internal/adapter/outbound/persistence"
 	appAccount "cbe-super-app-member-users/internal/application/account"
@@ -18,72 +21,110 @@ import (
 	domainAccount "cbe-super-app-member-users/internal/domain/account"
 	domainUsers "cbe-super-app-member-users/internal/domain/users"
 
+	authMiddleware "cbe-super-app-member-users/internal/application/middleware"
+
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func main() {
-	ctx := context.Background()
 	logger := utils.NewLogger()
 	defer logger.Sync()
 
-	uri := os.Getenv("MONGODB_URI")
-	client, err := config.ConnectToMongoDB(uri)
+	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %s", err.Error())
+		logger.Fatalf("failed to load config %v", err)
+	}
+
+	mongoClient, err := config.ConnectToMongoDB(cfg.MongoDBURI)
+	if err != nil {
+		logger.Fatalf("failed to connect to mongo %v", err)
 	}
 	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Fatalf("Failed to disconnect from MongoDB: %s", err.Error())
+		if err := mongoClient.Disconnect(context.Background()); err != nil {
+			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
+		}
+	}()
+	log.Println("Connected to MongoDB!")
+
+	minioClient, err := config.NewMinioClient(&config.VaultConfig{
+		MinioEndPoint:  cfg.MinioEndPoint,
+		MinioAccessKey: cfg.MinioAccessKey,
+		MinioSecretKey: cfg.MinioSecretKey,
+	})
+	if err != nil {
+		logger.Fatalf("failed to initialize minio client: %v", err) 
+	}
+
+	// logger.Infof( cfg.MongoDBDatabase,"mongoosjfierrjgtiek")
+	repo := persistence.NewMongoRepository(mongoClient, cfg.MongoDBDatabase)
+	
+	apiClient := AccountApi.NewAccountAPIClient(logger)
+
+	userDomainService := domainUsers.NewUserService(repo, logger, minioClient, cfg)
+	accountDomainService := domainAccount.NewAccountService(repo, apiClient, logger,cfg)
+
+	userAppService := appUsers.InitUsersHandler(userDomainService, logger, minioClient)
+	accountAppService := appAccount.InitAccountHandler(accountDomainService, logger)
+
+	userAdapter := UsersAdapter.InitUsersAdapter(userAppService, logger)
+	accountAdapter := AccountAdapter.InitAccountAdapter(accountAppService, logger)
+
+	// Initialize router
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	}))
+
+	authMiddleware := authMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
+
+	// Setup routes
+	userRoutes.InitUserRoutes(r, userAdapter, authMiddleware)
+	accountRoutes.InitAccountRoutes(r, accountAdapter, authMiddleware)
+
+	// Determine port
+	port := strconv.Itoa(cfg.ServerPort)
+	if port == "" {
+		port = "8080"
+	}
+
+	// Configure server
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: r,
+	}
+
+	// Graceful shutdown setup
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		logger.Infof("🚀 Server started on %s", server.Addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalf("Server stopped with error: %v", err)
 		}
 	}()
 
-	repo := persistence.NewMongoRepository(client, "cbe")
-	apiClient := AccountApi.NewAccountAPIClient(logger)
+	// Wait for interrupt signal
+	sig := <-quit
 
-	userDomainService := domainUsers.NewUserService(repo, logger)
-	accountDomainService := domainAccount.NewAccountService(repo, apiClient, logger)
+  logger.Infof("Received signal: %v", sig)
+	// Create shutdown context
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	userAppService := appUsers.NewApplicationHandler(userDomainService)
-	accountAppService := appAccount.NewApplicationHandler(accountDomainService)
-
-	userHandler := httpUser.NewHTTPHandler(userAppService, logger)
-	accountHandler := httpAccount.NewHTTPHandler(accountAppService, logger)
-
-	router := chi.NewRouter()
-	httpAdapter.RegisterRoutes(router, userHandler, accountHandler)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = ":8080"
+	// Attempt graceful shutdown
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Fatalf("Failed to shutdown gracefully: %v", err)
 	}
 
-	server := httpAdapter.NewHTTPServer(port, router)
-
-	shutdown := make(chan error)
-
-	go func() {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-		sig := <-quit
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		logger.Infof("Received signal: %s", sig.String())
-		shutdown <- server.Shutdown(ctx)
-	}()
-
-	logger.Infof("Server starting on %s", port)
-	if err := server.ListenAndServe(); err != nil {
-		logger.Errorf("Server failed to start: %v", err)
-		return
-	}
-
-	if err := <-shutdown; err != nil {
-		logger.Errorf("Server shutdown failed: %v", err)
-		return
-	}
-	logger.Infof("Server stopped gracefully")
+	logger.Infof("Server shutting down with signal: %v", sig)
 }

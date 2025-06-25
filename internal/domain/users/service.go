@@ -2,34 +2,87 @@ package users
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
 	"time"
-	userRepoPort "cbe-super-app-member-users/internal/port/outbound/users"
-	"cbe-super-app-member-users/internal/shared"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+
+	local_utils "cbe-super-app-member-users/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type UserService struct {
-	repository userRepoPort.UserRepositoryPort
+	// repository userRepoPort.UserRepositoryPort
+	repository UserRepository
 	logger     utils.Logger
+	minIO      config.MinioClientInterface
+	cfg        *config.VaultConfig
 }
 
-func NewUserService(repository userRepoPort.UserRepositoryPort, logger utils.Logger) *UserService {
+func NewUserService(repository UserRepository, logger utils.Logger, minIO config.MinioClientInterface, cfg *config.VaultConfig) *UserService {
 	return &UserService{
 		repository: repository,
 		logger:     logger,
+		minIO:      minIO,
+		cfg:        cfg,
 	}
+}
+
+func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
+	_, err := s.repository.FindByID(ctx, id)
+	if err != nil {
+		if err == ErrNotFound {
+			s.logger.Errorf("User with ID %s not found", id)
+			return "", fmt.Errorf("NOT_FOUND")
+		}
+		s.logger.Errorf("Failed to find user with ID %s: %v", id, err)
+		return "", fmt.Errorf("UPLOAD_FAILED")
+	}
+
+	// Create a temporary file to store the uploaded content
+	tempFile, err := os.CreateTemp("", "profile-*.tmp")
+	if err != nil {
+		s.logger.Errorf("Failed to create temporary file: %v", err)
+		return "", fmt.Errorf("UPLOAD_FAILED")
+	}
+	defer os.Remove(tempFile.Name())
+	defer tempFile.Close()
+
+	// Copy the uploaded file content to the temporary file
+	if _, err := io.Copy(tempFile, file); err != nil {
+		s.logger.Errorf("Failed to copy file content to temporary file: %v", err)
+		return "", fmt.Errorf("UPLOAD_FAILED")
+	}
+
+	objectName := fmt.Sprintf("profile-pictures/%s/%s", id, filepath.Base(fileHeader.Filename))
+
+	resp, err := s.minIO.SaveObject(ctx, config.SaveObjectBody{
+		BucketName:  "user-profile-pictures",
+		ObjectName:  objectName,
+		File:        tempFile.Name(),
+		ContentType: "jpeg",
+	})
+	if err != nil {
+		s.logger.Errorf("Failed to save object to minio: %v", err)
+		return "", fmt.Errorf("UPLOAD_FAILED")
+	}
+
+	return resp.Key, nil
 }
 
 func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
 	user, err := s.repository.FindByID(ctx, id)
 	if err != nil {
-		if err == shared.ErrNotFound {
+		if err == ErrNotFound {
 			s.logger.Warnf("User with ID %s not found", id)
-			return nil, NewServiceError(common.DefineError.General["NOT_FOUND"])
+			return nil, fmt.Errorf("NOT_FOUND")
 		}
 		s.logger.Errorf("Failed to fetch user with ID %s: %v", id, err)
-		return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
 	if user.IsDeleted {
@@ -44,62 +97,80 @@ func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*Link
 	linkedAccounts, err := s.repository.FindActiveLinkedAccounts(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch linked accounts for user ID %s: %v", id, err)
-		return nil, NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
-var linkedAccountsResponse []LinkedAccountDetail
-for _, account := range linkedAccounts {
-	linkedAccountsResponse = append(linkedAccountsResponse, LinkedAccountDetail{
-		AccountNumber:     account.AccountNumber,
-		AccountBranchCode: account.AccountBranchCode,
-		LinkedBranch:      account.LinkedBranch,
-		IsAccountActive:   account.IsAccountActive,
-		LinkedStatus:      account.LinkedStatus,
-		CurrencyCode:      account.CurrencyCode,
-	})
-}
+	var linkedAccountsResponse []LinkedAccountDetail
+	for _, account := range linkedAccounts {
+		linkedAccountsResponse = append(linkedAccountsResponse, LinkedAccountDetail{
+			AccountNumber:     account.AccountNumber,
+			AccountBranchCode: account.AccountBranchCode,
+			LinkedBranch:      account.LinkedBranch,
+			IsAccountActive:   account.IsAccountActive,
+			LinkedStatus:      account.LinkedStatus,
+			CurrencyCode:      account.CurrencyCode,
+		})
+	}
 
-response := &LinkedAccountResponse{
-	UserID:         user.ID,
-	FullName:       user.FullName,
-	LinkedAccounts: linkedAccountsResponse,
-}
-
+	response := &LinkedAccountResponse{
+		UserID:         user.ID,
+		FullName:       user.FullName,
+		LinkedAccounts: linkedAccountsResponse,
+	}
 
 	s.logger.Infof("Successfully fetched active linked accounts for user ID %s", id)
 	return response, nil
 }
 
 func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error) {
-	existingUser, err := s.repository.FindByEmail(ctx, req.Email)
-	if err != nil && err != shared.ErrNotFound {
-		s.logger.Errorf("Email check failed: %v", err)
-		return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+	currentUser, err := s.repository.FindByID(ctx, req.UserID)
+	if err != nil {
+		s.logger.Errorf("Failed to find user by ID %s: %v", req.UserID, err)
+		return "UNHANDLED_SERVER_ERROR", fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
-	if existingUser != nil && existingUser.ID != req.UserID {
-		return "", NewInternalServiceError(shared.DefineError.OTP["EMAIL_IN_USE"])
+
+	if currentUser != nil && currentUser.Email != "" {
+		s.logger.Errorf("User %s already has an email address", req.UserID)
+		return "USER_ALREADY_HAS_EMAIL", fmt.Errorf("USER_ALREADY_HAS_EMAIL")
+	}
+
+	existingUser, err := s.repository.FindByEmail(ctx, req.Email)
+	if err != nil && err.Error() != "not found" {
+		s.logger.Errorf("Failed to find user by email %s: %v", req.Email, err)
+		return "UNHANDLED_SERVER_ERROR", fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	if existingUser != nil {
+		s.logger.Errorf("Email %s is already in use", req.Email)
+		return "EMAIL_IN_USE", fmt.Errorf("EMAIL_IN_USE")
+	}
+
+	record, err := s.repository.FindOTP(ctx, req.UserID, req.Email)
+	if record != nil && !record.ExpiresAt.IsZero() && time.Now().Before(record.ExpiresAt) {
+		s.logger.Errorf("wait until the previous otp expired", req.UserID, err)
+		return "WAIT_FOR_PREVIOUS_OTP_EXPIRATION", fmt.Errorf("WAIT_FOR_PREVIOUS_OTP_EXPIRATION")
 	}
 
 	otp := utils.OTPGenerator(6)
-	expiresAt := time.Now().Add(5 * time.Minute)
 
-	record := &OTPRecord{
+	encryptedOTPCode, _, err := local_utils.LocalEncryptPassword(otp, "otp", "", "", s.cfg)
+	if err != nil {
+		s.logger.Errorf("OTP encryption failed: %v", err)
+		return "UNHANDLED_SERVER_ERROR", fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	expiresAt := time.Now().Add(10 * time.Minute)
+
+	otp_record := &OTPRecord{
 		UserID:    req.UserID,
 		Email:     req.Email,
-		OTP:       otp,
+		OTP:       encryptedOTPCode,
 		CreatedAt: time.Now(),
 		ExpiresAt: expiresAt,
 	}
-	recordRepo := &userRepoPort.OTPRecord{
-    UserID:            record.UserID,
-	Email:             record.Email,
-	OTP:               record.OTP,
-	CreatedAt:         record.CreatedAt,
-	ExpiresAt:         record.ExpiresAt,
-}
 
-	if err := s.repository.StoreOTP(ctx, recordRepo); err != nil {
+	if err := s.repository.StoreOTP(ctx, otp_record); err != nil {
 		s.logger.Errorf("OTP storage failed: %v", err)
-		return "", NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+		return "UNHANDLED_SERVER_ERROR", fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
 	return otp, nil
@@ -107,28 +178,43 @@ func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (str
 
 func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerification) error {
 	record, err := s.repository.FindOTP(ctx, verification.UserID, verification.Email)
-	if err != nil {
-		if err == shared.ErrNotFound {
-			s.logger.Errorf("OTP lookup failed for user %s: no documents found", verification.UserID)
-			return NewInternalServiceError(shared.DefineError.OTP["INVALID_OTP"])
-		}
-		s.logger.Errorf("OTP lookup failed for user %s: %v", verification.UserID, err)
-		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+	s.logger.Infof("record: %+v, err: %v", record, err)
+	if record == nil {
+		s.logger.Errorf("OTP record not found for user %s, email %s", verification.UserID, verification.Email)
+		return fmt.Errorf("INVALID_OTP")
 	}
 
-	if record.OTP != verification.OTP {
-		s.logger.Warnf("Invalid OTP provided for user %s", verification.UserID)
-		return NewInternalServiceError(shared.DefineError.OTP["INVALID_OTP"])
+	if err != nil {
+		s.logger.Errorf("OTP lookup failed for user %s: %v", verification.UserID, err)
+		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	decryptedOTP, err := local_utils.LocalDecryptPassword(record.OTP, s.cfg)
+	if err != nil {
+		s.logger.Errorf("OTP decryption failed for user %s: %v", verification.UserID, err)
+		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	if decryptedOTP != verification.OTP {
+		s.logger.Warnf("Invalid OTP provided for user %s (expected: %s, got: %s)",
+			verification.UserID, decryptedOTP, verification.OTP)
+		return fmt.Errorf("INVALID_OTP")
 	}
 
 	if time.Now().After(record.ExpiresAt) {
-		s.logger.Warnf("Expired OTP for user %s", verification.UserID)
-		return NewInternalServiceError(shared.DefineError.OTP["EXPIRED_OTP"])
+		s.logger.Warnf("Expired OTP for user %s (expired at: %v)", verification.UserID, record.ExpiresAt)
+		return fmt.Errorf("EXPIRED_OTP")
 	}
 
 	if err := s.repository.UpdateUserEmail(ctx, verification.UserID, verification.Email); err != nil {
 		s.logger.Errorf("Email update failed for user %s: %v", verification.UserID, err)
-		return NewServiceError(common.DefineError.General["UNHANDLED_SERVER_ERROR"])
+		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	// TODO Delete the OTPb record
+	if err := s.repository.DeleteOtp(ctx, record.ID); err != nil {
+		s.logger.Errorf("Failed to delete OTP record for user %s: %v", verification.UserID, err)
+		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
 	s.logger.Infof("Email OTP verified successfully for user %s", verification.UserID)

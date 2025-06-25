@@ -35,6 +35,20 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// DeleteOtp mocks base method.
+func (m *MockUserRepository) DeleteOtp(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOtp", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteOtp indicates an expected call of DeleteOtp.
+func (mr *MockUserRepositoryMockRecorder) DeleteOtp(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOtp", reflect.TypeOf((*MockUserRepository)(nil).DeleteOtp), ctx, id)
+}
+
 // FindActiveLinkedAccounts mocks base method.
 func (m *MockUserRepository) FindActiveLinkedAccounts(ctx context.Context, userID string) ([]users.LinkedAccountDetail, error) {
 	m.ctrl.T.Helper()
@@ -107,6 +121,20 @@ func (m *MockUserRepository) StoreOTP(ctx context.Context, otp *users.OTPRecord)
 func (mr *MockUserRepositoryMockRecorder) StoreOTP(ctx, otp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreOTP", reflect.TypeOf((*MockUserRepository)(nil).StoreOTP), ctx, otp)
+}
+
+// UpdateProfileImageURL mocks base method.
+func (m *MockUserRepository) UpdateProfileImageURL(ctx context.Context, id, imageURL string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProfileImageURL", ctx, id, imageURL)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateProfileImageURL indicates an expected call of UpdateProfileImageURL.
+func (mr *MockUserRepositoryMockRecorder) UpdateProfileImageURL(ctx, id, imageURL interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfileImageURL", reflect.TypeOf((*MockUserRepository)(nil).UpdateProfileImageURL), ctx, id, imageURL)
 }
 
 // UpdateUserEmail mocks base method.

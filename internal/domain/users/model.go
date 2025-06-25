@@ -1,5 +1,7 @@
 package users
 
+import "time"
+
 type FullName struct {
 	FirstName  string `json:"first_name"`
 	MiddleName string `json:"middle_name"`
@@ -17,6 +19,7 @@ type LinkedAccountDetail struct {
 
 type User struct {
 	ID        string
+	Email     string
 	FullName  string
 	IsDeleted bool
 }
@@ -46,4 +49,13 @@ type OTPVerification struct {
 	UserID string
 	Email  string
 	OTP    string
+}
+type OTPRecord struct {
+	ID        string `json:"id" bson:"_id"`
+	UserCode  string
+	UserID    string
+	Email     string
+	OTP       string
+	CreatedAt time.Time
+	ExpiresAt time.Time
 }
