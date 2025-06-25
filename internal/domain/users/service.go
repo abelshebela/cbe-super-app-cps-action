@@ -74,6 +74,7 @@ func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file 
 	return resp.Key, nil
 }
 
+
 func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
 	user, err := s.repository.FindByID(ctx, id)
 	if err != nil {
@@ -211,7 +212,7 @@ func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerifi
 		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
-	// TODO Delete the OTPb record
+	// TODO Delete the OTPb record --->Hard delete
 	if err := s.repository.DeleteOtp(ctx, record.ID); err != nil {
 		s.logger.Errorf("Failed to delete OTP record for user %s: %v", verification.UserID, err)
 		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
@@ -219,4 +220,32 @@ func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerifi
 
 	s.logger.Infof("Email OTP verified successfully for user %s", verification.UserID)
 	return nil
+}
+
+
+func (s *UserService) UnlinkDevice(ctx context.Context, UserID string, DeviceID string) error {
+	currentUser, err := s.repository.FindByID(ctx, UserID)
+	
+	if err != nil {
+		s.logger.Errorf("Failed to find user by ID %s: %v", UserID, err)
+		return fmt.Errorf("NOT_FOUND")
+	}
+// s.logger.Infof("mmmm",currentUser.Device)
+	if currentUser.Device != nil && currentUser.Device.DeviceUUID == DeviceID {
+		
+		err = s.repository.UnlinkDevice(ctx, UserID, DeviceID)
+		if err != nil {
+			s.logger.Errorf("Failed to unlink device %s for user %s: %v", DeviceID, UserID, err)
+			return fmt.Errorf("COULD_NOT_UNLINK_DEVICE")
+		
+	} 
+	s.logger.Infof("Successfully unlinked device %s for user %s", DeviceID, UserID)
+	return nil
+	}else{
+		s.logger.Errorf("User %s has no linked devices", UserID)
+		return fmt.Errorf("NO_LINKED_DEVICES")
+	}
+
+
+	
 }

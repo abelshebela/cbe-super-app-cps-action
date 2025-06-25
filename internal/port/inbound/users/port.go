@@ -1,7 +1,7 @@
 package users_inbound
 
 import (
-	"context"
+	// "context"
 	"net/http"
 )
 
@@ -10,13 +10,14 @@ type InBound interface {
 	GenerateEmailOTP(w http.ResponseWriter, r *http.Request)
 	VerifyEmailOTP(w http.ResponseWriter, r *http.Request)
 	UpdateProfilePicture(w http.ResponseWriter, r *http.Request)
+	UnlinkDevice(w http.ResponseWriter, r *http.Request)
 }
 
-type UserPort interface {
-	FetchLinkedAccounts(ctx context.Context, userID string) (*LinkedAccountResponse, error)
-	GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error)
-	VerifyEmailOTP(ctx context.Context, verification OTPVerification) error
-}
+// type UserPort interface {
+// 	FetchLinkedAccounts(ctx context.Context, userID string) (*LinkedAccountResponse, error)
+// 	GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error)
+// 	VerifyEmailOTP(ctx context.Context, verification OTPVerification) error
+// }
 
 type LinkedAccountDetail struct {
 	AccountNumber     string `json:"account_number"`

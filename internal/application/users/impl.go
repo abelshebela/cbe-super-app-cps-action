@@ -35,6 +35,8 @@ func (h UsersHandler) FetchLinkedAccounts(ctx context.Context, userID string) (*
 	}, nil
 }
 
+
+
 func (h UsersHandler) GenerateEmailOTP(ctx context.Context, req userPort.OTPRequest) (string, error) {
 	domainReq := domainUsers.OTPRequest{
 		UserID: req.UserID,
@@ -92,4 +94,14 @@ func (h UsersHandler) UpdateProfilePicture(ctx context.Context, id string, file 
 		return "", err
 	}
 	return imageURL, nil
+}
+
+func (h UsersHandler) UnlinkDevice(ctx context.Context, userID string, deviceID string) error {
+	err := h.userService.UnlinkDevice(ctx, userID, deviceID)
+	if err != nil {
+		return err
+	}
+	return nil
+
+
 }

@@ -14,6 +14,8 @@ type UserRepository interface {
 	UpdateUserEmail(ctx context.Context, userID, email string) error
 	UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error
 	DeleteOtp(ctx context.Context, id string) (error )
+	UnlinkDevice(ctx context.Context, userID string, deviceID string)error
+
 }
 
 

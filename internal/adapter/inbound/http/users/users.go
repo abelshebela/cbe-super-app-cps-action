@@ -2,6 +2,7 @@ package users
 
 import (
 	"encoding/json"
+	// "fmt"
 	"net/http"
 	"strings"
 
@@ -55,21 +56,7 @@ func (h UsersAdapter) GenerateEmailOTP(w http.ResponseWriter, r *http.Request) {
 	response, err := h.Application.GenerateEmailOTP(r.Context(), req)
 	if err != nil {
 		status := http.StatusInternalServerError
-		errorKey := "UNHANDLED_SERVER_ERROR"
-
-		switch err.Error() {
-		case "EMAIL_IN_USE":
-			status = http.StatusBadRequest
-			errorKey = "EMAIL_IN_USE"
-		case "USER_ALREADY_HAS_EMAIL":
-			status = http.StatusBadRequest
-			errorKey = "USER_ALREADY_HAS_EMAIL"
-		case "WAIT_FOR_PREVIOUS_OTP_EXPIRATION":
-			status = http.StatusTooManyRequests
-			errorKey = "WAIT_FOR_PREVIOUS_OTP_EXPIRATION"
-		}
-
-		utils.SendErrorResponse(w, errorKey, status, nil)
+		utils.SendErrorResponse(w, err.Error(), status, nil)
 		return
 	}
 
@@ -153,6 +140,34 @@ func (h UsersAdapter) VerifyEmailOTP(w http.ResponseWriter, r *http.Request) {
 	h.sendSuccessResponse(w, http.StatusOK, "OTP verified successfully")
 }
 
+func (h UsersAdapter) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	if !ok {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
+	deviceUuid := r.Header.Get("device-uuid")
+
+	
+	
+	if deviceUuid == "" {
+		// fmt.Println("Device UUID is required")
+		utils.SendErrorResponse(w, "DEVICE_ID_REQUIRED", http.StatusBadRequest, nil)
+		return
+	}
+	err := h.Application.UnlinkDevice(r.Context(), userID, deviceUuid)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "NOT_FOUND" {
+			status = http.StatusNotFound
+		}
+		utils.SendErrorResponse(w, err.Error(), status, nil)
+		return
+	}
+	h.sendSuccessResponse(w, http.StatusOK, "Device Unlinked Successfully")
+
+}
+
 func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
 	resp := common.Response[interface{}]{
 		ResponseWriter: w,
@@ -161,3 +176,4 @@ func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, dat
 	}
 	resp.SendJSON()
 }
+

@@ -52,6 +52,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, userID string) (*Acc
 	}
 
 	exists, err := s.apiClient.LookupAccountByPhone(ctx, user.PhoneNumber, "" /*s.cfg.PhoneLookupUrl*/)
+	// when phonelookup url is added, uncomment the above or write the url hardcode for the test
 	if err != nil {
 		s.logger.Errorf("Phone lookup failed for user %s: %s", userID, err.Error())
 		return nil, fmt.Errorf("API_REQUEST_FAILED")
