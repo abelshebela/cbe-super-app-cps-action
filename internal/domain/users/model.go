@@ -16,13 +16,20 @@ type LinkedAccountDetail struct {
 	LinkedStatus      bool   `json:"linked_status"`
 	CurrencyCode      string `json:"currency_code"`
 }
+type DeviceInfo struct {
+    DeviceUUID string `json:"device_uuid"`
+    AppVersion string `json:"app_version"`
+}
+
 
 type User struct {
 	ID        string
 	Email     string
 	FullName  string
 	IsDeleted bool
+	Device *DeviceInfo `json:"device,omitempty" bson:"device,omitempty"`
 }
+
 
 type UserEmail struct {
 	ID    string

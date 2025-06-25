@@ -58,6 +58,14 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method: http.MethodPost,
+			Path:   "/api/v1/cbesuperapp/user/unlink-device",
+			Handler: handler.UnlinkDevice,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	route.RegisterRoutes(router, routes)

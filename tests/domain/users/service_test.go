@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-member-users/internal/domain/users"
 	mock_users_repo "cbe-super-app-member-users/mocks/domain/users"
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -88,5 +89,87 @@ func TestUserService_FetchLinkedAccounts(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Len(t, result.LinkedAccounts, 0)
+	})
+}
+
+func TestUserService_UnlinkDevice(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_users_repo.NewMockUserRepository(ctrl)
+	logger, _ := zap.NewDevelopment()
+	zapLogger := logger.Sugar()
+	cfg := &config.VaultConfig{}
+	var minIOClient config.MinioClientInterface
+
+	service := users.NewUserService(mockRepo, zapLogger, minIOClient, cfg)
+	ctx := context.Background()
+	userID := "test-user-id"
+	deviceID := "test-device-id"
+
+	t.Run("Successful unlink", func(t *testing.T) {
+		user := &users.User{
+			ID: userID,
+			Device: &users.DeviceInfo{
+				DeviceUUID: deviceID,
+				AppVersion: "1.0.0",
+			},
+		}
+		mockRepo.EXPECT().FindByID(ctx, userID).Return(user, nil)
+		mockRepo.EXPECT().UnlinkDevice(ctx, userID, deviceID).Return(nil)
+
+		err := service.UnlinkDevice(ctx, userID, deviceID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("User not found", func(t *testing.T) {
+		mockRepo.EXPECT().FindByID(ctx, userID).Return(nil, users.ErrNotFound)
+
+		err := service.UnlinkDevice(ctx, userID, deviceID)
+		assert.Error(t, err)
+		assert.Equal(t, "NOT_FOUND", err.Error())
+	})
+
+	t.Run("No linked device", func(t *testing.T) {
+		user := &users.User{
+			ID:     userID,
+			Device: nil,
+		}
+		mockRepo.EXPECT().FindByID(ctx, userID).Return(user, nil)
+
+		err := service.UnlinkDevice(ctx, userID, deviceID)
+		assert.Error(t, err)
+		assert.Equal(t, "NO_LINKED_DEVICES", err.Error())
+	})
+
+	t.Run("Device ID does not match", func(t *testing.T) {
+		user := &users.User{
+			ID: userID,
+			Device: &users.DeviceInfo{
+				DeviceUUID: "other-device-id",
+				AppVersion: "1.0.0",
+			},
+		}
+		mockRepo.EXPECT().FindByID(ctx, userID).Return(user, nil)
+
+		err := service.UnlinkDevice(ctx, userID, deviceID)
+		assert.Error(t, err)
+		assert.Equal(t, "NO_LINKED_DEVICES", err.Error())
+	})
+
+	t.Run("Repository unlink error", func(t *testing.T) {
+		user := &users.User{
+			ID: userID,
+			Device: &users.DeviceInfo{
+				DeviceUUID: deviceID,
+				AppVersion: "1.0.0",
+			},
+		}
+		mockRepo.EXPECT().FindByID(ctx, userID).Return(user, nil)
+		mockRepo.EXPECT().UnlinkDevice(ctx, userID, deviceID).Return(fmt.Errorf("db error"))
+
+		err := service.UnlinkDevice(ctx, userID, deviceID)
+		assert.Error(t, err)
+		assert.Equal(t, "COULD_NOT_UNLINK_DEVICE", err.Error())
 	})
 }

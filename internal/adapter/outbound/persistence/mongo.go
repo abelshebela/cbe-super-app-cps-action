@@ -51,14 +51,17 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 		}
 		return nil, err
 	}
-
+	
 	return &userPort.User{
-		ID:        userEntity.ID.Hex(),
-		Email:     userEntity.Email,
-		FullName:  userEntity.FullName,
-		IsDeleted: userEntity.IsDeleted,
-	}, nil
-}
+    ID:        userEntity.ID.Hex(),
+    Email:     userEntity.Email,
+    FullName:  userEntity.FullName,
+    IsDeleted: userEntity.IsDeleted,
+    Device: &userPort.DeviceInfo{ 
+        DeviceUUID: userEntity.Device.DeviceUUID,
+        AppVersion: userEntity.Device.AppVersion,
+    },
+}, nil}
 
 func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID string) ([]userPort.LinkedAccountDetail, error) {
 	oid, err := bson.ObjectIDFromHex(userID)
@@ -292,5 +295,35 @@ func (r *MongoRepository) DeleteOtp(ctx context.Context, ID string) error {
 		fmt.Printf("Error deleting OTP records: %v\n", err)
 		return fmt.Errorf("failed to delete OTP records: %v", err)
 	}
+	return nil
+}
+
+func (r *MongoRepository) UnlinkDevice(ctx context.Context, userID string, deviceID string) error {
+	oid, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrNotFound
+	}
+
+	filter := bson.M{
+		"_id": oid,
+	}
+	update := bson.M{
+		"device": nil,
+		"device_status": "unlinked",
+		"last_modified_at": time.Now().UTC(),
+	}
+	// update := bson.M{
+    // "$unset": bson.M{"device": ""},
+    // "$set": bson.M{
+    //     "device_status":    "unlinked",
+    //     "last_modified_at": time.Now().UTC(),
+    // },
+// }
+
+	_, err = r.userDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to unlink device: %w", err)
+	}
+
 	return nil
 }

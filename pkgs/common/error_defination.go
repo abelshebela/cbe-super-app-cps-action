@@ -117,6 +117,19 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_020",
 			Message: "Resource not found.",
 		},
+		"DEVICE_ID_REQUIRED": {
+			Code:    "GEN_026",
+			Message: "Device UUID is required",
+
+		},
+		"NO_LINKED_DEVICES":{
+			Code:    "GEN_027",
+			Message: "User has no linked devices",
+		},
+		"COULD_NOT_UNLINK_DEVICE":{
+			Code:    "GEN_028",
+			Message: "Could not unlink device",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
