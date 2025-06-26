@@ -15,16 +15,26 @@ type UserRepositoryPort interface {
 	UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error
 	DeleteOtp(ctx context.Context, id string) error
 	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
+	ChangePin(ctx context.Context, userID string, loginPIN LoginPIN) error
 }
-type Device   struct {
-		DeviceUUID string 
-		AppVersion string 
-	}
+
+type Device struct {
+	DeviceUUID string
+	AppVersion string
+}
+
+type LoginPIN struct {
+	PIN              string    `json:"pin" bson:"pin"`
+	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
+	LastPINCreatedAt time.Time `json:"last_pin_created_at" bson:"last_pin_created_at"`
+}
+
 type User struct {
 	ID        string
 	FullName  string
 	Device    Device
 	IsDeleted bool
+	LoginPIN  LoginPIN
 }
 
 type UserEmail struct {

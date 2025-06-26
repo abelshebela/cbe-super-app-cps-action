@@ -2,10 +2,10 @@ package users_application
 
 import (
 	"context"
-	
+
 	"mime/multipart"
 
-	"cbe-super-app-member-users/internal/application/dto"
+	dto "cbe-super-app-member-users/internal/application/dto"
 	domainUsers "cbe-super-app-member-users/internal/domain/users"
 	userPort "cbe-super-app-member-users/internal/port/inbound/users"
 )
@@ -35,8 +35,6 @@ func (h UsersHandler) FetchLinkedAccounts(ctx context.Context, userID string) (*
 	}, nil
 }
 
-
-
 func (h UsersHandler) GenerateEmailOTP(ctx context.Context, req userPort.OTPRequest) (string, error) {
 	domainReq := domainUsers.OTPRequest{
 		UserID: req.UserID,
@@ -63,7 +61,6 @@ func (h UsersHandler) HandleGenerateEmailOTP(ctx context.Context, req dto.Genera
 		UserID: req.UserID,
 		Email:  req.Email,
 	}
-	
 
 	otp, err := h.GenerateEmailOTP(ctx, portReq)
 	if err != nil {
@@ -103,5 +100,17 @@ func (h UsersHandler) UnlinkDevice(ctx context.Context, userID string, deviceID 
 	}
 	return nil
 
+}
 
+func (h UsersHandler) ChangePin(ctx context.Context, req userPort.ChangePinRequest) error {
+	domainChangePinReq := domainUsers.ChangePinRequest{
+		UserID: req.UserID,
+		OldPin: req.OldPin,
+		NewPin: req.NewPin,
+	}
+	err := h.userService.ChangePin(ctx, domainChangePinReq)
+	if err != nil {
+		return err
+	}
+	return nil
 }

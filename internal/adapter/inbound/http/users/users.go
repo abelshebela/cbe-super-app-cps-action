@@ -8,7 +8,7 @@ import (
 
 	"cbe-super-app-member-users/internal/application/dto"
 	user_inbound "cbe-super-app-member-users/internal/port/inbound/users"
-	"cbe-super-app-member-users/pkgs/common"
+	// "cbe-super-app-member-users/pkgs/common"
 	"cbe-super-app-member-users/pkgs/utils"
 	constant "cbe-super-app-member-users/pkgs/utils"
 )
@@ -167,13 +167,51 @@ func (h UsersAdapter) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	h.sendSuccessResponse(w, http.StatusOK, "Device Unlinked Successfully")
 
 }
-
-func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
-	resp := common.Response[interface{}]{
-		ResponseWriter: w,
-		Status:         status,
-		Data:           data,
+func (h UsersAdapter) ChangePin(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	if !ok {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
 	}
-	resp.SendJSON()
+
+	var req user_inbound.ChangePinRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", http.StatusBadRequest, nil)
+		return
+	}
+	req.UserID = userID
+
+	err := h.Application.ChangePin(r.Context(), req)
+	if err != nil {
+		status := http.StatusBadRequest
+		if err.Error() == "INVALID_PIN" || err.Error() == "WEAK_PIN" {
+			status = http.StatusBadRequest
+		}
+		utils.SendErrorResponse(w, err.Error(), status, nil)
+		return
+	}
+
+	h.sendSuccessResponse(w, http.StatusOK, "PIN changed successfully")
 }
 
+// func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+// 	resp := common.Response[interface{}]{
+// 		ResponseWriter: w,
+// 		Status:         status,
+// 		Data:           data,
+// 	}
+// 	resp.SendJSON()
+// }
+
+func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+	resp := struct {
+		Status int         `json:"status"`
+		Data   interface{} `json:"data"`
+	}{
+		Status: status,
+		Data:   data,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(resp)
+}

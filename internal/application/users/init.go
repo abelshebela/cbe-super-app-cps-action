@@ -17,6 +17,8 @@ type ApplicationService interface {
 	VerifyEmailOTP(ctx context.Context, req userPort.OTPVerification) error
 	UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (string, error)
 	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
+	ChangePin(ctx context.Context, req userPort.ChangePinRequest) error
+
 }
 
 type UsersHandler struct {

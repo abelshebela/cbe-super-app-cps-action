@@ -35,6 +35,20 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// ChangePin mocks base method.
+func (m *MockUserRepository) ChangePin(ctx context.Context, userID string, loginPIN users.LoginPIN) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangePin", ctx, userID, loginPIN)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangePin indicates an expected call of ChangePin.
+func (mr *MockUserRepositoryMockRecorder) ChangePin(ctx, userID, loginPIN interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePin", reflect.TypeOf((*MockUserRepository)(nil).ChangePin), ctx, userID, loginPIN)
+}
+
 // DeleteOtp mocks base method.
 func (m *MockUserRepository) DeleteOtp(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
@@ -123,6 +137,20 @@ func (mr *MockUserRepositoryMockRecorder) StoreOTP(ctx, otp interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreOTP", reflect.TypeOf((*MockUserRepository)(nil).StoreOTP), ctx, otp)
 }
 
+// UnlinkDevice mocks base method.
+func (m *MockUserRepository) UnlinkDevice(ctx context.Context, userID, deviceID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnlinkDevice", ctx, userID, deviceID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnlinkDevice indicates an expected call of UnlinkDevice.
+func (mr *MockUserRepositoryMockRecorder) UnlinkDevice(ctx, userID, deviceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlinkDevice", reflect.TypeOf((*MockUserRepository)(nil).UnlinkDevice), ctx, userID, deviceID)
+}
+
 // UpdateProfileImageURL mocks base method.
 func (m *MockUserRepository) UpdateProfileImageURL(ctx context.Context, id, imageURL string) error {
 	m.ctrl.T.Helper()
@@ -149,18 +177,4 @@ func (m *MockUserRepository) UpdateUserEmail(ctx context.Context, userID, email 
 func (mr *MockUserRepositoryMockRecorder) UpdateUserEmail(ctx, userID, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserEmail", reflect.TypeOf((*MockUserRepository)(nil).UpdateUserEmail), ctx, userID, email)
-}
-
-// UnlinkDevice mocks base method.
-func (m *MockUserRepository) UnlinkDevice(ctx context.Context, userID string, deviceID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnlinkDevice", ctx, userID, deviceID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UnlinkDevice indicates an expected call of UnlinkDevice.
-func (mr *MockUserRepositoryMockRecorder) UnlinkDevice(ctx, userID, deviceID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlinkDevice", reflect.TypeOf((*MockUserRepository)(nil).UnlinkDevice), ctx, userID, deviceID)
 }

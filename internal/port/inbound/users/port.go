@@ -11,6 +11,7 @@ type InBound interface {
 	VerifyEmailOTP(w http.ResponseWriter, r *http.Request)
 	UpdateProfilePicture(w http.ResponseWriter, r *http.Request)
 	UnlinkDevice(w http.ResponseWriter, r *http.Request)
+	ChangePin(w http.ResponseWriter, r *http.Request)
 }
 
 // type UserPort interface {
@@ -45,3 +46,8 @@ type OTPVerification struct {
 	OTP    string
 }
 
+type ChangePinRequest struct {
+	UserID string
+	OldPin string
+	NewPin  string
+}
