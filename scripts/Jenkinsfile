@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         SERVICE_NAME = "mem-user"
-        IMAGE_NAME = "mem-user"
         FILE_PATH = "scripts/docker-compose.yml"
         DOCKER_FILE_PATH = "scripts/Dockerfile"
         ENV_FILE_PATH = "./env"
@@ -11,6 +10,9 @@ pipeline {
         REGISTRY_ADDRESS = credentials("REGISTRY_ADDRESS")
         REPO_ADDRESS = "https://github.com/CBE-Super-App/cbe-super-app-member-users.git"
         PROJECT_ROOT_PATH = "/data/cbe-super-app/"
+        SONAR_HOST_URL=credentials("SONAR_HOST_URL")
+        SONAR_TOKEN=credentials("SONAR_TOKEN")
+        SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
     }
 
     stages {
@@ -86,6 +88,29 @@ pipeline {
                         url: env.REPO_ADDRESS
                     ]]
                 ])  
+            }
+        }
+        // sonarqube stage
+        stage('Build & SonarQube Analysis') {
+            steps {
+                echo 'Starting build and SonarQube analysis...'
+                script {
+                    try {
+                        withSonarQubeEnv('CSA-sonar') {
+                            sh '''
+                            ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                            -Dsonar.projectKey=cbesuperapp-member-user \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.token=${SONAR_TOKEN}
+                            '''
+                        }
+                        echo 'SonarQube analysis completed successfully.'
+                    } catch (Exception e) {
+                        echo "Error during build or SonarQube analysis: ${e.message}"
+                        error 'Build or SonarQube analysis failed.'
+                    }
+                }
             }
         }
         // Stage to set the commit SHA as the image tag
