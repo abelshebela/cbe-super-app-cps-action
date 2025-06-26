@@ -66,6 +66,15 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/user/change-pin",
+			Handler: handler.ChangePin,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+
+		},
 	}
 
 	route.RegisterRoutes(router, routes)

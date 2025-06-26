@@ -51,17 +51,23 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 		}
 		return nil, err
 	}
-	
+
 	return &userPort.User{
-    ID:        userEntity.ID.Hex(),
-    Email:     userEntity.Email,
-    FullName:  userEntity.FullName,
-    IsDeleted: userEntity.IsDeleted,
-    Device: &userPort.DeviceInfo{ 
-        DeviceUUID: userEntity.Device.DeviceUUID,
-        AppVersion: userEntity.Device.AppVersion,
-    },
-}, nil}
+		ID:        userEntity.ID.Hex(),
+		Email:     userEntity.Email,
+		FullName:  userEntity.FullName,
+		IsDeleted: userEntity.IsDeleted,
+		Device: &userPort.DeviceInfo{
+			DeviceUUID: userEntity.Device.DeviceUUID,
+			AppVersion: userEntity.Device.AppVersion,
+		},
+		LoginPIN: userPort.LoginPIN{
+			PIN:              userEntity.LoginPIN.PIN,
+			PINHistory:       userEntity.LoginPIN.PINHistory,
+			LastPINCreatedAt: userEntity.LoginPIN.LastPINCreatedAt,
+		},
+	}, nil
+}
 
 func (r *MongoRepository) FindActiveLinkedAccounts(ctx context.Context, userID string) ([]userPort.LinkedAccountDetail, error) {
 	oid, err := bson.ObjectIDFromHex(userID)
@@ -308,21 +314,41 @@ func (r *MongoRepository) UnlinkDevice(ctx context.Context, userID string, devic
 		"_id": oid,
 	}
 	update := bson.M{
-		"device": nil,
-		"device_status": "unlinked",
+		"device":           nil,
+		"device_status":    "unlinked",
 		"last_modified_at": time.Now().UTC(),
 	}
 	// update := bson.M{
-    // "$unset": bson.M{"device": ""},
-    // "$set": bson.M{
-    //     "device_status":    "unlinked",
-    //     "last_modified_at": time.Now().UTC(),
-    // },
-// }
+	// "$unset": bson.M{"device": ""},
+	// "$set": bson.M{
+	//     "device_status":    "unlinked",
+	//     "last_modified_at": time.Now().UTC(),
+	// },
+	// }
 
 	_, err = r.userDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to unlink device: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoRepository) ChangePin(ctx context.Context, userID string, loginPIN userPort.LoginPIN) error {
+	oid, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrNotFound
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{
+		"login_pin":        loginPIN,
+		"last_modified_at": time.Now().UTC(),
+	}
+
+	_, err = r.userDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to change pin: %w", err)
 	}
 
 	return nil

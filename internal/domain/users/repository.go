@@ -13,12 +13,10 @@ type UserRepository interface {
 	FindOTP(ctx context.Context, userID, email string) (*OTPRecord, error)
 	UpdateUserEmail(ctx context.Context, userID, email string) error
 	UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error
-	DeleteOtp(ctx context.Context, id string) (error )
-	UnlinkDevice(ctx context.Context, userID string, deviceID string)error
-
+	DeleteOtp(ctx context.Context, id string) error
+	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
+	ChangePin(ctx context.Context, userID string, loginPIN LoginPIN) error
 }
-
-
 
 var (
 	ErrNotFound = errors.New("not found")

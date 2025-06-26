@@ -47,6 +47,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_007",
 			Message: "Token has expired.",
 		},
+		"ERROR_CHANGING_PIN": {
+			Code:    "GEN_030",
+			Message: "Error changing PIN.",
+		},
 		"ENCRYPTED_PAYLOAD_REQUIRED": {
 			Code:    "GEN_008",
 			Message: "Encrypted payload is required.",
@@ -120,13 +124,12 @@ var DefineError = ErrorDefinitions{
 		"DEVICE_ID_REQUIRED": {
 			Code:    "GEN_026",
 			Message: "Device UUID is required",
-
 		},
-		"NO_LINKED_DEVICES":{
+		"NO_LINKED_DEVICES": {
 			Code:    "GEN_027",
 			Message: "User has no linked devices",
 		},
-		"COULD_NOT_UNLINK_DEVICE":{
+		"COULD_NOT_UNLINK_DEVICE": {
 			Code:    "GEN_028",
 			Message: "Could not unlink device",
 		},
@@ -208,6 +211,18 @@ var DefineError = ErrorDefinitions{
 		"FAILD_VALIDATION": {
 			Code:    "AUTH_019",
 			Message: "Validation failed",
+		},
+		"OLD_PIN_MISMATCH": {
+			Code:    "AUTH_029",
+			Message: "Old PIN does not match",
+		},
+		"SAME_PIN": {
+			Code:    "AUTH_027",
+			Message: "New PIN cannot be the same as old PIN",
+		},
+		"PIN_IN_HISTORY": {
+			Code:    "AUTH_028",
+			Message: "New PIN cannot be one of the last 6 PINs used",
 		},
 		"INVALID_BEARER": {
 			Code:    "AUTH_020",

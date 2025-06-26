@@ -46,6 +46,7 @@ type CurrentAction struct {
 	Id     []string `bson:"id"`
 	Action bool     `bson:"action"`
 }
+
 // type User struct {
 // 	UserCode    string `json:"user_code" bson:"user_code"`
 // 	FullName    string `json:"full_name" bson:"full_name"`
@@ -297,8 +298,8 @@ type User struct {
 	IssuedDate        time.Time     `json:"issued_date" bson:"isssued_date"`
 	PhoneNumber       string        `json:"phone_number" bson:"phone_number"`
 	Gender            Gender        `json:"gender" bson:"gender"`
-	MaritalStatus     MaritalStatus `json:"marital_status" bson:"marital_status"`
-	Fayda             struct {
+
+	Fayda struct {
 		FaydaID          string `json:"id_number" bson:"id_number"`
 		FaydaAccessToken string `json:"fayda_access_token" bson:"fayda_access_token"`
 		EmploymentStatus string `json:"employment_status" bson:"employement_status"`
@@ -345,6 +346,7 @@ type User struct {
 	DetachedAt        time.Time `json:"detached_at" bson:"detached_at"`
 	RegisterBy        struct{}  `json:"register_by" bson:"register_By"`
 	LoginAttemptCount uint8     `json:"login_attempt_count" bson:"login_attempt_count"`
+	NextLoginAttempt  time.Time `json:"next_attempt_count" bson:"next_attempt_count"`
 	LastLoginAttempt  time.Time `json:"last_login_attempt" bson:"last_login_attempt"`
 	LastOnlineDate    time.Time `json:"last_online_date" bson:"last_online_date"`
 	LastLogin         time.Time `json:"last_login" bson:"last_login"`
@@ -362,10 +364,11 @@ type User struct {
 	CustomerNumber        string                `json:"customer_number" bson:"customer_number"`
 	InitialLinkedDate     time.Time             `json:"initial_linked_date" bson:"initiali_linked_date"`
 	PrimaryAuthentication PrimaryAuthentication `json:"primary_authentication" bson:"primary_authentication"`
-	LoanScore             uint8                 `json:"loan_score" bson:"loan_score"`
+	LoanScore             uint16                `json:"loan_score" bson:"loan_score"`
 	DeviceStatus          DeviceStatus          `json:"device_status" bson:"device_status"`
 	SessionExpirsOn       time.Time             `json:"session_expires_on" bson:"session_expires_on"`
 	Enabled               bool                  `json:"enabled" bson:"enabled"`
+	FirstPinSet           bool                  `json:"first_pin_set" bson:"first_pin_set"`
 	IsDeleted             bool                  `json:"is_deleted" bson:"is_deleted"`
 	PINChangedAt          time.Time             `json:"pin_changed_at" bson:"pin_changed_at"`
 	OTPLastTriedAt        time.Time             `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
@@ -376,6 +379,8 @@ type User struct {
 	CreatedAt             time.Time             `json:"created_at" bson:"created_at"`
 	DeletedAt             time.Time             `json:"delete_at" bson:"deleted_at"`
 	LastModifiedAt        time.Time             `json:"last_modified_at" bson:"last_modified_at"`
+	LinkedAccount         []LinkedAccount       `json:"linked_account" bson:"linked_account"`
+	OrganizationID        []LinkedAccount       `json:"organization_id" bson:"organization_id"`
 }
 
 // Optionally Redis
@@ -431,5 +436,5 @@ type Address struct {
 type LoginPIN struct {
 	PIN              string    `json:"pin" bson:"pin"`
 	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
-	LastPINCreatedAt time.Time `json:"last_pin_creared_at" bson:"last_pin_created_at"`
+	LastPINCreatedAt time.Time `json:"last_pin_created_at" bson:"last_pin_created_at"`
 }

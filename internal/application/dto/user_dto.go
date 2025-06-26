@@ -1,4 +1,5 @@
 package dto
+
 type FetchLinkedAccountsRequest struct {
 	UserID string `json:"user_id"`
 }
@@ -20,4 +21,10 @@ type GenerateOTPResponse struct {
 
 type VerifyOTPResponse struct {
 	Success bool `json:"success"`
+}
+
+type ChangePinRequest struct {
+	UserID string `json:"user_id"`
+	OldPin string `json:"old_pin"`
+	NewPin string `json:"new_pin"`
 }
