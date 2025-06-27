@@ -319,12 +319,12 @@ func main() {
 accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
     mongoClient,
     cfg.MongoDBDatabase,
-    "branches",      // branchCollection
-    "regions",       // regionCollection
-    "cps_actions",   // cpsActionCollection
-    "districts",     // districtCollection
-    "users",         // userCollection (add this argument)
-    "cities",        // cityCollection
+    "branches",      
+    "regions",       
+    "cps_actions",   
+    "districts",     
+    "users",        
+    "cities",        
     logger,
 )
 accountBlockService := account_domain.NewAccountService(accountBlockRepo)
