@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	        "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 )
 
 type AccountService struct {
@@ -141,9 +143,9 @@ func (s *AccountService) BlockUser(ctx context.Context, userID string, maker act
     return s.repo.BlockUser(ctx, userID, maker)
 }
 
-func (s *AccountService) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error) {
+func (s *AccountService) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
     if userID == "" {
-        return action.User{}, fmt.Errorf("userID is required")
+        return member.User{}, fmt.Errorf("userID is required")
     }
     return s.repo.GetUserByID(ctx, userID, maker)
 }

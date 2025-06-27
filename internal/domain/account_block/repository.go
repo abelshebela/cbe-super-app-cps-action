@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+		        "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 )
 
 type AccountBlockRepo interface {
@@ -30,6 +32,6 @@ type AccountBlockRepo interface {
 	ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error
 
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) error
-	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error)
+	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error)
 	ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error
 }

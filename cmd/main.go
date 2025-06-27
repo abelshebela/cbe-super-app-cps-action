@@ -316,18 +316,21 @@ func main() {
 	hqHandler := hq_handler.NewHQHTTPHandler(hqApp, logger)
 	hq_handler.InitHQRoutes(r, hqHandler, authMddleware)
 
-	accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
-		mongoClient,
-		cfg.MongoDBDatabase,
-		"branches",
-		"regions",
-		"cps_actions",
-	)
-	accountBlockService := account_domain.NewAccountService(accountBlockRepo)
-	accountBlockHandler := accountblock_handler.NewAccountBlockHandler(accountBlockService, logger)
+accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
+    mongoClient,
+    cfg.MongoDBDatabase,
+    "branches",      // branchCollection
+    "regions",       // regionCollection
+    "cps_actions",   // cpsActionCollection
+    "districts",     // districtCollection
+    "users",         // userCollection (add this argument)
+    "cities",        // cityCollection
+    logger,
+)
+accountBlockService := account_domain.NewAccountService(accountBlockRepo)
+accountBlockHandler := accountblock_handler.NewAccountBlockHandler(accountBlockService, logger)
 
-	accountblock_handler.RegisterAccountBlockRoutes(r, accountBlockHandler, authMddleware)
-
+accountblock_handler.RegisterAccountBlockRoutes(r, accountBlockHandler, authMddleware)
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,

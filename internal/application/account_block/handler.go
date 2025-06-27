@@ -7,6 +7,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_block"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+			        "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 )
 
 type ApplicationService interface {
@@ -33,7 +35,7 @@ type ApplicationService interface {
 	ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error
 	
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) error
-	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error)
+	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error)
 	ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error
 }
 
@@ -148,9 +150,9 @@ func (h *Handler) BlockUser(ctx context.Context, userID string, maker action.CPS
 	return h.repo.BlockUser(ctx, userID, maker)
 }
 
-func (h *Handler) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error) {
+func (h *Handler) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
 	if userID == "" {
-		return action.User{}, fmt.Errorf("userID is required")
+		return member.User{}, fmt.Errorf("userID is required")
 	}
 	return h.repo.GetUserByID(ctx, userID, maker)
 }

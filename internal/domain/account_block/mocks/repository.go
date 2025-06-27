@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 // MockAccountBlockRepo is a mock of AccountBlockRepo interface.
@@ -294,10 +295,10 @@ func (mr *MockAccountBlockRepoMockRecorder) GetRegionByID(ctx, regionID interfac
 }
 
 // GetUserByID mocks base method.
-func (m *MockAccountBlockRepo) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error) {
+func (m *MockAccountBlockRepo) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", ctx, userID, maker)
-	ret0, _ := ret[0].(action.User)
+	ret0, _ := ret[0].(member.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

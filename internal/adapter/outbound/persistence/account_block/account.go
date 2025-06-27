@@ -16,26 +16,38 @@ import (
     "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
     "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/account_block"
     "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+        "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 )
+
+
 
 type outboundAccountBlockStore struct {
     MongoDalBranch    *infra_mongo.MongoDal[model.Branch, model.Branch]
     MongoDalRegion    *infra_mongo.MongoDal[model.Region, model.Region]
+    MongoDalDistrict  *infra_mongo.MongoDal[model.District, model.District]
+    MongoDalCity      *infra_mongo.MongoDal[model.City, model.City]
     MongoDalCPSAction *infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
+    MongoDalUser      *infra_mongo.MongoDal[member.User, member.User] 
+    Logger            utils.Logger 
 }
 
 func NewOutboundAccountBlockStore(
     client *mongo.Client,
     dbName string,
-    branchCollection, regionCollection, cpsActionCollection string,
+    branchCollection, regionCollection, cpsActionCollection, districtCollection, userCollection, cityCollection string,
+    logger utils.Logger, 
 ) account_block.AccountBlockOutboundPort {
     return &outboundAccountBlockStore{
         MongoDalBranch:    infra_mongo.NewMongoDal[model.Branch, model.Branch](client, dbName, branchCollection),
         MongoDalRegion:    infra_mongo.NewMongoDal[model.Region, model.Region](client, dbName, regionCollection),
+        MongoDalDistrict:  infra_mongo.NewMongoDal[model.District, model.District](client, dbName, districtCollection),
+        MongoDalCity:      infra_mongo.NewMongoDal[model.City, model.City](client, dbName, cityCollection),
         MongoDalCPSAction: infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, cpsActionCollection),
+        MongoDalUser:      infra_mongo.NewMongoDal[member.User, member.User](client, dbName, userCollection),
+        Logger:            logger,
     }
 }
-
 func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
     filter := bson.M{"branch_region": region, "district_name": district}
     data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
@@ -491,24 +503,29 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     return err
 }
+// ...existing code...
 func (o *outboundAccountBlockStore) GetCityByID(ctx context.Context, cityID string) (action.City, error) {
     if cityID == "" {
         return action.City{}, fmt.Errorf("cityID is required")
     }
     filter := bson.M{"id": cityID}
-    cityDoc, err := o.MongoDalRegion.FindOne(ctx, filter , nil)
+    cityDoc, err := o.MongoDalCity.FindOne(ctx, filter, nil)
     if err != nil || cityDoc == nil {
         return action.City{}, fmt.Errorf("failed to get city by ID: %w", err)
     }
     return action.City{
         ID:            cityDoc.ID,
-        CityCode:      cityDoc.RegionCode, 
-        CityName:      cityDoc.RegionName, 
+        CityCode:      cityDoc.CityCode,
+        CityName:      cityDoc.CityName,
+        DistrictID:    cityDoc.DistrictID,
+        DistrictName:  cityDoc.DistrictName,
+        RegionID:      cityDoc.RegionID,
+        RegionName:    cityDoc.RegionName,
         CreatedAt:     cityDoc.CreatedAt,
         UpdatedAt:     cityDoc.UpdatedAt,
         Enabled:       cityDoc.Enabled,
     }, nil
-}   
+}
 func (o *outboundAccountBlockStore) ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error {
     filter := bson.M{"action_code": cityID}
     actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
@@ -570,12 +587,17 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     return err
 }
-func (o *outboundAccountBlockStore) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error) {
-    if userID == "" {
-        return action.User{}, fmt.Errorf("userID is required")
-    }
 
-    return action.User{}, fmt.Errorf("GetUserByID: user lookup not implemented, model.Branch has no UserID field")
+func (o *outboundAccountBlockStore) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
+    if userID == "" {
+        return member.User{}, fmt.Errorf("userID is required")
+    }
+    filter := bson.M{"user_id": userID}
+    userDoc, err := o.MongoDalUser.FindOne(ctx, filter, nil)
+    if err != nil || userDoc == nil {
+        return member.User{}, fmt.Errorf("failed to get user by ID: %w", err)
+    }
+    return *userDoc, nil
 }
 func (o *outboundAccountBlockStore) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
     filter := bson.M{"action_code": userID}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type AccountBlockOutboundPort interface {
@@ -23,14 +24,14 @@ type AccountBlockOutboundPort interface {
 	GetRegionByID(ctx context.Context, regionID string) (action.Region, error)
 
 	BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error
-    GetDistrictByID(ctx context.Context, districtID string) (action.District, error)
-    ApproveBlockDistrict(ctx context.Context, districtID string, checker action.CPSAction) error
+	GetDistrictByID(ctx context.Context, districtID string) (action.District, error)
+	ApproveBlockDistrict(ctx context.Context, districtID string, checker action.CPSAction) error
 
-    BlockCity(ctx context.Context, cityID string, maker action.CPSAction) error
-    GetCityByID(ctx context.Context, cityID string) (action.City, error)
-    ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error
+	BlockCity(ctx context.Context, cityID string, maker action.CPSAction) error
+	GetCityByID(ctx context.Context, cityID string) (action.City, error)
+	ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error
 
-    BlockUser(ctx context.Context, userID string, maker action.CPSAction) error
-    GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error)
-    ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error
+	BlockUser(ctx context.Context, userID string, maker action.CPSAction) error
+	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error)
+	ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error
 }
