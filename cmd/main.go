@@ -13,6 +13,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 
@@ -105,6 +106,11 @@ import (
 	application_hq "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
 	hq_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 	password_rule_services "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/services"
+
+	avatar_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
+
+	avatar_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
+	avatar_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/avatar"
 )
 
 func main() {
@@ -289,7 +295,7 @@ func main() {
 	amountBasedAuthRepo := persistence.InitAmountBasedAuth(mongoClient, cfg.MongoDBDatabase, []string{"auth_tier", "cps_action"}, logger)
 	amountBasedAuthService := amount_based_auth_domain.NewAmountBasedAuthService(amountBasedAuthRepo, logger)
 	amountBasedAuthApplication := amount_based_auth_app.AmountBasedAuthHandler(amountBasedAuthService)
-	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication,logger)
+	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication, logger)
 	amount_based_auth_handler.InitAmountBasedAuthHandler(r, amountBasedAuthHandler, authMddleware)
 
 	quit := make(chan os.Signal, 1)
@@ -310,6 +316,13 @@ func main() {
 	hqApp := application_hq.NewApplication(hqService, logger)
 	hqHandler := hq_handler.NewHQHTTPHandler(hqApp, logger)
 	hq_handler.InitHQRoutes(r, hqHandler, authMddleware)
+
+	avatarPersitence := avatar.InitAvatarPersistence(mongoClient, cfg.MongoDBDatabase, []string{"cps_actions", "avatares"}, logger)
+	avatarDomain := avatar_domain.InitAvatarDomain(avatarPersitence, minioClient, "avatares", logger)
+	avatarApp := avatar_app.InitAvatarAPP(avatarDomain, logger)
+	avatarHanler := avatar_adapter.InitAvatarHTTPHandler(avatarApp, logger)
+	avatar_adapter.InitAvatarRoutes(r, avatarHanler, authMddleware)
+
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,

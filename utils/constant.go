@@ -28,3 +28,9 @@ type Filter struct {
 func (e ErrorDefinition) Error() string {
 	return fmt.Sprintf(`{"code": %d ,"message":"%s"}`, e.Code, e.Message)
 }
+
+type SuccesResponse struct {
+	Ok         bool `json:"ok"`
+	StatusCode int  `json:"status_code"`
+	Data       any  `json:"data"`
+}

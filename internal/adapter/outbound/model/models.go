@@ -137,6 +137,7 @@ const (
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
 )
 
 type RegistrationType string

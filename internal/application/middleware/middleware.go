@@ -21,7 +21,7 @@ import (
 type UserPayload struct {
 	PhoneNumber string   `json:"phoneNumber,omitempty"`
 	UserName    string   `json:"UserName,omitempty"`
-	UserRole    string   `json:"userrole,omitempty"`
+	UserRole    string   `json:"user_role,omitempty"`
 	UserRealm   string   `json:"realm,omitempty"`
 	UserID      string   `json:"user_id,omitempty"`
 	BranchCode  []string `json:"branch_code,omitempty"`
