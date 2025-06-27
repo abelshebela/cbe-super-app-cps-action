@@ -18,7 +18,14 @@ type ApplicationService interface {
 	UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (string, error)
 	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
 	ChangePin(ctx context.Context, req userPort.ChangePinRequest) error
-
+	CheckDevice(ctx context.Context, header map[string]interface{}) (map[string]interface{}, error)
+	GetOneHQ(ctx context.Context, req map[string]interface{}) (*domainUsers.HQ, error)
+	VerifyOtp(ctx context.Context, userID, otp string, deviceUUID *string, userRealm, otpFor string) error
+	SetPin(ctx context.Context, userID, newPin, otp string, deviceUUID *string, userRealm, otpFor string) error
+	Register(ctx context.Context, phone, deviceUUID, platform string) error
+	Login(ctx context.Context, phone, deviceUUID, pin string) (string, error)
+	ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) error
+	DeviceLookup(ctx context.Context, deviceUUID, platform, appVersion string) (map[string]interface{}, error)
 }
 
 type UsersHandler struct {
@@ -31,4 +38,12 @@ func InitUsersHandler(userService *domainUsers.UserService, logger utils.Logger,
 		userService: userService,
 		logger:      logger,
 	}
+}
+
+func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, otp string, deviceUUID *string, userRealm, otpFor string) error {
+	return h.userService.SetPin(ctx, userID, newPin, otp, deviceUUID, userRealm, otpFor)
+}
+
+func (h UsersHandler) DeviceLookup(ctx context.Context, deviceUUID, platform, appVersion string) (map[string]interface{}, error) {
+	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion)
 }

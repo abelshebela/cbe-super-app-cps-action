@@ -1,4 +1,4 @@
-package users
+package entities
 
 import (
 	"time"
@@ -8,32 +8,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
-
-type FullName struct {
-	FirstName  string `json:"first_name"`
-	MiddleName string `json:"middle_name"`
-	LastName   string `json:"last_name"`
-}
-
-type LinkedAccountDetail struct {
-	AccountNumber     string `json:"account_number"`
-	AccountBranchCode string `json:"account_branch_code"`
-	LinkedBranch      string `json:"linked_branch"`
-	IsAccountActive   bool   `json:"is_account_active"`
-	LinkedStatus      bool   `json:"linked_status"`
-	CurrencyCode      string `json:"currency_code"`
-}
-
-type DeviceInfo struct {
-	DeviceUUID string `json:"device_uuid"`
-	AppVersion string `json:"app_version"`
-}
-
-type LoginPIN struct {
-	PIN              string    `json:"pin" bson:"pin"`
-	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
-	LastPINCreatedAt time.Time `json:"last_pin_created_at" bson:"last_pin_created_at"`
-}
 
 type User struct {
 	ID                bson.ObjectID       `json:"id,omitempty" bson:"_id,omitempty"`
@@ -118,7 +92,6 @@ type User struct {
 	LoanScore             uint16                      `json:"loan_score" bson:"loan_score"`
 	DeviceStatus          enums.DeviceStatus          `json:"device_status" bson:"device_status"`
 	SessionExpirsOn       time.Time                   `json:"session_expires_on" bson:"session_expires_on"`
-	PinStatus             string                      `json:"pin_status" bson:"pin_status"`
 	Enabled               bool                        `json:"enabled" bson:"enabled"`
 	IsDeleted             bool                        `json:"is_deleted" bson:"is_deleted"`
 	PINChangedAt          time.Time                   `json:"pin_changed_at" bson:"pin_changed_at"`
@@ -130,110 +103,4 @@ type User struct {
 	CreatedAt             time.Time                   `json:"created_at" bson:"created_at"`
 	DeletedAt             time.Time                   `json:"delete_at" bson:"deleted_at"`
 	LastModifiedAt        time.Time                   `json:"last_modified_at" bson:"last_modified_at"`
-}
-
-type UserEmail struct {
-	ID    string
-	Email string `json:"email" bson:"email"`
-}
-
-type LinkedAccountResponse struct {
-	UserID         string                `json:"user_id"`
-	FullName       string                `json:"full_name"`
-	LinkedAccounts []LinkedAccountDetail `json:"linked_accounts"`
-}
-
-type GenerateOTPRequest struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-}
-
-type OTPRequest struct {
-	UserID string
-	Email  string
-}
-
-type OTPVerification struct {
-	UserID string
-	Email  string
-	OTP    string
-}
-
-type OTPRecord struct {
-	ID         string `json:"id" bson:"_id"`
-	UserCode   string
-	UserID     string
-	Email      string
-	OTP        string
-	CreatedAt  time.Time
-	ExpiresAt  time.Time
-	UserRealm  string
-	DeviceUUID *string
-	OTPFor     string
-}
-
-type ChangePinRequest struct {
-	UserID string `json:"user_id"`
-	OldPin string `json:"old_pin"`
-	NewPin string `json:"new_pin"`
-}
-
-type HQ struct {
-	ID                   string          `bson:"_id" json:"id"`
-	UniqueID             string          `bson:"unique_id" json:"unique_id"`
-	Name                 string          `bson:"name" json:"name"`
-	Address              string          `bson:"address" json:"address"`
-	PhoneNumber          string          `bson:"phoneNumber" json:"phoneNumber"`
-	Email                string          `bson:"email" json:"email"`
-	LinkedAccounts       []LinkedAccount `bson:"linkedAccounts" json:"linkedAccounts"`
-	LatestiOSVersion     string          `bson:"latestiOSVersion" json:"latestiOSVersion"`
-	LatestAndroidVersion string          `bson:"latestAndroidVersion" json:"latestAndroidVersion"`
-	ArchiveExpiry        uint            `json:"archive_expiry" bson:"archive_expiry"`
-	BlockTime            uint            `json:"block_time" bson:"block_time"`
-	BlockTimeStatus      string          `bson:"block_time_status" json:"block_time_status"`
-	ArchiveTime          uint            `bson:"archive_time" json:"archive_time"`
-	ArchiveTimeStatus    string          `bson:"archive_time_status" json:"archive_time_status"`
-	Enabled              bool            `bson:"enabled" json:"enabled"`
-	IsDeleted            bool            `bson:"isDeleted" json:"isDeleted"`
-	CreatedAt            time.Time       `bson:"createdAt" json:"createdAt"`
-	LastModified         time.Time       `bson:"lastModified" json:"lastModified"`
-}
-
-type RegistrationType string
-
-const (
-	RegistrationTypeNew    RegistrationType = "new"
-	RegistrationTypeLinked RegistrationType = "linked"
-)
-
-type LinkedAccount struct {
-	ID                bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
-	UserID            bson.ObjectID    `json:"user_id" bson:"user_id"`
-	CustomerNumber    string           `json:"customer_number" bson:"customer_number"` // cif
-	AccountNumber     string           `json:"account_number" bson:"account_number"`
-	AccountHolderName string           `json:"account_holder_name" bson:"account_holder_name"`
-	AccountType       string           `json:"account_type" bson:"account_type"`
-	BranchCode        string           `json:"branch_code" bson:"branch_code"`
-	LinkedStatus      bool             `json:"linked_status" bson:"linked_status"`
-	LastLinkedStatus  bool             `json:"last_linked_status" bson:"last_linked_status"`
-	LinkedAt          time.Time        `json:"linked_at" bson:"linked_at"`
-	LinkedBranch      string           `json:"linker_branch" bson:"linker_branch"`
-	RegistrationType  RegistrationType `json:"registration_type" bson:"registration_type"`
-	IsAccountActive   bool             `json:"is_account_active" bson:"is_account_active"`
-	AndOrStatus       bool             `json:"and_or_status" bson:"and_or_status"`
-	AccountBranchCode string           `json:"account_branch_code" bson:"account_branch_code"`
-	CurrencyCode      string           `json:"currency" bson:"curreny"`
-	IsMain            bool             `json:"is_main" bson:"is_main"` // default: false, first account: true
-	MakerAndChecker   struct {
-		Linkers struct {
-			Maker   string `json:"maker" bson:"maker"`
-			Checker string `json:"checker" bson:"checker"`
-		} `json:"linkers" bson:"linkers"`
-		Unlinkers struct {
-			Maker   string `json:"maker" bson:"maker"`
-			Checker string `json:"checker" bson:"checker"`
-		} `json:"unlinkers" bson:"unlinkers,omitempty"`
-	} `json:"maker_and_checker" bson:"maker_and_checker"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"  bson:"updated_at"`
 }

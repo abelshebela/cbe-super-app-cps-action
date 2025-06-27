@@ -2,14 +2,17 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
-func AxiosSendSms(phoneNumber, messageBody string) {
+// AxiosSendSms sends an SMS message to the specified phone number using the configured notification service.
+// Returns nil on success, or an error describing the failure.
+func AxiosSendSms(ctx context.Context, phoneNumber, messageBody string) error {
 	ip := os.Getenv("CONFIG_IP")
 	port := os.Getenv("CONFIG_PORT_LDAP_NOTIFICATION")
 	nodeEnv := os.Getenv("GO_ENV")
@@ -33,28 +36,24 @@ func AxiosSendSms(phoneNumber, messageBody string) {
 
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
-		log.Printf("Error marshaling SMS body: %v", err)
-		return
+		return fmt.Errorf("error marshaling SMS body: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		log.Printf("Error creating SMS request: %v", err)
-		return
+		return fmt.Errorf("error creating SMS request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Error sending SMS: %v", err)
-		return
+		return fmt.Errorf("error sending SMS: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		log.Println("SMS sent successfully")
-	} else {
-		log.Printf("Failed to send SMS, status: %s", resp.Status)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to send SMS, status: %s", resp.Status)
 	}
+	return nil
 }

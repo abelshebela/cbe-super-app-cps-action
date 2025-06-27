@@ -12,6 +12,12 @@ type InBound interface {
 	UpdateProfilePicture(w http.ResponseWriter, r *http.Request)
 	UnlinkDevice(w http.ResponseWriter, r *http.Request)
 	ChangePin(w http.ResponseWriter, r *http.Request)
+	VerifyOtp(w http.ResponseWriter, r *http.Request)
+	SetPin(w http.ResponseWriter, r *http.Request)
+	Register(w http.ResponseWriter, r *http.Request)
+	Login(w http.ResponseWriter, r *http.Request)
+	ForgetPinSendOtp(w http.ResponseWriter, r *http.Request)
+	DeviceLookup(w http.ResponseWriter, r *http.Request)
 }
 
 // type UserPort interface {
@@ -49,5 +55,5 @@ type OTPVerification struct {
 type ChangePinRequest struct {
 	UserID string
 	OldPin string
-	NewPin  string
+	NewPin string
 }

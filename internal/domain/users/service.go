@@ -88,7 +88,7 @@ func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*Link
 	if user.IsDeleted {
 		s.logger.Infof("User with ID %s is deleted", id)
 		return &LinkedAccountResponse{
-			UserID:         user.ID,
+			UserID:         user.ID.Hex(),
 			FullName:       user.FullName,
 			LinkedAccounts: []LinkedAccountDetail{},
 		}, nil
@@ -112,13 +112,43 @@ func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*Link
 	}
 
 	response := &LinkedAccountResponse{
-		UserID:         user.ID,
+		UserID:         user.ID.Hex(),
 		FullName:       user.FullName,
 		LinkedAccounts: linkedAccountsResponse,
 	}
 
 	s.logger.Infof("Successfully fetched active linked accounts for user ID %s", id)
 	return response, nil
+}
+
+func (s *UserService) GetOneHQ(ctx context.Context, req map[string]interface{}) (*HQ, error) {
+	hq, err := s.repository.GetOneHQ(ctx, req)
+	if err != nil {
+		if err == ErrNotFound {
+			s.logger.Warnf("HQ data not found", req)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		s.logger.Errorf("Failed to fetch HQ data: %v", err)
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	s.logger.Infof("Successfully fetched HQ data", req)
+	return hq, nil
+}
+
+func (s *UserService) GetOneUser(ctx context.Context, req map[string]interface{}) (*User, error) {
+	user, err := s.repository.GetOneUser(ctx, req)
+	if err != nil {
+		if err == ErrNotFound {
+			s.logger.Warnf("User data not found", req)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		s.logger.Errorf("Failed to fetch User data: %v", err)
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	s.logger.Infof("Successfully fetched User data", req)
+	return user, nil
 }
 
 func (s *UserService) GenerateEmailOTP(ctx context.Context, req OTPRequest) (string, error) {
@@ -229,7 +259,7 @@ func (s *UserService) UnlinkDevice(ctx context.Context, UserID string, DeviceID 
 		return fmt.Errorf("NOT_FOUND")
 	}
 	// s.logger.Infof("mmmm",currentUser.Device)
-	if currentUser.Device != nil && currentUser.Device.DeviceUUID == DeviceID {
+	if currentUser.Device.DeviceUUID == DeviceID {
 
 		err = s.repository.UnlinkDevice(ctx, UserID, DeviceID)
 		if err != nil {
@@ -311,13 +341,12 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 	if err != nil {
 		return fmt.Errorf("NOT_FOUND")
 	}
-s.logger.Infof(userData.LoginPIN.PIN ,ChangePinRequest.OldPin)
-	
+	s.logger.Infof(userData.LoginPIN.PIN, ChangePinRequest.OldPin)
+
 	if userData.LoginPIN.PIN != ChangePinRequest.OldPin {
 		return fmt.Errorf("OLD_PIN_MISMATCH")
 	}
 
-	
 	isValid, err := s.ValidatePin(ctx, ChangePinRequest.NewPin)
 	if err != nil {
 		return err
@@ -326,22 +355,19 @@ s.logger.Infof(userData.LoginPIN.PIN ,ChangePinRequest.OldPin)
 		return err
 	}
 
-	
 	if ChangePinRequest.OldPin == ChangePinRequest.NewPin {
 		return fmt.Errorf("SAME_PIN")
 	}
 
-	
 	for _, historyPin := range userData.LoginPIN.PINHistory {
 		if historyPin == ChangePinRequest.NewPin {
 			return fmt.Errorf("PIN_IN_HISTORY")
 		}
 	}
 
-	
 	var newHistory [4]string
-	copy(newHistory[1:], userData.LoginPIN.PINHistory[:3]) 
-	newHistory[0] = userData.LoginPIN.PIN                  
+	copy(newHistory[1:], userData.LoginPIN.PINHistory[:3])
+	newHistory[0] = userData.LoginPIN.PIN
 	newLoginPIN := LoginPIN{
 		PIN:              ChangePinRequest.NewPin,
 		PINHistory:       newHistory,
@@ -353,4 +379,98 @@ s.logger.Infof(userData.LoginPIN.PIN ,ChangePinRequest.OldPin)
 		return fmt.Errorf("ERROR_CHANGING_PIN")
 	}
 	return nil
+}
+
+func (s *UserService) CreateOtp(ctx context.Context, otp OTPRecord) error {
+	return s.repository.CreateOtp(ctx, &otp)
+}
+
+func (s *UserService) VerifyOtp(ctx context.Context, userID, otp string, deviceUUID *string, userRealm, otpFor string) error {
+	record, err := s.repository.FindOTP(ctx, userID, "") // You may want to extend FindOTP to filter by deviceUUID, userRealm, otpFor
+	if err != nil || record == nil {
+		s.logger.Errorf("OTP record not found for user %s", userID)
+		return fmt.Errorf("INVALID_OTP")
+	}
+
+	if time.Now().After(record.ExpiresAt) {
+		s.logger.Warnf("Expired OTP for user %s (expired at: %v)", userID, record.ExpiresAt)
+		return fmt.Errorf("EXPIRED_OTP")
+	}
+
+	if record.OTP != otp {
+		s.logger.Warnf("Invalid OTP provided for user %s (expected: %s, got: %s)", userID, record.OTP, otp)
+		return fmt.Errorf("INVALID_OTP")
+	}
+
+	// Mark OTP as used (delete or update status)
+	if err := s.repository.DeleteOtp(ctx, record.ID); err != nil {
+		s.logger.Errorf("Failed to delete OTP record for user %s: %v", userID, err)
+		return fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+
+	s.logger.Infof("OTP verified successfully for user %s", userID)
+	return nil
+}
+
+func (s *UserService) SetPin(ctx context.Context, userID, newPin, otp string, deviceUUID *string, userRealm, otpFor string) error {
+	// 1. Verify OTP
+	err := s.VerifyOtp(ctx, userID, otp, deviceUUID, userRealm, otpFor)
+	if err != nil {
+		return err
+	}
+	// 2. Validate new PIN (reuse ValidatePin)
+	isValid, err := s.ValidatePin(ctx, newPin)
+	if err != nil || !isValid {
+		return fmt.Errorf("INVALID_PIN")
+	}
+	// 3. Update user's PIN
+	user, err := s.repository.FindByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("NOT_FOUND")
+	}
+	newLoginPIN := LoginPIN{
+		PIN:              newPin,
+		PINHistory:       user.LoginPIN.PINHistory, // Optionally update history
+		LastPINCreatedAt: time.Now(),
+	}
+	err = s.repository.ChangePin(ctx, userID, newLoginPIN)
+	if err != nil {
+		return fmt.Errorf("ERROR_SETTING_PIN")
+	}
+	return nil
+}
+
+func (s *UserService) Register(ctx context.Context, phone, deviceUUID, platform string) error {
+	// 1. Check if user already exists
+	// 2. If not, create a pending registration in otp_collection
+	// 3. Generate and send OTP
+	// 4. Return error or nil
+	return nil
+}
+
+func (s *UserService) Login(ctx context.Context, phone, deviceUUID, pin string) (string, error) {
+	// 1. Find user by phone/device
+	// 2. Check PIN
+	// 3. If valid, generate and return access token
+	// 4. Else, return error
+	return "access_token", nil
+}
+
+func (s *UserService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) error {
+	// 1. Find user by phone/device
+	// 2. Generate and send OTP for PIN reset
+	// 3. Store OTP in otp_collection
+	// 4. Return error or nil
+	return nil
+}
+
+func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, appVersion string) (map[string]interface{}, error) {
+	// TODO: Implement actual device lookup logic
+	return map[string]interface{}{
+		"device_uuid": deviceUUID,
+		"platform":    platform,
+		"app_version": appVersion,
+		"is_latest":   true,
+		"user_found":  false,
+	}, nil
 }

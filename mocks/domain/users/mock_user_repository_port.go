@@ -43,18 +43,60 @@ func (m *MockUserRepository) ChangePin(ctx context.Context, userID string, login
 	return ret0
 }
 
+func (m *MockUserRepository) CreateOtp(ctx context.Context, otp *users.OTPRecord) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOtp", ctx, otp)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m *MockUserRepository) GetOtpByID(ctx context.Context, id string) (*users.OTPRecord, error) {
+
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOtpByID", ctx, id)
+	ret0, _ := ret[0].(*users.OTPRecord)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (m *MockUserRepository) UpdateOtp(ctx context.Context, otp *users.OTPRecord) error {
+
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOtp", ctx, otp)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (m *MockUserRepository) DeleteOtp(ctx context.Context, id string) error {
+
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOtp", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
 // ChangePin indicates an expected call of ChangePin.
 func (mr *MockUserRepositoryMockRecorder) ChangePin(ctx, userID, loginPIN interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePin", reflect.TypeOf((*MockUserRepository)(nil).ChangePin), ctx, userID, loginPIN)
 }
 
-// DeleteOtp mocks base method.
-func (m *MockUserRepository) DeleteOtp(ctx context.Context, id string) error {
+func (m *MockUserRepository) GetOneHQ(ctx context.Context, req map[string]interface{}) (*users.HQ, error) {
+
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteOtp", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "GetOneHQ", ctx, req)
+	ret0, _ := ret[0].(*users.HQ)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (m *MockUserRepository) GetOneUser(ctx context.Context, req map[string]interface{}) (*users.User, error) {
+
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOneUser", ctx, req)
+	ret0, _ := ret[0].(*users.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DeleteOtp indicates an expected call of DeleteOtp.

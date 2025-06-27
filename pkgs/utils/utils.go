@@ -10,15 +10,64 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mathrand "math/rand"
 	"net/http"
 	"regexp"
 	"strings"
-	
+	"time"
+
+	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 
 	// entities "cbe-super-app-member-users/internal/domain/users"
 	internal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
+func OTPGenerator(length uint8) string {
+	numberic := "0123456789"
+	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = numberic[r.Intn(len(numberic))]
+	}
+
+	return string(result)
+}
+func BaseResponseMaker(res map[string]interface{}, w http.ResponseWriter, message string, statusCode int) {
+
+	response := make(map[string]interface{})
+	if res == nil {
+		res = make(map[string]interface{})
+	}
+
+	response["data"] = res
+	response["status"] = statusCode
+	response["message"] = message
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func UntrustedInstallationResponse(w http.ResponseWriter) {
+	returndata := make(map[string]interface{})
+
+	returndata["message"] = common.DefineError.General["UNTRUSTED"].Message
+	returndata["code"] = common.DefineError.General["UNTRUSTED"].Code
+	w.WriteHeader(http.StatusForbidden)
+	ResponseMaker(returndata, w)
+}
+func HeaderRequirement(r *http.Request, additionl []string) (string, string, string, string, string, map[string]interface{}) {
+	var headerData = make(map[string]interface{})
+	platform := r.Header.Get("platform")
+	appVersion := r.Header.Get("app_version")
+	devideuuid := r.Header.Get("device_uuid")
+	sourceapp := r.Header.Get("source_app")
+	installationdate := r.Header.Get("installation_date")
+	for _, v := range additionl {
+		headerData[v] = r.Header.Get(v)
+	}
+
+	return platform, appVersion, devideuuid, sourceapp, installationdate, headerData
+}
 func GetRandomArbitrary() (string, error) {
 	const min = 100000
 	const max = 999999
@@ -149,8 +198,8 @@ func SignWithHS256(data string, saltHex string) (string, error) {
 // 	currentTime := time.Now().UTC()
 // 	timeRemaining := expirationTime.Sub(currentTime)
 
-// 	return timeRemaining
-// }
+//		return timeRemaining
+//	}
 func ResponseMaker(res map[string]interface{}, w http.ResponseWriter) {
 
 	w.Header().Set("Content-Type", "application/json")

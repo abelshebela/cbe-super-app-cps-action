@@ -9,6 +9,8 @@ import (
 	userPort "cbe-super-app-member-users/internal/domain/users"
 	accountPort "cbe-super-app-member-users/internal/port/outbound/account"
 
+	"cbe-super-app-member-users/pkgs/entities/type_definition"
+
 	entities "cbe-super-app-member-users/internal/adapter/outbound/model"
 
 	dal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -23,6 +25,7 @@ type MongoRepository struct {
 	userDal          dal.MongoDal[entities.User, entities.User]
 	linkedAccountDal dal.MongoDal[entities.LinkedAccount, entities.LinkedAccount]
 	otpDal           dal.MongoDal[entities.OTP, entities.OTP]
+	hqDal            dal.MongoDal[entities.HQ, entities.HQ]
 }
 
 func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
@@ -30,6 +33,7 @@ func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
 		userDal:          dal.NewMongoDal[entities.User, entities.User](client, dbName, "user"),
 		linkedAccountDal: dal.NewMongoDal[entities.LinkedAccount, entities.LinkedAccount](client, dbName, "linked_accounts"),
 		otpDal:           dal.NewMongoDal[entities.OTP, entities.OTP](client, dbName, "otp"),
+		hqDal:            dal.NewMongoDal[entities.HQ, entities.HQ](client, dbName, "hq"),
 	}
 }
 
@@ -53,19 +57,70 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 	}
 
 	return &userPort.User{
-		ID:        userEntity.ID.Hex(),
+		ID:        userEntity.ID,
 		Email:     userEntity.Email,
 		FullName:  userEntity.FullName,
 		IsDeleted: userEntity.IsDeleted,
-		Device: &userPort.DeviceInfo{
+		Device: type_definition.Device{
 			DeviceUUID: userEntity.Device.DeviceUUID,
 			AppVersion: userEntity.Device.AppVersion,
 		},
-		LoginPIN: userPort.LoginPIN{
+		LoginPIN: type_definition.LoginPIN{
 			PIN:              userEntity.LoginPIN.PIN,
 			PINHistory:       userEntity.LoginPIN.PINHistory,
 			LastPINCreatedAt: userEntity.LoginPIN.LastPINCreatedAt,
 		},
+	}, nil
+}
+
+func (r *MongoRepository) GetOneHQ(ctx context.Context, req map[string]interface{}) (*userPort.HQ, error) {
+	hqFilter := bson.M{
+		"enabled": true,
+	}
+	hqEntity, err := r.hqDal.FindOne(ctx, hqFilter, nil)
+	fmt.Println("hqEntity", err)
+	if err != nil {
+		return nil, err
+	}
+	return &userPort.HQ{
+		ID:                   hqEntity.ID, // or appropriate conversion
+		UniqueID:             hqEntity.UniqueID,
+		Name:                 hqEntity.Name,
+		Address:              hqEntity.Address,
+		PhoneNumber:          hqEntity.PhoneNumber,
+		Email:                hqEntity.Email,
+		LinkedAccounts:       nil, // map if needed
+		LatestiOSVersion:     hqEntity.LatestiOSVersion,
+		LatestAndroidVersion: hqEntity.LatestAndroidVersion,
+		ArchiveExpiry:        hqEntity.ArchiveExpiry,
+		BlockTime:            hqEntity.BlockTime,
+		BlockTimeStatus:      hqEntity.BlockTimeStatus,
+		ArchiveTime:          hqEntity.ArchiveTime,
+		ArchiveTimeStatus:    hqEntity.ArchiveTimeStatus,
+		Enabled:              hqEntity.Enabled,
+		IsDeleted:            hqEntity.IsDeleted,
+		CreatedAt:            hqEntity.CreatedAt,
+		LastModified:         hqEntity.LastModified,
+	}, nil
+}
+
+func (r *MongoRepository) GetOneUser(ctx context.Context, req map[string]interface{}) (*userPort.User, error) {
+	// fmt.Println("hello there ")
+	filter := bson.M{}
+
+	filter["is_deleted"] = false
+
+	user, err := r.userDal.FindOne(ctx, filter, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &userPort.User{
+		ID:        user.ID,
+		Email:     user.Email,
+		FullName:  user.FullName,
+		IsDeleted: user.IsDeleted,
 	}, nil
 }
 
@@ -352,4 +407,58 @@ func (r *MongoRepository) ChangePin(ctx context.Context, userID string, loginPIN
 	}
 
 	return nil
+}
+
+// OTP CRUD
+func (r *MongoRepository) CreateOtp(ctx context.Context, otp *userPort.OTPRecord) error {
+	otpEntity := entities.OTP{
+		UserCode:  otp.UserID,
+		OTPFor:    entities.OTPForChangeEmail, // or make this a parameter if needed
+		OTPCode:   otp.OTP,
+		Email:     otp.Email,
+		ExpiresAt: otp.ExpiresAt,
+		CreatedAt: otp.CreatedAt,
+		Status:    "",
+		IsDeleted: false,
+	}
+	_, err := r.otpDal.InsertOne(ctx, otpEntity)
+	return err
+}
+
+func (r *MongoRepository) GetOtpByID(ctx context.Context, id string) (*userPort.OTPRecord, error) {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	filter := bson.M{"_id": oid, "is_deleted": bson.M{"$ne": true}}
+	otpEntity, err := r.otpDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &userPort.OTPRecord{
+		ID:        otpEntity.ID.Hex(),
+		UserCode:  otpEntity.UserCode,
+		UserID:    otpEntity.UserCode,
+		Email:     otpEntity.Email,
+		OTP:       otpEntity.OTPCode,
+		CreatedAt: otpEntity.CreatedAt,
+		ExpiresAt: otpEntity.ExpiresAt,
+	}, nil
+}
+
+func (r *MongoRepository) UpdateOtp(ctx context.Context, otp *userPort.OTPRecord) error {
+	oid, err := bson.ObjectIDFromHex(otp.ID)
+	if err != nil {
+		return ErrNotFound
+	}
+	filter := bson.M{"_id": oid}
+	update := bson.M{
+		"otp_code":      otp.OTP,
+		"email":         otp.Email,
+		"expires_at":    otp.ExpiresAt,
+		"status":        "", // update as needed
+		"last_modified": time.Now(),
+	}
+	_, err = r.otpDal.UpdateOne(ctx, filter, update)
+	return err
 }

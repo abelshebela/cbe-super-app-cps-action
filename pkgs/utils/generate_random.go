@@ -1,33 +1,36 @@
 package utils
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
 )
 
+// GenerateRandom returns a random numeric string of the specified digit length.
+// If digit <= 0, it returns an empty string.
 func GenerateRandom(digit int) string {
-	fmt.Println("generating number...")
-
-	numberDigit := "1"
-	multiplier := "9"
-
-	for i := 1; i < digit; i++ {
-		numberDigit += "0"
-		multiplier += "9"
+	if digit <= 0 {
+		return ""
 	}
 
-	fmt.Println(numberDigit, multiplier)
-
-	min, _ := strconv.Atoi(numberDigit)
-	max, _ := strconv.Atoi(multiplier)
-	rand.Seed(time.Now().UnixNano())
-	generatedNumber := min + rand.Intn(max+1)
-
+	min := intPow(10, digit-1)
+	max := intPow(10, digit) - 1
+	if digit == 1 {
+		min = 0
+	}
+	generatedNumber := min + rand.Intn(max-min+1)
 	result := strconv.Itoa(generatedNumber)
-	if len(result) > digit {
-		result = result[:digit]
+	return result
+}
+
+func intPow(a, b int) int {
+	result := 1
+	for i := 0; i < b; i++ {
+		result *= a
 	}
 	return result
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
