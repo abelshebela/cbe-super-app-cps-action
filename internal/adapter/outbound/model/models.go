@@ -138,6 +138,7 @@ const (
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestBlockRegion              RequestAction = "BLOCK_REGION"
+	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 )
 
 type RegistrationType string

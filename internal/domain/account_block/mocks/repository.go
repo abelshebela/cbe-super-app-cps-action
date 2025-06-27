@@ -50,17 +50,17 @@ func (mr *MockAccountBlockRepoMockRecorder) ApproveBulkBranchesDisable(ctx, acti
 }
 
 // ApproveRegionBlock mocks base method.
-func (m *MockAccountBlockRepo) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string) error {
+func (m *MockAccountBlockRepo) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApproveRegionBlock", ctx, actionID, approve, reason)
+	ret := m.ctrl.Call(m, "ApproveRegionBlock", ctx, actionID, approve, reason, checker)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ApproveRegionBlock indicates an expected call of ApproveRegionBlock.
-func (mr *MockAccountBlockRepoMockRecorder) ApproveRegionBlock(ctx, actionID, approve, reason interface{}) *gomock.Call {
+func (mr *MockAccountBlockRepoMockRecorder) ApproveRegionBlock(ctx, actionID, approve, reason, checker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveRegionBlock", reflect.TypeOf((*MockAccountBlockRepo)(nil).ApproveRegionBlock), ctx, actionID, approve, reason)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveRegionBlock", reflect.TypeOf((*MockAccountBlockRepo)(nil).ApproveRegionBlock), ctx, actionID, approve, reason, checker)
 }
 
 // ApproveSingleBranchDisable mocks base method.
@@ -162,6 +162,21 @@ func (m *MockAccountBlockRepo) GetBranchByCode(ctx context.Context, branchCode s
 func (mr *MockAccountBlockRepoMockRecorder) GetBranchByCode(ctx, branchCode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranchByCode", reflect.TypeOf((*MockAccountBlockRepo)(nil).GetBranchByCode), ctx, branchCode)
+}
+
+// GetRegionByID mocks base method.
+func (m *MockAccountBlockRepo) GetRegionByID(ctx context.Context, regionID string) (action.Region, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRegionByID", ctx, regionID)
+	ret0, _ := ret[0].(action.Region)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRegionByID indicates an expected call of GetRegionByID.
+func (mr *MockAccountBlockRepoMockRecorder) GetRegionByID(ctx, regionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegionByID", reflect.TypeOf((*MockAccountBlockRepo)(nil).GetRegionByID), ctx, regionID)
 }
 
 // UpdateRegion mocks base method.

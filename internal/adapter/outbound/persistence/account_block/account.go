@@ -180,7 +180,7 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
         Department:     department,
         ActionStatus:   model.ActionPending,
         ActionType:     model.ActionDelete, 
-        RequestAction:  model.RequestDisableMultiUsers, 
+        RequestAction:  model.RequestDisableMultiBranches, 
         PreviosAction:  prevAction,
         CurrentAction:  currAction,
         CreatedAt:      time.Now(),
@@ -294,26 +294,79 @@ func (o *outboundAccountBlockStore) UpdateRegion(ctx context.Context, region act
     _, err := o.MongoDalRegion.UpdateOne(ctx, filter, update)
     return err
 }
-
-func (o *outboundAccountBlockStore) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string) error {
+func (o *outboundAccountBlockStore) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
     filter := bson.M{"action_code": actionID}
     actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
     if err != nil || actionDoc == nil {
         return errors.New("action not found")
     }
+
+    checkerInfo := bson.M{
+        "checker_code": checker.UserCode,
+        "checker_name": checker.FullName,
+        "checked_at":   time.Now(),
+    }
+
     if !approve {
-        update := bson.M{"$set": bson.M{"action_status": "REJECTED", "last_modified_at": time.Now()}}
+        update := bson.M{
+            "$set": bson.M{
+                "action_status":    "REJECTED",
+                "last_modified_at": time.Now(),
+                "reason":           reason,
+            },
+            "$push": bson.M{
+                "checker_history": checkerInfo,
+            },
+        }
         _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
         return err
     }
+
     var regionID string
-    _ = json.Unmarshal(actionDoc.CurrentAction, &regionID)
-    update := bson.M{"$set": bson.M{"enabled": false, "updated_at": time.Now()}}
-    _, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"id": regionID}, update)
+    if err := json.Unmarshal(actionDoc.CurrentAction, &regionID); err != nil {
+        return errors.New("failed to parse regionID from action")
+    }
+
+    updateRegion := bson.M{
+        "$set": bson.M{
+            "enabled":    false,
+            "updated_at": time.Now(),
+        },
+    }
+    _, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"id": regionID}, updateRegion)
     if err != nil {
         return err
     }
-    updateAction := bson.M{"$set": bson.M{"action_status": "APPROVED", "last_modified_at": time.Now()}}
+
+    updateAction := bson.M{
+        "$set": bson.M{
+            "action_status":    "APPROVED",
+            "last_modified_at": time.Now(),
+            "reason":           reason,
+        },
+        "$push": bson.M{
+            "checker_history": checkerInfo,
+        },
+    }
     _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, updateAction)
     return err
+}
+func (o *outboundAccountBlockStore) GetRegionByID(ctx context.Context, regionID string) (action.Region, error) {
+    if regionID == "" {
+        return action.Region{}, fmt.Errorf("regionID is required")
+    }
+    filter := bson.M{"id": regionID}
+    regionDoc, err := o.MongoDalRegion.FindOne(ctx, filter, nil)
+    if err != nil || regionDoc == nil {
+        return action.Region{}, fmt.Errorf("failed to get region by ID: %w", err)
+    }
+    return action.Region{
+        ID:            regionDoc.ID,
+        RegionCode:    regionDoc.RegionCode,
+        RegionName:    regionDoc.RegionName,
+        RegionAddress: regionDoc.RegionAddress,
+        CreatedAt:     regionDoc.CreatedAt,
+        UpdatedAt:     regionDoc.UpdatedAt,
+        Enabled:       regionDoc.Enabled,
+    }, nil
 }

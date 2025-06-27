@@ -13,4 +13,5 @@ type AccountBlockHandler interface {
 	BlockRegion(w http.ResponseWriter, r *http.Request)
 	UpdateRegion(w http.ResponseWriter, r *http.Request)
 	ApproveRegionBlock(w http.ResponseWriter, r *http.Request)
+	GetRegionByID(w http.ResponseWriter, r *http.Request)
 }

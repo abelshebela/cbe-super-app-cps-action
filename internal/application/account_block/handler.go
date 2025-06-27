@@ -2,6 +2,7 @@ package account_block
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_block"
@@ -20,7 +21,8 @@ type ApplicationService interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 	BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error
 	UpdateRegion(ctx context.Context, region action.Region) error
-	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string) error
+    ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
+	GetRegionByID(ctx context.Context, regionID string) (action.Region, error)
 }
 
 type Handler struct {
@@ -76,6 +78,18 @@ func (h *Handler) UpdateRegion(ctx context.Context, region action.Region) error 
 	return h.repo.UpdateRegion(ctx, region)
 }
 
-func (h *Handler) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string) error {
-	return h.repo.ApproveRegionBlock(ctx, actionID, approve, reason)
+func (h *Handler) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
+	return h.repo.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
+}
+func (h *Handler) GetRegionByID(ctx context.Context, regionID string) (action.Region, error) {
+    if regionID == "" {
+        return action.Region{}, fmt.Errorf("regionID is required")
+    }
+
+    region, err := h.repo.GetRegionByID(ctx, regionID)
+    if err != nil {
+        return action.Region{}, fmt.Errorf("failed to get region by ID: %w", err)
+    }
+
+    return region, nil
 }

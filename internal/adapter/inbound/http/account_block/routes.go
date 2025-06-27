@@ -93,6 +93,16 @@ func RegisterAccountBlockRoutes(r chi.Router, handler accountblock.AccountBlockH
 				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
+		{
+            Method:  http.MethodGet,
+            Path:    "/accountblock/region/{id}",
+            Handler: handler.GetRegionByID,
+            Middlewares: []func(next http.Handler) http.Handler{
+                authMiddleware.AuthenticateToken,
+                authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+            },
+        },
+
 	}
 
 	sharedhttp.RegisterRoutes(r, routes)

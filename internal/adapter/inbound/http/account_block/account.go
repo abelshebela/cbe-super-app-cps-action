@@ -27,11 +27,27 @@ func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *htt
         Region   string `json:"region"`
         District string `json:"district"`
     }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Region) == "" || strings.TrimSpace(req.District) == "" {
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "Invalid JSON body"}
+        resp.SendJSON()
+        return
+    }
+
+    req.Region = strings.TrimSpace(req.Region)
+    req.District = strings.TrimSpace(req.District)
+
+    if req.Region == "" || req.District == "" {
         resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
         resp.SendJSON()
         return
     }
+
+    if len(req.Region) < 3 || len(req.District) < 3 {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district must be at least 3 characters"}
+        resp.SendJSON()
+        return
+    }
+
     branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
     if err != nil {
         h.logger.Errorf("FilterSingleBranches failed: %v", err)
@@ -39,9 +55,11 @@ func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *htt
         resp.SendJSON()
         return
     }
+
     resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: branches}
     resp.SendJSON()
 }
+
 
 func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Request) {
     var req struct {
@@ -292,7 +310,12 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
         return
     }
     h.logger.Infof("ApproveRegionBlock requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
-    err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason)
+    maker := action.User{
+        UserID:      userPayload.UserID,
+        FullName:    userPayload.FullName,
+        PhoneNumber: userPayload.PhoneNumber,
+    }
+    err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, maker)
     if err != nil {
         h.logger.Errorf("ApproveRegionBlock failed: %v", err)
         resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
@@ -300,5 +323,22 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
         return
     }
     resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+    resp.SendJSON()
+}
+func (h *AccountBlockHandler) GetRegionByID(w http.ResponseWriter, r *http.Request) {
+    regionID := r.URL.Query().Get("region_id")
+    if strings.TrimSpace(regionID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_id is required"}
+        resp.SendJSON()
+        return
+    }
+    region, err := h.service.GetRegionByID(r.Context(), regionID)
+    if err != nil {
+        h.logger.Errorf("GetRegionByID failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "Region not found"}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: region}
     resp.SendJSON()
 }
