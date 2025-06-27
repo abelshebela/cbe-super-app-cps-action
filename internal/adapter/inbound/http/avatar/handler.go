@@ -29,7 +29,7 @@ func InitAvatarHTTPHandler(avatarHandler avatarAPP.AvatarApplicationService, log
 func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateAvatar
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := r.ParseMultipartForm(2 << 20); err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
 		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
