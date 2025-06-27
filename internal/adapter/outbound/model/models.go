@@ -137,6 +137,7 @@ const (
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
+	RequestBlockRegion              RequestAction = "BLOCK_REGION"
 )
 
 type RegistrationType string
@@ -452,4 +453,27 @@ type HQ struct {
 	CreatedAt         time.Time `bson:"created_at" json:"created_at"`
 	LastModifiedAt    time.Time `bson:"last_modified_at" json:"last_modified_at"`
 }
+type Branch struct {
+	ID            bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	BranchCode    string        `json:"branch_code" bson:"branch_code"`
+	BranchName    string        `json:"branch_name" bson:"branch_name"`
+	BranchAddress string        `json:"branch_address" bson:"branch_address"`
+	DistrictCode  string        `json:"district_code" bson:"district_code"`
+	DistrictName  string        `json:"district_name" bson:"district_name"`
+	BranchRegion  string        `json:"branch_region" bson:"branch_region"`
+	RecordStat    string        `json:"record_stat" bson:"record_stat"`
+	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time     `json:"updated_at" bson:"updated_at"`
+	Version       int           `json:"version" bson:"version"`
+	Enabled       bool          `json:"enabled" bson:"enabled"`
+}
 
+type Region struct {
+	ID            string    `json:"id" bson:"id"`
+	RegionCode    string    `json:"region_code" bson:"region_code"`
+	RegionName    string    `json:"region_name" bson:"region_name"`
+	RegionAddress string    `json:"region_address" bson:"region_address"`
+	CreatedAt     time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at" bson:"updated_at"`
+	Enabled       bool      `json:"enabled" bson:"enabled"`
+}

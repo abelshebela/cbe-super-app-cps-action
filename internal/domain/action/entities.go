@@ -279,3 +279,27 @@ type PasswordRule struct {
 	Characters     bool
 	CreatedAt      time.Time
 }
+type Branch struct {
+    ID            string
+    BranchCode    string
+    BranchName    string
+    BranchAddress string
+    DistrictCode  string
+    DistrictName  string
+    BranchRegion  string
+    RecordStat    string
+    CreatedAt     time.Time
+    UpdatedAt     time.Time
+    Version       int
+    Enabled       bool
+}
+
+type Region struct {
+    ID            string
+    RegionCode    string
+    RegionName    string
+    RegionAddress string
+    CreatedAt     time.Time
+    UpdatedAt     time.Time
+    Enabled       bool
+}
