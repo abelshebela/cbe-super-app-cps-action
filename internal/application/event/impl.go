@@ -28,9 +28,7 @@ func (a *ApplicationStore) FetchAllEvents(ctx context.Context, limit, offset int
 	}
 	var result []dto.EventResponse
 	for range /* _, d := */ data {
-		result = append(result, dto.EventResponse{
-			
-		})
+		result = append(result, dto.EventResponse{})
 	}
 	return result, nil
 }
@@ -40,9 +38,8 @@ func (a *ApplicationStore) FetchEvent(ctx context.Context, event_id string) (dto
 		return dto.EventDTO{}, err
 	}
 	return dto.EventDTO{
-		EventID: data.ID,
+		EventID:   data.ID,
 		EventCode: data.Code,
 		EventName: data.Name,
-		
 	}, nil
 }

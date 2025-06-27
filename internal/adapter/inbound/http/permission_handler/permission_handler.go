@@ -2,16 +2,15 @@ package permission_handler
 
 import (
 	"encoding/json"
-	"net/http"
 	"github.com/go-chi/chi/v5"
+	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/permission"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/permission"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
-
 )
 
 type PermissionHandler struct {
@@ -33,7 +32,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message":  "Invalid JSON payload"},
+			Data:           map[string]string{"message": "Invalid JSON payload"},
 		}
 		resp.SendJSON()
 		return
@@ -44,7 +43,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message": "Invalid input provided"},
+			Data:           map[string]string{"message": "Invalid input provided"},
 		}
 		resp.SendJSON()
 		return
@@ -57,13 +56,13 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:            claims.UserID,
-		MakerName:          claims.FullName,
-		MakerPhoneNumber:   claims.PhoneNumber,
-		Department:         claims.Department,
-		ActionStatus:       entities.ActionPending,
-		ActionType:         entities.ActionCreate,
-		RequestAction:      entities.RequestPermissionGroup,
+		MakerID:          claims.UserID,
+		MakerName:        claims.FullName,
+		MakerPhoneNumber: claims.PhoneNumber,
+		Department:       claims.Department,
+		ActionStatus:     entities.ActionPending,
+		ActionType:       entities.ActionCreate,
+		RequestAction:    entities.RequestPermissionGroup,
 	}
 
 	if err := h.permissionService.CreatePermissionGroup(request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction); err != nil {
@@ -72,8 +71,8 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
 			Data: map[string]string{
-			"message": err.Error(),
-		},
+				"message": err.Error(),
+			},
 		}
 		resp.SendJSON()
 		return
@@ -101,10 +100,10 @@ func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *htt
 	h.logger.Infof("[ApprovePermissionGroup] approving action %s", actionCode)
 
 	checker := entities.CPSAction{
-		CheckerID:   claims.UserID,
-		CheckerName: claims.FullName,
+		CheckerID:          claims.UserID,
+		CheckerName:        claims.FullName,
 		CheckerPhoneNumber: claims.PhoneNumber,
-		Department:  claims.Department,
+		Department:         claims.Department,
 	}
 
 	err := h.permissionService.ApprovePermissionGroup(actionCode, checker)
@@ -117,8 +116,8 @@ func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *htt
 		resp.SendJSON()
 		return
 	}
-	
-    resp := common.Response[any]{
+
+	resp := common.Response[any]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           map[string]string{"message": "Action approved"},

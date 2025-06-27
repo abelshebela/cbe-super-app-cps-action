@@ -58,7 +58,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 					authMiddleware.AccessControl([]string{"maker", "checker"}),
 				},
 			},
-			
+
 			{
 				Method:  http.MethodPut,
 				Path:    "/color/update/{id}",
@@ -77,7 +77,6 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
 				},
 			},
-
 		}
 
 		route.RegisterRoutes(r, routes)

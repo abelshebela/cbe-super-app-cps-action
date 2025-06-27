@@ -166,7 +166,7 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 	}
 
 	action.CheckerActionTime = time.Now()
-	action.ActionStatus = entities.ActionApproved 
+	action.ActionStatus = entities.ActionApproved
 
 	castToBsonM := func(input interface{}) (bson.M, error) {
 		raw, err := bson.Marshal(input)
@@ -216,8 +216,8 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 
 			filter := bson.M{"_id": iconID, "is_deleted": false}
 			update := bson.M{
-					"icon":          iconURL,
-					"last_modified": time.Now(),
+				"icon":          iconURL,
+				"last_modified": time.Now(),
 			}
 			_, err = b.iconDal.UpdateOne(ctx, filter, update)
 			if err != nil {
@@ -265,8 +265,8 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 
 			filter := bson.M{"_id": colorID, "is_deleted": false}
 			update := bson.M{
-					"color":      colorName,
-					"updated_at": time.Now(),
+				"color":      colorName,
+				"updated_at": time.Now(),
 			}
 			_, err = b.colorDal.UpdateOne(ctx, filter, update)
 			if err != nil {
@@ -283,9 +283,9 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 
 	filter := bson.M{"_id": action.ID}
 	update := bson.M{
-			"action_status":       entities.ActionApproved,
-			"checker_action_time": action.CheckerActionTime,
-			"last_modified_at":    time.Now(),
+		"action_status":       entities.ActionApproved,
+		"checker_action_time": action.CheckerActionTime,
+		"last_modified_at":    time.Now(),
 	}
 	res, err := b.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {

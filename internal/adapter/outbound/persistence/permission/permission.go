@@ -1,28 +1,28 @@
 package permission
 
 import (
-  "context"
-  "go.mongodb.org/mongo-driver/v2/bson"
-  "go.mongodb.org/mongo-driver/v2/mongo"
-  "errors"
-  "fmt"
-  "encoding/json"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
-  "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
-  repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
- "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
- "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-  "time"
+	"time"
 )
 
 type PermissionPersistence struct {
-    permissionGroupsDal dal.MongoDal[entities.PermissionGroup, entities.PermissionGroup]
+	permissionGroupsDal   dal.MongoDal[entities.PermissionGroup, entities.PermissionGroup]
 	permissionCategoryDal dal.MongoDal[entities.PermissionCategory, entities.PermissionCategory]
-    cpsdal              dal.MongoDal[entities.CPSAction, entities.CPSAction]
-    timeout             time.Duration
-    logger              utils.Logger
+	cpsdal                dal.MongoDal[entities.CPSAction, entities.CPSAction]
+	timeout               time.Duration
+	logger                utils.Logger
 }
 
 var _ repository.PermissionGroupRepository = (*PermissionPersistence)(nil)
@@ -30,24 +30,24 @@ var _ repository.CPSActionRepository = (*PermissionPersistence)(nil)
 var _ repository.PermissionCategoryRepository = (*PermissionPersistence)(nil)
 
 func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
-    permissionGroupsDal := dal.NewMongoDal[entities.PermissionGroup, entities.PermissionGroup](client, dbName, "permission_groups")
-    permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_categories")
-    cpsdal := dal.NewMongoDal[entities.CPSAction, entities.CPSAction](client, dbName, "cps_actions")
-    return &PermissionPersistence{
-        permissionGroupsDal: permissionGroupsDal,
+	permissionGroupsDal := dal.NewMongoDal[entities.PermissionGroup, entities.PermissionGroup](client, dbName, "permission_groups")
+	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_categories")
+	cpsdal := dal.NewMongoDal[entities.CPSAction, entities.CPSAction](client, dbName, "cps_actions")
+	return &PermissionPersistence{
+		permissionGroupsDal:   permissionGroupsDal,
 		permissionCategoryDal: permissionCategoryDal,
-        cpsdal:              cpsdal,
-        timeout:             timeout,
-        logger:              logger,
-    }
+		cpsdal:                cpsdal,
+		timeout:               timeout,
+		logger:                logger,
+	}
 }
 
 func (r *PermissionPersistence) CheckPendingRequest(userCode string, status entities.ActionStatus, action entities.RequestAction) error {
 	ctx := context.Background()
 
 	filter := bson.M{
-		"maker_id":      userCode,
-		"action_status": status,
+		"maker_id":       userCode,
+		"action_status":  status,
 		"request_action": action,
 	}
 
@@ -81,42 +81,41 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
 	ctx := context.Background()
 
-    filter := bson.M{}
-    categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
-    if err != nil {
-        r.logger.Errorf("failed to fetch permission categories: ", err)
-        return nil, fmt.Errorf("failed to fetch permission categories")
-    }
+	filter := bson.M{}
+	categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		r.logger.Errorf("failed to fetch permission categories: ", err)
+		return nil, fmt.Errorf("failed to fetch permission categories")
+	}
 
-    var allowedPermissionCategories []bson.ObjectID
+	var allowedPermissionCategories []bson.ObjectID
 
-    for _, permissionID := range ids {
-        objID, err := bson.ObjectIDFromHex(permissionID)
-        if err != nil {
-            r.logger.Errorf("invalid permission category ID format: ", err)
-            continue
-        }
+	for _, permissionID := range ids {
+		objID, err := bson.ObjectIDFromHex(permissionID)
+		if err != nil {
+			r.logger.Errorf("invalid permission category ID format: ", err)
+			continue
+		}
 
-        for _, cat := range categories {
-            if cat.ID == objID {
-                allowedPermissionCategories = append(allowedPermissionCategories, objID)
-                break
-            }
-        }
-    }
+		for _, cat := range categories {
+			if cat.ID == objID {
+				allowedPermissionCategories = append(allowedPermissionCategories, objID)
+				break
+			}
+		}
+	}
 
-    // if len(allowedPermissionCategories) == 0 {
-    //     return nil, fmt.Errorf("no valid permission categories found")
-    // }
+	// if len(allowedPermissionCategories) == 0 {
+	//     return nil, fmt.Errorf("no valid permission categories found")
+	// }
 
 	var allowedStrings []string
-for _, obj := range allowedPermissionCategories {
-    allowedStrings = append(allowedStrings, obj.Hex())
-}
-return allowedStrings, nil
+	for _, obj := range allowedPermissionCategories {
+		allowedStrings = append(allowedStrings, obj.Hex())
+	}
+	return allowedStrings, nil
 
 }
-
 
 func (r *PermissionPersistence) CreatePermissionGroup(group entities.CPSAction) error {
 	ctx := context.Background()
@@ -124,13 +123,12 @@ func (r *PermissionPersistence) CreatePermissionGroup(group entities.CPSAction) 
 	return err
 }
 
-
 func (r *PermissionPersistence) ValidateActionRequest(actionCode, department string) (entities.CPSAction, error) {
 	ctx := context.Background()
 
 	filter := bson.M{
-		"action_code": actionCode,
-		"action_status":     "PENDING",
+		"action_code":   actionCode,
+		"action_status": "PENDING",
 	}
 
 	action, err := r.cpsdal.FindOne(ctx, filter, bson.M{})
@@ -223,11 +221,11 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action e
 	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{
-		"checker_name":       action.CheckerName,
-		"checker_id":         action.CheckerID,
-		"checker_phone_number":     action.CheckerPhoneNumber,
-		"action_status":     entities.ActionApproved,
-		"checker_action_time": time.Now(),
+		"checker_name":         action.CheckerName,
+		"checker_id":           action.CheckerID,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        entities.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -294,9 +292,3 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action entities.
 
 	return nil
 }
-
-
-
-
-
-

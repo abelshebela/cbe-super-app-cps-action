@@ -23,7 +23,7 @@ type BudgetService interface {
 	UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error)
 	CreateColor(ctx context.Context, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error)
 	FetchColors(ctx context.Context) ([]*entities.Color, error)
-    UpdateColor(ctx context.Context, id, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) 
+	UpdateColor(ctx context.Context, id, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error)
 	ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error)
 }
 
@@ -284,11 +284,10 @@ func (b *BudgetHandler) UpdateColor(ctx context.Context, id, hexCode string, cps
 	return actions, nil
 }
 func (b *BudgetHandler) ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
-    cpsActionRes, err := b.service.ApproveAction(ctx, cpsAction)
+	cpsActionRes, err := b.service.ApproveAction(ctx, cpsAction)
 	if err != nil {
 		return nil, err
 	}
 
 	return cpsActionRes, nil
 }
-

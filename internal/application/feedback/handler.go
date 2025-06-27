@@ -3,14 +3,14 @@ package feedback
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type FeedbackService interface {
-    GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*entity.FeedbackResponse, error)
+	GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*entity.FeedbackResponse, error)
 	GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error)
 }
 

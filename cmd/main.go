@@ -318,7 +318,7 @@ func main() {
 	hq_handler.InitHQRoutes(r, hqHandler, authMddleware)
 
 	avatarPersitence := avatar.InitAvatarPersistence(mongoClient, cfg.MongoDBDatabase, []string{"cps_actions", "avatars"}, logger)
-    avatarDomain := avatar_domain.InitAvatarDomain(avatarPersitence, minioClient, "avatars", logger)
+	avatarDomain := avatar_domain.InitAvatarDomain(avatarPersitence, minioClient, "avatars", logger)
 	avatarApp := avatar_app.InitAvatarAPP(avatarDomain, logger)
 	avatarHanler := avatar_adapter.InitAvatarHTTPHandler(avatarApp, logger)
 	avatar_adapter.InitAvatarRoutes(r, avatarHanler, authMddleware)

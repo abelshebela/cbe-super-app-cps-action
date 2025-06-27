@@ -10,7 +10,7 @@ type CreateUserRequest struct {
 	PermissionGroups   []string `json:"permission_groups"`
 }
 type UpdateUserRequest struct {
-    UserCode          string   `json:"user_code"`
+	UserCode           string   `json:"user_code"`
 	UserName           string   `json:"user_name"`
 	FullName           string   `json:"full_name"`
 	PhoneNumber        string   `json:"phone_number"`

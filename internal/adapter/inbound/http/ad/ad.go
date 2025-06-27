@@ -28,7 +28,7 @@ func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) inboundAd.ADAda
 		logger:    logger,
 	}
 }
-	
+
 func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	var advertReq ad.CreateAdvertRequest
 

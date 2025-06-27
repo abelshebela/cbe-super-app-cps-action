@@ -3,19 +3,18 @@ package unlink
 import (
 	"context"
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/unlink"
-	
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
 )
 
 type UnlinkRepo struct {
@@ -27,7 +26,6 @@ type UnlinkRepo struct {
 }
 
 var _ outbound.UnlinkRepository = (*UnlinkRepo)(nil)
-
 
 func NewUnlinkInfrastructure(client *mongo.Client, dbName string, collectionName []string, logger utils.Logger) *UnlinkRepo {
 	user := dal.NewMongoDal[member.User, member.User](client, dbName, collectionName[0])
@@ -108,7 +106,7 @@ func (u *UnlinkRepo) UnlinkDevice(userCode, makerUser string, branchCode []strin
 		CreatedAt:        now,
 		LastModifiedAt:   now,
 		EntityIdentifyer: userCode,
-		MakerID:        makerUser,
+		MakerID:          makerUser,
 		ActionReason:     bps.BPSAction{}.ActionReason,
 	}
 	action.ActionReason.ActionType = "UNLINK_DEVICE"
@@ -158,9 +156,9 @@ func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason, checkerUser st
 	switch decision {
 	case "AUTHORIZED":
 		updateAction := bson.M{
-			"status":      "APPROVED",
+			"status":       "APPROVED",
 			"checker_user": checkerUser,
-			"time":        time.Now(),
+			"time":         time.Now(),
 		}
 		if _, err := u.actionRepo.UpdateOne(ctx, pendingFilter, updateAction); err != nil {
 			u.logger.Errorf("[ApproveOrDecline] failed to approve action: %v", err)
@@ -185,9 +183,9 @@ func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason, checkerUser st
 
 	case "DENIED":
 		updateAction := bson.M{
-			"status":      "REJECTED",
+			"status":       "REJECTED",
 			"checker_user": checkerUser,
-			"reason":      reason,
+			"reason":       reason,
 		}
 		if _, err := u.actionRepo.UpdateOne(ctx, pendingFilter, updateAction); err != nil {
 			u.logger.Errorf("[ApproveOrDecline] failed to reject action: %v", err)

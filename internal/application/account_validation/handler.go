@@ -10,8 +10,8 @@ import (
 
 type ApplicationAbstracts interface {
 	GetAccountValidation(ctx context.Context, id string) (account_validation.ValidationRule, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string ,PhoneNumber string , FullName string) (string, error)
-	UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string,PhoneNumber string , FullName string) error
+	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error)
+	UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string, PhoneNumber string, FullName string) error
 }
 
 type ApplicationStore struct {
@@ -28,10 +28,10 @@ func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) 
 	return a.service.GetAccountValidation(ctx, id)
 }
 
-func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string,PhoneNumber string , FullName string) (string, error) {
-    return a.service.UpdateAccountValidationRequest(ctx, id, update, makerID, PhoneNumber , FullName)
+func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error) {
+	return a.service.UpdateAccountValidationRequest(ctx, id, update, makerID, PhoneNumber, FullName)
 }
 
-func (a *ApplicationStore) UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string,PhoneNumber string , FullName string) error {
-    return a.service.UpdateAccountValidation(ctx, actionID, action, checkerID,PhoneNumber , FullName)
+func (a *ApplicationStore) UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string, PhoneNumber string, FullName string) error {
+	return a.service.UpdateAccountValidation(ctx, actionID, action, checkerID, PhoneNumber, FullName)
 }

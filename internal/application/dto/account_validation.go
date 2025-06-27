@@ -7,7 +7,7 @@ type GetAccountValidationResponse struct {
 }
 
 type UpdateAccountValidationRequest struct {
-	ID         string                             `json:"id"`
+	ID         string                            `json:"id"`
 	Validation account_validation.ValidationRule `json:"validation"`
 }
 

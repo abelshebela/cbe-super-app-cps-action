@@ -86,7 +86,7 @@ func (s *passwordRuleService) CheckPasswordRule(ctx context.Context, password st
 			return false, "password must contain at least one uppercase letter"
 		}
 	}
-	
+
 	if rule.SmallLetters {
 		hasLower := false
 		for _, c := range password {

@@ -16,6 +16,3 @@ type Repository interface {
 	Authorize(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error)
 	Reject(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error)
 }
-
-
-

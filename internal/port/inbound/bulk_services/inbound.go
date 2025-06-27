@@ -8,6 +8,6 @@ type Inbound interface {
 	EnableDisableServicesChecker(w http.ResponseWriter, r *http.Request)
 
 	SearchAccountByCif(w http.ResponseWriter, r *http.Request)
-	RemoveCifMaker(w http.ResponseWriter,r *http.Request)
-	RemoveCifChecker(w http.ResponseWriter,r *http.Request)
+	RemoveCifMaker(w http.ResponseWriter, r *http.Request)
+	RemoveCifChecker(w http.ResponseWriter, r *http.Request)
 }

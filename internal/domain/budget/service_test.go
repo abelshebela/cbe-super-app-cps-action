@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/mocks"
+	"go.uber.org/mock/gomock"
 )
 
 type MockLogger struct{}
