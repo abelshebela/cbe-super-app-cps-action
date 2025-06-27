@@ -343,3 +343,260 @@ func (h *AccountBlockHandler) GetRegionByID(w http.ResponseWriter, r *http.Reque
     resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: region}
     resp.SendJSON()
 }
+func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        DistrictID string `json:"district_id"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.DistrictID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "district_id is required"}
+        resp.SendJSON()
+        return
+    }
+    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
+    if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+        resp.SendJSON()
+        return
+    }
+    maker := action.CPSAction{
+        Maker: action.User{
+            UserID:      userPayload.UserID,
+            FullName:    userPayload.FullName,
+            PhoneNumber: userPayload.PhoneNumber,
+        },
+    }
+    err := h.service.BlockDistrict(r.Context(), req.DistrictID, maker)
+    if err != nil {
+        h.logger.Errorf("BlockDistrict failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "District block action created"}
+    resp.SendJSON()
+}
+
+func (h *AccountBlockHandler) GetDistrictByID(w http.ResponseWriter, r *http.Request) {
+    districtID := chi.URLParam(r, "id")
+    if strings.TrimSpace(districtID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "district_id is required"}
+        resp.SendJSON()
+        return
+    }
+    district, err := h.service.GetDistrictByID(r.Context(), districtID)
+    if err != nil {
+        h.logger.Errorf("GetDistrictByID failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "District not found"}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: district}
+    resp.SendJSON()
+}
+func (h *AccountBlockHandler) ApproveBlockDistrict(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        DistrictID string `json:"district_id"`
+        Approve    bool   `json:"approve"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.DistrictID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "district_id is required"}
+        resp.SendJSON()
+        return
+    }
+    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
+    if !ok {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+        resp.SendJSON()
+        return
+    }
+    h.logger.Infof("ApproveBlockDistrict requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+    maker := action.CPSAction{
+        Checker: action.User{
+            UserID:      userPayload.UserID,
+            FullName:    userPayload.FullName,
+            PhoneNumber: userPayload.PhoneNumber,
+        },
+    }
+    err := h.service.ApproveBlockDistrict(r.Context(), req.DistrictID, maker)
+    if err != nil {
+        h.logger.Errorf("ApproveBlockDistrict failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+    resp.SendJSON()
+}
+func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        CityID string `json:"city_id"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.CityID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "city_id is required"}
+        resp.SendJSON()
+        return
+    }
+    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
+    if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+        resp.SendJSON()
+        return
+    }
+    maker := action.CPSAction{
+        Maker: action.User{
+            UserID:      userPayload.UserID,
+            FullName:    userPayload.FullName,
+            PhoneNumber: userPayload.PhoneNumber,
+        },
+    }
+    err := h.service.BlockCity(r.Context(), req.CityID, maker)
+    if err != nil {
+        h.logger.Errorf("BlockCity failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "City block action created"}
+    resp.SendJSON()
+}
+
+func (h *AccountBlockHandler) GetCityByID(w http.ResponseWriter, r *http.Request) {
+    cityID := chi.URLParam(r, "id")
+    if strings.TrimSpace(cityID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "city_id is required"}
+        resp.SendJSON()
+        return
+    }
+    city, err := h.service.GetCityByID(r.Context(), cityID)
+    if err != nil {
+        h.logger.Errorf("GetCityByID failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "City not found"}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: city}
+    resp.SendJSON()
+}
+
+func (h *AccountBlockHandler) ApproveBlockCity(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        CityID  string `json:"city_id"`
+        Approve bool   `json:"approve"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.CityID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "city_id is required"}
+        resp.SendJSON()
+        return
+    }
+    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
+    if !ok {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+        resp.SendJSON()
+        return
+    }
+    h.logger.Infof("ApproveBlockCity requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+    maker := action.CPSAction{
+        Checker: action.User{
+            UserID:      userPayload.UserID,
+            FullName:    userPayload.FullName,
+            PhoneNumber: userPayload.PhoneNumber,
+        },
+    }
+    err := h.service.ApproveBlockCity(r.Context(), req.CityID, maker)
+    if err != nil {
+        h.logger.Errorf("ApproveBlockCity failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+    resp.SendJSON()
+}
+
+func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        UserID string `json:"user_id"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.UserID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "user_id is required"}
+        resp.SendJSON()
+        return
+    }
+    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
+    if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+        resp.SendJSON()
+        return
+    }
+    maker := action.CPSAction{
+        Maker: action.User{
+            UserID:      userPayload.UserID,
+            FullName:    userPayload.FullName,
+            PhoneNumber: userPayload.PhoneNumber,
+        },
+    }
+    err := h.service.BlockUser(r.Context(), req.UserID, maker)
+    if err != nil {
+        h.logger.Errorf("BlockUser failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "User block action created"}
+    resp.SendJSON()
+}
+
+func (h *AccountBlockHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
+    userID := chi.URLParam(r, "id")
+    if strings.TrimSpace(userID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "user_id is required"}
+        resp.SendJSON()
+        return
+    }
+    maker := action.CPSAction{}
+    user, err := h.service.GetUserByID(r.Context(), userID, maker)
+    if err != nil {
+        h.logger.Errorf("GetUserByID failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "User not found"}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: user}
+    resp.SendJSON()
+}
+
+func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        UserID  string `json:"user_id"`
+        Approve bool   `json:"approve"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.UserID) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "user_id is required"}
+        resp.SendJSON()
+        return
+    }
+    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
+    if !ok {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+        resp.SendJSON()
+        return
+    }
+    h.logger.Infof("ApproveBlockUser requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+    maker := action.CPSAction{
+        Checker: action.User{
+            UserID:      userPayload.UserID,
+            FullName:    userPayload.FullName,
+            PhoneNumber: userPayload.PhoneNumber,
+        },
+    }
+    err := h.service.ApproveBlockUser(r.Context(), req.UserID, maker)
+    if err != nil {
+        h.logger.Errorf("ApproveBlockUser failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
+    resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+    resp.SendJSON()
+}
+

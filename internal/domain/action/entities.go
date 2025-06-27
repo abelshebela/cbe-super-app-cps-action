@@ -303,3 +303,30 @@ type Region struct {
     UpdatedAt     time.Time
     Enabled       bool
 }
+type District struct {
+	ID            string
+	DistrictCode   string
+	DistrictName   string
+	DistrictAddress string
+	RegionID      string
+	RegionName    string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Enabled       bool
+}
+type City struct {
+	ID            string
+	CityCode       string
+	CityName       string
+	CityAddress    string
+	DistrictID    string
+	DistrictName  string
+	RegionID      string
+	RegionName    string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Enabled       bool
+}
+
+
+	

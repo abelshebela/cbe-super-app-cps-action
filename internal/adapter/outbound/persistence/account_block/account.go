@@ -112,7 +112,6 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     return err
 }
-// ...existing code...
 func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
     filter := bson.M{"action_code": actionID}
     actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
@@ -376,4 +375,230 @@ func (o *outboundAccountBlockStore) GetRegionByID(ctx context.Context, regionID 
         UpdatedAt:     regionDoc.UpdatedAt,
         Enabled:       regionDoc.Enabled,
     }, nil
+}
+
+func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error {
+    department, _ := ctx.Value("department").(string)
+    if strings.TrimSpace(department) == "" {
+        return errors.New("department is required in context")
+    }
+
+    prevDistrictPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"id": districtID}, bson.M{})
+    var prevAction json.RawMessage
+    if err == nil && prevDistrictPtr != nil {
+        prevAction, _ = json.Marshal(prevDistrictPtr)
+    } else {
+        prevAction = json.RawMessage("null")
+    }
+
+    currAction, _ := json.Marshal(districtID)
+
+    cpsAction := model.CPSAction{
+        ActionCode:     utils.RandomGenerator(24),
+        MakerUser:      model.User{UserCode: maker.Maker.UserID, FullName: maker.Maker.FullName, PhoneNumber: maker.Maker.PhoneNumber},
+        CheckerUser:    model.User{UserCode: maker.Checker.UserID, FullName: maker.Checker.FullName, PhoneNumber: maker.Checker.PhoneNumber},
+        UniqueId:        districtID,
+        Department:      department,
+        RejectionReason: maker.RejectionReason,
+        PreviosAction:   prevAction,
+        CurrentAction:   currAction,
+        ActionStatus:    model.ActionPending,
+        ActionType:      model.ActionDelete,
+        RequestAction:   model.RequestAction(model.RequestBlockDistrict),
+        CreatedAt:       time.Now(),
+        LastModifiedAt:  time.Now(),
+    }
+
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    return err
+}   
+func (o *outboundAccountBlockStore) GetDistrictByID(ctx context.Context, districtID string) (action.District, error) {
+    if districtID == "" {
+        return action.District{}, fmt.Errorf("districtID is required")
+    }
+    filter := bson.M{"id": districtID}
+    districtDoc, err := o.MongoDalRegion.FindOne(ctx, filter, nil)
+    if err != nil || districtDoc == nil {
+        return action.District{}, fmt.Errorf("failed to get district by ID: %w", err)
+    }
+    return action.District{
+        ID:            districtDoc.ID,
+        DistrictCode:  districtDoc.RegionCode, 
+        DistrictName:  districtDoc.RegionName, 
+        CreatedAt:     districtDoc.CreatedAt,
+        UpdatedAt:     districtDoc.UpdatedAt,
+        Enabled:       districtDoc.Enabled,
+    }, nil
+}   
+func (o *outboundAccountBlockStore) ApproveBlockDistrict(ctx context.Context, districtID string, checker action.CPSAction) error {
+    filter := bson.M{"action_code": districtID}
+    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+    if err != nil || actionDoc == nil {
+        return errors.New("action not found")
+    }
+
+    checkerInfo := bson.M{
+        "checker_code": checker.Checker.UserID,
+        "checker_name": checker.Checker.FullName,
+        "checked_at":   time.Now(),
+    }
+
+    update := bson.M{
+        "$set": bson.M{
+            "action_status":    "APPROVED",
+            "last_modified_at": time.Now(),
+        },
+        "$push": bson.M{
+            "checker_history": checkerInfo,
+        },
+    }
+    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+    return err
+}
+
+func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string, maker action.CPSAction) error {
+    department, _ := ctx.Value("department").(string)
+    if strings.TrimSpace(department) == "" {
+        return errors.New("department is required in context")
+    }
+
+    prevCityPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"id": cityID}, bson.M{})
+    var prevAction json.RawMessage
+    if err == nil && prevCityPtr != nil {
+        prevAction, _ = json.Marshal(prevCityPtr)
+    } else {
+        prevAction = json.RawMessage("null")
+    }
+
+    currAction, _ := json.Marshal(cityID)
+
+    cpsAction := model.CPSAction{
+        ActionCode:     utils.RandomGenerator(24),
+        MakerUser:      model.User{UserCode: maker.Maker.UserID, FullName: maker.Maker.FullName, PhoneNumber: maker.Maker.PhoneNumber},
+        CheckerUser:    model.User{UserCode: maker.Checker.UserID, FullName: maker.Checker.FullName, PhoneNumber: maker.Checker.PhoneNumber},
+        UniqueId:        cityID,
+        Department:      department,
+        RejectionReason: maker.RejectionReason,
+        PreviosAction:   prevAction,
+        CurrentAction:   currAction,
+        ActionStatus:    model.ActionPending,
+        ActionType:      model.ActionDelete,
+        RequestAction:   model.RequestAction(model.RequestBlockCity),
+        CreatedAt:       time.Now(),
+        LastModifiedAt:  time.Now(),
+    }
+
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    return err
+}
+func (o *outboundAccountBlockStore) GetCityByID(ctx context.Context, cityID string) (action.City, error) {
+    if cityID == "" {
+        return action.City{}, fmt.Errorf("cityID is required")
+    }
+    filter := bson.M{"id": cityID}
+    cityDoc, err := o.MongoDalRegion.FindOne(ctx, filter , nil)
+    if err != nil || cityDoc == nil {
+        return action.City{}, fmt.Errorf("failed to get city by ID: %w", err)
+    }
+    return action.City{
+        ID:            cityDoc.ID,
+        CityCode:      cityDoc.RegionCode, 
+        CityName:      cityDoc.RegionName, 
+        CreatedAt:     cityDoc.CreatedAt,
+        UpdatedAt:     cityDoc.UpdatedAt,
+        Enabled:       cityDoc.Enabled,
+    }, nil
+}   
+func (o *outboundAccountBlockStore) ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error {
+    filter := bson.M{"action_code": cityID}
+    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+    if err != nil || actionDoc == nil {
+        return errors.New("action not found")
+    }
+
+    checkerInfo := bson.M{
+        "checker_code": checker.Checker.UserID,
+        "checker_name": checker.Checker.FullName,
+        "checked_at":   time.Now(),
+    }
+
+    update := bson.M{
+        "$set": bson.M{
+            "action_status":    "APPROVED",
+            "last_modified_at": time.Now(),
+        },
+        "$push": bson.M{
+            "checker_history": checkerInfo,
+        },
+    }
+    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+    return err
+}
+
+func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
+    department, _ := ctx.Value("department").(string)
+    if strings.TrimSpace(department) == "" {
+        return errors.New("department is required in context")
+    }
+
+    prevUserPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"user_id": userID}, bson.M{})
+    var prevAction json.RawMessage
+    if err == nil && prevUserPtr != nil {
+        prevAction, _ = json.Marshal(prevUserPtr)
+    } else {
+        prevAction = json.RawMessage("null")
+    }
+
+    currAction, _ := json.Marshal(userID)
+
+    cpsAction := model.CPSAction{
+        ActionCode:     utils.RandomGenerator(24),
+        MakerUser:      model.User{UserCode: maker.Maker.UserID, FullName: maker.Maker.FullName, PhoneNumber: maker.Maker.PhoneNumber},
+        CheckerUser:    model.User{UserCode: maker.Checker.UserID, FullName: maker.Checker.FullName, PhoneNumber: maker.Checker.PhoneNumber},
+        UniqueId:        userID,
+        Department:      department,
+        RejectionReason: maker.RejectionReason,
+        PreviosAction:   prevAction,
+        CurrentAction:   currAction,
+        ActionStatus:    model.ActionPending,
+        ActionType:      model.ActionDelete,
+        RequestAction:   model.RequestBlockUser,
+        CreatedAt:       time.Now(),
+        LastModifiedAt:  time.Now(),
+    }
+
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    return err
+}
+func (o *outboundAccountBlockStore) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (action.User, error) {
+    if userID == "" {
+        return action.User{}, fmt.Errorf("userID is required")
+    }
+
+    return action.User{}, fmt.Errorf("GetUserByID: user lookup not implemented, model.Branch has no UserID field")
+}
+func (o *outboundAccountBlockStore) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
+    filter := bson.M{"action_code": userID}
+    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+    if err != nil || actionDoc == nil {
+        return errors.New("action not found")
+    }
+
+    checkerInfo := bson.M{
+        "checker_code": checker.Checker.UserID,
+        "checker_name": checker.Checker.FullName,
+        "checked_at":   time.Now(),
+    }
+
+    update := bson.M{
+        "$set": bson.M{
+            "action_status":    "APPROVED",
+            "last_modified_at": time.Now(),
+        },
+        "$push": bson.M{
+            "checker_history": checkerInfo,
+        },
+    }
+    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+    return err
 }
