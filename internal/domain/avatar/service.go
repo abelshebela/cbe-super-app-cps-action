@@ -76,19 +76,10 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 			})
 		}
 	}
+	baseName := filepath.Base(actionData.Avatar.Filename)
+	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), baseName)
 
-	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
-	dir, err := os.Getwd()
-	if err != nil {
-		a.logger.Errorf("failed to get current working directory", err)
-		return model.CpsAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-	filePath := filepath.Join(dir, fileName)
-
-	tempFile, err := os.Create(filePath)
+	tempFile, err := os.CreateTemp("", "avatar-*")
 	if err != nil {
 		a.logger.Errorf("failed to create temp file: %v", err)
 		return model.CpsAction{}, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
@@ -96,9 +87,14 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 			Message: "internal server error",
 		})
 	}
+
 	defer func() {
-		tempFile.Close()
-		os.Remove(filePath)
+		if err := tempFile.Close(); err != nil {
+			a.logger.Errorf("failed to close temp file: %v", err)
+		}
+		if err := os.Remove(tempFile.Name()); err != nil {
+			a.logger.Errorf("failed to remove temp file: %v", err)
+		}
 	}()
 
 	uploadedFile, err := actionData.Avatar.Open()
@@ -124,11 +120,11 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	saveObj, err := a.minioClient.SaveObject(ctx, config.SaveObjectBody{
 		BucketName: a.bucketName,
 		ObjectName: fileName,
-		File:       filePath,
+		File:       tempFile.Name(),
 	})
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to save object to MinIO: %w", constant.ErrorDefinition{
+		return model.CpsAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -142,7 +138,6 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 			AvatarURL: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
 		},
 	})
-
 	if err != nil {
 		return model.CpsAction{}, err
 	}
