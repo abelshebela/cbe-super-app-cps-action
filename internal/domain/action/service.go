@@ -13,16 +13,12 @@ func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset in
 }
 
 func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, makerId string) (string, error) {
-	/* last_action, err := s.Repository.FetchLastCpsActionByMakerID(ctx, makerId)
-	   if last_action.ActionStatus == ActionPending {
-	       return "", fmt.Errorf("You have a pending action, please wait for it to be processed")
-	   } */
+	
 	service, err := s.Repository.GetHqServiceById(ctx, id)
 	if err != nil {
 		return "", err
 	}
 	service.Enabled = action
-	//actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	a := CPSAction{
 		ActionCode: actionID,

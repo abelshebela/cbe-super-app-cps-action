@@ -65,23 +65,27 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
     return result, nil
 }
 
+
 func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
     department, _ := ctx.Value("department").(string)
     if strings.TrimSpace(department) == "" {
         return errors.New("department is required in context")
     }
+
     filter := bson.M{
-        "department":           department,
-        "maker_user.user_code": maker.UserID,
-        "action_status":        model.ActionPending,
-        "action_type":          model.ActionDelete, // <-- FIXED
-        "request_action":       model.RequestDisableSingleBranch, // <-- FIXED
+        "department":                department,
+        "maker_user.user_code":      maker.UserID,
+        "action_status":             model.ActionPending,
+        "action_type":               model.ActionDelete,
+        "request_action":            model.RequestDisableSingleBranch,
         "current_action.branch_code": branch.BranchCode,
     }
+
     existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
     if err == nil && existing != nil {
         return fmt.Errorf("pending disable action already exists for this branch and maker")
     }
+
     prevBranchPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"branch_code": branch.BranchCode}, bson.M{})
     var prevAction json.RawMessage
     if err == nil && prevBranchPtr != nil {
@@ -89,23 +93,26 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
     } else {
         prevAction = json.RawMessage("null")
     }
+
     currAction, _ := json.Marshal(branch)
+
     cpsAction := model.CPSAction{
         ActionCode:     utils.RandomGenerator(24),
         MakerUser:      model.User{UserCode: maker.UserID, FullName: maker.FullName, PhoneNumber: maker.PhoneNumber},
         Department:     department,
         ActionStatus:   model.ActionPending,
-        ActionType:     model.ActionDelete, 
-        RequestAction:  model.RequestDisableSingleBranch, 
+        ActionType:     model.ActionDelete,
+        RequestAction:  model.RequestDisableSingleBranch,
         PreviosAction:  prevAction,
         CurrentAction:  currAction,
         CreatedAt:      time.Now(),
         LastModifiedAt: time.Now(),
     }
+
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     return err
 }
-
+// ...existing code...
 func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
     filter := bson.M{"action_code": actionID}
     actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)

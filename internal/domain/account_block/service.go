@@ -68,43 +68,11 @@ func (s *AccountService) BlockRegion(ctx context.Context, region action.Region, 
 	}
 	return s.repo.BlockRegion(ctx, region.ID, maker)
 }
-
 func (s *AccountService) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
     if actionID == "" {
         return fmt.Errorf("actionID is required")
     }
-
-    if !approve {
-        return s.repo.ApproveRegionBlock(ctx, actionID, false, reason, checker)
-    }
-
-    region, err := s.repo.GetRegionByID(ctx, actionID)
-    if err != nil {
-        return fmt.Errorf("failed to get region: %w", err)
-    }
-
-    region.Enabled = false
-    region.UpdatedAt = time.Now()
-
-    if err := s.repo.UpdateRegion(ctx, region); err != nil {
-        return fmt.Errorf("failed to update region: %w", err)
-    }
-
-    branches, err := s.repo.FilterMultipleBranches(ctx, region.RegionName, "")
-    if err != nil {
-        return fmt.Errorf("failed to fetch branches in region: %w", err)
-    }
-
-    for i := range branches {
-        branches[i].Enabled = false
-        branches[i].UpdatedAt = time.Now()
-    }
-
-    if err := s.repo.DisableMultipleBranches(ctx, branches, checker); err != nil {
-        return fmt.Errorf("failed to disable branches: %w", err)
-    }
-
-    return s.repo.ApproveRegionBlock(ctx, actionID, true, reason, checker)
+    return s.repo.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
 }
 func (s *AccountService) UpdateRegion(ctx context.Context, region action.Region) error {
 	if region.ID == "" || region.RegionName == "" {

@@ -1,16 +1,17 @@
 package accountblock_handler
 
 import (
-    "encoding/json"
-    "net/http"
-    "strings"
+	"encoding/json"
+	"net/http"
+	"strings"
 
-    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
-    "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-    "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_block"
-    "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-    "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-    constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/go-chi/chi"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_block"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type AccountBlockHandler struct {
@@ -326,7 +327,7 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
     resp.SendJSON()
 }
 func (h *AccountBlockHandler) GetRegionByID(w http.ResponseWriter, r *http.Request) {
-    regionID := r.URL.Query().Get("region_id")
+    regionID := chi.URLParam(r, "id")
     if strings.TrimSpace(regionID) == "" {
         resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_id is required"}
         resp.SendJSON()
