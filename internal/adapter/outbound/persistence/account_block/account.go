@@ -395,7 +395,7 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
         return errors.New("department is required in context")
     }
 
-    prevDistrictPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"id": districtID}, bson.M{})
+    prevDistrictPtr, err := o.MongoDalDistrict.FindOne(ctx, bson.M{"id": districtID}, bson.M{})
     var prevAction json.RawMessage
     if err == nil && prevDistrictPtr != nil {
         prevAction, _ = json.Marshal(prevDistrictPtr)
@@ -423,25 +423,25 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
 
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     return err
-}   
+}
 func (o *outboundAccountBlockStore) GetDistrictByID(ctx context.Context, districtID string) (action.District, error) {
     if districtID == "" {
         return action.District{}, fmt.Errorf("districtID is required")
     }
     filter := bson.M{"id": districtID}
-    districtDoc, err := o.MongoDalRegion.FindOne(ctx, filter, nil)
+    districtDoc, err := o.MongoDalDistrict.FindOne(ctx, filter, nil)
     if err != nil || districtDoc == nil {
         return action.District{}, fmt.Errorf("failed to get district by ID: %w", err)
     }
     return action.District{
         ID:            districtDoc.ID,
-        DistrictCode:  districtDoc.RegionCode, 
-        DistrictName:  districtDoc.RegionName, 
+        DistrictCode:  districtDoc.DistrictCode,
+        DistrictName:  districtDoc.DistrictName,
         CreatedAt:     districtDoc.CreatedAt,
         UpdatedAt:     districtDoc.UpdatedAt,
         Enabled:       districtDoc.Enabled,
     }, nil
-}   
+}
 func (o *outboundAccountBlockStore) ApproveBlockDistrict(ctx context.Context, districtID string, checker action.CPSAction) error {
     filter := bson.M{"action_code": districtID}
     actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
@@ -474,7 +474,7 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
         return errors.New("department is required in context")
     }
 
-    prevCityPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"id": cityID}, bson.M{})
+    prevCityPtr, err := o.MongoDalCity.FindOne(ctx, bson.M{"id": cityID}, bson.M{})
     var prevAction json.RawMessage
     if err == nil && prevCityPtr != nil {
         prevAction, _ = json.Marshal(prevCityPtr)
@@ -503,7 +503,6 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
     _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
     return err
 }
-// ...existing code...
 func (o *outboundAccountBlockStore) GetCityByID(ctx context.Context, cityID string) (action.City, error) {
     if cityID == "" {
         return action.City{}, fmt.Errorf("cityID is required")
@@ -558,7 +557,7 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
         return errors.New("department is required in context")
     }
 
-    prevUserPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"user_id": userID}, bson.M{})
+    prevUserPtr, err := o.MongoDalUser.FindOne(ctx, bson.M{"user_id": userID}, bson.M{})
     var prevAction json.RawMessage
     if err == nil && prevUserPtr != nil {
         prevAction, _ = json.Marshal(prevUserPtr)
