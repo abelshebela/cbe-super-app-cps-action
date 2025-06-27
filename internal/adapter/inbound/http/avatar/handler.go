@@ -55,10 +55,48 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 
 	req.Avatar = fileHeader
 	var cpsRequest model.CreateCPSAction
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	user_code, ok := r.Context().Value(constant.ContextKey("user_code")).(string)
+	if !ok {
+		a.logger.Errorf("failed to get user code form context")
+		err := fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "bad request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	full_name, ok := r.Context().Value(constant.ContextKey("full_name")).(string)
+	if !ok {
+		a.logger.Errorf("failed to get full name form context")
+		err := fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "bad request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+
+	phone_number, ok := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	if !ok {
+		a.logger.Errorf("failed to get phone number form context")
+		err := fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "bad request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
+	department, ok := r.Context().Value(constant.ContextKey("department")).(string)
+	if !ok {
+		a.logger.Errorf("failed to get department form context")
+		err := fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "bad request",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
 	cpsRequest.CurrentData = req
 	cpsRequest.MakerUser = model.User{

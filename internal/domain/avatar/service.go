@@ -3,6 +3,7 @@ package avatar
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -50,8 +51,6 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 			Message: "invalid action data",
 		})
 	}
-
-
 
 	if err := actionData.Validate(); err != nil {
 		a.logger.Errorf("validation error", err)
@@ -101,6 +100,25 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 		tempFile.Close()
 		os.Remove(filePath)
 	}()
+
+	uploadedFile, err := actionData.Avatar.Open()
+	if err != nil {
+		a.logger.Errorf("failed to open uploaded file: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+	defer uploadedFile.Close()
+
+	_, err = io.Copy(tempFile, uploadedFile)
+	if err != nil {
+		a.logger.Errorf("failed to copy file data: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to copy file data: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
 
 	// Save to MinIO
 	saveObj, err := a.minioClient.SaveObject(ctx, config.SaveObjectBody{
