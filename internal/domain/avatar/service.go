@@ -253,7 +253,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 	}
 
 	if !exist {
-		a.logger.Errorf("avatar bucket not found: %v", err)
+		a.logger.Errorf("avatar bucket not found")
 		return model.CpsAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusNotFound,
 			Message: "bucket not exist",
