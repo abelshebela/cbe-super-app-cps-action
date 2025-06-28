@@ -99,7 +99,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 	}
 
 	projection := bson.M{
-		"lable":      1,
+		"label":      1,
 		"avatar_url": 1,
 		"is_deleted": 1,
 	}
@@ -132,8 +132,8 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 		ActionType:    model.ActionDelete,
 		ActionData:    cpsActionReq.ActionData,
 		PreviousData: map[string]any{
-			"lable":      avatar.Label,
-			"avatar_url": avatar.Avatar,
+			"label":      avatar.Label,
+			"avatar": avatar.Avatar,
 			"is_deleted": avatar.IsDeleted,
 		},
 		CurrentData: map[string]any{
@@ -335,7 +335,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	}
 
 	avatarProjection := bson.M{
-		"avatar_url": 1,
+		"avatar": 1,
 		"label":      1,
 		"enable":     1,
 	}

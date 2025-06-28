@@ -98,11 +98,6 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 
 	filePath := tempFile.Name()
 	defer func() {
-		tempFile.Close()
-		os.Remove(filePath)
-	}()
-
-	defer func() {
 		if err := tempFile.Close(); err != nil {
 			a.logger.Errorf("failed to close temp file: %v", err)
 		}
