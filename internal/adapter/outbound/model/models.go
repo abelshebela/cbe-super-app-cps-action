@@ -457,4 +457,3 @@ type HQ struct {
 	CreatedAt         time.Time `bson:"created_at" json:"created_at"`
 	LastModifiedAt    time.Time `bson:"last_modified_at" json:"last_modified_at"`
 }
-

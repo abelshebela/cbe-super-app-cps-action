@@ -3,6 +3,7 @@ package avatar
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -66,8 +67,8 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
-		a.logger.Errorf("failed to check wallet bucket: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to check wallet bucket: %w", constant.ErrorDefinition{
+		a.logger.Errorf("failed to check avatar bucket: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -76,8 +77,8 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	if !exist {
 		created, err := a.minioClient.MakeBucket(ctx, a.bucketName)
 		if !created || err != nil {
-			a.logger.Errorf("failed to create bank bucket: %v", err)
-			return model.CpsAction{}, fmt.Errorf("failed to create bank bucket: %w", constant.ErrorDefinition{
+			a.logger.Errorf("failed to create avatar bucket: %v", err)
+			return model.CpsAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
 				Code:    http.StatusInternalServerError,
 				Message: "internal server error",
 			})
@@ -95,20 +96,54 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 		})
 	}
 
+	filePath := tempFile.Name()
+	defer func() {
+		tempFile.Close()
+		os.Remove(filePath)
+	}()
+
 	defer func() {
 		if err := tempFile.Close(); err != nil {
 			a.logger.Errorf("failed to close temp file: %v", err)
 		}
-		if err := os.Remove(tempFile.Name()); err != nil {
+		if err := os.Remove(filePath); err != nil {
 			a.logger.Errorf("failed to remove temp file: %v", err)
 		}
 	}()
+
+	src, err := actionData.Avatar.Open()
+	if err != nil {
+		a.logger.Errorf("failed to open uploaded file: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+	defer src.Close()
+
+	_, err = io.Copy(tempFile, src)
+	if err != nil {
+		a.logger.Errorf("failed to copy file content: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to copy file content: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+
+	err = tempFile.Sync()
+	if err != nil {
+		a.logger.Errorf("failed to sync temp file: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to sync temp file: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
 
 	// Save to MinIO
 	saveObj, err := a.minioClient.SaveObject(ctx, config.SaveObjectBody{
 		BucketName: a.bucketName,
 		ObjectName: fileName,
-		File:       tempFile.Name(),
+		File:       filePath,
 	})
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
@@ -193,7 +228,7 @@ func (a *AvatarDomain) GetAvatar(ctx context.Context, id string) (*Avatar, error
 }
 
 func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CpsAction, error) {
-	req.RequestAction = model.RequestUpdateWallet
+	req.RequestAction = model.RequestUpdateAvatar
 	err := a.avatarRepo.CPSActionExists(ctx, req)
 	if err != nil {
 		return model.CpsAction{}, err
@@ -235,18 +270,10 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 		return model.CpsAction{}, err
 	}
 
-	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
-	dir, err := os.Getwd()
-	if err != nil {
-		a.logger.Errorf("failed to get current working directory", err)
-		return model.CpsAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-	filePath := filepath.Join(dir, fileName)
+	baseName := filepath.Base(actionData.Avatar.Filename)
+	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), baseName)
 
-	tempFile, err := os.Create(filePath)
+	tempFile, err := os.CreateTemp("", "avatar-*")
 	if err != nil {
 		a.logger.Errorf("failed to create temp file: %v", err)
 		return model.CpsAction{}, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
@@ -254,10 +281,49 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 			Message: "internal server error",
 		})
 	}
+
+	filePath := tempFile.Name()
 	defer func() {
 		tempFile.Close()
 		os.Remove(filePath)
 	}()
+
+	defer func() {
+		if err := tempFile.Close(); err != nil {
+			a.logger.Errorf("failed to close temp file: %v", err)
+		}
+		if err := os.Remove(filePath); err != nil {
+			a.logger.Errorf("failed to remove temp file: %v", err)
+		}
+	}()
+
+	src, err := actionData.Avatar.Open()
+	if err != nil {
+		a.logger.Errorf("failed to open uploaded file: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+	defer src.Close()
+
+	_, err = io.Copy(tempFile, src)
+	if err != nil {
+		a.logger.Errorf("failed to copy file content: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to copy file content: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
+
+	err = tempFile.Sync()
+	if err != nil {
+		a.logger.Errorf("failed to sync temp file: %v", err)
+		return model.CpsAction{}, fmt.Errorf("failed to sync temp file: %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+	}
 
 	saveObj, err := a.minioClient.SaveObject(ctx, config.SaveObjectBody{
 		BucketName: a.bucketName,

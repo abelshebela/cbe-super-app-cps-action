@@ -8,6 +8,8 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+const maxFileSize = 2 * 1024 * 1024 // 2MB
+
 var allowedMIMETypes = map[string]bool{
 	"image/jpeg": true,
 	"image/png":  true,
@@ -43,7 +45,7 @@ func (c CreateAvatar) Validate() error {
 			if !ok {
 				return fmt.Errorf("invalid file")
 			}
-			if file.Size > (2 << 20) {
+			if file.Size > maxFileSize {
 				return fmt.Errorf("file size should be less than 2MB")
 			}
 
@@ -67,10 +69,10 @@ func (u UpdateAvatar) Validate() error {
 			if !ok {
 				return fmt.Errorf("invalid file")
 			}
-			if file.Size > (2 << 20) {
+			if file.Size > maxFileSize {
 				return fmt.Errorf("file size should be less than 2MB")
 			}
-			
+
 			if !IsValidImage(file) {
 				return fmt.Errorf("invalid file content")
 			}
@@ -79,7 +81,6 @@ func (u UpdateAvatar) Validate() error {
 		})),
 	)
 }
-
 
 type AvatarResponse struct {
 	Page    int       `json:"page"`

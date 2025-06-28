@@ -5,8 +5,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type AvatarApplication struct {
@@ -77,7 +77,6 @@ func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string
 
 	return cpsAction, nil
 }
-
 
 func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (avatar.AvatarResponse, error) {
 	avatars, err := a.avatarDomain.GetAllAvatar(ctx, filterParams)

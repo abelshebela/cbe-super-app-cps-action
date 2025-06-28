@@ -85,7 +85,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 
-				{
+			{
 				Method:  http.MethodPatch,
 				Path:    "/update/{id}",
 				Handler: handler.UpdateAvatar,

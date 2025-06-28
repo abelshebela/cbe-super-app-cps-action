@@ -49,7 +49,7 @@ func (a *AvatarPersistence) CPSActionExists(ctx context.Context, cpsReq model.Cr
 	exists, err := a.cpsActionDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		a.logger.Errorf("failed to get avatar", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
+		err = fmt.Errorf("failed to get avatar %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -196,7 +196,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	}
 
 	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
-		a.logger.Errorf("failed to unmarshal into wallet: %v", err)
+		a.logger.Errorf("failed to unmarshal into avatar: %v", err)
 		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
@@ -317,8 +317,8 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("failed to update avatrt status", err)
-		err = fmt.Errorf("failed to update wallet status %w", constant.ErrorDefinition{
+		a.logger.Errorf("failed to update avatar status", err)
+		err = fmt.Errorf("failed to update avatar status %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -342,8 +342,8 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 
 	avatar, err := a.avatarDal.FindOne(ctx, avatarFilter, avatarProjection)
 	if err != nil {
-		a.logger.Errorf("failed to get wallet", err)
-		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
+		a.logger.Errorf("failed to get avatar", err)
+		err = fmt.Errorf("failed to get avatar %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
