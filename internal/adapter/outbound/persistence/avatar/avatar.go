@@ -2,6 +2,7 @@ package avatar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -89,4 +90,412 @@ func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model
 	}
 
 	return cpsAction, nil
+}
+
+func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
+	filter := bson.M{
+		"id":         id,
+		"is_deleted": false,
+	}
+
+	projection := bson.M{
+		"lable":      1,
+		"avatar_url": 1,
+		"is_deleted": 1,
+	}
+
+	avatar, err := a.avatarDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found %v", err)
+			err = fmt.Errorf("%w", constant.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "avatar not found",
+			})
+			return model.CpsAction{}, err
+		}
+		a.logger.Errorf("failed to get avatar", err)
+		err = fmt.Errorf("failed to get avatar %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return model.CpsAction{}, err
+	}
+
+	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
+		ID:            bson.NewObjectID().Hex(),
+		ActionCode:    utils.RandomGenerator(20),
+		MakerUser:     cpsActionReq.MakerUser,
+		Department:    cpsActionReq.Department,
+		Status:        model.ActionPending,
+		RequestAction: model.RequestDeleteAvatar,
+		ActionType:    model.ActionDelete,
+		ActionData:    cpsActionReq.ActionData,
+		PreviousData: map[string]any{
+			"lable":      avatar.Label,
+			"avatar_url": avatar.Avatar,
+			"is_deleted": avatar.IsDeleted,
+		},
+		CurrentData: map[string]any{
+			"is_deleted": true,
+		},
+		MakerActionTime: time.Now(),
+	})
+
+	if err != nil {
+		a.logger.Errorf("failed to create cps action", err)
+		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return model.CpsAction{}, err
+	}
+
+	return cpsAction, nil
+}
+
+func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CpsAction, error) {
+	var avatar dto.Avatar
+	var err error
+
+	filter := bson.M{
+		"action_code": req.ActionCode,
+		"department":  req.Department,
+		"status":      model.ActionPending,
+	}
+
+	update := bson.M{
+		"checker_user": bson.M{
+			"full_name":    req.CheckerUser.FullName,
+			"phone_number": req.CheckerUser.PhoneNumber,
+			"user_code":    req.CheckerUser.UserCode,
+		},
+		"status":              model.ActionApproved,
+		"checker_action_time": time.Now(),
+	}
+
+	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		a.logger.Errorf("failed to update cps action", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return model.CpsAction{}, err
+	}
+
+	var actionData dto.Avatar
+	data, err := bson.Marshal(cpsAction.ActionData)
+	if err != nil {
+		a.logger.Errorf("failed to marshal bson: %v", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid action data",
+		})
+		return model.CpsAction{}, err
+	}
+
+	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
+		a.logger.Errorf("failed to unmarshal into wallet: %v", err)
+		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "invalid action data",
+		})
+		return model.CpsAction{}, err
+	}
+
+	if cpsAction.ActionType == model.ActionCreate {
+		req := dto.Avatar{
+			ID:        bson.NewObjectID().Hex(),
+			Avatar:    actionData.Avatar,
+			Label:     actionData.Label,
+			Enable:    true,
+			CreatedAt: time.Now(),
+		}
+
+		avatar, err = a.avatarDal.InsertOne(ctx, req)
+		if err != nil {
+			a.logger.Errorf("failed to create avatar", err)
+			err = fmt.Errorf(" %w", constant.ErrorDefinition{
+				Code:    http.StatusInternalServerError,
+				Message: "internal server error",
+			})
+			return model.CpsAction{}, err
+		}
+
+		cpsAction.ActionData = avatar
+
+		return cpsAction, nil
+
+	}
+
+	if cpsAction.ActionType == model.ActionUpdate {
+		filter := bson.M{
+			"id":         actionData.ID,
+			"is_deleted": false,
+		}
+		update := bson.M{}
+
+		if actionData.Label != "" {
+			update["label"] = actionData.Label
+		}
+
+		if actionData.Avatar != "" {
+			update["avatar"] = actionData.Avatar
+		}
+
+		if cpsAction.RequestAction == model.RequestEnableAvatar {
+			update["enable"] = true
+		}
+
+		if cpsAction.RequestAction == model.RequestDisableAvatar {
+			update["enable"] = false
+		}
+
+		update["last_modified_at"] = time.Now()
+
+		avatar, err = a.avatarDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			a.logger.Errorf("failed to update avatar", err)
+			err = fmt.Errorf("failed to update avatar %w", constant.ErrorDefinition{
+				Code:    http.StatusInternalServerError,
+				Message: "internal server error",
+			})
+			return model.CpsAction{}, err
+		}
+
+		cpsAction.ActionData = avatar
+
+		return cpsAction, nil
+	}
+
+	if cpsAction.ActionType == model.ActionDelete {
+		filter := bson.M{
+			"id":         actionData.ID,
+			"is_deleted": false,
+		}
+
+		update := bson.M{
+			"is_deleted": true,
+			"deleted_at": time.Now(),
+		}
+
+		avatar, err = a.avatarDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			a.logger.Errorf("failed to update avatar", err)
+			err = fmt.Errorf("failed to update avatar %w", constant.ErrorDefinition{
+				Code:    http.StatusInternalServerError,
+				Message: "internal server error",
+			})
+			return model.CpsAction{}, err
+		}
+		cpsAction.ActionData = avatar
+
+		return cpsAction, nil
+	}
+
+	return cpsAction, nil
+}
+
+func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CpsAction, error) {
+	filter := bson.M{
+		"action_code": req.ActionCode,
+		"department":  req.Department,
+		"status":      model.ActionPending,
+	}
+
+	update := bson.M{
+		"checker_user": bson.M{
+			"full_name":    req.CheckerUser.FullName,
+			"phone_number": req.CheckerUser.PhoneNumber,
+			"user_code":    req.CheckerUser.UserCode,
+		},
+		"status":              model.ActionRejected,
+		"rejected_reason":     req.RejectedReason,
+		"checker_action_time": time.Now(),
+	}
+
+	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		a.logger.Errorf("failed to update avatrt status", err)
+		err = fmt.Errorf("failed to update wallet status %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return model.CpsAction{}, err
+	}
+	return cpsAction, nil
+}
+
+func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string,
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	avatarFilter := bson.M{
+		"id":         id,
+		"is_deleted": false,
+	}
+
+	avatarProjection := bson.M{
+		"avatar_url": 1,
+		"label":      1,
+		"enable":     1,
+	}
+
+	avatar, err := a.avatarDal.FindOne(ctx, avatarFilter, avatarProjection)
+	if err != nil {
+		a.logger.Errorf("failed to get wallet", err)
+		err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return nil, err
+	}
+
+	cps, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
+		ID:            bson.NewObjectID().Hex(),
+		ActionCode:    utils.RandomGenerator(20),
+		MakerUser:     cpsReq.MakerUser,
+		Department:    cpsReq.Department,
+		Status:        model.ActionPending,
+		ActionType:    model.ActionUpdate,
+		ActionData:    cpsReq.ActionData,
+		RequestAction: requestAction,
+		PreviousData: map[string]any{
+			"avatar": avatar.Avatar,
+			"label":  avatar.Label,
+			"enable": avatar.Enable,
+		},
+		CurrentData:     cpsReq.ActionData,
+		MakerActionTime: time.Now(),
+	})
+	if err != nil {
+		a.logger.Errorf("failed to create cps action", err)
+		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return nil, err
+	}
+
+	return &cps, nil
+}
+
+func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (dto.AvatarResponse, error) {
+	filter := bson.M{"is_deleted": false}
+	projection := bson.M{}
+
+	if filterParams.Filters != "" {
+		filter["status"] = filterParams.Filters
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+
+	avatar, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found")
+			err = fmt.Errorf("%w", constant.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "avatar not found",
+			})
+			return dto.AvatarResponse{}, err
+		}
+		a.logger.Errorf("failed to get avatar", err)
+		err = fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return dto.AvatarResponse{}, err
+	}
+
+	total, err := a.avatarDal.TotalCount(ctx, bson.M{})
+	if err != nil {
+		a.logger.Errorf("failed to get avatar total counts", err)
+		err := fmt.Errorf("failed to get avatar total counts %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return dto.AvatarResponse{}, err
+	}
+
+	return dto.AvatarResponse{
+		Page:    filterParams.Page,
+		Avatars: avatar,
+		Limit:   constant.DefaultPerPage,
+		Total:   total,
+	}, nil
+}
+
+func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*dto.Avatar, error) {
+	filter := bson.M{
+		"id":         id,
+		"is_deleted": false,
+	}
+
+	projection := bson.M{}
+
+	avatar, err := a.avatarDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found")
+			err = fmt.Errorf("%w", constant.ErrorDefinition{
+				Code:    http.StatusNotFound,
+				Message: "avatar not found",
+			})
+			return nil, err
+		}
+		a.logger.Errorf("failed to get avatar", err)
+		err = fmt.Errorf("%w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return nil, err
+	}
+	return avatar, nil
+}
+
+func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
+	filter := bson.M{
+		"id":         id,
+		"is_deleted": false,
+	}
+
+	projection := bson.M{
+		"avatar": 1,
+	}
+
+	avatar, err := a.avatarDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		a.logger.Errorf("failed to get avatar", err)
+		err = fmt.Errorf("failed to get avatar %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return model.CpsAction{}, err
+	}
+
+	cps, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
+		ID:            bson.NewObjectID().Hex(),
+		ActionCode:    utils.RandomGenerator(20),
+		MakerUser:     cpsActionReq.MakerUser,
+		Department:    cpsActionReq.Department,
+		Status:        model.ActionPending,
+		ActionType:    model.ActionUpdate,
+		ActionData:    cpsActionReq.ActionData,
+		RequestAction: model.RequestUpdateAvatar,
+		PreviousData: map[string]any{
+			"avatar": avatar.Avatar,
+		},
+		CurrentData:     cpsActionReq.ActionData,
+		MakerActionTime: time.Now(),
+	})
+	if err != nil {
+		a.logger.Errorf("failed to create cps action", err)
+		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
+			Code:    http.StatusInternalServerError,
+			Message: "internal server error",
+		})
+		return model.CpsAction{}, err
+	}
+
+	return cps, nil
 }

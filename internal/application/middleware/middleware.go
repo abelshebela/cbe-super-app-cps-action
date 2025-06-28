@@ -136,6 +136,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			}
 			return jwtSecret, nil
 		})
+
 		if err != nil || !token.Valid {
 			a.logger.Errorf("invalid or expired token", err)
 			res := common.Response[constant.ErrorDefinition]{

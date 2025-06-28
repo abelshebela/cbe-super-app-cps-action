@@ -14,6 +14,22 @@ var allowedMIMETypes = map[string]bool{
 	"image/gif":  true,
 }
 
+var IsValidImage = func(fileHeader *multipart.FileHeader) bool {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return false
+	}
+	contentType := http.DetectContentType(buffer)
+	return allowedMIMETypes[contentType]
+}
+
 type CreateAvatar struct {
 	Label  string                `form:"label"`
 	Avatar *multipart.FileHeader `form:"avatar"`
@@ -31,7 +47,7 @@ func (c CreateAvatar) Validate() error {
 				return fmt.Errorf("file size should be less than 2MB")
 			}
 
-			if !isValidImage(file) {
+			if !IsValidImage(file) {
 				return fmt.Errorf("invalid file content")
 			}
 
@@ -40,18 +56,34 @@ func (c CreateAvatar) Validate() error {
 	)
 }
 
-func isValidImage(fileHeader *multipart.FileHeader) bool {
-	file, err := fileHeader.Open()
-	if err != nil {
-		return false
-	}
-	defer file.Close()
+type UpdateAvatar struct {
+	Avatar *multipart.FileHeader `form:"avatar_url"`
+}
 
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-	if err != nil {
-		return false
-	}
-	contentType := http.DetectContentType(buffer)
-	return allowedMIMETypes[contentType]
+func (u UpdateAvatar) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Avatar, validation.By(func(value interface{}) error {
+			file, ok := value.(*multipart.FileHeader)
+			if !ok {
+				return fmt.Errorf("invalid file")
+			}
+			if file.Size > (2 << 20) {
+				return fmt.Errorf("file size should be less than 2MB")
+			}
+			
+			if !IsValidImage(file) {
+				return fmt.Errorf("invalid file content")
+			}
+
+			return nil
+		})),
+	)
+}
+
+
+type AvatarResponse struct {
+	Page    int       `json:"page"`
+	Avatars []*Avatar `json:"avatars"`
+	Limit   int       `json:"limit"`
+	Total   int64     `json:"total"`
 }

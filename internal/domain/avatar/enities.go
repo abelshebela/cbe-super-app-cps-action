@@ -4,7 +4,7 @@ import "time"
 
 type Avatar struct {
 	ID             string    `json:"id" bson:"id"`
-	AvatarURL      string    `json:"avatar" bson:"avatar"`
+	Avatar         string    `json:"avatar" bson:"avatar"`
 	Label          string    `json:"label" bson:"label"`
 	Enable         bool      `json:"enable" bson:"enable"`
 	IsDeleted      bool      `json:"is_deleted" bson:"is_deleted"`

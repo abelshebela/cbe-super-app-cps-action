@@ -138,6 +138,10 @@ const (
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar             RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
 )
 
 type RegistrationType string
@@ -453,3 +457,4 @@ type HQ struct {
 	CreatedAt         time.Time `bson:"created_at" json:"created_at"`
 	LastModifiedAt    time.Time `bson:"last_modified_at" json:"last_modified_at"`
 }
+
