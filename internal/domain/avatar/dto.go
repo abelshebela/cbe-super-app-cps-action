@@ -41,7 +41,7 @@ type CreateAvatar struct {
 func (c CreateAvatar) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Label, validation.Required),
-		validation.Field(&c.Avatar, validation.By(func(value interface{}) error {
+		validation.Field(&c.Avatar, validation.Required, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {
 				return fmt.Errorf("invalid file")
@@ -65,7 +65,7 @@ type UpdateAvatar struct {
 
 func (u UpdateAvatar) Validate() error {
 	return validation.ValidateStruct(&u,
-		validation.Field(&u.Avatar, validation.By(func(value interface{}) error {
+		validation.Field(&u.Avatar, validation.Required, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {
 				return fmt.Errorf("invalid file")

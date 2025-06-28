@@ -133,7 +133,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 		ActionData:    cpsActionReq.ActionData,
 		PreviousData: map[string]any{
 			"label":      avatar.Label,
-			"avatar": avatar.Avatar,
+			"avatar":     avatar.Avatar,
 			"is_deleted": avatar.IsDeleted,
 		},
 		CurrentData: map[string]any{
@@ -336,8 +336,8 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 
 	avatarProjection := bson.M{
 		"avatar": 1,
-		"label":      1,
-		"enable":     1,
+		"label":  1,
+		"enable": 1,
 	}
 
 	avatar, err := a.avatarDal.FindOne(ctx, avatarFilter, avatarProjection)
@@ -407,7 +407,7 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 		return dto.AvatarResponse{}, err
 	}
 
-	total, err := a.avatarDal.TotalCount(ctx, bson.M{})
+	total, err := a.avatarDal.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("failed to get avatar total counts", err)
 		err := fmt.Errorf("failed to get avatar total counts %w", constant.ErrorDefinition{
