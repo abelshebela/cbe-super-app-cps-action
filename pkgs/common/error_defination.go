@@ -3,6 +3,7 @@ package common
 type ErrorDefinition struct {
 	Code    string
 	Message string
+	Details string
 }
 
 type ErrorGroup map[string]ErrorDefinition
@@ -132,6 +133,50 @@ var DefineError = ErrorDefinitions{
 		"COULD_NOT_UNLINK_DEVICE": {
 			Code:    "GEN_028",
 			Message: "Could not unlink device",
+		},
+		"MISSING_REQUIRED_HEADERS": {
+			Code:    "GEN_029",
+			Message: "Missing required headers for device lookup",
+		},
+		"DEVICE_LOOKUP_FAILED": {
+			Code:    "GEN_030",
+			Message: "Device lookup operation failed",
+		},
+		"MISSING_REQUIRED_FIELDS": {
+			Code:    "GEN_031",
+			Message: "Missing required fields in request",
+		},
+		"MISSING_OTP": {
+			Code:    "GEN_032",
+			Message: "OTP code is required",
+		},
+		"INVALID_INPUT_PARAMETERS": {
+			Code:    "GEN_033",
+			Message: "Invalid input parameters provided",
+		},
+		"SAME_PIN": {
+			Code:    "GEN_035",
+			Message: "New PIN cannot be the same as current PIN",
+		},
+		"PIN_IN_HISTORY": {
+			Code:    "GEN_036",
+			Message: "PIN has been used recently and cannot be reused",
+		},
+		"ERROR_SETTING_PIN": {
+			Code:    "GEN_037",
+			Message: "Failed to set PIN due to system error",
+		},
+		"OTP_CREATION_FAILED": {
+			Code:    "GEN_038",
+			Message: "Failed to create OTP",
+		},
+		"DEVICE_NOT_FOUND": {
+			Code:    "GEN_039",
+			Message: "Device not found in system",
+		},
+		"DEVICE_FOUND": {
+			Code:    "GEN_040",
+			Message: "Device found and registered",
 		},
 	},
 	Auth: ErrorGroup{
@@ -332,5 +377,54 @@ var DefineError = ErrorDefinitions{
 			Code:    "FILE_005",
 			Message: "Failed to upload file.",
 		},
+	},
+}
+
+// Registration errors
+var RegistrationErrors = map[string]ErrorDefinition{
+	"PHONE_ALREADY_EXISTS": {
+		Code:    "REG001",
+		Message: "A user with this phone number already exists",
+		Details: "The provided phone number is already registered in the system",
+	},
+	"DEVICE_ALREADY_REGISTERED": {
+		Code:    "REG002",
+		Message: "This device is already registered",
+		Details: "The provided device UUID is already associated with an account",
+	},
+	"INVALID_PHONE_NUMBER": {
+		Code:    "REG003",
+		Message: "Invalid phone number format",
+		Details: "Please provide a valid phone number in the correct format",
+	},
+	"INVALID_PLATFORM": {
+		Code:    "REG004",
+		Message: "Invalid platform specified",
+		Details: "Platform must be one of: android, ios, web",
+	},
+	"INVALID_DEVICE_UUID": {
+		Code:    "REG005",
+		Message: "Invalid device UUID format",
+		Details: "The provided device UUID appears to be invalid",
+	},
+	"REGISTRATION_IN_PROGRESS": {
+		Code:    "REG006",
+		Message: "Registration already in progress",
+		Details: "A registration process is already active for this phone number",
+	},
+	"REGISTRATION_RATE_LIMITED": {
+		Code:    "REG007",
+		Message: "Too many registration attempts",
+		Details: "Please wait before attempting to register again",
+	},
+	"REGISTRATION_FAILED": {
+		Code:    "REG008",
+		Message: "Registration process failed",
+		Details: "An error occurred during the registration process",
+	},
+	"DEVICE_UUID_MISMATCH": {
+		Code:    "REG009",
+		Message: "Device UUID mismatch",
+		Details: "Device UUID in header does not match the one in request body",
 	},
 }

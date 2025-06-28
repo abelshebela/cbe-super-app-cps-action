@@ -103,4 +103,5 @@ type User struct {
 	CreatedAt             time.Time                   `json:"created_at" bson:"created_at"`
 	DeletedAt             time.Time                   `json:"delete_at" bson:"deleted_at"`
 	LastModifiedAt        time.Time                   `json:"last_modified_at" bson:"last_modified_at"`
+	OTPStatus             string                      `json:"otp_status" bson:"otp_status"`
 }

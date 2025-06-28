@@ -9,18 +9,23 @@ import (
 	users_inbound "cbe-super-app-member-users/internal/port/inbound/users"
 
 	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type UsersAdapter struct {
 	Application users_application.ApplicationService
 	logger      utils.Logger
+	config      *config.VaultConfig
 }
 
-func InitUsersAdapter(app users_application.ApplicationService, logger utils.Logger) users_inbound.InBound {
+// InitUsersAdapter initializes and returns a UsersAdapter as an InBound interface.
+// InitUsersAdapter initializes and returns a UsersAdapter as an InBound interface.
+func InitUsersAdapter(app users_application.ApplicationService, logger utils.Logger, config *config.VaultConfig) users_inbound.InBound {
 	return UsersAdapter{
 		Application: app,
 		logger:      logger,
+		config:      config,
 	}
 }
 
@@ -98,6 +103,12 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 		},
 		{
 			Method:      http.MethodPost,
+			Path:        "/api/v1/cbesuperapp/user/register/complete",
+			Handler:     handler.CompleteRegistration,
+			Middlewares: []func(next http.Handler) http.Handler{},
+		},
+		{
+			Method:      http.MethodPost,
 			Path:        "/api/v1/cbesuperapp/user/login",
 			Handler:     handler.Login,
 			Middlewares: []func(next http.Handler) http.Handler{},
@@ -106,6 +117,12 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 			Method:      http.MethodPost,
 			Path:        "/api/v1/cbesuperapp/user/forget-pin/send-otp",
 			Handler:     handler.ForgetPinSendOtp,
+			Middlewares: []func(next http.Handler) http.Handler{},
+		},
+		{
+			Method:      http.MethodPost,
+			Path:        "/api/v1/cbesuperapp/user/forget-pin/reset",
+			Handler:     handler.ResetPin,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
 		{

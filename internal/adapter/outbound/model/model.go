@@ -92,7 +92,7 @@ type LinkedAccount struct {
 	UpdatedAt time.Time `json:"updated_at"  bson:"updated_at"`
 }
 type HQ struct {
-	ID                   string          `bson:"_id" json:"id"`
+	ID                   bson.ObjectID   `bson:"_id" json:"id"`
 	UniqueID             string          `bson:"unique_id" json:"unique_id"`
 	Name                 string          `bson:"name" json:"name"`
 	Address              string          `bson:"address" json:"address"`

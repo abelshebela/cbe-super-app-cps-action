@@ -9,12 +9,17 @@ import (
 	userPort "cbe-super-app-member-users/internal/domain/users"
 	accountPort "cbe-super-app-member-users/internal/port/outbound/account"
 
+	"cbe-super-app-member-users/pkgs/entities/enums"
 	"cbe-super-app-member-users/pkgs/entities/type_definition"
 
 	entities "cbe-super-app-member-users/internal/adapter/outbound/model"
 
 	dal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
+	localModel "cbe-super-app-member-users/pkgs/entities"
+
+	// "go.mongodb.org/mongo-driver/bson/primitive"
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -26,6 +31,8 @@ type MongoRepository struct {
 	linkedAccountDal dal.MongoDal[entities.LinkedAccount, entities.LinkedAccount]
 	otpDal           dal.MongoDal[entities.OTP, entities.OTP]
 	hqDal            dal.MongoDal[entities.HQ, entities.HQ]
+	client           *mongo.Client
+	dbName           string
 }
 
 func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
@@ -34,26 +41,27 @@ func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
 		linkedAccountDal: dal.NewMongoDal[entities.LinkedAccount, entities.LinkedAccount](client, dbName, "linked_accounts"),
 		otpDal:           dal.NewMongoDal[entities.OTP, entities.OTP](client, dbName, "otp"),
 		hqDal:            dal.NewMongoDal[entities.HQ, entities.HQ](client, dbName, "hq"),
+		client:           client,
+		dbName:           dbName,
 	}
 }
 
 func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.User, error) {
-	// fmt.Println("hello there ")
-	oid, err := bson.ObjectIDFromHex(id)
+	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("invalid object ID: %w", err)
 	}
 
 	userFilter := bson.M{
-		"_id":        oid,
+		"_id":        objectID,
 		"is_deleted": bson.M{"$ne": true},
 	}
 	userEntity, err := r.userDal.FindOne(ctx, userFilter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, ErrNotFound
+			return nil, fmt.Errorf("user not found")
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
 	return &userPort.User{
@@ -61,7 +69,10 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 		Email:     userEntity.Email,
 		FullName:  userEntity.FullName,
 		IsDeleted: userEntity.IsDeleted,
-		Device: type_definition.Device{
+		Device: struct {
+			DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
+			AppVersion string `json:"app_version" bson:"app_version"`
+		}{
 			DeviceUUID: userEntity.Device.DeviceUUID,
 			AppVersion: userEntity.Device.AppVersion,
 		},
@@ -74,22 +85,22 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 }
 
 func (r *MongoRepository) GetOneHQ(ctx context.Context, req map[string]interface{}) (*userPort.HQ, error) {
-	hqFilter := bson.M{
-		"enabled": true,
-	}
+	hqFilter := bson.M{"enabled": true}
+	// sort := bson.M{"$orderBy": bson.M{"last_modified": -1}}
 	hqEntity, err := r.hqDal.FindOne(ctx, hqFilter, nil)
-	fmt.Println("hqEntity", err)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("hqEntity err", err)
+	fmt.Println("hqEntity", hqEntity)
 	return &userPort.HQ{
-		ID:                   hqEntity.ID, // or appropriate conversion
+		// ID:                   hqEntity.ID,
 		UniqueID:             hqEntity.UniqueID,
 		Name:                 hqEntity.Name,
 		Address:              hqEntity.Address,
 		PhoneNumber:          hqEntity.PhoneNumber,
 		Email:                hqEntity.Email,
-		LinkedAccounts:       nil, // map if needed
+		LinkedAccounts:       nil,
 		LatestiOSVersion:     hqEntity.LatestiOSVersion,
 		LatestAndroidVersion: hqEntity.LatestAndroidVersion,
 		ArchiveExpiry:        hqEntity.ArchiveExpiry,
@@ -104,11 +115,22 @@ func (r *MongoRepository) GetOneHQ(ctx context.Context, req map[string]interface
 	}, nil
 }
 
-func (r *MongoRepository) GetOneUser(ctx context.Context, req map[string]interface{}) (*userPort.User, error) {
+func (r *MongoRepository) GetOneUser(ctx context.Context, req map[string]interface{}) (*localModel.User, error) {
 	// fmt.Println("hello there ")
 	filter := bson.M{}
 
 	filter["is_deleted"] = false
+	for key, value := range req {
+		if key == "id" {
+			oid, err := bson.ObjectIDFromHex(value.(string))
+			if err != nil {
+				return nil, ErrNotFound
+			}
+			filter["_id"] = oid
+		} else {
+			filter[key] = value
+		}
+	}
 
 	user, err := r.userDal.FindOne(ctx, filter, nil)
 
@@ -116,7 +138,7 @@ func (r *MongoRepository) GetOneUser(ctx context.Context, req map[string]interfa
 		return nil, err
 	}
 
-	return &userPort.User{
+	return &localModel.User{
 		ID:        user.ID,
 		Email:     user.Email,
 		FullName:  user.FullName,
@@ -171,14 +193,10 @@ func (r *MongoRepository) StoreOTP(ctx context.Context, otp *userPort.OTPRecord)
 	return err
 }
 
-func (r *MongoRepository) FindOTP(ctx context.Context, userID, email string) (*userPort.OTPRecord, error) {
+func (r *MongoRepository) FindOTP(ctx context.Context, userID, otpFor string) (*userPort.OTPRecord, error) {
 	filter := bson.M{
-		"user_code":  userID,
-		"email":      email,
-		"otp_for":    entities.OTPForChangeEmail,
-		"is_deleted": bson.M{"$ne": true},
-		"status":     bson.M{"$ne": entities.Verified},
-		"expires_at": bson.M{"$gt": time.Now()},
+		"user_code": userID,
+		"otp_for":   otpFor,
 	}
 
 	otpEntity, err := r.otpDal.FindOne(ctx, filter, nil)
@@ -341,17 +359,11 @@ func (r *MongoRepository) UpdateProfileImageURL(ctx context.Context, id string, 
 	return nil
 }
 
-func (r *MongoRepository) DeleteOtp(ctx context.Context, ID string) error {
-	oid, err := bson.ObjectIDFromHex(ID)
-	if err != nil {
-		return ErrNotFound
-	}
-	filter := bson.M{"_id": oid}
+func (r *MongoRepository) DeleteOtp(ctx context.Context, userCode, otpCode, otpFor string) error {
 
-	err = r.otpDal.DeleteOne(
-		ctx,
-		filter,
-	)
+	filter := bson.M{"otp_code": otpCode, "otp_for": otpFor, "user_code": userCode}
+	err := r.otpDal.DeleteOne(ctx, filter)
+
 	if err != nil {
 		fmt.Printf("Error deleting OTP records: %v\n", err)
 		return fmt.Errorf("failed to delete OTP records: %v", err)
@@ -389,7 +401,7 @@ func (r *MongoRepository) UnlinkDevice(ctx context.Context, userID string, devic
 	return nil
 }
 
-func (r *MongoRepository) ChangePin(ctx context.Context, userID string, loginPIN userPort.LoginPIN) error {
+func (r *MongoRepository) ChangePin(ctx context.Context, userID string, loginPIN type_definition.LoginPIN) error {
 	oid, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
 		return ErrNotFound
@@ -413,9 +425,9 @@ func (r *MongoRepository) ChangePin(ctx context.Context, userID string, loginPIN
 func (r *MongoRepository) CreateOtp(ctx context.Context, otp *userPort.OTPRecord) error {
 	otpEntity := entities.OTP{
 		UserCode:  otp.UserID,
-		OTPFor:    entities.OTPForChangeEmail, // or make this a parameter if needed
+		OTPFor:    entities.OTPFor(otp.OTPFor), // or make this a parameter if needed
 		OTPCode:   otp.OTP,
-		Email:     otp.Email,
+		Email:     otp.OTPFor,
 		ExpiresAt: otp.ExpiresAt,
 		CreatedAt: otp.CreatedAt,
 		Status:    "",
@@ -447,18 +459,498 @@ func (r *MongoRepository) GetOtpByID(ctx context.Context, id string) (*userPort.
 }
 
 func (r *MongoRepository) UpdateOtp(ctx context.Context, otp *userPort.OTPRecord) error {
-	oid, err := bson.ObjectIDFromHex(otp.ID)
+	filter := bson.M{"_id": otp.ID}
+	update := bson.M{
+		"$set": bson.M{
+			"otp_code":   otp.OTP,
+			"expires_at": otp.ExpiresAt,
+		},
+	}
+
+	_, err := r.otpDal.UpdateOne(ctx, filter, update)
+	return err
+}
+
+// Login-related methods
+func (r *MongoRepository) FindUserByPhone(ctx context.Context, phone string) (*userPort.User, error) {
+	filter := bson.M{
+		"phone_number": phone,
+		"is_deleted":   bson.M{"$ne": true},
+	}
+
+	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return r.mapUserEntityToDomain(userEntity), nil
+}
+
+func (r *MongoRepository) FindUserByDevice(ctx context.Context, deviceUUID string) (*userPort.User, error) {
+	filter := bson.M{
+		"device.device_uuid": deviceUUID,
+		"is_deleted":         bson.M{"$ne": true},
+	}
+
+	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return r.mapUserEntityToDomain(userEntity), nil
+}
+
+func (r *MongoRepository) IncrementLoginAttempts(ctx context.Context, userID string) error {
+	oid, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
 		return ErrNotFound
 	}
+
 	filter := bson.M{"_id": oid}
 	update := bson.M{
-		"otp_code":      otp.OTP,
-		"email":         otp.Email,
-		"expires_at":    otp.ExpiresAt,
-		"status":        "", // update as needed
-		"last_modified": time.Now(),
+		"$inc": bson.M{
+			"login_attempt_count": 1,
+		},
+		"$set": bson.M{
+			"last_login_attempt": time.Now(),
+		},
 	}
+
+	_, err = r.userDal.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *MongoRepository) ResetLoginAttempts(ctx context.Context, userID string) error {
+	oid, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrNotFound
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{
+		"$set": bson.M{
+			"login_attempt_count": 0,
+			"last_login_attempt":  time.Time{},
+		},
+	}
+
+	_, err = r.userDal.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *MongoRepository) UpdateLastLogin(ctx context.Context, userID string) error {
+	oid, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrNotFound
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{
+		"$set": bson.M{
+			"last_login":          time.Now(),
+			"login_attempt_count": 0,
+			"last_login_attempt":  time.Time{},
+		},
+	}
+
+	_, err = r.userDal.UpdateOne(ctx, filter, update)
+	return err
+}
+
+// Helper method to map user entity to domain model
+func (r *MongoRepository) mapUserEntityToDomain(userEntity *entities.User) *userPort.User {
+	return &userPort.User{
+		ID:                userEntity.ID,
+		UserCode:          userEntity.UserCode,
+		FullName:          userEntity.FullName,
+		PhoneNumber:       userEntity.PhoneNumber,
+		Email:             userEntity.Email,
+		IsDeleted:         userEntity.IsDeleted,
+		IsAccountBlocked:  userEntity.IsAccountBlocked,
+		IsVerified:        userEntity.IsVerified,
+		LoginAttemptCount: userEntity.LoginAttemptCount,
+		LastLoginAttempt:  userEntity.LastLoginAttempt,
+		LastLogin:         userEntity.LastLogin,
+		Device: struct {
+			DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
+			AppVersion string `json:"app_version" bson:"app_version"`
+		}{
+			DeviceUUID: userEntity.Device.DeviceUUID,
+			AppVersion: userEntity.Device.AppVersion,
+		},
+		KYC: struct {
+			KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
+			KYCStatus            enums.KYCStatus     `json:"kyc_status" bson:"kyc_status"`
+			KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
+			KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
+			KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by"`
+			KYCLevel             uint8               `json:"level" bson:"level"`
+		}{
+			KYCLevel: userEntity.KYC.KYCLevel,
+		},
+		LoginPIN: type_definition.LoginPIN{
+			PIN:              userEntity.LoginPIN.PIN,
+			PINHistory:       userEntity.LoginPIN.PINHistory,
+			LastPINCreatedAt: userEntity.LoginPIN.LastPINCreatedAt,
+		},
+		CreatedAt:      userEntity.CreatedAt,
+		LastModifiedAt: userEntity.LastModifiedAt,
+	}
+}
+
+// Registration-related methods
+func (r *MongoRepository) FindPendingRegistration(ctx context.Context, phone, deviceUUID string) (*userPort.RegistrationRecord, error) {
+	filter := bson.M{
+		"phone_number": phone,
+		"device_uuid":  deviceUUID,
+		"status":       "incomplete",
+		"expires_at":   bson.M{"$gt": time.Now()},
+	}
+
+	otpEntity, err := r.otpDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	// Handle nullable DeviceUUID
+	deviceUUIDStr := ""
+	if otpEntity.DeviceUUID != nil {
+		deviceUUIDStr = *otpEntity.DeviceUUID
+	}
+
+	return &userPort.RegistrationRecord{
+		ID:          otpEntity.ID.Hex(),
+		PhoneNumber: otpEntity.PhoneNumber,
+		DeviceUUID:  deviceUUIDStr,
+		Platform:    "android", // Default platform since it's not in OTP model
+		OTP:         otpEntity.OTPCode,
+		OTPFor:      string(otpEntity.OTPFor),
+		Status:      string(otpEntity.Status),
+		ExpiresAt:   otpEntity.ExpiresAt,
+		CreatedAt:   otpEntity.CreatedAt,
+		Attempts:    0, // Default since it's not in OTP model
+		MaxAttempts: 3, // Default since it's not in OTP model
+	}, nil
+}
+
+func (r *MongoRepository) FindPendingRegistrationByID(ctx context.Context, registrationID string) (*userPort.RegistrationRecord, error) {
+	oid, err := bson.ObjectIDFromHex(registrationID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+
+	filter := bson.M{"_id": oid}
+	otpEntity, err := r.otpDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	// Handle nullable DeviceUUID
+	deviceUUIDStr := ""
+	if otpEntity.DeviceUUID != nil {
+		deviceUUIDStr = *otpEntity.DeviceUUID
+	}
+
+	return &userPort.RegistrationRecord{
+		ID:          otpEntity.ID.Hex(),
+		PhoneNumber: otpEntity.PhoneNumber,
+		DeviceUUID:  deviceUUIDStr,
+		Platform:    "android", // Default platform since it's not in OTP model
+		OTP:         otpEntity.OTPCode,
+		OTPFor:      string(otpEntity.OTPFor),
+		Status:      string(otpEntity.Status),
+		ExpiresAt:   otpEntity.ExpiresAt,
+		CreatedAt:   otpEntity.CreatedAt,
+		Attempts:    0, // Default since it's not in OTP model
+		MaxAttempts: 3, // Default since it's not in OTP model
+	}, nil
+}
+
+func (r *MongoRepository) CreatePendingRegistration(ctx context.Context, registration *userPort.RegistrationRecord) error {
+	otpEntity := entities.OTP{
+		PhoneNumber: registration.PhoneNumber,
+		DeviceUUID:  &registration.DeviceUUID,
+		OTPCode:     registration.OTP,
+		OTPFor:      entities.OTPFor(registration.OTPFor),
+		Status:      entities.OTPStatus(registration.Status),
+		ExpiresAt:   registration.ExpiresAt,
+		CreatedAt:   registration.CreatedAt,
+	}
+
+	_, err := r.otpDal.InsertOne(ctx, otpEntity)
+	return err
+}
+
+func (r *MongoRepository) DeletePendingRegistration(ctx context.Context, registrationID string) error {
+	oid, err := bson.ObjectIDFromHex(registrationID)
+	if err != nil {
+		return ErrNotFound
+	}
+
+	filter := bson.M{"_id": oid}
+	err = r.otpDal.DeleteOne(ctx, filter)
+	return err
+}
+
+func (r *MongoRepository) UpdatePendingRegistration(ctx context.Context, registration *userPort.RegistrationRecord) error {
+	oid, err := bson.ObjectIDFromHex(registration.ID)
+	if err != nil {
+		return ErrNotFound
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{
+		"$set": bson.M{
+			"status":     entities.OTPStatus(registration.Status),
+			"expires_at": registration.ExpiresAt,
+		},
+	}
+
 	_, err = r.otpDal.UpdateOne(ctx, filter, update)
 	return err
+}
+
+func (r *MongoRepository) CreateUser(ctx context.Context, user *userPort.User) error {
+	userEntity := entities.User{
+		ID:                user.ID,
+		UserCode:          user.UserCode,
+		FullName:          user.FullName,
+		PhoneNumber:       user.PhoneNumber,
+		Email:             user.Email,
+		IsDeleted:         user.IsDeleted,
+		IsAccountBlocked:  user.IsAccountBlocked,
+		IsVerified:        user.IsVerified,
+		LoginAttemptCount: user.LoginAttemptCount,
+		LastLoginAttempt:  user.LastLoginAttempt,
+		LastLogin:         user.LastLogin,
+		Device: struct {
+			DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
+			AppVersion string `json:"app_version" bson:"app_version"`
+		}{
+			DeviceUUID: user.Device.DeviceUUID,
+			AppVersion: user.Device.AppVersion,
+		},
+		KYC: struct {
+			KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
+			KYCStatus            entities.KYCStatus  `json:"kyc_status" bson:"kyc_status"`
+			KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
+			KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
+			KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by"`
+			KYCLevel             uint8               `json:"level" bson:"level"`
+		}{
+			KYCRejectReasonField: user.KYC.KYCRejectReasonField,
+			KYCStatus:            entities.KYCStatus(user.KYC.KYCStatus),
+			KYCRejectReason:      user.KYC.KYCRejectReason,
+			KYCApproved:          user.KYC.KYCApproved,
+			KYCActivityBy:        user.KYC.KYCActivityBy,
+			KYCLevel:             user.KYC.KYCLevel,
+		},
+		LoginPIN: entities.LoginPIN{
+			PIN:              user.LoginPIN.PIN,
+			PINHistory:       user.LoginPIN.PINHistory,
+			LastPINCreatedAt: user.LoginPIN.LastPINCreatedAt,
+		},
+		CreatedAt:      user.CreatedAt,
+		LastModifiedAt: user.LastModifiedAt,
+	}
+
+	_, err := r.userDal.InsertOne(ctx, userEntity)
+	return err
+}
+
+// PIN Reset methods
+func (r *MongoRepository) CreatePinResetSession(ctx context.Context, session *userPort.PinResetSession) error {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	// Convert to BSON document
+	doc := bson.M{
+		"_id":               session.ID,
+		"user_id":           session.UserID,
+		"phone_number":      session.PhoneNumber,
+		"device_uuid":       session.DeviceUUID,
+		"otp":               session.OTP,
+		"otp_for":           session.OTPFor,
+		"status":            session.Status,
+		"expires_at":        session.ExpiresAt,
+		"created_at":        session.CreatedAt,
+		"attempts":          session.Attempts,
+		"max_attempts":      session.MaxAttempts,
+		"verified_at":       session.VerifiedAt,
+		"completed_at":      session.CompletedAt,
+		"access_restricted": session.AccessRestricted,
+		"restrictions":      session.Restrictions,
+	}
+
+	_, err := collection.InsertOne(ctx, doc)
+	if err != nil {
+		return fmt.Errorf("failed to create PIN reset session: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoRepository) FindPinResetSession(ctx context.Context, sessionID string) (*userPort.PinResetSession, error) {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	var doc bson.M
+	err := collection.FindOne(ctx, bson.M{"_id": sessionID}).Decode(&doc)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("PIN_RESET_SESSION_NOT_FOUND")
+		}
+		return nil, fmt.Errorf("failed to find PIN reset session: %w", err)
+	}
+
+	session := &userPort.PinResetSession{
+		ID:               doc["_id"].(string),
+		UserID:           doc["user_id"].(string),
+		PhoneNumber:      doc["phone_number"].(string),
+		DeviceUUID:       doc["device_uuid"].(string),
+		OTP:              doc["otp"].(string),
+		OTPFor:           doc["otp_for"].(string),
+		Status:           doc["status"].(string),
+		ExpiresAt:        doc["expires_at"].(bson.DateTime).Time(),
+		CreatedAt:        doc["created_at"].(bson.DateTime).Time(),
+		Attempts:         int(doc["attempts"].(int32)),
+		MaxAttempts:      int(doc["max_attempts"].(int32)),
+		AccessRestricted: doc["access_restricted"].(bool),
+		Restrictions:     convertToStringSlice(doc["restrictions"].(bson.A)),
+	}
+
+	// Handle optional time fields
+	if verifiedAt, ok := doc["verified_at"]; ok && verifiedAt != nil {
+		session.VerifiedAt = verifiedAt.(bson.DateTime).Time()
+	}
+	if completedAt, ok := doc["completed_at"]; ok && completedAt != nil {
+		session.CompletedAt = completedAt.(bson.DateTime).Time()
+	}
+
+	return session, nil
+}
+
+func (r *MongoRepository) FindPinResetSessionByPhone(ctx context.Context, phone, deviceUUID string) (*userPort.PinResetSession, error) {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	var doc bson.M
+	err := collection.FindOne(ctx, bson.M{
+		"phone_number": phone,
+		"device_uuid":  deviceUUID,
+		"status":       "pending",
+	}).Decode(&doc)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // No active session found
+		}
+		return nil, fmt.Errorf("failed to find PIN reset session by phone: %w", err)
+	}
+
+	session := &userPort.PinResetSession{
+		ID:               doc["_id"].(string),
+		UserID:           doc["user_id"].(string),
+		PhoneNumber:      doc["phone_number"].(string),
+		DeviceUUID:       doc["device_uuid"].(string),
+		OTP:              doc["otp"].(string),
+		OTPFor:           doc["otp_for"].(string),
+		Status:           doc["status"].(string),
+		ExpiresAt:        doc["expires_at"].(bson.DateTime).Time(),
+		CreatedAt:        doc["created_at"].(bson.DateTime).Time(),
+		Attempts:         int(doc["attempts"].(int32)),
+		MaxAttempts:      int(doc["max_attempts"].(int32)),
+		AccessRestricted: doc["access_restricted"].(bool),
+		Restrictions:     convertToStringSlice(doc["restrictions"].(bson.A)),
+	}
+
+	// Handle optional time fields
+	if verifiedAt, ok := doc["verified_at"]; ok && verifiedAt != nil {
+		session.VerifiedAt = verifiedAt.(bson.DateTime).Time()
+	}
+	if completedAt, ok := doc["completed_at"]; ok && completedAt != nil {
+		session.CompletedAt = completedAt.(bson.DateTime).Time()
+	}
+
+	return session, nil
+}
+
+func (r *MongoRepository) UpdatePinResetSession(ctx context.Context, session *userPort.PinResetSession) error {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	update := bson.M{
+		"$set": bson.M{
+			"status":            session.Status,
+			"attempts":          session.Attempts,
+			"verified_at":       session.VerifiedAt,
+			"completed_at":      session.CompletedAt,
+			"access_restricted": session.AccessRestricted,
+			"restrictions":      session.Restrictions,
+		},
+	}
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": session.ID}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update PIN reset session: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoRepository) DeletePinResetSession(ctx context.Context, sessionID string) error {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	_, err := collection.DeleteOne(ctx, bson.M{"_id": sessionID})
+	if err != nil {
+		return fmt.Errorf("failed to delete PIN reset session: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoRepository) IncrementPinResetAttempts(ctx context.Context, sessionID string) error {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	update := bson.M{
+		"$inc": bson.M{"attempts": 1},
+	}
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": sessionID}, update)
+	if err != nil {
+		return fmt.Errorf("failed to increment PIN reset attempts: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoRepository) ResetPinResetAttempts(ctx context.Context, sessionID string) error {
+	collection := r.client.Database(r.dbName).Collection("pin_reset_sessions")
+
+	update := bson.M{
+		"$set": bson.M{"attempts": 0},
+	}
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": sessionID}, update)
+	if err != nil {
+		return fmt.Errorf("failed to reset PIN reset attempts: %w", err)
+	}
+
+	return nil
+}
+
+// Helper function to convert bson.A to []string
+func convertToStringSlice(a bson.A) []string {
+	result := make([]string, len(a))
+	for i, v := range a {
+		result[i] = v.(string)
+	}
+	return result
 }

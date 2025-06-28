@@ -26,7 +26,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -35,6 +37,9 @@ func main() {
 	defer logger.Sync()
 
 	cfg, err := config.Load()
+	os.Setenv("GO_ENV", "dev")
+	os.Setenv("KEY", "234567890-=1234567890-=1234567890-=1234567890-=") // 32 bytes key
+	os.Setenv("IV", "1234567890-=12")                                   // 16 bytes IV
 	if err != nil {
 		logger.Fatalf("failed to load config %v", err)
 	}
@@ -43,6 +48,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to connect to mongo %v", err)
 	}
+
 	defer func() {
 		if err := mongoClient.Disconnect(context.Background()); err != nil {
 			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
@@ -56,21 +62,21 @@ func main() {
 		MinioSecretKey: cfg.MinioSecretKey,
 	})
 	if err != nil {
-		logger.Fatalf("failed to initialize minio client: %v", err) 
+		logger.Fatalf("failed to initialize minio client: %v", err)
 	}
 
 	// logger.Infof( cfg.MongoDBDatabase,"mongoosjfierrjgtiek")
 	repo := persistence.NewMongoRepository(mongoClient, cfg.MongoDBDatabase)
-	
+
 	apiClient := AccountApi.NewAccountAPIClient(logger)
 
 	userDomainService := domainUsers.NewUserService(repo, logger, minioClient, cfg)
-	accountDomainService := domainAccount.NewAccountService(repo, apiClient, logger,cfg)
+	accountDomainService := domainAccount.NewAccountService(repo, apiClient, logger, cfg)
 
-	userAppService := appUsers.InitUsersHandler(userDomainService, logger, minioClient)
+	userAppService := appUsers.InitUsersHandler(userDomainService, logger, minioClient, cfg)
 	accountAppService := appAccount.InitAccountHandler(accountDomainService, logger)
 
-	userAdapter := UsersAdapter.InitUsersAdapter(userAppService, logger)
+	userAdapter := UsersAdapter.InitUsersAdapter(userAppService, logger, cfg)
 	accountAdapter := AccountAdapter.InitAccountAdapter(accountAppService, logger)
 
 	// Initialize router
@@ -91,7 +97,8 @@ func main() {
 	accountRoutes.InitAccountRoutes(r, accountAdapter, authMiddleware)
 
 	// Determine port
-	port := strconv.Itoa(cfg.ServerPort)
+	PORT, _ := strconv.Atoi(cfg.ServerPort)
+	port := strconv.Itoa(PORT)
 	if port == "" {
 		port = "8080"
 	}
@@ -116,7 +123,7 @@ func main() {
 	// Wait for interrupt signal
 	sig := <-quit
 
-  logger.Infof("Received signal: %v", sig)
+	logger.Infof("Received signal: %v", sig)
 	// Create shutdown context
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

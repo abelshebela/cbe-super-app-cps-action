@@ -179,7 +179,7 @@ type ChangePinRequest struct {
 }
 
 type HQ struct {
-	ID                   string          `bson:"_id" json:"id"`
+	ID                   bson.ObjectID   `bson:"_id" json:"id"`
 	UniqueID             string          `bson:"unique_id" json:"unique_id"`
 	Name                 string          `bson:"name" json:"name"`
 	Address              string          `bson:"address" json:"address"`
@@ -236,4 +236,37 @@ type LinkedAccount struct {
 	} `json:"maker_and_checker" bson:"maker_and_checker"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"  bson:"updated_at"`
+}
+
+// RegistrationRecord represents a pending user registration
+type RegistrationRecord struct {
+	ID          string    `bson:"_id" json:"id"`
+	PhoneNumber string    `bson:"phone_number" json:"phone_number"`
+	DeviceUUID  string    `bson:"device_uuid" json:"device_uuid"`
+	Platform    string    `bson:"platform" json:"platform"`
+	OTP         string    `bson:"otp" json:"otp"`
+	OTPFor      string    `bson:"otp_for" json:"otp_for"`
+	Status      string    `bson:"status" json:"status"`
+	ExpiresAt   time.Time `bson:"expires_at" json:"expires_at"`
+	CreatedAt   time.Time `bson:"created_at" json:"created_at"`
+	Attempts    int       `bson:"attempts" json:"attempts"`
+	MaxAttempts int       `bson:"max_attempts" json:"max_attempts"`
+}
+
+type PinResetSession struct {
+	ID               string    `bson:"_id" json:"id"`
+	UserID           string    `bson:"user_id" json:"user_id"`
+	PhoneNumber      string    `bson:"phone_number" json:"phone_number"`
+	DeviceUUID       string    `bson:"device_uuid" json:"device_uuid"`
+	OTP              string    `bson:"otp" json:"otp"`
+	OTPFor           string    `bson:"otp_for" json:"otp_for"`
+	Status           string    `bson:"status" json:"status"` // pending, verified, completed, expired
+	ExpiresAt        time.Time `bson:"expires_at" json:"expires_at"`
+	CreatedAt        time.Time `bson:"created_at" json:"created_at"`
+	Attempts         int       `bson:"attempts" json:"attempts"`
+	MaxAttempts      int       `bson:"max_attempts" json:"max_attempts"`
+	VerifiedAt       time.Time `bson:"verified_at" json:"verified_at"`
+	CompletedAt      time.Time `bson:"completed_at" json:"completed_at"`
+	AccessRestricted bool      `bson:"access_restricted" json:"access_restricted"`
+	Restrictions     []string  `bson:"restrictions" json:"restrictions"`
 }

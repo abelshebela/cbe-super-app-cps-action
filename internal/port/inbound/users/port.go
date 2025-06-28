@@ -15,8 +15,10 @@ type InBound interface {
 	VerifyOtp(w http.ResponseWriter, r *http.Request)
 	SetPin(w http.ResponseWriter, r *http.Request)
 	Register(w http.ResponseWriter, r *http.Request)
+	CompleteRegistration(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	ForgetPinSendOtp(w http.ResponseWriter, r *http.Request)
+	ResetPin(w http.ResponseWriter, r *http.Request)
 	DeviceLookup(w http.ResponseWriter, r *http.Request)
 }
 

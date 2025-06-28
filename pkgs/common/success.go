@@ -38,6 +38,18 @@ var DefineSuccess = SuccessDefinitions{
 			Code:    "AUTH_014",
 			Message: "Password successfuly changed",
 		},
+		"DEVICE_FOUND": {
+			Code:    "AUTH_015",
+			Message: "Your Device is already registered, please login with your pin",
+		},
+		"DEVICE_NOT_FOUND": {
+			Code:    "AUTH_016",
+			Message: "Your Device is not registered, please register your device",
+		},
+		"AUTH_USER_OTP_SENT_USER": {
+			Code:    "AUTH_SUCCESS_017",
+			Message: "Hello user OTP is sent to your phone",
+		},
 	},
 	Transaction: SuccessGroup{
 		"TRANSACTION_NOT_FOUND": {

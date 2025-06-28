@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"cbe-super-app-member-users/pkgs/entities"
+	"cbe-super-app-member-users/pkgs/entities/enums"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -16,10 +19,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	// "cbe-super-app-member-users/pkgs/config"
 	// entities "cbe-super-app-member-users/internal/domain/users"
-	internal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 func OTPGenerator(length uint8) string {
@@ -32,7 +37,7 @@ func OTPGenerator(length uint8) string {
 
 	return string(result)
 }
-func BaseResponseMaker(res map[string]interface{}, w http.ResponseWriter, message string, statusCode int) {
+func BaseResponseMaker(res map[string]interface{}, w http.ResponseWriter, message string, statusCode interface{}) {
 
 	response := make(map[string]interface{})
 	if res == nil {
@@ -99,9 +104,46 @@ func FormatPhoneNumber(phoneNumber string) string {
 	}
 	return phoneNumber
 }
+func UserContext(ctx context.Context) (entities.User, error) {
+	// ctx = context.WithValue(ctx, constant.ContextKey("user"), userPayload)
+	if ctx.Err() != nil {
+		return entities.User{}, ctx.Err()
+	}
+	var userPayload entities.User
 
-func LocalEncryptPassword(password string, dataType string, userSalt string, action string, env *internal.VaultConfig) (string, string, error) {
+	// Helper to get string value from context
+	getStr := func(key string) string {
+		val := ctx.Value(ContextKey(key))
+		if v, ok := val.(string); ok {
+			return v
+		}
+		return ""
+	}
+
+	idStr := getStr("user_id")
+	fmt.Println("User ID in context: app ", idStr)
+	if idStr == "" {
+		return entities.User{}, errors.New("user_id not found in context or not a string")
+	}
+	objID, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		return entities.User{}, errors.New("invalid user_id format")
+	}
+	userPayload.ID = objID
+	userPayload.UserCode = getStr("user_code")
+	userPayload.FullName = getStr("full_name")
+	userPayload.PhoneNumber = getStr("phone_number")
+	userPayload.Email = getStr("user_email")
+	userPayload.Realm = enums.Realm(getStr("user_realm"))
+	userPayload.MemberType = enums.MemberType(getStr("ifb_member"))
+	userPayload.Device.DeviceUUID = getStr("device_uuid")
+
+	return userPayload, nil
+
+}
+func LocalEncryptPassword(password string, dataType string, userSalt string, action string, env *config.VaultConfig) (string, string, error) {
 	//env, _ := config.Load()
+
 	var signedPass, salt string
 	if dataType == "password" {
 		salt, _ = GenerateSalt(20)
@@ -117,7 +159,6 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 
 	key := []byte(env.Key)
 	iv := []byte(env.IV)
-
 	if len(key) != 32 || len(iv) != aes.BlockSize {
 		return "", salt, errors.New("invalid key or IV size")
 	}
@@ -137,7 +178,7 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	return hex.EncodeToString(encrypted), salt, nil
 }
 
-func LocalDecryptPassword(encryptedHex string, env *internal.VaultConfig) (string, error) {
+func LocalDecryptPassword(encryptedHex string, env *config.VaultConfig) (string, error) {
 
 	//env, _ := config.Load()
 
@@ -214,4 +255,32 @@ func ValidateInputNoSpecialChars(input string) error {
 	}
 
 	return nil
+}
+
+type StrictValidationError struct {
+	Field string `json:"field"`
+	Error string `json:"error"`
+}
+
+type StrictValidationResult struct {
+	Valid  bool                    `json:"valid"`
+	Errors []StrictValidationError `json:"errors"`
+}
+
+var validate = validator.New()
+
+func ValidateStrict(input []byte, target interface{}) StrictValidationResult {
+	json.Unmarshal(input, target)
+	err := validate.Struct(target)
+	result := StrictValidationResult{Valid: true}
+	if err != nil {
+		result.Valid = false
+		for _, e := range err.(validator.ValidationErrors) {
+			result.Errors = append(result.Errors, StrictValidationError{
+				Field: e.Field(),
+				Error: e.Tag(),
+			})
+		}
+	}
+	return result
 }

@@ -7,16 +7,22 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 // AxiosSendSms sends an SMS message to the specified phone number using the configured notification service.
 // Returns nil on success, or an error describing the failure.
+func GetOtpExpiryTime(cfg config.VaultConfig) time.Time {
+	// Set the OTP expiry time to 5 minutes from now
+	wait, _ := strconv.Atoi(cfg.OtpWaitingTime)
+	min := time.Duration(int64(wait))
+	return time.Now().Add(min * time.Minute)
+}
 func AxiosSendSms(ctx context.Context, phoneNumber, messageBody string) error {
-	ip := os.Getenv("CONFIG_IP")
-	port := os.Getenv("CONFIG_PORT_LDAP_NOTIFICATION")
-	nodeEnv := os.Getenv("GO_ENV")
-
+	ip, port, nodeEnv := os.Getenv("CONFIG_IP"), os.Getenv("CONFIG_PORT_LDAP_NOTIFICATION"), os.Getenv("GO_ENV")
 	url := fmt.Sprintf("http://%s:%s/v1.0/chatbirrapi/ldapnotif/sms/send", ip, port)
 
 	type requestBody struct {
@@ -39,7 +45,7 @@ func AxiosSendSms(ctx context.Context, phoneNumber, messageBody string) error {
 		return fmt.Errorf("error marshaling SMS body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return fmt.Errorf("error creating SMS request: %w", err)
 	}
