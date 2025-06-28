@@ -384,7 +384,7 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 	projection := bson.M{}
 
 	if filterParams.Filters != "" {
-		filter["status"] = filterParams.Filters
+		filter["enable"] = filterParams.Filters
 	}
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
