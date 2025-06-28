@@ -28,6 +28,7 @@ var IsValidImage = func(fileHeader *multipart.FileHeader) bool {
 	if err != nil {
 		return false
 	}
+	file.Seek(0, 0)
 	contentType := http.DetectContentType(buffer)
 	return allowedMIMETypes[contentType]
 }

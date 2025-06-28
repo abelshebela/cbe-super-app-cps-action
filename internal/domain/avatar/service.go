@@ -245,7 +245,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
-		a.logger.Errorf("failed to check avatar bucket")
+		a.logger.Errorf("failed to check avatar bucket %v",err)
 		return model.CpsAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
@@ -278,10 +278,6 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 	}
 
 	filePath := tempFile.Name()
-	defer func() {
-		tempFile.Close()
-		os.Remove(filePath)
-	}()
 
 	defer func() {
 		if err := tempFile.Close(); err != nil {

@@ -195,7 +195,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		return model.CpsAction{}, err
 	}
 
-	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
+	if err := bson.Unmarshal(data, &actionData); err != nil {
 		a.logger.Errorf("failed to unmarshal into avatar: %v", err)
 		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
