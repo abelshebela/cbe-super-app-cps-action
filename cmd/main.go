@@ -111,6 +111,9 @@ import (
 
 	avatar_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 	avatar_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/avatar"
+	accountblock_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
+	account_block_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
+	account_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_block"
 )
 
 func main() {
@@ -312,6 +315,7 @@ func main() {
 	passwordRuleService := password_rule_services.NewPasswordRuleService(passwordRuleOutbound)
 	passwordRuleHandler := password_rule_handler.NewPasswordRuleHTTPHandler(passwordRuleService, logger)
 	password_rule_routes.RegisterPasswordRuleRoutes(r, passwordRuleHandler, authMddleware)
+
 	hq_persistence := hq_persistence.NewHQPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	hqService := hq_service.NewService(hq_persistence, adapter_port, logger)
 	hqApp := application_hq.NewApplication(hqService, logger)
@@ -324,6 +328,21 @@ func main() {
 	avatarHanler := avatar_adapter.InitAvatarHTTPHandler(avatarApp, logger)
 	avatar_adapter.InitAvatarRoutes(r, avatarHanler, authMddleware)
 
+accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
+    mongoClient,
+    cfg.MongoDBDatabase,
+    "branches",      
+    "regions",       
+    "cps_actions",   
+    "districts",     
+    "users",        
+    "cities",        
+    logger,
+)
+accountBlockService := account_domain.NewAccountService(accountBlockRepo)
+accountBlockHandler := accountblock_handler.NewAccountBlockHandler(accountBlockService, logger)
+
+accountblock_handler.RegisterAccountBlockRoutes(r, accountBlockHandler, authMddleware)
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,
