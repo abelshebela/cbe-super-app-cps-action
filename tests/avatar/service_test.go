@@ -1,9 +1,11 @@
 package avatar
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"mime/multipart"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -14,8 +16,32 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/tests/avatar/mocks"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	sharedconfig "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
+
+func createMockFileHeader(filename string, content []byte, size int64) *multipart.FileHeader {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Simulate file field
+	part, _ := writer.CreateFormFile("file", filename)
+	part.Write(content)
+	writer.Close()
+
+	// Create fake request
+	req := httptest.NewRequest("POST", "/", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Parse and extract FileHeader
+	req.ParseMultipartForm(10 << 20)
+	fileHeader := req.MultipartForm.File["file"][0]
+
+	// Override the size with the parameter
+	fileHeader.Size = size
+
+	return fileHeader
+}
 
 type MockLogger struct{}
 
@@ -32,6 +58,13 @@ func (l *MockLogger) Fatalf(format string, args ...interface{}) {}
 func (l *MockLogger) Sync() error                               { return nil }
 
 type MockMinioClient struct{}
+
+func (m *MockMinioClient) SaveObjectN(ctx context.Context, obj sharedconfig.SaveObjectBodyN) (*minio.UploadInfo, error) {
+	return &minio.UploadInfo{
+		Bucket: "test-bucket",
+		Key:    "test-key",
+	}, nil
+}
 
 func (m *MockMinioClient) BucketExist(ctx context.Context, bucketName string) (bool, error) {
 	return true, nil
@@ -85,7 +118,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		testCreateAvatar := avatar.CreateAvatar{
 			Label:  "Test Avatar",
-			Avatar: &multipart.FileHeader{Filename: "avatar.png", Size: 1024},
+			Avatar: createMockFileHeader("avatar.png", []byte("mock avatar image"), 1024),
 		}
 		testCPSAction := model.CreateCPSAction{
 			ActionCode:      "ACT002",
@@ -97,9 +130,10 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			ActionData:      testCreateAvatar,
 			MakerActionTime: testTime,
 		}
+
 		expectedAvatar := avatar.Avatar{
 			ID:     "AVATAR001",
-			Avatar: "test-bucket/test-key.png",
+			Avatar: "test-bucket/test-key",
 			Label:  "Test Avatar",
 			Enable: true,
 		}
@@ -126,7 +160,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 	t.Run("validation error", func(t *testing.T) {
 		testCreateAvatar := avatar.CreateAvatar{
 			Label:  "",
-			Avatar: &multipart.FileHeader{Filename: "avatar.png", Size: 1024},
+			Avatar: createMockFileHeader("avatar.png", []byte("mock avatar image"), 1024),
 		}
 		testCPSAction := model.CreateCPSAction{
 			ActionCode:      "ACT002",
@@ -147,9 +181,15 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 	})
 
 	t.Run("validation error file size should be less than 2MB", func(t *testing.T) {
+		// Create content larger than 2MB to trigger validation error
+		largeContent := make([]byte, 3<<20) // 3MB
+		for i := range largeContent {
+			largeContent[i] = byte(i % 256)
+		}
+
 		testCreateAvatar := avatar.CreateAvatar{
 			Label:  "Test Avatar",
-			Avatar: &multipart.FileHeader{Filename: "avatar.png", Size: 3 << 20}, // 3MB, triggers validation error
+			Avatar: createMockFileHeader("avatar.png", largeContent, 3<<20), // 3MB, triggers validation error
 		}
 		testCPSAction := model.CreateCPSAction{
 			ActionCode:      "ACT002",
@@ -260,6 +300,571 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
 		assert.Equal(t, model.CpsAction{}, result)
+		assert.Contains(t, err.Error(), "avatar not found")
+	})
+}
+
+func TestAvatarDomain_UpdateAvatar(t *testing.T) {
+	// Mock IsValidImage to always return true for tests
+	originalIsValidImage := avatar.IsValidImage
+	avatar.IsValidImage = func(fileHeader *multipart.FileHeader) bool { return true }
+	defer func() { avatar.IsValidImage = originalIsValidImage }()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAvatarRepository(ctrl)
+	mockLogger := &MockLogger{}
+	mockMinioClient := &MockMinioClient{}
+	bucketName := "test-bucket"
+	avatarService := avatar.InitAvatarDomain(mockRepo, mockMinioClient, bucketName, mockLogger)
+
+	testTime := time.Now()
+	testUser := model.User{
+		UserCode:    "USER001",
+		FullName:    "John Doe",
+		PhoneNumber: "+251911234567",
+	}
+
+	t.Run("success", func(t *testing.T) {
+		avatarID := "AVATAR001"
+		testUpdateAvatar := avatar.UpdateAvatar{
+			Avatar: createMockFileHeader("updated-avatar.png", []byte("updated avatar content"), 1024),
+		}
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT006",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestUpdateAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      testUpdateAvatar,
+			MakerActionTime: testTime,
+		}
+
+		existingAvatar := &avatar.Avatar{
+			ID:     avatarID,
+			Avatar: "test-bucket/old-avatar.png",
+			Label:  "Old Avatar",
+			Enable: true,
+		}
+
+		expectedAvatar := avatar.Avatar{
+			ID:     avatarID,
+			Avatar: "test-bucket/test-key",
+			Label:  "Old Avatar",
+			Enable: true,
+		}
+		expectedCpsAction := model.CpsAction{
+			ID:              "CPS006",
+			ActionCode:      "ACT006",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestUpdateAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      expectedAvatar,
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
+		mockRepo.EXPECT().GetAvatar(gomock.Any(), avatarID).Return(existingAvatar, nil)
+		mockRepo.EXPECT().UpdateAvatar(gomock.Any(), avatarID, gomock.Any()).Return(expectedCpsAction, nil)
+
+		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCpsAction, result)
+	})
+
+	t.Run("CPS action exists error", func(t *testing.T) {
+		avatarID := "AVATAR002"
+		testUpdateAvatar := avatar.UpdateAvatar{
+			Avatar: createMockFileHeader("updated-avatar.png", []byte("updated avatar content"), 1024),
+		}
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT007",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestUpdateAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      testUpdateAvatar,
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(fmt.Errorf("CPS action already exists"))
+
+		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
+		assert.Error(t, err)
+		assert.Equal(t, model.CpsAction{}, result)
+		assert.Contains(t, err.Error(), "CPS action already exists")
+	})
+
+	t.Run("get avatar not found", func(t *testing.T) {
+		avatarID := "AVATAR003"
+		testUpdateAvatar := avatar.UpdateAvatar{
+			Avatar: createMockFileHeader("updated-avatar.png", []byte("updated avatar content"), 1024),
+		}
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT008",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestUpdateAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      testUpdateAvatar,
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
+		mockRepo.EXPECT().GetAvatar(gomock.Any(), avatarID).Return(nil, fmt.Errorf("avatar not found"))
+
+		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
+		assert.Error(t, err)
+		assert.Equal(t, model.CpsAction{}, result)
+		assert.Contains(t, err.Error(), "avatar not found")
+	})
+
+	t.Run("validation error file size too large", func(t *testing.T) {
+		avatarID := "AVATAR004"
+		// Create content larger than 2MB to trigger validation error
+		largeContent := make([]byte, 3<<20) // 3MB
+		for i := range largeContent {
+			largeContent[i] = byte(i % 256)
+		}
+
+		testUpdateAvatar := avatar.UpdateAvatar{
+			Avatar: createMockFileHeader("updated-avatar.png", largeContent, 3<<20),
+		}
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT009",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestUpdateAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      testUpdateAvatar,
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
+
+		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "file size should be less than 2MB")
+		assert.Equal(t, model.CpsAction{}, result)
+	})
+}
+
+func TestAvatarDomain_GetAvatar(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAvatarRepository(ctrl)
+	mockLogger := &MockLogger{}
+	mockMinioClient := &MockMinioClient{}
+	bucketName := "test-bucket"
+	avatarService := avatar.InitAvatarDomain(mockRepo, mockMinioClient, bucketName, mockLogger)
+
+	t.Run("success", func(t *testing.T) {
+		avatarID := "AVATAR001"
+		expectedAvatar := &avatar.Avatar{
+			ID:             avatarID,
+			Avatar:         "test-bucket/avatar.png",
+			Label:          "Test Avatar",
+			Enable:         true,
+			IsDeleted:      false,
+			CreatedAt:      time.Now(),
+			LastModifiedAt: time.Now(),
+			DeletedAt:      time.Time{},
+		}
+
+		mockRepo.EXPECT().GetAvatar(gomock.Any(), avatarID).Return(expectedAvatar, nil)
+
+		result, err := avatarService.GetAvatar(context.Background(), avatarID)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedAvatar, result)
+	})
+
+	t.Run("avatar not found", func(t *testing.T) {
+		avatarID := "AVATAR002"
+
+		mockRepo.EXPECT().GetAvatar(gomock.Any(), avatarID).Return(nil, fmt.Errorf("avatar not found"))
+
+		result, err := avatarService.GetAvatar(context.Background(), avatarID)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "avatar not found")
+	})
+}
+
+func TestAvatarDomain_GetAllAvatar(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAvatarRepository(ctrl)
+	mockLogger := &MockLogger{}
+	mockMinioClient := &MockMinioClient{}
+	bucketName := "test-bucket"
+	avatarService := avatar.InitAvatarDomain(mockRepo, mockMinioClient, bucketName, mockLogger)
+
+	t.Run("success", func(t *testing.T) {
+		filterParams := constant.Filter{
+			Page:    1,
+			PerPage: 10,
+			Search:  "",
+			Filters: "",
+		}
+
+		avatars := []*avatar.Avatar{
+			{
+				ID:             "AVATAR001",
+				Avatar:         "test-bucket/avatar1.png",
+				Label:          "Avatar 1",
+				Enable:         true,
+				IsDeleted:      false,
+				CreatedAt:      time.Now(),
+				LastModifiedAt: time.Now(),
+				DeletedAt:      time.Time{},
+			},
+			{
+				ID:             "AVATAR002",
+				Avatar:         "test-bucket/avatar2.png",
+				Label:          "Avatar 2",
+				Enable:         false,
+				IsDeleted:      false,
+				CreatedAt:      time.Now(),
+				LastModifiedAt: time.Now(),
+				DeletedAt:      time.Time{},
+			},
+		}
+
+		expectedResponse := avatar.AvatarResponse{
+			Page:    1,
+			Avatars: avatars,
+			Limit:   10,
+			Total:   2,
+		}
+
+		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(expectedResponse, nil)
+
+		result, err := avatarService.GetAllAvatar(context.Background(), filterParams)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedResponse, result)
+	})
+
+	t.Run("no avatars found", func(t *testing.T) {
+		filterParams := constant.Filter{
+			Page:    1,
+			PerPage: 10,
+			Search:  "nonexistent",
+			Filters: "",
+		}
+
+		expectedResponse := avatar.AvatarResponse{
+			Page:    1,
+			Avatars: []*avatar.Avatar{},
+			Limit:   10,
+			Total:   0,
+		}
+
+		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(expectedResponse, nil)
+
+		result, err := avatarService.GetAllAvatar(context.Background(), filterParams)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedResponse, result)
+		assert.Empty(t, result.Avatars)
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		filterParams := constant.Filter{
+			Page:    1,
+			PerPage: 10,
+			Search:  "",
+			Filters: "",
+		}
+
+		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(avatar.AvatarResponse{}, fmt.Errorf("database error"))
+
+		result, err := avatarService.GetAllAvatar(context.Background(), filterParams)
+		assert.Error(t, err)
+		assert.Equal(t, avatar.AvatarResponse{}, result)
+		assert.Contains(t, err.Error(), "database error")
+	})
+}
+
+func TestAvatarDomain_Authorize(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAvatarRepository(ctrl)
+	mockLogger := &MockLogger{}
+	mockMinioClient := &MockMinioClient{}
+	bucketName := "test-bucket"
+	avatarService := avatar.InitAvatarDomain(mockRepo, mockMinioClient, bucketName, mockLogger)
+
+	testTime := time.Now()
+	testCheckerUser := model.User{
+		UserCode:    "CHECKER001",
+		FullName:    "Jane Checker",
+		PhoneNumber: "+251911234568",
+	}
+
+	t.Run("success", func(t *testing.T) {
+		actionCode := "ACT001"
+		testAuthorizeReq := model.AuthorizeCPSAction{
+			ActionCode:  actionCode,
+			CheckerUser: testCheckerUser,
+			Department:  "IT",
+		}
+
+		expectedCpsAction := model.CpsAction{
+			ID:                "CPS001",
+			ActionCode:        actionCode,
+			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
+			CheckerUser:       testCheckerUser,
+			Department:        "IT",
+			Status:            model.ActionApproved,
+			RequestAction:     model.RequestCreateAvatar,
+			ActionType:        model.ActionCreate,
+			ActionData:        avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
+			MakerActionTime:   testTime,
+			CheckerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(expectedCpsAction, nil)
+
+		result, err := avatarService.Authorize(context.Background(), testAuthorizeReq)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCpsAction, result)
+	})
+
+	t.Run("authorization failed", func(t *testing.T) {
+		actionCode := "ACT002"
+		testAuthorizeReq := model.AuthorizeCPSAction{
+			ActionCode:  actionCode,
+			CheckerUser: testCheckerUser,
+			Department:  "IT",
+		}
+
+		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(model.CpsAction{}, fmt.Errorf("action not found"))
+
+		result, err := avatarService.Authorize(context.Background(), testAuthorizeReq)
+		assert.Error(t, err)
+		assert.Equal(t, model.CpsAction{}, result)
+		assert.Contains(t, err.Error(), "action not found")
+	})
+}
+
+func TestAvatarDomain_Reject(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAvatarRepository(ctrl)
+	mockLogger := &MockLogger{}
+	mockMinioClient := &MockMinioClient{}
+	bucketName := "test-bucket"
+	avatarService := avatar.InitAvatarDomain(mockRepo, mockMinioClient, bucketName, mockLogger)
+
+	testTime := time.Now()
+	testCheckerUser := model.User{
+		UserCode:    "CHECKER001",
+		FullName:    "Jane Checker",
+		PhoneNumber: "+251911234568",
+	}
+
+	t.Run("success", func(t *testing.T) {
+		actionCode := "ACT001"
+		testRejectReq := model.RejectCPSAction{
+			CreateCPSAction: model.CreateCPSAction{
+				ActionCode: actionCode,
+				Department: "IT",
+			},
+			CheckerUser:    testCheckerUser,
+			RejectedReason: "The uploaded image does not meet the required specifications and quality standards.",
+		}
+
+		expectedCpsAction := model.CpsAction{
+			ID:                "CPS001",
+			ActionCode:        actionCode,
+			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
+			CheckerUser:       testCheckerUser,
+			Department:        "IT",
+			Status:            model.ActionRejected,
+			RequestAction:     model.RequestCreateAvatar,
+			ActionType:        model.ActionCreate,
+			ActionData:        avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
+			RejectedReason:    "The uploaded image does not meet the required specifications and quality standards.",
+			MakerActionTime:   testTime,
+			CheckerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(expectedCpsAction, nil)
+
+		result, err := avatarService.Reject(context.Background(), testRejectReq)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCpsAction, result)
+	})
+
+	t.Run("validation error - missing rejected reason", func(t *testing.T) {
+		actionCode := "ACT002"
+		testRejectReq := model.RejectCPSAction{
+			CreateCPSAction: model.CreateCPSAction{
+				ActionCode: actionCode,
+				Department: "IT",
+			},
+			CheckerUser:    testCheckerUser,
+			RejectedReason: "", // Empty reason should fail validation
+		}
+
+		result, err := avatarService.Reject(context.Background(), testRejectReq)
+		assert.Error(t, err)
+		assert.Equal(t, model.CpsAction{}, result)
+	})
+
+	t.Run("rejection failed", func(t *testing.T) {
+		actionCode := "ACT003"
+		testRejectReq := model.RejectCPSAction{
+			CreateCPSAction: model.CreateCPSAction{
+				ActionCode: actionCode,
+				Department: "IT",
+			},
+			CheckerUser:    testCheckerUser,
+			RejectedReason: "Action not found. The requested action could not be located in the system.",
+		}
+
+		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(model.CpsAction{}, fmt.Errorf("action not found"))
+
+		result, err := avatarService.Reject(context.Background(), testRejectReq)
+		assert.Error(t, err)
+		assert.Equal(t, model.CpsAction{}, result)
+		assert.Contains(t, err.Error(), "action not found")
+	})
+}
+
+func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAvatarRepository(ctrl)
+	mockLogger := &MockLogger{}
+	mockMinioClient := &MockMinioClient{}
+	bucketName := "test-bucket"
+	avatarService := avatar.InitAvatarDomain(mockRepo, mockMinioClient, bucketName, mockLogger)
+
+	testTime := time.Now()
+	testUser := model.User{
+		UserCode:    "USER001",
+		FullName:    "John Doe",
+		PhoneNumber: "+251911234567",
+	}
+
+	t.Run("enable avatar success", func(t *testing.T) {
+		avatarID := "AVATAR001"
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT010",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestEnableAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      avatar.Avatar{ID: avatarID},
+			MakerActionTime: testTime,
+		}
+
+		expectedCpsAction := &model.CpsAction{
+			ID:              "CPS010",
+			ActionCode:      "ACT010",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestEnableAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      avatar.Avatar{ID: avatarID},
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
+		mockRepo.EXPECT().EnableOrDisableAvatar(gomock.Any(), avatarID, model.RequestEnableAvatar, gomock.Any()).Return(expectedCpsAction, nil)
+
+		result, err := avatarService.EnableOrDisableAvatar(context.Background(), avatarID, model.RequestEnableAvatar, testCPSAction)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCpsAction, result)
+	})
+
+	t.Run("disable avatar success", func(t *testing.T) {
+		avatarID := "AVATAR002"
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT011",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestDisableAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      avatar.Avatar{ID: avatarID},
+			MakerActionTime: testTime,
+		}
+
+		expectedCpsAction := &model.CpsAction{
+			ID:              "CPS011",
+			ActionCode:      "ACT011",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestDisableAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      avatar.Avatar{ID: avatarID},
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
+		mockRepo.EXPECT().EnableOrDisableAvatar(gomock.Any(), avatarID, model.RequestDisableAvatar, gomock.Any()).Return(expectedCpsAction, nil)
+
+		result, err := avatarService.EnableOrDisableAvatar(context.Background(), avatarID, model.RequestDisableAvatar, testCPSAction)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCpsAction, result)
+	})
+
+	t.Run("CPS action exists error", func(t *testing.T) {
+		avatarID := "AVATAR003"
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT012",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestEnableAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      avatar.Avatar{ID: avatarID},
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(fmt.Errorf("CPS action already exists"))
+
+		result, err := avatarService.EnableOrDisableAvatar(context.Background(), avatarID, model.RequestEnableAvatar, testCPSAction)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "CPS action already exists")
+	})
+
+	t.Run("enable/disable operation failed", func(t *testing.T) {
+		avatarID := "AVATAR004"
+		testCPSAction := model.CreateCPSAction{
+			ActionCode:      "ACT013",
+			MakerUser:       testUser,
+			Department:      "IT",
+			Status:          model.ActionPending,
+			RequestAction:   model.RequestEnableAvatar,
+			ActionType:      model.ActionUpdate,
+			ActionData:      avatar.Avatar{ID: avatarID},
+			MakerActionTime: testTime,
+		}
+
+		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
+		mockRepo.EXPECT().EnableOrDisableAvatar(gomock.Any(), avatarID, model.RequestEnableAvatar, gomock.Any()).Return(nil, fmt.Errorf("avatar not found"))
+
+		result, err := avatarService.EnableOrDisableAvatar(context.Background(), avatarID, model.RequestEnableAvatar, testCPSAction)
+		assert.Error(t, err)
+		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "avatar not found")
 	})
 }

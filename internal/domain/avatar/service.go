@@ -3,10 +3,7 @@ package avatar
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -84,29 +81,9 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 			})
 		}
 	}
-	baseName := filepath.Base(actionData.Avatar.Filename)
-	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), baseName)
 
-	tempFile, err := os.CreateTemp("", "avatar-*")
-	if err != nil {
-		a.logger.Errorf("failed to create temp file: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	filePath := tempFile.Name()
-	defer func() {
-		if err := tempFile.Close(); err != nil {
-			a.logger.Errorf("failed to close temp file: %v", err)
-		}
-		if err := os.Remove(filePath); err != nil {
-			a.logger.Errorf("failed to remove temp file: %v", err)
-		}
-	}()
-
-	src, err := actionData.Avatar.Open()
+	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
+	file, err := actionData.Avatar.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open uploaded file: %v", err)
 		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
@@ -114,32 +91,16 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 			Message: "internal server error",
 		})
 	}
-	defer src.Close()
+	defer file.Close()
 
-	_, err = io.Copy(tempFile, src)
-	if err != nil {
-		a.logger.Errorf("failed to copy file content: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to copy file content: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	err = tempFile.Sync()
-	if err != nil {
-		a.logger.Errorf("failed to sync temp file: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to sync temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	// Save to MinIO
-	saveObj, err := a.minioClient.SaveObject(ctx, config.SaveObjectBody{
-		BucketName: a.bucketName,
-		ObjectName: fileName,
-		File:       filePath,
+	saveObj, err := a.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  a.bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        actionData.Avatar.Size,
+		ContentType: config.ContentType(actionData.Avatar.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
 		return model.CpsAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
@@ -265,30 +226,8 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 		return model.CpsAction{}, err
 	}
 
-	baseName := filepath.Base(actionData.Avatar.Filename)
-	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), baseName)
-
-	tempFile, err := os.CreateTemp("", "avatar-*")
-	if err != nil {
-		a.logger.Errorf("failed to create temp file: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	filePath := tempFile.Name()
-
-	defer func() {
-		if err := tempFile.Close(); err != nil {
-			a.logger.Errorf("failed to close temp file: %v", err)
-		}
-		if err := os.Remove(filePath); err != nil {
-			a.logger.Errorf("failed to remove temp file: %v", err)
-		}
-	}()
-
-	src, err := actionData.Avatar.Open()
+	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
+	file, err := actionData.Avatar.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open uploaded file: %v", err)
 		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
@@ -296,34 +235,19 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 			Message: "internal server error",
 		})
 	}
-	defer src.Close()
+	defer file.Close()
 
-	_, err = io.Copy(tempFile, src)
-	if err != nil {
-		a.logger.Errorf("failed to copy file content: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to copy file content: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	err = tempFile.Sync()
-	if err != nil {
-		a.logger.Errorf("failed to sync temp file: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to sync temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	saveObj, err := a.minioClient.SaveObject(ctx, config.SaveObjectBody{
-		BucketName: a.bucketName,
-		ObjectName: fileName,
-		File:       filePath,
+	saveObj, err := a.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  a.bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        actionData.Avatar.Size,
+		ContentType: config.ContentType(actionData.Avatar.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to save object to MinIO: %w", constant.ErrorDefinition{
+		return model.CpsAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})

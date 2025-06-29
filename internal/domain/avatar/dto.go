@@ -28,7 +28,6 @@ var IsValidImage = func(fileHeader *multipart.FileHeader) bool {
 	if err != nil {
 		return false
 	}
-	file.Seek(0, 0)
 	contentType := http.DetectContentType(buffer)
 	return allowedMIMETypes[contentType]
 }
@@ -60,7 +59,7 @@ func (c CreateAvatar) Validate() error {
 }
 
 type UpdateAvatar struct {
-	Avatar *multipart.FileHeader `form:"avatar_url"`
+	Avatar *multipart.FileHeader `form:"avatar"`
 }
 
 func (u UpdateAvatar) Validate() error {

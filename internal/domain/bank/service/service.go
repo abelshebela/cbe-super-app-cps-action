@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -88,38 +86,27 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	}
 
 	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), actionData.Logo.Filename)
-	dir, err := os.Getwd()
+	file, err := actionData.Logo.Open()
 	if err != nil {
-		b.logger.Errorf("failed to get current working directory", err)
-		return nil, fmt.Errorf("failed to create advert bucket: %w", constant.ErrorDefinition{
+		b.logger.Errorf("failed to open uploaded file: %v", err)
+		return nil, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
 	}
-	filePath := filepath.Join(dir, fileName)
+	defer file.Close()
 
-	tempFile, err := os.Create(filePath)
-	if err != nil {
-		b.logger.Errorf("failed to create temp file: %v", err)
-		return nil, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-	defer func() {
-		tempFile.Close()
-		os.Remove(filePath)
-	}()
-
-	// Save to MinIO
-	saveObj, err := b.minioClient.SaveObject(ctx, config.SaveObjectBody{
-		BucketName: b.bucketName,
-		ObjectName: fileName,
-		File:       filePath,
+	saveObj, err := b.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  b.bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        actionData.Logo.Size,
+		ContentType: config.ContentType(actionData.Logo.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		b.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("failed to save object to MinIO: %w", constant.ErrorDefinition{
+		return nil, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -130,7 +117,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 		Department: req.Department,
 		ActionData: entity.Bank{
 			Name: actionData.Name,
-			Logo: saveObj.Bucket + "/" + saveObj.Key,
+			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
 			Code: actionData.Code,
 			BIC:  actionData.BIC,
 		},

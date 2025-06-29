@@ -15,7 +15,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.48
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.23
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
 )

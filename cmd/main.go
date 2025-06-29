@@ -143,6 +143,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
 	defer cancel()
+	
 
 	dbname := cfg.MongoDBDatabase
 	// dbname := "ldap_cbs"

@@ -5,4 +5,4 @@ shared
 test.go
 aiso/env
 .env
-.env
+.vscode
