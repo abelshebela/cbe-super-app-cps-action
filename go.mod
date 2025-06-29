@@ -13,7 +13,6 @@ require (
 	github.com/minio/minio-go/v7 v7.0.92
 	github.com/rs/zerolog v1.34.0
 	github.com/segmentio/kafka-go v0.4.48
-	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.19
@@ -27,6 +26,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/go-chi/chi v1.5.5
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
@@ -67,6 +67,7 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
+	go.mongodb.org/mongo-driver v1.17.4
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
