@@ -142,8 +142,10 @@ func UserContext(ctx context.Context) (entities.User, error) {
 
 }
 func LocalEncryptPassword(password string, dataType string, userSalt string, action string, env *config.VaultConfig) (string, string, error) {
-	//env, _ := config.Load()
 
+	if env == nil {
+		return "", "", errors.New("env is nil")
+	}
 	var signedPass, salt string
 	if dataType == "password" {
 		salt, _ = GenerateSalt(20)

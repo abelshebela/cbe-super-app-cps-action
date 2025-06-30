@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"cbe-super-app-member-users/pkgs/entities"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -82,8 +83,13 @@ func CompressJSON(data interface{}) (string, error) {
 }
 
 func TempTokenMaker(user *entities.User, permissions []string, otpFor string, additional map[string]interface{}, action string, env *config.VaultConfig) (string, error) {
+
+	if env == nil {
+		return "", errors.New("env is nil")
+	}
 	timeSession := 0
 	sessionExpiry := time.Now().Unix() + int64(timeSession)*60
+
 	attributes := map[string]interface{}{
 		"user_id":                 user.ID,
 		"user_code":               user.UserCode,
@@ -117,8 +123,12 @@ func TempTokenMaker(user *entities.User, permissions []string, otpFor string, ad
 	return token.SignedString([]byte(env.JwtSecretKey))
 }
 
-func TokenMaker(user entities.User, permissions []string, otpFor string) (string, error) {
-	env, _ := config.Load()
+func TokenMaker(user *entities.User, permissions []string, env *config.VaultConfig, tokenType ...string) (string, error) {
+
+	if env == nil {
+		return "", errors.New("env is nil")
+	}
+
 	timeSession, _ := strconv.Atoi(env.TempSessionTimeout)
 	sessionExpiry := time.Now().Unix() + int64(timeSession)*60
 
@@ -136,12 +146,19 @@ func TokenMaker(user entities.User, permissions []string, otpFor string) (string
 		"session_expiry":          sessionExpiry,
 	}
 
+	// Set token_type if provided
+	typeVal := "permanent"
+	if len(tokenType) > 0 && tokenType[0] != "" {
+		typeVal = tokenType[0]
+	}
+	attributes["token_type"] = typeVal
+
 	attrBytes, err := json.Marshal(attributes)
 	if err != nil {
 		return "", err
 	}
 
-	encrypted, _, _ := LocalEncryptPassword(string(attrBytes), "token", "token", "token", nil)
+	encrypted, _, _ := LocalEncryptPassword(string(attrBytes), "token", "token", "token", env)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"data": encrypted,

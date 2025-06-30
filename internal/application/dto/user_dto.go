@@ -95,6 +95,7 @@ type ForgetPinSendOtpResponse struct {
 	TokenType        string    `json:"token_type,omitempty"`
 	TokenExpiry      time.Time `json:"token_expiry,omitempty"`
 	NextStep         string    `json:"next_step"`
+	OTP              string    `json:"otp,omitempty"`
 }
 
 type ResetPinRequest struct {
@@ -123,6 +124,11 @@ type ResetPinResponse struct {
 // Device Lookup DTOs
 type DeviceLookupResponse struct {
 	DeviceUUID  string    `json:"device_uuid"`
+	UserID      string    `json:"user_id"`
+	UserCode    string    `json:"user_code"`
+	FullName    string    `json:"full_name"`
+	PhoneNumber string    `json:"phone_number"`
+	Email       string    `json:"email"`
 	Platform    string    `json:"platform"`
 	AppVersion  string    `json:"app_version"`
 	IsLatest    bool      `json:"is_latest"`
@@ -132,6 +138,10 @@ type DeviceLookupResponse struct {
 	TokenExpiry time.Time `json:"token_expiry,omitempty"`
 	NextStep    string    `json:"next_step"`
 	OTPCode     string    `json:"otp_code,omitempty"`
+}
+
+type PinStrengthRequest struct {
+	NewPin int `json:"new_pin" bson:"new_pin"`
 }
 
 // Verify OTP DTOs

@@ -168,7 +168,7 @@ type OTPRecord struct {
 	CreatedAt  time.Time
 	ExpiresAt  time.Time
 	UserRealm  string
-	DeviceUUID *string
+	DeviceUUID string
 	OTPFor     string
 }
 

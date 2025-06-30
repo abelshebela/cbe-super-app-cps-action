@@ -20,6 +20,10 @@ type InBound interface {
 	ForgetPinSendOtp(w http.ResponseWriter, r *http.Request)
 	ResetPin(w http.ResponseWriter, r *http.Request)
 	DeviceLookup(w http.ResponseWriter, r *http.Request)
+	CheckPin(w http.ResponseWriter, r *http.Request)
+	Healthcheck(w http.ResponseWriter, r *http.Request)
+	VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request)
+	ResetPinWithToken(w http.ResponseWriter, r *http.Request)
 }
 
 // type UserPort interface {

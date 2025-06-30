@@ -24,6 +24,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_001",
 			Message: "Duplicate key error: The specified field already exists.",
 		},
+
 		"INVALID_ID": {
 			Code:    "GEN_002",
 			Message: "Invalid ObjectId provided.",
@@ -178,6 +179,26 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_040",
 			Message: "Device found and registered",
 		},
+		"INVALID_PIN": {
+			Code:    "GEN_041",
+			Message: "Invalid PIN provided.",
+		},
+		"PIN_RESET_SESSION_EXPIRED": {
+			Code:    "GEN_042",
+			Message: "PIN reset session has expired",
+		},
+		"PIN_RESET_SESSION_NOT_FOUND": {
+			Code:    "GEN_043",
+			Message: "PIN reset session not found",
+		},
+		"PIN_RESET_SESSION_ALREADY_VERIFIED": {
+			Code:    "GEN_044",
+			Message: "PIN reset session already verified",
+		},
+		"TOKEN_GENERATION_FAILED": {
+			Code:    "GEN_045",
+			Message: "Failed to generate token",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -296,6 +317,22 @@ var DefineError = ErrorDefinitions{
 		"ACCOUNT_LOCKED": {
 			Code:    "AUTH_026",
 			Message: "account locked. please contact your addministrator",
+		},
+		"MISSING_REQUIRED_FIELDS": {
+			Code:    "AUTH_027",
+			Message: "Missing required fields in request",
+		},
+		"PIN_RESET_SESSION_EXPIRED": {
+			Code:    "AUTH_028",
+			Message: "PIN reset session has expired",
+		},
+		"PIN_RESET_SESSION_NOT_FOUND": {
+			Code:    "AUTH_029",
+			Message: "PIN reset session not found",
+		},
+		"PIN_RESET_SESSION_ALREADY_VERIFIED": {
+			Code:    "AUTH_030",
+			Message: "PIN reset session already verified",
 		},
 	},
 	Transaction: ErrorGroup{

@@ -25,8 +25,9 @@ type UserRepository interface {
 	DeleteOtp(ctx context.Context, userCode, otpCode, otpFor string) error
 	// Registration methods
 	FindUserByPhone(ctx context.Context, phone string) (*User, error)
+	FindUserByPhoneForLogin(ctx context.Context, phone string, pin string) (*User, error)
 	FindUserByDevice(ctx context.Context, deviceUUID string) (*User, error)
-	FindPendingRegistration(ctx context.Context, phone, deviceUUID string) (*RegistrationRecord, error)
+	FindPendingRegistration(ctx context.Context, userID, deviceUUID string) (*RegistrationRecord, error)
 	FindPendingRegistrationByID(ctx context.Context, registrationID string) (*RegistrationRecord, error)
 	CreatePendingRegistration(ctx context.Context, registration *RegistrationRecord) error
 	DeletePendingRegistration(ctx context.Context, registrationID string) error

@@ -3,30 +3,88 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
-	// "fmt"
 	"net/http"
 	"strings"
 
 	"cbe-super-app-member-users/internal/application/dto"
 	user_inbound "cbe-super-app-member-users/internal/port/inbound/users"
 
-	// "cbe-super-app-member-users/pkgs/common"
 	"cbe-super-app-member-users/pkgs/utils"
 	constant "cbe-super-app-member-users/pkgs/utils"
 )
 
+// Constants for magic numbers and error messages
+const (
+	pinLength           = 6
+	otpLength           = 6
+	minPhoneLength      = 10
+	minDeviceUUIDLength = 10
+)
+
+var (
+	errMissingDeviceUUID  = "MISSING_DEVICE_UUID"
+	errMissingPlatform    = "MISSING_PLATFORM"
+	errInvalidPhoneNumber = "INVALID_PHONE_NUMBER"
+	errInvalidDeviceUUID  = "INVALID_DEVICE_UUID"
+	errInvalidPlatform    = "INVALID_PLATFORM"
+	errInvalidPin         = "INVALID_PIN"
+	errInvalidOTP         = "INVALID_OTP"
+	errInvalidInputParams = "INVALID_INPUT_PARAMETERS"
+)
+
+// validatePin checks if the pin is valid according to business rules
+func validatePin(pin string) error {
+	if len(pin) != pinLength {
+		return fmt.Errorf(errInvalidPin+": PIN must be exactly %d digits", pinLength)
+	}
+	for _, c := range pin {
+		if c < '0' || c > '9' {
+			return fmt.Errorf(errInvalidPin + ": PIN must contain only digits")
+		}
+	}
+	return nil
+}
+
+// validateOTP checks if the OTP is valid according to business rules
+func validateOTP(otp string) error {
+	if len(otp) != otpLength {
+		return fmt.Errorf(errInvalidOTP+": OTP must be exactly %d digits", otpLength)
+	}
+	for _, c := range otp {
+		if c < '0' || c > '9' {
+			return fmt.Errorf(errInvalidOTP + ": OTP must contain only digits")
+		}
+	}
+	return nil
+}
+
+// validatePhone checks if the phone number is valid
+func validatePhone(phone string) error {
+	formattedPhone := utils.FormatPhoneNumber(phone)
+	if formattedPhone == "" || len(formattedPhone) < minPhoneLength {
+		return fmt.Errorf(errInvalidPhoneNumber + ": please provide a valid phone number")
+	}
+	return nil
+}
+
+// validateDeviceUUID checks if the device UUID is valid
+func validateDeviceUUID(deviceUUID string) error {
+	if len(deviceUUID) < minDeviceUUIDLength {
+		return fmt.Errorf(errInvalidDeviceUUID + ": device UUID appears to be invalid")
+	}
+	return nil
+}
+
 func (h UsersAdapter) DeviceLookup(w http.ResponseWriter, r *http.Request) {
-	// Extract required headers
 	platform, appVersion, deviceUUID, sourceApp, installationDate, additionalHeaders := utils.HeaderRequirement(r, nil)
 
-	// Validate required headers
 	if deviceUUID == "" || platform == "" {
-		utils.SendErrorResponse(w, "MISSING_REQUIRED_HEADERS", http.StatusBadRequest, nil)
+		utils.BaseResponseMaker(nil, w, "Missing required headers", http.StatusBadRequest)
 		return
 	}
 
-	// Prepare header data for device lookup
 	headerData := map[string]interface{}{
 		"platform":          platform,
 		"app_version":       appVersion,
@@ -40,14 +98,12 @@ func (h UsersAdapter) DeviceLookup(w http.ResponseWriter, r *http.Request) {
 		headerData[key] = value
 	}
 
-	// Call application service for device lookup
 	response, err := h.Application.DeviceLookup(r.Context(), headerData)
 	if err != nil {
-		utils.SendErrorResponse(w, "DEVICE_LOOKUP_FAILED", http.StatusInternalServerError, nil)
+		utils.BaseResponseMaker(nil, w, "Device lookup failed", http.StatusInternalServerError)
 		return
 	}
 
-	// Send success response with token
 	h.sendSuccessResponse(w, http.StatusOK, response)
 }
 
@@ -256,14 +312,32 @@ func (h UsersAdapter) ChangePin(w http.ResponseWriter, r *http.Request) {
 	h.sendSuccessResponse(w, http.StatusOK, "PIN changed successfully")
 }
 
-// func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
-// 	resp := common.Response[interface{}]{
-// 		ResponseWriter: w,
-// 		Status:         status,
-// 		Data:           data,
-// 	}
-// 	resp.SendJSON()
-// }
+func (h UsersAdapter) Healthcheck(w http.ResponseWriter, r *http.Request) {
+	returndata := make(map[string]interface{})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	returndata["message"] = "LDAP AUTH IS ACTIVE"
+	json.NewEncoder(w).Encode(returndata)
+	return
+}
+func (h UsersAdapter) CheckPin(w http.ResponseWriter, r *http.Request) {
+
+	var payload dto.PinStrengthRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", http.StatusBadRequest, nil)
+		return
+	}
+
+	pin := strconv.Itoa(payload.NewPin)
+	err := validatePin(pin)
+	if err != nil {
+		utils.SendErrorResponse(w, errInvalidPin, http.StatusBadRequest, map[string]interface{}{"errors": []string{err.Error()}})
+		return
+	}
+
+	utils.SendErrorResponse(w, "PIN set successfully", http.StatusOK, nil)
+}
 
 func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
 	resp := struct {
@@ -284,39 +358,33 @@ type VerifyOtpRequest struct {
 }
 
 func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID from context
 	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
 	if !ok || userID == "" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
 		return
 	}
 
-	// Extract phone number from context
 	phoneNumber := r.Context().Value("phone_number")
 
-	// Extract device information from headers
 	_, _, deviceUUID, sourceApp, _, _ := utils.HeaderRequirement(r, nil)
 
-	// Parse and validate request body
 	var req VerifyOtpRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", http.StatusBadRequest, nil)
 		return
 	}
 
-	// Validate required fields
 	if req.Otp == "" {
 		utils.SendErrorResponse(w, "MISSING_OTP", http.StatusBadRequest, nil)
 		return
 	}
 
-	// Set default OTP purpose if not provided
 	if req.OtpFor == "" {
 		req.OtpFor = "pin_set"
 	}
 
-	// Call application service for OTP verification
-	token, err := h.Application.VerifyOtp(r.Context(), userID, req.Otp, &deviceUUID, sourceApp, req.OtpFor)
+	token, err := h.Application.VerifyOtp(r.Context(), userID, req.Otp, deviceUUID, sourceApp, req.OtpFor)
+
 	if err != nil {
 		status := http.StatusBadRequest
 		switch err.Error() {
@@ -344,44 +412,36 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 }
 
 type SetPinRequest struct {
-	NewPin     string  `json:"new_pin" validate:"required,min=6,max=6"`
-	Otp        string  `json:"otp" validate:"required,min=6,max=6"`
-	DeviceUUID *string `json:"device_uuid,omitempty"`
-	UserRealm  string  `json:"user_realm,omitempty"`
-	OtpFor     string  `json:"otp_for,omitempty"`
+	NewPin string `json:"new_pin" validate:"required,min=6,max=6"`
 }
 
 func (h UsersAdapter) SetPin(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID from context
 	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
 	if !ok || userID == "" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
 		return
 	}
 
-	// Parse and validate request body
+	_, _, deviceUUID, _, _, _ := utils.HeaderRequirement(r, nil)
+
+	headerData := map[string]interface{}{
+		"user_id":     userID,
+		"device_uuid": deviceUUID,
+		"user_realm":  "member",
+	}
+
 	var req SetPinRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", http.StatusBadRequest, nil)
 		return
 	}
 
-	// Validate required fields
-	if req.NewPin == "" || req.Otp == "" {
+	if req.NewPin == "" {
 		utils.SendErrorResponse(w, "MISSING_REQUIRED_FIELDS", http.StatusBadRequest, nil)
 		return
 	}
 
-	// Set default values if not provided
-	if req.OtpFor == "" {
-		req.OtpFor = "pin_set"
-	}
-	if req.UserRealm == "" {
-		req.UserRealm = "member"
-	}
-
-	// Call application service
-	response, err := h.Application.SetPin(r.Context(), userID, req.NewPin, req.Otp, req.DeviceUUID, req.UserRealm, req.OtpFor)
+	response, err := h.Application.SetPin(r.Context(), userID, req.NewPin, deviceUUID, headerData["user_realm"].(string))
 	if err != nil {
 		status := http.StatusBadRequest
 		switch err.Error() {
@@ -400,8 +460,8 @@ func (h UsersAdapter) SetPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send success response with token
-	h.sendSuccessResponse(w, http.StatusOK, response)
+	responseMap, _ := utils.StructToMap(response)
+	utils.BaseResponseMaker(responseMap, w, "PIN set successfully", http.StatusOK)
 }
 
 type RegisterRequest struct {
@@ -478,57 +538,47 @@ func (h UsersAdapter) validateRegisterRequest(req RegisterRequest) error {
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: platform is required")
 	}
 
-	// Validate phone number format
-	formattedPhone := utils.FormatPhoneNumber(req.Phone)
-	if formattedPhone == "" || len(formattedPhone) < 10 {
-		return fmt.Errorf("INVALID_PHONE_NUMBER: please provide a valid phone number")
+	if err := validatePhone(req.Phone); err != nil {
+		return err
 	}
 
-	// Validate platform
 	validPlatforms := map[string]bool{"android": true, "ios": true, "web": true}
 	if !validPlatforms[req.Platform] {
-		return fmt.Errorf("INVALID_PLATFORM: platform must be android, ios, or web")
+		return fmt.Errorf(errInvalidPlatform + ": platform must be android, ios, or web")
 	}
 
-	// Validate device UUID format (basic validation)
-	if len(req.DeviceUUID) < 10 {
-		return fmt.Errorf("INVALID_DEVICE_UUID: device UUID appears to be invalid")
+	if err := validateDeviceUUID(req.DeviceUUID); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 type LoginRequest struct {
-	Phone      string `json:"phone" validate:"required"`
-	DeviceUUID string `json:"device_uuid" validate:"required"`
-	Pin        string `json:"pin" validate:"required,min=6,max=6"`
+	Phone string `json:"phone" validate:"required"`
+	Pin   string `json:"pin" validate:"required,min=6,max=6"`
 }
 
 func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
-	// Extract device information from headers for additional validation
-	platform, appVersion, deviceUUID, _, _, _ := utils.HeaderRequirement(r, nil)
+	_, _, deviceUUID, _, _, _ := utils.HeaderRequirement(r, []string{})
 
-	// Parse and validate request body
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	// Validate required fields
 	if err := h.validateLoginRequest(req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Validate device UUID consistency between header and body
-	if deviceUUID != "" && deviceUUID != req.DeviceUUID {
+	if deviceUUID == "" {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Device UUID mismatch", http.StatusBadRequest)
 		return
 	}
-
-	// Call application service for login
-	loginResult, err := h.Application.Login(r.Context(), req.Phone, req.DeviceUUID, req.Pin)
+	phone := utils.FormatPhoneNumber(req.Phone)
+	loginResult, err := h.Application.Login(r.Context(), phone, deviceUUID, req.Pin)
 	if err != nil {
 		status := http.StatusUnauthorized
 		switch err.Error() {
@@ -555,7 +605,6 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send success response
 	response := map[string]interface{}{
 		"token":           loginResult.Token,
 		"user_id":         loginResult.UserID,
@@ -564,9 +613,7 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 		"phone_number":    loginResult.PhoneNumber,
 		"kyc_level":       loginResult.KYCLevel,
 		"is_verified":     loginResult.IsVerified,
-		"device_uuid":     req.DeviceUUID,
-		"platform":        platform,
-		"app_version":     appVersion,
+		"device_uuid":     deviceUUID,
 		"login_time":      loginResult.LoginTime,
 		"session_expires": loginResult.SessionExpires,
 	}
@@ -574,64 +621,44 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 	utils.BaseResponseMaker(response, w, "Login successful", http.StatusOK)
 }
 
-// validateLoginRequest validates the login request
 func (h UsersAdapter) validateLoginRequest(req LoginRequest) error {
 	if req.Phone == "" {
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: phone number is required")
 	}
-	if req.DeviceUUID == "" {
-		return fmt.Errorf("MISSING_REQUIRED_FIELDS: device UUID is required")
-	}
+
 	if req.Pin == "" {
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: PIN is required")
 	}
 
-	// Validate phone number format
-	formattedPhone := utils.FormatPhoneNumber(req.Phone)
-	if formattedPhone == "" || len(formattedPhone) < 10 {
-		return fmt.Errorf("INVALID_PHONE_NUMBER: please provide a valid phone number")
+	if err := validatePhone(req.Phone); err != nil {
+		return err
 	}
 
-	// Validate PIN format (6 digits)
-	if len(req.Pin) != 6 {
-		return fmt.Errorf("INVALID_PIN: PIN must be exactly 6 digits")
-	}
-
-	// Validate PIN contains only digits
-	for _, char := range req.Pin {
-		if char < '0' || char > '9' {
-			return fmt.Errorf("INVALID_PIN: PIN must contain only digits")
-		}
-	}
-
-	// Validate device UUID format (basic validation)
-	if len(req.DeviceUUID) < 10 {
-		return fmt.Errorf("INVALID_DEVICE_UUID: device UUID appears to be invalid")
+	if err := validatePin(req.Pin); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 type ForgetPinSendOtpRequest struct {
-	Phone      string `json:"phone"`
-	DeviceUUID string `json:"device_uuid"`
+	Phone string `json:"phone"`
 }
 
 func (h UsersAdapter) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 	var req ForgetPinSendOtpRequest
+	_, _, deviceUUID, _, _, _ := utils.HeaderRequirement(r, nil)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 
-	// Validate required fields
 	if err := h.validateForgetPinSendOtpRequest(req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Call application service
-	result, err := h.Application.ForgetPinSendOtp(r.Context(), req.Phone, req.DeviceUUID)
+	result, err := h.Application.ForgetPinSendOtp(r.Context(), req.Phone, deviceUUID)
 	if err != nil {
 		status := http.StatusBadRequest
 		switch err.Error() {
@@ -654,11 +681,12 @@ func (h UsersAdapter) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send success response
 	response := map[string]interface{}{
 		"phone_number":       result.PhoneNumber,
 		"device_uuid":        result.DeviceUUID,
 		"otp_sent":           result.OTPSent,
+		"otp":                result.OTP,
+		"token":              result.Token,
 		"otp_expiry_minutes": result.OTPExpiryMinutes,
 		"reset_session_id":   result.ResetSessionID,
 		"next_step":          result.NextStep,
@@ -667,27 +695,88 @@ func (h UsersAdapter) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 	utils.BaseResponseMaker(response, w, "OTP sent for PIN reset", http.StatusOK)
 }
 
-// validateForgetPinSendOtpRequest validates the forget PIN send OTP request
 func (h UsersAdapter) validateForgetPinSendOtpRequest(req ForgetPinSendOtpRequest) error {
 	if req.Phone == "" {
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: phone number is required")
 	}
-	if req.DeviceUUID == "" {
-		return fmt.Errorf("MISSING_REQUIRED_FIELDS: device UUID is required")
-	}
 
-	// Validate phone number format
-	formattedPhone := utils.FormatPhoneNumber(req.Phone)
-	if formattedPhone == "" || len(formattedPhone) < 10 {
-		return fmt.Errorf("INVALID_PHONE_NUMBER: please provide a valid phone number")
-	}
-
-	// Validate device UUID format (basic validation)
-	if len(req.DeviceUUID) < 10 {
-		return fmt.Errorf("INVALID_DEVICE_UUID: device UUID appears to be invalid")
+	if err := validatePhone(req.Phone); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+type VerifyForgetPinOtpRequest struct {
+	ResetSessionID string `json:"reset_session_id" validate:"required"`
+	Phone          string `json:"phone" validate:"required"`
+	DeviceUUID     string `json:"device_uuid" validate:"required"`
+	OTP            string `json:"otp" validate:"required,min=6,max=6"`
+}
+
+func (h UsersAdapter) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
+	var req VerifyForgetPinOtpRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.BaseResponseMaker(nil, w, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
+
+	// Basic validation (reuse logic from validateResetPinRequest, but without new_pin)
+	if req.ResetSessionID == "" {
+		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: reset session ID is required", http.StatusBadRequest)
+		return
+	}
+	if req.Phone == "" {
+		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: phone number is required", http.StatusBadRequest)
+		return
+	}
+	if req.DeviceUUID == "" {
+		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: device UUID is required", http.StatusBadRequest)
+		return
+	}
+	if req.OTP == "" {
+		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: OTP is required", http.StatusBadRequest)
+		return
+	}
+	formattedPhone := utils.FormatPhoneNumber(req.Phone)
+	if formattedPhone == "" || len(formattedPhone) < 10 {
+		utils.BaseResponseMaker(nil, w, "INVALID_PHONE_NUMBER: please provide a valid phone number", http.StatusBadRequest)
+		return
+	}
+	if len(req.OTP) != 6 {
+		utils.BaseResponseMaker(nil, w, "INVALID_OTP: OTP must be exactly 6 digits", http.StatusBadRequest)
+		return
+	}
+	for _, char := range req.OTP {
+		if char < '0' || char > '9' {
+			utils.BaseResponseMaker(nil, w, "INVALID_OTP: OTP must contain only digits", http.StatusBadRequest)
+			return
+		}
+	}
+	if len(req.DeviceUUID) < 10 {
+		utils.BaseResponseMaker(nil, w, "INVALID_DEVICE_UUID: device UUID appears to be invalid", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := h.Application.VerifyForgetPinOtp(r.Context(), req.ResetSessionID, formattedPhone, req.DeviceUUID, req.OTP)
+	if err != nil {
+		status := map[string]int{
+			"PIN_RESET_SESSION_NOT_FOUND": http.StatusNotFound,
+			"PIN_RESET_SESSION_EXPIRED":   http.StatusGone,
+			"PIN_RESET_SESSION_INVALID":   http.StatusBadRequest,
+			"PIN_RESET_TOO_MANY_ATTEMPTS": http.StatusTooManyRequests,
+			"PIN_RESET_OTP_INVALID":       http.StatusBadRequest,
+			"PIN_RESET_FAILED":            http.StatusInternalServerError,
+		}[err.Error()]
+		if status == 0 {
+			status = http.StatusInternalServerError
+		}
+		utils.BaseResponseMaker(nil, w, err.Error(), status)
+		return
+	}
+
+	responseMap, _ := utils.StructToMap(resp)
+	utils.BaseResponseMaker(responseMap, w, "OTP verified for PIN reset", http.StatusOK)
 }
 
 type ResetPinRequest struct {
@@ -763,39 +852,17 @@ func (h UsersAdapter) validateResetPinRequest(req ResetPinRequest) error {
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: new PIN is required")
 	}
 
-	// Validate phone number format
-	formattedPhone := utils.FormatPhoneNumber(req.Phone)
-	if formattedPhone == "" || len(formattedPhone) < 10 {
-		return fmt.Errorf("INVALID_PHONE_NUMBER: please provide a valid phone number")
+	if err := validatePhone(req.Phone); err != nil {
+		return err
 	}
-
-	// Validate OTP format (6 digits)
-	if len(req.OTP) != 6 {
-		return fmt.Errorf("INVALID_OTP: OTP must be exactly 6 digits")
+	if err := validateOTP(req.OTP); err != nil {
+		return err
 	}
-
-	// Validate OTP contains only digits
-	for _, char := range req.OTP {
-		if char < '0' || char > '9' {
-			return fmt.Errorf("INVALID_OTP: OTP must contain only digits")
-		}
+	if err := validatePin(req.NewPin); err != nil {
+		return err
 	}
-
-	// Validate new PIN format (6 digits)
-	if len(req.NewPin) != 6 {
-		return fmt.Errorf("INVALID_PIN: PIN must be exactly 6 digits")
-	}
-
-	// Validate new PIN contains only digits
-	for _, char := range req.NewPin {
-		if char < '0' || char > '9' {
-			return fmt.Errorf("INVALID_PIN: PIN must contain only digits")
-		}
-	}
-
-	// Validate device UUID format (basic validation)
-	if len(req.DeviceUUID) < 10 {
-		return fmt.Errorf("INVALID_DEVICE_UUID: device UUID appears to be invalid")
+	if err := validateDeviceUUID(req.DeviceUUID); err != nil {
+		return err
 	}
 
 	return nil
@@ -824,8 +891,7 @@ func (h UsersAdapter) CompleteRegistration(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// First verify the OTP
-	_, err := h.Application.VerifyOtp(r.Context(), req.RegistrationID, req.OTP, &req.DeviceUUID, req.Platform, "registration")
+	_, err := h.Application.VerifyOtp(r.Context(), req.RegistrationID, req.OTP, req.DeviceUUID, req.Platform, "registration")
 	if err != nil {
 		status := http.StatusBadRequest
 		switch err.Error() {
@@ -885,22 +951,54 @@ func (h UsersAdapter) validateCompleteRegistrationRequest(req CompleteRegistrati
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: OTP is required")
 	}
 
-	// Validate phone number format
-	formattedPhone := utils.FormatPhoneNumber(req.Phone)
-	if formattedPhone == "" || len(formattedPhone) < 10 {
-		return fmt.Errorf("INVALID_PHONE_NUMBER: please provide a valid phone number")
+	if err := validatePhone(req.Phone); err != nil {
+		return err
 	}
-
-	// Validate platform
 	validPlatforms := map[string]bool{"android": true, "ios": true, "web": true}
 	if !validPlatforms[req.Platform] {
-		return fmt.Errorf("INVALID_PLATFORM: platform must be android, ios, or web")
+		return fmt.Errorf(errInvalidPlatform + ": platform must be android, ios, or web")
 	}
-
-	// Validate device UUID format (basic validation)
-	if len(req.DeviceUUID) < 10 {
-		return fmt.Errorf("INVALID_DEVICE_UUID: device UUID appears to be invalid")
+	if err := validateDeviceUUID(req.DeviceUUID); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+type ResetPinWithTokenRequest struct {
+	ResetSessionID string `json:"reset_session_id" validate:"required"`
+	Phone          string `json:"phone" validate:"required"`
+	DeviceUUID     string `json:"device_uuid" validate:"required"`
+	NewPin         string `json:"new_pin" validate:"required,min=6,max=6"`
+}
+
+func (h UsersAdapter) ResetPinWithToken(w http.ResponseWriter, r *http.Request) {
+	var req ResetPinWithTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.BaseResponseMaker(nil, w, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
+	if req.ResetSessionID == "" || req.Phone == "" || req.DeviceUUID == "" || req.NewPin == "" {
+		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: all fields are required", http.StatusBadRequest)
+		return
+	}
+	if len(req.NewPin) != 6 {
+		utils.BaseResponseMaker(nil, w, "INVALID_PIN: PIN must be exactly 6 digits", http.StatusBadRequest)
+		return
+	}
+	for _, char := range req.NewPin {
+		if char < '0' || char > '9' {
+			utils.BaseResponseMaker(nil, w, "INVALID_PIN: PIN must contain only digits", http.StatusBadRequest)
+			return
+		}
+	}
+
+	resp, err := h.Application.ResetPinWithToken(r.Context(), req.ResetSessionID, req.Phone, req.DeviceUUID, req.NewPin)
+	if err != nil {
+		utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	responseMap, _ := utils.StructToMap(resp)
+	utils.BaseResponseMaker(responseMap, w, "PIN reset successfully", http.StatusOK)
 }

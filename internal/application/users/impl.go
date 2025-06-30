@@ -17,6 +17,68 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+// Constants for magic numbers and error messages
+const (
+	pinLength           = 6
+	otpLength           = 6
+	minPhoneLength      = 10
+	minDeviceUUIDLength = 10
+)
+
+var (
+	errMissingDeviceUUID  = fmt.Errorf("MISSING_DEVICE_UUID")
+	errMissingPlatform    = fmt.Errorf("MISSING_PLATFORM")
+	errInvalidPhoneNumber = fmt.Errorf("INVALID_PHONE_NUMBER")
+	errInvalidDeviceUUID  = fmt.Errorf("INVALID_DEVICE_UUID")
+	errInvalidPlatform    = fmt.Errorf("INVALID_PLATFORM")
+	errInvalidPin         = fmt.Errorf("INVALID_PIN")
+	errInvalidOTP         = fmt.Errorf("INVALID_OTP")
+	errInvalidInputParams = fmt.Errorf("INVALID_INPUT_PARAMETERS")
+)
+
+// validatePin checks if the pin is valid according to business rules
+func validatePin(pin string) error {
+	if len(pin) != pinLength {
+		return errInvalidPin
+	}
+	for _, c := range pin {
+		if c < '0' || c > '9' {
+			return errInvalidPin
+		}
+	}
+	return nil
+}
+
+// validateOTP checks if the OTP is valid according to business rules
+func validateOTP(otp string) error {
+	if len(otp) != otpLength {
+		return errInvalidOTP
+	}
+	for _, c := range otp {
+		if c < '0' || c > '9' {
+			return errInvalidOTP
+		}
+	}
+	return nil
+}
+
+// validatePhone checks if the phone number is valid
+func validatePhone(phone string) error {
+	formattedPhone := utils.FormatPhoneNumber(phone)
+	if formattedPhone == "" || len(formattedPhone) < minPhoneLength {
+		return errInvalidPhoneNumber
+	}
+	return nil
+}
+
+// validateDeviceUUID checks if the device UUID is valid
+func validateDeviceUUID(deviceUUID string) error {
+	if len(deviceUUID) < minDeviceUUIDLength {
+		return errInvalidDeviceUUID
+	}
+	return nil
+}
+
 // Utility function to convert map[string]interface{} to bson.M
 func mapToBsonM(m map[string]interface{}) bson.M {
 	bsonMap := bson.M{}
@@ -139,7 +201,7 @@ func (h UsersHandler) handleUnverifiedUser(ctx context.Context, userData *localM
 		UserRealm:  string(userData.Realm),
 		ExpiresAt:  time.Now().Add(expirationTime),
 		CreatedAt:  time.Now(),
-		DeviceUUID: &userData.Device.DeviceUUID,
+		DeviceUUID: userData.Device.DeviceUUID,
 	}
 
 	// Store OTP in database
@@ -278,7 +340,6 @@ func (h UsersHandler) ChangePin(ctx context.Context, req userPort.ChangePinReque
 }
 
 func (h UsersHandler) DeviceLookup(ctx context.Context, header map[string]interface{}) (*dto.DeviceLookupResponse, error) {
-	// Extract device information from headers
 	deviceUUID, ok := header["device_uuid"].(string)
 	if !ok || deviceUUID == "" {
 		return nil, fmt.Errorf("MISSING_DEVICE_UUID")
@@ -294,47 +355,46 @@ func (h UsersHandler) DeviceLookup(ctx context.Context, header map[string]interf
 		appVersion = ""
 	}
 
-	// Call domain service for device lookup
-	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion)
+	sourceApp, ok := header["source_app"].(string)
+	if !ok {
+		sourceApp = "" // Default to empty string if not provided
+	}
+
+	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 }
 
-func (h UsersHandler) VerifyOtp(ctx context.Context, userID, otp string, deviceUUID *string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
-	// Validate context
+func (h UsersHandler) VerifyOtp(ctx context.Context, userID, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("context error: %w", err)
 	}
 
-	// Validate input parameters
 	if err := h.validateOtpInputs(userID, otp, userRealm, otpFor); err != nil {
 		return nil, err
 	}
 
-	// Clear OTP from memory after function execution
 	defer func() { otp = "" }()
+	encOtp, _, err := utils.LocalEncryptPassword(otp, "otp", "", "", h.vaultConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt OTP: %w", err)
+	}
 
-	// Call domain service for OTP verification
-	return h.userService.VerifyOtp(ctx, userID, otp, deviceUUID, userRealm, otpFor)
+	return h.userService.VerifyOtp(ctx, userID, encOtp, deviceUUID, userRealm, otpFor)
 }
 
-func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, otp string, deviceUUID *string, userRealm, otpFor string) (*dto.SetPinResponse, error) {
-	// Validate context
+func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("context error: %w", err)
 	}
 
-	// Validate input parameters
-	if err := h.validateSetPinInputs(userID, newPin, otp, userRealm, otpFor); err != nil {
+	if err := h.validateSetPinInputs(userID, newPin, userRealm); err != nil {
 		return nil, err
 	}
 
-	// Clear sensitive data from memory after function execution
 	defer func() {
 		newPin = ""
-		otp = ""
 	}()
 
-	// Call domain service for PIN setting
-	return h.userService.SetPin(ctx, userID, newPin, otp, deviceUUID, userRealm, otpFor)
+	return h.userService.SetPin(ctx, userID, newPin, deviceUUID, userRealm)
 }
 
 // validateOtpInputs validates the input parameters for OTP verification
@@ -397,18 +457,15 @@ func (h UsersHandler) validateRegistrationInputs(phone, deviceUUID, platform str
 }
 
 func (h UsersHandler) Login(ctx context.Context, phone, deviceUUID, pin string) (*dto.LoginResponse, error) {
-	// Validate input parameters
 	if err := h.validateLoginInputs(phone, deviceUUID, pin); err != nil {
 		return nil, err
 	}
 
-	// Format phone number
 	formattedPhone := utils.FormatPhoneNumber(phone)
 	if formattedPhone == "" {
 		return nil, fmt.Errorf("INVALID_PHONE_NUMBER")
 	}
 
-	// Call domain service for login
 	loginResult, err := h.userService.Login(ctx, formattedPhone, deviceUUID, pin)
 	if err != nil {
 		return nil, err
@@ -417,7 +474,6 @@ func (h UsersHandler) Login(ctx context.Context, phone, deviceUUID, pin string) 
 	return loginResult, nil
 }
 
-// validateLoginInputs validates the login input parameters
 func (h UsersHandler) validateLoginInputs(phone, deviceUUID, pin string) error {
 	if phone == "" {
 		return fmt.Errorf("INVALID_INPUT: phone number is required")
@@ -469,21 +525,16 @@ func (h UsersHandler) ResetPin(ctx context.Context, resetSessionID, phone, devic
 }
 
 // validateSetPinInputs validates the set PIN input parameters
-func (h UsersHandler) validateSetPinInputs(userID, newPin, otp, userRealm, otpFor string) error {
+func (h UsersHandler) validateSetPinInputs(userID, newPin, userRealm string) error {
 	if userID == "" {
 		return fmt.Errorf("INVALID_INPUT_PARAMETERS: user ID is required")
 	}
 	if newPin == "" {
 		return fmt.Errorf("INVALID_INPUT_PARAMETERS: new PIN is required")
 	}
-	if otp == "" {
-		return fmt.Errorf("INVALID_INPUT_PARAMETERS: OTP is required")
-	}
+
 	if userRealm == "" {
 		return fmt.Errorf("INVALID_INPUT_PARAMETERS: user realm is required")
-	}
-	if otpFor == "" {
-		return fmt.Errorf("INVALID_INPUT_PARAMETERS: OTP purpose is required")
 	}
 
 	// Validate PIN format (6 digits)
@@ -498,17 +549,13 @@ func (h UsersHandler) validateSetPinInputs(userID, newPin, otp, userRealm, otpFo
 		}
 	}
 
-	// Validate OTP format (6 digits)
-	if len(otp) != 6 {
-		return fmt.Errorf("INVALID_OTP: OTP must be exactly 6 digits")
-	}
-
-	// Validate OTP contains only digits
-	for _, char := range otp {
-		if char < '0' || char > '9' {
-			return fmt.Errorf("INVALID_OTP: OTP must contain only digits")
-		}
-	}
-
 	return nil
+}
+
+func (h UsersHandler) VerifyForgetPinOtp(ctx context.Context, resetSessionID, phone, deviceUUID, otp string) (*dto.VerifyOtpResponse, error) {
+	return h.userService.VerifyForgetPinOtp(ctx, resetSessionID, phone, deviceUUID, otp)
+}
+
+func (h UsersHandler) ResetPinWithToken(ctx context.Context, resetSessionID, phone, deviceUUID, newPin string) (*dto.ResetPinResponse, error) {
+	return h.userService.ResetPinWithToken(ctx, resetSessionID, phone, deviceUUID, newPin)
 }

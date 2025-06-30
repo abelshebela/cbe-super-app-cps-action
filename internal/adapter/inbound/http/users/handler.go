@@ -19,8 +19,6 @@ type UsersAdapter struct {
 	config      *config.VaultConfig
 }
 
-// InitUsersAdapter initializes and returns a UsersAdapter as an InBound interface.
-// InitUsersAdapter initializes and returns a UsersAdapter as an InBound interface.
 func InitUsersAdapter(app users_application.ApplicationService, logger utils.Logger, config *config.VaultConfig) users_inbound.InBound {
 	return UsersAdapter{
 		Application: app,
@@ -115,14 +113,30 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 		},
 		{
 			Method:      http.MethodPost,
-			Path:        "/api/v1/cbesuperapp/user/forget-pin/send-otp",
+			Path:        "/api/v1/cbesuperapp/user/forget-pin",
 			Handler:     handler.ForgetPinSendOtp,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
 		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/user/forget-pin/verify-otp",
+			Handler: handler.VerifyForgetPinOtp,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/user/forget-pin/reset",
+			Handler: handler.ResetPin,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:      http.MethodPost,
-			Path:        "/api/v1/cbesuperapp/user/forget-pin/reset",
-			Handler:     handler.ResetPin,
+			Path:        "/api/v1/cbesuperapp/user/reset-pin-with-token",
+			Handler:     handler.ResetPinWithToken,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
 		{
@@ -130,6 +144,19 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 			Path:        "/api/v1/cbesuperapp/user/device-lookup",
 			Handler:     handler.DeviceLookup,
 			Middlewares: []func(next http.Handler) http.Handler{},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/user/check-pin",
+			Handler: handler.CheckPin,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/api/v1/cbesuperapp/user/healthcheck",
+			Handler: handler.Healthcheck,
 		},
 	}
 
