@@ -1,7 +1,8 @@
+// Package unlink implements the use case or business logic for the unlink functionality.
 package unlink
 
 import (
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
+	unlink_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
 )
 
 type ApplicationService interface {
@@ -10,10 +11,10 @@ type ApplicationService interface {
 }
 
 type UnlinkHandler struct {
-	service *domain.Service
+	service *unlink_domain.Service
 }
 
-func NewUnlinkHandler(service *domain.Service) ApplicationService {
+func NewUnlinkHandler(service *unlink_domain.Service) ApplicationService {
 	return &UnlinkHandler{service: service}
 }
 

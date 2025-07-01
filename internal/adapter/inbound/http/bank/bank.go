@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils/adapters/inbound"
+	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bank"

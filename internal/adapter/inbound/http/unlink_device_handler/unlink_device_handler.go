@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils/adapters/inbound"
+	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/context"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
 
@@ -29,13 +29,13 @@ const (
 )
 
 type UnlinkHandler struct {
-	unlinkService unlink.ApplicationService
+	unlinkApp unlink.ApplicationService
 	logger        utils.Logger
 }
 
 func NewHTTPUnlinkHandler(service unlink.ApplicationService, logger utils.Logger) inbound.UnlinkPortHandler {
 	return &UnlinkHandler{
-		unlinkService: service,
+		unlinkApp: service,
 		logger:        logger,
 	}
 }
@@ -103,7 +103,7 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	department := ctx.Department
 
 	// calling the application service
-	if err := h.unlinkService.UnlinkDevice(request.UserCode, userID, branchCode, department); err != nil {
+	if err := h.unlinkApp.UnlinkDevice(request.UserCode, userID, branchCode, department); err != nil {
 		h.logger.Errorf("[UnlinkDevice] service error: %v", err)
 		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(err.Error(), NONE))
 		return
@@ -126,10 +126,10 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, INVALID_INPUT))
 		return
 	}
-	ctx := util.ExtractUserContext(r)
+	ctx := ctx_util.ExtractUserContext(r)
 	userID := ctx.UserID
 
-	if err := h.unlinkService.ApproveOrDecline(request.UserCode, request.Decision, request.Reason, userID); err != nil {
+	if err := h.unlinkApp.ApproveOrDecline(request.UserCode, request.Decision, request.Reason, userID); err != nil {
 		h.logger.Errorf("[ApproveUnlinkDevice] service error: %v", err)
 		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(err.Error(), NONE))
 		return

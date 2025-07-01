@@ -1,5 +1,5 @@
-// Package inbound contains utility methods for context related functionalities.
-package inbound
+// Package context contains utility methods for context related functionalities.
+package context
 
 import (
 	"net/http"

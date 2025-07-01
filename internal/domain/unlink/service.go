@@ -1,3 +1,4 @@
+// Package unlink provides the implementation for the service for unlink functionality.
 package unlink
 
 type Service struct {
