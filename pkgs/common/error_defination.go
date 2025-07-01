@@ -16,7 +16,6 @@ type ErrorDefinitions struct {
 	OTP         ErrorGroup
 	File        ErrorGroup
 	Branch      ErrorGroup
-	Unlink      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -408,10 +407,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "BRN_006",
 			Message: "Branch ID is required.",
 		},
-	},
-	Unlink: ErrorGroup{
-		"DEVICE_UNLINK_SUCCESS":   {Code: "SUC_001", Message: "Device unlink request processed successfully"},
-		"UNLINK_DECISION_SUCCESS": {Code: "SUC_002", Message: "Unlink decision processed successfully"},
 	},
 }
 
