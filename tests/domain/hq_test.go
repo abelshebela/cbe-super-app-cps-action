@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	hqdomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
+	hqdomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 	actionmock "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action/action_manual_mock"
 	hqmock "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/hq"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -89,8 +89,8 @@ func TestService_UpdateBlockTimeRequest(t *testing.T) {
 				BlockTime: 3600, // 1 hour in seconds
 			},
 			mockHQ: hq.HQ{
-				ID:        "test-id",
-				
+				ID: "test-id",
+
 				Name:      "Test HQ",
 				BlockTime: 1800, // 30 minutes in seconds
 			},
@@ -158,8 +158,8 @@ func TestService_UpdateArchiveTimeRequest(t *testing.T) {
 				ArchiveTime: 86400, // 24 hours in seconds
 			},
 			mockHQ: hq.HQ{
-				ID:          "test-id",
-				
+				ID: "test-id",
+
 				Name:        "Test HQ",
 				ArchiveTime: 43200, // 12 hours in seconds
 			},
@@ -231,8 +231,8 @@ func TestService_UpdateBlockTime(t *testing.T) {
 				ActionCode:   "test-action",
 				ActionStatus: action.ActionPending,
 				CurrentAction: hq.HQ{
-					ID:        "test-id",
-					
+					ID: "test-id",
+
 					Name:      "Test HQ",
 					BlockTime: 3600,
 				},
@@ -320,8 +320,8 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 				ActionCode:   "test-action",
 				ActionStatus: action.ActionPending,
 				CurrentAction: hq.HQ{
-					ID:          "test-id",
-					
+					ID: "test-id",
+
 					Name:        "Test HQ",
 					ArchiveTime: 86400,
 				},

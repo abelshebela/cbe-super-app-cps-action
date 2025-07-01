@@ -1,9 +1,11 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"mime/multipart"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -18,6 +20,29 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.uber.org/mock/gomock"
 )
+
+func createMockFileHeader(filename string, content []byte, size int64) *multipart.FileHeader {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Simulate file field
+	part, _ := writer.CreateFormFile("file", filename)
+	part.Write(content)
+	writer.Close()
+
+	// Create fake request
+	req := httptest.NewRequest("POST", "/", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Parse and extract FileHeader
+	req.ParseMultipartForm(10 << 20)
+	fileHeader := req.MultipartForm.File["file"][0]
+
+	// Override the size with the parameter
+	fileHeader.Size = size
+
+	return fileHeader
+}
 
 // MockLogger implements utils.Logger interface for testing
 type MockLogger struct{}
@@ -36,6 +61,14 @@ func (l *MockLogger) Sync() error                               { return nil }
 
 // MockMinioClient implements config.MinioClientInterface for testing
 type MockMinioClient struct{}
+
+// SaveObjectN implements config.MinioClientInterface.
+func (m *MockMinioClient) SaveObjectN(ctx context.Context, obj config.SaveObjectBodyN) (*minio.UploadInfo, error) {
+	return &minio.UploadInfo{
+		Bucket: "test-bucket",
+		Key:    "test-key",
+	}, nil
+}
 
 func (m *MockMinioClient) BucketExist(ctx context.Context, bucketName string) (bool, error) {
 	return true, nil
@@ -84,10 +117,7 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 
 	testCreateBankRequest := dto.CreateBankRequest{
 		Name: "TestBank",
-		Logo: &multipart.FileHeader{
-			Filename: "test-logo.png",
-			Size:     1024,
-		},
+		Logo: createMockFileHeader("test-logo.png", []byte("test-logo"), 1024),
 		Code: "TB001",
 		BIC:  "TESTBIC123",
 	}

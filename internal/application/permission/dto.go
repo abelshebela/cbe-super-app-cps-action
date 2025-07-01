@@ -3,9 +3,10 @@ package permission
 import (
 	"github.com/go-ozzo/ozzo-validation/v4"
 )
+
 type CreatePermissionGroupRequest struct {
-	GroupName             string   `json:"group_name"`
-	Role                  string   `json:"role"`
+	GroupName               string   `json:"group_name"`
+	Role                    string   `json:"role"`
 	PermissionCategoryLists []string `json:"permission_category_list"`
 }
 

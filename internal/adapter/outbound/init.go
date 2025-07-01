@@ -1510,7 +1510,7 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction s
 		})
 		return service.UpdateServiceDetailsResponse{}, err
 	}
-	
+
 	serviceFilter := bson.M{
 		"action_code": cpsActionPtr.ActionCode,
 	}
@@ -1781,7 +1781,6 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 	return result, nil
 }
 
-
 func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error) {
 	ruleModel, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
 	if err != nil || ruleModel == nil {
@@ -1790,7 +1789,7 @@ func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.Pas
 
 	rule := &action.PasswordRule{
 		ID:             ruleModel.ID,
-		PasswordID:     ruleModel.PasswordId, 
+		PasswordID:     ruleModel.PasswordId,
 		Name:           ruleModel.Name,
 		MinLength:      ruleModel.MinLength,
 		MaxLength:      ruleModel.MaxLength,

@@ -6,7 +6,7 @@ type Service struct {
 
 func NewUnlinkService(repo Repository) *Service {
 	return &Service{
-		repository:      repo,
+		repository: repo,
 	}
 }
 

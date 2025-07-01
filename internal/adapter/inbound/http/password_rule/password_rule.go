@@ -225,11 +225,9 @@ func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http
 	res.SendJSON()
 }
 
-
 type CheckPasswordDTO struct {
 	Password string `json:"password"`
 }
-
 
 func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *http.Request) {
 	var req CheckPasswordDTO

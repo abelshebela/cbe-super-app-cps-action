@@ -48,7 +48,7 @@ func (f FeedbackHTTPHandler) GetFeedbacks(w http.ResponseWriter, r *http.Request
 		Search:  search,
 		Filters: filter,
 	}
-	
+
 	ctx := r.Context()
 	feedbacks, err := f.feedbackService.GetFeedbacks(ctx, filterParams)
 	if err != nil {

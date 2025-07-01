@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount,authMiddleware middleware.AuthMiddleware) {
+func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/api/v1/cbesuperapp/cps_action/fayda_account_disable", func(r chi.Router) {
 		routes := []route.Route{
 			{

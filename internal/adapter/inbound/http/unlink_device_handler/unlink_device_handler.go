@@ -6,9 +6,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-    constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 type UnlinkHandler struct {
@@ -30,7 +30,7 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message":  "Invalid JSON payload"},
+			Data:           map[string]string{"message": "Invalid JSON payload"},
 		}
 		resp.SendJSON()
 		return
@@ -41,7 +41,7 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message": "Invalid input provided"},
+			Data:           map[string]string{"message": "Invalid input provided"},
 		}
 		resp.SendJSON()
 		return
@@ -57,8 +57,8 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
 			Data: map[string]string{
-			"message": err.Error(),
-		},
+				"message": err.Error(),
+			},
 		}
 		resp.SendJSON()
 		return
@@ -82,7 +82,7 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message": "Invalid JSON payload"},
+			Data:           map[string]string{"message": "Invalid JSON payload"},
 		}
 		resp.SendJSON()
 		return
@@ -93,7 +93,7 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message": "Invalid input provided"},
+			Data:           map[string]string{"message": "Invalid input provided"},
 		}
 		resp.SendJSON()
 		return
@@ -107,8 +107,8 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
 			Data: map[string]string{
-			"message": err.Error(),
-		},
+				"message": err.Error(),
+			},
 		}
 		resp.SendJSON()
 		return

@@ -13,8 +13,8 @@ import (
 
 type Service interface {
 	GetAccountValidation(ctx context.Context, id string) (ValidationRule, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string,PhoneNumber string , FullName string) (string, error)
-	UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string,PhoneNumber string , FullName string) error
+	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error)
+	UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string, PhoneNumber string, FullName string) error
 }
 
 type ServiceStore struct {
@@ -46,7 +46,7 @@ func (s *ServiceStore) GetAccountValidation(ctx context.Context, id string) (Val
 	return rule, nil
 }
 
-func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string,PhoneNumber string , FullName string) (string, error) {
+func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error) {
 	originalRule, err := s.repository.GetAccountValidationByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("failed to fetch account validation: %v", err)
@@ -84,7 +84,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 		},
 		Checker:         action.User{},
 		Department:      update.ServiceID,
-		UniqueId: id,
+		UniqueId:        id,
 		ActionType:      action.ActionUpdate,
 		RequestAction:   action.RequestUpdateAccountValidation,
 		ActionStatus:    action.ActionPending,
@@ -104,7 +104,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 	return createdAction.ActionCode, nil
 }
 
-func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string,PhoneNumber string , FullName string) error {
+func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string, PhoneNumber string, FullName string) error {
 	if actionID == "" {
 		s.logger.Errorf("action ID is empty")
 		return errors.New("action ID cannot be empty")

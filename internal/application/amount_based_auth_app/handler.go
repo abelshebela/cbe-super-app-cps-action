@@ -17,7 +17,6 @@ type Handler struct {
 	service *amount_based_auth_domain.Service
 }
 
-
 func AmountBasedAuthHandler(service *amount_based_auth_domain.Service) ApplicationService {
 	return &Handler{
 		service: service,

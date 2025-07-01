@@ -14,7 +14,7 @@ type Repo interface {
 	CreateAction(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error)
 	CreateColor(ctx context.Context, color string, action entities.CPSAction) (*entities.CPSAction, error)
 	ListAllColor(ctx context.Context) ([]*entities.Color, error)
-    GetByIDColor(ctx context.Context, id string) (*entities.Color, error)
-    UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error)
+	GetByIDColor(ctx context.Context, id string) (*entities.Color, error)
+	UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error)
 	ApproveAction(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error)
 }

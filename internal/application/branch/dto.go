@@ -1,8 +1,6 @@
 package branch
 
-import (
-
-)
+import ()
 
 type PhoneNumber struct {
 	Code   string `json:"country_code"`
@@ -23,24 +21,24 @@ type FetchLinkedAccountRequest struct {
 	PhoneNumber   string `json:"phone_number"`
 }
 
-
 type VerifyOTPAndLinkAccountRequest struct {
-    OTPCode        string `json:"otpCode"`
-    CustomerNumber string `json:"customer_number"`
-    AccountNo      string `json:"accountNo"`
-    AccountType    string `json:"accountType"`
+	OTPCode        string `json:"otpCode"`
+	CustomerNumber string `json:"customer_number"`
+	AccountNo      string `json:"accountNo"`
+	AccountType    string `json:"accountType"`
 }
+
 // ...existing code...
 
 type VerifyOTPAndCreateBPSRequest struct {
-    OTPCode   string `json:"otpCode"`
-    AccountNo string `json:"accountNo"`
+	OTPCode   string `json:"otpCode"`
+	AccountNo string `json:"accountNo"`
 }
 
 // ...existing code...
 
 type LinkAccountResponse struct {
-    Message string `json:"message"`
+	Message string `json:"message"`
 }
 
 // ...existing code...
@@ -101,4 +99,3 @@ type Filter struct {
 
 	Filters string `json:"filters"`
 }
-

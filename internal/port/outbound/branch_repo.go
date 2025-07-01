@@ -12,6 +12,6 @@ type BranchOutboundPort interface {
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error)
-    DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) (*entities.CPSAction, error)
+	DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) (*entities.CPSAction, error)
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 }

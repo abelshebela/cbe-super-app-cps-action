@@ -239,18 +239,18 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsAction := entities.CPSAction{
-		MakerID:            user_code,
-		MakerName:          full_name,
-		MakerPhoneNumber:   phone_number,
-		Department:         department,
-		ActionStatus:       entities.ActionPending,
-		ActionType:         entities.ActionCreate,
-		CurrentAction:      map[string]interface{}{"color": req.Color},
-		RequestAction:      entities.RequestBudgetColor,
-		MakerActionTime:    time.Now(),
+		MakerID:          user_code,
+		MakerName:        full_name,
+		MakerPhoneNumber: phone_number,
+		Department:       department,
+		ActionStatus:     entities.ActionPending,
+		ActionType:       entities.ActionCreate,
+		CurrentAction:    map[string]interface{}{"color": req.Color},
+		RequestAction:    entities.RequestBudgetColor,
+		MakerActionTime:  time.Now(),
 	}
 
-	action, err := h.budgetService.UpdateColor(r.Context(),id, req.Color, cpsAction)
+	action, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -274,15 +274,15 @@ func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Req
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsAction := entities.CPSAction{
-		ActionCode:           code,
-		CheckerID:            user_code,
-		CheckerName:          full_name,
-		CheckerPhoneNumber:   phone_number,
-		Department:           department,
-		CheckerActionTime:    time.Now(),
+		ActionCode:         code,
+		CheckerID:          user_code,
+		CheckerName:        full_name,
+		CheckerPhoneNumber: phone_number,
+		Department:         department,
+		CheckerActionTime:  time.Now(),
 	}
 
-	action, err := h.budgetService.ApproveAction(r.Context(), cpsAction);
+	action, err := h.budgetService.ApproveAction(r.Context(), cpsAction)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

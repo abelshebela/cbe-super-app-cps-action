@@ -1,11 +1,10 @@
 package permission
 
 import (
-	 domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
-
 
 type PermissionService interface {
 	CreatePermissionGroup(groupName, role string, permissionCategoryIDs []string, cpsAction entities.CPSAction) error
@@ -13,10 +12,9 @@ type PermissionService interface {
 }
 
 type PermissionHandler struct {
-    service *domain.Service
-	logger utils.Logger
+	service *domain.Service
+	logger  utils.Logger
 }
-
 
 func InitPermissionHandler(service *domain.Service, logger utils.Logger) PermissionService {
 	return &PermissionHandler{
@@ -40,5 +38,5 @@ func (h *PermissionHandler) ApprovePermissionGroup(actionCode string, action ent
 		h.logger.Errorf("Failed to approve permission group: %v", err)
 		return err
 	}
-	return nil	
+	return nil
 }

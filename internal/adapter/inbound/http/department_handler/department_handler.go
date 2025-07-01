@@ -2,16 +2,16 @@ package department_handler
 
 import (
 	"encoding/json"
-	"net/http"
 	"errors"
 	"log"
+	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/department"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
-	 constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -35,7 +35,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message":  "Invalid JSON payload"},
+			Data:           map[string]string{"message": "Invalid JSON payload"},
 		}
 		resp.SendJSON()
 		return
@@ -46,7 +46,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		resp := common.Response[any]{
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
-			Data: map[string]string{"message": "Invalid input provided"},
+			Data:           map[string]string{"message": "Invalid input provided"},
 		}
 		resp.SendJSON()
 		return
@@ -69,13 +69,13 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:            userID,
-		MakerName:          fullName,
-		MakerPhoneNumber:   phoneNumber,
-		Department:         department,
-		ActionStatus:       entities.ActionPending,
-		ActionType:         entities.ActionCreate,
-		RequestAction:      entities.RequestDepartment,
+		MakerID:          userID,
+		MakerName:        fullName,
+		MakerPhoneNumber: phoneNumber,
+		Department:       department,
+		ActionStatus:     entities.ActionPending,
+		ActionType:       entities.ActionCreate,
+		RequestAction:    entities.RequestDepartment,
 	}
 
 	if err := h.departmentService.CreateDepartment(request.Department, request.PortalCards, cpsAction); err != nil {
@@ -84,8 +84,8 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 			ResponseWriter: w,
 			Status:         http.StatusBadRequest,
 			Data: map[string]string{
-			"message": err.Error(),
-		},
+				"message": err.Error(),
+			},
 		}
 		resp.SendJSON()
 		return
@@ -104,7 +104,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 
 func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
-   
+
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
@@ -228,7 +228,6 @@ func (h *DepartmentHandler) approveCreateAction(action *entities.CPSAction) erro
 
 	return h.departmentService.CreateDepartment(department, portalCards, *action)
 }
-
 
 func (h *DepartmentHandler) approveUpdateAction(action *entities.CPSAction) error {
 	data, ok := action.CurrentAction.(map[string]interface{})

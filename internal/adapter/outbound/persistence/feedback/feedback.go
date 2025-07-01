@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/feedback"
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
@@ -89,7 +88,6 @@ func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.
 		Total:     total,
 	}, nil
 }
-
 
 func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error) {
 	feedbackID, err := bson.ObjectIDFromHex(id)
