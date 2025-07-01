@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/hq"
 
-	models "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	models "cbe-super-app-cps-action/internal/adapter/outbound/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

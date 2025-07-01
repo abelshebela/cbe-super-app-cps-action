@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/mocks"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/domain/customer/entity"
+	"cbe-super-app-cps-action/internal/domain/customer/mocks"
+	"cbe-super-app-cps-action/utils"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"

@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"cbe-super-app-cps-action/internal/domain/wallet/entity"
+	constant "cbe-super-app-cps-action/utils"
 )
 
 type Repository interface {

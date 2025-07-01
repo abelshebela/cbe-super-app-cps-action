@@ -3,8 +3,8 @@ package outbound
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback/entity"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/domain/feedback/entity"
+	constant "cbe-super-app-cps-action/utils"
 )
 
 type FeedbackRepository interface {

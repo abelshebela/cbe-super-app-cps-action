@@ -10,12 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
+	"cbe-super-app-cps-action/internal/domain/budget"
+	"cbe-super-app-cps-action/internal/domain/budget/entities"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "cbe-super-app-cps-action/utils"
 )
 
 type BudgetPersistence struct {

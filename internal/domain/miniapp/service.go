@@ -6,7 +6,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	domain "cbe-super-app-cps-action/internal/domain/action"
 )
 
 func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, makerId string) (string, error) {

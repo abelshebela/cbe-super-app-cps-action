@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
 )
 
 type BulkCustomerRepo interface {

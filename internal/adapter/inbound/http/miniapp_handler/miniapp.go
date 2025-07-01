@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	"cbe-super-app-cps-action/internal/application/dto"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/pkgs/utils"
 )
 
 func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {

@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/service/dto"
-	serviceApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service"
-	cpsuser "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	"cbe-super-app-cps-action/internal/adapter/inbound/http/service/dto"
+	serviceApp "cbe-super-app-cps-action/internal/application/service"
+	cpsuser "cbe-super-app-cps-action/internal/domain/cps_user"
+	"cbe-super-app-cps-action/internal/port/inbound"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

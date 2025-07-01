@@ -3,9 +3,9 @@ package avatar
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	dto "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	dto "cbe-super-app-cps-action/internal/domain/avatar"
+	constant "cbe-super-app-cps-action/utils"
 )
 
 type AvatarOutbound interface {

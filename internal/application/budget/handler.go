@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	service "cbe-super-app-cps-action/internal/domain/budget"
+	"cbe-super-app-cps-action/internal/domain/budget/entities"
+	constant "cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

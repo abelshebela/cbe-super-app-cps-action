@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
+	portalCardDomain "cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -17,17 +17,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	bpscalls "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	passwordRuleOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
-	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
-	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	bpscalls "cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	infra_mongo "cbe-super-app-cps-action/internal/adapter/outbound/mongo"
+	"cbe-super-app-cps-action/internal/domain/action"
+	domain "cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/service"
+	serviceDomain "cbe-super-app-cps-action/internal/domain/service"
+	passwordRuleOutbound "cbe-super-app-cps-action/internal/port/outbound"
+	userOutbound "cbe-super-app-cps-action/internal/port/outbound"
+	outbound "cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	constant "cbe-super-app-cps-action/utils"
 )
 
 type outboundStore struct {

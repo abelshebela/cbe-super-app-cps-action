@@ -1,7 +1,7 @@
 package department
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	"cbe-super-app-cps-action/internal/domain/department/entities"
 )
 
 type CPSActionRepository interface {

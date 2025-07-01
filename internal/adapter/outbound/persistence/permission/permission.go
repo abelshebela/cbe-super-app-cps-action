@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	repository "cbe-super-app-cps-action/internal/domain/permission"
+	"cbe-super-app-cps-action/internal/domain/permission/entities"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

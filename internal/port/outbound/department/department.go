@@ -1,6 +1,6 @@
 package department
 
-import "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+import "cbe-super-app-cps-action/internal/domain/department/entities"
 
 type CPSActionRepository interface {
 	CheckRequestExists(action entities.CPSAction) (bool, error)

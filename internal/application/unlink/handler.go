@@ -1,7 +1,7 @@
 package unlink
 
 import (
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
+	domain "cbe-super-app-cps-action/internal/domain/unlink"
 )
 
 type ApplicationService interface {

@@ -3,7 +3,7 @@ package outbound
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 )
 
 type PortalCardRepository interface {

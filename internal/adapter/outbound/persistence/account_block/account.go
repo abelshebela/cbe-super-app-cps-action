@@ -11,10 +11,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/account_block"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	infra_mongo "cbe-super-app-cps-action/internal/adapter/outbound/mongo"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/port/outbound/account_block"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -139,11 +140,11 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 	currAction, _ := json.Marshal(branch)
 
 	cpsAction := model.CPSAction{
-		ActionCode:     utils.RandomGenerator(24),
-		MakerUser:      model.User{
-            UserCode: maker.UserID, 
-            FullName: maker.FullName,
-             PhoneNumber: maker.PhoneNumber},
+		ActionCode: utils.RandomGenerator(24),
+		MakerUser: model.User{
+			UserCode:    maker.UserID,
+			FullName:    maker.FullName,
+			PhoneNumber: maker.PhoneNumber},
 		Department:     department,
 		ActionStatus:   model.ActionPending,
 		ActionType:     model.ActionDelete,

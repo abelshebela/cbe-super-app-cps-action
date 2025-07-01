@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	portalcardApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/portal_card"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	portalcardApp "cbe-super-app-cps-action/internal/application/portal_card"
+	"cbe-super-app-cps-action/internal/port/inbound"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

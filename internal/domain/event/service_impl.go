@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/action"
 )
 
 func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ticket, makerID, makerName, makerPhone string) (string, error) {

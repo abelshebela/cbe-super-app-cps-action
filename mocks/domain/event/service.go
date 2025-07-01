@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	event "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
+	event "cbe-super-app-cps-action/internal/domain/event"
 )
 
 // MockEventService is a mock of EventService interface.

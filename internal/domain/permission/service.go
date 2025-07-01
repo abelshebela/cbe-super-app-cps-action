@@ -1,10 +1,11 @@
 package permission
 
 import (
+	"cbe-super-app-cps-action/internal/domain/permission/entities"
 	"errors"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service struct {

@@ -3,7 +3,8 @@ package service
 import (
 	"context"
 
-	portalcardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
+	portalcardDomain "cbe-super-app-cps-action/internal/domain/portal_card"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

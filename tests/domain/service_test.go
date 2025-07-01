@@ -8,8 +8,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	mock_domain_action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action"
+	"cbe-super-app-cps-action/internal/domain/action"
+	mock_domain_action "cbe-super-app-cps-action/mocks/domain/action"
 )
 
 func TestGetServicePaginated(t *testing.T) {

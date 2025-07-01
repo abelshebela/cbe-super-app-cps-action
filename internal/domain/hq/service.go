@@ -6,8 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq/"
+	"cbe-super-app-cps-action/internal/domain/action"
+	// "cbe-super-app-cps-action/internal/domain/hq/"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

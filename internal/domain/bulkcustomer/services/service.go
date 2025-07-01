@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
+	"cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
 )
 
 type BranchService struct {

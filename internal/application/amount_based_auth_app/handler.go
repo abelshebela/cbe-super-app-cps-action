@@ -3,8 +3,8 @@ package amount_based_auth_app
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
 )
 
 type ApplicationService interface {

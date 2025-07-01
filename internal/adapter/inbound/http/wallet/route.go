@@ -3,10 +3,11 @@ package wallet
 import (
 	"net/http"
 
+	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	walletRoutes "cbe-super-app-cps-action/internal/port/inbound/wallet"
+
 	"github.com/go-chi/chi/v5"
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	walletRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/wallet"
 )
 
 func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware) {

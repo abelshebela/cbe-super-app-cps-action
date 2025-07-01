@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/application/dto"
+	"cbe-super-app-cps-action/internal/application/hq"
+	"cbe-super-app-cps-action/internal/application/middleware"
+
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

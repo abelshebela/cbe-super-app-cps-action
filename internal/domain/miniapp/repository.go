@@ -3,7 +3,7 @@ package miniapp
 import (
 	"context"
 
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	domain "cbe-super-app-cps-action/internal/domain/action"
 )
 
 type Repository interface {
