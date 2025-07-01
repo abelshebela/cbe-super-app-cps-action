@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	constant "cbe-super-app-cps-action/utils"
+
 	"github.com/rs/zerolog/log"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

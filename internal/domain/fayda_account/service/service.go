@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/repository"
+	"cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"cbe-super-app-cps-action/internal/domain/fayda_account/repository"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

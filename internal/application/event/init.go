@@ -3,8 +3,8 @@ package event_application
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
+	"cbe-super-app-cps-action/internal/application/dto"
+	domain "cbe-super-app-cps-action/internal/domain/event"
 )
 
 type ApplicationAbstracts interface {

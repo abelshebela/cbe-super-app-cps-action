@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	dto "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/avatar"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	dto "cbe-super-app-cps-action/internal/domain/avatar"
+	"cbe-super-app-cps-action/internal/port/outbound/avatar"
+	constant "cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

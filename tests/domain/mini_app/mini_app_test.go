@@ -7,9 +7,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/miniapp"
-	mock_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/miniapp"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/miniapp"
+	mock_domain "cbe-super-app-cps-action/mocks/domain/miniapp"
 )
 
 func TestCreateMiniAppAction(t *testing.T) {

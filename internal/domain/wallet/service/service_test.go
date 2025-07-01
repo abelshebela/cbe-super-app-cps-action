@@ -9,14 +9,15 @@ import (
 	"testing"
 	"time"
 
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"cbe-super-app-cps-action/internal/domain/wallet/dto"
+	"cbe-super-app-cps-action/internal/domain/wallet/entity"
+	"cbe-super-app-cps-action/internal/domain/wallet/mocks"
+	"cbe-super-app-cps-action/internal/domain/wallet/service"
+	constant "cbe-super-app-cps-action/utils"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/mocks"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.uber.org/mock/gomock"
 )
@@ -120,9 +121,9 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 	}
 
 	testCreateWalletRequest := dto.CreateWalletRequest{
-		Name: "TestWallet",
-		Avatar: createMockFileHeader("test-avatar.png",[]byte("test-avatar"),1024),
-		Code: "TW001",
+		Name:   "TestWallet",
+		Avatar: createMockFileHeader("test-avatar.png", []byte("test-avatar"), 1024),
+		Code:   "TW001",
 	}
 
 	testCPSAction := model.CreateCPSAction{

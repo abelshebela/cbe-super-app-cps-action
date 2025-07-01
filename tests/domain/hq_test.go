@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
-	hqdomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
-	actionmock "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action/action_manual_mock"
-	hqmock "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/hq"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/hq"
+	hqdomain "cbe-super-app-cps-action/internal/domain/hq"
+	actionmock "cbe-super-app-cps-action/mocks/domain/action/action_manual_mock"
+	hqmock "cbe-super-app-cps-action/mocks/domain/hq"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	action "cbe-super-app-cps-action/internal/domain/action"
 )
 
 // MockRepository is a mock of Repository interface.

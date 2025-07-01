@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/repository"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/password_rule/repository"
 )
 
 type PasswordRuleService interface {

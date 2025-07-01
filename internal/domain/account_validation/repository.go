@@ -1,8 +1,8 @@
 package account_validation
 
 import (
+	"cbe-super-app-cps-action/internal/domain/action"
 	"context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type Repository interface {

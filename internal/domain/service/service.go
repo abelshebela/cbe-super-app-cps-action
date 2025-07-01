@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/action"
 )
 
 type ServiceDetails struct {

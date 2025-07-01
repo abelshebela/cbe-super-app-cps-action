@@ -3,9 +3,10 @@ package feedback
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback/entity"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/domain/feedback"
+	"cbe-super-app-cps-action/internal/domain/feedback/entity"
+	constant "cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

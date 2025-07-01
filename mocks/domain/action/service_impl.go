@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	miniapp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/miniapp"
+	miniapp "cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
 // MockMiniAppService is a mock of MiniAppService interface.

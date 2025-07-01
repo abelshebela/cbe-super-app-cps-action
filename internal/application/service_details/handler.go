@@ -5,9 +5,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
+	"cbe-super-app-cps-action/internal/application/dto"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
+	"cbe-super-app-cps-action/internal/domain/service"
 )
 
 type ApplicationAbstracts interface {

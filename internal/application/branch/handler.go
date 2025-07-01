@@ -3,8 +3,8 @@ package branch
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
+	"cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 )
 
 type ApplicationService interface {

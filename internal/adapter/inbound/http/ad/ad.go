@@ -7,12 +7,13 @@ import (
 	"strconv"
 	"time"
 
+	"cbe-super-app-cps-action/internal/application/ad"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/internal/domain/ad/entity"
+	inboundAd "cbe-super-app-cps-action/internal/port/inbound/ad"
+	constant "cbe-super-app-cps-action/utils"
+
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/entity"
-	inboundAd "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/ad"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

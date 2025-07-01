@@ -19,7 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-member-auth/internal/domain/auth/entities"
 	//"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
-	//"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
+	//"cbe-super-app-cps-action/internal/domain/budget/entities"
 )
 
 type Permission struct {

@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service/dto"
+	"cbe-super-app-cps-action/internal/application/service/dto"
 )
 
 type UpdateServiceFeeRequest struct {

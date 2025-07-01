@@ -3,8 +3,8 @@ package hq
 import (
 	"net/http"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
+	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"cbe-super-app-cps-action/internal/application/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

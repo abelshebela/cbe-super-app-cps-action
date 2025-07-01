@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/unlink"
+	outbound "cbe-super-app-cps-action/internal/port/outbound/unlink"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/mocks"
+	"cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"cbe-super-app-cps-action/internal/domain/fayda_account/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"

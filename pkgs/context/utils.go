@@ -4,7 +4,7 @@ package context
 import (
 	"net/http"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "cbe-super-app-cps-action/utils"
 )
 
 type UserContext struct {
@@ -17,6 +17,7 @@ type UserContext struct {
 }
 
 func ExtractUserContext(r *http.Request) UserContext {
+	// This method extracts users data from the middleware context
 	get := func(key string) string {
 		val, _ := r.Context().Value(constant.ContextKey(key)).(string)
 		return val

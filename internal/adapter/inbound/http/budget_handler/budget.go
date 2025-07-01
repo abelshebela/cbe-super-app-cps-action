@@ -10,12 +10,12 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/budget"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/application/budget"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/internal/domain/budget/entities"
+	constant "cbe-super-app-cps-action/utils"
 
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/budget"
+	inbound "cbe-super-app-cps-action/internal/port/inbound/budget"
 )
 
 type BudgetHandler struct {

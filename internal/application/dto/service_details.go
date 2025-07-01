@@ -8,7 +8,7 @@ import (
 
 	Validation "github.com/go-ozzo/ozzo-validation/v4"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
+	"cbe-super-app-cps-action/internal/domain/service"
 )
 
 type ServiceDetailsResponse struct {

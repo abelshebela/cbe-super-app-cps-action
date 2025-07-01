@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	entity "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	entity "cbe-super-app-cps-action/internal/domain/action"
 )
 
 type Repository interface {

@@ -1,4 +1,4 @@
-module gitlab.com/bersufekadgetachew/cbe-super-app-cps-action
+module cbe-super-app-cps-action
 
 go 1.24.4
 

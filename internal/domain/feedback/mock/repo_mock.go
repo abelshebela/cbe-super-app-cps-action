@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entity "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback/entity"
-	utils "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	entity "cbe-super-app-cps-action/internal/domain/feedback/entity"
+	utils "cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 

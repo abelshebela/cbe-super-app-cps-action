@@ -3,7 +3,7 @@ package ad
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
+	"cbe-super-app-cps-action/internal/domain/budget/entities"
 )
 
 type Repo interface {

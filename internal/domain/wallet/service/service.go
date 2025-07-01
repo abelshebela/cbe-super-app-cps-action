@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/wallet"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"cbe-super-app-cps-action/internal/domain/wallet/dto"
+	"cbe-super-app-cps-action/internal/domain/wallet/entity"
+	outbound "cbe-super-app-cps-action/internal/port/outbound/wallet"
+	constant "cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

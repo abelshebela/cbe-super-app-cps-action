@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
+	accountvalidation_app "cbe-super-app-cps-action/internal/application/account_validation"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	inbound "cbe-super-app-cps-action/internal/port/inbound/account_validation"
+
 	"github.com/go-chi/chi/v5"
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/account_validation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

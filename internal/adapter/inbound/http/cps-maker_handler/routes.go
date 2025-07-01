@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	sharedhttp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	sharedhttp "cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/internal/port/inbound"
 )
 
 func RegisterCPSUserMakerRoutes(r chi.Router, handler inbound.CPSUserMakerHandler, authMiddleware middleware.AuthMiddleware) {

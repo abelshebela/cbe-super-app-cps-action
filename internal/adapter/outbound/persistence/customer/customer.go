@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/internal/domain/customer/entity"
+	"cbe-super-app-cps-action/internal/port/outbound"
+	constant "cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"

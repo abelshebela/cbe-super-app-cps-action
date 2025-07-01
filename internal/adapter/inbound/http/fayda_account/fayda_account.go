@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/fayda_account"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	faydaaccount "cbe-super-app-cps-action/internal/application/fayda_account"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/internal/port/inbound"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

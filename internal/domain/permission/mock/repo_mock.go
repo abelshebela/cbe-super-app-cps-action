@@ -12,7 +12,7 @@ package mock
 import (
 	reflect "reflect"
 
-	entities "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	entities "cbe-super-app-cps-action/internal/domain/permission/entities"
 	gomock "go.uber.org/mock/gomock"
 )
 

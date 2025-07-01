@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	accountvalidation_app "cbe-super-app-cps-action/internal/application/dto"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/pkgs/utils"
 )
 
 var errorMap = map[string]int{

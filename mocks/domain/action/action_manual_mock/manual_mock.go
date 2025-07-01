@@ -3,7 +3,7 @@ package action_manual_mock
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/action"
 )
 
 type MockActionRepository struct {

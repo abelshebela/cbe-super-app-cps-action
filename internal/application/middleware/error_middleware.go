@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"cbe-super-app-cps-action/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"

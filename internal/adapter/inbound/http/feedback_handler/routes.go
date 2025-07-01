@@ -3,8 +3,8 @@ package customerhandler
 import (
 	"net/http"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/feedback"
+	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
+	inbound "cbe-super-app-cps-action/internal/port/inbound/feedback"
 
 	"github.com/go-chi/chi/v5"
 )

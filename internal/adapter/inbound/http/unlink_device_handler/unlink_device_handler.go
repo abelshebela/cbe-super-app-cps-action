@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/context"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	"cbe-super-app-cps-action/internal/application/unlink"
+	inbound "cbe-super-app-cps-action/internal/port/inbound/unlink"
+	ctx_util "cbe-super-app-cps-action/pkgs/context"
+	err_def "cbe-super-app-cps-action/pkgs/common"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -22,21 +23,21 @@ const (
 )
 
 const (
-	INVALID_JSON_PAYLOAD    = "INVALID_JSON_PAYLOAD"
-	INVALID_INPUT           = "INVALID_INPUT"
-	DEVICE_UNLINK_SUCCESS   = "DEVICE_UNLINK_SUCCESS"
-	UNLINK_DECISION_SUCCESS = "UNLINK_DECISION_SUCCESS"
+	InvalidJSONPayload    = "INVALID_JSON_PAYLOAD"
+	InvalidInput          = "INVALID_INPUT"
+	DeviceUnlinkSuccess   = "DEVICE_UNLINK_SUCCESS"
+	UnlinkDecisionSuccess = "UNLINK_DECISION_SUCCESS"
 )
 
 type UnlinkHandler struct {
 	unlinkApp unlink.ApplicationService
-	logger        utils.Logger
+	logger    utils.Logger
 }
 
 func NewHTTPUnlinkHandler(service unlink.ApplicationService, logger utils.Logger) inbound.UnlinkPortHandler {
 	return &UnlinkHandler{
 		unlinkApp: service,
-		logger:        logger,
+		logger:    logger,
 	}
 }
 
@@ -54,19 +55,19 @@ func (h *UnlinkHandler) getMessageMap(errorMsg string, group string, key ...stri
 		return map[string]string{"message": errorMsg}
 	}
 
-	var groupMap map[string]errors.ErrorDefinition
+	var groupMap map[string]err_def.ErrorDefinition
 
 	switch group {
 	case GENERAL:
-		groupMap = errors.DefineError.General
+		groupMap = err_def.DefineError.General
 	case AUTH:
-		groupMap = errors.DefineError.Auth
+		groupMap = err_def.DefineError.Auth
 	case USER:
-		groupMap = errors.DefineError.User
+		groupMap = err_def.DefineError.User
 	case TXN:
-		groupMap = errors.DefineError.Transaction
+		groupMap = err_def.DefineError.Transaction
 	case UNLINK:
-		groupMap = errors.DefineError.Unlink
+		groupMap = err_def.DefineError.Unlink
 	default:
 		// NONE group
 		return map[string]string{"message": errorMsg}
@@ -85,14 +86,14 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	// decode it
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[UnlinkDevice] failed to decode request: %v", err)
-		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, INVALID_JSON_PAYLOAD))
+		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, InvalidJSONPayload))
 		return
 	}
 
 	// request validate
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[UnlinkDevice] validation failed: %v", err)
-		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, INVALID_INPUT))
+		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, InvalidInput))
 		return
 	}
 
@@ -110,20 +111,20 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Infof("[UnlinkDevice] success for userCode: %s", request.UserCode)
-	h.writeResponse(w, http.StatusOK, h.getMessageMap(NONE, UNLINK, DEVICE_UNLINK_SUCCESS))
+	h.writeResponse(w, http.StatusOK, h.getMessageMap(NONE, UNLINK, DeviceUnlinkSuccess))
 }
 
 func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	var request unlink.ApproveUnlinkDeviceRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[ApproveUnlinkDevice] failed to decode request: %v", err)
-		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, INVALID_JSON_PAYLOAD))
+		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, InvalidJSONPayload))
 		return
 	}
 
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[ApproveUnlinkDevice] validation failed: %v", err)
-		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, INVALID_INPUT))
+		h.writeResponse(w, http.StatusBadRequest, h.getMessageMap(NONE, GENERAL, InvalidInput))
 		return
 	}
 	ctx := ctx_util.ExtractUserContext(r)
@@ -136,5 +137,5 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 	}
 
 	h.logger.Infof("[ApproveUnlinkDevice] decision: %s for userCode: %s", request.Decision, request.UserCode)
-	h.writeResponse(w, http.StatusOK, h.getMessageMap(NONE, UNLINK, UNLINK_DECISION_SUCCESS))
+	h.writeResponse(w, http.StatusOK, h.getMessageMap(NONE, UNLINK, UnlinkDecisionSuccess))
 }

@@ -11,11 +11,11 @@ import (
 	// "testing/quick"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
-	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
-	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	"cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	persistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
+	"cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
+	"cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -25,67 +25,67 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	accountvalidation_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
-	ad_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
-	bank_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
-	branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
-	budgethandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
-	bulkservices_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
-	cpsusermaker_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
-	customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
-	departmenthandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
-	faydaRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
-	feedbackhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
-	permissionhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
-	portal_card_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
-	service_details_inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
-	unlinkDeviceHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
-	wallet_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
-	adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
-	cpsusermaker_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound"
-	accountvalidation_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
-	branch_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
-	budgetPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
-	customerPersistance "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
-	departmentPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
-	faydaaccount "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
-	feedbackPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
-	permissionPersistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
-	unlink_outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
-	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/account_validation"
-	ad_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/ad"
-	bank_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bank"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/budget"
-	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
-	faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/fayda_account"
-	feedback "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
-	authMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/permission"
-	portal_card_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/portal_card"
-	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
-	unlinkApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
-	wallet_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/wallet"
-	accountvalidation_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	ad_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/service"
-	bank_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/service"
-	budgetService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget"
-	branch_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
-	cpsusermaker_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/service"
-	departmentService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/service"
-	feedbackService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/feedback"
-	permissionService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission"
-	portal_card_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
-	service_details_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	unlinkDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
-	wallet_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
+	accountvalidation_inbound "cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
+	ad_adapter "cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
+	bank_adapter "cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
+	branch_handler "cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
+	budgethandler "cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
+	bulkservices_inbound "cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
+	cpsusermaker_handler "cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
+	customerhandler "cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
+	departmenthandler "cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
+	faydaRoutes "cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
+	feedbackhandler "cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
+	permissionhandler "cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
+	portal_card_inbound "cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
+	service_details_inbound "cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
+	unlinkDeviceHandler "cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
+	wallet_adapter "cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
+	adapter "cbe-super-app-cps-action/internal/adapter/outbound"
+	cpsusermaker_persistence "cbe-super-app-cps-action/internal/adapter/outbound"
+	accountvalidation_persistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
+	"cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
+	"cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
+	branch_repo "cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch"
+	budgetPersistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
+	customerPersistance "cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
+	departmentPersistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
+	faydaaccount "cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
+	feedbackPersistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
+	permissionPersistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
+	"cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
+	unlink_outbound "cbe-super-app-cps-action/internal/adapter/outbound/unlink"
+	accountvalidation_app "cbe-super-app-cps-action/internal/application/account_validation"
+	ad_handler "cbe-super-app-cps-action/internal/application/ad"
+	bank_handler "cbe-super-app-cps-action/internal/application/bank"
+	"cbe-super-app-cps-action/internal/application/budget"
+	bulkservices_application "cbe-super-app-cps-action/internal/application/bulk_services"
+	"cbe-super-app-cps-action/internal/application/customer"
+	"cbe-super-app-cps-action/internal/application/department"
+	faydaHandler "cbe-super-app-cps-action/internal/application/fayda_account"
+	feedback "cbe-super-app-cps-action/internal/application/feedback"
+	authMiddleware "cbe-super-app-cps-action/internal/application/middleware"
+	"cbe-super-app-cps-action/internal/application/permission"
+	portal_card_app "cbe-super-app-cps-action/internal/application/portal_card"
+	service_details_app "cbe-super-app-cps-action/internal/application/service_details"
+	unlinkApp "cbe-super-app-cps-action/internal/application/unlink"
+	wallet_handler "cbe-super-app-cps-action/internal/application/wallet"
+	accountvalidation_domain "cbe-super-app-cps-action/internal/domain/account_validation"
+	domain "cbe-super-app-cps-action/internal/domain/action"
+	ad_domain "cbe-super-app-cps-action/internal/domain/ad/service"
+	bank_domain "cbe-super-app-cps-action/internal/domain/bank/service"
+	budgetService "cbe-super-app-cps-action/internal/domain/budget"
+	branch_domain "cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
+	cpsusermaker_service "cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
+	"cbe-super-app-cps-action/internal/domain/customer/service"
+	departmentService "cbe-super-app-cps-action/internal/domain/department"
+	faydaService "cbe-super-app-cps-action/internal/domain/fayda_account/service"
+	feedbackService "cbe-super-app-cps-action/internal/domain/feedback"
+	permissionService "cbe-super-app-cps-action/internal/domain/permission"
+	portal_card_domain "cbe-super-app-cps-action/internal/domain/portal_card"
+	service_details_domain "cbe-super-app-cps-action/internal/domain/service"
+	unlinkDomain "cbe-super-app-cps-action/internal/domain/unlink"
+	wallet_domain "cbe-super-app-cps-action/internal/domain/wallet/service"
 
 	//branch_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/branch_handler"
 	//customerhandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/adapter/inbound/http/customer_handler"
@@ -99,21 +99,21 @@ import (
 	//faydaHandler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/application/fayda_account"
 	//faydaService "gitlab.com/bersufekadgetachew/cbe-super-app-cps-ms/internal/domain/fayda_account/service"
 
-	hq_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
-	password_rule_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
-	password_rule_routes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
-	hq_persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
-	application_hq "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
-	hq_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
-	password_rule_services "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/services"
+	hq_handler "cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
+	password_rule_handler "cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	password_rule_routes "cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	hq_persistence "cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
+	application_hq "cbe-super-app-cps-action/internal/application/hq"
+	hq_service "cbe-super-app-cps-action/internal/domain/hq"
+	password_rule_services "cbe-super-app-cps-action/internal/domain/password_rule/services"
 
-	avatar_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
+	avatar_domain "cbe-super-app-cps-action/internal/domain/avatar"
 
-	avatar_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
-	avatar_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/avatar"
-	accountblock_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
-	account_block_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
-	account_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_block"
+	accountblock_handler "cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
+	avatar_adapter "cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
+	account_block_repo "cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
+	avatar_app "cbe-super-app-cps-action/internal/application/avatar"
+	account_domain "cbe-super-app-cps-action/internal/domain/account_block"
 )
 
 func main() {
@@ -146,7 +146,6 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
 	defer cancel()
-	
 
 	dbname := cfg.MongoDBDatabase
 	// dbname := "ldap_cbs"
@@ -328,21 +327,21 @@ func main() {
 	avatarHanler := avatar_adapter.InitAvatarHTTPHandler(avatarApp, logger)
 	avatar_adapter.InitAvatarRoutes(r, avatarHanler, authMddleware)
 
-accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
-    mongoClient,
-    cfg.MongoDBDatabase,
-    "branches",      
-    "regions",       
-    "cps_actions",   
-    "districts",     
-    "users",        
-    "cities",        
-    logger,
-)
-accountBlockService := account_domain.NewAccountService(accountBlockRepo)
-accountBlockHandler := accountblock_handler.NewAccountBlockHandler(accountBlockService, logger)
+	accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
+		mongoClient,
+		cfg.MongoDBDatabase,
+		"branches",
+		"regions",
+		"cps_actions",
+		"districts",
+		"users",
+		"cities",
+		logger,
+	)
+	accountBlockService := account_domain.NewAccountService(accountBlockRepo)
+	accountBlockHandler := accountblock_handler.NewAccountBlockHandler(accountBlockService, logger)
 
-accountblock_handler.RegisterAccountBlockRoutes(r, accountBlockHandler, authMddleware)
+	accountblock_handler.RegisterAccountBlockRoutes(r, accountBlockHandler, authMddleware)
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,

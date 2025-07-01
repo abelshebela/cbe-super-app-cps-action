@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth/mocks"
+	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	"cbe-super-app-cps-action/internal/domain/amount_based_auth/mocks"
 )
 
 // MockLogger implements utils.Logger for testing

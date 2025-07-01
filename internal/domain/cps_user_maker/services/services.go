@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/cps_user_maker/repository"
 )
 
 type CPSUserService interface {

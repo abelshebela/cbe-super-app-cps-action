@@ -1,6 +1,6 @@
 package passwordrule
 
-import "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+import "cbe-super-app-cps-action/internal/domain/action"
 
 type RequestPasswordRuleUpdateDTO struct {
 	Rule  action.PasswordRule `json:"rule"`

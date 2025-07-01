@@ -3,9 +3,9 @@ package ad
 import (
 	"net/http"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	adRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/ad"
+	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"cbe-super-app-cps-action/internal/application/middleware"
+	adRoutes "cbe-super-app-cps-action/internal/port/inbound/ad"
 
 	"github.com/go-chi/chi/v5"
 )

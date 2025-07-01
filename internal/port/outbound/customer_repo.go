@@ -3,9 +3,9 @@ package outbound
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"cbe-super-app-cps-action/internal/domain/customer/entity"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )

@@ -3,9 +3,9 @@ package event_outbound
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
+	"cbe-super-app-cps-action/internal/domain/action"
+	"cbe-super-app-cps-action/internal/domain/ad/entity"
+	"cbe-super-app-cps-action/internal/domain/event"
 )
 
 type Outbound interface {
