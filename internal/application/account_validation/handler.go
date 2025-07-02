@@ -5,12 +5,13 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	"cbe-super-app-cps-action/internal/application/dto"
 	"cbe-super-app-cps-action/internal/domain/account_validation"
 )
 
 type ApplicationAbstracts interface {
-	GetAccountValidation(ctx context.Context, id string) (account_validation.ValidationRule, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error)
+	GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error)
+	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (dto.UpdateAccountValidationResponse, error)
 	UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string, PhoneNumber string, FullName string) error
 }
 
@@ -23,13 +24,20 @@ func NewApplication(service account_validation.Service, logger utils.Logger) App
 	return &ApplicationStore{service: service, Logger: logger}
 }
 
-func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) (account_validation.ValidationRule, error) {
-
-	return a.service.GetAccountValidation(ctx, id)
+func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error) {
+	rule, err := a.service.GetAccountValidation(ctx, id)
+	if err != nil {
+		return dto.GetAccountValidationResponse{}, err
+	}
+	return dto.GetAccountValidationResponse{Validation: rule}, nil
 }
 
-func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error) {
-	return a.service.UpdateAccountValidationRequest(ctx, id, update, makerID, PhoneNumber, FullName)
+func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (dto.UpdateAccountValidationResponse, error) {
+	actionID, err := a.service.UpdateAccountValidationRequest(ctx, id, update, makerID, PhoneNumber, FullName)
+	if err != nil {
+		return dto.UpdateAccountValidationResponse{}, err
+	}
+	return dto.UpdateAccountValidationResponse{ActionID: actionID}, nil
 }
 
 func (a *ApplicationStore) UpdateAccountValidation(ctx context.Context, actionID string, action bool, checkerID string, PhoneNumber string, FullName string) error {

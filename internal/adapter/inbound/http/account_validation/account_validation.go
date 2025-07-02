@@ -9,18 +9,14 @@ import (
 	"cbe-super-app-cps-action/pkgs/utils"
 )
 
-
-
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
 		utils.SendErrorResponse(w, "INVALID_ID", 0, nil)
 		return
 	}
-	
 
-
-	validation, err := h.Application.GetAccountValidation(r.Context(), id)
+	resp, err := h.Application.GetAccountValidation(r.Context(), id)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -28,14 +24,19 @@ func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Reques
 
 	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"status":  "success",
-		"message": "Account created successfully",
-		"data":    validation,
+		"message": "Account fetched successfully",
+		"data":    resp,
 	})
 }
+
 func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.Request) {
 	var req accountvalidation_app.UpdateAccountValidationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
+		return
+	}
+	if err := req.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
@@ -45,14 +46,12 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 		return
 	}
 
-	actionID, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID, claims.PhoneNumber, claims.FullName)
+	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	resp := accountvalidation_app.UpdateAccountValidationResponse{ActionID: actionID}
-	// utils.WriteSuccessResponse(w, resp, "Update request submitted for approval")
 	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"status":  "success",
 		"message": "Update request submitted for approval",
@@ -78,7 +77,7 @@ func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *htt
 		errMsg := err.Error()
 		utils.SendErrorResponse(w, errMsg, 0, nil)
 		return
-		
+
 	}
 
 	action := "approved"
@@ -90,4 +89,17 @@ func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *htt
 		"message": "update request " + action + " successfully Approved",
 		"data":    action,
 	})
+}
+
+func (h *HttpStore) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+	resp := struct {
+		Status int         `json:"status"`
+		Data   interface{} `json:"data"`
+	}{
+		Status: status,
+		Data:   data,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(resp)
 }

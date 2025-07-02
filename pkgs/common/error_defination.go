@@ -134,6 +134,62 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_028",
 			Message: "Could not unlink device",
 		},
+		"FAILED_TO_MARSHAL_PREVIOUS_ACTION": {
+			Code:    "GEN_031",
+			Message: "Failed to marshal previous action.",
+		},
+		"FAILED_TO_MARSHAL_CURRENT_ACTION": {
+			Code:    "GEN_032",
+			Message: "Failed to marshal current action.",
+		},
+		"FAILED_TO_CREATE_CPS_ACTION": {
+			Code:    "GEN_033",
+			Message: "Failed to create CPS action.",
+		},
+		"ACTION_ID_EMPTY": {
+			Code:    "GEN_034",
+			Message: "Action ID cannot be empty.",
+		},
+		"CHECKER_ID_EMPTY": {
+			Code:    "GEN_035",
+			Message: "Checker ID cannot be empty.",
+		},
+		"ACTION_NOT_FOUND": {
+			Code:    "GEN_036",
+			Message: "Action not found.",
+		},
+		"ACTION_NOT_PENDING": {
+			Code:    "GEN_037",
+			Message: "Action is not pending.",
+		},
+		"CURRENT_ACTION_NIL": {
+			Code:    "GEN_038",
+			Message: "Current action is nil.",
+		},
+		"CURRENT_ACTION_INVALID_TYPE": {
+			Code:    "GEN_039",
+			Message: "Current action is not a valid type.",
+		},
+		"FAILED_TO_UNMARSHAL_CURRENT_ACTION": {
+			Code:    "GEN_040",
+			Message: "Failed to unmarshal current action.",
+		},
+		"VALIDATION_RULE_INVALID": {
+			Code:    "GEN_041",
+			Message: "Validation rule is invalid.",
+		},
+		"VALIDATION_RULE_ID_MISMATCH": {
+			Code:    "GEN_042",
+			Message: "Validation rule ID mismatch.",
+		},
+		"FAILED_TO_UPDATE_VALIDATION_RULE": {
+			Code:    "GEN_043",
+			Message: "Failed to update validation rule.",
+		},
+		"FAILED_TO_UPDATE_CPS_ACTION": {
+			Code:    "GEN_044",
+			Message: "Failed to update CPS action.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
