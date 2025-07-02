@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/application/amount_based_auth_app"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
-	"cbe-super-app-cps-action/internal/port/inbound"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 

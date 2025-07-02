@@ -5,8 +5,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"cbe-super-app-cps-action/internal/application/dto"
-	"cbe-super-app-cps-action/internal/domain/account_validation"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 )
 
 type ApplicationAbstracts interface {

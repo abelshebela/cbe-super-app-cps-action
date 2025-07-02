@@ -3,8 +3,8 @@ package branch
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
-	"cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/services"
 )
 
 type ApplicationService interface {

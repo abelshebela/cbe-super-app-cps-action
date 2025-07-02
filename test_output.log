@@ -1,0 +1,401 @@
+FAIL	github.com/CBE-Super-App/cbe-super-app-cps-action/cmd [build failed]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/cps_user_maker	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/branch	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/branch	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet	[no test files]
+--- FAIL: TestAccountService_BlockRegion (0.00s)
+    service.go:71: Unexpected call to *mocks.MockAccountBlockRepo.BlockRegion([context.Background R1 {   { U1   0001-01-01 00:00:00 +0000 UTC} {    0001-01-01 00:00:00 +0000 UTC}  <nil> <nil> <nil>    0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC}]) at /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/service.go:71 because: 
+        expected call at /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/service_test.go:477 has already been called the max number of times
+    --- FAIL: TestAccountService_BlockRegion/update_region_error (0.00s)
+        testing.go:1679: test executed panic(nil) or runtime.Goexit: subtest may have called FailNow on a parent test
+    controller.go:269: missing call(s) to *mocks.MockAccountBlockRepo.UpdateRegion(is equal to context.Background (context.backgroundCtx), is anything) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/service_test.go:474
+    controller.go:269: missing call(s) to *mocks.MockAccountBlockRepo.UpdateRegion(is equal to context.Background (context.backgroundCtx), is anything) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/service_test.go:489
+    controller.go:269: missing call(s) to *mocks.MockAccountBlockRepo.FilterMultipleBranches(is equal to context.Background (context.backgroundCtx), is equal to Addis (string), is equal to  (string)) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/service_test.go:475
+    controller.go:269: missing call(s) to *mocks.MockAccountBlockRepo.DisableMultipleBranches(is equal to context.Background (context.backgroundCtx), is anything, is equal to { U1   0001-01-01 00:00:00 +0000 UTC} (action.User)) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/service_test.go:476
+    controller.go:269: aborting test due to missing call(s)
+FAIL
+FAIL	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block	0.011s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/repository	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service	0.020s
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth	0.015s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/repository	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service	0.035s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget	0.017s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository/mocks	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/services	0.014s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository/mocks	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services	0.015s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/repository	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service	0.017s
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department	0.014s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/mock	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/repository	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service	0.030s
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback	0.035s [no tests to run]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/mock	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/member	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/otp	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission	0.028s [no tests to run]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/mock	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/mocks	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/test_service_fee	0.014s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ticket	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink	0.008s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/repository	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service	0.036s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/mocks/domainservice	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/mocks/service/repository	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_validation	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_validation	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/budget	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/feedback	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/permission	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/service_details	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/unlink	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/action	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/action/action_manual_mock	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/hq	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/miniapp	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/portalcard	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/service	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/inbound/bulk_services	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/inbound/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/inbound/miniapp	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/outbound/bulk_services	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/outbound/event	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/outbound/miniapp	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/token	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils	[no test files]
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/avatar	0.047s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/avatar/mocks	[no test files]
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"fetching HQ%!(EXTRA string=id, string=test-id)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"HQ ID is empty"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"fetching HQ%!(EXTRA string=id, string=test-id)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"failed to fetch HQ: repository error"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"original HQ: {ID:test-id Name:Test HQ Enabled:false IsDeleted:false ArchiveExpiry:0 BlockTime:1800 ArchiveTime:0 CreatedAt:0001-01-01 00:00:00 +0000 UTC LastModified:0001-01-01 00:00:00 +0000 UTC}"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"updated HQ: {ID:test-id Name:Test HQ Enabled:false IsDeleted:false ArchiveExpiry:0 BlockTime:3600 ArchiveTime:0 CreatedAt:0001-01-01 00:00:00 +0000 UTC LastModified:0001-01-01 00:00:00 +0000 UTC}"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"successfully created CPS action%!(EXTRA string=action_code, string=CPS_ckk6S5pBZc)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"failed to fetch HQ: repository error"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"original HQ: {ID:test-id Name:Test HQ Enabled:false IsDeleted:false ArchiveExpiry:0 BlockTime:0 ArchiveTime:43200 CreatedAt:0001-01-01 00:00:00 +0000 UTC LastModified:0001-01-01 00:00:00 +0000 UTC}"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"updated HQ: {ID:test-id Name:Test HQ Enabled:false IsDeleted:false ArchiveExpiry:0 BlockTime:0 ArchiveTime:86400 CreatedAt:0001-01-01 00:00:00 +0000 UTC LastModified:0001-01-01 00:00:00 +0000 UTC}"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"successfully created CPS action%!(EXTRA string=action_code, string=CPS_PcFIZnAcnb)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"failed to fetch HQ: repository error"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"processing HQ block time update%!(EXTRA string=action_id, string=test-action, string=approve, bool=true, string=checker_id, string=test-checker)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"HQ ID mismatch%!(EXTRA string=action_id, string=test-action, string=hq_id, string=test-id, string=unique_id, string=)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"processing HQ block time update%!(EXTRA string=action_id, string=test-action, string=approve, bool=false, string=checker_id, string=test-checker)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"HQ block time update rejected%!(EXTRA string=action_id, string=test-action)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"processing HQ block time update%!(EXTRA string=action_id, string=test-action, string=approve, bool=true, string=checker_id, string=test-checker)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"failed to fetch CPS action: action not found"}
+--- FAIL: TestService_UpdateBlockTime (0.00s)
+    --- FAIL: TestService_UpdateBlockTime/success_approve (0.00s)
+        hq_test.go:298: unexpected error: HQ_ID_MISMATCH
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"processing HQ archive time update%!(EXTRA string=action_id, string=test-action, string=approve, bool=true, string=checker_id, string=test-checker)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"successfully processed HQ archive time update%!(EXTRA string=action_id, string=test-action)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"processing HQ archive time update%!(EXTRA string=action_id, string=test-action, string=approve, bool=false, string=checker_id, string=test-checker)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"successfully processed HQ archive time update%!(EXTRA string=action_id, string=test-action)"}
+{"level":"info","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"processing HQ archive time update%!(EXTRA string=action_id, string=test-action, string=approve, bool=true, string=checker_id, string=test-checker)"}
+{"level":"error","service":"go_starter","time":"2025-07-02T11:34:40+03:00","message":"failed to fetch CPS action: action not found"}
+--- FAIL: TestUpdateServiceFlag (0.00s)
+    service.go:59: Unexpected call to *mock_domain.MockRepository.UpdateCpsAction([context.Background {   {    0001-01-01 00:00:00 +0000 UTC} {    0001-01-01 00:00:00 +0000 UTC}  <nil> <nil> <nil> APPROVED   0001-01-01 00:00:00 +0000 UTC 2025-07-02 11:34:40.942861863 +0300 EAT m=+0.003569913}]) at /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action/service.go:59 because: there are no expected calls of the method "UpdateCpsAction" for that receiver
+    controller.go:269: missing call(s) to *mock_domain.MockRepository.GetHqServiceById(is equal to context.Background (context.backgroundCtx), is equal to 1 (string)) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_test.go:74
+    controller.go:269: missing call(s) to *mock_domain.MockRepository.UpdateHqService(is equal to context.Background (context.backgroundCtx), is anything) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_test.go:75
+    controller.go:269: aborting test due to missing call(s)
+--- FAIL: TestUpdateServiceFlag_Error (0.00s)
+    service.go:46: Unexpected call to *mock_domain.MockRepository.FetchCpsActionById([context.Background 1]) at /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action/service.go:46 because: there are no expected calls of the method "FetchCpsActionById" for that receiver
+    controller.go:269: missing call(s) to *mock_domain.MockRepository.GetHqServiceById(is equal to context.Background (context.backgroundCtx), is equal to 1 (string)) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_test.go:94
+    controller.go:269: aborting test due to missing call(s)
+FAIL
+FAIL	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain	0.022s
+--- FAIL: TestGetAccountValidation (0.00s)
+    --- FAIL: TestGetAccountValidation/empty_id (0.00s)
+        account_validation_test.go:144: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/account_validator/account_validation_test.go:144
+            	Error:      	Not equal: 
+            	            	expected: "validation rule ID cannot be empty"
+            	            	actual  : "INVALID_ID"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-validation rule ID cannot be empty
+            	            	+INVALID_ID
+            	Test:       	TestGetAccountValidation/empty_id
+--- FAIL: TestUpdateAccountValidation (0.00s)
+    --- FAIL: TestUpdateAccountValidation/empty_action_ID (0.00s)
+        account_validation_test.go:294: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/account_validator/account_validation_test.go:294
+            	Error:      	Not equal: 
+            	            	expected: "action ID cannot be empty"
+            	            	actual  : "ACTION_ID_EMPTY"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-action ID cannot be empty
+            	            	+ACTION_ID_EMPTY
+            	Test:       	TestUpdateAccountValidation/empty_action_ID
+    --- FAIL: TestUpdateAccountValidation/empty_checker_ID (0.00s)
+        account_validation_test.go:300: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/account_validator/account_validation_test.go:300
+            	Error:      	Not equal: 
+            	            	expected: "checker ID cannot be empty"
+            	            	actual  : "CHECKER_ID_EMPTY"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-checker ID cannot be empty
+            	            	+CHECKER_ID_EMPTY
+            	Test:       	TestUpdateAccountValidation/empty_checker_ID
+    --- FAIL: TestUpdateAccountValidation/action_not_found (0.00s)
+        account_validation_test.go:308: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/account_validator/account_validation_test.go:308
+            	Error:      	Not equal: 
+            	            	expected: "action not found"
+            	            	actual  : "ACTION_NOT_FOUND"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-action not found
+            	            	+ACTION_NOT_FOUND
+            	Test:       	TestUpdateAccountValidation/action_not_found
+    --- FAIL: TestUpdateAccountValidation/action_not_pending (0.00s)
+        account_validation_test.go:335: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/account_validator/account_validation_test.go:335
+            	Error:      	Not equal: 
+            	            	expected: "action is not pending"
+            	            	actual  : "ACTION_NOT_PENDING"
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1 +1 @@
+            	            	-action is not pending
+            	            	+ACTION_NOT_PENDING
+            	Test:       	TestUpdateAccountValidation/action_not_pending
+FAIL
+FAIL	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/account_validator	0.017s
+--- FAIL: TestUpdateServiceFlagRequest (0.00s)
+    action_test.go:68: 
+        	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/action/action_test.go:68
+        	Error:      	Not equal: 
+        	            	expected: "CPS_1234567890"
+        	            	actual  : "CPS_Kiw6ETFKl6"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1 +1 @@
+        	            	-CPS_1234567890
+        	            	+CPS_Kiw6ETFKl6
+        	Test:       	TestUpdateServiceFlagRequest
+--- FAIL: TestRemoveCifRequest (0.00s)
+    action_test.go:151: 
+        	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/action/action_test.go:151
+        	Error:      	Not equal: 
+        	            	expected: "CPS_1234567890"
+        	            	actual  : ""
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1 +1 @@
+        	            	-CPS_1234567890
+        	            	+
+        	Test:       	TestRemoveCifRequest
+FAIL
+FAIL	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/action	0.019s
+ok  	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/mini_app	0.021s
+--- FAIL: TestGetAllServiceDetails (0.00s)
+    --- FAIL: TestGetAllServiceDetails/error_getting_all (0.00s)
+        service_details_test.go:97: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details/service_details_test.go:97
+            	Error:      	An error is expected but got nil.
+            	Test:       	TestGetAllServiceDetails/error_getting_all
+        service_details_test.go:98: 
+            	Error Trace:	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details/service_details_test.go:98
+            	Error:      	Expected nil, but got: []*service.Service{(*service.Service)(0xc0001cb408), (*service.Service)(0xc0001cb688)}
+            	Test:       	TestGetAllServiceDetails/error_getting_all
+--- FAIL: TestUpdateServiceDetailsRequest (0.00s)
+    service.go:98: Unexpected call to *mock_domain.MockRepository.CreateCpsAction([context.Background { CPS_6yUv1aRipw test-id {maker-123    2025-07-02 11:34:40.932398026 +0300 EAT m=+0.002844503} {    0001-01-01 00:00:00 +0000 UTC} TEST <nil> <nil> 0xc0002dcf08 PENDING UPDATE UPDATE_SERVICE_DETAILS 2025-07-02 11:34:40.932398076 +0300 EAT m=+0.002844553 2025-07-02 11:34:40.932398116 +0300 EAT m=+0.002844593}]) at /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/service.go:98 because: 
+        expected call at /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details/service_details_test.go:211 doesn't match the argument at index 1.
+        Got: { CPS_6yUv1aRipw test-id {maker-123    2025-07-02 11:34:40.932398026 +0300 EAT m=+0.002844503} {    0001-01-01 00:00:00 +0000 UTC} TEST <nil> <nil> 0xc0002dcf08 PENDING UPDATE UPDATE_SERVICE_DETAILS 2025-07-02 11:34:40.932398076 +0300 EAT m=+0.002844553 2025-07-02 11:34:40.932398116 +0300 EAT m=+0.002844593} (action.CPSAction)
+        Want: is equal to { CPS_BNHafpP8De test-id {maker-123    2025-07-02 11:34:40.932361086 +0300 EAT m=+0.002807563} {    0001-01-01 00:00:00 +0000 UTC} test-service <nil> <nil> <nil> PENDING UPDATE UPDATE_SERVICE_DETAILS 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC} (action.CPSAction)
+    --- FAIL: TestUpdateServiceDetailsRequest/successful_update_request (0.00s)
+        testing.go:1679: test executed panic(nil) or runtime.Goexit: subtest may have called FailNow on a parent test
+    controller.go:269: missing call(s) to *mock_domain.MockRepository.GetOneServiceDetail(is equal to context.Background (context.backgroundCtx), is equal to test-id (string)) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details/service_details_test.go:191
+    controller.go:269: missing call(s) to *mock_domain.MockRepository.CreateCpsAction(is equal to context.Background (context.backgroundCtx), is equal to { CPS_BNHafpP8De test-id {maker-123    2025-07-02 11:34:40.932361086 +0300 EAT m=+0.002807563} {    0001-01-01 00:00:00 +0000 UTC} test-service <nil> <nil> <nil> PENDING UPDATE UPDATE_SERVICE_DETAILS 0001-01-01 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC} (action.CPSAction)) /home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details/service_details_test.go:211
+    controller.go:269: aborting test due to missing call(s)
+--- FAIL: TestUpdateServiceDetails (0.00s)
+    --- FAIL: TestUpdateServiceDetails/successful_approval (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+	panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x0 pc=0x7c9e52]
+
+goroutine 18 [running]:
+testing.tRunner.func1.2({0x883b40, 0xcc2970})
+	/home/user/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/testing/testing.go:1734 +0x21c
+testing.tRunner.func1()
+	/home/user/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/testing/testing.go:1737 +0x35e
+panic({0x883b40?, 0xcc2970?})
+	/home/user/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/runtime/panic.go:792 +0x132
+github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/service.(*MockRepositoryMockRecorder).UpdateOneServiceDetailRequest(0x0, {0x8ce480, 0xcfb360}, {0x865280, 0x9b8410}, {0x89e880, 0xcfb360})
+	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/service/repository.go:152 +0x52
+github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details_test.TestUpdateServiceDetails.func1(0xc0002d0e00)
+	/home/user/Desktop/eagleLion/CBE/Github/cps action/github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details/service_details_test.go:295 +0x3b3
+testing.tRunner(0xc0002d0e00, 0xc0002bf3b0)
+	/home/user/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/testing/testing.go:1792 +0xf4
+created by testing.(*T).Run in goroutine 16
+	/home/user/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/testing/testing.go:1851 +0x413
+FAIL	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/domain/service_details	0.014s
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/tests/inbound	[no test files]
+?   	github.com/CBE-Super-App/cbe-super-app-cps-action/utils	[no test files]
+FAIL

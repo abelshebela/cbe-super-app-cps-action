@@ -2,7 +2,7 @@
 package unlink
 
 import (
-	unlink_domain "cbe-super-app-cps-action/internal/domain/unlink"
+	unlink_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 )
 
 type ApplicationService interface {

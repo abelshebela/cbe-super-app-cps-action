@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
-	"cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"

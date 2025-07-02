@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"cbe-super-app-cps-action/internal/port/outbound"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 
-	constant "cbe-super-app-cps-action/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"

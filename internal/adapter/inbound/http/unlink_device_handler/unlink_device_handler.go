@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/application/unlink"
-	inbound "cbe-super-app-cps-action/internal/port/inbound/unlink"
-	ctx_util "cbe-super-app-cps-action/pkgs/context"
-	common_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

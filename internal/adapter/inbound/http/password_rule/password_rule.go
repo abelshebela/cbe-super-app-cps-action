@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	passwordrule "cbe-super-app-cps-action/internal/application/password_rule"
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/domain/password_rule/services"
-	"cbe-super-app-cps-action/pkgs/utils"
+	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type PasswordRuleHTTPHandler struct {
@@ -166,11 +166,18 @@ func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *ht
 		return
 	}
 	valid, msg := h.service.CheckPasswordRule(r.Context(), req.Password)
-	resp := map[string]interface{}{"valid": valid, "message": msg}
-	if !valid {
-		w.WriteHeader(http.StatusBadRequest)
-	} else {
-		w.WriteHeader(http.StatusOK)
+
+	resp := map[string]interface{}{
+		"status":  "success",
+		"message": msg,
+		"data":    map[string]interface{}{"valid": valid},
 	}
+	statusCode := http.StatusOK
+	if !valid {
+		resp["status"] = "fail"
+		statusCode = http.StatusBadRequest
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(resp)
 }

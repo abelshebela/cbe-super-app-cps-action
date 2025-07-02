@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"cbe-super-app-cps-action/pkgs/common"
 	"encoding/json"
 	"net/http"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 )
 
 type APIErrorResponse struct {
@@ -179,27 +180,31 @@ func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, a
 		Code:    errorDef.Code,
 	}
 
-	if additionalData != nil {
-		if accountLocked, ok := additionalData["accountLocked"].(bool); ok {
-			response.AccountLocked = accountLocked
-		}
-		if auth, ok := additionalData["auth"].(bool); ok {
-			response.Auth = auth
-		}
-		if errors, exists := additionalData["errors"]; exists {
-			response.Errors = errors
-		}
-	}
-
-	responseBytes, _ := json.Marshal(response)
+	// if additionalData != nil {
+	// 	if accountLocked, ok := additionalData["accountLocked"].(bool); ok {
+	// 		response.AccountLocked = accountLocked
+	// 	}
+	// 	if auth, ok := additionalData["auth"].(bool); ok {
+	// 		response.Auth = auth
+	// 	}
+	// 	if errors, exists := additionalData["errors"]; exists {
+	// 		response.Errors = errors
+	// 	}
+	// }
 
 	status := statusCode
 	if status == 0 {
 		status = getStatusForErrorKey(errorKey)
 	}
 
+	returnData := make(map[string]interface{})
+	returnData["status"] = status
+	returnData["message"] = response.Message
+	returnData["data"] = map[string]interface{}{"code": response.Code}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+	responseBytes, _ := json.Marshal(returnData)
+
 	w.Write(responseBytes)
 }
 

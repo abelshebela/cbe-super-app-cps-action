@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"cbe-super-app-cps-action/internal/domain/account_validation"
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/mocks"
 )
 
 // MockRepository is a mock implementation of the account_validation.Repository interface

@@ -11,10 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	infra_mongo "cbe-super-app-cps-action/internal/adapter/outbound/mongo"
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/port/outbound/account_block"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

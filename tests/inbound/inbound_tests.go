@@ -9,8 +9,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"cbe-super-app-cps-action/internal/application/dto"
-	mock_inbound "cbe-super-app-cps-action/mocks/port/inbound/bulk_services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	mock_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/port/inbound/bulk_services"
 )
 
 func TestFetchServices(t *testing.T) {

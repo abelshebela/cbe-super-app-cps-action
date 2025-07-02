@@ -3,8 +3,8 @@ package event_application
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/application/dto"
-	domain "cbe-super-app-cps-action/internal/domain/event"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 )
 
 func (a *ApplicationStore) MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, makerId, makerName, makerPhone string) (string, error) {

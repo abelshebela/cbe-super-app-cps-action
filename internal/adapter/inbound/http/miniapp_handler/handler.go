@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	miniapp_application "cbe-super-app-cps-action/internal/application/mini_app"
-	Inbound "cbe-super-app-cps-action/internal/port/inbound/miniapp"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
+	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 )
 
 type HttpStore struct {

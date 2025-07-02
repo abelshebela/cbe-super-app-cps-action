@@ -1,8 +1,8 @@
 package department
 
 import (
-	domain "cbe-super-app-cps-action/internal/domain/department"
-	"cbe-super-app-cps-action/internal/domain/department/entities"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

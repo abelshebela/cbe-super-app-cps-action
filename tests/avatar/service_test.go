@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/domain/avatar"
-	"cbe-super-app-cps-action/tests/avatar/mocks"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/tests/avatar/mocks"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/minio/minio-go/v7"
 	sharedconfig "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

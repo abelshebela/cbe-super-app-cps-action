@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"cbe-super-app-cps-action/internal/domain/service"
-	"cbe-super-app-cps-action/internal/domain/service/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/mocks"
 
 	"github.com/golang/mock/gomock"
 )

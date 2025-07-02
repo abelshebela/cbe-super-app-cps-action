@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"cbe-super-app-cps-action/internal/domain/budget/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

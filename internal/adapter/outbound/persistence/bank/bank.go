@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/domain/bank/entity"
-	outbound "cbe-super-app-cps-action/internal/port/outbound/bank"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

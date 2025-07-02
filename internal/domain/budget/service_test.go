@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"cbe-super-app-cps-action/internal/domain/budget"
-	"cbe-super-app-cps-action/internal/domain/budget/entities"
-	"cbe-super-app-cps-action/internal/domain/budget/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"

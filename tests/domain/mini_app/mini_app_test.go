@@ -7,9 +7,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/domain/miniapp"
-	mock_domain "cbe-super-app-cps-action/mocks/domain/miniapp"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	mock_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/miniapp"
 )
 
 func TestCreateMiniAppAction(t *testing.T) {

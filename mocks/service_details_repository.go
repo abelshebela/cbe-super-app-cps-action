@@ -3,8 +3,8 @@ package mocks
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	"github.com/stretchr/testify/mock"
 )

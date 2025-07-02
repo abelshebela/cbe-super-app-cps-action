@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/domain/wallet/dto"
-	"cbe-super-app-cps-action/internal/domain/wallet/entity"
-	"cbe-super-app-cps-action/internal/domain/wallet/mocks"
-	"cbe-super-app-cps-action/internal/domain/wallet/service"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"

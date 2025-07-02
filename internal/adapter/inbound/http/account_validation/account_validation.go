@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	accountvalidation_app "cbe-super-app-cps-action/internal/application/dto"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	"cbe-super-app-cps-action/pkgs/utils"
+	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {

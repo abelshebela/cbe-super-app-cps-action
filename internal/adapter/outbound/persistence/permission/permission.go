@@ -9,8 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	repository "cbe-super-app-cps-action/internal/domain/permission"
-	"cbe-super-app-cps-action/internal/domain/permission/entities"
+	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 

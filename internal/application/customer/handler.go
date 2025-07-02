@@ -3,10 +3,10 @@ package customer
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/customer/entity"
-	"cbe-super-app-cps-action/internal/domain/customer/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 
-	constant "cbe-super-app-cps-action/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

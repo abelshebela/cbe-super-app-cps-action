@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/rs/zerolog/log"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"

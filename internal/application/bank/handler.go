@@ -3,10 +3,10 @@ package bank
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/domain/bank/entity"
-	"cbe-super-app-cps-action/internal/domain/bank/service"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

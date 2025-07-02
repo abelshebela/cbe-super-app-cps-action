@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	branchapp "cbe-super-app-cps-action/internal/application/branch"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	"cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
-	"cbe-super-app-cps-action/internal/port/inbound"
-	constant "cbe-super-app-cps-action/utils"
+	branchapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/branch"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

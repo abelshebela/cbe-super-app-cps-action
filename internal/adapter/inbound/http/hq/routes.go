@@ -3,8 +3,8 @@ package hq
 import (
 	"net/http"
 
-	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"cbe-super-app-cps-action/internal/application/middleware"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -13,7 +13,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 	routes := []route.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/api/v1/cbesuperapp/cps_action/hq/{id}",
+			Path:    "/hq/{id}",
 			Handler: handler.GetHQ,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -22,7 +22,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_action/hq/block-time/request",
+			Path:    "/hq/block-time/update_request",
 			Handler: handler.UpdateBlockTimeRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -31,7 +31,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_action/hq/archive-time/request",
+			Path:    "/hq/archive-time/update_request",
 			Handler: handler.UpdateArchiveTimeRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -40,7 +40,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_action/hq/block-time/update",
+			Path:    "/hq/block-time/update_approve",
 			Handler: handler.UpdateBlockTime,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -49,7 +49,7 @@ func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middlewar
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_action/hq/archive-time/update",
+			Path:    "/hq/archive-time/update_approve",
 			Handler: handler.UpdateArchiveTime,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

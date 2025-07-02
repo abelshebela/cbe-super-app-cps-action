@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	cpsapp "cbe-super-app-cps-action/internal/application/cps_user_maker"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/port/inbound"
-	constant "cbe-super-app-cps-action/utils"
+	cpsapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

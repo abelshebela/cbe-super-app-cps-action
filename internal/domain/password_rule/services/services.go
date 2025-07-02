@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/domain/password_rule/repository"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 )
 
 type PasswordRuleService interface {
@@ -30,7 +30,7 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 		return "", err
 	}
 	if existing != nil && existing.ActionStatus == action.ActionPending && existing.ActionType == action.ActionUpdate {
-		return "", fmt.Errorf("pending update action already exists for this maker")
+		return "", fmt.Errorf("PENDING_UPDATE_ACTION_EXISTS")
 	}
 	return s.repo.CreatePasswordRuleUpdateAction(ctx, rule, maker)
 }

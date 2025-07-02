@@ -3,8 +3,8 @@ package cpsusermaker
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 )
 
 type ApplicationService interface {

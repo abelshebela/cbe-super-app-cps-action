@@ -3,9 +3,9 @@ package bank
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/domain/bank/entity"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type BankPersistence interface {

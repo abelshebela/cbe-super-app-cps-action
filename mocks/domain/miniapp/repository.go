@@ -10,9 +10,9 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	a "cbe-super-app-cps-action/internal/domain/action"
-	action "cbe-super-app-cps-action/internal/domain/action"
-	miniapp "cbe-super-app-cps-action/internal/domain/miniapp"
+	a "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	miniapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
 // MockRepository is a mock of Repository interface.

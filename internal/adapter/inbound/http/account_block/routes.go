@@ -3,9 +3,9 @@ package accountblock_handler
 import (
 	"net/http"
 
-	sharedhttp "cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	accountblock "cbe-super-app-cps-action/internal/port/inbound/account_block"
+	sharedhttp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	accountblock "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block"
 
 	"github.com/go-chi/chi/v5"
 )

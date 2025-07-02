@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 )
 
 type MockRepository struct {

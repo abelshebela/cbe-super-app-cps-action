@@ -3,8 +3,8 @@ package hq
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/application/dto"
-	domain_hq "cbe-super-app-cps-action/internal/domain/hq"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	domain_hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

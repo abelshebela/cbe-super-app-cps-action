@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"cbe-super-app-cps-action/internal/application/middleware"
-	"cbe-super-app-cps-action/internal/application/permission"
-	"cbe-super-app-cps-action/internal/domain/permission/entities"
-	inbound "cbe-super-app-cps-action/internal/port/inbound/permission"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

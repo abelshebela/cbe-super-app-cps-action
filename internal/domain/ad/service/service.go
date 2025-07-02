@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/ad/entity"
-	"cbe-super-app-cps-action/internal/domain/ad/repository"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/repository"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

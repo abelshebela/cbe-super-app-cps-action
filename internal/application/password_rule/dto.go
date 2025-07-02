@@ -1,7 +1,7 @@
 package passwordrule
 
 import (
-	"cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

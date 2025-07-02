@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entity "cbe-super-app-cps-action/internal/domain/ad/entity"
-	utils "cbe-super-app-cps-action/utils"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 

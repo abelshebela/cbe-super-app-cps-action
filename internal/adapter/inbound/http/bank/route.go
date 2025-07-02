@@ -3,9 +3,9 @@ package bank
 import (
 	"net/http"
 
-	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	bankRoutes "cbe-super-app-cps-action/internal/port/inbound/bank"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	bankRoutes "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
 
 	"github.com/go-chi/chi/v5"
 )

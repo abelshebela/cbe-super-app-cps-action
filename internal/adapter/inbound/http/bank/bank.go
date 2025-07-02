@@ -6,15 +6,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"cbe-super-app-cps-action/internal/application/bank"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	"cbe-super-app-cps-action/internal/domain/bank/dto"
-	"cbe-super-app-cps-action/internal/domain/bank/entity"
-	inboundBank "cbe-super-app-cps-action/internal/port/inbound/bank"
-	constant "cbe-super-app-cps-action/utils"
-	ctx_util "cbe-super-app-cps-action/pkgs/context"
-
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"

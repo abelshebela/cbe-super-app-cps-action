@@ -1,10 +1,11 @@
 package department_handler
 
 import (
-	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	inbound "cbe-super-app-cps-action/internal/port/inbound/department"
 	"net/http"
+
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 
 	"github.com/go-chi/chi/v5"
 )

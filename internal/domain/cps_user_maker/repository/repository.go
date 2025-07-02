@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type CPSUserRepo interface {

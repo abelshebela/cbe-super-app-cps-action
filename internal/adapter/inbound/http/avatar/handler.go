@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"cbe-super-app-cps-action/internal/adapter/outbound/model"
-	avatarAPP "cbe-super-app-cps-action/internal/application/avatar"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	dto "cbe-super-app-cps-action/internal/domain/avatar"
-	"cbe-super-app-cps-action/internal/port/inbound/avatar"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"

@@ -198,6 +198,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_046",
 			Message: "Failed to update HQ.",
 		},
+		"PENDING_UPDATE_ACTION_EXISTS": {
+			Code:    "GEN_047",
+			Message: "Pending update action already exists for this maker.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

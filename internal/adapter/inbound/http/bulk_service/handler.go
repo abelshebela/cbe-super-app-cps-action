@@ -6,10 +6,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	route "cbe-super-app-cps-action/internal/adapter/inbound/http"
-	bulkservices_application "cbe-super-app-cps-action/internal/application/bulk_services"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	inbound "cbe-super-app-cps-action/internal/port/inbound/bulk_services"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
 )
 
 type HttpStore struct {

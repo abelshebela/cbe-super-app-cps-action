@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	service "cbe-super-app-cps-action/internal/domain/service"
+	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 )
 
 // MockOutboundServiceDetailInfra is a mock of OutboundServiceDetailInfra interface.

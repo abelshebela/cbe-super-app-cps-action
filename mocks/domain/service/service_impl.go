@@ -9,8 +9,8 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	action "cbe-super-app-cps-action/internal/domain/action"
-	service "cbe-super-app-cps-action/internal/domain/service"
+	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 )
 
 // MockServiceRepository is a mock of ServiceRepository interface.

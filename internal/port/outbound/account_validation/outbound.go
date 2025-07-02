@@ -1,9 +1,10 @@
 package outbound
 
 import (
-	"cbe-super-app-cps-action/internal/domain/account_validation"
-	"cbe-super-app-cps-action/internal/domain/action"
 	"context"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type OutboundInfra interface {

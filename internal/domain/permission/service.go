@@ -1,9 +1,10 @@
 package permission
 
 import (
-	"cbe-super-app-cps-action/internal/domain/permission/entities"
 	"errors"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

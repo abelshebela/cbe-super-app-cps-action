@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"time"
 
-	"cbe-super-app-cps-action/internal/application/service/dto"
-	"cbe-super-app-cps-action/internal/domain/action"
-	cpsuser "cbe-super-app-cps-action/internal/domain/cps_user"
-	"cbe-super-app-cps-action/internal/domain/service"
-	serviceDomain "cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

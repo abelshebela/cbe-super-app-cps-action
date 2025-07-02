@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	model "cbe-super-app-cps-action/internal/adapter/outbound/model"
-	amount_based_auth_domain "cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	gomock "go.uber.org/mock/gomock"
 )
 

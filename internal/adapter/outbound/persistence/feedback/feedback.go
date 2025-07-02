@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/domain/feedback/entity"
-	outbound "cbe-super-app-cps-action/internal/port/outbound/feedback"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/feedback"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

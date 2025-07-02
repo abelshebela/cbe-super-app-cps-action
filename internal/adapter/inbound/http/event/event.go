@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"cbe-super-app-cps-action/internal/application/dto"
-	"cbe-super-app-cps-action/internal/application/middleware"
-	"cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 const (

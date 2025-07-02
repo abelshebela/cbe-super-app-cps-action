@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"cbe-super-app-cps-action/internal/domain/ad/entity"
-	"cbe-super-app-cps-action/internal/domain/ad/mocks"
-	constant "cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/mocks"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"

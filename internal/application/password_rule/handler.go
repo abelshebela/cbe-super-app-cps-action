@@ -3,26 +3,26 @@ package passwordrule
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/action"
-	"cbe-super-app-cps-action/internal/domain/password_rule/services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type PasswordRuleHandler struct {
-	service services.PasswordRuleService
-	logger  utils.Logger
+	services.PasswordRuleService
+	logger utils.Logger
 }
 
 func InitPasswordRuleHandler(service services.PasswordRuleService, logger utils.Logger) *PasswordRuleHandler {
 	return &PasswordRuleHandler{
-		service: service,
-		logger:  logger,
+		PasswordRuleService: service,
+		logger:              logger,
 	}
 }
 
 func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User) (string, error) {
-	actionID, err := h.service.RequestPasswordRuleUpdate(ctx, rule, maker)
+	actionID, err := h.PasswordRuleService.RequestPasswordRuleUpdate(ctx, rule, maker)
 	if err != nil {
 		h.logger.Errorf("Failed to request password rule update: %v", err)
 		return "", err
@@ -31,7 +31,7 @@ func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rul
 }
 
 func (h *PasswordRuleHandler) ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, approve bool, checker action.User, rejectionReason *string) error {
-	err := h.service.ApproveOrRejectPasswordRuleAction(ctx, actionID, approve, checker, rejectionReason)
+	err := h.PasswordRuleService.ApproveOrRejectPasswordRuleAction(ctx, actionID, approve, checker, rejectionReason)
 	if err != nil {
 		h.logger.Errorf("Failed to approve/reject password rule action: %v", err)
 		return err
@@ -40,7 +40,7 @@ func (h *PasswordRuleHandler) ApproveOrRejectPasswordRuleAction(ctx context.Cont
 }
 
 func (h *PasswordRuleHandler) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
-	action, err := h.service.GetPasswordRuleUpdateActionByID(ctx, actionID)
+	action, err := h.PasswordRuleService.GetPasswordRuleUpdateActionByID(ctx, actionID)
 	if err != nil {
 		h.logger.Errorf("Failed to get password rule update action by ID: %v", err)
 		return nil, err
@@ -49,7 +49,7 @@ func (h *PasswordRuleHandler) GetPasswordRuleUpdateActionByID(ctx context.Contex
 }
 
 func (h *PasswordRuleHandler) GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error) {
-	action, err := h.service.GetUpdateAction(ctx, maker)
+	action, err := h.PasswordRuleService.GetUpdateAction(ctx, maker)
 	if err != nil {
 		h.logger.Errorf("Failed to get update action: %v", err)
 		return nil, err

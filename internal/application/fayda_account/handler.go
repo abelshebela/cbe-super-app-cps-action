@@ -3,8 +3,8 @@ package faydaaccount
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"cbe-super-app-cps-action/internal/domain/fayda_account/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

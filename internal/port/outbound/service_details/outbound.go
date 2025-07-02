@@ -3,8 +3,8 @@ package outbound
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/domain/service"
-	// "cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type OutboundServiceDetailInfra interface {
