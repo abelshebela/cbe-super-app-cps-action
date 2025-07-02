@@ -190,6 +190,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_044",
 			Message: "Failed to update CPS action.",
 		},
+		"HQ_ID_MISMATCH": {
+			Code:    "GEN_045",
+			Message: "HQ ID mismatch.",
+		},
+		"FAILED_TO_UPDATE_HQ": {
+			Code:    "GEN_046",
+			Message: "Failed to update HQ.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

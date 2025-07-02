@@ -36,14 +36,14 @@ func NewService(repo Repository, actionRepo action.Repository, logger utils.Logg
 func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 	if id == "" {
 		s.logger.Errorf("HQ ID is empty")
-		return HQ{}, errors.New("HQ ID cannot be empty")
+		return HQ{}, errors.New("INVALID_ID")
 	}
 	s.logger.Infof("fetching HQ", "id", id)
 
 	hq, err := s.repository.GetHQByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
-		return HQ{}, err
+		return HQ{}, errors.New("NOT_FOUND")
 	}
 	return hq, nil
 }
@@ -52,13 +52,13 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
-		return "", err
+		return "", errors.New("NOT_FOUND")
 	}
 
 	previousActionJSON, err := json.Marshal(originalHQ)
 	if err != nil {
 		s.logger.Errorf("failed to marshal previous action: %v", err)
-		return "", errors.New("failed to marshal previous action")
+		return "", errors.New("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
 	}
 
 	updatedHQ := originalHQ
@@ -66,7 +66,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	currentActionJSON, err := json.Marshal(updatedHQ)
 	if err != nil {
 		s.logger.Errorf("failed to marshal current action: %v", err)
-		return "", errors.New("failed to marshal current action")
+		return "", errors.New("FAILED_TO_MARSHAL_CURRENT_ACTION")
 	}
 
 	s.logger.Infof("original HQ: %+v", originalHQ)
@@ -96,7 +96,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
-		return "", err
+		return "", errors.New("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
 	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
@@ -107,13 +107,13 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
-		return "", err
+		return "", errors.New("NOT_FOUND")
 	}
 
 	previousActionJSON, err := json.Marshal(originalHQ)
 	if err != nil {
 		s.logger.Errorf("failed to marshal previous action: %v", err)
-		return "", errors.New("failed to marshal previous action")
+		return "", errors.New("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
 	}
 
 	updatedHQ := originalHQ
@@ -121,7 +121,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	currentActionJSON, err := json.Marshal(updatedHQ)
 	if err != nil {
 		s.logger.Errorf("failed to marshal current action: %v", err)
-		return "", errors.New("failed to marshal current action")
+		return "", errors.New("FAILED_TO_MARSHAL_CURRENT_ACTION")
 	}
 
 	s.logger.Infof("original HQ: %+v", originalHQ)
@@ -151,7 +151,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
-		return "", err
+		return "", errors.New("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
 	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
@@ -161,12 +161,12 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejectRequest) error {
 	if request.ActionCode == "" {
 		s.logger.Errorf("action ID is empty")
-		return errors.New("action ID cannot be empty")
+		return errors.New("ACTION_ID_EMPTY")
 	}
 
 	if request.CheckerID == "" {
 		s.logger.Errorf("checker ID is empty")
-		return errors.New("checker ID cannot be empty")
+		return errors.New("CHECKER_ID_EMPTY")
 	}
 
 	s.logger.Infof("processing HQ block time update", "action_id", request.ActionCode, "approve", request.Approved, "checker_id", request.CheckerID)
@@ -174,12 +174,12 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, request.ActionCode)
 	if err != nil {
 		s.logger.Errorf("failed to fetch CPS action: %v", err)
-		return errors.New("action not found")
+		return errors.New("ACTION_NOT_FOUND")
 	}
 
 	if cpsAction.ActionStatus != action.ActionPending {
 		s.logger.Errorf("action is not pending", "action_id", request.ActionCode, "status", cpsAction.ActionStatus)
-		return errors.New("action is not pending")
+		return errors.New("ACTION_NOT_PENDING")
 	}
 
 	cpsAction.Checker = action.User{
@@ -202,37 +202,44 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 			currentActionBytes = []byte(v)
 		case nil:
 			s.logger.Errorf("current action is nil", "action_id", request.ActionCode)
-			return errors.New("current action is nil")
+			return errors.New("CURRENT_ACTION_NIL")
 		default:
 			var err error
 			currentActionBytes, err = json.Marshal(v)
 			if err != nil {
 				s.logger.Errorf("failed to marshal current action: %v", err)
-				return errors.New("current action is not a valid type")
+				return errors.New("CURRENT_ACTION_INVALID_TYPE")
 			}
 		}
 
 		if err := json.Unmarshal(currentActionBytes, &updatedHQ); err != nil {
 			s.logger.Errorf("failed to unmarshal current action: %v", err)
-			return errors.New("failed to unmarshal current action")
+			return errors.New("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
+		}
+
+		if updatedHQ.ID == "" || updatedHQ.ID != cpsAction.UniqueId {
+			s.logger.Errorf("HQ ID mismatch", "action_id", request.ActionCode, "hq_id", updatedHQ.ID, "unique_id", cpsAction.UniqueId)
+			return errors.New("HQ_ID_MISMATCH") // TODO: Add to error_defination.go
 		}
 
 		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID, updatedHQ); err != nil {
 			s.logger.Errorf("failed to update HQ: %v", err)
-			return err
+			return errors.New("FAILED_TO_UPDATE_HQ") // TODO: Add to error_defination.go
 		}
 
 		cpsAction.ActionStatus = action.ActionApproved
+		s.logger.Infof("HQ block time approved successfully", "action_id", request.ActionCode)
 	} else {
 		cpsAction.ActionStatus = action.ActionRejected
+		cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		s.logger.Infof("HQ block time update rejected", "action_id", request.ActionCode)
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {
 		s.logger.Errorf("failed to update CPS action: %v", err)
-		return err
+		return errors.New("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
-	s.logger.Infof("successfully processed HQ block time update", "action_id", request.ActionCode)
 	return nil
 }
 
@@ -312,4 +319,8 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 
 	s.logger.Infof("successfully processed HQ archive time update", "action_id", request.ActionCode)
 	return nil
+}
+
+func stringToPointer(s string) *string {
+	return &s
 }

@@ -2,6 +2,8 @@ package dto
 
 import (
 	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type HQ struct {
@@ -18,6 +20,18 @@ type UpdateBlockTimeRequest struct {
 	BlockTime uint `json:"block_time"`
 }
 
+func (r UpdateBlockTimeRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.BlockTime, validation.Required, validation.Min(uint(1)).Error("block_time must be greater than 0")),
+	)
+}
+
 type UpdateArchiveTimeRequest struct {
 	ArchiveTime uint `json:"archive_time"`
+}
+
+func (r UpdateArchiveTimeRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ArchiveTime, validation.Required, validation.Min(uint(1)).Error("archive_time must be greater than 0")),
+	)
 }
