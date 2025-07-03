@@ -38,12 +38,12 @@ pipeline {
                         env.ENV_TYPE = 'PROD'
                         env.IMAGE_NAME = 'cbe-supperapp-cps-action-prod'
                         env.SSH_KEY = 'PROD_SSH_KEY'
-                    }else if (env.BRANCH_NAME == 'qa') {
+                    }
+                    else if (env.BRANCH_NAME == 'qa') {
                         env.ENV_TYPE = 'QA'
                         env.IMAGE_NAME = 'cbe-supperapp-cps-action-qa'
                         env.SSH_KEY = 'QA_SSH_KEY'
                     }
-
                     else if (env.BRANCH_NAME == 'dev') {
                         env.ENV_TYPE = 'DEV'
                         env.IMAGE_NAME = 'cbe-supperapp-cps-action-dev'
