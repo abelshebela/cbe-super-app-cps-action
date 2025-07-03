@@ -81,7 +81,7 @@ func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	serviceName := service.ServiceName 
+	serviceName := service.ServiceName
 
 	// Prepare CPS action data
 	action := map[string]interface{}{

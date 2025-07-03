@@ -143,7 +143,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 	cpsReq.Department = department
 
 	ctx := r.Context()
-	rejectAction, err := a.amountBasedAuthService.RejectAmountBasedAuth(ctx, id,cpsReq)
+	rejectAction, err := a.amountBasedAuthService.RejectAmountBasedAuth(ctx, id, cpsReq)
 	if err != nil {
 		middleware.ErrorHandler(w, err)
 		return

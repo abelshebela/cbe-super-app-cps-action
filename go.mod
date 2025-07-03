@@ -13,10 +13,9 @@ require (
 	github.com/minio/minio-go/v7 v7.0.92
 	github.com/rs/zerolog v1.34.0
 	github.com/segmentio/kafka-go v0.4.48
-	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.19
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
 )
@@ -27,6 +26,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/go-chi/chi v1.5.5
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect

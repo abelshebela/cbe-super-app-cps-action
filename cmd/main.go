@@ -13,6 +13,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	persistence "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	amount_based_auth_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 
@@ -105,6 +106,14 @@ import (
 	application_hq "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
 	hq_service "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/hq"
 	password_rule_services "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/password_rule/services"
+
+	avatar_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
+
+	avatar_adapter "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
+	avatar_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/avatar"
+	accountblock_handler "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
+	account_block_repo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
+	account_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_block"
 )
 
 func main() {
@@ -137,6 +146,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Second)
 	defer cancel()
+	
 
 	dbname := cfg.MongoDBDatabase
 	// dbname := "ldap_cbs"
@@ -289,7 +299,7 @@ func main() {
 	amountBasedAuthRepo := persistence.InitAmountBasedAuth(mongoClient, cfg.MongoDBDatabase, []string{"auth_tier", "cps_action"}, logger)
 	amountBasedAuthService := amount_based_auth_domain.NewAmountBasedAuthService(amountBasedAuthRepo, logger)
 	amountBasedAuthApplication := amount_based_auth_app.AmountBasedAuthHandler(amountBasedAuthService)
-	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication,logger)
+	amountBasedAuthHandler := amount_based_auth_handler.NewAmountBasedAuthHandler(amountBasedAuthApplication, logger)
 	amount_based_auth_handler.InitAmountBasedAuthHandler(r, amountBasedAuthHandler, authMddleware)
 
 	quit := make(chan os.Signal, 1)
@@ -305,11 +315,34 @@ func main() {
 	passwordRuleService := password_rule_services.NewPasswordRuleService(passwordRuleOutbound)
 	passwordRuleHandler := password_rule_handler.NewPasswordRuleHTTPHandler(passwordRuleService, logger)
 	password_rule_routes.RegisterPasswordRuleRoutes(r, passwordRuleHandler, authMddleware)
+
 	hq_persistence := hq_persistence.NewHQPersistence(mongoClient, cfg.MongoDBDatabase, viper.GetDuration("timeout"), logger)
 	hqService := hq_service.NewService(hq_persistence, adapter_port, logger)
 	hqApp := application_hq.NewApplication(hqService, logger)
 	hqHandler := hq_handler.NewHQHTTPHandler(hqApp, logger)
 	hq_handler.InitHQRoutes(r, hqHandler, authMddleware)
+
+	avatarPersitence := avatar.InitAvatarPersistence(mongoClient, cfg.MongoDBDatabase, []string{"cps_actions", "avatars"}, logger)
+	avatarDomain := avatar_domain.InitAvatarDomain(avatarPersitence, minioClient, "avatars", logger)
+	avatarApp := avatar_app.InitAvatarAPP(avatarDomain, logger)
+	avatarHanler := avatar_adapter.InitAvatarHTTPHandler(avatarApp, logger)
+	avatar_adapter.InitAvatarRoutes(r, avatarHanler, authMddleware)
+
+accountBlockRepo := account_block_repo.NewOutboundAccountBlockStore(
+    mongoClient,
+    cfg.MongoDBDatabase,
+    "branches",      
+    "regions",       
+    "cps_actions",   
+    "districts",     
+    "users",        
+    "cities",        
+    logger,
+)
+accountBlockService := account_domain.NewAccountService(accountBlockRepo)
+accountBlockHandler := accountblock_handler.NewAccountBlockHandler(accountBlockService, logger)
+
+accountblock_handler.RegisterAccountBlockRoutes(r, accountBlockHandler, authMddleware)
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: r,

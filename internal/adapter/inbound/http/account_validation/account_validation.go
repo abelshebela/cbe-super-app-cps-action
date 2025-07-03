@@ -10,17 +10,17 @@ import (
 )
 
 var errorMap = map[string]int{
-	"validation rule ID cannot be empty":          http.StatusBadRequest,
-	"maker ID cannot be empty":                    http.StatusBadRequest,
-	"validation failed: identifier cannot be empty": http.StatusBadRequest,
+	"validation rule ID cannot be empty":                     http.StatusBadRequest,
+	"maker ID cannot be empty":                               http.StatusBadRequest,
+	"validation failed: identifier cannot be empty":          http.StatusBadRequest,
 	"validation failed: min length cannot exceed max length": http.StatusBadRequest,
-	"validation failed: service ID cannot be empty": http.StatusBadRequest,
-	"validation rule not found":                    http.StatusNotFound,
-	"validation rule already has a pending action": http.StatusConflict,
-	"action ID cannot be empty":                    http.StatusBadRequest,
-	"checker ID cannot be empty":                   http.StatusBadRequest,
-	"action not found":                             http.StatusNotFound,
-	"action is not pending":                        http.StatusConflict,
+	"validation failed: service ID cannot be empty":          http.StatusBadRequest,
+	"validation rule not found":                              http.StatusNotFound,
+	"validation rule already has a pending action":           http.StatusConflict,
+	"action ID cannot be empty":                              http.StatusBadRequest,
+	"checker ID cannot be empty":                             http.StatusBadRequest,
+	"action not found":                                       http.StatusNotFound,
+	"action is not pending":                                  http.StatusConflict,
 }
 
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {

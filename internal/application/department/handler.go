@@ -1,28 +1,28 @@
 package department
 
 import (
-    domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type DepartmentService interface {
-    CreateDepartment(input string, portalCards []string, cpsAction entities.CPSAction) error
-    UpdateDepartment(code string, req CreateDepartmentRequest) error
+	CreateDepartment(input string, portalCards []string, cpsAction entities.CPSAction) error
+	UpdateDepartment(code string, req CreateDepartmentRequest) error
 	ValidateActionRequest(actionCode string, userDept string) (*entities.CPSAction, error)
 	ApproveActionRequest(actionCode string, action entities.CPSAction) error
 }
 
 type DepartmentHandler struct {
-    service *domain.Service
-	logger utils.Logger
+	service *domain.Service
+	logger  utils.Logger
 }
 
 func InitDepartmentHandler(service *domain.Service, logger utils.Logger) DepartmentService {
-    return &DepartmentHandler{
-        service: service,
-		logger: logger,
-    }
+	return &DepartmentHandler{
+		service: service,
+		logger:  logger,
+	}
 }
 func (h *DepartmentHandler) CreateDepartment(input string, portalCards []string, cpsAction entities.CPSAction) error {
 	err := h.service.CreateDepartment(input, portalCards, cpsAction)

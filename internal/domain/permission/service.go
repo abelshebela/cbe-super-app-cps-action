@@ -2,27 +2,26 @@ package permission
 
 import (
 	"errors"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"time"
-	 "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
-	  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service struct {
-	cpsActionRepo     CPSActionRepository
-	permissionGroupRepo PermissionGroupRepository
+	cpsActionRepo          CPSActionRepository
+	permissionGroupRepo    PermissionGroupRepository
 	permissionCategoryRepo PermissionCategoryRepository
-	logger            utils.Logger
+	logger                 utils.Logger
 }
 
 func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo PermissionGroupRepository, permissionCategoryRepo PermissionCategoryRepository, logger utils.Logger) *Service {
 	return &Service{
-		cpsActionRepo:      cpsActionRepo,
-		permissionGroupRepo: permissionGroupRepo,
+		cpsActionRepo:          cpsActionRepo,
+		permissionGroupRepo:    permissionGroupRepo,
 		permissionCategoryRepo: permissionCategoryRepo,
-		logger:            logger,
+		logger:                 logger,
 	}
 }
-
 
 func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction entities.CPSAction) error {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, cpsAction.ActionStatus, cpsAction.RequestAction); err != nil {
@@ -38,15 +37,15 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 		return err
 	}
 
-		    cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "PER_GROUP_"})
-		cpsAction.CurrentAction = map[string]interface{}{
-			"group_name": groupName,
-			"permission_categories": validCategories,
-			"role": role,
-			"realm": "bank",
-		}
-		cpsAction.MakerActionTime = time.Now()
-	
+	cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "PER_GROUP_"})
+	cpsAction.CurrentAction = map[string]interface{}{
+		"group_name":            groupName,
+		"permission_categories": validCategories,
+		"role":                  role,
+		"realm":                 "bank",
+	}
+	cpsAction.MakerActionTime = time.Now()
+
 	return s.cpsActionRepo.CreatePermissionGroup(cpsAction)
 }
 
@@ -67,6 +66,6 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action entities.CPSA
 
 	if err := s.cpsActionRepo.ApproveActionRequest(actionCode, action); err != nil {
 		return err
-	}	
+	}
 	return nil
 }

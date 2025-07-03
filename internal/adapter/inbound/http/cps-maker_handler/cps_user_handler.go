@@ -56,7 +56,6 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 	userID := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phoneNumber := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	
 
 	maker := action.User{
 		UserID:      userID,
@@ -90,69 +89,69 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 }
 func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 
-    var req cpsapp.UpdateUserRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
-            Code:    http.StatusBadRequest,
-            Message: "user_code is required",
-        })
-        middleware.ErrorHandler(w, err)
-        return
-    }
+	var req cpsapp.UpdateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "user_code is required",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
-    if strings.TrimSpace(req.UserCode) == "" {
-        err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
-            Code:    http.StatusBadRequest,
-            Message: "user_code is required",
-        })
-        middleware.ErrorHandler(w, err)
-        return
-    }
+	if strings.TrimSpace(req.UserCode) == "" {
+		err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "user_code is required",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
-    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
 
-    if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
-        err := fmt.Errorf("user info missing in context %w", constant.ErrorDefinition{
-            Code:    http.StatusUnauthorized,
-            Message: "user info missing in context",
-        })
-        middleware.ErrorHandler(w, err)
-        return
-    }
+	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
+		err := fmt.Errorf("user info missing in context %w", constant.ErrorDefinition{
+			Code:    http.StatusUnauthorized,
+			Message: "user info missing in context",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
-    updated := action.CPSUser{
-        UserCode:           req.UserCode,
-        UserName:           req.UserName,
-        FullName:           req.FullName,
-        PhoneNumber:        req.PhoneNumber,
-        Role:               req.UserRole,
-        Department:         req.Department,
-        PermissionCategory: req.PermissionCategory,
-        PermissionGroup:    req.PermissionGroups,
-    }
+	updated := action.CPSUser{
+		UserCode:           req.UserCode,
+		UserName:           req.UserName,
+		FullName:           req.FullName,
+		PhoneNumber:        req.PhoneNumber,
+		Role:               req.UserRole,
+		Department:         req.Department,
+		PermissionCategory: req.PermissionCategory,
+		PermissionGroup:    req.PermissionGroups,
+	}
 
-    maker := action.User{
-        UserID:      userID,
-        FullName:    fullName,
-        PhoneNumber: phoneNumber,
-    }
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+	}
 
-    ctx := r.Context()
-    if err := h.Service.UpdateUserRequest(ctx, updated, maker); err != nil {
-        fmt.Printf("UpdateUserRequest failed: %v\n", err)
-        h.Logger.Errorf("UpdateUserRequest failed: %v", err)
-        middleware.ErrorHandler(w, err)
-        return
-    }
+	ctx := r.Context()
+	if err := h.Service.UpdateUserRequest(ctx, updated, maker); err != nil {
+		fmt.Printf("UpdateUserRequest failed: %v\n", err)
+		h.Logger.Errorf("UpdateUserRequest failed: %v", err)
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
-    res := common.Response[string]{
-        ResponseWriter: w,
-        Status:         http.StatusOK,
-        Data:           "User updated",
-    }
-    res.SendJSON()
+	res := common.Response[string]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           "User updated",
+	}
+	res.SendJSON()
 }
 func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -198,46 +197,46 @@ func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Re
 }
 
 func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *http.Request) {
-    ctx := r.Context()
-    actionCode := r.URL.Query().Get("action_code")
-    actions, err := h.Service.GetPendingUserActions(ctx, actionCode)
-    if err != nil {
-        h.Logger.Errorf("GetPendingUserActions failed: %v", err)
-        middleware.ErrorHandler(w, err)
-        return
-    }
-    res := common.Response[[]action.CPSAction]{
-        ResponseWriter: w,
-        Status:         http.StatusOK,
-        Data:           actions,
-    }
-    res.SendJSON()
+	ctx := r.Context()
+	actionCode := r.URL.Query().Get("action_code")
+	actions, err := h.Service.GetPendingUserActions(ctx, actionCode)
+	if err != nil {
+		h.Logger.Errorf("GetPendingUserActions failed: %v", err)
+		middleware.ErrorHandler(w, err)
+		return
+	}
+	res := common.Response[[]action.CPSAction]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           actions,
+	}
+	res.SendJSON()
 }
 func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
-    var req struct {
-        UserCode string `json:"user_code"`
-    }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.UserCode) == "" {
-        err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
-            Code:    http.StatusBadRequest,
-            Message: "user_code is required",
-        })
-        middleware.ErrorHandler(w, err)
-        return
-    }
+	var req struct {
+		UserCode string `json:"user_code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.UserCode) == "" {
+		err := fmt.Errorf("user_code is required %w", constant.ErrorDefinition{
+			Code:    http.StatusBadRequest,
+			Message: "user_code is required",
+		})
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
-    ctx := r.Context()
-    user, err := h.Service.FetchUserByUserCode(ctx, req.UserCode)
-    if err != nil {
-        h.Logger.Errorf("FetchUserByUserCode failed: %v", err)
-        middleware.ErrorHandler(w, err)
-        return
-    }
+	ctx := r.Context()
+	user, err := h.Service.FetchUserByUserCode(ctx, req.UserCode)
+	if err != nil {
+		h.Logger.Errorf("FetchUserByUserCode failed: %v", err)
+		middleware.ErrorHandler(w, err)
+		return
+	}
 
-    res := common.Response[*action.CPSUser]{
-        ResponseWriter: w,
-        Status:         http.StatusOK,
-        Data:           user,
-    }
-    res.SendJSON()
+	res := common.Response[*action.CPSUser]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           user,
+	}
+	res.SendJSON()
 }

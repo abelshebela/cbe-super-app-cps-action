@@ -64,9 +64,9 @@ func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) e
 	defer cancel()
 
 	updateDoc := bson.M{
-		"block_time":          update.BlockTime,
-		"archive_time":        update.ArchiveTime,
-		"last_modified_at":    time.Now(),
+		"block_time":       update.BlockTime,
+		"archive_time":     update.ArchiveTime,
+		"last_modified_at": time.Now(),
 	}
 	_, err := p.hqDal.UpdateOne(ctx, bson.M{"_id": id}, updateDoc)
 	if err != nil {

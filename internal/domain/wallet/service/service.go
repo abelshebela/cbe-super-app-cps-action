@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -87,38 +85,27 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	}
 
 	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
-	dir, err := os.Getwd()
+	file, err := actionData.Avatar.Open()
 	if err != nil {
-		w.logger.Errorf("failed to get current working directory", err)
-		return nil, fmt.Errorf("failed to create advert bucket: %w", constant.ErrorDefinition{
+		w.logger.Errorf("failed to open uploaded file: %v", err)
+		return nil, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
 	}
-	filePath := filepath.Join(dir, fileName)
+	defer file.Close()
 
-	tempFile, err := os.Create(filePath)
-	if err != nil {
-		w.logger.Errorf("failed to create temp file: %v", err)
-		return nil, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-	defer func() {
-		tempFile.Close()
-		os.Remove(filePath)
-	}()
-
-	// Save to MinIO
-	saveObj, err := w.minioClient.SaveObject(ctx, config.SaveObjectBody{
-		BucketName: w.bucketName,
-		ObjectName: fileName,
-		File:       filePath,
+	saveObj, err := w.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  w.bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        actionData.Avatar.Size,
+		ContentType: config.ContentType(actionData.Avatar.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		w.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("failed to save object to MinIO: %w", constant.ErrorDefinition{
+		return nil, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -129,7 +116,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 		Department: req.Department,
 		ActionData: entity.Wallet{
 			Name:   actionData.Name,
-			Avatar: saveObj.Bucket + "/" + saveObj.Key,
+			Avatar: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
 			Code:   actionData.Code,
 		},
 	})

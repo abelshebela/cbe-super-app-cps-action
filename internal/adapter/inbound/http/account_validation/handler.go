@@ -83,7 +83,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.UpdateAccountValidationChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"checker","ifb-checker"}),
+				middleware.AccessControl([]string{"checker", "ifb-checker"}),
 			},
 		},
 	}

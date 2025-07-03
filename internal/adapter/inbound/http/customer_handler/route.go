@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail,authMiddleware middleware.AuthMiddleware) {
+func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/api/v1/cbesuperapp/cps_action/customers", func(r chi.Router) {
 		routes := []route.Route{
 			{

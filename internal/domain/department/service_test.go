@@ -1,12 +1,10 @@
-
-
 package department_test
 
 import (
 	"testing"
 
-	"go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
@@ -15,15 +13,14 @@ import (
 
 type dummyLogger struct{}
 
-func (d dummyLogger) Infof(format string, args ...interface{})    {}
-func (d dummyLogger) Errorf(format string, args ...interface{})   {}
-func (d dummyLogger) Debugf(format string, args ...interface{})   {}
-func (d dummyLogger) Warnf(format string, args ...interface{})    {}
-func (d dummyLogger) Fatalf(format string, args ...interface{})   {}
+func (d dummyLogger) Infof(format string, args ...interface{})  {}
+func (d dummyLogger) Errorf(format string, args ...interface{}) {}
+func (d dummyLogger) Debugf(format string, args ...interface{}) {}
+func (d dummyLogger) Warnf(format string, args ...interface{})  {}
+func (d dummyLogger) Fatalf(format string, args ...interface{}) {}
 func (d dummyLogger) Sync() error {
 	return nil
 }
-
 
 func TestCreateDepartment_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)

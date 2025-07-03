@@ -52,4 +52,3 @@ type CPSAction struct {
 	MakerActionTime   time.Time     `json:"maker_action_time" bson:"maker_action_time"`
 	CheckerActionTime time.Time     `json:"checker_action_time" bson:"checker_action_time"`
 }
-
