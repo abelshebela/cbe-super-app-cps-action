@@ -10,47 +10,57 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
 )
 
+func (h *HttpStore) extractUserIDFromContext(r *http.Request) (string, error) {
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		return "", fmt.Errorf(utils.Unauthorized)
+	}
+	return claims.UserID, nil
+}
+
+func (h *HttpStore) buildServiceActionMessage(serviceID string, isEnable bool, verb string) string {
+	action := "enable"
+	if !isEnable {
+		action = "disable"
+	}
+	return fmt.Sprintf("Action %s on Service id :%s %s successfully", action, serviceID, verb)
+}
+
 func (h *HttpStore) FetchServices(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := utils.ExtractPaginator(r)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "")
+		utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 	resp, common_error := h.Application.FetchServices(r.Context(), int(offset), int(limit))
 	if common_error != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "")
+		utils.SendErrorResponse(w, common_error.Error(), 0, nil)
 		return
 	}
 	utils.WriteSuccessResponse(w, resp, "successfully retrived")
-
 }
 func (h *HttpStore) EnableDisableServicesMaker(w http.ResponseWriter, r *http.Request) {
 	var req dto.EnableDisableServiceMakerDtoRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "invalid request body")
+		utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
 		return
 	}
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+
+	makerID, err := h.extractUserIDFromContext(r)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), http.StatusUnauthorized, nil)
 		return
 	}
-	makerId := claims.UserID
-	// TODO: Add further logic to handle the request
-	request_id, common_error := h.Application.EnableDisableServicesMaker(r.Context(), req.ServiceId, req.ServiceAction, makerId)
+
+	request_id, common_error := h.Application.EnableDisableServicesMaker(r.Context(), req.ServiceId, req.ServiceAction, makerID)
 	if common_error != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "")
+		utils.SendErrorResponse(w, common_error.Error(), 0, nil)
 		return
 	}
-	action := "enable"
-	if !req.ServiceAction {
-		action = "disable"
-	}
-	resp := dto.EnableDisableServiceMakerDtoResponse{
-		ActionId: request_id,
-	}
-	msg := fmt.Sprintf("Action %v  on Service id :%v requested successfully", action, req.ServiceId)
+
+	resp := dto.EnableDisableServiceMakerDtoResponse{ActionId: request_id}
+	msg := h.buildServiceActionMessage(req.ServiceId, req.ServiceAction, "requested")
 	utils.WriteSuccessResponse(w, resp, msg)
 }
 
@@ -58,25 +68,22 @@ func (h *HttpStore) EnableDisableServicesChecker(w http.ResponseWriter, r *http.
 	var req dto.EnableDisableServiceCheckerDtoRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "invalid request body")
+		utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
 		return
 	}
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+
+	checkerID, err := h.extractUserIDFromContext(r)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), http.StatusUnauthorized, nil)
 		return
 	}
-	checkerId := claims.UserID
-	// TODO: Add further logic to handle the request
-	common_error := h.Application.EnableDisableServicesChecker(r.Context(), req.Action_Id, req.ServiceAction, checkerId)
+
+	common_error := h.Application.EnableDisableServicesChecker(r.Context(), req.Action_Id, req.ServiceAction, checkerID)
 	if common_error != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "")
+		utils.SendErrorResponse(w, common_error.Error(), 0, nil)
 		return
 	}
-	action := "enable"
-	if !req.ServiceAction {
-		action = "disable"
-	}
-	msg := fmt.Sprintf("Action %v  on Service id :%v implemented successfully", action, req.Action_Id)
+
+	msg := h.buildServiceActionMessage(req.Action_Id, req.ServiceAction, "implemented")
 	utils.WriteSuccessResponse(w, nil, msg)
 }
