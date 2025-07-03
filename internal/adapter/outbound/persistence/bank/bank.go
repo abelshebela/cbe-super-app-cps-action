@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/entity"
 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bank"
+	error_codes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -48,19 +49,11 @@ func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction
 	existingBank, err := b.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return err
+		return fmt.Errorf(error_codes.UnhandledServerError)
 	} else if existingBank != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
 		b.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
 			cpsReq.MakerUser.UserCode, cpsReq.Department)
-		return err
+		return fmt.Errorf(error_codes.PendingRequestExists)
 	}
 
 	return nil
@@ -81,11 +74,7 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	return &cpsAction, nil
@@ -108,11 +97,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	bank, err := b.bankDal.FindOne(ctx, bankFilter, bankProjection)
 	if err != nil {
 		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	cpsRes, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
@@ -139,11 +124,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	return &cpsRes, nil
@@ -163,28 +144,16 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			b.logger.Errorf("no bank data found", err)
-			err = fmt.Errorf("banks not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "banks data not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.BankNotFound)
 		}
 		b.logger.Errorf("failed to get bank data", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	total, err := b.bankDal.TotalCount(ctx, bson.M{})
 	if err != nil {
 		b.logger.Errorf("failed to get bank total counts", err)
-		err := fmt.Errorf("failed to get bank total counts %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	return &entity.BankResponse{
@@ -206,18 +175,10 @@ func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			b.logger.Errorf("bank not found", err)
-			err = fmt.Errorf("bank not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "bank not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.BankNotFound)
 		}
 		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 	return bank, nil
 }
@@ -238,11 +199,7 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	bank, err := b.bankDal.FindOne(ctx, bankFilter, bankProjection)
 	if err != nil {
 		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	cps, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
@@ -265,19 +222,11 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			b.logger.Errorf("bank not found", err)
-			err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "bank not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.BankNotFound)
 		}
 
 		b.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	return &cps, nil
@@ -306,31 +255,19 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 	cpsAction, err := b.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		b.logger.Errorf("failed to update cps action", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	var actionData entity.Bank
 	data, err := bson.Marshal(cpsAction.ActionData)
 	if err != nil {
 		b.logger.Errorf("failed to marshal bson: %v", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
 		b.logger.Errorf("failed to unmarshal into Bank: %v", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	if cpsAction.ActionType == model.ActionCreate {
@@ -346,11 +283,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 		bank, err = b.bankDal.InsertOne(ctx, req)
 		if err != nil {
 			b.logger.Errorf("failed to create bank", err)
-			err = fmt.Errorf("failed to create bank %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 
 		cpsAction.ActionData = bank
@@ -388,11 +321,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 		bank, err = b.bankDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			b.logger.Errorf("failed to update bank", err)
-			err = fmt.Errorf("failed to update bank %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 
 		cpsAction.ActionData = bank
@@ -413,11 +342,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 		bank, err = b.bankDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			b.logger.Errorf("failed to update bank", err)
-			err = fmt.Errorf("failed to update bank %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 		cpsAction.ActionData = bank
 
@@ -448,11 +373,7 @@ func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.Cp
 	cpsAction, err := b.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		b.logger.Errorf("failed to update bank status", err)
-		err = fmt.Errorf("failed to update bank status %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 	return &cpsAction, nil
 }
@@ -476,18 +397,10 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string,
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			b.logger.Errorf("bank not found", err)
-			err = fmt.Errorf("failed to get wallet %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "bank not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf(error_codes.BankNotFound)
 		}
 		b.logger.Errorf("failed to get bank", err)
-		err = fmt.Errorf("failed to get bank %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	cps, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
@@ -510,11 +423,7 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string,
 	})
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	return &cps, nil
