@@ -1783,9 +1783,9 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 
 func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error) {
 	ruleModel, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
-	fmt.Println(ruleModel)
+	
 	if err != nil || ruleModel == nil {
-		fmt.Println(err)
+		
 		return nil, err
 	}
 	
