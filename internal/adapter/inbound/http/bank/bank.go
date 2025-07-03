@@ -1,20 +1,21 @@
+// Package bank provides HTTP handlers and adapters for bank-related operations in the CPS action service.
 package bank
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bank"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/entity"
 	inboundBank "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/bank"
+	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/context"
+	common_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -30,19 +31,49 @@ func InitBankAdapter(bankHandler bank.BankHandlerService, logger utils.Logger) i
 	}
 }
 
+func createCPSUser[T any](r *http.Request, target *T) *T {
+	userContext := ctx_util.ExtractUserContext(r)
+
+	switch v := any(target).(type) {
+	case *model.AuthorizeCPSAction:
+		v.CheckerUser = model.User{
+			UserCode:    userContext.UserCode,
+			FullName:    userContext.FullName,
+			PhoneNumber: userContext.PhoneNumber,
+		}
+		v.Department = userContext.Department
+	case *model.RejectCPSAction:
+		v.CheckerUser = model.User{
+			UserCode:    userContext.UserCode,
+			FullName:    userContext.FullName,
+			PhoneNumber: userContext.PhoneNumber,
+		}
+		v.Department = userContext.Department
+	case *model.CreateCPSAction:
+		v.MakerUser = model.User{
+			UserCode:    userContext.UserCode,
+			FullName:    userContext.FullName,
+			PhoneNumber: userContext.PhoneNumber,
+		}
+		v.Department = userContext.Department
+
+	}
+
+	return target
+}
+
 func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	var bankRequest dto.CreateBankRequest
 
+	// parsing data
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		b.logger.Errorf("failed to parse form data: %v", err)
-		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid multipart form",
-		})
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, common_util.InvalidForm, 0, nil)
+
 		return
 	}
 
+	// building model
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
@@ -50,128 +81,73 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	file, fileHeader, err := r.FormFile("logo")
 	if err != nil {
 		b.logger.Errorf("logo error: %v", err)
-		err = fmt.Errorf("failed to read logo: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "missing or invalid logo",
-		})
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidLogo, 0, nil)
+
 		return
 	}
 	defer file.Close()
 
 	bankRequest.Logo = fileHeader
 
-	var cpsRequest model.CreateCPSAction
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
+	// building request
+	cpsRequest := createCPSUser(r, &model.CreateCPSAction{})
 	cpsRequest.ActionData = bankRequest
-	cpsRequest.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsRequest.Department = department
 
 	ctx := r.Context()
-	cpsRes, err := b.bankHandler.CreateOneBank(ctx, cpsRequest)
+	// calling the application layer
+	cpsRes, err := b.bankHandler.CreateOneBank(ctx, *cpsRequest)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsRes,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsRes, "")
 }
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
+	// Decoding
 	var updateRequest dto.UpdateBankRequest
-
 	if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
 		b.logger.Errorf("invalid input", err)
-		err = fmt.Errorf("failed to decode update bank request error data %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid request",
-		})
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, common_util.InvalidReq, 0, nil)
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	var cpsReq model.CreateCPSAction
-
-	updateRequest.ID = id
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
+	// building model
+	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
 	cpsReq.ActionData = updateRequest
 
+	updateRequest.ID = id
 	ctx := r.Context()
-	cpsAction, err := b.bankHandler.UpdateOneBank(ctx, id, cpsReq)
+
+	// calling application layer
+	cpsAction, err := b.bankHandler.UpdateOneBank(ctx, id, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "")
 }
 
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var cpsReq model.CreateCPSAction
-
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
+	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
 	cpsReq.ActionData = entity.Bank{
 		ID: id,
 	}
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
 
 	ctx := r.Context()
-	cpsAction, err := b.bankHandler.DeleteOneBank(ctx, id, cpsReq)
+	cpsAction, err := b.bankHandler.DeleteOneBank(ctx, id, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "")
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
@@ -182,10 +158,10 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 		page = pageInt
 	}
 
-	per_page := constant.DefaultPerPage
+	perPage := constant.DefaultPerPage
 	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
 		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
+		perPage = perPageInt
 	}
 
 	search := query.Get("search")
@@ -193,7 +169,7 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 
 	filterParams := &constant.Filter{
 		Page:    page,
-		PerPage: per_page,
+		PerPage: perPage,
 		Search:  search,
 		Filters: filter,
 	}
@@ -202,182 +178,98 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 
 	banks, err := b.bankHandler.GetAllBank(ctx, filterParams)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*entity.BankResponse]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           banks,
-	}
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, banks, "")
 }
 
 func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	ctx := r.Context()
-
 	bank, err := b.bankHandler.GetOneBank(ctx, id)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*entity.Bank]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           bank,
-	}
+	common_util.WriteSuccessResponse(w, bank, "")
 
-	res.SendJSON()
 }
 
 func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	actionCode := chi.URLParam(r, "action_code")
+	cpsReq := createCPSUser(r, &model.AuthorizeCPSAction{})
 
-	var cpsReq model.AuthorizeCPSAction
-
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+	cpsReq.ActionCode = actionCode
 
 	ctx := r.Context()
-	authAction, err := b.bankHandler.Authorize(ctx, cpsReq)
+	authAction, err := b.bankHandler.Authorize(ctx, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           authAction,
-	}
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, authAction, "")
 }
 
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	actionCode := chi.URLParam(r, "action_code")
 
-	var cpsReq model.RejectCPSAction
+	cpsReq := createCPSUser(r, &model.RejectCPSAction{})
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		b.logger.Errorf("failed to decode bank request", err)
-		err = fmt.Errorf("failed to decode bank request error data %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid request",
-		})
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, common_util.InvalidReq, 0, nil)
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+	cpsReq.ActionCode = actionCode
 
 	ctx := r.Context()
-	rejectAction, err := b.bankHandler.Reject(ctx, cpsReq)
+	rejectAction, err := b.bankHandler.Reject(ctx, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           rejectAction,
-	}
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, rejectAction, "")
 }
 
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
+	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
 	cpsReq.ActionData = dto.UpdateBankRequest{
 		ID: id,
 	}
 
 	ctx := r.Context()
-	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestDisableBank, cpsReq)
+	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestDisableBank, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "")
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
+	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
 	cpsReq.ActionData = dto.UpdateBankRequest{
 		ID: id,
 	}
 
 	ctx := r.Context()
-	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestEnableBank, cpsReq)
+	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestEnableBank, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "")
 }
