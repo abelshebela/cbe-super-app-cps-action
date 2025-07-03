@@ -8,7 +8,7 @@ pipeline {
         ENV_FILE_PATH = "./env"
         HARBOR_PRODJECT = "cbe-supperapp"
         REGISTRY_ADDRESS = credentials("REGISTRY_ADDRESS")
-        REPO_ADDRESS = "github.com/CBE-Super-App/github.com/CBE-Super-App/cbe-super-app-cps-action.git"
+        REPO_ADDRESS = "git@github.com:CBE-Super-App/cbe-super-app-cps-action.git"
         PROJECT_ROOT_PATH = "/data/cbe-super-app/"
         SONAR_HOST_URL=credentials("SONAR_HOST_URL")
         SONAR_TOKEN=credentials("SONAR_TOKEN")
@@ -38,6 +38,11 @@ pipeline {
                         env.ENV_TYPE = 'PROD'
                         env.IMAGE_NAME = 'cbe-supperapp-cps-action-prod'
                         env.SSH_KEY = 'PROD_SSH_KEY'
+                    }
+                    else if (env.BRANCH_NAME == 'qa') {
+                        env.ENV_TYPE = 'QA'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-qa'
+                        env.SSH_KEY = 'QA_SSH_KEY'
                     }
                     else if (env.BRANCH_NAME == 'dev') {
                         env.ENV_TYPE = 'DEV'
@@ -84,7 +89,7 @@ pipeline {
                     extensions: [], 
                     submoduleCfg: [], 
                     userRemoteConfigs: [[
-                        credentialsId:  'DEV_GITHUB_CRED', 
+                        credentialsId:  'GITHUB_CRED', 
                         url: env.REPO_ADDRESS
                     ]]
                 ])  
