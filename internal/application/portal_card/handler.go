@@ -24,10 +24,6 @@ func NewPortalCardApp(service portalcardDomain.Repository, logger utils.Logger) 
 
 }
 
-// func (s *portalCardApp) GetAllService(ctx context.Context) (*[]ServiceResponse, error) {
-
-// }
-
 func (s *portalCardApp) GetAll(ctx context.Context) ([]*portalcardDomain.Card, error) {
 	service, err := s.portalDomain.GetAllPortalCard(ctx)
 	if err != nil {
