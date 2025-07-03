@@ -2,36 +2,39 @@ package unlink
 
 import (
 	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/entities"
+	  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationService interface {
-	UnlinkDevice(userCode, makerUser string, branchCode []string, homeBranch string) error
-	ApproveOrDecline(userCode, decision, reason, checkerUser string) error
+    UnlinkDevice(userCode string, cpsAction entities.CPSAction) error
+    ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error
 }
 
 type UnlinkHandler struct {
-	service *domain.Service
+    service *domain.Service
 }
 
 func NewUnlinkHandler(service *domain.Service) ApplicationService {
-	return &UnlinkHandler{service: service}
+    return &UnlinkHandler{service: service}
 }
 
-func (h *UnlinkHandler) UnlinkDevice(userCode, makerUser string, branchCode []string, homeBranch string) error {
-	err := h.service.UnlinkDevice(userCode, makerUser, branchCode, homeBranch)
+func (h *UnlinkHandler) UnlinkDevice(userCode string, cpsAction entities.CPSAction) error {
+    cpsAction.ActionCode = utils.RandomGenerator(20)
+    err := h.service.UnlinkDevice(userCode, cpsAction)
+    
+    if err != nil {
+        return err
+    }
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+    return nil
 }
 
-func (h *UnlinkHandler) ApproveOrDecline(userCode, decision, reason, checkerUser string) error {
-	err := h.service.ApproveOrDecline(userCode, decision, reason, checkerUser)
-	if err != nil {
-		return err
-	}
+func (h *UnlinkHandler) ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error {
+    err := h.service.ApproveOrDecline(userCode, decision, reason, cpsAction)
+    if err != nil {
+        return err
+    }
 
-	return nil
+    return nil
 }

@@ -1,6 +1,8 @@
 package unlink
 
+import "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/entities"
+
 type Repository interface {
-	UnlinkDevice(userCode, makerUser string, branchCode []string, homeBranch string) error
-	ApproveOrDecline(userCode, decision, reason, checkerUser string) error
+	UnlinkDevice(userCode string, cpsAction entities.CPSAction) error
+	ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error
 }
