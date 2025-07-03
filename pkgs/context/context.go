@@ -1,10 +1,11 @@
 // Package context contains utility methods for context related functionalities.
-package context
+package contexts
 
 import (
 	"net/http"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	// constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type UserContext struct {
@@ -14,6 +15,7 @@ type UserContext struct {
 	PhoneNumber string
 	Department  string
 	BranchCode  []string
+	UserRole    string
 }
 
 func ExtractUserContext(r *http.Request) UserContext {
@@ -31,6 +33,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 		FullName:    get("full_name"),
 		PhoneNumber: get("phone_number"),
 		Department:  get("department"),
+		UserRole:    get("user_role"),
 		BranchCode:  branchCode,
 	}
 }
