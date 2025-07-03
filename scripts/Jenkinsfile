@@ -89,7 +89,7 @@ pipeline {
                     extensions: [], 
                     submoduleCfg: [], 
                     userRemoteConfigs: [[
-                        credentialsId:  'DEV_GITHUB_CRED', 
+                        credentialsId:  'GITHUB_CRED', 
                         url: env.REPO_ADDRESS
                     ]]
                 ])  
