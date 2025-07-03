@@ -20,6 +20,10 @@ var DefineSuccess = SuccessDefinitions{
 			Code:    "GEN_001",
 			Message: "Duplicate key success: The specified field already exists.",
 		},
+		"SUCCESS": {
+			Code:    "GEN_002",
+			Message: "Success: The operation was successful.",
+		},
 	},
 	Auth: SuccessGroup{
 		"AUTH_USER_OTP_SENT_BPS": {
@@ -57,4 +61,20 @@ var DefineSuccess = SuccessDefinitions{
 			Message: "Transaction not found.",
 		},
 	},
+}
+
+func GetSuccessResponseByCode(code string) (SuccessDefinition, bool) {
+	for _, group := range []SuccessGroup{
+		DefineSuccess.General,
+		DefineSuccess.Auth,
+		DefineSuccess.User,
+		DefineSuccess.Transaction,
+	} {
+		for _, def := range group {
+			if def.Code == code {
+				return def, true
+			}
+		}
+	}
+	return SuccessDefinition{}, false
 }

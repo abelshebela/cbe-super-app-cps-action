@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/zap"
 )
@@ -39,7 +38,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 		deviceUUID := "test-device-uuid-12345"
 		platform := "android"
 		appVersion := "1.0.0"
-
+		sourceApp := "cbe-super-app"
 		// Mock user found with IsVerified = false
 		user := &users.User{
 			ID:          bson.NewObjectID(),
@@ -75,7 +74,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 				return nil
 			})
 
-		response, err := service.DeviceLookup(ctx, deviceUUID, platform, appVersion)
+		response, err := service.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -94,7 +93,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 		deviceUUID := "test-device-uuid-12345"
 		platform := "android"
 		appVersion := "1.0.0"
-
+		sourceApp := "cbe-super-app"
 		// Mock user found with IsVerified = true
 		user := &users.User{
 			ID:          bson.NewObjectID(),
@@ -119,7 +118,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 			GetOneHQ(ctx, gomock.Any()).
 			Return(nil, nil)
 
-		response, err := service.DeviceLookup(ctx, deviceUUID, platform, appVersion)
+		response, err := service.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -146,7 +145,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 		deviceUUID := "test-device-uuid-12345"
 		platform := "android"
 		appVersion := "1.0.0"
-
+		sourceApp := "cbe-super-app"
 		// Mock user found with IsVerified = false
 		user := &users.User{
 			ID:          bson.NewObjectID(),
@@ -171,7 +170,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 			GetOneHQ(ctx, gomock.Any()).
 			Return(nil, nil)
 
-		response, err := prodService.DeviceLookup(ctx, deviceUUID, platform, appVersion)
+		response, err := prodService.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -189,7 +188,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 		deviceUUID := "test-device-uuid-12345"
 		platform := "android"
 		appVersion := "1.0.0"
-
+		sourceApp := "cbe-super-app"
 		// Mock: No user found by device
 		mockRepo.EXPECT().
 			FindUserByDevice(ctx, deviceUUID).
@@ -200,7 +199,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 			GetOneHQ(ctx, gomock.Any()).
 			Return(nil, nil)
 
-		response, err := service.DeviceLookup(ctx, deviceUUID, platform, appVersion)
+		response, err := service.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -227,7 +226,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 		deviceUUID := "test-device-uuid-12345"
 		platform := "android"
 		appVersion := "1.0.0"
-
+		sourceApp := "cbe-super-app"
 		// Mock user found with IsVerified = false
 		user := &users.User{
 			ID:          bson.NewObjectID(),
@@ -263,7 +262,7 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 				return nil
 			})
 
-		response, err := uatService.DeviceLookup(ctx, deviceUUID, platform, appVersion)
+		response, err := uatService.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -281,22 +280,30 @@ func TestUserService_DeviceLookup_WithOTP(t *testing.T) {
 
 func TestVerifyForgetPinOtp(t *testing.T) {
 	// Setup
-	repo := new(MockUserRepository) // You may need to define or import this mock
-	logger := &TestLogger{}
-	cfg := &config.VaultConfig{GoEnv: "dev"}
-	service := &users.UserService{repository: repo, logger: logger, cfg: cfg}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mock_users_repo.NewMockUserRepository(ctrl)
+	logger, _ := zap.NewDevelopment()
+	zapLogger := logger.Sugar()
+	cfg := &config.VaultConfig{
+		GoEnv:          "dev", // Set to dev environment
+		OtpWaitingTime: "10",
+		Key:            "234567890-=1234567890-=1234567890-=1234567890-=",
+		IV:             "1234567890-=12",
+	}
+	var minIOClient config.MinioClientInterface
+	service := users.NewUserService(mockRepo, zapLogger, minIOClient, cfg)
 
 	sessionID := "session123"
 	phone := "0912345678"
-	formattedPhone := utils.FormatPhoneNumber(phone)
 	deviceUUID := "device-uuid-123"
 	otp := "123456"
-	encOtp, _, _ := utils.LocalEncryptPassword(otp, "otp", "", "", cfg)
 	session := &users.PinResetSession{
 		ID:          sessionID,
-		PhoneNumber: formattedPhone,
+		PhoneNumber: phone,
 		DeviceUUID:  deviceUUID,
-		OTP:         encOtp,
+		OTP:         otp,
 		ExpiresAt:   time.Now().Add(10 * time.Minute),
 		Status:      "pending",
 		Attempts:    0,
@@ -304,44 +311,57 @@ func TestVerifyForgetPinOtp(t *testing.T) {
 	}
 
 	t.Run("valid OTP marks session as verified", func(t *testing.T) {
-		repo.On("FindPinResetSession", mock.Anything, sessionID).Return(session, nil)
-		repo.On("UpdatePinResetSession", mock.Anything, mock.MatchedBy(func(s *users.PinResetSession) bool {
-			return s.Status == "verified"
-		})).Return(nil)
-		err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
+		mockRepo.EXPECT().
+			FindPinResetSession(gomock.Any(), sessionID).
+			Return(session, nil)
+		mockRepo.EXPECT().
+			UpdatePinResetSession(gomock.Any(), mock.MatchedBy(func(s *users.PinResetSession) bool {
+				return s.Status == "verified"
+			})).Return(nil)
+		_, err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
 		assert.NoError(t, err)
 	})
 
 	t.Run("expired session", func(t *testing.T) {
 		s := *session
 		s.ExpiresAt = time.Now().Add(-1 * time.Minute)
-		repo.On("FindPinResetSession", mock.Anything, sessionID).Return(&s, nil)
-		err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
+		mockRepo.EXPECT().
+			FindPinResetSession(gomock.Any(), sessionID).
+			Return(&s, nil)
+		_, err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
 		assert.Equal(t, users.ErrPinResetSessionExpired, err)
 	})
 
 	t.Run("invalid OTP increments attempts", func(t *testing.T) {
 		s := *session
 		s.Attempts = 0
-		repo.On("FindPinResetSession", mock.Anything, sessionID).Return(&s, nil)
-		repo.On("IncrementPinResetAttempts", mock.Anything, sessionID).Return(nil)
-		err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, "000000")
+		mockRepo.EXPECT().
+			FindPinResetSession(gomock.Any(), sessionID).
+			Return(&s, nil)
+		mockRepo.EXPECT().
+			IncrementPinResetAttempts(gomock.Any(), sessionID).
+			Return(nil)
+		_, err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, "000000")
 		assert.Equal(t, users.ErrPinResetOTPInvalid, err)
 	})
 
 	t.Run("too many attempts", func(t *testing.T) {
 		s := *session
 		s.Attempts = 3
-		repo.On("FindPinResetSession", mock.Anything, sessionID).Return(&s, nil)
-		err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
+		mockRepo.EXPECT().
+			FindPinResetSession(gomock.Any(), sessionID).
+			Return(&s, nil)
+		_, err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
 		assert.Equal(t, users.ErrPinResetTooManyAttempts, err)
 	})
 
 	t.Run("phone/device mismatch", func(t *testing.T) {
 		s := *session
 		s.PhoneNumber = "other"
-		repo.On("FindPinResetSession", mock.Anything, sessionID).Return(&s, nil)
-		err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
+		mockRepo.EXPECT().
+			FindPinResetSession(gomock.Any(), sessionID).
+			Return(&s, nil)
+		_, err := service.VerifyForgetPinOtp(context.Background(), sessionID, phone, deviceUUID, otp)
 		assert.Equal(t, users.ErrPinResetSessionInvalid, err)
 	})
 }

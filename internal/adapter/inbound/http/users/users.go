@@ -52,6 +52,7 @@ func validateOTP(otp string) error {
 	if len(otp) != otpLength {
 		return fmt.Errorf(errInvalidOTP+": OTP must be exactly %d digits", otpLength)
 	}
+
 	for _, c := range otp {
 		if c < '0' || c > '9' {
 			return fmt.Errorf(errInvalidOTP + ": OTP must contain only digits")
