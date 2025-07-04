@@ -93,5 +93,4 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 
 	h.logger.Infof("[ApproveUnlinkDevice] decision: %s for userCode: %s", request.Decision, request.UserCode)
 	common_util.WriteSuccessResponse(w, nil, "Unlink decision processed successfully")
-	common_util.WriteSuccessResponse(w, nil, "Unlink decision processed successfully")
 }

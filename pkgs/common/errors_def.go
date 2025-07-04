@@ -51,10 +51,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_007",
 			Message: "Token has expired.",
 		},
-		"ERROR_CHANGING_PIN": {
-			Code:    "GEN_030",
-			Message: "Error changing PIN.",
-		},
 		"ENCRYPTED_PAYLOAD_REQUIRED": {
 			Code:    "GEN_008",
 			Message: "Encrypted payload is required.",
@@ -80,398 +76,400 @@ var DefineError = ErrorDefinitions{
 			Message: "Decryption error occurred. please check your key configuration.",
 		},
 		"SERVER_KEYS_NOT_CONFIGURED": {
-			Code:    "GEN_015",
+			Code:    "GEN_014",
 			Message: "server error occurred. please try again later or contact support.",
 		},
 		"INVALID_INPUT": {
-			Code:    "GEN_016",
+			Code:    "GEN_015",
 			Message: "the provided input is invalid.",
 		},
 		"UNAUTHORIZED": {
-			Code:    "GEN_017",
+			Code:    "GEN_016",
 			Message: "missing authenticated user.",
 		},
 		"USER_REALM_NOT_FOUND": {
-			Code:    "GEN_018",
+			Code:    "GEN_017",
 			Message: "user is not permission to do this action.",
 		},
 		"ACTION_NOT_ALLOWED": {
-			Code:    "GEN_019",
+			Code:    "GEN_018",
 			Message: "user does not have permission to do this action.",
 		},
-		"ACTION_NOT_FOUND": {
-			Code:    "GEN_029",
-			Message: "Action not found.",
-		},
-		"WAIT_FOR_PREVIOUS_OTP_EXPIRATION": {
-			Code:    "GEN_025",
-			Message: "wait until the pervious otp expired",
-		},
-		"INCOMPLETE_USER_INFO": {
-			Code:    "GEN_026",
-			Message: "Incomplete user information",
-		},
-		"INVALID_ACTION_TYPE": {
-			Code:    "GEN_027",
-			Message: "Invalid action type",
+		"NOT_FOUND": {
+			Code:    "GEN_019",
+			Message: "Resource not found.",
 		},
 		"EMPTY_ORG": {
-			Code:    "GEN_021",
+			Code:    "GEN_020",
 			Message: "Cant respond for empty organization id",
 		},
 		"INVALID_REQ": {
-			Code:    "GEN_022",
+			Code:    "GEN_021",
 			Message: "Invalid Request body",
 		},
 		"REG_FRST": {
-			Code:    "GEN_023",
+			Code:    "GEN_022",
 			Message: "please register on the Super APP and visit your nearest branch for Verification Code",
 		},
 		"WEAK_PIN": {
-			Code:    "GEN_024",
+			Code:    "GEN_023",
 			Message: "weak PIN used: please use a strong combination",
 		},
-		"NOT_FOUND": {
-			Code:    "GEN_020",
-			Message: "Resource not found.",
+		"WAIT_FOR_PREVIOUS_OTP_EXPIRATION": {
+			Code:    "GEN_024",
+			Message: "wait until the pervious otp expired",
 		},
-		"DEVICE_ID_REQUIRED": {
-			Code:    "GEN_097",
-			Message: "Device UUID is required",
+		"INCOMPLETE_USER_INFO": {
+			Code:    "GEN_025",
+			Message: "Incomplete user information",
 		},
-		"NO_LINKED_DEVICES": {
-			Code:    "GEN_077",
-			Message: "User has no linked devices",
+		"INVALID_ACTION_TYPE": {
+			Code:    "GEN_026",
+			Message: "Invalid action type",
 		},
 		"COULD_NOT_UNLINK_DEVICE": {
-			Code:    "GEN_028",
+			Code:    "GEN_027",
 			Message: "Could not unlink device",
 		},
-		"USER_CODE_IS_REQUIRED": {
-			Code:    "GEN_051",
-			Message: "USER CODE IS REQUIRED",
+		"ACTION_NOT_FOUND": {
+			Code:    "GEN_028",
+			Message: "Action not found.",
 		},
-		"PENDING_REQUEST_EXISTS": {
-			Code:    "GEN_034",
-			Message: "You have a pending request for this action.",
-		},
-		"MISSING_REQUIRED_HEADERS": {
+		"ERROR_CHANGING_PIN": {
 			Code:    "GEN_029",
-			Message: "Missing required headers for device lookup",
-		},
-		"DEVICE_LOOKUP_FAILED": {
-			Code:    "GEN_070",
-			Message: "Device lookup operation failed",
+			Message: "Error changing PIN.",
 		},
 		"MISSING_REQUIRED_FIELDS": {
-			Code:    "GEN_031",
+			Code:    "GEN_030",
 			Message: "Missing required fields in request",
 		},
 		"MISSING_OTP": {
-			Code:    "GEN_032",
+			Code:    "GEN_031",
 			Message: "OTP code is required",
 		},
 		"INVALID_INPUT_PARAMETERS": {
-			Code:    "GEN_033",
+			Code:    "GEN_032",
 			Message: "Invalid input parameters provided",
 		},
+		"PENDING_REQUEST_EXISTS": {
+			Code:    "GEN_033",
+			Message: "You have a pending request for this action.",
+		},
 		"SAME_PIN": {
-			Code:    "GEN_035",
+			Code:    "GEN_034",
 			Message: "New PIN cannot be the same as current PIN",
 		},
-		"PIN_IN_HISTORY": {
-			Code:    "GEN_036",
-			Message: "PIN has been used recently and cannot be reused",
+		"GENERAL_DB_QUERY_FAILED": {
+			Code:    "GEN_035",
+			Message: "Database query failed.",
 		},
 		"ERROR_SETTING_PIN": {
-			Code:    "GEN_037",
+			Code:    "GEN_036",
 			Message: "Failed to set PIN due to system error",
 		},
 		"OTP_CREATION_FAILED": {
-			Code:    "GEN_038",
+			Code:    "GEN_037",
 			Message: "Failed to create OTP",
 		},
 		"DEVICE_NOT_FOUND": {
-			Code:    "GEN_039",
+			Code:    "GEN_038",
 			Message: "Device not found in system",
 		},
 		"DEVICE_FOUND": {
-			Code:    "GEN_040",
+			Code:    "GEN_039",
 			Message: "Device found and registered",
 		},
 		"INVALID_PIN": {
-			Code:    "GEN_041",
+			Code:    "GEN_040",
 			Message: "Invalid PIN provided.",
 		},
 		"PIN_RESET_SESSION_EXPIRED": {
-			Code:    "GEN_042",
+			Code:    "GEN_041",
 			Message: "PIN reset session has expired",
 		},
 		"PIN_RESET_SESSION_NOT_FOUND": {
-			Code:    "GEN_043",
+			Code:    "GEN_042",
 			Message: "PIN reset session not found",
 		},
 		"PIN_RESET_SESSION_ALREADY_VERIFIED": {
-			Code:    "GEN_044",
+			Code:    "GEN_043",
 			Message: "PIN reset session already verified",
 		},
-		"TOKEN_GENERATION_FAILED": {
-			Code:    "GEN_045",
-			Message: "Failed to generate token",
+		"FAILED_TO_GET_FEEDBACK_DATA": {
+			Code:    "GEN_044",
+			Message: "failed to get feedback data",
 		},
 		"MAXIMUM_AMOUNT_REQUIRED_FOR_OPEN_METHOD": {
-			Code:    "GEN_046",
+			Code:    "GEN_045",
 			Message: "Maximum amount is required for open method",
 		},
-		"MINIMUM_AMOUNT_REQUIRED_FOR_OTP_AND_PIN_METHOD": {
-			Code:    "GEN_047",
-			Message: "Minimum amount is required for OTP and PIN method",
+		"FAILED_TO_GET_FEEDBACK_COUNTS": {
+			Code:    "GEN_046",
+			Message: "failed to get feedback total counts",
 		},
 		"EITHER_MINIMUM_OR_MAXIMUM_AMOUNT_REQUIRED_FOR_PIN_METHOD": {
-			Code:    "GEN_048",
+			Code:    "GEN_047",
 			Message: "Either minimum or maximum amount are required for PIN method",
 		},
 		"INVALID_OBJECT_ID_FORMAT": {
-			Code:    "GEN_049",
+			Code:    "GEN_048",
 			Message: "Invalid object ID format",
 		},
 		"AUTH_TIER_NOT_FOUND": {
-			Code:    "GEN_050",
+			Code:    "GEN_049",
 			Message: "Auth tier not found",
 		},
 		"AUTH_TIER_ALREADY_EXISTS": {
-			Code:    "GEN_051",
+			Code:    "GEN_050",
 			Message: "Auth tier already exists",
 		},
 		"AUTH_TIER_VALIDATION_FAILED": {
-			Code:    "GEN_052",
+			Code:    "GEN_051",
 			Message: "Auth tier validation failed",
 		},
-		"AUTH_TIER_UPDATE_FAILED": {
-			Code:    "GEN_053",
-			Message: "Auth tier update failed",
+		"SERVICE_TYPE_CANNOT_BE_EMPTY": {
+			Code:    "GEN_052",
+			Message: "Service type cannot be empty",
 		},
 		"AUTH_TIER_INSERT_FAILED": {
-			Code:    "GEN_054",
+			Code:    "GEN_053",
 			Message: "Auth tier insert failed",
 		},
 		"AUTH_TIER_NOT_FOUND_FOR_ID": {
-			Code:    "GEN_055",
+			Code:    "GEN_054",
 			Message: "Auth tier not found for the provided ID",
 		},
 		"AUTH_TIER_FETCH_FAILED": {
-			Code:    "GEN_056",
+			Code:    "GEN_055",
 			Message: "Auth tier fetch failed",
 		},
 		"AUTH_TIER_APPROVE_FAILED": {
-			Code:    "GEN_057",
+			Code:    "GEN_056",
 			Message: "Auth tier approve failed",
 		},
 		"AUTH_TIER_REJECT_FAILED": {
-			Code:    "GEN_058",
+			Code:    "GEN_057",
 			Message: "Auth tier reject failed",
 		},
 		"AUTH_TIER_NOT_FOUND_FOR_ID_AND_DEPARTMENT": {
-			Code:    "GEN_059",
+			Code:    "GEN_058",
 			Message: "Auth tier not found for the provided ID and department",
 		},
 		"AUTH_TIER_FETCH_FAILED_FOR_ID_AND_DEPARTMENT": {
-			Code:    "GEN_060",
+			Code:    "GEN_059",
 			Message: "Auth tier fetch failed for the provided ID and department",
 		},
 		"AUTH_TIER_APPROVE_FAILED_FOR_ID_AND_DEPARTMENT": {
-			Code:    "GEN_061",
+			Code:    "GEN_060",
 			Message: "Auth tier approve failed for the provided ID and department",
 		},
 		"AUTH_TIER_REJECT_FAILED_FOR_ID_AND_DEPARTMENT": {
-			Code:    "GEN_062",
+			Code:    "GEN_061",
 			Message: "Auth tier reject failed for the provided ID and department",
 		},
-		"AUTH_TIER_UPDATE_FAILED_FOR_ID_AND_DEPARTMENT": {
-			Code:    "GEN_063",
-			Message: "Auth tier update failed for the provided ID and department",
+		"FAILED_TO_UPDATE_USER": {
+			Code:    "GEN_062",
+			Message: "failed to update user",
 		},
 		"AUTH_TIER_INSERT_FAILED_FOR_ID_AND_DEPARTMENT": {
-			Code:    "GEN_064",
+			Code:    "GEN_063",
 			Message: "Auth tier insert failed for the provided ID and department",
 		},
-		"FAILED_TO_UPDATE_OPEN_AUTH_TIER": {
-			Code:    "GEN_065",
-			Message: "Failed to update open auth tier",
+		"ACTION_ID_IS_REQUIRED": {
+			Code:    "GEN_064",
+			Message: "action id is required",
 		},
 		"FAILED_TO_UPDATE_PIN_AUTH_TIER": {
-			Code:    "GEN_066",
+			Code:    "GEN_065",
 			Message: "Failed to update pin auth tier",
 		},
 		"FAILED_TO_UPDATE_OTP_AND_PIN_AUTH_TIER": {
-			Code:    "GEN_067",
+			Code:    "GEN_066",
 			Message: "Failed to update OTP and pin auth tier",
 		},
 		"FAILED_TO_UPDATE_OTP_AND_OPEN_AUTH_TIER": {
-			Code:    "GEN_068",
+			Code:    "GEN_067",
 			Message: "Failed to update OTP and open auth tier",
 		},
 		"FAILED_TO_UPDATE_OPEN_AUTH_TIER_FOR_ID": {
-			Code:    "GEN_069",
+			Code:    "GEN_068",
 			Message: "Failed to update open auth tier for the provided ID",
 		},
 		"MIN_AMOUNT_CANNOT_BE_GREATER_THAN_PIN_MIN_AMOUNT": {
-			Code:    "GEN_070",
+			Code:    "GEN_069",
 			Message: "Min amount cannot be greater than or equal to pin min amount",
 		},
 		"PIN_AUTHIER_NOT_FOUND": {
-			Code:    "GEN_071",
+			Code:    "GEN_070",
 			Message: "Pin authier not found",
 		},
 		"PIN_MIN_AMOUNT_CANNOT_BE_LESS_THAN_OPEN_MIN_AMOUNT": {
-			Code:    "GEN_072",
+			Code:    "GEN_071",
 			Message: "Pin min amount cannot be less than or equal to open min amount",
 		},
 		"MAX_PIN_AMOUNT_SHOULD_BE_GREATER_THAN_PIN_MIN_AMOUNT": {
-			Code:    "GEN_073",
+			Code:    "GEN_072",
 			Message: "Max pin amount should be greater than pin min amount",
 		},
 		"OPEN_AUTHIER_NOT_FOUND": {
-			Code:    "GEN_074",
+			Code:    "GEN_073",
 			Message: "Open authier not found",
 		},
-		"OPEN_TIER_MAX_AMOUNT_CANNOT_BE_GREATER_THAN_PIN_MAX_AMOUNT": {
-			Code:    "GEN_075",
-			Message: "Open tier max amount can not be greater than pin max amount",
+		"INVALID_ACTION_DATA": {
+			Code:    "GEN_074",
+			Message: "Invalid action data.",
 		},
 		"PENDING_CPS_ACTION_PRESENT": {
-			Code:    "GEN_076",
+			Code:    "GEN_075",
 			Message: "Pending cps action present",
 		},
 		"FAILED_TO_GET_FAYDA_ACCOUNT": {
-			Code:    "GEN_077",
+			Code:    "GEN_076",
 			Message: "Failed to get fayda account",
 		},
 		"FAILED_TO_GET_CUSTOMER_ACCOUNT": {
-			Code:    "GEN_078",
+			Code:    "GEN_077",
 			Message: "Failed to get customer account",
 		},
 		"FAILED_TO_CREATE_CPS_ACTION": {
-			Code:    "GEN_079",
+			Code:    "GEN_078",
 			Message: "Failed to create cps action",
 		},
 		"AT_LEAST_ONE_TIER_IS_REQUIRED": {
-			Code:    "GEN_080",
+			Code:    "GEN_079",
 			Message: "At least one tier is required",
 		},
 		"THE_FIRST_TIER_MINIMUM_MUST_START_FROM_0": {
-			Code:    "GEN_081",
+			Code:    "GEN_080",
 			Message: "The first tier's minimum must start from 0",
 		},
 		"TIER_MINIMUM_MUST_EQUAL_TO_PREVIOUS_TIER_MAXIMUM": {
-			Code:    "GEN_082",
+			Code:    "GEN_081",
 			Message: "Tier minimum must equal the previous tier's maximum",
 		},
 		"TIER_MAXIMUM_MUST_BE_GREATER_THAN_PREVIOUS_TIER_MAXIMUM": {
-			Code:    "GEN_083",
+			Code:    "GEN_082",
 			Message: "Tier maximum must be greater than the previous tier's maximum",
 		},
 		"ABOVE_AMOUNT_MUST_MATCH_LAST_TIER_MAXIMUM": {
-			Code:    "GEN_084",
+			Code:    "GEN_083",
 			Message: "Above amount must match the last tier's maximum",
 		},
 		"SERVICE_CODE_CANNOT_BE_EMPTY": {
-			Code:    "GEN_085",
+			Code:    "GEN_084",
 			Message: "Service code cannot be empty",
 		},
 		"SERVICE_NAME_CANNOT_BE_EMPTY": {
-			Code:    "GEN_086",
+			Code:    "GEN_085",
 			Message: "Service name cannot be empty",
 		},
-		"SERVICE_TYPE_CANNOT_BE_EMPTY": {
-			Code:    "GEN_087",
-			Message: "Service type cannot be empty",
+		"NO_LINKED_DEVICES": {
+			Code:    "GEN_086",
+			Message: "User has no linked devices",
 		},
 		"FAILED_TO_GET_SERVICE": {
-			Code:    "GEN_088",
+			Code:    "GEN_087",
 			Message: "Failed to get service",
 		},
 		"SERVICE_NOT_FOUND": {
-			Code:    "GEN_089",
+			Code:    "GEN_088",
 			Message: "Service not found",
 		},
-		"FAILED_TO_FIND_CPS_ACTION": {
-			Code:    "GEN_090",
-			Message: "Failed to find cps action",
+		"DEVICE_LOOKUP_FAILED": {
+			Code:    "GEN_089",
+			Message: "Device lookup operation failed",
 		},
 		"FAILED_TO_UPDATE_SERVICE_FEE": {
-			Code:    "GEN_091",
+			Code:    "GEN_090",
 			Message: "Failed to update service fee",
 		},
 		"FAILED_TO_REJECT_SERVICE_FEE_UPDATE": {
-			Code:    "GEN_092",
+			Code:    "GEN_091",
 			Message: "Failed to reject service fee update",
 		},
-		"INVALID_SERVICE_DATA_IN_ACTION": {
-			Code:    "GEN_093",
-			Message: "Invalid service data in action",
+		"AUTH_TIER_UPDATE_FAILED": {
+			Code:    "GEN_092",
+			Message: "Auth tier update failed",
 		},
 		"ACTION_IS_NOT_IN_PENDING_STATUS": {
-			Code:    "GEN_094",
+			Code:    "GEN_093",
 			Message: "Action is not in pending status",
 		},
 		"FAILED_TO_UPDATE_SERVICE_DETAILS": {
-			Code:    "GEN_095",
+			Code:    "GEN_094",
 			Message: "Failed to update service details",
 		},
-		// Additional missing errors from the other definition
-		"INVALID_ACTION_DATA": {
-			Code:    "GEN_075",
-			Message: "Invalid action data.",
+		"DEVICE_ID_REQUIRED": {
+			Code:    "GEN_095",
+			Message: "Device UUID is required",
 		},
-		"GENERAL_DB_QUERY_FAILED": {
-			Code:    "GEN_036",
-			Message: "Database query failed.",
-		},
-		// The following are from the original, not present in the new one
-		"FAILED_TO_GET_FEEDBACK_DATA": {
-			Code:    "GEN_045",
-			Message: "failed to get feedback data",
+		"TOKEN_GENERATION_FAILED": {
+			Code:    "GEN_096",
+			Message: "Failed to generate token",
 		},
 		"FAILED_TO_GET_FEEDBACK": {
-			Code:    "GEN_046",
+			Code:    "GEN_097",
 			Message: "failed to get feedback",
 		},
-		"FAILED_TO_GET_FEEDBACK_COUNTS": {
-			Code:    "GEN_047",
-			Message: "failed to get feedback total counts",
+		"PIN_IN_HISTORY": {
+			Code:    "GEN_098",
+			Message: "PIN has been used recently and cannot be reused",
+		},
+		"MINIMUM_AMOUNT_REQUIRED_FOR_OTP_AND_PIN_METHOD": {
+			Code:    "GEN_099",
+			Message: "Minimum amount is required for OTP and PIN method",
 		},
 		"FAILED_TO_CONVERT_ID": {
-			Code:    "GEN_048",
+			Code:    "GEN_100",
 			Message: "failed to convert ID",
 		},
 		"FAIL_TO_FIND_USER": {
-			Code:    "GEN_049",
+			Code:    "GEN_101",
 			Message: "failed to find user",
 		},
 		"DUPLICATE_KEY": {
-			Code:    "GEN_050",
+			Code:    "GEN_102",
 			Message: "duplicate key error",
 		},
-		"CPS_USER_NOT_FOUND": {
-			Code:    "GEN_052",
-			Message: "cps user not found",
-		},
-		"FAILED_TO_UPDATE_USER": {
-			Code:    "GEN_063",
-			Message: "failed to update user",
-		},
-		"FAILED_TO_UPDATE_CPS_ACTION": {
-			Code:    "GEN_064",
-			Message: "failed to update cps action",
-		},
-		"ACTION_ID_IS_REQUIRED": {
-			Code:    "GEN_065",
-			Message: "action id is required",
+		"INVALID_SERVICE_DATA_IN_ACTION": {
+			Code:    "GEN_103",
+			Message: "Invalid service data in action",
 		},
 		"FAIL_TO_FEATCH_CPS_USER": {
-			Code:    "GEN_054",
+			Code:    "GEN_104",
 			Message: "fail to featch cps user",
+		},
+		"AUTH_TIER_UPDATE_FAILED_FOR_ID_AND_DEPARTMENT": {
+			Code:    "GEN_105",
+			Message: "Auth tier update failed for the provided ID and department",
+		},
+		"FAILED_TO_UPDATE_CPS_ACTION": {
+			Code:    "GEN_106",
+			Message: "failed to update cps action",
+		},
+		"OPEN_TIER_MAX_AMOUNT_CANNOT_BE_GREATER_THAN_PIN_MAX_AMOUNT": {
+			Code:    "GEN_107",
+			Message: "Open tier max amount can not be greater than pin max amount",
+		},
+		"FAILED_TO_UPDATE_OPEN_AUTH_TIER": {
+			Code:    "GEN_108",
+			Message: "Failed to update open auth tier",
+		},
+		"MISSING_REQUIRED_HEADERS": {
+			Code:    "GEN_109",
+			Message: "Missing required headers for device lookup",
+		},
+		"USER_CODE_IS_REQUIRED": {
+			Code:    "GEN_110",
+			Message: "USER CODE IS REQUIRED",
+		},
+		"FAILED_TO_FIND_CPS_ACTION": {
+			Code:    "GEN_111",
+			Message: "Failed to find cps action",
+		},
+		"CPS_USER_NOT_FOUND": {
+			Code:    "GEN_112",
+			Message: "cps user not found",
 		},
 	},
 	Auth: ErrorGroup{
@@ -683,11 +681,11 @@ var DefineError = ErrorDefinitions{
 			Message: "Email is already in use.",
 		},
 		"USER_ALREADY_HAS_EMAIL": {
-			Code:    "USER_002",
+			Code:    "OTP_007",
 			Message: "User already has an email address",
 		},
 		"WAIT_FOR_PREVIOUS_OTP_EXPIRATION": {
-			Code:    "USER_003",
+			Code:    "OTP_008",
 			Message: "Please wait until the previous OTP expires",
 		},
 		"OTP_GENERATION_FAILED": {

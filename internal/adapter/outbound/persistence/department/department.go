@@ -100,7 +100,7 @@ func (r *DepartmentPersistence) ValidateActionRequest(ctx context.Context, actio
 		return nil, fmt.Errorf(error_codes.ActionNotFound)
 	}
 	if err != nil {
-		return nil, fmt.Errorf(error_codes.GeneralDBInsertFailed)
+		return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 
 	return action, nil
