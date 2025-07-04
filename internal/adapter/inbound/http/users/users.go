@@ -202,6 +202,7 @@ func (h UsersAdapter) UpdateProfilePicture(w http.ResponseWriter, r *http.Reques
 	}
 	defer file.Close()
 
+	// LEAVE THIS AS IT IS
 	const MaxFileSize = 2 << 20
 	if fileHeader.Size > MaxFileSize {
 		utils.SendErrorResponse(w, "FILE_TOO_LARGE", http.StatusBadRequest, nil)
@@ -334,7 +335,8 @@ func (h UsersAdapter) CheckPin(w http.ResponseWriter, r *http.Request) {
 	pin := strconv.Itoa(payload.NewPin)
 	err := validatePin(pin)
 	if err != nil {
-		utils.SendErrorResponse(w, errInvalidPin, http.StatusBadRequest, map[string]interface{}{"errors": []string{err.Error()}})
+		// this is util based reusable function make to pass the error key and will send to user with status code
+		utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, map[string]interface{}{"errors": []string{err.Error()}})
 		return
 	}
 
@@ -745,18 +747,18 @@ func (h UsersAdapter) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request)
 		utils.BaseResponseMaker(nil, w, "INVALID_PHONE_NUMBER: please provide a valid phone number", http.StatusBadRequest)
 		return
 	}
-	if len(req.OTP) != 6 {
-		utils.BaseResponseMaker(nil, w, "INVALID_OTP: OTP must be exactly 6 digits", http.StatusBadRequest)
+	if err := validateOTP(req.OTP); err != nil {
+		utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, char := range req.OTP {
-		if char < '0' || char > '9' {
-			utils.BaseResponseMaker(nil, w, "INVALID_OTP: OTP must contain only digits", http.StatusBadRequest)
-			return
-		}
-	}
+
 	if len(req.DeviceUUID) < 10 {
 		utils.BaseResponseMaker(nil, w, "INVALID_DEVICE_UUID: device UUID appears to be invalid", http.StatusBadRequest)
+		return
+	}
+
+	if err := validateDeviceUUID(req.DeviceUUID); err != nil {
+		utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

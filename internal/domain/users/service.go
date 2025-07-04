@@ -31,11 +31,14 @@ const (
 	maxPinHistory          = 4
 	maxLoginAttempts       = 3
 	maxPinResetAttempts    = 3
-	pinRedundantLimit      = 4
-	pinSequenceLength      = 4
+	pinRedundantLimit      = 2 // Example: no more than 2 repeated digits
+	pinSequenceLength      = 3 // Example: no 3+ digit sequences
 	pinResetSessionMinutes = 10
 	pinResetSessionBuffer  = 5
 )
+
+// Common weak PINs
+var weakPINs = []string{"000000", "111111", "123456", "654321", "999999"}
 
 var (
 	errNotFound                = fmt.Errorf("NOT_FOUND")
@@ -350,33 +353,34 @@ func (s *UserService) FindByID(ctx context.Context, id string) (*User, error) {
 }
 
 // validatePin checks if the pin is valid according to business rules
-func validatePin(pin string) error {
-	if pin == "" {
+func validatePin(pin string, pinLength, pinRedundantLimit, pinSequenceLength int, weakPINs []string) error {
+	if pin == "" || len(pin) != pinLength {
 		return errInvalidPin
-	}
-	if len(pin) != pinLength {
-		return errPinLimit
 	}
 	for _, c := range pin {
 		if c < '0' || c > '9' {
 			return errPinOnlyDigit
 		}
 	}
-	maxRedundant := 1
+	// Check for weak PINs
+	for _, weak := range weakPINs {
+		if pin == weak {
+			return errPinRedundant // or a new error, e.g., errPinWeak
+		}
+	}
+	// Improved redundant character logic: reject if any digit repeats more than allowed consecutively
 	count := 1
 	for i := 1; i < len(pin); i++ {
 		if pin[i] == pin[i-1] {
 			count++
-			if count > maxRedundant {
-				maxRedundant = count
+			if count > pinRedundantLimit {
+				return errPinRedundant
 			}
 		} else {
 			count = 1
 		}
 	}
-	if maxRedundant > pinRedundantLimit {
-		return errPinRedundant
-	}
+	// Sequence check
 	for i := 0; i <= len(pin)-pinSequenceLength; i++ {
 		asc, desc := true, true
 		for j := 1; j < pinSequenceLength; j++ {
@@ -395,17 +399,6 @@ func validatePin(pin string) error {
 }
 
 // validateOTP checks if the OTP is valid according to business rules
-func validateOTP(otp string) error {
-	if len(otp) != otpLength {
-		return errInvalidOTP
-	}
-	for _, c := range otp {
-		if c < '0' || c > '9' {
-			return errInvalidOTP
-		}
-	}
-	return nil
-}
 
 func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinRequest) error {
 	userData, err := s.repository.FindByID(ctx, ChangePinRequest.UserID)
@@ -418,7 +411,7 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 		return fmt.Errorf("OLD_PIN_MISMATCH")
 	}
 
-	err = validatePin(ChangePinRequest.NewPin)
+	err = validatePin(ChangePinRequest.NewPin, pinLength, pinRedundantLimit, pinSequenceLength, weakPINs)
 	if err != nil {
 		return err
 	}
@@ -579,6 +572,12 @@ func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 
 	// Clear sensitive data from memory after function execution
 	defer func() {
+		if len(newPin) > 0 {
+			pinBytes := []byte(newPin)
+			for i := range pinBytes {
+				pinBytes[i] = 0
+			}
+		}
 		newPin = ""
 	}()
 

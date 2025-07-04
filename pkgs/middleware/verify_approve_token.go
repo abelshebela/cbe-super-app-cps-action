@@ -1,15 +1,13 @@
 package middleware
 
 import (
-	"cbe-super-app-member-users/pkgs/config"
-
 	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 func VerifyApproovToken(next http.Handler, cfg *config.VaultConfig) http.Handler {

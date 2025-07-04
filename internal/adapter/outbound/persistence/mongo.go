@@ -49,7 +49,7 @@ func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
 func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.User, error) {
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid object ID: %w", err)
+		return nil, fmt.Errorf("INVALID_USER_ID: %w", err)
 	}
 
 	userFilter := bson.M{
@@ -58,9 +58,7 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 	}
 	userEntity, err := r.userDal.FindOne(ctx, userFilter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("AUTH_USER_NOT_FOUND")
-		}
+
 		return nil, fmt.Errorf("AUTH_USER_NOT_FOUND: %w", err)
 	}
 
@@ -337,24 +335,20 @@ func (r *MongoRepository) UpdateProfileImageURL(ctx context.Context, id string, 
 	if err != nil {
 		return ErrNotFound
 	}
-	fmt.Printf("UpdateProfileImageURL called with id: %s (type: %T)\n", oid, oid)
-	fmt.Printf("oid type: %T, oid value: %v\n", oid, oid)
+
 	userFilter := bson.M{
-		"_id": oid,
-		// "is_deleted": bson.M{"$ne": true},
+		"_id":        oid,
+		"is_deleted": bson.M{"$ne": false},
 	}
 
 	updateProfileURL := bson.M{
 		"avatar": imageURL,
 	}
-	fmt.Printf("Updating avatar with URL: %s\n", imageURL)
 
 	_, err = r.userDal.UpdateOne(ctx, userFilter, updateProfileURL)
 	if err != nil {
 		return err
 	}
-	user, _ := r.userDal.FindOne(ctx, bson.M{"_id": oid}, bson.M{})
-	fmt.Println("Stored avatar URL:", user.Avatar)
 
 	return nil
 }
