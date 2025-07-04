@@ -44,7 +44,8 @@ type Domain struct {
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
 	return Domain{
-
+		AdDomain:           ad_service.InitADDomian(persitence.advertPersistence, logger),
+		AvatarDomian:       avatar_domain.InitAvatarDomain(persitence.avatarPersitence, minioClient, "avatars", logger),
 		CustomerDomain:     customer_service.IntiCustomerDomain(persitence.CustomerPersistence, logger),
 		FeedbackDomain:     feedback_service.InitFeedbackDomain(persitence.FeedBackPersistence, logger),
 		UnlinkDomain:       unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
