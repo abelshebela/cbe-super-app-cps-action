@@ -693,11 +693,11 @@ var DefineError = ErrorDefinitions{
 			Message: "Failed to generate OTP.",
 		},
 		"USER_KYC_LEVEL_ZERO": {
-			Code:    "KYC_007",
+			Code:    "OTP_007",
 			Message: "User KYC level is not sufficient for this operation",
 		},
 		"USER_KYC_LEVEL_WRONG": {
-			Code:    "KYC_008",
+			Code:    "OTP_008",
 			Message: "User KYC level is not sufficient for this operation",
 		},
 	},

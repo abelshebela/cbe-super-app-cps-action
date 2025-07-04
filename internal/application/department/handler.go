@@ -2,12 +2,12 @@
 package department
 
 import (
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"context"
 	"fmt"
 
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
-	"encoding/json"
 
 	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
@@ -49,15 +49,8 @@ func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData,
 	case map[string]any:
 		data = v
 	default:
-		bytes, err := json.Marshal(current)
-		if err != nil {
-			h.logger.Errorf("failed to marshal action data: %v", err)
-			return nil, fmt.Errorf(err_msg.InvalidInput)
-		}
-		if err := json.Unmarshal(bytes, &data); err != nil {
-			h.logger.Errorf("failed to unmarshal action data: %v", err)
-			return nil, fmt.Errorf(err_msg.InvalidJSONPayload)
-		}
+		h.logger.Errorf("unsupported data type: %T", current)
+		return nil, fmt.Errorf(err_msg.InvalidInput)
 	}
 
 	name, ok := data["department"].(string)
@@ -135,7 +128,6 @@ func (h *DepartmentHandler) ValidateActionRequest(ctx context.Context, actionCod
 	}
 	return action, nil
 }
-
 
 func (h *DepartmentHandler) ApproveActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
 	err := h.service.ApproveActionRequest(ctx, actionCode, action)

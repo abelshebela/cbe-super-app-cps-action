@@ -96,6 +96,10 @@ type Icon struct {
 }
 
 const (
+	UnlinkDevice = "UNLINK_DEVICE"
+)
+
+const (
 	RequestUser                     RequestAction = "USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARTMENT"

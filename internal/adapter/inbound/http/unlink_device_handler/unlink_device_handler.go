@@ -15,19 +15,15 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-
-const (
-	unlinkDevice = "UNLINK_DEVICE"
-)
 type UnlinkHandler struct {
 	unlinkService unlink.ApplicationService
-	logger    utils.Logger
+	logger        utils.Logger
 }
 
 func NewHTTPUnlinkHandler(service unlink.ApplicationService, logger utils.Logger) inbound.UnlinkPortHandler {
 	return &UnlinkHandler{
 		unlinkService: service,
-		logger:    logger,
+		logger:        logger,
 	}
 }
 
@@ -53,7 +49,7 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 		Department:       userContext.Department,
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
-		RequestAction:    unlinkDevice,
+		RequestAction:    entities.UnlinkDevice,
 		MakerActionTime:  time.Now(),
 	}
 

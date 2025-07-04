@@ -2,6 +2,7 @@ package dto
 
 import (
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -37,16 +38,16 @@ func (c CreateBankRequest) Validate() error {
 		validation.Field(&c.BIC, validation.Required.Error("bank identifier code is required")),
 		validation.Field(&c.Logo, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
-
 			if !ok {
 				return fmt.Errorf(error_codes.InvalidInput)
 			}
+
 			// Check file size (2 MB max)
 			if file.Size > (2 << 20) {
 				return fmt.Errorf(error_codes.FileTooLarge)
 			}
 
-			// check the file type
+			// Check the file type
 			src, err := file.Open()
 			if err != nil {
 				return fmt.Errorf(error_codes.UnhandledServerError)
@@ -56,8 +57,12 @@ func (c CreateBankRequest) Validate() error {
 			buffer := make([]byte, 512)
 			_, err = src.Read(buffer)
 			if err != nil {
-
 				return fmt.Errorf(error_codes.UnhandledServerError)
+			}
+
+			// Reset file pointer to the beginning
+			if seeker, ok := src.(io.Seeker); ok {
+				_, _ = seeker.Seek(0, io.SeekStart)
 			}
 
 			contentType := http.DetectContentType(buffer)
