@@ -202,13 +202,6 @@ func (h UsersAdapter) UpdateProfilePicture(w http.ResponseWriter, r *http.Reques
 	}
 	defer file.Close()
 
-	// LEAVE THIS AS IT IS
-	const MaxFileSize = 2 << 20
-	if fileHeader.Size > MaxFileSize {
-		utils.SendErrorResponse(w, "FILE_TOO_LARGE", http.StatusBadRequest, nil)
-		return
-	}
-
 	contentType := fileHeader.Header.Get("Content-Type")
 	if !strings.HasPrefix(contentType, "image/") {
 		utils.SendErrorResponse(w, "INVALID_FILE_TYPE", http.StatusBadRequest, nil)
@@ -383,8 +376,10 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.OtpFor == "" {
-		req.OtpFor = "pin_set"
+	allowedOtpTypes := map[string]bool{"pin_set": true, "registration": true, "pin_reset": true}
+	if !allowedOtpTypes[req.OtpFor] {
+		utils.SendErrorResponse(w, "INVALID_OTP_TYPE", http.StatusBadRequest, nil)
+		return
 	}
 
 	token, err := h.Application.VerifyOtp(r.Context(), userID, req.Otp, deviceUUID, sourceApp, req.OtpFor)
@@ -742,6 +737,11 @@ func (h UsersAdapter) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request)
 		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: OTP is required", http.StatusBadRequest)
 		return
 	}
+	if req.Phone == "" || len(req.Phone) < minPhoneLength {
+		utils.BaseResponseMaker(nil, w, "INVALID_PHONE_NUMBER: please provide a valid phone number", http.StatusBadRequest)
+		return
+	}
+
 	formattedPhone := utils.FormatPhoneNumber(req.Phone)
 	if formattedPhone == "" || len(formattedPhone) < 10 {
 		utils.BaseResponseMaker(nil, w, "INVALID_PHONE_NUMBER: please provide a valid phone number", http.StatusBadRequest)

@@ -89,8 +89,7 @@ func (r *MongoRepository) GetOneHQ(ctx context.Context, req map[string]interface
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("hqEntity err", err)
-	fmt.Println("hqEntity", hqEntity)
+
 	return &userPort.HQ{
 		// ID:                   hqEntity.ID,
 		UniqueID:             hqEntity.UniqueID,
@@ -338,7 +337,7 @@ func (r *MongoRepository) UpdateProfileImageURL(ctx context.Context, id string, 
 
 	userFilter := bson.M{
 		"_id":        oid,
-		"is_deleted": bson.M{"$ne": false},
+		"is_deleted": bson.M{"$ne": true},
 	}
 
 	updateProfileURL := bson.M{
@@ -455,7 +454,12 @@ func (r *MongoRepository) GetOtpByID(ctx context.Context, id string) (*userPort.
 }
 
 func (r *MongoRepository) UpdateOtp(ctx context.Context, otp *userPort.OTPRecord) error {
-	filter := bson.M{"_id": otp.ID}
+	oid, err := bson.ObjectIDFromHex(otp.ID)
+	if err != nil {
+		return ErrNotFound
+	}
+	filter := bson.M{"_id": oid}
+
 	update := bson.M{
 		"$set": bson.M{
 			"otp_code":   otp.OTP,
@@ -463,7 +467,7 @@ func (r *MongoRepository) UpdateOtp(ctx context.Context, otp *userPort.OTPRecord
 		},
 	}
 
-	_, err := r.otpDal.UpdateOne(ctx, filter, update)
+	_, err = r.otpDal.UpdateOne(ctx, filter, update)
 	return err
 }
 

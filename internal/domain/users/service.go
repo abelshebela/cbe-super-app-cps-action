@@ -120,6 +120,7 @@ func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file 
 			s.logger.Warnf("Failed to remove temp file: %v", rerr)
 		}
 	}
+
 	defer cleanup()
 
 	// Copy the uploaded file content to the temporary file
@@ -413,7 +414,6 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 	if err != nil {
 		return fmt.Errorf("NOT_FOUND")
 	}
-	s.logger.Infof(userData.LoginPIN.PIN, ChangePinRequest.OldPin)
 
 	if subtle.ConstantTimeCompare([]byte(userData.LoginPIN.PIN), []byte(ChangePinRequest.OldPin)) == 0 {
 		return fmt.Errorf("OLD_PIN_MISMATCH")
@@ -1168,6 +1168,7 @@ func (s *UserService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID st
 		return nil, ErrPinResetFailed
 	}
 
+	// THIS IS FOR TESTING ONLY WE WILL REMOVE THIS LATER DO NOT CONCERN AS SECURITY ISSUE BECAUSE ORDER BY TEAM
 	otp := ""
 	if s.cfg.GoEnv == "dev" || s.cfg.GoEnv == "uat" {
 		otp = otpCode
