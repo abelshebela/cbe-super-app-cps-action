@@ -415,7 +415,8 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 		return fmt.Errorf("NOT_FOUND")
 	}
 
-	if subtle.ConstantTimeCompare([]byte(userData.LoginPIN.PIN), []byte(ChangePinRequest.OldPin)) == 0 {
+	hashedOldPin, _, _ := utils.LocalEncryptPassword(ChangePinRequest.OldPin, "pin", "", "", s.cfg)
+	if subtle.ConstantTimeCompare([]byte(userData.LoginPIN.PIN), []byte(hashedOldPin)) == 0 {
 		return fmt.Errorf("OLD_PIN_MISMATCH")
 	}
 
@@ -1257,12 +1258,11 @@ func (s *UserService) ResetPin(ctx context.Context, resetSessionID, phone, devic
 		return nil, ErrPinResetUserNotFound
 	}
 
-	// Check PIN history to prevent reuse
-	if err := s.checkPinHistory(user, newPin); err != nil {
+	hashedNewPin, _, _ := utils.LocalEncryptPassword(newPin, "", "", "", s.cfg)
+	if err := s.checkPinHistory(user, hashedNewPin); err != nil {
 		s.logger.Warnf("PIN history check failed for user %s: %v", user.ID.Hex(), err)
 		return nil, err
 	}
-
 	// Update user's PIN
 	user.LoginPIN.PIN = newPin
 	user.LoginPIN.LastPINCreatedAt = time.Now()
@@ -1817,7 +1817,8 @@ func (s *UserService) ResetPinWithToken(ctx context.Context, resetSessionID, pho
 		return nil, ErrPinResetUserNotFound
 	}
 
-	if err := s.checkPinHistory(user, newPin); err != nil {
+	hashedNewPin, _, _ := utils.LocalEncryptPassword(newPin, "", "", "", s.cfg)
+	if err := s.checkPinHistory(user, hashedNewPin); err != nil {
 		s.logger.Warnf("PIN history check failed for user %s: %v", user.ID.Hex(), err)
 		return nil, err
 	}

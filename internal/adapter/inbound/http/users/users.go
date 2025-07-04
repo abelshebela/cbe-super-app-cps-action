@@ -333,7 +333,7 @@ func (h UsersAdapter) CheckPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SendErrorResponse(w, "PIN set successfully", http.StatusOK, nil)
+	utils.BaseResponseMaker(nil, w, "PIN set Successfully", 200)
 }
 
 func (h UsersAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
@@ -743,10 +743,12 @@ func (h UsersAdapter) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request)
 	}
 
 	formattedPhone := utils.FormatPhoneNumber(req.Phone)
-	if formattedPhone == "" || len(formattedPhone) < 10 {
+
+	if formattedPhone == "" || len(formattedPhone) < minPhoneLength {
 		utils.BaseResponseMaker(nil, w, "INVALID_PHONE_NUMBER: please provide a valid phone number", http.StatusBadRequest)
 		return
 	}
+
 	if err := validateOTP(req.OTP); err != nil {
 		utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
 		return

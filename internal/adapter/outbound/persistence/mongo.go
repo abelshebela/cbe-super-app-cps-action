@@ -296,8 +296,11 @@ func (r *MongoRepository) UpdateUserCustomerNumber(ctx context.Context, userId s
 		"last_modified_at": time.Now().UTC(),
 	}
 	_, err = r.userDal.UpdateOne(ctx, filter, update)
-	fmt.Printf("Error converting userId to ObjectID: %v\n", err)
-	return err
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *MongoRepository) CreateLinkedAccount(ctx context.Context, acc *accountPort.LinkedAccount) error {
@@ -374,18 +377,14 @@ func (r *MongoRepository) UnlinkDevice(ctx context.Context, userID string, devic
 	filter := bson.M{
 		"_id": oid,
 	}
+
 	update := bson.M{
-		"device":           nil,
-		"device_status":    "unlinked",
-		"last_modified_at": time.Now().UTC(),
+		"$unset": bson.M{"device": ""},
+		"$set": bson.M{
+			"device_status":    "unlinked",
+			"last_modified_at": time.Now().UTC(),
+		},
 	}
-	// update := bson.M{
-	// "$unset": bson.M{"device": ""},
-	// "$set": bson.M{
-	//     "device_status":    "unlinked",
-	//     "last_modified_at": time.Now().UTC(),
-	// },
-	// }
 
 	_, err = r.userDal.UpdateOne(ctx, filter, update)
 	if err != nil {
