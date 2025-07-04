@@ -95,6 +95,16 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	cpsRequest.ActionData = bankRequest
 
 	ctx := r.Context()
+	userContext := ctx_util.ExtractUserContext(r)
+
+
+	// context validation
+	if userContext.IsIncomplete() {
+		b.logger.Errorf("[CreateBank] incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
+		return
+	}
+
 	// calling the application layer
 	cpsRes, err := b.bankHandler.CreateOneBank(ctx, *cpsRequest)
 	if err != nil {
