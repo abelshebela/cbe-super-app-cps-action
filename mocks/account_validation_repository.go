@@ -3,9 +3,10 @@ package mocks
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_validation"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type AccountValidationRepository struct {

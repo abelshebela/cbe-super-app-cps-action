@@ -3,10 +3,11 @@ package wallet
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/service"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

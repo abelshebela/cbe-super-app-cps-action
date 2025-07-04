@@ -1,4 +1,4 @@
-module gitlab.com/bersufekadgetachew/cbe-super-app-cps-action
+module github.com/CBE-Super-App/cbe-super-app-cps-action
 
 go 1.24.4
 
@@ -13,12 +13,14 @@ require (
 	github.com/minio/minio-go/v7 v7.0.92
 	github.com/rs/zerolog v1.34.0
 	github.com/segmentio/kafka-go v0.4.48
-	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
 )
+
+require gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
+
+require github.com/spf13/viper v1.20.1 // indirect
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect

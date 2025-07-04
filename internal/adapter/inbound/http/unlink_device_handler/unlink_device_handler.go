@@ -1,25 +1,34 @@
+// Package unlink_device_handler handles the unlink functionality
 package unlink_device_handler
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+const (
+	InvalidJSONPayload    = "INVALID_JSON_PAYLOAD"
+	InvalidInput          = "INVALID_INPUT"
+	DeviceUnlinkSuccess   = "DEVICE_UNLINK_SUCCESS"
+	UnlinkDecisionSuccess = "UNLINK_DECISION_SUCCESS"
+)
+
 type UnlinkHandler struct {
-	unlinkService unlink.ApplicationService
-	logger        utils.Logger
+	unlinkApp unlink.ApplicationService
+	logger    utils.Logger
 }
 
 func NewHTTPUnlinkHandler(service unlink.ApplicationService, logger utils.Logger) inbound.UnlinkPortHandler {
 	return &UnlinkHandler{
-		unlinkService: service,
-		logger:        logger,
+		unlinkApp: service,
+		logger:    logger,
 	}
 }
 
@@ -27,100 +36,59 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	var request unlink.UnlinkDeviceRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[UnlinkDevice] failed to decode request: %v", err)
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusBadRequest,
-			Data:           map[string]string{"message": "Invalid JSON payload"},
-		}
-		resp.SendJSON()
+		common_util.SendErrorResponse(w, InvalidJSONPayload, http.StatusBadRequest, nil)
 		return
 	}
 
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[UnlinkDevice] validation failed: %v", err)
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusBadRequest,
-			Data:           map[string]string{"message": "Invalid input provided"},
-		}
-		resp.SendJSON()
+		common_util.SendErrorResponse(w, InvalidInput, http.StatusBadRequest, nil)
+
 		return
 	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx := ctx_util.ExtractUserContext(r)
 
-	if err := h.unlinkService.UnlinkDevice(request.UserCode, userID, branchCode, department); err != nil {
+	userID := ctx.UserID
+	branchCode := ctx.BranchCode
+	department := ctx.Department
+
+	if err := h.unlinkApp.UnlinkDevice(request.UserCode, userID, branchCode, department); err != nil {
 		h.logger.Errorf("[UnlinkDevice] service error: %v", err)
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusBadRequest,
-			Data: map[string]string{
-				"message": err.Error(),
-			},
-		}
-		resp.SendJSON()
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+
 		return
 	}
 
 	h.logger.Infof("[UnlinkDevice] success for userCode: %s", request.UserCode)
-	resp := common.Response[any]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data: map[string]string{
-			"message": "Device unlink request processed successfully",
-		},
-	}
-	resp.SendJSON()
+	common_util.WriteSuccessResponse(w, nil, "Device unlink request processed successfully")
 }
 
 func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Request) {
 	var request unlink.ApproveUnlinkDeviceRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[ApproveUnlinkDevice] failed to decode request: %v", err)
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusBadRequest,
-			Data:           map[string]string{"message": "Invalid JSON payload"},
-		}
-		resp.SendJSON()
+		common_util.SendErrorResponse(w, InvalidJSONPayload, http.StatusBadRequest, nil)
+
 		return
 	}
 
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[ApproveUnlinkDevice] validation failed: %v", err)
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusBadRequest,
-			Data:           map[string]string{"message": "Invalid input provided"},
-		}
-		resp.SendJSON()
+		common_util.SendErrorResponse(w, InvalidInput, http.StatusBadRequest, nil)
+
 		return
 	}
+	ctx := ctx_util.ExtractUserContext(r)
+	userID := ctx.UserID
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-
-	if err := h.unlinkService.ApproveOrDecline(request.UserCode, request.Decision, request.Reason, userID); err != nil {
+	if err := h.unlinkApp.ApproveOrDecline(request.UserCode, request.Decision, request.Reason, userID); err != nil {
 		h.logger.Errorf("[ApproveUnlinkDevice] service error: %v", err)
-		resp := common.Response[any]{
-			ResponseWriter: w,
-			Status:         http.StatusBadRequest,
-			Data: map[string]string{
-				"message": err.Error(),
-			},
-		}
-		resp.SendJSON()
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+
 		return
 	}
 
 	h.logger.Infof("[ApproveUnlinkDevice] decision: %s for userCode: %s", request.Decision, request.UserCode)
-	resp := common.Response[any]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data: map[string]string{
-			"message": "Unlink decision processed successfully",
-		},
-	}
-	resp.SendJSON()
+	common_util.WriteSuccessResponse(w, nil, "Unlink decision processed successfully")
 }

@@ -3,9 +3,10 @@ package mocks
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
 )
 
 type ServiceDetailsRepository struct {

@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entities "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/budget/entities"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	gomock "go.uber.org/mock/gomock"
 )
 

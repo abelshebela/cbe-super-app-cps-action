@@ -6,10 +6,11 @@ import (
 	"log"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/department"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

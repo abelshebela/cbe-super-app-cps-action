@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/mock"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/mock"
 )
 
 type dummyLogger struct{}

@@ -5,9 +5,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/mocks"
+
 	"github.com/golang/mock/gomock"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service/mocks"
 )
 
 func TestServiceFeeMethods(t *testing.T) {

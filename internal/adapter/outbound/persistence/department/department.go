@@ -3,12 +3,14 @@ package department
 import (
 	"context"
 	"errors"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 	"log"
 
-	repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

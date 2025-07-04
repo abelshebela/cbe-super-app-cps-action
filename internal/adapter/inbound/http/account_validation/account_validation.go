@@ -4,104 +4,102 @@ import (
 	"encoding/json"
 	"net/http"
 
-	accountvalidation_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
-
-var errorMap = map[string]int{
-	"validation rule ID cannot be empty":                     http.StatusBadRequest,
-	"maker ID cannot be empty":                               http.StatusBadRequest,
-	"validation failed: identifier cannot be empty":          http.StatusBadRequest,
-	"validation failed: min length cannot exceed max length": http.StatusBadRequest,
-	"validation failed: service ID cannot be empty":          http.StatusBadRequest,
-	"validation rule not found":                              http.StatusNotFound,
-	"validation rule already has a pending action":           http.StatusConflict,
-	"action ID cannot be empty":                              http.StatusBadRequest,
-	"checker ID cannot be empty":                             http.StatusBadRequest,
-	"action not found":                                       http.StatusNotFound,
-	"action is not pending":                                  http.StatusConflict,
-}
 
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Validation ID required")
+		utils.SendErrorResponse(w, "INVALID_ID", 0, nil)
 		return
 	}
 
-	validation, err := h.Application.GetAccountValidation(r.Context(), id)
+	resp, err := h.Application.GetAccountValidation(r.Context(), id)
 	if err != nil {
-		errMsg := err.Error()
-		status, ok := errorMap[errMsg]
-		if !ok {
-			status = http.StatusInternalServerError
-			errMsg = "Failed to fetch validation rule"
-		}
-		utils.WriteErrorResponse(w, status, errMsg)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	utils.WriteSuccessResponse(w, validation, "Successfully retrieved validation rule")
+	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"message": "Account fetched successfully",
+		"data":    resp,
+	})
 }
 
 func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.Request) {
 	var req accountvalidation_app.UpdateAccountValidationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request body")
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
+		return
+	}
+	if err := req.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
-	actionID, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID, claims.PhoneNumber, claims.FullName)
+	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
-		errMsg := err.Error()
-		status, ok := errorMap[errMsg]
-		if !ok {
-			status = http.StatusInternalServerError
-			errMsg = "Update request failed"
-		}
-		utils.WriteErrorResponse(w, status, errMsg)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	resp := accountvalidation_app.UpdateAccountValidationResponse{ActionID: actionID}
-	utils.WriteSuccessResponse(w, resp, "Update request submitted for approval")
+	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"message": "Update request submitted for approval",
+		"data":    resp,
+	})
 }
 
 func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *http.Request) {
 	var req accountvalidation_app.ApproveRejectRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request body")
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
 
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
 	err := h.Application.UpdateAccountValidation(r.Context(), req.ActionID, req.Approve, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
 		errMsg := err.Error()
-		status, ok := errorMap[errMsg]
-		if !ok {
-			status = http.StatusInternalServerError
-			errMsg = "Approval process failed"
-		}
-		utils.WriteErrorResponse(w, status, errMsg)
+		utils.SendErrorResponse(w, errMsg, 0, nil)
 		return
+
 	}
 
 	action := "approved"
 	if !req.Approve {
 		action = "rejected"
 	}
-	utils.WriteSuccessResponse(w, nil, "Update request "+action+" successfully")
+	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"message": "update request " + action + " successfully Approved",
+		"data":    action,
+	})
+}
+
+func (h *HttpStore) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+	resp := struct {
+		Status int         `json:"status"`
+		Data   interface{} `json:"data"`
+	}{
+		Status: status,
+		Data:   data,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(resp)
 }

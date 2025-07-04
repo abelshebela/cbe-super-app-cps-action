@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	unlinkDevice "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
-	mocks "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/mocks"
+	unlinkDevice "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
+	mocks "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/mocks"
 )
 
 func TestService_UnlinkDevice_Success(t *testing.T) {

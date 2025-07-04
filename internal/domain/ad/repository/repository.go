@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/entity"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type Repository interface {

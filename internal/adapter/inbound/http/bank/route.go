@@ -3,10 +3,11 @@ package bank
 import (
 	"net/http"
 
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	bankRoutes "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
+
 	"github.com/go-chi/chi/v5"
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	bankRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/bank"
 )
 
 func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddleware middleware.AuthMiddleware) {

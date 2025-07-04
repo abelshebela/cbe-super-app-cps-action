@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	portalCardDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/portal_card"
+	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -17,17 +17,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	bpscalls "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	infra_mongo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	passwordRuleOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
-	userOutbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
-	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	bpscalls "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
+	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type outboundStore struct {
@@ -1706,7 +1706,7 @@ func (o *outboundStore) ApproveOrRejectPasswordRuleAction(ctx context.Context, a
 		if err := json.Unmarshal(action.CurrentAction, &rule); err != nil {
 			return err
 		}
-		rule.ID = ""
+		rule.ID = bson.NewObjectID()
 		_, err := o.MongoDalPasswordRule.InsertOne(ctx, rule)
 		if err != nil {
 			return err
@@ -1783,12 +1783,14 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 
 func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error) {
 	ruleModel, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
+	
 	if err != nil || ruleModel == nil {
+		
 		return nil, err
 	}
-
+	
 	rule := &action.PasswordRule{
-		ID:             ruleModel.ID,
+		ID:             ruleModel.ID.Hex(),
 		PasswordID:     ruleModel.PasswordId,
 		Name:           ruleModel.Name,
 		MinLength:      ruleModel.MinLength,

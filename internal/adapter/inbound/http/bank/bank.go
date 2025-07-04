@@ -6,14 +6,16 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bank"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/entity"
-	inboundBank "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/bank"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -62,10 +64,13 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Logo = fileHeader
 
 	var cpsRequest model.CreateCPSAction
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	cpsRequest.ActionData = bankRequest
 	cpsRequest.MakerUser = model.User{
@@ -106,10 +111,12 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	var cpsReq model.CreateCPSAction
 
@@ -143,10 +150,12 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 
 	var cpsReq model.CreateCPSAction
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	cpsReq.ActionData = entity.Bank{
 		ID: id,
@@ -239,10 +248,12 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 
 	var cpsReq model.AuthorizeCPSAction
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	cpsReq.CheckerUser = model.User{
 		UserCode:    user_code,
@@ -282,10 +293,12 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	cpsReq.CheckerUser = model.User{
 		UserCode:    user_code,
@@ -313,10 +326,12 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	var cpsReq model.CreateCPSAction
 
@@ -349,10 +364,12 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx_extract := ctx_util.ExtractUserContext(r)
+
+	user_code := ctx_extract.UserCode
+	full_name := ctx_extract.FullName
+	phone_number := ctx_extract.PhoneNumber
+	department := ctx_extract.Department
 
 	var cpsReq model.CreateCPSAction
 

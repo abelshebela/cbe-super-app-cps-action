@@ -1,6 +1,6 @@
 package permission
 
-import "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 
 type PermissionRepository interface {
 	CheckPendingRequest(userCode, action string) error

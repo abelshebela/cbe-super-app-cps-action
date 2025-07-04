@@ -5,6 +5,7 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -443,17 +444,18 @@ type CpsAction struct {
 	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
 }
 type PasswordRule struct {
-	ID             string    `bson:"_id,omitempty" json:"_id"`
-	PasswordId     string    `bson:"passwordId" json:"passwordId"`
-	Name           string    `bson:"name" json:"name"`
-	MinLength      int       `bson:"minLength" json:"minLength"`
-	MaxLength      int       `bson:"maxLength" json:"maxLength"`
-	Numbers        bool      `bson:"numbers" json:"numbers"`
-	CapitalLetters bool      `bson:"capitalLetters" json:"capitalLetters"`
-	SmallLetters   bool      `bson:"smallLetters" json:"smallLetters"`
-	Characters     bool      `bson:"characters" json:"characters"`
-	CreatedAt      time.Time `bson:"createdAt" json:"createdAt"`
+	ID             bson.ObjectID `bson:"_id,omitempty" json:"_id"`
+	PasswordId     string             `bson:"password_id" json:"password_id"`
+	Name           string             `bson:"name" json:"name"`
+	MinLength      int                `bson:"min_length" json:"min_length"`
+	MaxLength      int                `bson:"max_length" json:"max_length"`
+	Numbers        bool               `bson:"numbers" json:"numbers"`
+	CapitalLetters bool               `bson:"capital_letters" json:"capital_letters"`
+	SmallLetters   bool               `bson:"small_letters" json:"small_letters"`
+	Characters     bool               `bson:"characters" json:"characters"`
+	CreatedAt      time.Time          `bson:"created_at" json:"created_at"`
 }
+
 type HQ struct {
 	ID                string    `bson:"_id" json:"id"`
 	UniqueId          string    `bson:"unique_id" json:"unique_id"`
@@ -466,18 +468,18 @@ type HQ struct {
 	LastModifiedAt    time.Time `bson:"last_modified_at" json:"last_modified_at"`
 }
 type Branch struct {
-	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-    BranchCode    string             `bson:"branchCode" json:"BranchCode"`
-    BranchName    string             `bson:"branchName" json:"BranchName"`
-    BranchAddress string             `bson:"branchAddress" json:"BranchAddress"`
-    DistrictCode  string             `bson:"districtCode" json:"DistrictCode"`
-    DistrictName  string             `bson:"districtName" json:"DistrictName"`
-    BranchRegion  string             `bson:"branchRegion" json:"BranchRegion"`
-    RecordStat    string             `bson:"RecordStat" json:"RecordStat"`
-    CreatedAt     time.Time          `bson:"createdAt" json:"CreatedAt"`
-    UpdatedAt     time.Time          `bson:"updatedAt" json:"UpdatedAt"`
-    Version       int                `bson:"__v" json:"Version"`
-    Enabled       bool               `bson:"enabled" json:"Enabled"`
+	ID            bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	BranchCode    string        `bson:"branchCode" json:"BranchCode"`
+	BranchName    string        `bson:"branchName" json:"BranchName"`
+	BranchAddress string        `bson:"branchAddress" json:"BranchAddress"`
+	DistrictCode  string        `bson:"districtCode" json:"DistrictCode"`
+	DistrictName  string        `bson:"districtName" json:"DistrictName"`
+	BranchRegion  string        `bson:"branchRegion" json:"BranchRegion"`
+	RecordStat    string        `bson:"RecordStat" json:"RecordStat"`
+	CreatedAt     time.Time     `bson:"createdAt" json:"CreatedAt"`
+	UpdatedAt     time.Time     `bson:"updatedAt" json:"UpdatedAt"`
+	Version       int           `bson:"__v" json:"Version"`
+	Enabled       bool          `bson:"enabled" json:"Enabled"`
 }
 
 type Region struct {
@@ -513,3 +515,5 @@ type City struct {
 	UpdatedAt    time.Time     `json:"updated_at" bson:"updated_at"`
 	Enabled      bool          `json:"enabled" bson:"enabled"`
 }
+
+

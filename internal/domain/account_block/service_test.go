@@ -9,8 +9,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/account_block/mocks"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 func TestAccountService_FilterSingleBranches(t *testing.T) {

@@ -4,62 +4,61 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/hq"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type HQHTTPHandler struct {
 	handler hq.ApplicationAbstracts
-	logger  utils.Logger
 }
 
-func NewHQHTTPHandler(handler hq.ApplicationAbstracts, logger utils.Logger) *HQHTTPHandler {
+func NewHQHTTPHandler(handler hq.ApplicationAbstracts) *HQHTTPHandler {
 	return &HQHTTPHandler{
 		handler: handler,
-		logger:  logger,
 	}
 }
 
 func (h *HQHTTPHandler) GetHQ(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		h.logger.Errorf("HQ ID is empty")
-		http.Error(w, "HQ ID is required", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "INVALID_ID", 0, nil)
 		return
 	}
 
-	hq, err := h.handler.GetHQ(r.Context(), id)
+	hqResp, err := h.handler.GetHQ(r.Context(), id)
 	if err != nil {
-		h.logger.Errorf("failed to get HQ: %v", err)
-		http.Error(w, "Failed to get HQ", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(hq)
+	json.NewEncoder(w).Encode(hqResp)
 }
 
 func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		h.logger.Errorf("failed to decode request: %v", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
+		return
+	}
+	if err := request.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
 	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
-		h.logger.Errorf("failed to update block time request: %v", err)
-		http.Error(w, "Failed to update block time request", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -70,21 +69,23 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		h.logger.Errorf("failed to decode request: %v", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
+		return
+	}
+	if err := request.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
 	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName)
 	if err != nil {
-		h.logger.Errorf("failed to update archive time request: %v", err)
-		http.Error(w, "Failed to update archive time request", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -95,20 +96,18 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) {
 	var request dto.ApproveRejectRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		h.logger.Errorf("failed to decode request: %v", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
 
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
 	if err := h.handler.UpdateBlockTime(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName); err != nil {
-		h.logger.Errorf("failed to update block time: %v", err)
-		http.Error(w, "Failed to update block time", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -118,20 +117,18 @@ func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) 
 func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request) {
 	var request dto.ApproveRejectRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		h.logger.Errorf("failed to decode request: %v", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
 
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
 	if err := h.handler.UpdateArchiveTime(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName); err != nil {
-		h.logger.Errorf("failed to update archive time: %v", err)
-		http.Error(w, "Failed to update archive time", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
