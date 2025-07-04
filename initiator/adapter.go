@@ -18,6 +18,7 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
+	avatar_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
@@ -35,9 +36,12 @@ import (
 	inboundUnlink "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 )
 
 type Adapter struct {
+	AvatarAdapter          inboundAvatar.AvatarInbound
 	BankAdapter            inboundBank.BankAdapter
 	AdAdapter              inboundAD.ADAdapter
 	AmountBasedAuthAdapter inbound.AmountBasedAuthHandler
@@ -60,8 +64,9 @@ type Adapter struct {
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
 	return Adapter{
-		BankAdapter: bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:   ad.InitADAdapter(application.AdApplication, logger),
+		AvatarAdapter: avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
+		BankAdapter:   bank.InitBankAdapter(application.BankApplication, logger),
+		AdAdapter:     ad.InitADAdapter(application.AdApplication, logger),
 
 		WalletAdapter:   wallet.InitWalletAdapter(application.WalletApplication, logger),
 		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
