@@ -119,7 +119,13 @@ func (r *MongoRepository) GetOneUser(ctx context.Context, req map[string]interfa
 	filter["is_deleted"] = false
 	for key, value := range req {
 		if key == "id" {
-			oid, err := bson.ObjectIDFromHex(value.(string))
+			// oid, err := bson.ObjectIDFromHex(value.(string))
+			strValue, ok := value.(string)
+			if !ok {
+				return nil, fmt.Errorf("invalid id type: expected string")
+			}
+			oid, err := bson.ObjectIDFromHex(strValue)
+
 			if err != nil {
 				return nil, ErrNotFound
 			}
@@ -833,20 +839,46 @@ func (r *MongoRepository) FindPinResetSession(ctx context.Context, sessionID str
 		return nil, fmt.Errorf("failed to find PIN reset session: %w", err)
 	}
 
-	session := &userPort.PinResetSession{
-		ID:               doc["_id"].(string),
-		UserID:           doc["user_id"].(string),
-		PhoneNumber:      doc["phone_number"].(string),
-		DeviceUUID:       doc["device_uuid"].(string),
-		OTP:              doc["otp"].(string),
-		OTPFor:           doc["otp_for"].(string),
-		Status:           doc["status"].(string),
-		ExpiresAt:        doc["expires_at"].(bson.DateTime).Time(),
-		CreatedAt:        doc["created_at"].(bson.DateTime).Time(),
-		Attempts:         int(doc["attempts"].(int32)),
-		MaxAttempts:      int(doc["max_attempts"].(int32)),
-		AccessRestricted: doc["access_restricted"].(bool),
-		Restrictions:     convertToStringSlice(doc["restrictions"].(bson.A)),
+	session := &userPort.PinResetSession{}
+
+	if v, ok := doc["_id"].(string); ok {
+		session.ID = v
+	}
+	if v, ok := doc["user_id"].(string); ok {
+		session.UserID = v
+	}
+	if v, ok := doc["phone_number"].(string); ok {
+		session.PhoneNumber = v
+	}
+	if v, ok := doc["device_uuid"].(string); ok {
+		session.DeviceUUID = v
+	}
+	if v, ok := doc["otp"].(string); ok {
+		session.OTP = v
+	}
+	if v, ok := doc["otp_for"].(string); ok {
+		session.OTPFor = v
+	}
+	if v, ok := doc["status"].(string); ok {
+		session.Status = v
+	}
+	if v, ok := doc["expires_at"].(bson.DateTime); ok {
+		session.ExpiresAt = v.Time()
+	}
+	if v, ok := doc["created_at"].(bson.DateTime); ok {
+		session.CreatedAt = v.Time()
+	}
+	if v, ok := doc["attempts"].(int32); ok {
+		session.Attempts = int(v)
+	}
+	if v, ok := doc["max_attempts"].(int32); ok {
+		session.MaxAttempts = int(v)
+	}
+	if v, ok := doc["access_restricted"].(bool); ok {
+		session.AccessRestricted = v
+	}
+	if v, ok := doc["restrictions"].(bson.A); ok {
+		session.Restrictions = convertToStringSlice(v)
 	}
 
 	// Handle optional time fields
@@ -968,9 +1000,13 @@ func (r *MongoRepository) ResetPinResetAttempts(ctx context.Context, sessionID s
 
 // Helper function to convert bson.A to []string
 func convertToStringSlice(a bson.A) []string {
-	result := make([]string, len(a))
-	for i, v := range a {
-		result[i] = v.(string)
+	result := make([]string, 0, len(a))
+	for _, v := range a {
+		if str, ok := v.(string); ok {
+			result = append(result, str)
+		}
 	}
+
 	return result
+
 }

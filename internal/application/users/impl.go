@@ -391,7 +391,12 @@ func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 	}
 
 	defer func() {
-		newPin = ""
+		if len(newPin) > 0 {
+			pinBytes := []byte(newPin)
+			for i := range pinBytes {
+				pinBytes[i] = 0
+			}
+		}
 	}()
 
 	return h.userService.SetPin(ctx, userID, newPin, deviceUUID, userRealm)

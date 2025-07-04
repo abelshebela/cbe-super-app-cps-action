@@ -37,14 +37,38 @@ var (
 // validatePin checks if the pin is valid according to business rules
 func validatePin(pin string) error {
 	if len(pin) != pinLength {
-		return fmt.Errorf(errInvalidPin+": PIN must be exactly %d digits", pinLength)
+		return fmt.Errorf("PIN must be exactly %d digits", pinLength)
 	}
 	for _, c := range pin {
 		if c < '0' || c > '9' {
-			return fmt.Errorf(errInvalidPin + ": PIN must contain only digits")
+			return fmt.Errorf("PIN must contain only digits")
 		}
 	}
+
+	// Check for weak patterns
+	if isWeakPin(pin) {
+		return fmt.Errorf("PIN contains weak patterns")
+	}
 	return nil
+}
+
+func isWeakPin(pin string) bool {
+	// Check for repeated digits
+	if strings.Count(pin, string(pin[0])) == len(pin) {
+		return true
+	}
+	// Check for sequential patterns
+	isAscending := true
+	isDescending := true
+	for i := 1; i < len(pin); i++ {
+		if pin[i] != pin[i-1]+1 {
+			isAscending = false
+		}
+		if pin[i] != pin[i-1]-1 {
+			isDescending = false
+		}
+	}
+	return isAscending || isDescending
 }
 
 // validateOTP checks if the OTP is valid according to business rules
@@ -612,7 +636,6 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 		"phone_number":    loginResult.PhoneNumber,
 		"kyc_level":       loginResult.KYCLevel,
 		"is_verified":     loginResult.IsVerified,
-		"device_uuid":     deviceUUID,
 		"login_time":      loginResult.LoginTime,
 		"session_expires": loginResult.SessionExpires,
 	}

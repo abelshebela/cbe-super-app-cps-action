@@ -96,10 +96,6 @@ func NewUserService(repository UserRepository, logger shared_utils.Logger, minIO
 func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (key string, err error) {
 	_, err = s.repository.FindByID(ctx, id)
 	if err != nil {
-		if err == ErrNotFound {
-			s.logger.Errorf("User with ID %s not found", id)
-			return "", fmt.Errorf("NOT_FOUND")
-		}
 		s.logger.Errorf("Failed to find user with ID %s: %v", id, err)
 		return "", fmt.Errorf("UPLOAD_FAILED")
 	}
@@ -298,8 +294,7 @@ func (s *UserService) VerifyEmailOTP(ctx context.Context, verification OTPVerifi
 	}
 
 	if decryptedOTP != verification.OTP {
-		s.logger.Warnf("Invalid OTP provided for user %s (expected: %s, got: %s)",
-			verification.UserID, decryptedOTP, verification.OTP)
+		s.logger.Warnf("Invalid OTP provided for user")
 		return fmt.Errorf("INVALID_OTP")
 	}
 
@@ -587,7 +582,6 @@ func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 				pinBytes[i] = 0
 			}
 		}
-		newPin = ""
 	}()
 
 	user, err := s.FindByID(ctx, userID)
@@ -1271,7 +1265,8 @@ func (s *UserService) ResetPin(ctx context.Context, resetSessionID, phone, devic
 	for i := len(user.LoginPIN.PINHistory) - 1; i > 0; i-- {
 		user.LoginPIN.PINHistory[i] = user.LoginPIN.PINHistory[i-1]
 	}
-	user.LoginPIN.PINHistory[0] = newPin
+	hashedPin, _, _ := utils.LocalEncryptPassword(newPin, "", "", "", s.cfg)
+	user.LoginPIN.PINHistory[0] = hashedPin
 
 	// Update user in database
 	if err := s.repository.ChangePin(ctx, user.ID.Hex(), user.LoginPIN); err != nil {
