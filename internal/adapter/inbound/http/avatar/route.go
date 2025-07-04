@@ -11,7 +11,7 @@ import (
 )
 
 func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/avatar", func(r chi.Router) {
+	router.Route("/avatar", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,

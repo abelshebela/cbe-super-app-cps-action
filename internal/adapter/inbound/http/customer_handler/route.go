@@ -11,7 +11,7 @@ import (
 )
 
 func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetail, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/customers", func(r chi.Router) {
+	router.Route("/customers", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodGet,

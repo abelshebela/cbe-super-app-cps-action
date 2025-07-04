@@ -3,6 +3,7 @@ package initiator
 import (
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
@@ -27,6 +28,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 
 	r.Route("/api/v1/cbesuperapp/cps_action", func(sub chi.Router) {
 		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware)
+		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
 
 		wallet.InitWalletRoutes(sub, adapter.WalletAdapter, authMiddleware)

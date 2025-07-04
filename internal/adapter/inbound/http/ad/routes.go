@@ -11,7 +11,7 @@ import (
 )
 
 func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/ad", func(r chi.Router) {
+	router.Route("/ad", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
+	// "net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/feedback"
@@ -56,29 +56,18 @@ func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no feedback data found", err)
-			err = fmt.Errorf("feedback not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "no feedback data found",
-			})
-			return nil, err
+
+			return nil, fmt.Errorf("FAILED_TO_GET FEEDBACK_DATA")
 		}
 		c.logger.Errorf("failed to get feedback data", err)
-		err = fmt.Errorf("failed to get feedback %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_GET FEEDBACK")
 	}
 
 	total, err := c.mongoDal.TotalCount(ctx, bson.M{})
 	if err != nil {
 		c.logger.Errorf("failed to get total counts", err)
-		err := fmt.Errorf("failed to get total counts %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
 
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_GET_FEEDBACK_COUNTS")
 	}
 
 	return &entity.FeedbackResponse{
@@ -93,20 +82,13 @@ func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.
 	feedbackID, err := bson.ObjectIDFromHex(id)
 	if feedbackID.IsZero() {
 		c.logger.Errorf("invalid id provided", err)
-		err = fmt.Errorf("invalid id provided %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid id",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("INVALID_ID")
 	}
 
 	if err != nil {
-		c.logger.Errorf("failed to convert id to object id", err)
-		err = fmt.Errorf("failed to convert id to object id %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
 	}
 
 	filter := bson.M{"_id": feedbackID}
@@ -115,18 +97,11 @@ func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("feedback not found", err)
-			err = fmt.Errorf("feedback not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "feedback not found",
-			})
-			return nil, err
+
+			return nil, fmt.Errorf("FAILED_TO_GET_FEEDBACK_DATA")
 		}
 		c.logger.Errorf("failed to get feedback", err)
-		err = fmt.Errorf("failed to get feedback %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_GET_FEEDBACK")
 	}
 	return feedback, nil
 }

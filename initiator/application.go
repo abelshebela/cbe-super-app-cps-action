@@ -2,14 +2,15 @@ package initiator
 
 import (
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
+	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
+	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
 	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
+	customer "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
+	feedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
 	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
@@ -20,6 +21,7 @@ import (
 )
 
 type Application struct {
+	AvatarApplication        avatar_app.AvatarApplicationService
 	BankApplication          bank.BankHandlerService
 	AdApplication            ad.ADHandlers
 	WalletApplication        wallet.WalletHandlerService
@@ -40,6 +42,7 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 	return Application{
 		BankApplication:          bank.InitBankHanlder(domain.BankDomain, logger),
 		AdApplication:            ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
+		AvatarApplication:        avatar_app.InitAvatarAPP(domain.AvatarDomian, logger),
 		WalletApplication:        wallet.InitWalletHanlder(domain.WalletDomain, logger),
 		FaydaApplication:         faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
 		CustomerApplication:      customer.InitCustomerHandler(domain.CustomerDomain, logger),
