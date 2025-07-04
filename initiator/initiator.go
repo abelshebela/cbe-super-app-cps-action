@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 func Initiator() {

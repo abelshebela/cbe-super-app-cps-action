@@ -14,11 +14,11 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/segmentio/kafka-go v0.4.48
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24
-	go.mongodb.org/mongo-driver v1.17.4
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
 )
+
+require gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
 
 require github.com/spf13/viper v1.20.1 // indirect
 
