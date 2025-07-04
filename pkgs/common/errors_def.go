@@ -140,7 +140,7 @@ var DefineError = ErrorDefinitions{
 			Message: "Device UUID is required",
 		},
 		"NO_LINKED_DEVICES": {
-			Code:    "GEN_027",
+			Code:    "GEN_077",
 			Message: "User has no linked devices",
 		},
 		"COULD_NOT_UNLINK_DEVICE": {
@@ -156,7 +156,7 @@ var DefineError = ErrorDefinitions{
 			Message: "Missing required headers for device lookup",
 		},
 		"DEVICE_LOOKUP_FAILED": {
-			Code:    "GEN_030",
+			Code:    "GEN_070",
 			Message: "Device lookup operation failed",
 		},
 		"MISSING_REQUIRED_FIELDS": {
@@ -417,7 +417,7 @@ var DefineError = ErrorDefinitions{
 		},
 		// Additional missing errors from the other definition
 		"INVALID_ACTION_DATA": {
-			Code:    "GEN_035",
+			Code:    "GEN_075",
 			Message: "Invalid action data.",
 		},
 		"GENERAL_DB_QUERY_FAILED": {
