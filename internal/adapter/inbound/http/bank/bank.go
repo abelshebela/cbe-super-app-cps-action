@@ -238,13 +238,15 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
-		b.logger.Errorf("failed to decode bank request", err)
+	var rejectPayload model.RejectCPSAction
+	if err := json.NewDecoder(r.Body).Decode(&rejectPayload); err != nil {
+		b.logger.Errorf("failed to decode rejection payload: %v", err)
 		common_util.SendErrorResponse(w, common_util.InvalidReq, 0, nil)
 		return
 	}
 
 	cpsReq.ActionCode = actionCode
+	cpsReq.RejectedReason = rejectPayload.RejectedReason
 
 	ctx := r.Context()
 	rejectAction, err := b.bankHandler.Reject(ctx, *cpsReq)

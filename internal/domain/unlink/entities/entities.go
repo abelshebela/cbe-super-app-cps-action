@@ -43,7 +43,7 @@ type MakerAndChecker struct {
 
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	ActionCode         string        ` bson:"action_code" json:"action_code"`
+	ActionCode         string        `bson:"action_code" json:"action_code"`
 	MakerID            string        `bson:"maker_id" json:"maker_id"`
 	MakerName          string        `bson:"maker_name" json:"maker_name"`
 	MakerPhoneNumber   string        `bson:"maker_phone_number" json:"maker_phone_number"`

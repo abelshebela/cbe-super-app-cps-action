@@ -553,40 +553,36 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_020",
 			Message: "Old PIN does not match",
 		},
-		"SAME_PIN": {
-			Code:    "AUTH_021",
-			Message: "New PIN cannot be the same as old PIN",
-		},
 		"PIN_IN_HISTORY": {
-			Code:    "AUTH_022",
+			Code:    "AUTH_021",
 			Message: "New PIN cannot be one of the last 6 PINs used",
 		},
 		"INVALID_BEARER": {
-			Code:    "AUTH_023",
+			Code:    "AUTH_022",
 			Message: "Unauthorized: Invalid Bearer token format",
 		},
 		"USE_RIGHT_AUTH": {
-			Code:    "AUTH_024",
+			Code:    "AUTH_023",
 			Message: "Use the Right Authentication",
 		},
 		"INVALID_CLAIM": {
-			Code:    "AUTH_025",
+			Code:    "AUTH_024",
 			Message: "Invalid token claims",
 		},
 		"INVALID_TOKEN_DATA": {
-			Code:    "AUTH_026",
+			Code:    "AUTH_025",
 			Message: "Invalid token data",
 		},
 		"UNABLE_TO_DYCRYPT_TOKEN": {
-			Code:    "AUTH_027",
+			Code:    "AUTH_026",
 			Message: "Unable to decrypt token",
 		},
 		"FAILED_LOGIN": {
-			Code:    "AUTH_028",
+			Code:    "AUTH_027",
 			Message: "Failed to login. you entered wrong password",
 		},
 		"ACCOUNT_LOCKED": {
-			Code:    "AUTH_029",
+			Code:    "AUTH_028",
 			Message: "account locked. please contact your addministrator",
 		},
 	},
