@@ -136,7 +136,7 @@ var DefineError = ErrorDefinitions{
 			Message: "Resource not found.",
 		},
 		"DEVICE_ID_REQUIRED": {
-			Code:    "GEN_026",
+			Code:    "GEN_067",
 			Message: "Device UUID is required",
 		},
 		"NO_LINKED_DEVICES": {
@@ -458,15 +458,15 @@ var DefineError = ErrorDefinitions{
 			Message: "cps user not found",
 		},
 		"FAILED_TO_UPDATE_USER": {
-			Code:    "GEN_053",
+			Code:    "GEN_63",
 			Message: "failed to update user",
 		},
 		"FAILED_TO_UPDATE_CPS_ACTION": {
-			Code:    "GEN_053",
-			Message: "faled to update cps action",
+			Code:    "GEN_064",
+			Message: "failed to update cps action",
 		},
 		"ACTION_ID_IS_REQUIRED": {
-			Code:    "GEN_053",
+			Code:    "GEN_065",
 			Message: "action id is required",
 		},
 		"FAIL_TO_FEATCH_CPS_USER": {

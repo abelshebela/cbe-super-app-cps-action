@@ -539,7 +539,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		},
 	}
 	if _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update); err != nil {
-		return fmt.Errorf(error_codes.GeneralDBQueryFailed)
+		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 
 	}
 

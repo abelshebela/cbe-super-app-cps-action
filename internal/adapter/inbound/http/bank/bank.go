@@ -56,7 +56,8 @@ func createCPSUser[T any](r *http.Request, target *T) *T {
 			PhoneNumber: userContext.PhoneNumber,
 		}
 		v.Department = userContext.Department
-
+	default:
+		return  target
 	}
 
 	return target
