@@ -61,7 +61,6 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Infof("[UnlinkDevice] success for userCode: %s", request.UserCode)
 	common_util.WriteSuccessResponse(w, nil, "Device unlink request processed successfully")
-	common_util.WriteSuccessResponse(w, nil, "Device unlink request processed successfully")
 }
 
 func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Request) {

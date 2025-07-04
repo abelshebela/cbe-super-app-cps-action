@@ -136,7 +136,7 @@ var DefineError = ErrorDefinitions{
 			Message: "Resource not found.",
 		},
 		"DEVICE_ID_REQUIRED": {
-			Code:    "GEN_067",
+			Code:    "GEN_097",
 			Message: "Device UUID is required",
 		},
 		"NO_LINKED_DEVICES": {
@@ -146,6 +146,10 @@ var DefineError = ErrorDefinitions{
 		"COULD_NOT_UNLINK_DEVICE": {
 			Code:    "GEN_028",
 			Message: "Could not unlink device",
+		},
+		"USER_CODE_IS_REQUIRED": {
+			Code:    "GEN_051",
+			Message: "USER CODE IS REQUIRED",
 		},
 		"PENDING_REQUEST_EXISTS": {
 			Code:    "GEN_034",
@@ -458,7 +462,7 @@ var DefineError = ErrorDefinitions{
 			Message: "cps user not found",
 		},
 		"FAILED_TO_UPDATE_USER": {
-			Code:    "GEN_63",
+			Code:    "GEN_063",
 			Message: "failed to update user",
 		},
 		"FAILED_TO_UPDATE_CPS_ACTION": {

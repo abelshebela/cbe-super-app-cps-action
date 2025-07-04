@@ -51,7 +51,7 @@ func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action e
 	}
 
 	if err != nil {
-		return false, fmt.Errorf(error_codes.GeneralDBInsertFailed)
+		return false, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	return true, nil
 

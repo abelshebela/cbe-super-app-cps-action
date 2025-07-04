@@ -3,6 +3,7 @@ package bank
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -31,8 +32,11 @@ func InitBankAdapter(bankHandler bank.BankHandlerService, logger utils.Logger) i
 	}
 }
 
-func createCPSUser[T any](r *http.Request, target *T) *T {
+func createCPSUser[T any](r *http.Request, target *T) (*T, error) {
 	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
+	}
 
 	switch v := any(target).(type) {
 	case *model.AuthorizeCPSAction:
@@ -57,10 +61,10 @@ func createCPSUser[T any](r *http.Request, target *T) *T {
 		}
 		v.Department = userContext.Department
 	default:
-		return  target
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
-	return target
+	return target, nil
 }
 
 func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
@@ -91,19 +95,15 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Logo = fileHeader
 
 	// building request
-	cpsRequest := createCPSUser(r, &model.CreateCPSAction{})
+	cpsRequest, err := createCPSUser(r, &model.CreateCPSAction{})
+
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 	cpsRequest.ActionData = bankRequest
 
 	ctx := r.Context()
-	userContext := ctx_util.ExtractUserContext(r)
-
-
-	// context validation
-	if userContext.IsIncomplete() {
-		b.logger.Errorf("[CreateBank] incomplete user information")
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
-		return
-	}
 
 	// calling the application layer
 	cpsRes, err := b.bankHandler.CreateOneBank(ctx, *cpsRequest)
@@ -127,7 +127,11 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// building model
-	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
+	cpsReq, err := createCPSUser(r, &model.CreateCPSAction{})
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 	cpsReq.ActionData = updateRequest
 
 	updateRequest.ID = id
@@ -146,7 +150,12 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
+	cpsReq, err := createCPSUser(r, &model.CreateCPSAction{})
+
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 	cpsReq.ActionData = entity.Bank{
 		ID: id,
 	}
@@ -212,7 +221,12 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 
 func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
-	cpsReq := createCPSUser(r, &model.AuthorizeCPSAction{})
+	cpsReq, err := createCPSUser(r, &model.AuthorizeCPSAction{})
+
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	cpsReq.ActionCode = actionCode
 
@@ -229,7 +243,12 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
 
-	cpsReq := createCPSUser(r, &model.RejectCPSAction{})
+	cpsReq, err := createCPSUser(r, &model.RejectCPSAction{})
+
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		b.logger.Errorf("failed to decode bank request", err)
@@ -252,7 +271,12 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
+	cpsReq, err := createCPSUser(r, &model.CreateCPSAction{})
+
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 	cpsReq.ActionData = dto.UpdateBankRequest{
 		ID: id,
 	}
@@ -270,7 +294,11 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	cpsReq := createCPSUser(r, &model.CreateCPSAction{})
+	cpsReq, err := createCPSUser(r, &model.CreateCPSAction{})
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 	cpsReq.ActionData = dto.UpdateBankRequest{
 		ID: id,
 	}
