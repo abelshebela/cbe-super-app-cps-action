@@ -7,6 +7,7 @@ import (
 	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	role "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 )
 
 func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandler, authMiddleware middleware.AuthMiddleware) {
@@ -18,7 +19,7 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				Handler: handler.UnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			}, {
 				Method:  http.MethodPost,
@@ -26,7 +27,7 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				Handler: handler.ApproveUnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 		}

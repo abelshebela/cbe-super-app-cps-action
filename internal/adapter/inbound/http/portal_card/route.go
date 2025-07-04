@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	role "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
 
@@ -19,7 +21,7 @@ func InitPortalCardRoutes(router chi.Router, portalcardHandler inbound.PortalCar
 				Handler: portalcardHandler.GetAllPortalCard,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 				},
 			},
 		}
