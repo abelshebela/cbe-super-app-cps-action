@@ -10,7 +10,7 @@ import (
 )
 
 func InitFeedbackRoutes(router chi.Router, feedbackHandler inbound.Feedback) {
-	router.Route("/api/v1/cbesuperapp/cps_action/feedback", func(r chi.Router) {
+	router.Route("/feedback", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodGet,
