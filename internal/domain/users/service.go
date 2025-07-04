@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -413,7 +414,7 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 	}
 	s.logger.Infof(userData.LoginPIN.PIN, ChangePinRequest.OldPin)
 
-	if userData.LoginPIN.PIN != ChangePinRequest.OldPin {
+	if subtle.ConstantTimeCompare([]byte(userData.LoginPIN.PIN), []byte(ChangePinRequest.OldPin)) == 0 {
 		return fmt.Errorf("OLD_PIN_MISMATCH")
 	}
 
@@ -544,7 +545,7 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, otp string,
 		}
 
 		// Compare OTP
-		if registration.OTP != otp {
+		if subtle.ConstantTimeCompare([]byte(registration.OTP), []byte(otp)) == 0 {
 			s.logger.Warnf("Invalid OTP for registration")
 			return fmt.Errorf("INVALID_OTP")
 		}
@@ -566,7 +567,7 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, otp string,
 	}
 
 	// Compare OTP (both should be encrypted)
-	if otpRecord.OTP != otp {
+	if subtle.ConstantTimeCompare([]byte(otpRecord.OTP), []byte(otp)) == 0 {
 		s.logger.Warnf("Invalid OTP for user %s, otpFor: %s", userID, otpFor)
 		return fmt.Errorf("INVALID_OTP")
 	}

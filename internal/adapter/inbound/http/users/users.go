@@ -326,6 +326,7 @@ func (h UsersAdapter) CheckPin(w http.ResponseWriter, r *http.Request) {
 	var payload dto.PinStrengthRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		// this is util based reusable function make to pass the error key and will send to user with status code
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", http.StatusBadRequest, nil)
 		return
 	}

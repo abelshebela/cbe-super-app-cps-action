@@ -59,9 +59,9 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 	userEntity, err := r.userDal.FindOne(ctx, userFilter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("AUTH_USER_NOT_FOUND")
 		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
+		return nil, fmt.Errorf("AUTH_USER_NOT_FOUND: %w", err)
 	}
 
 	return &userPort.User{
@@ -310,7 +310,7 @@ func (r *MongoRepository) CreateLinkedAccount(ctx context.Context, acc *accountP
 	}
 
 	linkedAccount := entities.LinkedAccount{
-		UserID:            bson.ObjectID(oid),
+		UserID:            oid,
 		CustomerNumber:    acc.CustomerNumber,
 		AccountNumber:     acc.AccountNumber,
 		AccountHolderName: acc.AccountHolderName,
@@ -429,7 +429,7 @@ func (r *MongoRepository) CreateOtp(ctx context.Context, otp *userPort.OTPRecord
 		UserCode:  otp.UserCode,
 		OTPFor:    entities.OTPFor(otp.OTPFor), // or make this a parameter if needed
 		OTPCode:   otp.OTP,
-		Email:     otp.OTPFor,
+		Email:     otp.Email,
 		ExpiresAt: otp.ExpiresAt,
 		CreatedAt: otp.CreatedAt,
 		Status:    "",
