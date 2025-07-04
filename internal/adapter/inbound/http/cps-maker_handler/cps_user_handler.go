@@ -45,7 +45,7 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 		strings.TrimSpace(req.PhoneNumber) == "" ||
 		strings.TrimSpace(req.UserRole) == "" ||
 		strings.TrimSpace(req.Department) == "" {
-		util.SendErrorResponse(w, "missing required fild", http.StatusBadRequest, nil)
+		util.SendErrorResponse(w, "missing required field", http.StatusBadRequest, nil)
 		return
 	}
 
@@ -159,8 +159,7 @@ func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Re
 		return
 	}
 	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap("Action processed successfully")
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.BaseResponseMaker(nil, w, def.Message, http.StatusAccepted)
 }
 
 func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *http.Request) {

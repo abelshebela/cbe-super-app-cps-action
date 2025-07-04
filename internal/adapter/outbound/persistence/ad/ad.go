@@ -148,7 +148,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
 
-		return nil, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
 	return &cps, nil
 }
