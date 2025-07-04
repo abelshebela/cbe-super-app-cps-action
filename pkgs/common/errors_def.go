@@ -550,43 +550,43 @@ var DefineError = ErrorDefinitions{
 			Message: "Validation failed",
 		},
 		"OLD_PIN_MISMATCH": {
-			Code:    "AUTH_029",
+			Code:    "AUTH_020",
 			Message: "Old PIN does not match",
 		},
 		"SAME_PIN": {
-			Code:    "AUTH_027",
+			Code:    "AUTH_021",
 			Message: "New PIN cannot be the same as old PIN",
 		},
 		"PIN_IN_HISTORY": {
-			Code:    "AUTH_028",
+			Code:    "AUTH_022",
 			Message: "New PIN cannot be one of the last 6 PINs used",
 		},
 		"INVALID_BEARER": {
-			Code:    "AUTH_020",
+			Code:    "AUTH_023",
 			Message: "Unauthorized: Invalid Bearer token format",
 		},
 		"USE_RIGHT_AUTH": {
-			Code:    "AUTH_021",
+			Code:    "AUTH_024",
 			Message: "Use the Right Authentication",
 		},
 		"INVALID_CLAIM": {
-			Code:    "AUTH_022",
+			Code:    "AUTH_025",
 			Message: "Invalid token claims",
 		},
 		"INVALID_TOKEN_DATA": {
-			Code:    "AUTH_023",
+			Code:    "AUTH_026",
 			Message: "Invalid token data",
 		},
 		"UNABLE_TO_DYCRYPT_TOKEN": {
-			Code:    "AUTH_024",
+			Code:    "AUTH_027",
 			Message: "Unable to decrypt token",
 		},
 		"FAILED_LOGIN": {
-			Code:    "AUTH_025",
+			Code:    "AUTH_028",
 			Message: "Failed to login. you entered wrong password",
 		},
 		"ACCOUNT_LOCKED": {
-			Code:    "AUTH_026",
+			Code:    "AUTH_029",
 			Message: "account locked. please contact your addministrator",
 		},
 	},
@@ -600,11 +600,11 @@ var DefineError = ErrorDefinitions{
 			Message: "Insufficient balance.",
 		},
 		"COMMISSION_NOT_FOUND": {
-			Code:    "COM_001",
+			Code:    "TXN_003",
 			Message: "Commission not found",
 		},
 		"CUSTOMER_NOT_FOUND": {
-			Code:    "CUS_001",
+			Code:    "TXN_004",
 			Message: "Customer not found",
 		},
 	},
@@ -681,23 +681,23 @@ var DefineError = ErrorDefinitions{
 			Message: "Email is already in use.",
 		},
 		"USER_ALREADY_HAS_EMAIL": {
-			Code:    "OTP_007",
+			Code:    "OTP_004",
 			Message: "User already has an email address",
 		},
 		"WAIT_FOR_PREVIOUS_OTP_EXPIRATION": {
-			Code:    "OTP_008",
+			Code:    "OTP_005",
 			Message: "Please wait until the previous OTP expires",
 		},
 		"OTP_GENERATION_FAILED": {
-			Code:    "OTP_004",
+			Code:    "OTP_006",
 			Message: "Failed to generate OTP.",
 		},
 		"USER_KYC_LEVEL_ZERO": {
-			Code:    "KYC_005",
+			Code:    "KYC_007",
 			Message: "User KYC level is not sufficient for this operation",
 		},
 		"USER_KYC_LEVEL_WRONG": {
-			Code:    "KYC_006",
+			Code:    "KYC_008",
 			Message: "User KYC level is not sufficient for this operation",
 		},
 	},
@@ -793,33 +793,33 @@ var DefineError = ErrorDefinitions{
 			Message: "A pending CPS action already exists.",
 		},
 		"INVALID_DECISION": {
-			Code:    "ACT_003",
+			Code:    "ACT_002",
 			Message: "Invalid decision value provided.",
 		},
 		"ACTION_REJECTION_FAILED": {
-			Code:    "ACT_004",
+			Code:    "ACT_003",
 			Message: "Failed to reject action.",
 		},
 		"ACTION_APPROVAL_FAILED": {
-			Code:    "ACT_005",
+			Code:    "ACT_004",
 			Message: "Failed to approve action.",
 		},
 		"UNLINK_ACTION_REQUEST_FAILED": {
-			Code:    "ACT_006",
+			Code:    "ACT_005",
 			Message: "Failed to request unlink action.",
 		},
 		"PENDING_ACTION_REJECTION_FAILED": {
-			Code:    "ACT_007",
+			Code:    "ACT_006",
 			Message: "Failed to reject pending action.",
 		},
 		"PENDING_ACTION_CHECK_FAILED": {
-			Code:    "ACT_008",
+			Code:    "ACT_007",
 			Message: "Failed to check pending actions.",
 		},
 	},
 	User: ErrorGroup{
 		"USER_STATUS_UPDATE_FAILED": {
-			Code:    "USR_003",
+			Code:    "USR_001",
 			Message: "Failed to update user status.",
 		},
 	},

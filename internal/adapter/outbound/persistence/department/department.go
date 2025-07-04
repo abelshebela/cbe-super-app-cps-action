@@ -103,6 +103,10 @@ func (r *DepartmentPersistence) ValidateActionRequest(ctx context.Context, actio
 		return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 
+	if action == nil {
+		return nil, fmt.Errorf(error_codes.ActionNotFound)
+	}
+
 	return action, nil
 }
 
