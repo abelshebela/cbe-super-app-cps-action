@@ -3,6 +3,8 @@ package initiator
 import (
 	"time"
 
+	advert "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
+
 	outboundStore "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	budget_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
@@ -11,9 +13,13 @@ import (
 	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 )
 
 type Persitence struct {
@@ -25,6 +31,8 @@ type Persitence struct {
 	BulkServicesPersistence  bulkOutbound.OutboundInfra
 	CPSUserPersistence       cpsUserOutbound.OutboundInfra
 	PasswordRulesPersistence passwordRuleOutbound.OutboundPasswordRuleInfra
+	advertPersistence        ad.ADRepo
+	avatarPersitence         avatar.AvatarOutbound
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -39,6 +47,9 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		"portal_card",
 	}
 	return Persitence{
+		advertPersistence: advert.InitAD(client, database_name, []string{"adverts", "cps_actions"}, logger),
+		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, database_name, []string{"cps_actions", "avatars"}, logger),
+
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, database_name, "customers", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, database_name, "feedbacks", logger),
 		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, database_name, []string{"user", "otp", "cps_action"}, logger),

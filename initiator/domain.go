@@ -17,10 +17,14 @@ import (
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	// ad_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
+	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 )
 
 type Domain struct {
 	AdDomain           ad_service.AdvertService
+	AvatarDomian       avatar_domain.AvatarDomainService
 	BankDomain         bank_service.BankService
 	WalletDomain       wallet_service.WalletService
 	FaydaDomain        *fayda_service.FaydaAccountDomain
@@ -38,8 +42,8 @@ type Domain struct {
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
 	return Domain{
-
-
+		AdDomain:           ad_service.InitADDomian(persitence.advertPersistence, logger),
+		AvatarDomian:       avatar_domain.InitAvatarDomain(persitence.avatarPersitence, minioClient, "avatars", logger),
 		CustomerDomain:     customer_service.IntiCustomerDomain(persitence.CustomerPersistence, logger),
 		FeedbackDomain:     feedback_service.InitFeedbackDomain(persitence.FeedBackPersistence, logger),
 		UnlinkDomain:       unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
@@ -48,5 +52,5 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		BulkServicesDomain: action.NewService(persitence.BulkServicesPersistence, logger),
 		CPSUserDomain:      services.NewCPSUserService(persitence.CPSUserPersistence),
 		PasswordRuleDomain: password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence),
-		}
+	}
 }

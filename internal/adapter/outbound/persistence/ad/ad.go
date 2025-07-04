@@ -26,7 +26,7 @@ type ADPersistence struct {
 
 var _ ad.ADRepo = (*ADPersistence)(nil)
 
-func InitAD(client *mongo.Client, database string, collections []string, logger utils.Logger) *ADPersistence {
+func InitAD(client *mongo.Client, database string, collections []string, logger utils.Logger) ad.ADRepo {
 	adDal := dal.NewMongoDal[entity.Advert, entity.Advert](client, database, collections[0])
 	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, collections[1])
 	return &ADPersistence{
