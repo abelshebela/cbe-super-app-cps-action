@@ -453,10 +453,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_050",
 			Message: "duplicate key error",
 		},
-		"USER CODE IS REQUIRED": {
-			Code:    "GEN_051",
-			Message: "USER CODE IS REQUIRED",
-		},
 		"CPS_USER_NOT_FOUND": {
 			Code:    "GEN_052",
 			Message: "cps user not found",
