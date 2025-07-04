@@ -8,10 +8,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/unlink"
-	error_codes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/unlink"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

@@ -3,7 +3,7 @@ package type_definition
 import (
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/entities/enums"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities/enums"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

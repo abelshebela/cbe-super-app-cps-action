@@ -13,9 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	model "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	entity "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	utils "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 

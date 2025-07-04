@@ -3,8 +3,8 @@ package entities
 import (
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/entities/enums"
-	td "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/entities/type_definition"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities/enums"
+	td "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities/type_definition"
 )
 
 type Ticket struct {

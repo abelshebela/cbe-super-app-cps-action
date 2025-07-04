@@ -1,8 +1,9 @@
+// Package unlink implements the use case or business logic for the unlink functionality.
 package unlink
 
 import (
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/entities"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
 	  "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

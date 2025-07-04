@@ -159,8 +159,8 @@ github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 h1:ilQV1hzziu+LLM3zU
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78/go.mod h1:aL8wCCfTfSfmXjznFBSZNN13rSJjlIOI1fUNAtF7rmI=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
-gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24 h1:Rp+Zv38ihU/3e9wAr0zwh6Pn8sN6qE5kla2LFBItOv8=
-gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24/go.mod h1:N0sJB0qapk0Y7rU3UtxEr9PE+cGd6IVgyZKUAqWwSnw=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25 h1:efcSbSeqznvBY892P4j9Wlg/Hjkiv/d+8TFnJXLkZN0=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25/go.mod h1:N0sJB0qapk0Y7rU3UtxEr9PE+cGd6IVgyZKUAqWwSnw=
 go.mongodb.org/mongo-driver/v2 v2.2.2 h1:9cYuS3fl1Xhqwpfazso10V7BHQD58kCgtzhfAmJYz9c=
 go.mongodb.org/mongo-driver/v2 v2.2.2/go.mod h1:qQkDMhCGWl3FN509DfdPd4GRBLU/41zqF/k8eTRceps=
 go.uber.org/mock v0.5.2 h1:LbtPTcP8A5k9WPXj54PPPbjcI4Y6lhyOZXn+VS7wNko=

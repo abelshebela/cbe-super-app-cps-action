@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/entities/enums"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities/enums"
 
 	"github.com/go-playground/validator/v10"
 	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"

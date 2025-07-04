@@ -12,8 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/repository"
 )
 
 type BranchPersistence struct {

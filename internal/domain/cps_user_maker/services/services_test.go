@@ -8,8 +8,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	mockrepo "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	mockrepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository/mocks"
 )
 
 func TestCPSUserService_CreateUserRequest(t *testing.T) {

@@ -3,10 +3,10 @@ package service
 import (
 	"net/http"
 
-	portalcardApp "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/portal_card"
-	common_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	portalcardApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

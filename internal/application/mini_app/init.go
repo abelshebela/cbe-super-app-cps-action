@@ -6,8 +6,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/miniapp"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
 type ApplicationAbstracts interface {

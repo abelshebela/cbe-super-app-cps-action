@@ -9,9 +9,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
-	error_codes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 

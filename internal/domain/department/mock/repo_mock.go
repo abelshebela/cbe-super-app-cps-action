@@ -5,7 +5,7 @@
 package mock
 
 import (
-	entities "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	context "context"
 	reflect "reflect"
 

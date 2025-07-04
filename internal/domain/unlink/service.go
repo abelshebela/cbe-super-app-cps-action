@@ -1,6 +1,7 @@
+// Package unlink provides the implementation for the service for unlink functionality.
 package unlink
 
-import "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/entities"
+import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
 
 type Service struct {
 	repository Repository

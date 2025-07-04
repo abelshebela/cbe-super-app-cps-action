@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/common"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 
 	"github.com/google/uuid"
 )

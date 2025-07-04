@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"time"
 
-	dal "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/infra"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/ad"
+	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type ADPersistence struct {

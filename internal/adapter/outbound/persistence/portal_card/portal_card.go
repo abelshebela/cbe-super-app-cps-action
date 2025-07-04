@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 
-	error_codes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"

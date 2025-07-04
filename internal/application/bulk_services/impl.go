@@ -3,7 +3,7 @@ package bulkservices_application
 import (
 	"context"
 
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 func (a *ApplicationStore) FetchServices(ctx context.Context, offset, limit int) ([]domain.ServiceDetails, error) {

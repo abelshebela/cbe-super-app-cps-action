@@ -1,7 +1,7 @@
 package permission
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/permission/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 )
 
 type PermissionGroupRepository interface {

@@ -1,3 +1,4 @@
+// Package unlink_device_handler handles the unlink functionality
 package unlink_device_handler
 
 import (
@@ -5,24 +6,24 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/unlink"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/unlink/entities"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
-	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/context"
-	common_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type UnlinkHandler struct {
 	unlinkService unlink.ApplicationService
-	logger        utils.Logger
+	logger    utils.Logger
 }
 
 func NewHTTPUnlinkHandler(service unlink.ApplicationService, logger utils.Logger) inbound.UnlinkPortHandler {
 	return &UnlinkHandler{
 		unlinkService: service,
-		logger:        logger,
+		logger:    logger,
 	}
 }
 
@@ -60,6 +61,7 @@ func (h *UnlinkHandler) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Infof("[UnlinkDevice] success for userCode: %s", request.UserCode)
 	common_util.WriteSuccessResponse(w, nil, "Device unlink request processed successfully")
+	common_util.WriteSuccessResponse(w, nil, "Device unlink request processed successfully")
 }
 
 func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Request) {
@@ -91,5 +93,6 @@ func (h *UnlinkHandler) ApproveUnlinkDevice(w http.ResponseWriter, r *http.Reque
 	}
 
 	h.logger.Infof("[ApproveUnlinkDevice] decision: %s for userCode: %s", request.Decision, request.UserCode)
+	common_util.WriteSuccessResponse(w, nil, "Unlink decision processed successfully")
 	common_util.WriteSuccessResponse(w, nil, "Unlink decision processed successfully")
 }

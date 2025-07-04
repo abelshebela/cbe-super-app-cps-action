@@ -6,11 +6,11 @@ package service
 // 	"net/http"
 // 	"time"
 
-// 	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-// 	// "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service/entity"
-// 	outbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound/service_details"
+// 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+// 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/entity"
+// 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/service_details"
 
-// 	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+// 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 // 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 // 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"

@@ -3,16 +3,17 @@ package bank
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	bankRoutes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/bank"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	bankRoutes "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
 
-	role "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/go-chi/chi/v5"
+
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/bank", func(r chi.Router) {
+	router.Route("/bank", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,

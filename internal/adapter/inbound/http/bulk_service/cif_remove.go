@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 func (h *HttpStore) SearchAccountByCif(w http.ResponseWriter, r *http.Request) {

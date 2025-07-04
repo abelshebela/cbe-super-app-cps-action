@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 
 	"compress/zlib"
 	"crypto/aes"

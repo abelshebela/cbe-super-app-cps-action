@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/department"
-	ctx_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/context"
-	common_util "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

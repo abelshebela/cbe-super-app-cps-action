@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	error_codes "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/go-ozzo/ozzo-validation/v4/is"

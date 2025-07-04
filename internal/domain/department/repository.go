@@ -1,7 +1,7 @@
 package department
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	"context"
 )
 
