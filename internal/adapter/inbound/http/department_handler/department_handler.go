@@ -120,6 +120,11 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
+
+	if cpsAction == nil {
+		common_util.SendErrorResponse(w, "action not found", http.StatusNotFound, nil)
+		return
+	}
 	h.logger.Infof("[ApproveRequest] action validated: %+v", cpsAction)
 	cpsAction.ActionType = entities.ActionUpdate
 

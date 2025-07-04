@@ -43,6 +43,11 @@ func InitDepartmentHandler(service *domain.Service, logger utils.Logger) Departm
 }
 
 func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData, error) {
+
+	if current == nil {
+		h.logger.Errorf("current data is nil")
+		return nil, fmt.Errorf(err_msg.InvalidInput)
+	}
 	var data map[string]any
 
 	switch v := current.(type) {
