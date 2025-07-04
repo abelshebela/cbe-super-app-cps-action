@@ -93,8 +93,8 @@ func NewUserService(repository UserRepository, logger shared_utils.Logger, minIO
 	}
 }
 
-func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
-	_, err := s.repository.FindByID(ctx, id)
+func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (key string, err error) {
+	_, err = s.repository.FindByID(ctx, id)
 	if err != nil {
 		if err == ErrNotFound {
 			s.logger.Errorf("User with ID %s not found", id)
@@ -111,11 +111,19 @@ func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file 
 		return "", fmt.Errorf("UPLOAD_FAILED")
 	}
 
-	defer os.Remove(tempFile.Name())
-	defer tempFile.Close()
+	// Ensure cleanup of temp file and handle close errors
+	cleanup := func() {
+		if cerr := tempFile.Close(); cerr != nil {
+			s.logger.Warnf("Failed to close temp file: %v", cerr)
+		}
+		if rerr := os.Remove(tempFile.Name()); rerr != nil {
+			s.logger.Warnf("Failed to remove temp file: %v", rerr)
+		}
+	}
+	defer cleanup()
 
 	// Copy the uploaded file content to the temporary file
-	if _, err := io.Copy(tempFile, file); err != nil {
+	if _, err = io.Copy(tempFile, file); err != nil {
 		s.logger.Errorf("Failed to copy file content to temporary file: %v", err)
 		return "", fmt.Errorf("UPLOAD_FAILED")
 	}
@@ -594,7 +602,7 @@ func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 	}
 
 	if err := s.checkPinHistory(user, encryptedPin); err != nil {
-		s.logger.Warnf("PIN history check failed for user %s: %v", userID, err)
+		s.logger.Warnf("PIN history check failed for user %s: %v", user.ID.Hex(), err)
 		return nil, err
 	}
 
