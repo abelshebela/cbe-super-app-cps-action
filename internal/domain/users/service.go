@@ -410,8 +410,12 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 		return fmt.Errorf("NOT_FOUND")
 	}
 
-	hashedOldPin, _, _ := utils.LocalEncryptPassword(ChangePinRequest.OldPin, "pin", "", "", s.cfg)
-	if subtle.ConstantTimeCompare([]byte(userData.LoginPIN.PIN), []byte(hashedOldPin)) == 0 {
+	storedPinDecrypted, err := utils.LocalDecryptPassword(userData.LoginPIN.PIN, s.cfg)
+	if err != nil {
+		return fmt.Errorf("PIN_DECRYPTION_FAILED")
+	}
+
+	if subtle.ConstantTimeCompare([]byte(storedPinDecrypted), []byte(ChangePinRequest.OldPin)) == 0 {
 		return fmt.Errorf("OLD_PIN_MISMATCH")
 	}
 
@@ -575,14 +579,6 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, otp string,
 func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
 
 	// Clear sensitive data from memory after function execution
-	defer func() {
-		if len(newPin) > 0 {
-			pinBytes := []byte(newPin)
-			for i := range pinBytes {
-				pinBytes[i] = 0
-			}
-		}
-	}()
 
 	user, err := s.FindByID(ctx, userID)
 	if err != nil {
@@ -1257,9 +1253,6 @@ func (s *UserService) ResetPin(ctx context.Context, resetSessionID, phone, devic
 		s.logger.Warnf("PIN history check failed for user %s: %v", user.ID.Hex(), err)
 		return nil, err
 	}
-	// Update user's PIN
-	user.LoginPIN.PIN = newPin
-	user.LoginPIN.LastPINCreatedAt = time.Now()
 
 	// Update PIN history (shift and add new PIN)
 	for i := len(user.LoginPIN.PINHistory) - 1; i > 0; i-- {
@@ -1267,13 +1260,13 @@ func (s *UserService) ResetPin(ctx context.Context, resetSessionID, phone, devic
 	}
 	hashedPin, _, _ := utils.LocalEncryptPassword(newPin, "", "", "", s.cfg)
 	user.LoginPIN.PINHistory[0] = hashedPin
-
+	user.LoginPIN.LastPINCreatedAt = time.Now()
 	// Update user in database
 	if err := s.repository.ChangePin(ctx, user.ID.Hex(), user.LoginPIN); err != nil {
 		s.logger.Errorf("Failed to update user PIN: %v", err)
 		return nil, ErrPinResetFailed
 	}
-
+	user.LoginPIN.PINHistory[0] = hashedPin
 	// Update session status to completed
 	session.Status = "completed"
 	session.VerifiedAt = time.Now()
@@ -1818,12 +1811,14 @@ func (s *UserService) ResetPinWithToken(ctx context.Context, resetSessionID, pho
 		return nil, err
 	}
 
-	user.LoginPIN.PIN = newPin
+	hashedPin, _, _ := utils.LocalEncryptPassword(newPin, "", "", "", s.cfg)
 	user.LoginPIN.LastPINCreatedAt = time.Now()
+
 	for i := len(user.LoginPIN.PINHistory) - 1; i > 0; i-- {
 		user.LoginPIN.PINHistory[i] = user.LoginPIN.PINHistory[i-1]
 	}
-	user.LoginPIN.PINHistory[0] = newPin
+	user.LoginPIN.PINHistory[0] = hashedPin
+
 	if err := s.repository.ChangePin(ctx, user.ID.Hex(), user.LoginPIN); err != nil {
 		s.logger.Errorf("Failed to update user PIN: %v", err)
 		return nil, ErrPinResetFailed

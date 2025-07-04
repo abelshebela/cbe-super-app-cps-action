@@ -37,9 +37,7 @@ func main() {
 	defer logger.Sync()
 
 	cfg, err := config.Load()
-	os.Setenv("GO_ENV", "dev")
-	os.Setenv("KEY", "234567890-=1234567890-=1234567890-=1234567890-=") // 32 bytes key
-	os.Setenv("IV", "1234567890-=12")                                   // 16 bytes IV
+	// 16 bytes IV
 	if err != nil {
 		logger.Fatalf("failed to load config %v", err)
 	}

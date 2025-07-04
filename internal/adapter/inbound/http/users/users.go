@@ -37,17 +37,18 @@ var (
 // validatePin checks if the pin is valid according to business rules
 func validatePin(pin string) error {
 	if len(pin) != pinLength {
-		return fmt.Errorf("PIN must be exactly %d digits", pinLength)
+		return fmt.Errorf(errInvalidPin+": PIN must be exactly %d digits", pinLength)
 	}
 	for _, c := range pin {
 		if c < '0' || c > '9' {
-			return fmt.Errorf("PIN must contain only digits")
+			return fmt.Errorf(errInvalidPin + ": PIN must contain only digits")
 		}
 	}
 
 	// Check for weak patterns
 	if isWeakPin(pin) {
 		return fmt.Errorf("PIN contains weak patterns")
+		return fmt.Errorf(errInvalidPin + ": PIN contains weak patterns")
 	}
 	return nil
 }
@@ -1011,15 +1012,10 @@ func (h UsersAdapter) ResetPinWithToken(w http.ResponseWriter, r *http.Request) 
 		utils.BaseResponseMaker(nil, w, "MISSING_REQUIRED_FIELDS: all fields are required", http.StatusBadRequest)
 		return
 	}
-	if len(req.NewPin) != 6 {
-		utils.BaseResponseMaker(nil, w, "INVALID_PIN: PIN must be exactly 6 digits", http.StatusBadRequest)
+
+	if err := validatePin(req.NewPin); err != nil {
+		utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
 		return
-	}
-	for _, char := range req.NewPin {
-		if char < '0' || char > '9' {
-			utils.BaseResponseMaker(nil, w, "INVALID_PIN: PIN must contain only digits", http.StatusBadRequest)
-			return
-		}
 	}
 
 	resp, err := h.Application.ResetPinWithToken(r.Context(), req.ResetSessionID, req.Phone, req.DeviceUUID, req.NewPin)

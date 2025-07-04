@@ -9,6 +9,7 @@ import (
 	userPort "cbe-super-app-member-users/internal/domain/users"
 	accountPort "cbe-super-app-member-users/internal/port/outbound/account"
 
+	"cbe-super-app-member-users/pkgs/constants"
 	"cbe-super-app-member-users/pkgs/entities/enums"
 	"cbe-super-app-member-users/pkgs/entities/type_definition"
 
@@ -633,7 +634,7 @@ func (r *MongoRepository) FindPendingRegistration(ctx context.Context, userID, d
 	filter := bson.M{
 		"user_code":   userID,
 		"device_uuid": deviceUUID,
-		"status":      "incomplete",
+		"status":      string(entities.Pending),
 		"is_deleted":  false,
 		"expires_at":  bson.M{"$gt": time.Now()},
 	}
@@ -647,27 +648,29 @@ func (r *MongoRepository) FindPendingRegistration(ctx context.Context, userID, d
 		return nil, err
 	}
 
-	// Handle nullable DeviceUUID
-	deviceUUIDStr := ""
-	if otpEntity.DeviceUUID != nil {
-		deviceUUIDStr = *otpEntity.DeviceUUID
-	}
+	deviceUUIDStr := getDeviceUUIDString(otpEntity.DeviceUUID)
 
 	return &userPort.RegistrationRecord{
 		ID:          otpEntity.ID.Hex(),
 		PhoneNumber: otpEntity.PhoneNumber,
 		DeviceUUID:  deviceUUIDStr,
-		Platform:    "android", // Default platform since it's not in OTP model
+		Platform:    constants.DefaultPlatform, // Default platform since it's not in OTP model
 		OTP:         otpEntity.OTPCode,
 		OTPFor:      string(otpEntity.OTPFor),
 		Status:      string(otpEntity.Status),
 		ExpiresAt:   otpEntity.ExpiresAt,
 		CreatedAt:   otpEntity.CreatedAt,
-		Attempts:    0, // Default since it's not in OTP model
-		MaxAttempts: 3, // Default since it's not in OTP model
+		Attempts:    constants.DefaultAttempts,
+		MaxAttempts: constants.DefaultMaxAttempts,
 	}, nil
 }
 
+func getDeviceUUIDString(deviceUUID *string) string {
+	if deviceUUID != nil {
+		return *deviceUUID
+	}
+	return ""
+}
 func (r *MongoRepository) FindPendingRegistrationByID(ctx context.Context, registrationID string) (*userPort.RegistrationRecord, error) {
 	oid, err := bson.ObjectIDFromHex(registrationID)
 	if err != nil {
