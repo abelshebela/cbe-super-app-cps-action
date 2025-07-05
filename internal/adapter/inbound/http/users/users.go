@@ -497,7 +497,6 @@ type RegisterRequest struct {
 }
 
 func (h UsersAdapter) Register(w http.ResponseWriter, r *http.Request) {
-	// Extract device information from headers for additional validation
 	platform, _, deviceUUID, _, _, _ := utils.HeaderRequirement(r, nil)
 
 	// Parse and validate request body
@@ -507,13 +506,11 @@ func (h UsersAdapter) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate required fields
 	if err := h.validateRegisterRequest(req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Validate device UUID consistency between header and body
 	if deviceUUID != "" && deviceUUID != req.DeviceUUID {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Device UUID mismatch", http.StatusBadRequest)
 		return
@@ -546,8 +543,8 @@ func (h UsersAdapter) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Send success response with token
-	h.sendSuccessResponse(w, http.StatusOK, response)
+	data, _ := constant.StructToMap(response)
+	constant.BaseResponseMaker(data, w, "User Successfully registerd", http.StatusOK)
 }
 
 // validateRegisterRequest validates the registration request
