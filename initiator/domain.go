@@ -8,6 +8,7 @@ import (
 	budget_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
+	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
@@ -38,6 +39,7 @@ type Domain struct {
 	PasswordRuleDomain password_service.PasswordRuleService
 	PortalCardDomain   portalcard.PortaCardInterface
 	SeviceDetailDomain service.ServiceInterface
+	DepartmentDomain   department.Service
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
@@ -52,5 +54,7 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		BulkServicesDomain: action.NewService(persitence.BulkServicesPersistence, logger),
 		CPSUserDomain:      services.NewCPSUserService(persitence.CPSUserPersistence),
 		PasswordRuleDomain: password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence),
+		BankDomain:         bank_service.InitBankDomain(persitence.BankPersistance, minioClient, "banks", logger),
+		DepartmentDomain:   *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
 	}
 }

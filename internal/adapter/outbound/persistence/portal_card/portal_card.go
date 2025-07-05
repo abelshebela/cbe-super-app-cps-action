@@ -3,13 +3,12 @@ package faydaaccount
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -54,19 +53,13 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 	faydaAccount, err := f.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		f.logger.Errorf("failed to get fayda account", err)
-		err = fmt.Errorf("failed to get fayda account %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(error_codes.UnhandledServerError)
 		return nil, err
 	}
 
 	if faydaAccount != nil {
 		f.logger.Infof("pending cps action present", req.MakerUser.FullName, req.MakerUser.UserCode, req.Department)
-		err = fmt.Errorf("failed to get fayda account %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "pending cps action present",
-		})
+		err = fmt.Errorf(error_codes.PendingRequestExists)
 		return nil, err
 	}
 
@@ -84,10 +77,7 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 	customer, err := f.customerDal.FindOne(ctx, customerFilter, customerProjection)
 	if err != nil {
 		f.logger.Errorf("failed to get customer account", err)
-		err = fmt.Errorf("failed to get customer account %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(error_codes.UnhandledServerError)
 		return nil, err
 	}
 
@@ -108,10 +98,7 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 	cpsAction, err := f.cpsDal.InsertOne(ctx, req)
 	if err != nil {
 		f.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(error_codes.UnhandledServerError)
 		return nil, err
 	}
 
@@ -137,10 +124,7 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		f.logger.Errorf("failed to update cps action", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(error_codes.UnhandledServerError)
 		return nil, err
 	}
 
@@ -155,10 +139,7 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	_, err = f.customerDal.UpdateOne(ctx, customerFilter, customerUpdate)
 	if err != nil {
 		f.logger.Errorf("failed to update  action", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(error_codes.UnhandledServerError)
 		return nil, err
 	}
 
@@ -186,10 +167,7 @@ func (f *FaydaAccountRepo) RejectFaydaAccountDisable(ctx context.Context, req en
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		f.logger.Errorf("failed to update fayda customer status", err)
-		err = fmt.Errorf("failed to update fayda customer status %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(error_codes.UnhandledServerError)
 		return nil, err
 	}
 	return &cpsAction, nil

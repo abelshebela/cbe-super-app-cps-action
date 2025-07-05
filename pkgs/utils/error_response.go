@@ -193,6 +193,9 @@ var errorKeyToStatus = map[string]int{
 
 	// unidentified key
 	"UNIDENTIFIED_KEY": 500,
+
+	// Banks
+	"BANKS_NOT_FOUND": 404,
 }
 
 func getStatusForErrorKey(key string) int {

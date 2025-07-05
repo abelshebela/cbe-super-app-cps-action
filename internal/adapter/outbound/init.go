@@ -10,6 +10,7 @@ import (
 	"time"
 
 	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -261,6 +262,7 @@ func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, l
 	}
 	return d, nil
 }
+
 func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain.ServiceDetails, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -269,7 +271,7 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 	filter := map[string]interface{}{"_id": objID}
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
-		return domain.ServiceDetails{}, err
+		return domain.ServiceDetails{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	return domain.ServiceDetails{
 		ID:          stringPointer(data.ID.Hex()), // Convert bson.ObjectID to *string
@@ -398,7 +400,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 	}
 	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return err
+		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
 	return nil
 }
@@ -450,7 +452,7 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, CpsAction)
 	if err != nil {
-		return domain.CPSAction{}, err
+		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 
 	result := domain.CPSAction{
@@ -536,14 +538,18 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 			"last_modified_at":     CpsAction.LastModifiedAt,
 		},
 	}
-	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	return err
+	if _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update); err != nil {
+		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
+
+	}
+
+	return nil
 }
 func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string) (domain.CPSAction, error) {
 	filter := map[string]interface{}{"action_code": Action_Id}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
-		return domain.CPSAction{}, err
+		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	result := domain.CPSAction{
 		ID:              data.ID.Hex(),
@@ -584,7 +590,7 @@ func (o *outboundStore) FetchAccountsByAccountNumber(ctx context.Context, accoun
 	filter := map[string]interface{}{"customer_number": v.CustomerNumber}
 	data, err := o.MongoDalAccounts.FindAll(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	var accounts []domain.LinkedAccount
 	for _, v := range data {
@@ -730,7 +736,7 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 
 	d, err := o.MongoDalCPSAction.FindAll(ctx, filter, nil)
 	if err != nil {
-		return domain.CPSAction{}, err
+		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	var data = *d[len(d)-1]
 	result := domain.CPSAction{
@@ -797,7 +803,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 		filter := map[string]interface{}{"_id": objID}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 		}
 		result = append(result, domain.LinkedAccount{
 			ID:                stringToPointer(item.ID.Hex()),

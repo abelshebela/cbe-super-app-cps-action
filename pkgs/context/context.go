@@ -4,7 +4,7 @@ package contexts
 import (
 	"net/http"
 
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	// constant "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
@@ -37,6 +37,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 		BranchCode:  branchCode,
 	}
 }
+
 
 func (u UserContext) IsIncomplete() bool {
 	return u.UserID == "" || u.FullName == "" || u.PhoneNumber == "" || u.Department == ""

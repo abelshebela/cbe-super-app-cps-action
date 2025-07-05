@@ -1,12 +1,20 @@
+// Package department provides services and business logic for managing departments and related CPS actions.
 package department
 
 import (
-	"errors"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	"context"
+	"fmt"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+const (
+	CPSPrefix  = "CPS_"
+	DeptPrefix = "DEP_"
 )
 
 type Service struct {
@@ -23,29 +31,25 @@ func InitDepartmentDomain(cpsActionRepo CPSActionRepository, departmentRepo Depa
 	}
 }
 
-func (s *Service) CreateDepartment(department string, portalCards []string, cpsAction entities.CPSAction) error {
+func (s *Service) CheckRequestExists(ctx context.Context, cpsAction entities.CPSAction) (bool, error) {
+	return s.cpsActionRepo.CheckRequestExists(ctx, cpsAction)
+}
 
-	if ok, err := s.cpsActionRepo.CheckRequestExists(cpsAction); err != nil {
-		return err
-	} else if ok {
-		return errors.New("You have a pending request for this action")
-	}
+func (s *Service) CheckDepartmentExists(ctx context.Context, department string) (bool, error) {
+	return s.departmentRepo.CheckDepartmentExists(ctx, department)
+}
 
-	if exists, err := s.departmentRepo.CheckDepartmentExists(department); err != nil {
-		return err
-	} else if exists {
-		return errors.New("Department already exists")
-	}
+func (s *Service) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
 
-	cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	cpsAction.CurrentAction = map[string]interface{}{
+	cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: CPSPrefix})
+	cpsAction.CurrentAction = map[string]any{
 		"department":      department,
-		"department_code": utils.Random(10, &utils.PreSufix{Prefix: "DEP_"}),
+		"department_code": utils.Random(10, &utils.PreSufix{Prefix: DeptPrefix}),
 		"portal_cards":    portalCards,
 	}
 	cpsAction.MakerActionTime = time.Now()
 
-	if err := s.cpsActionRepo.CreateCPSAction(department, portalCards, cpsAction); err != nil {
+	if err := s.cpsActionRepo.CreateCPSAction(ctx, department, portalCards, cpsAction); err != nil {
 		return err
 	}
 
@@ -54,35 +58,27 @@ func (s *Service) CreateDepartment(department string, portalCards []string, cpsA
 
 }
 
-func (s *Service) ValidateActionRequest(actionCode string, userDept string) (*entities.CPSAction, error) {
-	action, err := s.cpsActionRepo.FindByActionCode(actionCode)
+func (s *Service) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error) {
+	action, err := s.cpsActionRepo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		return nil, err
 	}
-	if action == nil {
-		return nil, errors.New("action not found")
-	}
 
 	if action.Department != userDept {
-		return nil, errors.New("You are not allowed to approve this request")
+		return nil, fmt.Errorf(err_msg.ActionNotAllowed)
 	}
 
 	return action, nil
 }
-func (s *Service) ApproveActionRequest(actionCode string, user entities.CPSAction) error {
-	if err := s.cpsActionRepo.ApproveActionRequest(actionCode, user); err != nil {
+func (s *Service) ApproveActionRequest(ctx context.Context, actionCode string, user entities.CPSAction) error {
+	if err := s.cpsActionRepo.ApproveActionRequest(ctx, actionCode, user); err != nil {
 		return err
 	}
-	s.logger.Infof("Action request %s approved by user %s", actionCode, user)
+	s.logger.Infof("Action request %s approved by user from department %s", actionCode, user.Department)
+
 	return nil
 }
 
-func (s *Service) UpdateDepartment(code string, department string, portalCards []string) error {
-	if exists, err := s.departmentRepo.CheckDepartmentExists(department); err != nil {
-		return err
-	} else if !exists {
-		return errors.New("Department does not exist")
-	}
-
-	return s.departmentRepo.UpdateDepartment(code, department, portalCards)
+func (s *Service) UpdateDepartment(ctx context.Context, code string, department string, portalCards []string) error {
+	return s.departmentRepo.UpdateDepartment(ctx, code, department, portalCards)
 }

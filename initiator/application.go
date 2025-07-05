@@ -8,7 +8,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
 	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
-	customer "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account"
 	feedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
@@ -16,6 +17,7 @@ import (
 	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -36,6 +38,7 @@ type Application struct {
 	PasswordRuleApplication  *passwordrule.PasswordRuleHandler
 	PortalCardApplication    portalcard.PortalCardApplication
 	ServiceDetailApplication service_details_app.ApplicationAbstracts
+	DepartmentApplication    department.DepartmentService
 }
 
 func InitApplication(domain Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
@@ -55,5 +58,6 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		PasswordRuleApplication:  passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:    portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
 		ServiceDetailApplication: service_details_app.NewApplication(domain.SeviceDetailDomain, logger),
+		DepartmentApplication:    department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 	}
 }

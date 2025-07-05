@@ -8,6 +8,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_validation"
 
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -32,7 +33,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.FetchAccountValidation,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker", "checker"}),
+				middleware.AccessControl([]string{role.Maker, role.Checker}),
 			},
 		},
 		{
@@ -41,7 +42,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.UpdateAccountValidationMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker"}),
+				middleware.AccessControl([]string{role.Maker}),
 			},
 		},
 		{
@@ -50,7 +51,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			Handler: handler.UpdateAccountValidationChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"checker"}),
+				middleware.AccessControl([]string{role.Checker}),
 			},
 		},
 	}

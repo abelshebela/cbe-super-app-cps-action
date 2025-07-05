@@ -15,6 +15,7 @@ import (
 	feedbackhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
+	department_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
@@ -36,7 +37,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		// branch_handler.RegisterBranchRoutes(sub, adapter.BranchAdapter, authMiddleware)
 		customerhandler.InitCustomerRoutes(sub, adapter.CustomerAdapter, authMiddleware)
 		feedbackhandler.InitFeedbackRoutes(sub, adapter.FeedbackAdapter)
-		// department_handler.InitDepartmentRoutes(sub, adapter.DepartmentAdapter, authMiddleware)
+		department_handler.InitDepartmentRoutes(sub, adapter.DepartmentAdapter, authMiddleware)
 		// permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
 		unlink_device_handler.RegisterHTTPUnlinkRoutes(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)

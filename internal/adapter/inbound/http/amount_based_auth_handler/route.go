@@ -7,6 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -19,7 +20,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Handler: handler.UpdateAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -28,7 +29,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Handler: handler.ApproveAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 			{
@@ -37,7 +38,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Handler: handler.RejectAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 		}
