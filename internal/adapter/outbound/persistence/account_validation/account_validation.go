@@ -208,6 +208,12 @@ func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Contex
 		if a == nil {
 			continue
 		}
+
+		var rejectionReason *string
+		if a.RejectionReason != "" {
+			rejectionReason = &a.RejectionReason
+		}
+
 		result = append(result, action.CPSAction{
 			ActionCode:         a.ActionCode,
 			MakerID:            a.MakerID,
@@ -222,7 +228,7 @@ func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Contex
 			ActionStatus:       action.ActionStatus(a.ActionStatus),
 			CurrentAction:      a.CurrentAction,
 			PreviosAction:      a.PreviosAction,
-			RejectionReason:    a.RejectionReason,
+			RejectionReason:    rejectionReason,
 			CreatedAt:          a.CreatedAt,
 			LastModifiedAt:     a.LastModifiedAt,
 			ID:                 a.ID,

@@ -467,13 +467,13 @@ func TestAccountService_BlockRegion(t *testing.T) {
 	service := NewAccountService(mockRepo)
 
 	region := action.Region{ID: "R1", RegionName: "Addis"}
-	maker := action.CPSAction{Maker: action.User{UserCode: "U1"}}
+	maker := action.CPSAction{MakerID: "U1", MakerName: "Test User", MakerPhoneNumber: "+251911234567"}
 	branches := []action.Branch{{BranchCode: "BR1"}, {BranchCode: "BR2"}}
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
-		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), maker.Maker).Return(nil)
+		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(nil)
 
 		err := service.BlockRegion(ctx, region, maker)
@@ -501,7 +501,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 	t.Run("disable branches error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
-		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), maker.Maker).Return(errors.New("fail"))
+		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(errors.New("fail"))
 		err := service.BlockRegion(ctx, region, maker)
 		assert.Error(t, err)
 	})
@@ -509,7 +509,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 	t.Run("block region error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
-		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), maker.Maker).Return(nil)
+		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(errors.New("fail"))
 		err := service.BlockRegion(ctx, region, maker)
 		assert.Error(t, err)
