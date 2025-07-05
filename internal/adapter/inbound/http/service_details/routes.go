@@ -77,33 +77,6 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 				middleware.AccessControl([]string{role.Maker}),
 			},
 		},
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_initiate",
-		// 	Handler: handler.ServiceFeeMaker,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		middleware.AuthenticateToken,
-		// 		middleware.AccessControl([]string{role.Maker}),
-		// 	},
-		// },
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_Approve",
-		// 	Handler: handler.ServiceFeeApprove,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		middleware.AuthenticateToken,
-		// 		middleware.AccessControl([]string{"CHEKER"}),
-		// 	},
-		// },
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_Reject",
-		// 	Handler: handler.ServiceFeeReject,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		middleware.AuthenticateToken,
-		// 		middleware.AccessControl([]string{"CHEKER"}),
-		// 	},
-		// },
 		{
 			Method:  http.MethodPost,
 			Path:    "/api/v1/cbesuperapp/cps_config/update_min_cap",
@@ -128,7 +101,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.InitiateServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{role.Checker, "ifb-checker"}),
+				middleware.AccessControl([]string{role.Checker, role.Checker}),
 			},
 		},
 		{

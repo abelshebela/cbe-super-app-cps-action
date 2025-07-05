@@ -34,7 +34,6 @@ func InitBankAdapter(bankHandler bank.BankHandlerService, logger utils.Logger) i
 
 func createCPSUserForAuthorize(r *http.Request) (*model.AuthorizeCPSAction, error) {
 	userContext := ctx_util.ExtractUserContext(r)
-	fmt.Println(userContext, "User context")
 	if userContext.IsIncomplete() {
 		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
 	}
@@ -46,7 +45,6 @@ func createCPSUserForAuthorize(r *http.Request) (*model.AuthorizeCPSAction, erro
 
 func createCPSUserForReject(r *http.Request) (*model.RejectCPSAction, error) {
 	userContext := ctx_util.ExtractUserContext(r)
-	fmt.Println(userContext, "User context")
 
 	if userContext.IsIncomplete() {
 		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
@@ -62,7 +60,6 @@ func createCPSUserForReject(r *http.Request) (*model.RejectCPSAction, error) {
 
 func createCPSUserForCreate(r *http.Request) (*model.CreateCPSAction, error) {
 	userContext := ctx_util.ExtractUserContext(r)
-	fmt.Println(userContext, "User context")
 
 	if userContext.IsIncomplete() {
 		return nil, fmt.Errorf(common_util.IncompleteUserInfo)

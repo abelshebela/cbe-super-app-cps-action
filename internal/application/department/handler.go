@@ -53,6 +53,10 @@ func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData,
 	switch v := current.(type) {
 	case map[string]any:
 		data = v
+		if data == nil {
+			h.logger.Errorf("data map is nil")
+			return nil, fmt.Errorf(err_msg.InvalidInput)
+		}
 	default:
 		h.logger.Errorf("unsupported data type: %T", current)
 		return nil, fmt.Errorf(err_msg.InvalidInput)
