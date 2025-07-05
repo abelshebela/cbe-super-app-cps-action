@@ -7,6 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -19,7 +20,7 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Handler: customerHandler.GetCustomerDetail,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -28,7 +29,7 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 				Handler: customerHandler.GetCustomerByID,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 		}

@@ -9,6 +9,8 @@ import (
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 )
 
 type HttpStore struct {
@@ -30,7 +32,7 @@ func InitServiceHandlerMaker(router chi.Router, handler event_inbound.Inbound, a
 			Handler: handler.MakerCreateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -39,7 +41,7 @@ func InitServiceHandlerMaker(router chi.Router, handler event_inbound.Inbound, a
 			Handler: handler.CheckerEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 	}

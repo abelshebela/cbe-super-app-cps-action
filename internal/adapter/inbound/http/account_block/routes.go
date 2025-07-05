@@ -8,6 +8,8 @@ import (
 	accountblock "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block"
 
 	"github.com/go-chi/chi/v5"
+
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 func RegisterAccountBlockRoutes(
@@ -23,7 +25,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.FilterSingleBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -32,7 +34,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.DisableSingleBranch,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -41,7 +43,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.ApproveSingleBranchDisable,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -50,7 +52,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.FilterMultipleBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -59,7 +61,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.DisableMultipleBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -68,7 +70,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.ApproveBulkBranchesDisable,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -77,7 +79,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.BlockRegion,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -86,7 +88,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.UpdateRegion,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -95,7 +97,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.ApproveRegionBlock,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -104,7 +106,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.GetRegionByID,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -113,7 +115,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.BlockDistrict,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -122,7 +124,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.ApproveBlockDistrict,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -131,7 +133,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.GetDistrictByID,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -140,7 +142,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.BlockCity,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -149,7 +151,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.ApproveBlockCity,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -158,7 +160,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.GetCityByID,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -167,7 +169,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.BlockUser,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -176,7 +178,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.ApproveBlockUser,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -185,7 +187,7 @@ func RegisterAccountBlockRoutes(
 				Handler: handler.GetUserByID,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 		}

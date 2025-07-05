@@ -6,6 +6,8 @@ import (
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	walletRoutes "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 
 	"github.com/go-chi/chi/v5"
 )
@@ -19,7 +21,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.CreateWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -28,7 +30,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.UpdateWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -37,7 +39,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.DeleteWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -46,7 +48,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.GetWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -55,7 +57,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.GetAllWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -64,7 +66,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 
@@ -74,7 +76,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 
@@ -84,7 +86,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -93,7 +95,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Handler: wallet.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 		}
