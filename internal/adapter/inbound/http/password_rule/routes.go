@@ -8,6 +8,8 @@ import (
 	sharedhttp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 )
 
 func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInbound, authMiddleware middleware.AuthMiddleware) {
@@ -18,7 +20,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 			Handler: handler.RequestPasswordRuleUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -27,7 +29,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 			Handler: handler.ApproveOrRejectPasswordRuleAction,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -36,7 +38,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 			Handler: handler.GetPasswordRuleUpdateActionByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 		{

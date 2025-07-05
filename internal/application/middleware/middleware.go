@@ -151,6 +151,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 					Message: "invalid or expired token",
 				},
 			}
+
 			res.SendJSON()
 			return
 		}

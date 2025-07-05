@@ -6,5 +6,5 @@ test.go
 aiso/env
 .env
 .vscode
-
+# for running using Air package
 .air.toml

@@ -6,12 +6,14 @@ import (
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 
 	"github.com/go-chi/chi/v5"
 )
 
 func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/avatar", func(r chi.Router) {
+	router.Route("/avatar", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
@@ -19,7 +21,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.CreateAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -28,7 +30,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.DeleteAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -37,7 +39,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 			{
@@ -46,7 +48,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 			{
@@ -55,7 +57,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -64,7 +66,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -73,7 +75,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.GetAllAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
 				},
 			},
 			{
@@ -82,7 +84,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.GetAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
 				},
 			},
 
@@ -92,7 +94,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Handler: handler.UpdateAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 		}

@@ -26,7 +26,7 @@ type ADPersistence struct {
 
 var _ ad.ADRepo = (*ADPersistence)(nil)
 
-func InitAD(client *mongo.Client, database string, collections []string, logger utils.Logger) *ADPersistence {
+func InitAD(client *mongo.Client, database string, collections []string, logger utils.Logger) ad.ADRepo {
 	adDal := dal.NewMongoDal[entity.Advert, entity.Advert](client, database, collections[0])
 	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, collections[1])
 	return &ADPersistence{
@@ -51,19 +51,14 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction entity.CP
 	existingAd, err := a.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		a.logger.Errorf("failed to get ad", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_GET_AD")
+
 	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
+
 		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
 			cpsAction.MakerUser.UserCode, cpsAction.Department)
-		return nil, err
+		return nil, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
+
 	}
 
 	cpsAction.Status = entity.ActionPending
@@ -74,11 +69,8 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction entity.CP
 	cps, err := a.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+
 	}
 
 	return &cps, nil
@@ -105,13 +97,12 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 		})
 		return nil, err
 	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
+
 		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
 			cpsAction.MakerUser.UserCode, cpsAction.Department)
-		return nil, err
+
+		return nil, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
+
 	}
 
 	adFilter := bson.M{
@@ -130,11 +121,8 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 	ad, err := a.adDal.FindOne(ctx, adFilter, adProjection)
 	if err != nil {
 		a.logger.Errorf("failed to get ad", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
 	cpsAction.Status = entity.ActionPending
@@ -159,13 +147,9 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 	cps, err := a.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	}
 
+		return nil, fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
+	}
 	return &cps, nil
 }
 
@@ -184,19 +168,11 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, cpsAction entity.CP
 	existingAd, err := a.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		a.logger.Errorf("failed to get ad", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return err
+		return fmt.Errorf("FAILED_TO_GET_AD")
 	} else if existingAd != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
 		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
 			cpsAction.MakerUser.UserCode, cpsAction.Department)
-		return err
+		return fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
 	}
 
 	adFilter := bson.M{
@@ -215,11 +191,7 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, cpsAction entity.CP
 	ad, err := a.adDal.FindOne(ctx, adFilter, adProjection)
 	if err != nil {
 		a.logger.Errorf("failed to get ad", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return err
+		return fmt.Errorf("FAILED_TO_GET_AD")
 	}
 
 	cpsAction.PreviousData = map[string]any{
@@ -244,11 +216,8 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, cpsAction entity.CP
 	_, err = a.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return err
+
+		return fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
 	return nil
@@ -265,18 +234,10 @@ func (a *ADPersistence) GetOneAdvert(ctx context.Context, id string) (*entity.Ad
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("ad not found", err)
-			err = fmt.Errorf("ad not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "ad not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf("AD_NOT_FOUND")
 		}
 		a.logger.Errorf("failed to get ad", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("AD_NOT_FOUND")
 	}
 	return advert, nil
 }
@@ -295,28 +256,18 @@ func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("no ad data found", err)
-			err = fmt.Errorf("ad not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "ad data not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf("NO_DATA_FOUND")
 		}
 		a.logger.Errorf("failed to get ad data", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("AD_NOT_FOUND")
+
 	}
 
 	total, err := a.adDal.TotalCount(ctx, bson.M{})
 	if err != nil {
 		a.logger.Errorf("failed to get ad total counts", err)
-		err := fmt.Errorf("failed to get ad total counts %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("AD_NOT_FOUND")
+
 	}
 
 	return &entity.AdvertResponse{
@@ -349,11 +300,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 	cpsAction, err = a.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("failed to update cps action", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
 	if cpsAction.ActionType == entity.ActionCreate {
@@ -369,11 +316,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 		advert, err = a.adDal.InsertOne(ctx, req)
 		if err != nil {
 			a.logger.Errorf("failed to create cps action", err)
-			err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-			return nil, err
+			return nil, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 		}
 
 		cpsAction.ActionData = advert
@@ -407,11 +350,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 		advert, err = a.adDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			a.logger.Errorf("failed to update advert", err)
-			err = fmt.Errorf("failed to update advert %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-			return nil, err
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
 		}
 
 		cpsAction.ActionData = advert
@@ -432,11 +371,9 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 		advert, err = a.adDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			a.logger.Errorf("failed to update advert", err)
-			err = fmt.Errorf("failed to update advert %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-			return nil, err
+
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+
 		}
 		cpsAction.ActionData = advert
 
@@ -467,11 +404,8 @@ func (a *ADPersistence) Reject(ctx context.Context, cpsAction entity.CPSAction) 
 	cpsAction, err := a.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("failed to update advert status", err)
-		err = fmt.Errorf("failed to update advert status %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+
 	}
 	return &cpsAction, nil
 }

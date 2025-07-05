@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"net/http"
+	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -45,6 +46,21 @@ func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioC
 	}
 }
 
+func stripFieldPrefix(err error) string {
+	// Removes "field: message." format from ozzo-validation errors
+	// Example: "logo: INVALID_FILE_TYPE." → "INVALID_FILE_TYPE"
+	if err == nil {
+		return ""
+	}
+
+	errStr := err.Error()
+	if idx := strings.Index(errStr, ":"); idx != -1 {
+		errStr = strings.TrimSpace(errStr[idx+1:])
+	}
+	errStr = strings.TrimSuffix(errStr, ".")
+	return errStr
+}
+
 func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateBank
 	err := b.bankRepo.CPSActionExists(ctx, req)
@@ -55,34 +71,25 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	actionData, ok := req.ActionData.(dto.CreateBankRequest)
 	if !ok {
 		b.logger.Errorf("failed to cast action data to bank request")
-		return nil, fmt.Errorf("failed to create bank bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
 		b.logger.Errorf("validation error", err)
-		return nil, err
+		return nil, fmt.Errorf("%s", stripFieldPrefix(err))
 	}
 
 	exist, err := b.minioClient.BucketExist(ctx, b.bucketName)
 	if err != nil {
 		b.logger.Errorf("failed to check bank bucket: %v", err)
-		return nil, fmt.Errorf("failed to check bank bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	if !exist {
 		created, err := b.minioClient.MakeBucket(ctx, b.bucketName)
 		if !created || err != nil {
 			b.logger.Errorf("failed to create bank bucket: %v", err)
-			return nil, fmt.Errorf("failed to create bank bucket: %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 	}
 
@@ -90,10 +97,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	file, err := actionData.Logo.Open()
 	if err != nil {
 		b.logger.Errorf("failed to open uploaded file: %v", err)
-		return nil, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -107,10 +111,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 
 	if err != nil {
 		b.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	cpsRes, err := b.bankRepo.CreateBank(ctx, model.CreateCPSAction{
