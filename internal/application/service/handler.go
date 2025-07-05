@@ -54,14 +54,11 @@ func (s *serviceApp) GetOneService(ctx context.Context, id bson.ObjectID) (*serv
 func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]interface{}, requestAction, actionType string, previousData *service.Service) action.CPSAction {
 
 	return action.CPSAction{
-		ActionCode: utils.ObjectIDGenerator().String(),
-		Maker: action.User{
-			UserID:      user.ID.String(),
-			FullName:    user.FullName,
-			UserCode:    user.UserCode,
-			PhoneNumber: user.UserCode,
-			Timestamp:   time.Now(),
-		},
+		ActionCode:       utils.ObjectIDGenerator().String(),
+		MakerID:          user.ID.String(),
+		MakerName:        user.FullName,
+		MakerPhoneNumber: user.PhoneNumber,
+		MakerActionTime:  time.Now(),
 		Department:    user.Department.String(),
 		ActionStatus:  "PENDING",
 		RequestAction: action.RequestAction(requestAction),

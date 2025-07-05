@@ -6,3 +6,5 @@ test.go
 aiso/env
 .env
 .vscode
+
+.air.toml

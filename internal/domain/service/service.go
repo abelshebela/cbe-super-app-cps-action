@@ -77,22 +77,17 @@ func (s *ServiceStore) UpdateServiceDetailsRequest(ctx context.Context, id strin
 	//actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	cpsAction := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      makerID,
-			FullName:    "",
-			PhoneNumber: "",
-			Timestamp:   time.Now(),
-		},
-		Checker:        action.User{},
-		UniqueId:       id,
-		Department:     update.ServiceCode,
-		ActionType:     action.ActionUpdate,
-		RequestAction:  action.RequestUpdateServiceDetails,
-		ActionStatus:   action.ActionPending,
-		CurrentAction:  update,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		ActionCode:      actionID,
+		MakerID:         makerID,
+		MakerActionTime: time.Now(),
+		UniqueId:        id,
+		Department:      update.ServiceCode,
+		ActionType:      action.ActionUpdate,
+		RequestAction:   action.RequestUpdateServiceDetails,
+		ActionStatus:    action.ActionPending,
+		CurrentAction:   update,
+		CreatedAt:       time.Now(),
+		LastModifiedAt:  time.Now(),
 	}
 
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, cpsAction)
@@ -114,12 +109,8 @@ func (s *ServiceStore) UpdateServiceDetails(ctx context.Context, actionID string
 	if cpsAction.ActionStatus != action.ActionPending {
 		return errors.New("action is not in pending status")
 	}
-	cpsAction.Checker = action.User{
-		UserID:      checkerID,
-		FullName:    "",
-		PhoneNumber: "",
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = checkerID
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 	if approve {
 		cpsAction.ActionStatus = action.ActionApproved
@@ -221,12 +212,8 @@ func (s *ServiceStore) ApproveServiceDetails(ctx context.Context, actionID strin
 	if cpsAction.ActionStatus != action.ActionPending {
 		return errors.New("action is not in pending status")
 	}
-	cpsAction.Checker = action.User{
-		UserID:      checkerID,
-		FullName:    "",
-		PhoneNumber: "",
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = checkerID
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 	if approve {
 		cpsAction.ActionStatus = action.ActionApproved

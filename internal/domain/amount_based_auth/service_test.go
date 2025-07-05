@@ -62,15 +62,17 @@ func TestService_UpdateAuthTier(t *testing.T) {
 		MakerActionTime: testTime,
 	}
 	testCpsActionRes := &model.CPSAction{
-		ID:              "CPS001",
-		ActionCode:      "ACT001",
-		MakerUser:       testUser,
-		Department:      "IT",
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestAuthTier,
-		ActionType:      model.ActionUpdate,
-		CurrentData:     testRequest,
-		MakerActionTime: testTime,
+		ID:               "CPS001",
+		ActionCode:       "ACT001",
+		MakerName:        testUser.FullName,
+		MakerPhoneNumber: testUser.PhoneNumber,
+		MakerID:          testUser.UserCode,
+		Department:       "IT",
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestAuthTier),
+		ActionType:       string(model.ActionUpdate),
+		CurrentAction:    testRequest,
+		MakerActionTime:  testTime,
 	}
 
 	tests := []struct {
@@ -143,14 +145,16 @@ func TestService_ApproveAuthTierApprove(t *testing.T) {
 		CheckerActionTime: testTime,
 	}
 	testCpsAction := &model.CPSAction{
-		ID:                "CPS001",
-		ActionCode:        "ACT001",
-		CheckerUser:       testChecker,
-		Department:        "IT",
-		Status:            model.ActionApproved,
-		RequestAction:     model.RequestAuthTier,
-		ActionType:        model.ActionUpdate,
-		CheckerActionTime: testTime,
+		ID:                 "CPS001",
+		ActionCode:         "ACT001",
+		CheckerID:          testChecker.UserCode,
+		CheckerName:        testChecker.FullName,
+		CheckerPhoneNumber: testChecker.PhoneNumber,
+		Department:         "IT",
+		ActionStatus:       string(model.ActionApproved),
+		RequestAction:      string(model.RequestAuthTier),
+		ActionType:         string(model.ActionUpdate),
+		CheckerActionTime:  testTime,
 	}
 
 	tests := []struct {
@@ -236,17 +240,21 @@ func TestService_RejectAuthTier(t *testing.T) {
 		CheckerActionTime: testTime,
 	}
 	testCpsAction := &model.CPSAction{
-		ID:                "CPS001",
-		ActionCode:        "ACT001",
-		MakerUser:         testMaker,
-		CheckerUser:       testChecker,
-		Department:        "IT",
-		Status:            model.ActionRejected,
-		RequestAction:     model.RequestAuthTier,
-		ActionType:        model.ActionUpdate,
-		RejectedReason:    "Invalid data",
-		MakerActionTime:   testTime,
-		CheckerActionTime: testTime,
+		ID:                 "CPS001",
+		ActionCode:         "ACT001",
+		MakerID:            testMaker.UserCode,
+		MakerName:          testMaker.FullName,
+		MakerPhoneNumber:   testMaker.PhoneNumber,
+		CheckerID:          testChecker.UserCode,
+		CheckerName:        testChecker.FullName,
+		CheckerPhoneNumber: testChecker.PhoneNumber,
+		Department:         "IT",
+		ActionStatus:       string(model.ActionRejected),
+		RequestAction:      string(model.RequestAuthTier),
+		ActionType:         string(model.ActionUpdate),
+		RejectionReason:    "Invalid data",
+		MakerActionTime:    testTime,
+		CheckerActionTime:  testTime,
 	}
 
 	tests := []struct {
