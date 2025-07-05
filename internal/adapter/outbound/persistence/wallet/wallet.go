@@ -76,10 +76,10 @@ func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction)
 		MakerName:        cpsReq.MakerUser.FullName,
 		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
 		Department:       cpsReq.Department,
-		Status:           model.ActionPending,
-		RequestAction:    model.RequestCreateWallet,
-		ActionType:       model.ActionCreate,
-		ActionData:       cpsReq.ActionData,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestCreateWallet),
+		ActionType:       string(model.ActionCreate),
+		CurrentAction:       cpsReq.ActionData,
 		MakerActionTime:  time.Now(),
 	})
 
@@ -125,15 +125,14 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 		MakerName:        cpsReq.MakerUser.FullName,
 		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
 		Department:       cpsReq.Department,
-		Status:           model.ActionPending,
-		ActionType:       model.ActionUpdate,
-		ActionData:       cpsReq.ActionData,
-		RequestAction:    model.RequestUpdateWallet,
-		PreviousData: map[string]any{
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(model.RequestUpdateWallet),
+		PreviosAction: map[string]any{
 			"name": wallet.Name,
 			"code": wallet.Code,
 		},
-		CurrentData:     cpsReq.ActionData,
+		CurrentAction:     cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -178,10 +177,9 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 		MakerName:        cpsReq.MakerUser.FullName,
 		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
 		Department:       cpsReq.Department,
-		ActionStatus:     model.ActionPending,
-		RequestAction:    model.RequestDeleteWallet,
-		ActionType:       model.ActionDelete,
-		ActionData:       cpsReq.ActionData,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestDeleteWallet),
+		ActionType:       string(model.ActionDelete),
 		PreviosAction: map[string]any{
 			"name":       wallet.Name,
 			"code":       wallet.Code,
@@ -237,16 +235,15 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 		MakerName:        cpsReq.MakerUser.FullName,
 		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
 		Department:       cpsReq.Department,
-		Status:           model.ActionPending,
-		ActionType:       model.ActionUpdate,
-		ActionData:       cpsReq.ActionData,
-		RequestAction:    requestAction,
-		PreviousData: map[string]any{
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(requestAction),
+		PreviosAction: map[string]any{
 			"name":    wallet.Name,
 			"code":    wallet.Code,
 			"enabled": wallet.Enabled,
 		},
-		CurrentData:     cpsReq.ActionData,
+		CurrentAction:     cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -365,7 +362,7 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 	}
 
 	var actionData entity.Wallet
-	data, err := bson.Marshal(cpsAction.ActionData)
+	data, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		w.logger.Errorf("failed to marshal bson: %v", err)
 		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
@@ -384,7 +381,7 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 		return nil, err
 	}
 
-	if cpsAction.ActionType == model.ActionCreate {
+	if cpsAction.ActionType == string(model.ActionCreate) {
 		req := entity.Wallet{
 			ID:        bson.NewObjectID().Hex(),
 			Name:      actionData.Name,
@@ -403,13 +400,13 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 			return nil, err
 		}
 
-		cpsAction.ActionData = wallet
+		cpsAction.CurrentAction = wallet
 
 		return &cpsAction, nil
 
 	}
 
-	if cpsAction.ActionType == model.ActionUpdate {
+	if cpsAction.ActionType == string(model.ActionUpdate) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -424,11 +421,11 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 			update["code"] = actionData.Code
 		}
 
-		if cpsAction.RequestAction == model.RequestEnableWallet {
+		if cpsAction.RequestAction == string(model.RequestEnableWallet) {
 			update["enabled"] = true
 		}
 
-		if cpsAction.RequestAction == model.RequestDisableWallet {
+		if cpsAction.RequestAction == string(model.RequestDisableWallet) {
 			update["enabled"] = false
 		}
 
@@ -444,12 +441,12 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 			return nil, err
 		}
 
-		cpsAction.ActionData = wallet
+		cpsAction.CurrentAction = wallet
 
 		return &cpsAction, nil
 	}
 
-	if cpsAction.ActionType == model.ActionDelete {
+	if cpsAction.ActionType == string(model.ActionDelete) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -469,7 +466,7 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 			})
 			return nil, err
 		}
-		cpsAction.ActionData = wallet
+		cpsAction.CurrentAction = wallet
 
 		return &cpsAction, nil
 	}

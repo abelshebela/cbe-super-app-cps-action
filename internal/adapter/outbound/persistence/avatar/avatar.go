@@ -206,7 +206,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		return model.CPSAction{}, err
 	}
 
-	if cpsAction.ActionType == model.ActionCreate {
+	if cpsAction.ActionType == string(model.ActionCreate) {
 		req := dto.Avatar{
 			ID:        bson.NewObjectID().Hex(),
 			Avatar:    actionData.Avatar,
@@ -231,7 +231,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 	}
 
-	if cpsAction.ActionType == model.ActionUpdate {
+	if cpsAction.ActionType == string(model.ActionUpdate) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -246,11 +246,11 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			update["avatar"] = actionData.Avatar
 		}
 
-		if cpsAction.RequestAction == model.RequestEnableAvatar {
+		if cpsAction.RequestAction == string(model.RequestEnableAvatar) {
 			update["enable"] = true
 		}
 
-		if cpsAction.RequestAction == model.RequestDisableAvatar {
+		if cpsAction.RequestAction == string(model.RequestDisableAvatar) {
 			update["enable"] = false
 		}
 
@@ -266,12 +266,12 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			return model.CPSAction{}, err
 		}
 
-		cpsAction.ActionData = avatar
+		cpsAction.CurrentAction = avatar
 
 		return cpsAction, nil
 	}
 
-	if cpsAction.ActionType == model.ActionDelete {
+	if cpsAction.ActionType == string(model.ActionDelete) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -291,7 +291,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			})
 			return model.CPSAction{}, err
 		}
-		cpsAction.ActionData = avatar
+		cpsAction.CurrentAction = avatar
 
 		return cpsAction, nil
 	}
@@ -355,18 +355,19 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:            bson.NewObjectID().Hex(),
 		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
+		MakerID:     cpsReq.MakerUser.UserCode,
+		MakerName: cpsReq.MakerUser.UserCode,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
 		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsReq.ActionData,
-		RequestAction: requestAction,
-		PreviousData: map[string]any{
+		ActionStatus:  string(model.ActionPending),
+		ActionType:    string(model.ActionUpdate),
+		RequestAction: string(requestAction),
+		PreviosAction: map[string]any{
 			"avatar": avatar.Avatar,
 			"label":  avatar.Label,
 			"enable": avatar.Enable,
 		},
-		CurrentData:     cpsReq.ActionData,
+		CurrentAction:     cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -478,16 +479,17 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:            bson.NewObjectID().Hex(),
 		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsActionReq.MakerUser,
+		MakerID:     cpsActionReq.MakerUser.UserCode,
+		MakerName: cpsActionReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
 		Department:    cpsActionReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsActionReq.ActionData,
-		RequestAction: model.RequestUpdateAvatar,
-		PreviousData: map[string]any{
+		ActionStatus:  string(model.ActionPending),
+		ActionType:    string(model.ActionUpdate),
+		RequestAction: string(model.RequestUpdateAvatar),
+		PreviosAction: map[string]any{
 			"avatar": avatar.Avatar,
 		},
-		CurrentData:     cpsActionReq.ActionData,
+		CurrentAction:     cpsActionReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
