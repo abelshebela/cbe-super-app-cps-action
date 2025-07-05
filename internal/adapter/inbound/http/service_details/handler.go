@@ -19,6 +19,8 @@ import (
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -27,11 +29,32 @@ type HttpStore struct {
 	logger      shared_utils.Logger
 }
 
+type CurrentUser struct {
+	Department  string
+	UserCode    string
+	FullName    string
+	PhoneNumber string
+}
+
 func NewHttpServiceDetails(app service_details_app.ApplicationAbstracts, logger shared_utils.Logger) inbound.ServiceDetailsInbound {
 	return &HttpStore{
 		Application: app,
 		logger:      logger,
 	}
+}
+
+func (a *HttpStore) buildUserContext(r *http.Request) (*CurrentUser, error) {
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
+	}
+
+	return &CurrentUser{
+		Department:  userContext.Department,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}, nil
 }
 
 func (h *HttpStore) handleError(w http.ResponseWriter, err error) {
@@ -132,33 +155,6 @@ func (h *HttpStore) UpdateServiceDetailsChecker(w http.ResponseWriter, r *http.R
 	}
 	utils.WriteSuccessResponse(w, nil, "Update request "+action+" successfully")
 }
-
-// func (h *HttpStore) ServiceFeeMaker(w http.ResponseWriter, r *http.Request) {
-
-// 	var request dto.ServiceFeeMakerRequest
-
-// 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-// 		h.handleError(w, fmt.Errorf("invalid request body"))
-// 		return
-// 	}
-
-// 	update, err := h.Application.GetServiceDetailsByID(r.Context(), request.ServiceID)
-// 	if err != nil {
-// 		h.handleError(w, err)
-// 		return
-// 	}
-
-// 	update.Tiers = request.Tries
-
-// 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-// 	if !ok {
-// 		h.handleError(w, fmt.Errorf("unauthorized"))
-// 		return
-// 	}
-
-// 	response, err := h.Application.ServiceFeeMaker(r.Context())
-
-// }
 
 func (h *HttpStore) ServiceFeeApprove(w http.ResponseWriter, r *http.Request) {}
 func (h *HttpStore) ServiceFeeReject(w http.ResponseWriter, r *http.Request)  {}
@@ -346,19 +342,20 @@ func (h *HttpStore) InitiateServiceFeeUpdate(w http.ResponseWriter, r *http.Requ
 	}
 
 	var cpsAction dto.CPSAction
+	curUser, curErr := h.buildUserContext(r)
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	if curErr != nil {
+		middleware.ErrorHandler(w, curErr)
+		return
+	}
 
 	cpsAction.MakerUser = dto.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    curUser.UserCode,
+		FullName:    curUser.FullName,
+		PhoneNumber: curUser.PhoneNumber,
 	}
 	cpsAction.ActionData = req.Tries
-	cpsAction.Department = department
+	cpsAction.Department = curUser.Department
 
 	ctx := r.Context()
 	updateFeeResponse, err := h.Application.InitiateServiceFeeUpdate(ctx, &cpsAction)
@@ -391,20 +388,21 @@ func (h *HttpStore) ApproveServiceFeeUpdate(w http.ResponseWriter, r *http.Reque
 	}
 
 	var cpsAction dto.CPSAction
+	curUser, curErr := h.buildUserContext(r)
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsAction.CheckerUser = dto.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+	if curErr != nil {
+		middleware.ErrorHandler(w, curErr)
+		return
 	}
 
+	cpsAction.CheckerUser = dto.User{
+		UserCode:    curUser.UserCode,
+		FullName:    curUser.FullName,
+		PhoneNumber: curUser.PhoneNumber,
+	}
+
+	cpsAction.Department = curUser.Department
 	cpsAction.ActionData = req.Tier
-	cpsAction.Department = department
 
 	ctx := r.Context()
 	updateFeeResponse, err := h.Application.ApproveServiceFeeUpdate(ctx, &cpsAction)
@@ -438,20 +436,21 @@ func (h *HttpStore) RejectServiceFeeUpdate(w http.ResponseWriter, r *http.Reques
 	}
 
 	var cpsAction dto.CPSAction
+	curUser, curErr := h.buildUserContext(r)
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	if curErr != nil {
+		middleware.ErrorHandler(w, curErr)
+		return
+	}
 
 	cpsAction.CheckerUser = dto.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    curUser.UserCode,
+		FullName:    curUser.FullName,
+		PhoneNumber: curUser.PhoneNumber,
 	}
 
 	cpsAction.ActionData = req.Tier
-	cpsAction.Department = department
+	cpsAction.Department = curUser.Department
 
 	ctx := r.Context()
 	authorizeFayda, err := h.Application.ApproveServiceFeeUpdate(ctx, &cpsAction)

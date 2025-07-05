@@ -9,6 +9,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -28,11 +30,32 @@ type Resp struct {
 	message string
 }
 
+type CurrentUser struct {
+	Department  string
+	UserCode    string
+	FullName    string
+	PhoneNumber string
+}
+
 func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService, logger utils.Logger) inbound.AmountBasedAuthHandler {
 	return &AmountBasedAuthHandler{
 		amountBasedAuthService: service,
 		logger:                 logger,
 	}
+}
+
+func (a *AmountBasedAuthHandler) buildUserContext(r *http.Request) (*CurrentUser, error) {
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
+	}
+
+	return &CurrentUser{
+		Department:  userContext.Department,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}, nil
 }
 
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
@@ -50,18 +73,19 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 
 	var cpsActionRequest model.CreateCPSAction
+	curUser, curErr := a.buildUserContext(r)
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	if curErr != nil {
+		middleware.ErrorHandler(w, curErr)
+		return
+	}
 
 	cpsActionRequest.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    curUser.UserCode,
+		FullName:    curUser.FullName,
+		PhoneNumber: curUser.PhoneNumber,
 	}
-	cpsActionRequest.Department = department
+	cpsActionRequest.Department = curUser.Department
 	request.Id = id
 	cpsActionRequest.CurrentData = request
 
@@ -89,17 +113,19 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 
 	var cpsReq model.AuthorizeCPSAction
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	curUser, curErr := a.buildUserContext(r)
+
+	if curErr != nil {
+		middleware.ErrorHandler(w, curErr)
+		return
+	}
 
 	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    curUser.UserCode,
+		FullName:    curUser.FullName,
+		PhoneNumber: curUser.PhoneNumber,
 	}
-	cpsReq.Department = department
+	cpsReq.Department = curUser.Department
 
 	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(ctx, id, cpsReq)
 	if err != nil {
@@ -131,17 +157,19 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	curUser, curErr := a.buildUserContext(r)
+
+	if curErr != nil {
+		middleware.ErrorHandler(w, curErr)
+		return
+	}
 
 	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    curUser.UserCode,
+		FullName:    curUser.FullName,
+		PhoneNumber: curUser.PhoneNumber,
 	}
-	cpsReq.Department = department
+	cpsReq.Department = curUser.Department
 
 	ctx := r.Context()
 	rejectAction, err := a.amountBasedAuthService.RejectAmountBasedAuth(ctx, id, cpsReq)
