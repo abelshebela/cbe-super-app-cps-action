@@ -28,7 +28,7 @@ func TestCreateMiniAppAction(t *testing.T) {
 	actionId := "CPS_1234567890"
 	expectedAction := action.CPSAction{
 		ActionCode:    actionId,
-		Maker:         action.User{UserID: makerId},
+		MakerID:       makerId,
 		ActionType:    action.ActionCreate,
 		RequestAction: action.RequestCreateMiniAppMerchant,
 		ActionStatus:  action.ActionPending,

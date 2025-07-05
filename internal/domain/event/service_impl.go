@@ -18,9 +18,9 @@ func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ti
         MakerID:          makerID,
         MakerName:        makerName,
         MakerPhoneNumber: makerPhone,
-        ActionType:       string(action.ActionCreate),
-        RequestAction:    string(action.RequestUpdateServiceRule),
-        ActionStatus:     string(action.ActionPending),
+        ActionType:       action.ActionCreate,
+        RequestAction:    action.RequestUpdateServiceRule,
+        ActionStatus:     action.ActionPending,
         CurrentAction: struct {
             Ticket Ticket
             Event  Event
@@ -43,9 +43,9 @@ func (s *Service) ApproveEventRequest(ctx context.Context, actionID string, acti
         return err
     }
     if actionTaken {
-        cpsAction.ActionStatus = string(action.ActionApproved)
+        cpsAction.ActionStatus = action.ActionApproved
     } else {
-        cpsAction.ActionStatus = string(action.ActionRejected)
+        cpsAction.ActionStatus = action.ActionRejected
     }
     cpsAction.CheckerID = checkerID
     cpsAction.CheckerName = checkerName
