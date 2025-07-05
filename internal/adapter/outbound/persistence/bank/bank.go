@@ -336,7 +336,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 		return nil, err
 	}
 
-	if cpsAction.ActionType == model.ActionCreate {
+	if cpsAction.ActionType == string(model.ActionCreate) {
 		req := entity.Bank{
 			ID:        bson.NewObjectID().Hex(),
 			Name:      actionData.Name,
@@ -356,13 +356,13 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			return nil, err
 		}
 
-		cpsAction.ActionData = bank
+		cpsAction.CurrentAction = bank
 
 		return &cpsAction, nil
 
 	}
 
-	if cpsAction.ActionType == model.ActionUpdate {
+	if cpsAction.ActionType == string(model.ActionUpdate) {
 		filter := bson.M{"id": actionData.ID}
 		update := bson.M{}
 
@@ -378,11 +378,11 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			update["bic"] = actionData.BIC
 		}
 
-		if cpsAction.RequestAction == model.RequestEnableBank {
+		if cpsAction.RequestAction == string(model.RequestEnableBank) {
 			update["enabled"] = true
 		}
 
-		if cpsAction.RequestAction == model.RequestDisableBank {
+		if cpsAction.RequestAction == string(model.RequestDisableBank) {
 			update["enabled"] = false
 		}
 
@@ -398,12 +398,12 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			return nil, err
 		}
 
-		cpsAction.ActionData = bank
+		cpsAction.CurrentAction = bank
 
 		return &cpsAction, nil
 	}
 
-	if cpsAction.ActionType == model.ActionDelete {
+	if cpsAction.ActionType == string(model.ActionDelete) {
 		filter := bson.M{
 			"id": actionData.ID,
 		}
@@ -422,7 +422,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			})
 			return nil, err
 		}
-		cpsAction.ActionData = bank
+		cpsAction.CurrentAction = bank
 
 		return &cpsAction, nil
 	}
