@@ -11,66 +11,69 @@ import (
 )
 
 func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ticket, makerID, makerName, makerPhone string) (string, error) {
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+    actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 
-	a := action.CPSAction{
-		ActionCode: actionId,
-		Maker: action.User{
-			UserID:      makerID,
-			FullName:    makerName,
-			PhoneNumber: makerPhone,
-			Timestamp:   time.Now(),
-		},
-		ActionType:    action.ActionCreate,
-		RequestAction: action.RequestUpdateServiceRule,
-		ActionStatus:  action.ActionPending,
-		CurrentAction: struct {
-			Ticket Ticket
-			Event  Event
-		}{
-			Ticket: ticket,
-			Event:  event,
-		},
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	}
-	data, err := s.Repository.CreateCpsAction(ctx, a)
-	if err != nil {
-		return "", err
-	}
-	return data.ActionCode, nil
+    a := action.CPSAction{
+        ActionCode:       actionId,
+        MakerID:          makerID,
+        MakerName:        makerName,
+        MakerPhoneNumber: makerPhone,
+        ActionType:       action.ActionCreate,
+        RequestAction:    action.RequestUpdateServiceRule,
+        ActionStatus:     action.ActionPending,
+        CurrentAction: struct {
+            Ticket Ticket
+            Event  Event
+        }{
+            Ticket: ticket,
+            Event:  event,
+        },
+        CreatedAt:      time.Now(),
+        LastModifiedAt: time.Now(),
+    }
+    data, err := s.Repository.CreateCpsAction(ctx, a)
+    if err != nil {
+        return "", err
+    }
+    return data.ActionCode, nil
 }
-func (s *Service) ApproveEventRequest(ctx context.Context, action_id string, action_taken bool, checkerID, checkerName, checkerPhone string) error {
-	cps_action, err := s.Repository.FetchCpsActionById(ctx, action_id)
-	if err != nil {
-		return err
-	}
-	if action_taken {
-		cps_action.ActionStatus = action.ActionApproved
-	} else {
-		cps_action.ActionStatus = action.ActionRejected
-	}
-	cps_action.Checker = action.User{
-		UserID: checkerID,
-	}
-	var e Event
-	e, ok := cps_action.CurrentAction.(Event)
-	if !ok {
-		return fmt.Errorf("failed to assert CurrentAction to Event type")
-	}
+func (s *Service) ApproveEventRequest(ctx context.Context, actionID string, actionTaken bool, checkerID, checkerName, checkerPhone string) error {
+    cpsAction, err := s.Repository.FetchCpsActionById(ctx, actionID)
+    if err != nil {
+        return err
+    }
+    if actionTaken {
+        cpsAction.ActionStatus = action.ActionApproved
+    } else {
+        cpsAction.ActionStatus = action.ActionRejected
+    }
+    cpsAction.CheckerID = checkerID
+    cpsAction.CheckerName = checkerName
+    cpsAction.CheckerPhoneNumber = checkerPhone
 
-	cps_action.LastModifiedAt = time.Now()
-	err = s.Repository.UpdateCpsAction(ctx, cps_action)
-	if err != nil {
-		return err
-	}
-	e.LastModifiedAt = time.Now()
-	e.Enabled = true
-	_, err = s.Repository.CreateEvent(ctx, e)
-	if err != nil {
-		return fmt.Errorf("error: %v", err.Error())
-	}
-	return nil
+    var e Event
+    switch v := cpsAction.CurrentAction.(type) {
+    case Event:
+        e = v
+    case map[string]interface{}:
+       
+        return fmt.Errorf("CurrentAction is a map, manual decoding required")
+    default:
+        return fmt.Errorf("failed to assert CurrentAction to Event type")
+    }
+
+    cpsAction.LastModifiedAt = time.Now()
+    err = s.Repository.UpdateCpsAction(ctx, cpsAction)
+    if err != nil {
+        return err
+    }
+    e.LastModifiedAt = time.Now()
+    e.Enabled = true
+    _, err = s.Repository.CreateEvent(ctx, e)
+    if err != nil {
+        return fmt.Errorf("error: %v", err.Error())
+    }
+    return nil
 }
 func (s *Service) FetchEvent(ctx context.Context, limit, offset int) ([]Event, error) {
 	data, err := s.Repository.FetchEvent(ctx, limit, offset)

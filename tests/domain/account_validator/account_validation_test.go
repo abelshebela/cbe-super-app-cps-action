@@ -93,21 +93,20 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(originalRule, nil).Once()
 
 		expectedAction := action.CPSAction{
-			ActionCode: "CPS_123",
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
-			Department:      "test-service",
-			ActionType:      action.ActionUpdate,
-			RequestAction:   action.RequestUpdateAccountValidation,
-			ActionStatus:    action.ActionPending,
-			CreatedAt:       time.Now(),
-			LastModifiedAt:  time.Now(),
-			RejectionReason: nil,
+			ActionCode:         "CPS_123",
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
 		}
 
 		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(expectedAction, nil).Once()
@@ -164,23 +163,22 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 	t.Run("successful approval", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ID:         validationRule.ID,
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
-			Department:      "test-service",
-			ActionType:      action.ActionUpdate,
-			RequestAction:   action.RequestUpdateAccountValidation,
-			ActionStatus:    action.ActionPending,
-			CurrentAction:   currentActionBytes,
-			CreatedAt:       time.Now(),
-			LastModifiedAt:  time.Now(),
-			RejectionReason: nil,
+			ID:                 validationRule.ID,
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CurrentAction:      currentActionBytes,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
@@ -193,22 +191,21 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 	t.Run("successful rejection", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
-			Department:      "test-service",
-			ActionType:      action.ActionUpdate,
-			RequestAction:   action.RequestUpdateAccountValidation,
-			ActionStatus:    action.ActionPending,
-			CurrentAction:   currentActionBytes,
-			CreatedAt:       time.Now(),
-			LastModifiedAt:  time.Now(),
-			RejectionReason: nil,
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CurrentAction:      currentActionBytes,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
@@ -240,22 +237,21 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 	t.Run("action not pending", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
-			Department:      "test-service",
-			ActionType:      action.ActionUpdate,
-			RequestAction:   action.RequestUpdateAccountValidation,
-			ActionStatus:    action.ActionApproved,
-			CurrentAction:   currentActionBytes,
-			CreatedAt:       time.Now(),
-			LastModifiedAt:  time.Now(),
-			RejectionReason: nil,
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionApproved,
+			CurrentAction:      currentActionBytes,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
