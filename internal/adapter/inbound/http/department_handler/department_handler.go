@@ -122,13 +122,15 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 	}
 
 	if cpsAction == nil {
-		common_util.SendErrorResponse(w, "action not found", http.StatusNotFound, nil)
+		common_util.SendErrorResponse(w, common_util.AccountNotFound, http.StatusNotFound, nil)
 		return
 	}
 	h.logger.Infof("[ApproveRequest] action validated: %+v", cpsAction)
-	cpsAction.ActionType = entities.ActionUpdate
 
-	if serviceErr := h.departmentService.ApproveActionByType(cur_ctx, *cpsAction); serviceErr != nil {
+	actionCopy := *cpsAction
+	actionCopy.ActionType = entities.ActionUpdate
+
+	if serviceErr := h.departmentService.ApproveActionByType(cur_ctx, actionCopy); serviceErr != nil {
 		h.logger.Errorf("[ApproveRequest] service error: %v", serviceErr)
 		common_util.SendErrorResponse(w, serviceErr.Error(), http.StatusInternalServerError, nil)
 		return
