@@ -191,15 +191,10 @@ func TestUpdateServiceDetailsRequest(t *testing.T) {
 		mockRepo.EXPECT().GetOneServiceDetail(ctx, "test-id").Return(originalService, nil).Times(1)
 
 		expectedAction := action.CPSAction{
-			ActionCode: "CPS_BNHafpP8De",
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
+			ActionCode:      "CPS_BNHafpP8De",
+			MakerID:         "maker-123",
+			MakerActionTime: time.Now(),
 			UniqueId:        "test-id",
-			Checker:         action.User{},
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,
 			RequestAction:   action.RequestUpdateServiceDetails,
@@ -273,14 +268,9 @@ func TestUpdateServiceDetails(t *testing.T) {
 
 	t.Run("successful approval", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
+			ActionCode:      actionID,
+			MakerID:         "maker-123",
+			MakerActionTime: time.Now(),
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,
 			RequestAction:   action.RequestUpdateServiceDetails,
@@ -301,14 +291,9 @@ func TestUpdateServiceDetails(t *testing.T) {
 
 	t.Run("successful rejection with reason", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
+			ActionCode:      actionID,
+			MakerID:         "maker-123",
+			MakerActionTime: time.Now(),
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,
 			RequestAction:   action.RequestUpdateServiceDetails,
@@ -328,14 +313,9 @@ func TestUpdateServiceDetails(t *testing.T) {
 
 	t.Run("successful rejection without reason", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
+			ActionCode:      actionID,
+			MakerID:         "maker-123",
+			MakerActionTime: time.Now(),
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,
 			RequestAction:   action.RequestUpdateServiceDetails,
@@ -375,14 +355,9 @@ func TestUpdateServiceDetails(t *testing.T) {
 
 	t.Run("action not pending", func(t *testing.T) {
 		expectedAction := action.CPSAction{
-			ActionCode: actionID,
-			Maker: action.User{
-				UserID:      "maker-123",
-				FullName:    "",
-				PhoneNumber: "",
-				Timestamp:   time.Now(),
-			},
-			Checker:         action.User{},
+			ActionCode:      actionID,
+			MakerID:         "maker-123",
+			MakerActionTime: time.Now(),
 			Department:      "test-service",
 			ActionType:      action.ActionUpdate,
 			RequestAction:   action.RequestUpdateServiceDetails,

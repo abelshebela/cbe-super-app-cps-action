@@ -139,15 +139,17 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			Enable: true,
 		}
 		expectedCpsAction := model.CPSAction{
-			ID:              "CPS001",
-			ActionCode:      "ACT001",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestCreateAvatar,
-			ActionType:      model.ActionCreate,
-			ActionData:      expectedAvatar,
-			MakerActionTime: testTime,
+			ID:               "CPS001",
+			ActionCode:       "ACT001",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestCreateAvatar),
+			ActionType:       string(model.ActionCreate),
+			CurrentAction:    expectedAvatar,
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -242,15 +244,17 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 			MakerActionTime: testTime,
 		}
 		expectedCpsAction := model.CPSAction{
-			ID:              "CPS003",
-			ActionCode:      "ACT003",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          "PENDING",
-			RequestAction:   "DELETE_AVATAR",
-			ActionType:      "DELETE",
-			ActionData:      nil,
-			MakerActionTime: testTime,
+			ID:               "CPS003",
+			ActionCode:       "ACT003",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     "PENDING",
+			RequestAction:    "DELETE_AVATAR",
+			ActionType:       "DELETE",
+			CurrentAction:    nil,
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -357,15 +361,17 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 			Enable: true,
 		}
 		expectedCpsAction := model.CPSAction{
-			ID:              "CPS006",
-			ActionCode:      "ACT006",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestUpdateAvatar,
-			ActionType:      model.ActionUpdate,
-			ActionData:      expectedAvatar,
-			MakerActionTime: testTime,
+			ID:               "CPS006",
+			ActionCode:       "ACT006",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestUpdateAvatar),
+			ActionType:       string(model.ActionUpdate),
+			CurrentAction:    expectedAvatar,
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -619,16 +625,23 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			Department:  "IT",
 		}
 
+		testUser := model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"}
+
 		expectedCpsAction := model.CPSAction{
-			ID:                "CPS001",
-			ActionCode:        actionCode,
-			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
-			CheckerUser:       testCheckerUser,
+			ID:                 "CPS001",
+			ActionCode:         actionCode,
+			MakerID:            testUser.UserCode,
+			MakerName:          testUser.FullName,
+			MakerPhoneNumber:   testUser.PhoneNumber,
+			CheckerID:          testCheckerUser.UserCode,
+			CheckerName:        testCheckerUser.FullName,
+			CheckerPhoneNumber: testCheckerUser.PhoneNumber,
+
 			Department:        "IT",
-			Status:            model.ActionApproved,
-			RequestAction:     model.RequestCreateAvatar,
-			ActionType:        model.ActionCreate,
-			ActionData:        avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
+			ActionStatus:      string(model.ActionApproved),
+			RequestAction:     string(model.RequestCreateAvatar),
+			ActionType:        string(model.ActionCreate),
+			CurrentAction:     avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
 			MakerActionTime:   testTime,
 			CheckerActionTime: testTime,
 		}
@@ -685,19 +698,25 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			RejectedReason: "The uploaded image does not meet the required specifications and quality standards.",
 		}
 
+		testUser := model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"}
+
 		expectedCpsAction := model.CPSAction{
-			ID:                "CPS001",
-			ActionCode:        actionCode,
-			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
-			CheckerUser:       testCheckerUser,
-			Department:        "IT",
-			Status:            model.ActionRejected,
-			RequestAction:     model.RequestCreateAvatar,
-			ActionType:        model.ActionCreate,
-			ActionData:        avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
-			RejectedReason:    "The uploaded image does not meet the required specifications and quality standards.",
-			MakerActionTime:   testTime,
-			CheckerActionTime: testTime,
+			ID:                 "CPS001",
+			ActionCode:         actionCode,
+			MakerID:            testUser.UserCode,
+			MakerName:          testUser.FullName,
+			MakerPhoneNumber:   testUser.PhoneNumber,
+			CheckerID:          testCheckerUser.UserCode,
+			CheckerName:        testCheckerUser.FullName,
+			CheckerPhoneNumber: testCheckerUser.PhoneNumber,
+			Department:         "IT",
+			ActionStatus:       string(model.ActionRejected),
+			RequestAction:      string(model.RequestCreateAvatar),
+			ActionType:         string(model.ActionCreate),
+			CurrentAction:      avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
+			RejectionReason:    "The uploaded image does not meet the required specifications and quality standards.",
+			MakerActionTime:    testTime,
+			CheckerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(expectedCpsAction, nil)
@@ -774,15 +793,17 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 		}
 
 		expectedCpsAction := &model.CPSAction{
-			ID:              "CPS010",
-			ActionCode:      "ACT010",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestEnableAvatar,
-			ActionType:      model.ActionUpdate,
-			ActionData:      avatar.Avatar{ID: avatarID},
-			MakerActionTime: testTime,
+			ID:               "CPS010",
+			ActionCode:       "ACT010",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestEnableAvatar),
+			ActionType:       string(model.ActionUpdate),
+			CurrentAction:    avatar.Avatar{ID: avatarID},
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -807,15 +828,17 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 		}
 
 		expectedCpsAction := &model.CPSAction{
-			ID:              "CPS011",
-			ActionCode:      "ACT011",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestDisableAvatar,
-			ActionType:      model.ActionUpdate,
-			ActionData:      avatar.Avatar{ID: avatarID},
-			MakerActionTime: testTime,
+			ID:               "CPS011",
+			ActionCode:       "ACT011",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestDisableAvatar),
+			ActionType:       string(model.ActionUpdate),
+			CurrentAction:    avatar.Avatar{ID: avatarID},
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
