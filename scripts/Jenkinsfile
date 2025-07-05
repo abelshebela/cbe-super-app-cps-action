@@ -8,7 +8,7 @@ pipeline {
         ENV_FILE_PATH = "./env"
         HARBOR_PRODJECT = "cbe-supperapp"
         REGISTRY_ADDRESS = credentials("REGISTRY_ADDRESS")
-        REPO_ADDRESS = "https://github.com/CBE-Super-App/cbe-super-app-member-users.git"
+        REPO_ADDRESS = "git@github.com:CBE-Super-App/cbe-super-app-member-auth.git"
         PROJECT_ROOT_PATH = "/data/cbe-super-app/"
         SONAR_HOST_URL=credentials("SONAR_HOST_URL")
         SONAR_TOKEN=credentials("SONAR_TOKEN")
