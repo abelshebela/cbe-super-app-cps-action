@@ -1,0 +1,24 @@
+# supper app bps service compose file
+version: "3.8"
+
+services:
+  cbe-supperapp-member-user:
+    image: registry.eaglelionsystems.com/cbe-supperapp/${IMAGE_NAME}:${IMAGE_TAG}
+    container_name: cbe-supperapp-member-user
+    ports:
+      - 5006:8080
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_TOKEN=${VAULT_TOKEN}
+      - VAULT_PATH=${VAULT_PATH}
+    deploy:
+      resources:  
+        limits:
+          cpus: '0.50'
+          memory: 100M
+        reservations:
+          cpus: '0.25'
+          memory: 75M
