@@ -139,19 +139,6 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			Enable: true,
 		}
 		expectedCpsAction := model.CPSAction{
-<<<<<<< Updated upstream
-			ID:               "CPS001",
-			ActionCode:       "ACT001",
-			MakerID:          testUser.UserCode,
-			MakerName:        testUser.FullName,
-			MakerPhoneNumber: testUser.PhoneNumber,
-			Department:       "IT",
-			ActionStatus:     string(model.ActionPending),
-			RequestAction:    string(model.RequestCreateAvatar),
-			ActionType:       string(model.ActionCreate),
-			CurrentAction:    expectedAvatar,
-			MakerActionTime:  testTime,
-=======
 			ID:              "CPS001",
 			ActionCode:      "ACT001",
 			MakerName:       testUser.FullName,
@@ -161,7 +148,6 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			ActionType:      string(model.ActionCreate),
 			CurrentAction:   expectedAvatar,
 			MakerActionTime: testTime,
->>>>>>> Stashed changes
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -256,7 +242,7 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 			MakerActionTime: testTime,
 		}
 		expectedCpsAction := model.CPSAction{
-<<<<<<< Updated upstream
+
 			ID:               "CPS003",
 			ActionCode:       "ACT003",
 			MakerID:          testUser.UserCode,
@@ -268,21 +254,7 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 			ActionType:       "DELETE",
 			CurrentAction:    nil,
 			MakerActionTime:  testTime,
-=======
-			ID:              "CPS003",
-			ActionCode:      "ACT003",
-			MakerName:       testUser.FullName,
-			Department:      "IT",
-			ActionStatus:    "PENDING",
-			RequestAction:   "DELETE_AVATAR",
-			ActionType:      "DELETE",
-			CurrentAction:   nil,
-			MakerActionTime: testTime,
->>>>>>> Stashed changes
 		}
-
-		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
-		mockRepo.EXPECT().DeleteAvatar(gomock.Any(), avatarID, gomock.Any()).Return(expectedCpsAction, nil)
 
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.NoError(t, err)
@@ -292,7 +264,6 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 	t.Run("CPS action exists error", func(t *testing.T) {
 		avatarID := "AVATAR002"
 		testCPSAction := model.CreateCPSAction{
-			ActionCode:      "ACT004",
 			MakerUser:       testUser,
 			Department:      "IT",
 			Status:          "PENDING",
@@ -385,7 +356,6 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 			Enable: true,
 		}
 		expectedCpsAction := model.CPSAction{
-<<<<<<< Updated upstream
 			ID:               "CPS006",
 			ActionCode:       "ACT006",
 			MakerID:          testUser.UserCode,
@@ -397,17 +367,6 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 			ActionType:       string(model.ActionUpdate),
 			CurrentAction:    expectedAvatar,
 			MakerActionTime:  testTime,
-=======
-			ID:              "CPS006",
-			ActionCode:      "ACT006",
-			MakerName:       testUser.FullName,
-			Department:      "IT",
-			ActionStatus:    string(model.ActionPending),
-			RequestAction:   string(model.RequestUpdateAvatar),
-			ActionType:      string(model.ActionUpdate),
-			CurrentAction:   expectedAvatar,
-			MakerActionTime: testTime,
->>>>>>> Stashed changes
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -661,27 +620,9 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			Department:  "IT",
 		}
 
-		testUser := model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"}
-
 		expectedCpsAction := model.CPSAction{
 			ID:                 "CPS001",
 			ActionCode:         actionCode,
-<<<<<<< Updated upstream
-			MakerID:            testUser.UserCode,
-			MakerName:          testUser.FullName,
-			MakerPhoneNumber:   testUser.PhoneNumber,
-			CheckerID:          testCheckerUser.UserCode,
-			CheckerName:        testCheckerUser.FullName,
-			CheckerPhoneNumber: testCheckerUser.PhoneNumber,
-
-			Department:        "IT",
-			ActionStatus:      string(model.ActionApproved),
-			RequestAction:     string(model.RequestCreateAvatar),
-			ActionType:        string(model.ActionCreate),
-			CurrentAction:     avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
-			MakerActionTime:   testTime,
-			CheckerActionTime: testTime,
-=======
 			MakerID:            "USER001",
 			MakerName:          "John Doe",
 			MakerPhoneNumber:   "+251911234567",
@@ -695,7 +636,6 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			CurrentAction:      avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
 			MakerActionTime:    testTime,
 			CheckerActionTime:  testTime,
->>>>>>> Stashed changes
 		}
 
 		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(expectedCpsAction, nil)
@@ -750,20 +690,12 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			RejectedReason: "The uploaded image does not meet the required specifications and quality standards.",
 		}
 
-		testUser := model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"}
-
 		expectedCpsAction := model.CPSAction{
 			ID:                 "CPS001",
 			ActionCode:         actionCode,
-<<<<<<< Updated upstream
-			MakerID:            testUser.UserCode,
-			MakerName:          testUser.FullName,
-			MakerPhoneNumber:   testUser.PhoneNumber,
-=======
 			MakerID:            "USER001",
 			MakerName:          "John Doe",
 			MakerPhoneNumber:   "+251911234567",
->>>>>>> Stashed changes
 			CheckerID:          testCheckerUser.UserCode,
 			CheckerName:        testCheckerUser.FullName,
 			CheckerPhoneNumber: testCheckerUser.PhoneNumber,
@@ -853,15 +785,9 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 		expectedCpsAction := &model.CPSAction{
 			ID:               "CPS010",
 			ActionCode:       "ACT010",
-<<<<<<< Updated upstream
-			MakerID:          testUser.UserCode,
-			MakerName:        testUser.FullName,
-			MakerPhoneNumber: testUser.PhoneNumber,
-=======
 			MakerID:          "USER001",
 			MakerName:        "John Doe",
 			MakerPhoneNumber: "+251911234567",
->>>>>>> Stashed changes
 			Department:       "IT",
 			ActionStatus:     string(model.ActionPending),
 			RequestAction:    string(model.RequestEnableAvatar),
@@ -894,15 +820,9 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 		expectedCpsAction := &model.CPSAction{
 			ID:               "CPS011",
 			ActionCode:       "ACT011",
-<<<<<<< Updated upstream
-			MakerID:          testUser.UserCode,
-			MakerName:        testUser.FullName,
-			MakerPhoneNumber: testUser.PhoneNumber,
-=======
 			MakerID:          "USER001",
 			MakerName:        "John Doe",
 			MakerPhoneNumber: "+251911234567",
->>>>>>> Stashed changes
 			Department:       "IT",
 			ActionStatus:     string(model.ActionPending),
 			RequestAction:    string(model.RequestDisableAvatar),
