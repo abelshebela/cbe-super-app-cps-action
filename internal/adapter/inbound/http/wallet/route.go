@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
-
 func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/api/v1/cbesuperapp/cps_action/wallet", func(r chi.Router) {
 		routes := []route.Route{
