@@ -369,18 +369,21 @@ func validatePin(pin string, pinLength, pinRedundantLimit, pinSequenceLength int
 	if pin == "" || len(pin) != pinLength {
 		return errInvalidPin
 	}
+
 	for _, c := range pin {
 		if c < '0' || c > '9' {
 			return errPinOnlyDigit
 		}
 	}
+
 	// Check for weak PINs
 	for _, weak := range weakPINs {
 		if pin == weak {
-			return errPinRedundant // or a new error, e.g., errPinWeak
+			return fmt.Errorf("WEAK_PIN")
 		}
 	}
-	// Improved redundant character logic: reject if any digit repeats more than allowed consecutively
+
+	// Check for consecutive repeated digits exceeding limit
 	count := 1
 	for i := 1; i < len(pin); i++ {
 		if pin[i] == pin[i-1] {
@@ -392,14 +395,18 @@ func validatePin(pin string, pinLength, pinRedundantLimit, pinSequenceLength int
 			count = 1
 		}
 	}
-	// Sequence check
+
+	// Check for sequence patterns
 	for i := 0; i <= len(pin)-pinSequenceLength; i++ {
 		asc, desc := true, true
 		for j := 1; j < pinSequenceLength; j++ {
-			if pin[i+j]-pin[i+j-1] != 1 {
+			prev := pin[i+j-1]
+			curr := pin[i+j]
+
+			if curr-prev != 1 {
 				asc = false
 			}
-			if pin[i+j-1]-pin[i+j] != 1 {
+			if prev-curr != 1 {
 				desc = false
 			}
 		}
@@ -407,6 +414,7 @@ func validatePin(pin string, pinLength, pinRedundantLimit, pinSequenceLength int
 			return errPinSeq
 		}
 	}
+
 	return nil
 }
 
