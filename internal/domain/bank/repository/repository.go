@@ -9,14 +9,14 @@ import (
 )
 
 type Repository interface {
-	CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+	CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	GetBank(ctx context.Context, id string) (*entity.Bank, error)
 	GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error
 }

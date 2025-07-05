@@ -82,7 +82,7 @@ func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsRes,
@@ -129,7 +129,7 @@ func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -165,7 +165,7 @@ func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -259,7 +259,7 @@ func (wa *WalletAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           authAction,
@@ -302,7 +302,7 @@ func (wa *WalletAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           rejectAction,
@@ -337,7 +337,7 @@ func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -373,7 +373,7 @@ func (wa *WalletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,

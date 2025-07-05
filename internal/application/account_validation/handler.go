@@ -29,7 +29,7 @@ func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) 
 	if err != nil {
 		return dto.GetAccountValidationResponse{}, err
 	}
-	return dto.GetAccountValidationResponse{Validation: rule}, nil
+	return dto.GetAccountValidationResponse{Validation: dto.ToValidationRuleDTO(rule)}, nil
 }
 
 func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string) (dto.UpdateAccountValidationResponse, error) {

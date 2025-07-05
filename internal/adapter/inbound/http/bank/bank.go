@@ -87,7 +87,7 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsRes,
@@ -136,7 +136,7 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -174,7 +174,7 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -270,7 +270,7 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           authAction,
@@ -315,7 +315,7 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           rejectAction,
@@ -352,7 +352,7 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -390,7 +390,7 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,

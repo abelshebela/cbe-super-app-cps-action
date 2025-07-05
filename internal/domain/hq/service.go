@@ -75,23 +75,24 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      request.MakerID,
-			FullName:    request.MakerName,
-			PhoneNumber: request.MakerPhone,
-			Timestamp:   time.Now(),
-		},
-		Checker:         action.User{},
-		Department:      originalHQ.Name,
-		ActionType:      action.ActionUpdate,
-		RequestAction:   action.RequestUpdateHQBlockTime,
-		ActionStatus:    action.ActionPending,
-		CurrentAction:   currentActionJSON,
-		PreviosAction:   previousActionJSON,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
-		RejectionReason: nil,
+		ActionCode:         actionID,
+		MakerID:            request.MakerID,
+		MakerName:          request.MakerName,
+		MakerPhoneNumber:   request.MakerPhone,
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		Department:         originalHQ.Name,
+		ActionType:         action.ActionUpdate,
+		RequestAction:      action.RequestUpdateHQBlockTime,
+		ActionStatus:       action.ActionPending,
+		CurrentAction:      currentActionJSON,
+		PreviosAction:      previousActionJSON,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
+		RejectionReason:    nil,
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -130,23 +131,24 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      request.MakerID,
-			FullName:    request.MakerName,
-			PhoneNumber: request.MakerPhone,
-			Timestamp:   time.Now(),
-		},
-		Checker:         action.User{},
-		Department:      originalHQ.ID,
-		ActionType:      action.ActionUpdate,
-		RequestAction:   action.RequestUpdateHQArchiveTime,
-		ActionStatus:    action.ActionPending,
-		CurrentAction:   currentActionJSON,
-		PreviosAction:   previousActionJSON,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
-		RejectionReason: nil,
+		ActionCode:         actionID,
+		MakerID:            request.MakerID,
+		MakerName:          request.MakerName,
+		MakerPhoneNumber:   request.MakerPhone,
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		Department:         originalHQ.ID,
+		ActionType:         action.ActionUpdate,
+		RequestAction:      action.RequestUpdateHQArchiveTime,
+		ActionStatus:       action.ActionPending,
+		CurrentAction:      currentActionJSON,
+		PreviosAction:      previousActionJSON,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
+		RejectionReason:    nil,
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -182,12 +184,10 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
 
-	cpsAction.Checker = action.User{
-		UserID:      request.CheckerID,
-		FullName:    request.CheckerName,
-		PhoneNumber: request.CheckerPhone,
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = request.CheckerID
+	cpsAction.CheckerName = request.CheckerName
+	cpsAction.CheckerPhoneNumber = request.CheckerPhone
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
 	if request.Approved {
@@ -267,12 +267,10 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
 
-	cpsAction.Checker = action.User{
-		UserID:      request.CheckerID,
-		FullName:    request.CheckerName,
-		PhoneNumber: request.CheckerPhone,
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = request.CheckerID
+	cpsAction.CheckerName = request.CheckerName
+	cpsAction.CheckerPhoneNumber = request.CheckerPhone
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
 	if request.Approved {

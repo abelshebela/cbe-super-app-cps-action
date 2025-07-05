@@ -138,7 +138,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			Label:  "Test Avatar",
 			Enable: true,
 		}
-		expectedCpsAction := model.CpsAction{
+		expectedCpsAction := model.CPSAction{
 			ID:              "CPS001",
 			ActionCode:      "ACT001",
 			MakerUser:       testUser,
@@ -178,7 +178,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 
 		result, err := avatarService.CreateAvatar(context.Background(), testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 
 	t.Run("validation error file size should be less than 2MB", func(t *testing.T) {
@@ -208,7 +208,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 		result, err := avatarService.CreateAvatar(context.Background(), testCPSAction)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "file size should be less than 2MB")
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 }
 
@@ -241,7 +241,7 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 			ActionData:      nil,
 			MakerActionTime: testTime,
 		}
-		expectedCpsAction := model.CpsAction{
+		expectedCpsAction := model.CPSAction{
 			ID:              "CPS003",
 			ActionCode:      "ACT003",
 			MakerUser:       testUser,
@@ -278,7 +278,7 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "CPS action already exists")
 	})
 
@@ -296,11 +296,11 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
-		mockRepo.EXPECT().DeleteAvatar(gomock.Any(), avatarID, gomock.Any()).Return(model.CpsAction{}, fmt.Errorf("avatar not found"))
+		mockRepo.EXPECT().DeleteAvatar(gomock.Any(), avatarID, gomock.Any()).Return(model.CPSAction{}, fmt.Errorf("avatar not found"))
 
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "avatar not found")
 	})
 }
@@ -356,7 +356,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 			Label:  "Old Avatar",
 			Enable: true,
 		}
-		expectedCpsAction := model.CpsAction{
+		expectedCpsAction := model.CPSAction{
 			ID:              "CPS006",
 			ActionCode:      "ACT006",
 			MakerUser:       testUser,
@@ -397,7 +397,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 
 		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "CPS action already exists")
 	})
 
@@ -422,7 +422,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 
 		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "avatar not found")
 	})
 
@@ -453,7 +453,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "file size should be less than 2MB")
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 }
 
@@ -619,7 +619,7 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			Department:  "IT",
 		}
 
-		expectedCpsAction := model.CpsAction{
+		expectedCpsAction := model.CPSAction{
 			ID:                "CPS001",
 			ActionCode:        actionCode,
 			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
@@ -648,11 +648,11 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			Department:  "IT",
 		}
 
-		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(model.CpsAction{}, fmt.Errorf("action not found"))
+		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(model.CPSAction{}, fmt.Errorf("action not found"))
 
 		result, err := avatarService.Authorize(context.Background(), testAuthorizeReq)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "action not found")
 	})
 }
@@ -685,7 +685,7 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			RejectedReason: "The uploaded image does not meet the required specifications and quality standards.",
 		}
 
-		expectedCpsAction := model.CpsAction{
+		expectedCpsAction := model.CPSAction{
 			ID:                "CPS001",
 			ActionCode:        actionCode,
 			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
@@ -720,7 +720,7 @@ func TestAvatarDomain_Reject(t *testing.T) {
 
 		result, err := avatarService.Reject(context.Background(), testRejectReq)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 
 	t.Run("rejection failed", func(t *testing.T) {
@@ -734,11 +734,11 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			RejectedReason: "Action not found. The requested action could not be located in the system.",
 		}
 
-		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(model.CpsAction{}, fmt.Errorf("action not found"))
+		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(model.CPSAction{}, fmt.Errorf("action not found"))
 
 		result, err := avatarService.Reject(context.Background(), testRejectReq)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "action not found")
 	})
 }
@@ -773,7 +773,7 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 			MakerActionTime: testTime,
 		}
 
-		expectedCpsAction := &model.CpsAction{
+		expectedCpsAction := &model.CPSAction{
 			ID:              "CPS010",
 			ActionCode:      "ACT010",
 			MakerUser:       testUser,
@@ -806,7 +806,7 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 			MakerActionTime: testTime,
 		}
 
-		expectedCpsAction := &model.CpsAction{
+		expectedCpsAction := &model.CPSAction{
 			ID:              "CPS011",
 			ActionCode:      "ACT011",
 			MakerUser:       testUser,

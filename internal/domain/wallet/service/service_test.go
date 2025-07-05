@@ -153,7 +153,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 		name    string
 		req     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -165,7 +165,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 					Return(nil) // Assuming no existing action with the same code
 				mockRepo.EXPECT().
 					CreateWallet(gomock.Any(), gomock.Any()).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS001",
 						ActionCode:      "ACT001",
 						MakerUser:       testUser,
@@ -177,7 +177,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS001",
 				ActionCode:      "ACT001",
 				MakerUser:       testUser,
@@ -430,7 +430,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 		id      string
 		req     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -443,7 +443,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 					Return(nil) // Assuming no existing action with the same code
 				mockRepo.EXPECT().
 					UpdateWallet(gomock.Any(), "WALLET001", testCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS002",
 						ActionCode:      "ACT002",
 						MakerUser:       testUser,
@@ -455,7 +455,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS002",
 				ActionCode:      "ACT002",
 				MakerUser:       testUser,
@@ -529,7 +529,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 		id      string
 		req     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -542,7 +542,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					DeleteWallet(gomock.Any(), "WALLET001", testCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS003",
 						ActionCode:      "ACT003",
 						MakerUser:       testUser,
@@ -554,7 +554,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS003",
 				ActionCode:      "ACT003",
 				MakerUser:       testUser,
@@ -632,7 +632,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 		name    string
 		req     model.AuthorizeCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -641,7 +641,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 			mock: func() {
 				mockRepo.EXPECT().
 					Authorize(gomock.Any(), testAuthorizeReq).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:                "CPS001",
 						ActionCode:        "ACT001",
 						MakerUser:         testMakerUser,
@@ -655,7 +655,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 						CheckerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:                "CPS001",
 				ActionCode:        "ACT001",
 				MakerUser:         testMakerUser,
@@ -740,7 +740,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 		name    string
 		req     model.RejectCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -749,7 +749,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 			mock: func() {
 				mockRepo.EXPECT().
 					Reject(gomock.Any(), testRejectReq).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:                "CPS001",
 						ActionCode:        "ACT001",
 						MakerUser:         testMakerUser,
@@ -764,7 +764,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 						CheckerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:                "CPS001",
 				ActionCode:        "ACT001",
 				MakerUser:         testMakerUser,
@@ -852,7 +852,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 		requestAction model.RequestAction
 		cpsReq        model.CreateCPSAction
 		mock          func()
-		want          *model.CpsAction
+		want          *model.CPSAction
 		wantErr       bool
 	}{
 		{
@@ -866,7 +866,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testEnableCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
 						MakerUser:       testUser,
@@ -878,7 +878,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS004",
 				ActionCode:      "ACT004",
 				MakerUser:       testUser,
@@ -902,7 +902,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 					Return(nil) // Assuming no existing action with the same code
 				mockRepo.EXPECT().
 					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestDisableWallet, testDisableCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
 						MakerUser:       testUser,
@@ -914,7 +914,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS004",
 				ActionCode:      "ACT004",
 				MakerUser:       testUser,

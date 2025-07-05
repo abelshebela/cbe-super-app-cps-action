@@ -20,13 +20,13 @@ import (
 )
 
 type AvatarPersistence struct {
-	cpsActionDal dal.MongoDal[model.CpsAction, model.CpsAction]
+	cpsActionDal dal.MongoDal[model.CPSAction, model.CPSAction]
 	avatarDal    dal.MongoDal[dto.Avatar, dto.Avatar]
 	logger       utils.Logger
 }
 
 func InitAvatarPersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) avatar.AvatarOutbound {
-	cpsActionDal := dal.NewMongoDal[model.CpsAction, model.CpsAction](client, dbName, collections[0])
+	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[0])
 	avatarDal := dal.NewMongoDal[dto.Avatar, dto.Avatar](client, dbName, collections[1])
 	return &AvatarPersistence{
 		cpsActionDal: cpsActionDal,
@@ -68,17 +68,19 @@ func (a *AvatarPersistence) CPSActionExists(ctx context.Context, cpsReq model.Cr
 	return nil
 }
 
-func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
-	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:              bson.NewObjectID().Hex(),
-		ActionCode:      utils.RandomGenerator(20),
-		MakerUser:       cpsActionReq.MakerUser,
-		Department:      cpsActionReq.Department,
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateAvatar,
-		ActionType:      model.ActionCreate,
-		ActionData:      cpsActionReq.ActionData,
-		MakerActionTime: time.Now(),
+func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsActionReq.MakerUser.UserCode,
+		MakerName:        cpsActionReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
+		Department:       cpsActionReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestCreateAvatar),
+		ActionType:       string(model.ActionCreate),
+		CurrentAction:    cpsActionReq.ActionData,
+		MakerActionTime:  time.Now(),
 	})
 
 	if err != nil {
@@ -87,13 +89,13 @@ func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
 	filter := bson.M{
 		"id":         id,
 		"is_deleted": false,
@@ -113,32 +115,31 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 				Code:    http.StatusNotFound,
 				Message: "avatar not found",
 			})
-			return model.CpsAction{}, err
+			return model.CPSAction{}, err
 		}
 		a.logger.Errorf("failed to get avatar", err)
 		err = fmt.Errorf("failed to get avatar %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
-	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsActionReq.MakerUser,
-		Department:    cpsActionReq.Department,
-		Status:        model.ActionPending,
-		RequestAction: model.RequestDeleteAvatar,
-		ActionType:    model.ActionDelete,
-		ActionData:    cpsActionReq.ActionData,
-		PreviousData: map[string]any{
+	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsActionReq.MakerUser.UserCode,
+		MakerName:        cpsActionReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
+		Department:       cpsActionReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestDeleteAvatar),
+		ActionType:       string(model.ActionDelete),
+		CurrentAction:    cpsActionReq.ActionData,
+		PreviosAction: map[string]any{
 			"label":      avatar.Label,
 			"avatar":     avatar.Avatar,
 			"is_deleted": avatar.IsDeleted,
-		},
-		CurrentData: map[string]any{
-			"is_deleted": true,
 		},
 		MakerActionTime: time.Now(),
 	})
@@ -149,13 +150,13 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error) {
 	var avatar dto.Avatar
 	var err error
 
@@ -182,18 +183,18 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	var actionData dto.Avatar
-	data, err := bson.Marshal(cpsAction.ActionData)
+	data, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		a.logger.Errorf("failed to marshal bson: %v", err)
 		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	if err := bson.Unmarshal(data, &actionData); err != nil {
@@ -202,7 +203,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	if cpsAction.ActionType == model.ActionCreate {
@@ -221,10 +222,10 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 				Code:    http.StatusInternalServerError,
 				Message: "internal server error",
 			})
-			return model.CpsAction{}, err
+			return model.CPSAction{}, err
 		}
 
-		cpsAction.ActionData = avatar
+		cpsAction.CurrentAction = avatar
 
 		return cpsAction, nil
 
@@ -262,7 +263,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 				Code:    http.StatusInternalServerError,
 				Message: "internal server error",
 			})
-			return model.CpsAction{}, err
+			return model.CPSAction{}, err
 		}
 
 		cpsAction.ActionData = avatar
@@ -288,7 +289,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 				Code:    http.StatusInternalServerError,
 				Message: "internal server error",
 			})
-			return model.CpsAction{}, err
+			return model.CPSAction{}, err
 		}
 		cpsAction.ActionData = avatar
 
@@ -298,7 +299,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	return cpsAction, nil
 }
 
-func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
 	filter := bson.M{
 		"action_code": req.ActionCode,
 		"department":  req.Department,
@@ -323,13 +324,13 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 	return cpsAction, nil
 }
 
 func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	avatarFilter := bson.M{
 		"id":         id,
 		"is_deleted": false,
@@ -351,7 +352,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 		return nil, err
 	}
 
-	cps, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
+	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:            bson.NewObjectID().Hex(),
 		ActionCode:    utils.RandomGenerator(20),
 		MakerUser:     cpsReq.MakerUser,
@@ -454,7 +455,7 @@ func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*dto.Avat
 	return avatar, nil
 }
 
-func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
 	filter := bson.M{
 		"id":         id,
 		"is_deleted": false,
@@ -471,10 +472,10 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
-	cps, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
+	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:            bson.NewObjectID().Hex(),
 		ActionCode:    utils.RandomGenerator(20),
 		MakerUser:     cpsActionReq.MakerUser,
@@ -495,7 +496,7 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cps, nil

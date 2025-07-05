@@ -2,11 +2,13 @@ package accountvalidation_inbound
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
@@ -35,18 +37,28 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+	// fmt.Printf("Decoded request: %+v\n", req)
+	// fmt.Printf("req.ID: '%s'\n", req.ID)
+	// fmt.Printf("req.Validation.Identifier: '%s'\n", req.Validation.Identifier)
+
 	if err := req.Validate(); err != nil {
+
+	
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
-		return
+	UserID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	FullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	PhoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	if UserID == "" || FullName == "" || PhoneNumber == "" {
+    utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
+    return
 	}
+	fmt.Println(UserID,FullName,PhoneNumber,"nodjghdjkfgheidgjfdk")
+	
 
-	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, req.Validation, claims.UserID, claims.PhoneNumber, claims.FullName)
+	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), req.ID, accountvalidation_app.ToDomainValidationRule(req.Validation), UserID,FullName,PhoneNumber)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -92,14 +104,8 @@ func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *htt
 }
 
 func (h *HttpStore) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
-	resp := struct {
-		Status int         `json:"status"`
-		Data   interface{} `json:"data"`
-	}{
-		Status: status,
-		Data:   data,
-	}
+	
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(data)
 }

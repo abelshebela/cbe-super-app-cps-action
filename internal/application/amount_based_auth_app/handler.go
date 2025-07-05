@@ -8,9 +8,9 @@ import (
 )
 
 type ApplicationService interface {
-	UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsAction, error)
-	ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsAction, error)
-	RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsAction, error)
+	UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
+	ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
+	RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CPSAction, error)
 }
 
 type Handler struct {
@@ -24,7 +24,7 @@ func AmountBasedAuthHandler(service *amount_based_auth_domain.Service) Applicati
 }
 
 func (h Handler) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
-	cpsAction model.CreateCPSAction) (*model.CpsAction, error) {
+	cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsActionRes, err := h.service.UpdateAuthTier(ctx, request, cpsAction)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (h Handler) UpdateAmountBasedAuth(ctx context.Context, request amount_based
 	return cpsActionRes, nil
 }
 
-func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	request, err := h.service.ApproveAuthTierApprove(ctx, id, cpsAction)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsActio
 	return request, nil
 }
 
-func (h *Handler) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsAction, error) {
+func (h *Handler) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
 	request, err := h.service.RejectAuthTier(ctx, id, cpsAction)
 	if err != nil {
 		return nil, err

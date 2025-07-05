@@ -26,13 +26,13 @@ type BankDomain struct {
 type BankService interface {
 	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error)
 	GetOneBank(ctx context.Context, id string) (*entity.Bank, error)
-	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
+	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioClientInterface,
@@ -45,7 +45,7 @@ func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioC
 	}
 }
 
-func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateBank
 	err := b.bankRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -131,7 +131,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	return cpsRes, nil
 }
 
-func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestDeleteBank
 	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (b *BankDomain) GetOneBank(ctx context.Context, id string) (*entity.Bank, e
 	return bank, nil
 }
 
-func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestUpdateBank
 	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankRepo.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("validation error", err)
 		return nil, err
@@ -199,7 +199,7 @@ func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*mo
 }
 
 func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	cpsReq.RequestAction = requestAction
 	if err := b.bankRepo.CPSActionExists(ctx, cpsReq); err != nil {

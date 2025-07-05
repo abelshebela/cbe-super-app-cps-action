@@ -3,15 +3,15 @@ package account_validation
 import "time"
 
 type ValidationRule struct {
-	ID             string
-	EntityType     string
-	ValidationFor  string
-	Identifier     string
-	MinLength      uint8
-	MaxLength      uint8
-	Enabled        bool
-	IsDeleted      bool
-	CreatedAt      time.Time
-	LastModifiedAt time.Time
-	ServiceID      string
+	ID             string    `json:"id"`
+	EntityType     string    `json:"entity_type"`
+	ValidationFor  string    `json:"validation_for"`
+	Identifier     string    `json:"identifier"`
+	MinLength      uint8     `json:"min_length"`
+	MaxLength      uint8     `json:"max_length"`
+	Enabled        bool      `json:"enabled"`
+	IsDeleted      bool      `json:"is_deleted"`
+	CreatedAt      time.Time `json:"created_at"`
+	LastModifiedAt time.Time `json:"last_modified_at"`
+	ServiceID      string    `json:"service_id"`
 }

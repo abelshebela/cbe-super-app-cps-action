@@ -13,7 +13,7 @@ func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset in
 }
 
 func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, makerId string) (string, error) {
-	
+
 	service, err := s.Repository.GetHqServiceById(ctx, id)
 	if err != nil {
 		return "", err
@@ -21,19 +21,24 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 	service.Enabled = action
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	a := CPSAction{
-		ActionCode: actionID,
-		Maker: User{
-			UserID: makerId,
-		},
-		ActionType:    ActionCreate,
-		RequestAction: RequestUpdateServiceRule,
-		ActionStatus:  ActionPending,
+		ActionCode:         actionID,
+		MakerID:            makerId,
+		MakerName:          "",
+		MakerPhoneNumber:   "",
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		ActionType:         ActionCreate,
+		RequestAction:      RequestUpdateServiceRule,
+		ActionStatus:       ActionPending,
 		CurrentAction: CurrentAction{
 			Id:     []string{id},
 			Action: action,
 		},
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		CreatedAt:         time.Now(),
+		LastModifiedAt:    time.Now(),
+		MakerActionTime:   time.Now(),
+		CheckerActionTime: time.Time{},
 	}
 	_, err = s.Repository.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -52,9 +57,10 @@ func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, action_id string, 
 	} else {
 		cps_action.ActionStatus = ActionRejected
 	}
-	cps_action.Checker = User{
-		UserID: checker_id,
-	}
+	cps_action.CheckerID = checker_id
+	cps_action.CheckerName = ""
+	cps_action.CheckerPhoneNumber = ""
+	cps_action.CheckerActionTime = time.Now()
 	cps_action.LastModifiedAt = time.Now()
 	err = s.Repository.UpdateCpsAction(ctx, cps_action)
 	if err != nil {
@@ -90,19 +96,24 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, id []string, action
 	}
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	a := CPSAction{
-		ActionCode: actionId,
-		Maker: User{
-			UserID: maker_id,
-		},
-		ActionType:    ActionCreate,
-		RequestAction: RequestUpdateServiceRule,
-		ActionStatus:  ActionPending,
+		ActionCode:         actionId,
+		MakerID:            maker_id,
+		MakerName:          "",
+		MakerPhoneNumber:   "",
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		ActionType:         ActionCreate,
+		RequestAction:      RequestUpdateServiceRule,
+		ActionStatus:       ActionPending,
 		CurrentAction: CurrentAction{
 			Id:     id,
 			Action: action,
 		},
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		CreatedAt:         time.Now(),
+		LastModifiedAt:    time.Now(),
+		MakerActionTime:   time.Now(),
+		CheckerActionTime: time.Time{},
 	}
 	result, err := s.Repository.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -121,9 +132,10 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action b
 	} else {
 		cps_action.ActionStatus = ActionRejected
 	}
-	cps_action.Checker = User{
-		UserID: checker_id,
-	}
+	cps_action.CheckerID = checker_id
+	cps_action.CheckerName = ""
+	cps_action.CheckerPhoneNumber = ""
+	cps_action.CheckerActionTime = time.Now()
 	cps_action.LastModifiedAt = time.Now()
 	err = s.Repository.UpdateCpsAction(ctx, cps_action)
 	if err != nil {

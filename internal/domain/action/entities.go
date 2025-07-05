@@ -38,20 +38,26 @@ type CurrentAction struct {
 	Action bool
 }
 type CPSAction struct {
-	ID              string
-	ActionCode      string
-	UniqueId        string
-	Maker           User
-	Checker         User
-	Department      string
-	RejectionReason *string
-	PreviosAction   interface{}
-	CurrentAction   interface{}
-	ActionStatus    ActionStatus
-	ActionType      ActionType
-	RequestAction   RequestAction
-	CreatedAt       time.Time
-	LastModifiedAt  time.Time
+	ID                 string        `json:"_id,omitempty"`
+	ActionCode         string        `json:"action_code"`
+	UniqueId           string        `json:"unique_id"`
+	MakerID            string        `json:"maker_id"`
+	MakerName          string        `json:"maker_name"`
+	MakerPhoneNumber   string        `json:"maker_phone_number"`
+	CheckerID          string        `json:"checker_id"`
+	CheckerName        string        `json:"checker_name"`
+	CheckerPhoneNumber string        `json:"checker_phone_number"`
+	Department         string        `json:"department"`
+	RejectionReason    *string       `json:"rejection_reason"`
+	PreviosAction      interface{}   `json:"previous_action"`
+	CurrentAction      interface{}   `json:"current_action"`
+	ActionStatus       ActionStatus  `json:"action_status"`
+	ActionType         ActionType    `json:"action_type"`
+	RequestAction      RequestAction `json:"request_action"`
+	CreatedAt          time.Time     `json:"created_at"`
+	LastModifiedAt     time.Time     `json:"last_modified_at"`
+	MakerActionTime    time.Time     `json:"maker_action_time"`
+	CheckerActionTime  time.Time     `json:"checker_action_time"`
 }
 
 type RequestAction string
@@ -280,53 +286,50 @@ type PasswordRule struct {
 	CreatedAt      time.Time
 }
 type Branch struct {
-    ID            string
-    BranchCode    string
-    BranchName    string
-    BranchAddress string
-    DistrictCode  string
-    DistrictName  string
-    BranchRegion  string
-    RecordStat    string
-    CreatedAt     time.Time
-    UpdatedAt     time.Time
-    Version       int
-    Enabled       bool
+	ID            string
+	BranchCode    string
+	BranchName    string
+	BranchAddress string
+	DistrictCode  string
+	DistrictName  string
+	BranchRegion  string
+	RecordStat    string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Version       int
+	Enabled       bool
 }
 
 type Region struct {
-    ID            string
-    RegionCode    string
-    RegionName    string
-    RegionAddress string
-    CreatedAt     time.Time
-    UpdatedAt     time.Time
-    Enabled       bool
+	ID            string
+	RegionCode    string
+	RegionName    string
+	RegionAddress string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Enabled       bool
 }
 type District struct {
-	ID            string
-	DistrictCode   string
-	DistrictName   string
+	ID              string
+	DistrictCode    string
+	DistrictName    string
 	DistrictAddress string
-	RegionID      string
-	RegionName    string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Enabled       bool
+	RegionID        string
+	RegionName      string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	Enabled         bool
 }
 type City struct {
-	ID            string
-	CityCode       string
-	CityName       string
-	CityAddress    string
-	DistrictID    string
-	DistrictName  string
-	RegionID      string
-	RegionName    string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Enabled       bool
+	ID           string
+	CityCode     string
+	CityName     string
+	CityAddress  string
+	DistrictID   string
+	DistrictName string
+	RegionID     string
+	RegionName   string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Enabled      bool
 }
-
-
-	

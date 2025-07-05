@@ -21,14 +21,14 @@ import (
 type AmountBasedAuthRepo struct {
 	client       *mongo.Client
 	authTier     dal.MongoDal[amount_based_auth_domain.AuthTier, amount_based_auth_domain.AuthTier]
-	cpsActionDal dal.MongoDal[model.CpsAction, model.CpsAction]
+	cpsActionDal dal.MongoDal[model.CPSAction, model.CPSAction]
 	timeOut      time.Duration
 	logger       utils.Logger
 }
 
 func InitAmountBasedAuth(client *mongo.Client, database string, collection []string, logger utils.Logger) *AmountBasedAuthRepo {
 	authTier := dal.NewMongoDal[amount_based_auth_domain.AuthTier, amount_based_auth_domain.AuthTier](client, database, collection[0])
-	cpsActionDal := dal.NewMongoDal[model.CpsAction, model.CpsAction](client, database, collection[1])
+	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collection[1])
 
 	return &AmountBasedAuthRepo{
 		client:       client,
@@ -215,7 +215,7 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 }
 
 func (a AmountBasedAuthRepo) UpdateAuthTier(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
-	cpsAction model.CreateCPSAction) (*model.CpsAction, error) {
+	cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
 
 	if err := a.checkExistingAuthTier(ctx, cpsAction); err != nil {
 		return nil, err
@@ -260,17 +260,19 @@ func (a AmountBasedAuthRepo) UpdateAuthTier(ctx context.Context, request amount_
 		return nil, err
 	}
 
-	actionInsert, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:              bson.NewObjectID().Hex(),
-		ActionCode:      utils.RandomGenerator(20),
-		MakerUser:       cpsAction.MakerUser,
-		Department:      cpsAction.Department,
-		Status:          model.ActionPending,
-		ActionType:      model.ActionUpdate,
-		RequestAction:   model.RequestAuthTier,
-		PreviousData:    authTier,
-		CurrentData:     request,
-		MakerActionTime: time.Now(),
+	actionInsert, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsAction.MakerUser.UserCode,
+		MakerName:        cpsAction.MakerUser.FullName,
+		MakerPhoneNumber: cpsAction.MakerUser.PhoneNumber,
+		Department:       cpsAction.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(model.RequestAuthTier),
+		PreviosAction:    authTier,
+		CurrentAction:    request,
+		MakerActionTime:  time.Now(),
 	})
 	if err != nil {
 		a.logger.Errorf("Failed to insert cps action: %v", err)
@@ -287,7 +289,7 @@ func (a AmountBasedAuthRepo) UpdateAuthTier(ctx context.Context, request amount_
 
 }
 
-func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"id":         id,
 		"department": cpsAction.Department,
@@ -326,7 +328,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	var actionData amount_based_auth_domain.AuthTier
 
 	// Decode CurrentAction
-	rawDoc, err := bson.Marshal(savedAction.CurrentData)
+	rawDoc, err := bson.Marshal(savedAction.CurrentAction)
 	if err != nil {
 		a.logger.Errorf("failed to marshal current action", err)
 		return nil, fmt.Errorf("%w", constant.ErrorDefinition{
@@ -379,7 +381,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 			})
 		}
 
-		savedAction.CurrentData = actionData
+		savedAction.CurrentAction = actionData
 		return &savedAction, nil
 	}
 
@@ -416,7 +418,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 				})
 			}
 
-			savedAction.CurrentData = actionData
+			savedAction.CurrentAction = actionData
 			return &savedAction, nil
 		}
 
@@ -455,7 +457,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 				})
 			}
 
-			savedAction.CurrentData = actionData
+			savedAction.CurrentAction = actionData
 			return &savedAction, nil
 		}
 	}
@@ -494,14 +496,14 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 			})
 		}
 
-		savedAction.CurrentData = actionData
+		savedAction.CurrentAction = actionData
 		return &savedAction, nil
 	}
 
 	return &savedAction, nil
 }
 
-func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsAction, error) {
+func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"id":         id,
 		"department": cpsAction.Department,

@@ -21,13 +21,13 @@ import (
 
 type Wallet struct {
 	walletDal dal.MongoDal[entity.Wallet, entity.Wallet]
-	cpsDal    dal.MongoDal[model.CpsAction, model.CpsAction]
+	cpsDal    dal.MongoDal[model.CPSAction, model.CPSAction]
 	logger    utils.Logger
 }
 
 func InitWallet(client *mongo.Client, database string, collections []string, logger utils.Logger) outbound.WalletPersistence {
 	walletDal := dal.NewMongoDal[entity.Wallet, entity.Wallet](client, database, collections[0])
-	cpsDal := dal.NewMongoDal[model.CpsAction, model.CpsAction](client, database, collections[1])
+	cpsDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collections[1])
 	return &Wallet{
 		walletDal: walletDal,
 		cpsDal:    cpsDal,
@@ -68,17 +68,19 @@ func (w *Wallet) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSActi
 	return nil
 }
 
-func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	cpsAction, err := w.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:              bson.NewObjectID().Hex(),
-		ActionCode:      utils.RandomGenerator(20),
-		MakerUser:       cpsReq.MakerUser,
-		Department:      cpsReq.Department,
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateWallet,
-		ActionType:      model.ActionCreate,
-		ActionData:      cpsReq.ActionData,
-		MakerActionTime: time.Now(),
+func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	cpsAction, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		Status:           model.ActionPending,
+		RequestAction:    model.RequestCreateWallet,
+		ActionType:       model.ActionCreate,
+		ActionData:       cpsReq.ActionData,
+		MakerActionTime:  time.Now(),
 	})
 
 	if err != nil {
@@ -93,7 +95,7 @@ func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction)
 	return &cpsAction, nil
 }
 
-func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	walletFilter := bson.M{
 		"id":         id,
@@ -116,15 +118,17 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 		return nil, err
 	}
 
-	cps, err := w.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsReq.ActionData,
-		RequestAction: model.RequestUpdateWallet,
+	cps, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		Status:           model.ActionPending,
+		ActionType:       model.ActionUpdate,
+		ActionData:       cpsReq.ActionData,
+		RequestAction:    model.RequestUpdateWallet,
 		PreviousData: map[string]any{
 			"name": wallet.Name,
 			"code": wallet.Code,
@@ -144,7 +148,7 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 	return &cps, nil
 }
 
-func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	walletFilter := bson.M{
 		"id":         id,
@@ -167,22 +171,24 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 		return nil, err
 	}
 
-	cpsRes, err := w.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		RequestAction: model.RequestDeleteWallet,
-		ActionType:    model.ActionDelete,
-		ActionData:    cpsReq.ActionData,
-		PreviousData: map[string]any{
+	cpsRes, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		ActionStatus:     model.ActionPending,
+		RequestAction:    model.RequestDeleteWallet,
+		ActionType:       model.ActionDelete,
+		ActionData:       cpsReq.ActionData,
+		PreviosAction: map[string]any{
 			"name":       wallet.Name,
 			"code":       wallet.Code,
 			"avatar":     wallet.Avatar,
 			"is_deleted": wallet.IsDeleted,
 		},
-		CurrentData: map[string]any{
+		CurrentAction: map[string]any{
 			"is_deleted": true,
 		},
 		MakerActionTime: time.Now(),
@@ -201,7 +207,7 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 }
 
 func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	walletFilter := bson.M{
 		"id":         id,
@@ -224,15 +230,17 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 		return nil, err
 	}
 
-	cps, err := w.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsReq.ActionData,
-		RequestAction: requestAction,
+	cps, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		Status:           model.ActionPending,
+		ActionType:       model.ActionUpdate,
+		ActionData:       cpsReq.ActionData,
+		RequestAction:    requestAction,
 		PreviousData: map[string]any{
 			"name":    wallet.Name,
 			"code":    wallet.Code,
@@ -326,7 +334,7 @@ func (w *Wallet) GetWallet(ctx context.Context, id string) (*entity.Wallet, erro
 	return wallet, nil
 }
 
-func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	var wallet entity.Wallet
 	var err error
 
@@ -469,7 +477,7 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 	return &cpsAction, nil
 }
 
-func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"action_code": req.ActionCode,
 		"department":  req.Department,

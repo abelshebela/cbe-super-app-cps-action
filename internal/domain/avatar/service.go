@@ -21,15 +21,15 @@ type AvatarDomain struct {
 }
 
 type AvatarDomainService interface {
-	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CpsAction, error)
-	DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (model.CpsAction, error)
+	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CPSAction, error)
+	DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*Avatar, error)
 	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (AvatarResponse, error)
-	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CpsAction, error)
+	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error)
 }
 
 func InitAvatarDomain(avatarRepo AvatarRepository,
@@ -42,17 +42,17 @@ func InitAvatarDomain(avatarRepo AvatarRepository,
 	}
 }
 
-func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateAvatar
 	err := a.avatarRepo.CPSActionExists(ctx, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	actionData, ok := req.ActionData.(CreateAvatar)
 	if !ok {
 		a.logger.Errorf("failed to cast action data to avatar request")
-		return model.CpsAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
 		})
@@ -60,13 +60,13 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 
 	if err := actionData.Validate(); err != nil {
 		a.logger.Errorf("validation error", err)
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
 		a.logger.Errorf("failed to check avatar bucket: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -76,7 +76,7 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 		created, err := a.minioClient.MakeBucket(ctx, a.bucketName)
 		if !created || err != nil {
 			a.logger.Errorf("failed to create avatar bucket: %v", err)
-			return model.CpsAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
+			return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
 				Code:    http.StatusInternalServerError,
 				Message: "internal server error",
 			})
@@ -87,7 +87,7 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	file, err := actionData.Avatar.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open uploaded file: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -104,7 +104,7 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return model.CpsAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -119,50 +119,50 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 		},
 	})
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsRes, nil
 }
 
-func (a *AvatarDomain) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarDomain) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error) {
 	req.RequestAction = model.RequestDeleteAvatar
 	err := a.avatarRepo.CPSActionExists(ctx, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 	cpsAction, err := a.avatarRepo.DeleteAvatar(ctx, id, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CpsAction, error) {
+func (a *AvatarDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error) {
 	cpsAction, err := a.avatarRepo.Authorize(ctx, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarDomain) Reject(ctx context.Context, req model.RejectCPSAction) (model.CpsAction, error) {
+func (a *AvatarDomain) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
 	if err := req.Validate(); err != nil {
 		a.logger.Errorf("validation error", err)
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 	cpsAction, err := a.avatarRepo.Reject(ctx, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsAction, nil
 }
 
 func (a *AvatarDomain) EnableOrDisableAvatar(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsReq.RequestAction = requestAction
 	err := a.avatarRepo.CPSActionExists(ctx, cpsReq)
 	if err != nil {
@@ -184,17 +184,17 @@ func (a *AvatarDomain) GetAvatar(ctx context.Context, id string) (*Avatar, error
 	return a.avatarRepo.GetAvatar(ctx, id)
 }
 
-func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error) {
 	req.RequestAction = model.RequestUpdateAvatar
 	err := a.avatarRepo.CPSActionExists(ctx, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	actionData, ok := req.ActionData.(UpdateAvatar)
 	if !ok {
 		a.logger.Errorf("failed to cast action data to avatar request")
-		return model.CpsAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusBadRequest,
 			Message: "invalid action data",
 		})
@@ -202,13 +202,13 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 
 	if err := actionData.Validate(); err != nil {
 		a.logger.Errorf("validation error", err)
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
 		a.logger.Errorf("failed to check avatar bucket %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -216,7 +216,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 
 	if !exist {
 		a.logger.Errorf("avatar bucket not found")
-		return model.CpsAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
 			Code:    http.StatusNotFound,
 			Message: "bucket not exist",
 		})
@@ -224,14 +224,14 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 
 	avatar, err := a.avatarRepo.GetAvatar(ctx, id)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	fileName := fmt.Sprintf("avatar-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
 	file, err := actionData.Avatar.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open uploaded file: %v", err)
-		return model.CpsAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -248,7 +248,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return model.CpsAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
+		return model.CPSAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
@@ -260,7 +260,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 	}
 	cpsAction, err := a.avatarRepo.UpdateAvatar(ctx, id, req)
 	if err != nil {
-		return model.CpsAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	return cpsAction, nil

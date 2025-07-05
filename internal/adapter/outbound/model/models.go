@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -54,23 +53,26 @@ type User struct {
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
 type CPSAction struct {
-	ID                 bson.ObjectID   `bson:"_id,omitempty"`
-	ActionCode         string          `bson:"action_code"` // Generated
-	MakerUser          User            `json:"maker_user" bson:"maker_user"`
-	CheckerUser        User            `json:"checker_user" bson:"checker_user"`
-	UniqueId           string          `bson:"unique_id"`
-	CheckerID          *string         `bson:"checker_id,omitempty"`
-	CheckerName        *string         `bson:"checker_name,omitempty"`
-	CheckerPhoneNumber *string         `bson:"checker_phone_number,omitempty"`
-	Department         string          `bson:"department"`
-	RejectionReason    *string         `bson:"rejection_reason,omitempty"`
-	PreviosAction      json.RawMessage `bson:"previos_action"`
-	CurrentAction      json.RawMessage `bson:"current_action"`
-	ActionStatus       ActionStatus    `bson:"action_status"`
-	ActionType         ActionType      `bson:"action_type"`
-	RequestAction      RequestAction   `bson:"request_action"`
-	CreatedAt          time.Time       `bson:"created_at"`
-	LastModifiedAt     time.Time       `bson:"last_modified_at"`
+	ID                 string      `bson:"_id,omitempty" json:"_id,omitempty"`
+	ActionCode         string      `bson:"action_code" json:"action_code"`
+	UniqueId           string      `bson:"unique_id" json:"unique_id"`
+	MakerID            string      `bson:"maker_id" json:"maker_id"`
+	MakerName          string      `bson:"maker_name" json:"maker_name"`
+	MakerPhoneNumber   string      `bson:"maker_phone_number" json:"maker_phone_number"`
+	CheckerID          string      `bson:"checker_id" json:"checker_id"`
+	CheckerName        string      `bson:"checker_name" json:"checker_name"`
+	CheckerPhoneNumber string      `bson:"checker_phone_number" json:"checker_phone_number"`
+	Department         string      `bson:"department" json:"department"`
+	RejectionReason    string      `bson:"rejection_reason" json:"rejection_reason"`
+	PreviosAction      interface{} `bson:"previous_action" json:"previous_action"`
+	CurrentAction      interface{} `bson:"current_action" json:"current_action"`
+	ActionStatus       string      `bson:"action_status" json:"action_status"`
+	ActionType         string      `bson:"action_type" json:"action_type"`
+	RequestAction      string      `bson:"request_action" json:"request_action"`
+	CreatedAt          time.Time   `bson:"created_at" json:"created_at"`
+	LastModifiedAt     time.Time   `bson:"last_modified_at" json:"last_modified_at"`
+	MakerActionTime    time.Time   `bson:"maker_action_time" json:"maker_action_time"`
+	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
 type RequestAction string
 
@@ -427,33 +429,17 @@ func (r RejectCPSAction) Validate() error {
 	)
 }
 
-type CpsAction struct {
-	ID                string        `json:"id" bson:"id"`
-	ActionCode        string        `json:"action_code" bson:"action_code"`
-	MakerUser         User          `json:"maker_user" bson:"maker_user"`
-	CheckerUser       User          `json:"checker_user,omitempty" bson:"checker_user"`
-	RejectedReason    string        `json:"rejected_reason,omitempty" bson:"rejected_reason"`
-	Department        string        `json:"department" bson:"department"`
-	Status            ActionStatus  `json:"status" bson:"status"`
-	RequestAction     RequestAction `json:"request_action" bson:"request_action"`
-	ActionType        ActionType    `json:"action_type" bson:"action_type"`
-	ActionData        any           `json:"action_data" bson:"action_data"`
-	PreviousData      any           `json:"previous_action,omitempty"`
-	CurrentData       any           `json:"current_action,omitempty"`
-	MakerActionTime   time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time"`
-	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
-}
 type PasswordRule struct {
 	ID             bson.ObjectID `bson:"_id,omitempty" json:"_id"`
-	PasswordId     string             `bson:"password_id" json:"password_id"`
-	Name           string             `bson:"name" json:"name"`
-	MinLength      int                `bson:"min_length" json:"min_length"`
-	MaxLength      int                `bson:"max_length" json:"max_length"`
-	Numbers        bool               `bson:"numbers" json:"numbers"`
-	CapitalLetters bool               `bson:"capital_letters" json:"capital_letters"`
-	SmallLetters   bool               `bson:"small_letters" json:"small_letters"`
-	Characters     bool               `bson:"characters" json:"characters"`
-	CreatedAt      time.Time          `bson:"created_at" json:"created_at"`
+	PasswordId     string        `bson:"password_id" json:"password_id"`
+	Name           string        `bson:"name" json:"name"`
+	MinLength      int           `bson:"min_length" json:"min_length"`
+	MaxLength      int           `bson:"max_length" json:"max_length"`
+	Numbers        bool          `bson:"numbers" json:"numbers"`
+	CapitalLetters bool          `bson:"capital_letters" json:"capital_letters"`
+	SmallLetters   bool          `bson:"small_letters" json:"small_letters"`
+	Characters     bool          `bson:"characters" json:"characters"`
+	CreatedAt      time.Time     `bson:"created_at" json:"created_at"`
 }
 
 type HQ struct {
@@ -515,5 +501,3 @@ type City struct {
 	UpdatedAt    time.Time     `json:"updated_at" bson:"updated_at"`
 	Enabled      bool          `json:"enabled" bson:"enabled"`
 }
-
-

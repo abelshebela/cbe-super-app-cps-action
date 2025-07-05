@@ -30,7 +30,7 @@ type Persitence struct {
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
 	collectionNames := []string{
 		"bps_user",
-		"cps_action",
+		"cps_actions",
 		"cps_users",
 		"service",
 		"member",
@@ -41,7 +41,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 	return Persitence{
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, database_name, "customers", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, database_name, "feedbacks", logger),
-		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, database_name, []string{"user", "otp", "cps_action"}, logger),
+		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, database_name, []string{"user", "otp", "cps_actions"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, database_name, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, database_name, 5*time.Second, logger),
 		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, database_name, collectionNames, logger),

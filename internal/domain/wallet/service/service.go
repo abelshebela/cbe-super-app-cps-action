@@ -26,12 +26,12 @@ type WalletDomain struct {
 type WalletService interface {
 	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
-	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
-	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
+	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.MinioClientInterface,
@@ -44,7 +44,7 @@ func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.
 	}
 }
 
-func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -129,7 +129,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	return cpsRes, nil
 }
 
-func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestUpdateWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -144,7 +144,7 @@ func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestDeleteWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -176,7 +176,7 @@ func (w *WalletDomain) GetWallet(ctx context.Context, id string) (*entity.Wallet
 	return bank, nil
 }
 
-func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletRepo.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSActi
 	return cpsAction, nil
 }
 
-func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	if err := req.Validate(); err != nil {
 		w.logger.Errorf("validation error", err)
 		return nil, err
@@ -199,7 +199,7 @@ func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*
 }
 
 func (w *WalletDomain) EnableOrDisableWallet(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsReq.RequestAction = requestAction
 	err := w.walletRepo.CPSActionExists(ctx, cpsReq)
 	if err != nil {

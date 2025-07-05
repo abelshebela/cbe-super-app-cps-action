@@ -150,7 +150,7 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 		name    string
 		req     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -162,7 +162,7 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					CreateBank(gomock.Any(), gomock.Any()).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS001",
 						ActionCode:      "ACT001",
 						MakerUser:       testUser,
@@ -174,7 +174,7 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS001",
 				ActionCode:      "ACT001",
 				MakerUser:       testUser,
@@ -423,7 +423,7 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 		id      string
 		req     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -436,7 +436,7 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					UpdateBank(gomock.Any(), "BANK001", testCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS002",
 						ActionCode:      "ACT002",
 						MakerUser:       testUser,
@@ -448,7 +448,7 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS002",
 				ActionCode:      "ACT002",
 				MakerUser:       testUser,
@@ -525,7 +525,7 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 		id      string
 		req     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -538,7 +538,7 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					DeleteBank(gomock.Any(), "BANK001", testCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS003",
 						ActionCode:      "ACT003",
 						MakerUser:       testUser,
@@ -550,7 +550,7 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS003",
 				ActionCode:      "ACT003",
 				MakerUser:       testUser,
@@ -628,7 +628,7 @@ func TestBankDomain_Authorize(t *testing.T) {
 		name    string
 		req     model.AuthorizeCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -637,7 +637,7 @@ func TestBankDomain_Authorize(t *testing.T) {
 			mock: func() {
 				mockRepo.EXPECT().
 					Authorize(gomock.Any(), testAuthorizeReq).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:                "CPS001",
 						ActionCode:        "ACT001",
 						MakerUser:         testMakerUser,
@@ -651,7 +651,7 @@ func TestBankDomain_Authorize(t *testing.T) {
 						CheckerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:                "CPS001",
 				ActionCode:        "ACT001",
 				MakerUser:         testMakerUser,
@@ -736,7 +736,7 @@ func TestBankDomain_Reject(t *testing.T) {
 		name    string
 		req     model.RejectCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -745,7 +745,7 @@ func TestBankDomain_Reject(t *testing.T) {
 			mock: func() {
 				mockRepo.EXPECT().
 					Reject(gomock.Any(), testRejectReq).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:                "CPS001",
 						ActionCode:        "ACT001",
 						MakerUser:         testMakerUser,
@@ -760,7 +760,7 @@ func TestBankDomain_Reject(t *testing.T) {
 						CheckerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:                "CPS001",
 				ActionCode:        "ACT001",
 				MakerUser:         testMakerUser,
@@ -848,7 +848,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 		requestAction model.RequestAction
 		cpsReq        model.CreateCPSAction
 		mock          func()
-		want          *model.CpsAction
+		want          *model.CPSAction
 		wantErr       bool
 	}{
 		{
@@ -862,7 +862,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
 						MakerUser:       testUser,
@@ -874,7 +874,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS004",
 				ActionCode:      "ACT004",
 				MakerUser:       testUser,
@@ -898,7 +898,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 					Return(nil)
 				mockRepo.EXPECT().
 					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableBank, testDisableCPSAction).
-					Return(&model.CpsAction{
+					Return(&model.CPSAction{
 						ID:              "CPS004",
 						ActionCode:      "ACT004",
 						MakerUser:       testUser,
@@ -910,7 +910,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 						MakerActionTime: testTime,
 					}, nil)
 			},
-			want: &model.CpsAction{
+			want: &model.CPSAction{
 				ID:              "CPS004",
 				ActionCode:      "ACT004",
 				MakerUser:       testUser,

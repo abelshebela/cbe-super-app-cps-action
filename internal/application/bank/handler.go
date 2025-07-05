@@ -14,13 +14,13 @@ import (
 type BankHandlerService interface {
 	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error)
 	GetOneBank(ctx context.Context, id string) (*entity.Bank, error)
-	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
+	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 type BankHandler struct {
@@ -35,7 +35,7 @@ func InitBankHanlder(bankDomin service.BankService, logger utils.Logger) BankHan
 	}
 }
 
-func (b *BankHandler) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankHandler) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsRes, err := b.bankDomain.CreateOneBank(ctx, req)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (b *BankHandler) CreateOneBank(ctx context.Context, req model.CreateCPSActi
 	return cpsRes, nil
 }
 
-func (b *BankHandler) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankHandler) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankDomain.DeleteOneBank(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (b *BankHandler) GetOneBank(ctx context.Context, id string) (*entity.Bank, 
 	return bank, nil
 }
 
-func (b *BankHandler) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankHandler) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankDomain.UpdateOneBank(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (b *BankHandler) UpdateOneBank(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (b *BankHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (b *BankHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankDomain.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (b *BankHandler) Authorize(ctx context.Context, req model.AuthorizeCPSActio
 	return cpsAction, nil
 }
 
-func (b *BankHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (b *BankHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankDomain.Reject(ctx, req)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (b *BankHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*m
 	return cpsAction, nil
 }
 
-func (b *BankHandler) EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankHandler) EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankDomain.EnableOrDisableBank(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err

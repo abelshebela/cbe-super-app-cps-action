@@ -209,27 +209,26 @@ func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Contex
 			continue
 		}
 		result = append(result, action.CPSAction{
-			ActionCode: a.ActionCode,
-			Maker: action.User{
-				UserID:      a.MakerUser.UserCode,
-				FullName:    a.MakerUser.FullName,
-				PhoneNumber: a.MakerUser.PhoneNumber,
-			},
-			Checker: action.User{
-				UserID:      getStringValue(a.CheckerID),
-				FullName:    getStringValue(a.CheckerName),
-				PhoneNumber: getStringValue(a.CheckerPhoneNumber),
-			},
-			Department:      a.Department,
-			ActionType:      action.ActionType(a.ActionType),
-			RequestAction:   action.RequestAction(a.RequestAction),
-			ActionStatus:    action.ActionStatus(a.ActionStatus),
-			CurrentAction:   a.CurrentAction,
-			PreviosAction:   a.PreviosAction,
-			RejectionReason: a.RejectionReason,
-			CreatedAt:       a.CreatedAt,
-			LastModifiedAt:  a.LastModifiedAt,
-			ID:              a.ID.Hex(),
+			ActionCode:         a.ActionCode,
+			MakerID:            a.MakerID,
+			MakerName:          a.MakerName,
+			MakerPhoneNumber:   a.MakerPhoneNumber,
+			CheckerID:          a.CheckerID,
+			CheckerName:        a.CheckerName,
+			CheckerPhoneNumber: a.CheckerPhoneNumber,
+			Department:         a.Department,
+			ActionType:         action.ActionType(a.ActionType),
+			RequestAction:      action.RequestAction(a.RequestAction),
+			ActionStatus:       action.ActionStatus(a.ActionStatus),
+			CurrentAction:      a.CurrentAction,
+			PreviosAction:      a.PreviosAction,
+			RejectionReason:    a.RejectionReason,
+			CreatedAt:          a.CreatedAt,
+			LastModifiedAt:     a.LastModifiedAt,
+			ID:                 a.ID,
+			MakerActionTime:    a.MakerActionTime,
+			CheckerActionTime:  a.CheckerActionTime,
+			UniqueId:           a.UniqueId,
 		})
 	}
 

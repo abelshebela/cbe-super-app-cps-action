@@ -248,11 +248,9 @@ func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request
 		return
 	}
 	maker := action.CPSAction{
-		Maker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.BlockRegion(r.Context(), action.Region{ID: req.RegionID}, maker)
 	if err != nil {
@@ -358,11 +356,9 @@ func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	maker := action.CPSAction{
-		Maker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.BlockDistrict(r.Context(), req.DistrictID, maker)
 	if err != nil {
@@ -410,11 +406,9 @@ func (h *AccountBlockHandler) ApproveBlockDistrict(w http.ResponseWriter, r *htt
 	}
 	h.logger.Infof("ApproveBlockDistrict requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
 	maker := action.CPSAction{
-		Checker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		CheckerID:          userPayload.UserID,
+		CheckerName:        userPayload.FullName,
+		CheckerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.ApproveBlockDistrict(r.Context(), req.DistrictID, maker)
 	if err != nil {
@@ -442,11 +436,9 @@ func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	maker := action.CPSAction{
-		Maker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.BlockCity(r.Context(), req.CityID, maker)
 	if err != nil {
@@ -495,11 +487,9 @@ func (h *AccountBlockHandler) ApproveBlockCity(w http.ResponseWriter, r *http.Re
 	}
 	h.logger.Infof("ApproveBlockCity requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
 	maker := action.CPSAction{
-		Checker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		CheckerID:          userPayload.UserID,
+		CheckerName:        userPayload.FullName,
+		CheckerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.ApproveBlockCity(r.Context(), req.CityID, maker)
 	if err != nil {
@@ -527,11 +517,9 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	maker := action.CPSAction{
-		Maker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.BlockUser(r.Context(), req.UserID, maker)
 	if err != nil {
@@ -581,11 +569,9 @@ func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Re
 	}
 	h.logger.Infof("ApproveBlockUser requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
 	maker := action.CPSAction{
-		Checker: action.User{
-			UserID:      userPayload.UserID,
-			FullName:    userPayload.FullName,
-			PhoneNumber: userPayload.PhoneNumber,
-		},
+		CheckerID:          userPayload.UserID,
+		CheckerName:        userPayload.FullName,
+		CheckerPhoneNumber: userPayload.PhoneNumber,
 	}
 	err := h.service.ApproveBlockUser(r.Context(), req.UserID, maker)
 	if err != nil {

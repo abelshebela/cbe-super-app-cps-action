@@ -72,7 +72,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	response := common.Response[*model.CpsAction]{
+	response := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           amountBasedAuth,
@@ -107,7 +107,7 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 		return
 	}
 
-	response := common.Response[*model.CpsAction]{
+	response := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           amountBasedAuth,
@@ -150,7 +150,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           rejectAction,

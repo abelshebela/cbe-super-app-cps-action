@@ -61,7 +61,7 @@ func TestService_UpdateAuthTier(t *testing.T) {
 		CurrentData:     testRequest,
 		MakerActionTime: testTime,
 	}
-	testCpsActionRes := &model.CpsAction{
+	testCpsActionRes := &model.CPSAction{
 		ID:              "CPS001",
 		ActionCode:      "ACT001",
 		MakerUser:       testUser,
@@ -78,7 +78,7 @@ func TestService_UpdateAuthTier(t *testing.T) {
 		req     amount_based_auth_domain.UpdateAmountBasedAuth
 		cps     model.CreateCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -142,7 +142,7 @@ func TestService_ApproveAuthTierApprove(t *testing.T) {
 		CheckerUser:       testChecker,
 		CheckerActionTime: testTime,
 	}
-	testCpsAction := &model.CpsAction{
+	testCpsAction := &model.CPSAction{
 		ID:                "CPS001",
 		ActionCode:        "ACT001",
 		CheckerUser:       testChecker,
@@ -158,7 +158,7 @@ func TestService_ApproveAuthTierApprove(t *testing.T) {
 		id      string
 		req     model.AuthorizeCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{
@@ -235,7 +235,7 @@ func TestService_RejectAuthTier(t *testing.T) {
 		RejectedReason:    "Invalid data provided by the user during the request",
 		CheckerActionTime: testTime,
 	}
-	testCpsAction := &model.CpsAction{
+	testCpsAction := &model.CPSAction{
 		ID:                "CPS001",
 		ActionCode:        "ACT001",
 		MakerUser:         testMaker,
@@ -254,7 +254,7 @@ func TestService_RejectAuthTier(t *testing.T) {
 		id      string
 		req     model.RejectCPSAction
 		mock    func()
-		want    *model.CpsAction
+		want    *model.CPSAction
 		wantErr bool
 	}{
 		{

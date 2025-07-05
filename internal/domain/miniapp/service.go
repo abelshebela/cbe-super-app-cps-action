@@ -13,11 +13,8 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	previos_action := miniApp
 	action := domain.CPSAction{
-		ActionCode: actionId,
-		Maker: domain.User{
-			UserID: makerId,
-		},
-		Checker:       domain.User{},
+		ActionCode:    actionId,
+		MakerID:       makerId,
 		ActionType:    domain.ActionCreate,
 		RequestAction: domain.RequestCreateMiniAppMerchant,
 		ActionStatus:  domain.ActionPending,
@@ -42,9 +39,7 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 		act.ActionType = domain.ActionType(domain.ActionRejected)
 		act.ActionStatus = domain.ActionRejected
 	}
-	act.Checker = domain.User{
-		UserID: checkerId,
-	}
+	act.CheckerID = checkerId
 	err = s.Repository.UpdateCpsAction(ctx, act)
 	if err != nil {
 		return err

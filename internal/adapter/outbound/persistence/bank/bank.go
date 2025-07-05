@@ -20,13 +20,13 @@ import (
 
 type Bank struct {
 	bankDal dal.MongoDal[entity.Bank, entity.Bank]
-	cpsDal  dal.MongoDal[model.CpsAction, model.CpsAction]
+	cpsDal  dal.MongoDal[model.CPSAction, model.CPSAction]
 	logger  utils.Logger
 }
 
 func InitBank(client *mongo.Client, database string, collections []string, logger utils.Logger) outbound.BankPersistence {
 	bankDal := dal.NewMongoDal[entity.Bank, entity.Bank](client, database, collections[0])
-	cpsDal := dal.NewMongoDal[model.CpsAction, model.CpsAction](client, database, collections[1])
+	cpsDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collections[1])
 	return &Bank{
 		bankDal: bankDal,
 		cpsDal:  cpsDal,
@@ -67,17 +67,19 @@ func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction
 	return nil
 }
 
-func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
-	cpsAction, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:              bson.NewObjectID().Hex(),
-		ActionCode:      utils.RandomGenerator(20),
-		MakerUser:       cpsReq.MakerUser,
-		Department:      cpsReq.Department,
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateBank,
-		ActionType:      model.ActionCreate,
-		ActionData:      cpsReq.ActionData,
-		MakerActionTime: time.Now(),
+func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	cpsAction, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestCreateBank),
+		ActionType:       string(model.ActionCreate),
+		CurrentAction:    cpsReq.ActionData,
+		MakerActionTime:  time.Now(),
 	})
 
 	if err != nil {
@@ -92,7 +94,7 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 	return &cpsAction, nil
 }
 
-func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	bankFilter := bson.M{
 		"id":         id,
@@ -116,24 +118,23 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 		return nil, err
 	}
 
-	cpsRes, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		RequestAction: model.RequestDeleteBank,
-		ActionType:    model.ActionDelete,
-		ActionData:    cpsReq.ActionData,
-		PreviousData: map[string]any{
+	cpsRes, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestDeleteBank),
+		ActionType:       string(model.ActionDelete),
+		CurrentAction:    cpsReq.ActionData,
+		PreviosAction: map[string]any{
 			"name":       bank.Name,
 			"code":       bank.Code,
 			"bic":        bank.BIC,
 			"logo":       bank.Logo,
 			"is_deleted": bank.IsDeleted,
-		},
-		CurrentData: map[string]any{
-			"is_deleted": true,
 		},
 		MakerActionTime: time.Now(),
 	})
@@ -223,7 +224,7 @@ func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 	return bank, nil
 }
 
-func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	bankFilter := bson.M{
 		"id":         id,
@@ -246,21 +247,22 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 		return nil, err
 	}
 
-	cps, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsReq.ActionData,
-		RequestAction: model.RequestUpdateBank,
-		PreviousData: map[string]any{
+	cps, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		CurrentAction:    cpsReq.ActionData,
+		RequestAction:    string(model.RequestUpdateBank),
+		PreviosAction: map[string]any{
 			"name": bank.Name,
 			"code": bank.Code,
 			"bic":  bank.BIC,
 		},
-		CurrentData:     cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -284,7 +286,7 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &cps, nil
 }
 
-func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	var bank entity.Bank
 	var err error
 
@@ -315,7 +317,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 	}
 
 	var actionData entity.Bank
-	data, err := bson.Marshal(cpsAction.ActionData)
+	data, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		b.logger.Errorf("failed to marshal bson: %v", err)
 		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
@@ -428,7 +430,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 	return &cpsAction, nil
 }
 
-func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"action_code": req.ActionCode,
 		"department":  req.Department,
@@ -459,7 +461,7 @@ func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.Cp
 }
 
 func (b *Bank) EnableOrDisableBank(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	bankFilter := bson.M{
 		"id":         id,
@@ -491,22 +493,23 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string,
 		return nil, err
 	}
 
-	cps, err := b.cpsDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsReq.ActionData,
-		RequestAction: requestAction,
-		PreviousData: map[string]any{
+	cps, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		CurrentAction:    cpsReq.ActionData,
+		RequestAction:    string(requestAction),
+		PreviosAction: map[string]any{
 			"name":    bank.Name,
 			"code":    bank.Code,
 			"bic":     bank.BIC,
 			"enabled": bank.Enabled,
 		},
-		CurrentData:     cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {

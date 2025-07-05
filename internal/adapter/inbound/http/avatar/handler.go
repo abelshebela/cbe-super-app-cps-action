@@ -114,7 +114,7 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
+	res := common.Response[model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -145,7 +145,7 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
+	res := common.Response[model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           authAction,
@@ -185,7 +185,7 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
+	res := common.Response[model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           rejectAction,
@@ -217,7 +217,7 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -250,7 +250,7 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
+	res := common.Response[*model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,
@@ -366,7 +366,7 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
+	res := common.Response[model.CPSAction]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
 		Data:           cpsAction,

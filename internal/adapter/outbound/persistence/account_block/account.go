@@ -140,19 +140,18 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 	currAction, _ := json.Marshal(branch)
 
 	cpsAction := model.CPSAction{
-		ActionCode: utils.RandomGenerator(24),
-		MakerUser: model.User{
-			UserCode:    maker.UserID,
-			FullName:    maker.FullName,
-			PhoneNumber: maker.PhoneNumber},
-		Department:     department,
-		ActionStatus:   model.ActionPending,
-		ActionType:     model.ActionDelete,
-		RequestAction:  model.RequestDisableSingleBranch,
-		PreviosAction:  prevAction,
-		CurrentAction:  currAction,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		ActionCode:       utils.RandomGenerator(24),
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestDisableSingleBranch),
+		PreviosAction:    prevAction,
+		CurrentAction:    currAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -227,19 +226,18 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 	}
 	prevAction, _ := json.Marshal(prevBranches)
 	cpsAction := model.CPSAction{
-		ActionCode: utils.RandomGenerator(24),
-		MakerUser: model.User{
-			UserCode:    maker.UserID,
-			FullName:    maker.FullName,
-			PhoneNumber: maker.PhoneNumber},
-		Department:     department,
-		ActionStatus:   model.ActionPending,
-		ActionType:     model.ActionDelete,
-		RequestAction:  model.RequestDisableMultiBranches,
-		PreviosAction:  prevAction,
-		CurrentAction:  currAction,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		ActionCode:       utils.RandomGenerator(24),
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestDisableMultiBranches),
+		PreviosAction:    prevAction,
+		CurrentAction:    currAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
 	_, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	return err
@@ -308,27 +306,23 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionID st
 	currAction, _ := json.Marshal(regionID)
 
 	cpsAction := model.CPSAction{
-		ActionCode: utils.RandomGenerator(24),
-		MakerUser: model.User{
-			UserCode:    maker.Maker.UserID,
-			FullName:    maker.Maker.FullName,
-			PhoneNumber: maker.Maker.PhoneNumber,
-		},
-		CheckerUser: model.User{
-			UserCode:    maker.Checker.UserID,
-			FullName:    maker.Checker.FullName,
-			PhoneNumber: maker.Checker.PhoneNumber,
-		},
-		UniqueId:        regionID,
-		Department:      department,
-		RejectionReason: maker.RejectionReason,
-		PreviosAction:   prevAction,
-		CurrentAction:   currAction,
-		ActionStatus:    model.ActionPending,
-		ActionType:      model.ActionDelete,
-		RequestAction:   model.RequestBlockRegion,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
+		ActionCode:         utils.RandomGenerator(24),
+		MakerID:            maker.MakerID,
+		MakerName:          maker.MakerName,
+		MakerPhoneNumber:   maker.MakerPhoneNumber,
+		CheckerID:          maker.CheckerID,
+		CheckerName:        maker.CheckerName,
+		CheckerPhoneNumber: maker.CheckerPhoneNumber,
+		UniqueId:           regionID,
+		Department:         department,
+		RejectionReason:    maker.RejectionReason,
+		PreviosAction:      prevAction,
+		CurrentAction:      currAction,
+		ActionStatus:       string(model.ActionPending),
+		ActionType:         string(model.ActionDelete),
+		RequestAction:      string(model.RequestBlockRegion),
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -444,24 +438,23 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
 
 	cpsAction := model.CPSAction{
 		ActionCode: utils.RandomGenerator(24),
-		MakerUser: model.User{
-			UserCode:    maker.Maker.UserID,
-			FullName:    maker.Maker.FullName,
-			PhoneNumber: maker.Maker.PhoneNumber},
-		CheckerUser: model.User{
-			UserCode:    maker.Checker.UserID,
-			FullName:    maker.Checker.FullName,
-			PhoneNumber: maker.Checker.PhoneNumber},
-		UniqueId:        districtID,
-		Department:      department,
-		RejectionReason: maker.RejectionReason,
-		PreviosAction:   prevAction,
-		CurrentAction:   currAction,
-		ActionStatus:    model.ActionPending,
-		ActionType:      model.ActionDelete,
-		RequestAction:   model.RequestAction(model.RequestBlockDistrict),
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
+
+		MakerID:            maker.MakerID,
+		MakerName:          maker.MakerName,
+		MakerPhoneNumber:   maker.MakerPhoneNumber,
+		CheckerID:          maker.CheckerID,
+		CheckerName:        maker.CheckerName,
+		CheckerPhoneNumber: maker.CheckerPhoneNumber,
+		UniqueId:           districtID,
+		Department:         department,
+		RejectionReason:    maker.RejectionReason,
+		PreviosAction:      prevAction,
+		CurrentAction:      currAction,
+		ActionStatus:       string(model.ActionPending),
+		ActionType:         string(model.ActionDelete),
+		RequestAction:      string(model.RequestBlockDistrict),
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -528,24 +521,23 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
 	currAction, _ := json.Marshal(cityID)
 
 	cpsAction := model.CPSAction{
-		ActionCode: utils.RandomGenerator(24),
-		MakerUser: model.User{
-			UserCode: maker.Maker.UserID, FullName: maker.Maker.FullName,
-			PhoneNumber: maker.Maker.PhoneNumber},
-		CheckerUser: model.User{
-			UserCode:    maker.Checker.UserID,
-			FullName:    maker.Checker.FullName,
-			PhoneNumber: maker.Checker.PhoneNumber},
-		UniqueId:        cityID,
-		Department:      department,
-		RejectionReason: maker.RejectionReason,
-		PreviosAction:   prevAction,
-		CurrentAction:   currAction,
-		ActionStatus:    model.ActionPending,
-		ActionType:      model.ActionDelete,
-		RequestAction:   model.RequestAction(model.RequestBlockCity),
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
+		ActionCode:         utils.RandomGenerator(24),
+		MakerID:            maker.MakerID,
+		MakerName:          maker.MakerName,
+		MakerPhoneNumber:   maker.MakerPhoneNumber,
+		CheckerID:          maker.CheckerID,
+		CheckerName:        maker.CheckerName,
+		CheckerPhoneNumber: maker.CheckerPhoneNumber,
+		UniqueId:           cityID,
+		Department:         department,
+		RejectionReason:    maker.RejectionReason,
+		PreviosAction:      prevAction,
+		CurrentAction:      currAction,
+		ActionStatus:       model.ActionPending,
+		ActionType:         model.ActionDelete,
+		RequestAction:      model.RequestAction(model.RequestBlockCity),
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -616,25 +608,23 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 	currAction, _ := json.Marshal(userID)
 
 	cpsAction := model.CPSAction{
-		ActionCode: utils.RandomGenerator(24),
-		MakerUser: model.User{
-			UserCode:    maker.Maker.UserID,
-			FullName:    maker.Maker.FullName,
-			PhoneNumber: maker.Maker.PhoneNumber},
-		CheckerUser: model.User{
-			UserCode:    maker.Checker.UserID,
-			FullName:    maker.Checker.FullName,
-			PhoneNumber: maker.Checker.PhoneNumber},
-		UniqueId:        userID,
-		Department:      department,
-		RejectionReason: maker.RejectionReason,
-		PreviosAction:   prevAction,
-		CurrentAction:   currAction,
-		ActionStatus:    model.ActionPending,
-		ActionType:      model.ActionDelete,
-		RequestAction:   model.RequestBlockUser,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
+		ActionCode:         utils.RandomGenerator(24),
+		MakerID:            maker.MakerID,
+		MakerName:          maker.MakerName,
+		MakerPhoneNumber:   maker.MakerPhoneNumber,
+		CheckerID:          maker.CheckerID,
+		CheckerName:        maker.CheckerName,
+		CheckerPhoneNumber: maker.CheckerPhoneNumber,
+		UniqueId:           userID,
+		Department:         department,
+		RejectionReason:    maker.RejectionReason,
+		PreviosAction:      prevAction,
+		CurrentAction:      currAction,
+		ActionStatus:       model.ActionPending,
+		ActionType:         model.ActionDelete,
+		RequestAction:      model.RequestBlockUser,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)

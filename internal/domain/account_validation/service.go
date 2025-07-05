@@ -79,24 +79,25 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      makerID,
-			FullName:    FullName,
-			PhoneNumber: PhoneNumber,
-			Timestamp:   time.Now(),
-		},
-		Checker:         action.User{},
-		Department:      update.ServiceID,
-		UniqueId:        id,
-		ActionType:      action.ActionUpdate,
-		RequestAction:   action.RequestUpdateAccountValidation,
-		ActionStatus:    action.ActionPending,
-		CurrentAction:   currentActionJSON,
-		PreviosAction:   previousActionJSON,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
-		RejectionReason: nil,
+		ActionCode:         actionID,
+		MakerID:            makerID,
+		MakerName:          FullName,
+		MakerPhoneNumber:   PhoneNumber,
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		Department:         update.ServiceID,
+		UniqueId:           id,
+		ActionType:         action.ActionUpdate,
+		RequestAction:      action.RequestUpdateAccountValidation,
+		ActionStatus:       action.ActionPending,
+		CurrentAction:      currentActionJSON,
+		PreviosAction:      previousActionJSON,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
+		RejectionReason:    nil,
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -131,12 +132,10 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 		s.logger.Errorf("action is not pending", "action_id", actionID, "status", cpsAction.ActionStatus)
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
-	cpsAction.Checker = action.User{
-		UserID:      checkerID,
-		FullName:    FullName,
-		PhoneNumber: PhoneNumber,
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = checkerID
+	cpsAction.CheckerName = FullName
+	cpsAction.CheckerPhoneNumber = PhoneNumber
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
 	if approve {
