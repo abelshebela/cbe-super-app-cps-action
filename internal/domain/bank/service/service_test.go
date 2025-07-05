@@ -100,124 +100,127 @@ func (m *MockMinioClient) ListBuckets(ctx context.Context) ([]minio.BucketInfo, 
 }
 
 func TestBankDomain_CreateOneBank(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
-	mockLogger := &MockLogger{}
-	mockMinioClient := &MockMinioClient{}
-	bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+    mockRepo := mocks.NewMockRepository(ctrl)
+    mockLogger := &MockLogger{}
+    mockMinioClient := &MockMinioClient{}
+    bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
-	// Create test data with full struct values
-	testTime := time.Now()
-	testUser := model.User{
-		UserCode:    "USER001",
-		FullName:    "John Doe",
-		PhoneNumber: "+251911234567",
-	}
+    // Create test data with full struct values
+    testTime := time.Now()
+    testUser := model.User{
+        UserCode:    "USER001",
+        FullName:    "John Doe",
+        PhoneNumber: "+251911234567",
+    }
 
-	testCreateBankRequest := dto.CreateBankRequest{
-		Name: "TestBank",
-		Logo: createMockFileHeader("test-logo.png", []byte("test-logo"), 1024),
-		Code: "TB001",
-		BIC:  "TESTBIC123",
-	}
+    testCreateBankRequest := dto.CreateBankRequest{
+        Name: "TestBank",
+        Logo: createMockFileHeader("test-logo.png", []byte("test-logo"), 1024),
+        Code: "TB001",
+        BIC:  "TESTBIC123",
+    }
 
-	testCPSAction := model.CreateCPSAction{
-		ActionCode:      "ACT001",
-		MakerUser:       testUser,
-		Department:      "IT",
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateBank,
-		ActionType:      model.ActionCreate,
-		ActionData:      testCreateBankRequest,
-		MakerActionTime: testTime,
-	}
+    testCPSAction := model.CreateCPSAction{
+        ActionCode:      "ACT001",
+        MakerUser:       testUser,
+        Department:      "IT",
+        Status:          model.ActionPending,
+        RequestAction:   model.RequestCreateBank,
+        ActionType:      model.ActionCreate,
+        ActionData:      testCreateBankRequest,
+        MakerActionTime: testTime,
+    }
 
-	testBankEntity := entity.Bank{
-		ID:             "BANK001",
-		Name:           "TestBank",
-		Logo:           "test-bucket/test-key",
-		Code:           "TB001",
-		BIC:            "TESTBIC123",
-		Enabled:        true,
-		IsDeleted:      false,
-		CreatedAt:      testTime,
-		LastModifiedAt: testTime,
-	}
+    testBankEntity := entity.Bank{
+        ID:             "BANK001",
+        Name:           "TestBank",
+        Logo:           "test-bucket/test-key",
+        Code:           "TB001",
+        BIC:            "TESTBIC123",
+        Enabled:        true,
+        IsDeleted:      false,
+        CreatedAt:      testTime,
+        LastModifiedAt: testTime,
+    }
 
-	tests := []struct {
-		name    string
-		req     model.CreateCPSAction
-		mock    func()
-		want    *model.CPSAction
-		wantErr bool
-	}{
-		{
-			name: "success",
-			req:  testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					CreateBank(gomock.Any(), gomock.Any()).
-					Return(&model.CPSAction{
-						ID:              "CPS001",
-						ActionCode:      "ACT001",
-						MakerUser:       testUser,
-						Department:      "IT",
-						Status:          model.ActionPending,
-						RequestAction:   model.RequestCreateBank,
-						ActionType:      model.ActionCreate,
-						ActionData:      testBankEntity,
-						MakerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:              "CPS001",
-				ActionCode:      "ACT001",
-				MakerUser:       testUser,
-				Department:      "IT",
-				Status:          model.ActionPending,
-				RequestAction:   model.RequestCreateBank,
-				ActionType:      model.ActionCreate,
-				ActionData:      testBankEntity,
-				MakerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name: "error from repository",
-			req:  testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					CreateBank(gomock.Any(), gomock.Any()).
-					Return(nil, errors.New("internal server error"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
+    tests := []struct {
+        name    string
+        req     model.CreateCPSAction
+        mock    func()
+        want    *model.CPSAction
+        wantErr bool
+    }{
+        {
+            name: "success",
+            req:  testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    CreateBank(gomock.Any(), gomock.Any()).
+                    Return(&model.CPSAction{
+                        ID:                "CPS001",
+                        ActionCode:        "ACT001",
+                        MakerID:           testUser.UserCode,
+                        MakerName:         testUser.FullName,
+                        MakerPhoneNumber:  testUser.PhoneNumber,
+                        Department:        "IT",
+                        ActionStatus:      string(model.ActionPending),
+                        RequestAction:     string(model.RequestCreateBank),
+                        ActionType:        string(model.ActionCreate),
+                        CurrentAction:     testBankEntity,
+                        MakerActionTime:   testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:                "CPS001",
+                ActionCode:        "ACT001",
+                MakerID:           testUser.UserCode,
+                MakerName:         testUser.FullName,
+                MakerPhoneNumber:  testUser.PhoneNumber,
+                Department:        "IT",
+                ActionStatus:      string(model.ActionPending),
+                RequestAction:     string(model.RequestCreateBank),
+                ActionType:        string(model.ActionCreate),
+                CurrentAction:     testBankEntity,
+                MakerActionTime:   testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name: "error from repository",
+            req:  testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    CreateBank(gomock.Any(), gomock.Any()).
+                    Return(nil, errors.New("internal server error"))
+            },
+            want:    nil,
+            wantErr: true,
+        },
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			got, err := bankService.CreateOneBank(context.Background(), tt.req)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
-	}
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.mock()
+            got, err := bankService.CreateOneBank(context.Background(), tt.req)
+            if tt.wantErr {
+                assert.Error(t, err)
+                assert.Nil(t, got)
+            } else {
+                assert.NoError(t, err)
+                assert.Equal(t, tt.want, got)
+            }
+        })
+    }
 }
-
 func TestBankDomain_GetAllBank(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -380,578 +383,612 @@ func TestBankDomain_GetOneBank(t *testing.T) {
 		})
 	}
 }
-
 func TestBankDomain_UpdateOneBank(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
-	mockLogger := &MockLogger{}
-	mockMinioClient := &MockMinioClient{}
-	bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+    mockRepo := mocks.NewMockRepository(ctrl)
+    mockLogger := &MockLogger{}
+    mockMinioClient := &MockMinioClient{}
+    bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
-	testTime := time.Now()
-	testUser := model.User{
-		UserCode:    "USER001",
-		FullName:    "John Doe",
-		PhoneNumber: "+251911234567",
-	}
+    testTime := time.Now()
+    testUser := model.User{
+        UserCode:    "USER001",
+        FullName:    "John Doe",
+        PhoneNumber: "+251911234567",
+    }
 
-	testCPSAction := model.CreateCPSAction{
-		ActionCode:    "ACT002",
-		MakerUser:     testUser,
-		Department:    "IT",
-		Status:        model.ActionPending,
-		RequestAction: model.RequestUpdateBank,
-		ActionType:    model.ActionUpdate,
-		ActionData: entity.Bank{
-			ID:             "BANK001",
-			Name:           "UpdatedBank",
-			Logo:           "test-bucket/updated-logo.png",
-			Code:           "UB001",
-			BIC:            "UPDATEDBIC123",
-			Enabled:        true,
-			IsDeleted:      false,
-			CreatedAt:      testTime,
-			LastModifiedAt: testTime,
-		},
-		MakerActionTime: testTime,
-	}
+    testBankEntity := entity.Bank{
+        ID:             "BANK001",
+        Name:           "UpdatedBank",
+        Logo:           "test-bucket/updated-logo.png",
+        Code:           "UB001",
+        BIC:            "UPDATEDBIC123",
+        Enabled:        true,
+        IsDeleted:      false,
+        CreatedAt:      testTime,
+        LastModifiedAt: testTime,
+    }
 
-	tests := []struct {
-		name    string
-		id      string
-		req     model.CreateCPSAction
-		mock    func()
-		want    *model.CPSAction
-		wantErr bool
-	}{
-		{
-			name: "success",
-			id:   "BANK001",
-			req:  testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					UpdateBank(gomock.Any(), "BANK001", testCPSAction).
-					Return(&model.CPSAction{
-						ID:              "CPS002",
-						ActionCode:      "ACT002",
-						MakerUser:       testUser,
-						Department:      "IT",
-						Status:          model.ActionPending,
-						RequestAction:   model.RequestUpdateBank,
-						ActionType:      model.ActionUpdate,
-						ActionData:      testCPSAction.ActionData,
-						MakerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:              "CPS002",
-				ActionCode:      "ACT002",
-				MakerUser:       testUser,
-				Department:      "IT",
-				Status:          model.ActionPending,
-				RequestAction:   model.RequestUpdateBank,
-				ActionType:      model.ActionUpdate,
-				ActionData:      testCPSAction.ActionData,
-				MakerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name: "error from database",
-			id:   "BANK001",
-			req:  testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					UpdateBank(gomock.Any(), "BANK001", testCPSAction).
-					Return(nil, errors.New("not found"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
+    testCPSAction := model.CreateCPSAction{
+        ActionCode:    "ACT002",
+        MakerUser:     testUser,
+        Department:    "IT",
+        Status:        model.ActionPending,
+        RequestAction: model.RequestUpdateBank,
+        ActionType:    model.ActionUpdate,
+        ActionData:    testBankEntity,
+        MakerActionTime: testTime,
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			got, err := bankService.UpdateOneBank(context.Background(), tt.id, tt.req)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
-	}
+    tests := []struct {
+        name    string
+        id      string
+        req     model.CreateCPSAction
+        mock    func()
+        want    *model.CPSAction
+        wantErr bool
+    }{
+        {
+            name: "success",
+            id:   "BANK001",
+            req:  testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    UpdateBank(gomock.Any(), "BANK001", testCPSAction).
+                    Return(&model.CPSAction{
+                        ID:                "CPS002",
+                        ActionCode:        "ACT002",
+                        MakerID:           testUser.UserCode,
+                        MakerName:         testUser.FullName,
+                        MakerPhoneNumber:  testUser.PhoneNumber,
+                        Department:        "IT",
+                        ActionStatus:      string(model.ActionPending),
+                        RequestAction:     string(model.RequestUpdateBank),
+                        ActionType:        string(model.ActionUpdate),
+                        CurrentAction:     testBankEntity,
+                        MakerActionTime:   testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:                "CPS002",
+                ActionCode:        "ACT002",
+                MakerID:           testUser.UserCode,
+                MakerName:         testUser.FullName,
+                MakerPhoneNumber:  testUser.PhoneNumber,
+                Department:        "IT",
+                ActionStatus:      string(model.ActionPending),
+                RequestAction:     string(model.RequestUpdateBank),
+                ActionType:        string(model.ActionUpdate),
+                CurrentAction:     testBankEntity,
+                MakerActionTime:   testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name: "error from database",
+            id:   "BANK001",
+            req:  testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    UpdateBank(gomock.Any(), "BANK001", testCPSAction).
+                    Return(nil, errors.New("not found"))
+            },
+            want:    nil,
+            wantErr: true,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.mock()
+            got, err := bankService.UpdateOneBank(context.Background(), tt.id, tt.req)
+            if tt.wantErr {
+                assert.Error(t, err)
+                assert.Nil(t, got)
+            } else {
+                assert.NoError(t, err)
+                assert.Equal(t, tt.want, got)
+            }
+        })
+    }
 }
 
 func TestBankDomain_DeleteOneBank(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
-	mockLogger := &MockLogger{}
-	mockMinioClient := &MockMinioClient{}
-	bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+    mockRepo := mocks.NewMockRepository(ctrl)
+    mockLogger := &MockLogger{}
+    mockMinioClient := &MockMinioClient{}
+    bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
-	testTime := time.Now()
-	testUser := model.User{
-		UserCode:    "USER001",
-		FullName:    "John Doe",
-		PhoneNumber: "+251911234567",
-	}
+    testTime := time.Now()
+    testUser := model.User{
+        UserCode:    "USER001",
+        FullName:    "John Doe",
+        PhoneNumber: "+251911234567",
+    }
 
-	testCPSAction := model.CreateCPSAction{
-		ActionCode:      "ACT003",
-		MakerUser:       testUser,
-		Department:      "IT",
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestDeleteBank,
-		ActionType:      model.ActionDelete,
-		ActionData:      nil,
-		MakerActionTime: testTime,
-	}
+    testCPSAction := model.CreateCPSAction{
+        ActionCode:      "ACT003",
+        MakerUser:       testUser,
+        Department:      "IT",
+        Status:          model.ActionPending,
+        RequestAction:   model.RequestDeleteBank,
+        ActionType:      model.ActionDelete,
+        ActionData:      nil,
+        MakerActionTime: testTime,
+    }
 
-	tests := []struct {
-		name    string
-		id      string
-		req     model.CreateCPSAction
-		mock    func()
-		want    *model.CPSAction
-		wantErr bool
-	}{
-		{
-			name: "success",
-			id:   "BANK001",
-			req:  testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					DeleteBank(gomock.Any(), "BANK001", testCPSAction).
-					Return(&model.CPSAction{
-						ID:              "CPS003",
-						ActionCode:      "ACT003",
-						MakerUser:       testUser,
-						Department:      "IT",
-						Status:          model.ActionPending,
-						RequestAction:   model.RequestDeleteBank,
-						ActionType:      model.ActionDelete,
-						ActionData:      nil,
-						MakerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:              "CPS003",
-				ActionCode:      "ACT003",
-				MakerUser:       testUser,
-				Department:      "IT",
-				Status:          model.ActionPending,
-				RequestAction:   model.RequestDeleteBank,
-				ActionType:      model.ActionDelete,
-				ActionData:      nil,
-				MakerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name: "error from database",
-			id:   "BANK001",
-			req:  testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					DeleteBank(gomock.Any(), "BANK001", testCPSAction).
-					Return(nil, errors.New("not found"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
+    tests := []struct {
+        name    string
+        id      string
+        req     model.CreateCPSAction
+        mock    func()
+        want    *model.CPSAction
+        wantErr bool
+    }{
+        {
+            name: "success",
+            id:   "BANK001",
+            req:  testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    DeleteBank(gomock.Any(), "BANK001", testCPSAction).
+                    Return(&model.CPSAction{
+                        ID:                "CPS003",
+                        ActionCode:        "ACT003",
+                        MakerID:           testUser.UserCode,
+                        MakerName:         testUser.FullName,
+                        MakerPhoneNumber:  testUser.PhoneNumber,
+                        Department:        "IT",
+                        ActionStatus:      string(model.ActionPending),
+                        RequestAction:     string(model.RequestDeleteBank),
+                        ActionType:        string(model.ActionDelete),
+                        CurrentAction:     nil,
+                        MakerActionTime:   testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:                "CPS003",
+                ActionCode:        "ACT003",
+                MakerID:           testUser.UserCode,
+                MakerName:         testUser.FullName,
+                MakerPhoneNumber:  testUser.PhoneNumber,
+                Department:        "IT",
+                ActionStatus:      string(model.ActionPending),
+                RequestAction:     string(model.RequestDeleteBank),
+                ActionType:        string(model.ActionDelete),
+                CurrentAction:     nil,
+                MakerActionTime:   testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name: "error from database",
+            id:   "BANK001",
+            req:  testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    DeleteBank(gomock.Any(), "BANK001", testCPSAction).
+                    Return(nil, errors.New("not found"))
+            },
+            want:    nil,
+            wantErr: true,
+        },
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			got, err := bankService.DeleteOneBank(context.Background(), tt.id, tt.req)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
-	}
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.mock()
+            got, err := bankService.DeleteOneBank(context.Background(), tt.id, tt.req)
+            if tt.wantErr {
+                assert.Error(t, err)
+                assert.Nil(t, got)
+            } else {
+                assert.NoError(t, err)
+                assert.Equal(t, tt.want, got)
+            }
+        })
+    }
 }
 
 func TestBankDomain_Authorize(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
-	mockLogger := &MockLogger{}
-	mockMinioClient := &MockMinioClient{}
-	bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+    mockRepo := mocks.NewMockRepository(ctrl)
+    mockLogger := &MockLogger{}
+    mockMinioClient := &MockMinioClient{}
+    bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
-	testTime := time.Now()
-	testMakerUser := model.User{
-		UserCode:    "MAKER001",
-		FullName:    "Maker User",
-		PhoneNumber: "+251911234567",
-	}
+    testTime := time.Now()
+    testMakerUser := model.User{
+        UserCode:    "MAKER001",
+        FullName:    "Maker User",
+        PhoneNumber: "+251911234567",
+    }
 
-	testCheckerUser := model.User{
-		UserCode:    "CHECKER001",
-		FullName:    "Checker User",
-		PhoneNumber: "+251911234568",
-	}
+    testCheckerUser := model.User{
+        UserCode:    "CHECKER001",
+        FullName:    "Checker User",
+        PhoneNumber: "+251911234568",
+    }
 
-	testAuthorizeReq := model.AuthorizeCPSAction{
-		ActionCode:        "ACT001",
-		Department:        "IT",
-		CheckerUser:       testCheckerUser,
-		CheckerActionTime: testTime,
-	}
+    testAuthorizeReq := model.AuthorizeCPSAction{
+        ActionCode:        "ACT001",
+        Department:        "IT",
+        CheckerUser:       testCheckerUser,
+        CheckerActionTime: testTime,
+    }
 
-	tests := []struct {
-		name    string
-		req     model.AuthorizeCPSAction
-		mock    func()
-		want    *model.CPSAction
-		wantErr bool
-	}{
-		{
-			name: "success",
-			req:  testAuthorizeReq,
-			mock: func() {
-				mockRepo.EXPECT().
-					Authorize(gomock.Any(), testAuthorizeReq).
-					Return(&model.CPSAction{
-						ID:                "CPS001",
-						ActionCode:        "ACT001",
-						MakerUser:         testMakerUser,
-						CheckerUser:       testCheckerUser,
-						Department:        "IT",
-						Status:            model.ActionApproved,
-						RequestAction:     model.RequestCreateBank,
-						ActionType:        model.ActionCreate,
-						ActionData:        nil,
-						MakerActionTime:   testTime,
-						CheckerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:                "CPS001",
-				ActionCode:        "ACT001",
-				MakerUser:         testMakerUser,
-				CheckerUser:       testCheckerUser,
-				Department:        "IT",
-				Status:            model.ActionApproved,
-				RequestAction:     model.RequestCreateBank,
-				ActionType:        model.ActionCreate,
-				ActionData:        nil,
-				MakerActionTime:   testTime,
-				CheckerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name: "error from database",
-			req:  testAuthorizeReq,
-			mock: func() {
-				mockRepo.EXPECT().
-					Authorize(gomock.Any(), testAuthorizeReq).
-					Return(nil, errors.New("internal server error"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
+    tests := []struct {
+        name    string
+        req     model.AuthorizeCPSAction
+        mock    func()
+        want    *model.CPSAction
+        wantErr bool
+    }{
+        {
+            name: "success",
+            req:  testAuthorizeReq,
+            mock: func() {
+                mockRepo.EXPECT().
+                    Authorize(gomock.Any(), testAuthorizeReq).
+                    Return(&model.CPSAction{
+                        ID:                "CPS001",
+                        ActionCode:        "ACT001",
+                        MakerID:           testMakerUser.UserCode,
+                        MakerName:         testMakerUser.FullName,
+                        MakerPhoneNumber:  testMakerUser.PhoneNumber,
+                        CheckerID:         testCheckerUser.UserCode,
+                        CheckerName:       testCheckerUser.FullName,
+                        CheckerPhoneNumber:testCheckerUser.PhoneNumber,
+                        Department:        "IT",
+                        ActionStatus:      string(model.ActionApproved),
+                        RequestAction:     string(model.RequestCreateBank),
+                        ActionType:        string(model.ActionCreate),
+                        CurrentAction:     nil,
+                        MakerActionTime:   testTime,
+                        CheckerActionTime: testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:                "CPS001",
+                ActionCode:        "ACT001",
+                MakerID:           testMakerUser.UserCode,
+                MakerName:         testMakerUser.FullName,
+                MakerPhoneNumber:  testMakerUser.PhoneNumber,
+                CheckerID:         testCheckerUser.UserCode,
+                CheckerName:       testCheckerUser.FullName,
+                CheckerPhoneNumber:testCheckerUser.PhoneNumber,
+                Department:        "IT",
+                ActionStatus:      string(model.ActionApproved),
+                RequestAction:     string(model.RequestCreateBank),
+                ActionType:        string(model.ActionCreate),
+                CurrentAction:     nil,
+                MakerActionTime:   testTime,
+                CheckerActionTime: testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name: "error from database",
+            req:  testAuthorizeReq,
+            mock: func() {
+                mockRepo.EXPECT().
+                    Authorize(gomock.Any(), testAuthorizeReq).
+                    Return(nil, errors.New("internal server error"))
+            },
+            want:    nil,
+            wantErr: true,
+        },
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			got, err := bankService.Authorize(context.Background(), tt.req)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
-	}
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.mock()
+            got, err := bankService.Authorize(context.Background(), tt.req)
+            if tt.wantErr {
+                assert.Error(t, err)
+                assert.Nil(t, got)
+            } else {
+                assert.NoError(t, err)
+                assert.Equal(t, tt.want, got)
+            }
+        })
+    }
 }
 
 func TestBankDomain_Reject(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
-	mockLogger := &MockLogger{}
-	mockMinioClient := &MockMinioClient{}
-	bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+    mockRepo := mocks.NewMockRepository(ctrl)
+    mockLogger := &MockLogger{}
+    mockMinioClient := &MockMinioClient{}
+    bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
-	testTime := time.Now()
-	testMakerUser := model.User{
-		UserCode:    "MAKER001",
-		FullName:    "Maker User",
-		PhoneNumber: "+251911234567",
-	}
+    testTime := time.Now()
+    testMakerUser := model.User{
+        UserCode:    "MAKER001",
+        FullName:    "Maker User",
+        PhoneNumber: "+251911234567",
+    }
 
-	testCheckerUser := model.User{
-		UserCode:    "CHECKER001",
-		FullName:    "Checker User",
-		PhoneNumber: "+251911234568",
-	}
+    testCheckerUser := model.User{
+        UserCode:    "CHECKER001",
+        FullName:    "Checker User",
+        PhoneNumber: "+251911234568",
+    }
 
-	testRejectReq := model.RejectCPSAction{
-		CreateCPSAction: model.CreateCPSAction{
-			ActionCode:      "ACT001",
-			MakerUser:       testMakerUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestCreateBank,
-			ActionType:      model.ActionCreate,
-			ActionData:      nil,
-			MakerActionTime: testTime,
-		},
-		CheckerUser:       testCheckerUser,
-		RejectedReason:    "Invalid bank information Invalid bank information Invalid bank information Invalid bank information",
-		CheckerActionTime: testTime,
-	}
+    rejectionReason := "Invalid bank information Invalid bank information Invalid bank information Invalid bank information"
 
-	tests := []struct {
-		name    string
-		req     model.RejectCPSAction
-		mock    func()
-		want    *model.CPSAction
-		wantErr bool
-	}{
-		{
-			name: "success",
-			req:  testRejectReq,
-			mock: func() {
-				mockRepo.EXPECT().
-					Reject(gomock.Any(), testRejectReq).
-					Return(&model.CPSAction{
-						ID:                "CPS001",
-						ActionCode:        "ACT001",
-						MakerUser:         testMakerUser,
-						CheckerUser:       testCheckerUser,
-						Department:        "IT",
-						Status:            model.ActionRejected,
-						RequestAction:     model.RequestCreateBank,
-						ActionType:        model.ActionCreate,
-						ActionData:        nil,
-						RejectedReason:    "Invalid bank information Invalid bank information Invalid bank information Invalid bank information",
-						MakerActionTime:   testTime,
-						CheckerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:                "CPS001",
-				ActionCode:        "ACT001",
-				MakerUser:         testMakerUser,
-				CheckerUser:       testCheckerUser,
-				Department:        "IT",
-				Status:            model.ActionRejected,
-				RequestAction:     model.RequestCreateBank,
-				ActionType:        model.ActionCreate,
-				ActionData:        nil,
-				RejectedReason:    "Invalid bank information Invalid bank information Invalid bank information Invalid bank information",
-				MakerActionTime:   testTime,
-				CheckerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name: "error from database",
-			req:  testRejectReq,
-			mock: func() {
-				mockRepo.EXPECT().
-					Reject(gomock.Any(), testRejectReq).
-					Return(nil, errors.New("internal server eerror"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
+    testRejectReq := model.RejectCPSAction{
+        CreateCPSAction: model.CreateCPSAction{
+            ActionCode:      "ACT001",
+            MakerUser:       testMakerUser,
+            Department:      "IT",
+            Status:          model.ActionPending,
+            RequestAction:   model.RequestCreateBank,
+            ActionType:      model.ActionCreate,
+            ActionData:      nil,
+            MakerActionTime: testTime,
+        },
+        CheckerUser:       testCheckerUser,
+        RejectedReason:    rejectionReason,
+        CheckerActionTime: testTime,
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			got, err := bankService.Reject(context.Background(), tt.req)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
-	}
+    tests := []struct {
+        name    string
+        req     model.RejectCPSAction
+        mock    func()
+        want    *model.CPSAction
+        wantErr bool
+    }{
+        {
+            name: "success",
+            req:  testRejectReq,
+            mock: func() {
+                mockRepo.EXPECT().
+                    Reject(gomock.Any(), testRejectReq).
+                    Return(&model.CPSAction{
+                        ID:                 "CPS001",
+                        ActionCode:         "ACT001",
+                        MakerID:            testMakerUser.UserCode,
+                        MakerName:          testMakerUser.FullName,
+                        MakerPhoneNumber:   testMakerUser.PhoneNumber,
+                        CheckerID:          testCheckerUser.UserCode,
+                        CheckerName:        testCheckerUser.FullName,
+                        CheckerPhoneNumber: testCheckerUser.PhoneNumber,
+                        Department:         "IT",
+                        ActionStatus:       string(model.ActionRejected),
+                        RequestAction:      string(model.RequestCreateBank),
+                        ActionType:         string(model.ActionCreate),
+                        CurrentAction:      nil,
+                        RejectionReason:    rejectionReason,
+                        MakerActionTime:    testTime,
+                        CheckerActionTime:  testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:                 "CPS001",
+                ActionCode:         "ACT001",
+                MakerID:            testMakerUser.UserCode,
+                MakerName:          testMakerUser.FullName,
+                MakerPhoneNumber:   testMakerUser.PhoneNumber,
+                CheckerID:          testCheckerUser.UserCode,
+                CheckerName:        testCheckerUser.FullName,
+                CheckerPhoneNumber: testCheckerUser.PhoneNumber,
+                Department:         "IT",
+                ActionStatus:       string(model.ActionRejected),
+                RequestAction:      string(model.RequestCreateBank),
+                ActionType:         string(model.ActionCreate),
+                CurrentAction:      nil,
+                RejectionReason:    rejectionReason,
+                MakerActionTime:    testTime,
+                CheckerActionTime:  testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name: "error from database",
+            req:  testRejectReq,
+            mock: func() {
+                mockRepo.EXPECT().
+                    Reject(gomock.Any(), testRejectReq).
+                    Return(nil, errors.New("internal server eerror"))
+            },
+            want:    nil,
+            wantErr: true,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.mock()
+            got, err := bankService.Reject(context.Background(), tt.req)
+            if tt.wantErr {
+                assert.Error(t, err)
+                assert.Nil(t, got)
+            } else {
+                assert.NoError(t, err)
+                assert.Equal(t, tt.want, got)
+            }
+        })
+    }
 }
-
 func TestBankDomain_EnableOrDisableBank(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+    ctrl := gomock.NewController(t)
+    defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
-	mockLogger := &MockLogger{}
-	mockMinioClient := &MockMinioClient{}
-	bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
+    mockRepo := mocks.NewMockRepository(ctrl)
+    mockLogger := &MockLogger{}
+    mockMinioClient := &MockMinioClient{}
+    bankService := service.InitBankDomain(mockRepo, mockMinioClient, "test-bucket", mockLogger)
 
-	testTime := time.Now()
-	testUser := model.User{
-		UserCode:    "USER001",
-		FullName:    "John Doe",
-		PhoneNumber: "+251911234567",
-	}
+    testTime := time.Now()
+    testUser := model.User{
+        UserCode:    "USER001",
+        FullName:    "John Doe",
+        PhoneNumber: "+251911234567",
+    }
 
-	testCPSAction := model.CreateCPSAction{
-		ActionCode:      "ACT004",
-		MakerUser:       testUser,
-		Department:      "IT",
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestEnableBank,
-		ActionType:      model.ActionUpdate,
-		ActionData:      nil,
-		MakerActionTime: testTime,
-	}
+    testCPSAction := model.CreateCPSAction{
+        ActionCode:      "ACT004",
+        MakerUser:       testUser,
+        Department:      "IT",
+        Status:          model.ActionPending,
+        RequestAction:   model.RequestEnableBank,
+        ActionType:      model.ActionUpdate,
+        ActionData:      nil,
+        MakerActionTime: testTime,
+    }
 
-	testDisableCPSAction := model.CreateCPSAction{
-		ActionCode:      "ACT004",
-		MakerUser:       testUser,
-		Department:      "IT",
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestDisableBank,
-		ActionType:      model.ActionUpdate,
-		ActionData:      nil,
-		MakerActionTime: testTime,
-	}
+    testDisableCPSAction := model.CreateCPSAction{
+        ActionCode:      "ACT004",
+        MakerUser:       testUser,
+        Department:      "IT",
+        Status:          model.ActionPending,
+        RequestAction:   model.RequestDisableBank,
+        ActionType:      model.ActionUpdate,
+        ActionData:      nil,
+        MakerActionTime: testTime,
+    }
 
-	tests := []struct {
-		name          string
-		id            string
-		requestAction model.RequestAction
-		cpsReq        model.CreateCPSAction
-		mock          func()
-		want          *model.CPSAction
-		wantErr       bool
-	}{
-		{
-			name:          "enable wallet success",
-			id:            "WALLET001",
-			requestAction: model.RequestEnableBank,
-			cpsReq:        testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
-					Return(&model.CPSAction{
-						ID:              "CPS004",
-						ActionCode:      "ACT004",
-						MakerUser:       testUser,
-						Department:      "IT",
-						Status:          model.ActionPending,
-						RequestAction:   model.RequestEnableBank,
-						ActionType:      model.ActionUpdate,
-						ActionData:      nil,
-						MakerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:              "CPS004",
-				ActionCode:      "ACT004",
-				MakerUser:       testUser,
-				Department:      "IT",
-				Status:          model.ActionPending,
-				RequestAction:   model.RequestEnableBank,
-				ActionType:      model.ActionUpdate,
-				ActionData:      nil,
-				MakerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name:          "disable wallet success",
-			id:            "WALLET001",
-			requestAction: model.RequestDisableBank,
-			cpsReq:        testDisableCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testDisableCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableBank, testDisableCPSAction).
-					Return(&model.CPSAction{
-						ID:              "CPS004",
-						ActionCode:      "ACT004",
-						MakerUser:       testUser,
-						Department:      "IT",
-						Status:          model.ActionPending,
-						RequestAction:   model.RequestDisableBank,
-						ActionType:      model.ActionUpdate,
-						ActionData:      nil,
-						MakerActionTime: testTime,
-					}, nil)
-			},
-			want: &model.CPSAction{
-				ID:              "CPS004",
-				ActionCode:      "ACT004",
-				MakerUser:       testUser,
-				Department:      "IT",
-				Status:          model.ActionPending,
-				RequestAction:   model.RequestDisableBank,
-				ActionType:      model.ActionUpdate,
-				ActionData:      nil,
-				MakerActionTime: testTime,
-			},
-			wantErr: false,
-		},
-		{
-			name:          "error from databas",
-			id:            "WALLET001",
-			requestAction: model.RequestEnableBank,
-			cpsReq:        testCPSAction,
-			mock: func() {
-				mockRepo.EXPECT().
-					CPSActionExists(gomock.Any(), testCPSAction).
-					Return(nil)
-				mockRepo.EXPECT().
-					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
-					Return(nil, errors.New("internal server eror"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
+    tests := []struct {
+        name          string
+        id            string
+        requestAction model.RequestAction
+        cpsReq        model.CreateCPSAction
+        mock          func()
+        want          *model.CPSAction
+        wantErr       bool
+    }{
+        {
+            name:          "enable wallet success",
+            id:            "WALLET001",
+            requestAction: model.RequestEnableBank,
+            cpsReq:        testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
+                    Return(&model.CPSAction{
+                        ID:               "CPS004",
+                        ActionCode:       "ACT004",
+                        MakerID:          testUser.UserCode,
+                        MakerName:        testUser.FullName,
+                        MakerPhoneNumber: testUser.PhoneNumber,
+                        Department:       "IT",
+                        ActionStatus:     string(model.ActionPending),
+                        RequestAction:    string(model.RequestEnableBank),
+                        ActionType:       string(model.ActionUpdate),
+                        CurrentAction:    nil,
+                        MakerActionTime:  testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:               "CPS004",
+                ActionCode:       "ACT004",
+                MakerID:          testUser.UserCode,
+                MakerName:        testUser.FullName,
+                MakerPhoneNumber: testUser.PhoneNumber,
+                Department:       "IT",
+                ActionStatus:     string(model.ActionPending),
+                RequestAction:    string(model.RequestEnableBank),
+                ActionType:       string(model.ActionUpdate),
+                CurrentAction:    nil,
+                MakerActionTime:  testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name:          "disable wallet success",
+            id:            "WALLET001",
+            requestAction: model.RequestDisableBank,
+            cpsReq:        testDisableCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testDisableCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableBank, testDisableCPSAction).
+                    Return(&model.CPSAction{
+                        ID:               "CPS004",
+                        ActionCode:       "ACT004",
+                        MakerID:          testUser.UserCode,
+                        MakerName:        testUser.FullName,
+                        MakerPhoneNumber: testUser.PhoneNumber,
+                        Department:       "IT",
+                        ActionStatus:     string(model.ActionPending),
+                        RequestAction:    string(model.RequestDisableBank),
+                        ActionType:       string(model.ActionUpdate),
+                        CurrentAction:    nil,
+                        MakerActionTime:  testTime,
+                    }, nil)
+            },
+            want: &model.CPSAction{
+                ID:               "CPS004",
+                ActionCode:       "ACT004",
+                MakerID:          testUser.UserCode,
+                MakerName:        testUser.FullName,
+                MakerPhoneNumber: testUser.PhoneNumber,
+                Department:       "IT",
+                ActionStatus:     string(model.ActionPending),
+                RequestAction:    string(model.RequestDisableBank),
+                ActionType:       string(model.ActionUpdate),
+                CurrentAction:    nil,
+                MakerActionTime:  testTime,
+            },
+            wantErr: false,
+        },
+        {
+            name:          "error from databas",
+            id:            "WALLET001",
+            requestAction: model.RequestEnableBank,
+            cpsReq:        testCPSAction,
+            mock: func() {
+                mockRepo.EXPECT().
+                    CPSActionExists(gomock.Any(), testCPSAction).
+                    Return(nil)
+                mockRepo.EXPECT().
+                    EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
+                    Return(nil, errors.New("internal server eror"))
+            },
+            want:    nil,
+            wantErr: true,
+        },
+    }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			got, err := bankService.EnableOrDisableBank(context.Background(), tt.id, tt.requestAction, tt.cpsReq)
-			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
-	}
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            tt.mock()
+            got, err := bankService.EnableOrDisableBank(context.Background(), tt.id, tt.requestAction, tt.cpsReq)
+            if tt.wantErr {
+                assert.Error(t, err)
+                assert.Nil(t, got)
+            } else {
+                assert.NoError(t, err)
+                assert.Equal(t, tt.want, got)
+            }
+        })
+    }
 }

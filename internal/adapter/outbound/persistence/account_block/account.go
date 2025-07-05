@@ -169,7 +169,11 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
 		return err
 	}
 	var branch action.Branch
-	_ = json.Unmarshal(actionDoc.CurrentAction, &branch)
+	currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
+	if !ok {
+		return errors.New("invalid current action data")
+	}
+	_ = json.Unmarshal(currentActionBytes, &branch)
 	update := bson.M{"$set": bson.M{"enabled": false, "updated_at": time.Now()}}
 	_, err = o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, update)
 	if err != nil {
@@ -255,7 +259,11 @@ func (o *outboundAccountBlockStore) ApproveBulkBranchesDisable(ctx context.Conte
 		return err
 	}
 	var branches []action.Branch
-	_ = json.Unmarshal(actionDoc.CurrentAction, &branches)
+	currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
+	if !ok {
+		return errors.New("invalid current action data")
+	}
+	_ = json.Unmarshal(currentActionBytes, &branches)
 	for _, branch := range branches {
 		update := bson.M{"$set": bson.M{"enabled": false, "updated_at": time.Now()}}
 		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, update)
@@ -305,6 +313,11 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionID st
 
 	currAction, _ := json.Marshal(regionID)
 
+	var rejectionReason string
+	if maker.RejectionReason != nil {
+		rejectionReason = *maker.RejectionReason
+	}
+
 	cpsAction := model.CPSAction{
 		ActionCode:         utils.RandomGenerator(24),
 		MakerID:            maker.MakerID,
@@ -315,7 +328,7 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionID st
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           regionID,
 		Department:         department,
-		RejectionReason:    maker.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
 		ActionStatus:       string(model.ActionPending),
@@ -372,7 +385,11 @@ func (o *outboundAccountBlockStore) ApproveRegionBlock(ctx context.Context, acti
 	}
 
 	var regionID string
-	if err := json.Unmarshal(actionDoc.CurrentAction, &regionID); err != nil {
+	currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
+	if !ok {
+		return errors.New("invalid current action data")
+	}
+	if err := json.Unmarshal(currentActionBytes, &regionID); err != nil {
 		return errors.New("failed to parse regionID from action")
 	}
 
@@ -436,6 +453,11 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
 
 	currAction, _ := json.Marshal(districtID)
 
+	var rejectionReason string
+	if maker.RejectionReason != nil {
+		rejectionReason = *maker.RejectionReason
+	}
+
 	cpsAction := model.CPSAction{
 		ActionCode: utils.RandomGenerator(24),
 
@@ -447,7 +469,7 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           districtID,
 		Department:         department,
-		RejectionReason:    maker.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
 		ActionStatus:       string(model.ActionPending),
@@ -486,8 +508,8 @@ func (o *outboundAccountBlockStore) ApproveBlockDistrict(ctx context.Context, di
 	}
 
 	checkerInfo := bson.M{
-		"checker_code": checker.Checker.UserID,
-		"checker_name": checker.Checker.FullName,
+		"checker_code": checker.CheckerID,
+		"checker_name": checker.CheckerName,
 		"checked_at":   time.Now(),
 	}
 
@@ -520,6 +542,11 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
 
 	currAction, _ := json.Marshal(cityID)
 
+	var rejectionReason string
+	if maker.RejectionReason != nil {
+		rejectionReason = *maker.RejectionReason
+	}
+
 	cpsAction := model.CPSAction{
 		ActionCode:         utils.RandomGenerator(24),
 		MakerID:            maker.MakerID,
@@ -530,12 +557,12 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           cityID,
 		Department:         department,
-		RejectionReason:    maker.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
-		ActionStatus:       model.ActionPending,
-		ActionType:         model.ActionDelete,
-		RequestAction:      model.RequestAction(model.RequestBlockCity),
+		ActionStatus:       string(model.ActionPending),
+		ActionType:         string(model.ActionDelete),
+		RequestAction:      string(model.RequestBlockCity),
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 	}
@@ -573,8 +600,8 @@ func (o *outboundAccountBlockStore) ApproveBlockCity(ctx context.Context, cityID
 	}
 
 	checkerInfo := bson.M{
-		"checker_code": checker.Checker.UserID,
-		"checker_name": checker.Checker.FullName,
+		"checker_code": checker.CheckerID,
+		"checker_name": checker.CheckerName,
 		"checked_at":   time.Now(),
 	}
 
@@ -607,6 +634,10 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 
 	currAction, _ := json.Marshal(userID)
 
+	var rejectionReason string
+	if maker.RejectionReason != nil {
+		rejectionReason = *maker.RejectionReason
+	}
 	cpsAction := model.CPSAction{
 		ActionCode:         utils.RandomGenerator(24),
 		MakerID:            maker.MakerID,
@@ -617,12 +648,12 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           userID,
 		Department:         department,
-		RejectionReason:    maker.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
-		ActionStatus:       model.ActionPending,
-		ActionType:         model.ActionDelete,
-		RequestAction:      model.RequestBlockUser,
+		ActionStatus:       string(model.ActionPending),
+		ActionType:         string(model.ActionDelete),
+		RequestAction:      string(model.RequestBlockUser),
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 	}
@@ -650,8 +681,8 @@ func (o *outboundAccountBlockStore) ApproveBlockUser(ctx context.Context, userID
 	}
 
 	checkerInfo := bson.M{
-		"checker_code": checker.Checker.UserID,
-		"checker_name": checker.Checker.FullName,
+		"checker_code": checker.CheckerID,
+		"checker_name": checker.CheckerName,
 		"checked_at":   time.Now(),
 	}
 

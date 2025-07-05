@@ -13,9 +13,9 @@ func (s *TicketStore) CreateTicketAction(ctx context.Context, ticket Ticket, mak
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	previos_action := ticket
 	action := domain.CPSAction{
-		ActionCode:    actionId,
-		MakerID:       makerId,
-		
+		ActionCode: actionId,
+		MakerID:    makerId,
+
 		ActionType:    domain.ActionCreate,
 		RequestAction: domain.RequestCreateMiniAppMerchant,
 		ActionStatus:  domain.ActionPending,

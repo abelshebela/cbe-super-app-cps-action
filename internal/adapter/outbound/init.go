@@ -407,6 +407,11 @@ func stringPointer(s string) *string {
 }
 
 func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
+	rejectionReason := "rejected by the checker"
+	if domainAction.RejectionReason != nil {
+		rejectionReason = *domainAction.RejectionReason
+	}
+
 	return model.CPSAction{
 		ID:                 domainAction.ID,
 		ActionCode:         domainAction.ActionCode,
@@ -418,7 +423,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		CheckerName:        domainAction.CheckerName,
 		CheckerPhoneNumber: domainAction.CheckerPhoneNumber,
 		Department:         domainAction.Department,
-		RejectionReason:    domainAction.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      domainAction.PreviosAction,
 		CurrentAction:      domainAction.CurrentAction,
 		ActionStatus:       string(domainAction.ActionStatus),
@@ -432,6 +437,11 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 }
 
 func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
+	var rejectionReason *string
+	if modelAction.RejectionReason != "" {
+		rejectionReason = &modelAction.RejectionReason
+	}
+
 	return domain.CPSAction{
 		ID:                 modelAction.ID,
 		ActionCode:         modelAction.ActionCode,
@@ -443,7 +453,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CheckerName:        modelAction.CheckerName,
 		CheckerPhoneNumber: modelAction.CheckerPhoneNumber,
 		Department:         modelAction.Department,
-		RejectionReason:    modelAction.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      modelAction.PreviosAction,
 		CurrentAction:      modelAction.CurrentAction,
 		ActionStatus:       domain.ActionStatus(modelAction.ActionStatus),
@@ -498,6 +508,11 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 	if err != nil {
 		return domain.CPSAction{}, err
 	}
+	var rejectionReason *string
+	if data.RejectionReason != "" {
+		rejectionReason = &data.RejectionReason
+	}
+
 	result := domain.CPSAction{
 		ID:                 data.ID,
 		ActionCode:         data.ActionCode,
@@ -509,7 +524,7 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 		CheckerName:        data.CheckerName,
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
-		RejectionReason:    data.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      data.PreviosAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       domain.ActionStatus(data.ActionStatus),
@@ -680,11 +695,16 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 		return domain.CPSAction{}, err
 	}
 	var data = *d[len(d)-1]
+	var rejectionReason *string
+	if data.RejectionReason != "" {
+		rejectionReason = &data.RejectionReason
+	}
+
 	result := domain.CPSAction{
 		ID:              data.ID, // Use string directly
 		ActionCode:      data.ActionCode,
 		Department:      data.Department,
-		RejectionReason: data.RejectionReason,
+		RejectionReason: rejectionReason,
 		PreviosAction:   data.PreviosAction, // Assuming this is directly mapped
 		CurrentAction: domain.CurrentAction{
 			Id: func() []string {
@@ -1568,9 +1588,10 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 	} else {
 		action.ActionStatus = domain.ActionRejected
 		if rejectionReason != "" {
-			action.RejectionReason = rejectionReason
+			action.RejectionReason = &rejectionReason
 		} else {
-			action.RejectionReason = "Rejected by checker"
+			defaultReason := "Rejected by checker"
+			action.RejectionReason = &defaultReason
 		}
 	}
 
@@ -1637,7 +1658,11 @@ func (o *outboundStore) ApproveOrRejectPasswordRuleAction(ctx context.Context, a
 	if approve {
 		update["action_status"] = "APPROVED"
 		var rule model.PasswordRule
-		if err := json.Unmarshal(action.CurrentAction, &rule); err != nil {
+		currentActionBytes, ok := action.CurrentAction.([]byte)
+		if !ok {
+			return errors.New("invalid current action data")
+		}
+		if err := json.Unmarshal(currentActionBytes, &rule); err != nil {
 			return err
 		}
 		rule.ID = bson.NewObjectID()
@@ -1661,6 +1686,10 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 	if err != nil {
 		return nil, err
 	}
+	var rejectionReason *string
+	if data.RejectionReason != "" {
+		rejectionReason = &data.RejectionReason
+	}
 	result := &action.CPSAction{
 		ID:                 data.ID,
 		ActionCode:         data.ActionCode,
@@ -1671,7 +1700,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		CheckerName:        data.CheckerName,
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
-		RejectionReason:    data.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      data.PreviosAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
@@ -1699,6 +1728,10 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		}
 		return nil, err
 	}
+	var rejectionReason *string
+	if data.RejectionReason != "" {
+		rejectionReason = &data.RejectionReason
+	}
 	result := &action.CPSAction{
 		ID:                 data.ID,
 		ActionCode:         data.ActionCode,
@@ -1709,7 +1742,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		CheckerName:        data.CheckerName,
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
-		RejectionReason:    data.RejectionReason,
+		RejectionReason:    rejectionReason,
 		PreviosAction:      data.PreviosAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
