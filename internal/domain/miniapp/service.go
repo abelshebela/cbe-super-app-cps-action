@@ -3,22 +3,27 @@ package miniapp
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
-func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, makerId string) (string, error) {
+func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	previos_action := miniApp
 	action := domain.CPSAction{
-		ActionCode:    actionId,
-		MakerID:       makerId,
-		ActionType:    domain.ActionCreate,
-		RequestAction: domain.RequestCreateMiniAppMerchant,
-		ActionStatus:  domain.ActionPending,
-		PreviosAction: previos_action,
+		ActionCode:       actionId,
+		MakerID:          maker.UserCode,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		MakerActionTime:  time.Now(),
+		ActionType:       domain.ActionCreate,
+		RequestAction:    domain.RequestCreateMiniAppMerchant,
+		ActionStatus:     domain.ActionPending,
+		PreviosAction:    previos_action,
 	}
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)
 	if err != nil {
@@ -27,7 +32,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 	return a.ActionCode, nil
 }
 
-func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action bool, checkerId string) error {
+func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action bool, checker model.User) error {
 	act, err := s.Repository.GetMiniAppActionId(ctx, actionId)
 	if err != nil {
 		return err
@@ -39,7 +44,10 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 		act.ActionType = domain.ActionType(domain.ActionRejected)
 		act.ActionStatus = domain.ActionRejected
 	}
-	act.CheckerID = checkerId
+	act.CheckerID = checker.UserCode
+	act.CheckerName = checker.FullName
+	act.CheckerPhoneNumber = checker.PhoneNumber
+	act.CheckerActionTime = time.Now()
 	err = s.Repository.UpdateCpsAction(ctx, act)
 	if err != nil {
 		return err

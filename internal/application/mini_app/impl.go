@@ -4,13 +4,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
-func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, makerId string) (string, *common.ErrorDefinition) {
+func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (string, *common.ErrorDefinition) {
 	data := domain.MiniApp{
 		AppName:           miniApp.AppName,
 		AppIcon:           miniApp.AppIcon,
@@ -55,7 +57,7 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 		LastModifiedAt: time.Now(),
 		DeletedAt:      time.Time{},
 	}
-	action_id, err := a.service.CreateMiniAppAction(ctx, data, makerId)
+	action_id, err := a.service.CreateMiniAppAction(ctx, data, maker)
 	if err != nil {
 		err_def := common.ErrorDefinition{
 			Code:    "",
@@ -68,8 +70,8 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 	return action_id, nil
 }
 
-func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checkerId string) *common.ErrorDefinition {
-	err := a.service.CheckMiniApp(ctx, actionId, action, checkerId)
+func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User) *common.ErrorDefinition {
+	err := a.service.CheckMiniApp(ctx, actionId, action, checker)
 	if err != nil {
 		err_def := common.ErrorDefinition{
 			Code:    "",

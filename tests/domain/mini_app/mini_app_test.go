@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	mock_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/miniapp"
@@ -20,19 +21,25 @@ func TestCreateMiniAppAction(t *testing.T) {
 	miniAppStore := miniapp.MiniAppStore{Repository: mockRepo}
 
 	ctx := context.Background()
-	makerId := "maker123"
+	makerUser := model.User{
+		UserCode:    "1234",
+		FullName:    "Abebe Kebede",
+		PhoneNumber: "+251911111111",
+	}
 	miniApp := miniapp.MiniApp{
 		AppName: "Test MiniApp",
 	}
 
 	actionId := "CPS_1234567890"
 	expectedAction := action.CPSAction{
-		ActionCode:    actionId,
-		Maker:         action.User{UserID: makerId},
-		ActionType:    action.ActionCreate,
-		RequestAction: action.RequestCreateMiniAppMerchant,
-		ActionStatus:  action.ActionPending,
-		PreviosAction: miniApp,
+		ActionCode:       actionId,
+		MakerID:          makerUser.UserCode,
+		MakerName:        makerUser.FullName,
+		MakerPhoneNumber: makerUser.PhoneNumber,
+		ActionType:       action.ActionCreate,
+		RequestAction:    action.RequestCreateMiniAppMerchant,
+		ActionStatus:     action.ActionPending,
+		PreviosAction:    miniApp,
 	}
 
 	mockRepo.EXPECT().
@@ -40,7 +47,7 @@ func TestCreateMiniAppAction(t *testing.T) {
 		Return(expectedAction, nil)
 
 	// Act
-	result, err := miniAppStore.CreateMiniAppAction(ctx, miniApp, makerId)
+	result, err := miniAppStore.CreateMiniAppAction(ctx, miniApp, makerUser)
 
 	// Assert
 	assert.NoError(t, err)
@@ -56,7 +63,11 @@ func TestCheckMiniApp(t *testing.T) {
 
 	ctx := context.Background()
 	actionId := "CPS_1234567890"
-	checkerId := "checker123"
+	checkerUser := model.User{
+		UserCode:    "1234",
+		FullName:    "Abebe Kebede",
+		PhoneNumber: "+251911111111",
+	}
 	miniApp := miniapp.MiniApp{
 		AppName: "Test MiniApp",
 	}
@@ -81,7 +92,7 @@ func TestCheckMiniApp(t *testing.T) {
 		Return(nil)
 
 	// Act
-	err := miniAppStore.CheckMiniApp(ctx, actionId, true, checkerId)
+	err := miniAppStore.CheckMiniApp(ctx, actionId, true, checkerUser)
 
 	// Assert
 	assert.NoError(t, err)
@@ -96,7 +107,11 @@ func TestCheckMiniApp_Rejected(t *testing.T) {
 
 	ctx := context.Background()
 	actionId := "CPS_1234567890"
-	checkerId := "checker123"
+	checkerUser := model.User{
+		UserCode:    "1234",
+		FullName:    "Abebe Kebede",
+		PhoneNumber: "+251911111111",
+	}
 	miniApp := miniapp.MiniApp{
 		AppName: "Test MiniApp",
 	}
@@ -121,7 +136,7 @@ func TestCheckMiniApp_Rejected(t *testing.T) {
 		Return(nil)
 
 	// Act
-	err := miniAppStore.CheckMiniApp(ctx, actionId, false, checkerId)
+	err := miniAppStore.CheckMiniApp(ctx, actionId, false, checkerUser)
 
 	// Assert
 	assert.NoError(t, err)

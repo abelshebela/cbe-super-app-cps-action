@@ -34,3 +34,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 		BranchCode:  branchCode,
 	}
 }
+
+func (u UserContext) IsIncomplete() bool {
+	return u.UserID == "" || u.FullName == "" || u.PhoneNumber == "" || u.Department == ""
+}
