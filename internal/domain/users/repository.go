@@ -1,7 +1,9 @@
 package users
 
 import (
+	"cbe-super-app-member-users/internal/adapter/outbound/model"
 	"cbe-super-app-member-users/pkgs/entities"
+
 	"cbe-super-app-member-users/pkgs/entities/type_definition"
 	"context"
 )
@@ -12,6 +14,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*UserEmail, error)
 	StoreOTP(ctx context.Context, otp *OTPRecord) error
 	FindOTP(ctx context.Context, userID, email string) (*OTPRecord, error)
+	UpdateProfileTheme(ctx context.Context, id string, themeType string) (*model.User, error)
 	UpdateUserEmail(ctx context.Context, userID, email string) error
 	UpdateProfileImageURL(ctx context.Context, id string, imageURL string) error
 	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
@@ -22,7 +25,7 @@ type UserRepository interface {
 	CreateOtp(ctx context.Context, otp *OTPRecord) error
 	GetOtpByID(ctx context.Context, id string) (*OTPRecord, error)
 	UpdateOtp(ctx context.Context, otp *OTPRecord) error
-	DeleteOtp(ctx context.Context, userCode, otpCode, otpFor string) error
+	DeleteOtp(ctx context.Context, phone, otpCode, otpFor string) error
 	// Registration methods
 	FindUserByPhone(ctx context.Context, phone string) (*User, error)
 	FindUserByPhoneForLogin(ctx context.Context, phone string, pin string) (*User, error)

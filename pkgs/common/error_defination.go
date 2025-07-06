@@ -334,6 +334,22 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_030",
 			Message: "PIN reset session already verified",
 		},
+		"DEVICE_UUID_MISMATCH": {
+			Code:    "AUTH_031",
+			Message: "Device UUID mismatch",
+		},
+		"FAILED_TO_DELETE_PENDING_REG": {
+			Code:    "AUTH_032",
+			Message: "Failed to delete expired registration",
+		},
+		"PLEASE_REG_FIRST": {
+			Code:    "AUTH_033",
+			Message: "User Not Found Please register first",
+		},
+		"PROFILE_SET_ERROR": {
+			Code:    "AUTH_033",
+			Message: "Failed to set Profile",
+		},
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {

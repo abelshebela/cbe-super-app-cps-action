@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"cbe-super-app-member-users/internal/adapter/outbound/model"
 	"cbe-super-app-member-users/internal/application/dto"
 	"cbe-super-app-member-users/pkgs/entities"
 	"cbe-super-app-member-users/pkgs/entities/enums"
@@ -72,8 +73,10 @@ var (
 	errDeviceAlreadyRegistered = fmt.Errorf("DEVICE_ALREADY_REGISTERED")
 	errPhoneAlreadyExists      = fmt.Errorf("PHONE_ALREADY_EXISTS")
 	errAccountBlocked          = fmt.Errorf("ACCOUNT_BLOCKED")
+	errPleaseRegisterFirst     = fmt.Errorf("PLEASE_REG_FIRST")
 	errTooManyLoginAttempts    = fmt.Errorf("TOO_MANY_LOGIN_ATTEMPTS")
 	errPinNotSet               = fmt.Errorf("PIN_NOT_SET")
+	errProfileSet              = fmt.Errorf("PROFILE_SET_ERROR")
 	errUserNotFound            = fmt.Errorf("USER_NOT_FOUND")
 )
 
@@ -129,6 +132,20 @@ func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file 
 
 	objectName := fmt.Sprintf("profile-pictures/%s/%s", id, filepath.Base(fileHeader.Filename))
 
+	exists, err := s.minIO.BucketExist(ctx, "user-profile-pictures")
+	if !exists {
+		// Create the bucket if it does not exist
+		_, err = s.minIO.MakeBucket(ctx, "user-profile-pictures")
+		if err != nil {
+			s.logger.Errorf("Failed to create bucket:", err)
+		}
+		s.logger.Infof("Bucket created successfully:", "user-profile-pictures")
+	}
+
+	if err != nil {
+		s.logger.Errorf("Failed to check if bucket exists:", err)
+	}
+
 	resp, err := s.minIO.SaveObject(ctx, config.SaveObjectBody{
 		BucketName:  "user-profile-pictures",
 		ObjectName:  objectName,
@@ -146,9 +163,23 @@ func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, file 
 		s.logger.Warnf("Failed to remove temp file after successful upload: %v", rerr)
 	}
 
+	if success {
+
+		err := s.repository.UpdateProfileImageURL(ctx, id, resp.Key)
+		if err != nil {
+			return "", errProfileSet
+		}
+	}
 	return resp.Key, nil
 }
 
+func (s *UserService) UpdateProfileTheme(ctx context.Context, id string, themeType string) (*model.User, error) {
+	data, err := s.repository.UpdateProfileTheme(ctx, id, themeType)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
 func (s *UserService) FetchLinkedAccounts(ctx context.Context, id string) (*LinkedAccountResponse, error) {
 	user, err := s.repository.FindByID(ctx, id)
 	if err != nil {
@@ -470,32 +501,63 @@ func (s *UserService) CreateOtp(ctx context.Context, otp OTPRecord) error {
 	return s.repository.CreateOtp(ctx, &otp)
 }
 
-func (s *UserService) VerifyOtp(ctx context.Context, userID, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
+func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
+	var phone, fullName string
 
 	defer func() {
 		otp = ""
 	}()
 
-	fmt.Println("deviceUUid", deviceUUID)
-	// Use the OTP as received (already encrypted)
-	// Verify OTP
-	err := s.verifyOtpInternal(ctx, userID, otp, deviceUUID, userRealm, otpFor)
+	full_name, err := s.verifyOtpInternal(ctx, userID, phone_number, otp, deviceUUID, userRealm, otpFor)
 	if err != nil {
 		s.logger.Errorf("OTP verification failed: %v", err)
 		return nil, err
 	}
 
-	// Get user details for token generation
-	var phone, fullName string
-	user, err := s.FindByID(ctx, userID)
+	if otpFor == "registration" {
+
+		userEntity := &User{
+			Realm:       enums.MemberRealm,
+			FullName:    full_name,
+			PhoneNumber: phone_number,
+			KYC: struct {
+				KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
+				KYCStatus            enums.KYCStatus     `json:"kyc_status" bson:"kyc_status"`
+				KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
+				KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
+				KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by"`
+				KYCLevel             uint8               `json:"level" bson:"level"`
+			}{
+				KYCLevel: 0,
+			},
+			Device: struct {
+				DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
+				AppVersion string `json:"app_version" bson:"app_version"`
+			}{
+				DeviceUUID: deviceUUID,
+			},
+			IsVerified: true,
+		}
+
+		err := s.repository.CreateUser(ctx, userEntity)
+		if err != nil {
+			return nil, errRegistrationFailed
+		}
+	}
+
+	user, err := s.FindUserByPhone(ctx, phone_number)
+
 	if err == nil && user != nil {
 		phone = user.PhoneNumber
 		fullName = user.FullName
 	} else if deviceUUID != "" {
-		phone = ""
+		phone = phone_number
 		fullName = ""
 	}
 
+	if err != nil {
+		return nil, ErrRegistrationFailed
+	}
 	userEntity := &entities.User{
 		ID:          user.ID,
 		UserCode:    user.UserCode,
@@ -503,7 +565,7 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, otp string, deviceU
 		Realm:       user.Realm,
 		MemberType:  user.MemberType,
 		FullName:    fullName,
-		PhoneNumber: phone,
+		PhoneNumber: phone_number,
 		Device: struct {
 			DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
 			AppVersion string `json:"app_version" bson:"app_version"`
@@ -545,51 +607,47 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, otp string, deviceU
 	return response, nil
 }
 
-func (s *UserService) verifyOtpInternal(ctx context.Context, userID, otp string, deviceUUID string, userRealm, otpFor string) error {
+func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp string, deviceUUID string, userRealm, otpFor string) (string, error) {
 	if otpFor == "registration" && deviceUUID != "" {
 
-		registration, err := s.repository.FindPendingRegistration(ctx, userID, deviceUUID)
+		registration, err := s.repository.FindPendingRegistration(ctx, phone, deviceUUID)
 		if err != nil {
 			s.logger.Errorf("Failed to find registration record: %v", err)
-			return fmt.Errorf("OTP_NOT_FOUND")
+			return "", fmt.Errorf("OTP_NOT_FOUND")
 		}
-
 		if time.Now().After(registration.ExpiresAt) {
 			s.repository.DeleteOtp(ctx, registration.ID, otp, otpFor)
 
 			s.logger.Warnf("OTP expired for registration")
-			return fmt.Errorf("EXPIRED_OTP")
+			return "", fmt.Errorf("EXPIRED_OTP")
 		}
 
-		// Compare OTP
 		if subtle.ConstantTimeCompare([]byte(registration.OTP), []byte(otp)) == 0 {
 			s.logger.Warnf("Invalid OTP for registration")
-			return fmt.Errorf("INVALID_OTP")
+			return "", fmt.Errorf("INVALID_OTP")
 		}
 
-		return nil
+		return registration.FullName, nil
 	}
 
 	// For other flows (e.g., pin_set, login, etc.)
 	otpRecord, err := s.repository.FindOTP(ctx, userID, otpFor)
 	if err != nil {
 		s.logger.Errorf("Failed to find OTP record: %v", err)
-		return fmt.Errorf("OTP_NOT_FOUND")
+		return "", fmt.Errorf("OTP_NOT_FOUND")
 	}
 
-	// Check if OTP is expired
 	if time.Now().After(otpRecord.ExpiresAt) {
 		s.logger.Warnf("OTP expired for user %s, otpFor: %s", userID, otpFor)
-		return fmt.Errorf("EXPIRED_OTP")
+		return "", fmt.Errorf("EXPIRED_OTP")
 	}
 
-	// Compare OTP (both should be encrypted)
 	if subtle.ConstantTimeCompare([]byte(otpRecord.OTP), []byte(otp)) == 0 {
 		s.logger.Warnf("Invalid OTP for user %s, otpFor: %s", userID, otpFor)
-		return fmt.Errorf("INVALID_OTP")
+		return "", fmt.Errorf("INVALID_OTP")
 	}
 
-	return nil
+	return otpRecord.FullName, nil
 }
 
 func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
@@ -703,43 +761,42 @@ func (s *UserService) updateUserPin(ctx context.Context, userID, newPin string, 
 	return nil
 }
 
-func (s *UserService) Register(ctx context.Context, phone, deviceUUID, platform string) (*dto.RegisterResponse, error) {
-	// Validate input parameters
+func (s *UserService) Register(ctx context.Context, phone, full_name, email, deviceUUID, platform string) (*dto.RegisterResponse, error) {
 	if err := s.validateRegistrationInputs(phone, deviceUUID, platform); err != nil {
 		return nil, err
 	}
 
-	// Format phone number
 	formattedPhone := utils.FormatPhoneNumber(phone)
 	if formattedPhone == "" {
 		return nil, ErrInvalidPhoneNumber
 	}
 
-	// Check if user already exists
 	existingUser, err := s.FindUserByPhone(ctx, formattedPhone)
 	if err == nil && existingUser != nil {
 		s.logger.Warnf("User with phone %s already exists", formattedPhone)
 		return nil, ErrPhoneAlreadyExists
 	}
 
-	// Check if device is already registered
 	existingDeviceUser, err := s.FindUserByDevice(ctx, deviceUUID)
 	if err == nil && existingDeviceUser != nil {
 		s.logger.Warnf("Device %s is already registered to user %s", deviceUUID, existingDeviceUser.ID.Hex())
 		return nil, ErrDeviceAlreadyRegistered
 	}
 
-	// Check for pending registration
 	pendingRegistration, err := s.FindPendingRegistration(ctx, formattedPhone, deviceUUID)
 	if err == nil && pendingRegistration != nil {
-		// Check if existing registration is still valid
-		if time.Now().Before(pendingRegistration.ExpiresAt) && pendingRegistration.Status == "incomplete" {
+		fmt.Println("pendingRegistration.ExpiresAt", pendingRegistration.ExpiresAt)
+		fmt.Println("Now", time.Now().UTC())
+		fmt.Println("is Expired", time.Now().UTC().Before(pendingRegistration.ExpiresAt))
+
+		if time.Now().UTC().Before(pendingRegistration.ExpiresAt) && pendingRegistration.Status == "pending" {
 			s.logger.Warnf("Registration already in progress for phone %s", formattedPhone)
 			return nil, ErrRegistrationInProgress
 		}
-		// Delete expired registration
+
 		if err := s.DeletePendingRegistration(ctx, pendingRegistration.ID); err != nil {
 			s.logger.Errorf("Failed to delete expired registration: %v", err)
+			return nil, fmt.Errorf("FAILED_TO_DELETE_PENDING_REG")
 		}
 	}
 
@@ -748,48 +805,47 @@ func (s *UserService) Register(ctx context.Context, phone, deviceUUID, platform 
 	expirationTime := 10 * time.Minute
 	wait := int(expirationTime.Minutes())
 
-	// Encrypt OTP
 	encOtpCode, _, err := utils.LocalEncryptPassword(otpCode, "otp", "", "", s.cfg)
 	if err != nil {
 		s.logger.Errorf("Failed to encrypt registration OTP: %v", err)
 		return nil, ErrRegistrationFailed
 	}
 
-	// Create registration record
 	registrationID := uuid.New().String()
+
 	registration := RegistrationRecord{
 		ID:          registrationID,
 		PhoneNumber: formattedPhone,
 		DeviceUUID:  deviceUUID,
 		Platform:    platform,
+		FullName:    full_name,
 		OTP:         encOtpCode,
 		OTPFor:      "registration",
-		Status:      "incomplete",
+		Status:      "pending",
 		ExpiresAt:   time.Now().Add(expirationTime),
 		CreatedAt:   time.Now(),
 		Attempts:    0,
 		MaxAttempts: 3,
 	}
 
-	// Store registration record
 	if err := s.CreatePendingRegistration(ctx, registration); err != nil {
 		s.logger.Errorf("Failed to create registration record: %v", err)
 		return nil, ErrRegistrationFailed
 	}
 
-	// Send OTP via SMS (async)
 	go func() {
 		message := fmt.Sprintf("Your CBE Super App registration OTP is: %s. Valid for %d minutes.", otpCode, wait)
 		if err := utils.AxiosSendSms(ctx, formattedPhone, message); err != nil {
 			s.logger.Errorf("Failed to send registration SMS: %v", err)
+
 		}
 	}()
 
-	// Generate permanent token for registration using TokenMaker
 	userEntity := entities.User{
 		ID:          bson.NewObjectID(),
-		FullName:    "",
+		FullName:    full_name,
 		PhoneNumber: formattedPhone,
+		Email:       email,
 		Device: struct {
 			DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
 			AppVersion string `json:"app_version" bson:"app_version"`
@@ -805,11 +861,19 @@ func (s *UserService) Register(ctx context.Context, phone, deviceUUID, platform 
 		// Don't fail the registration if token generation fails
 	}
 
+	var otp string
+	if s.cfg.GoEnv == "dev" || s.cfg.GoEnv == "uat" {
+		otp = otpCode
+	} else {
+		otp = ""
+	}
+
 	response := &dto.RegisterResponse{
 		RegistrationID:     registrationID,
 		PhoneNumber:        formattedPhone,
 		DeviceUUID:         deviceUUID,
 		Platform:           platform,
+		Otp:                otp,
 		OTPSent:            true,
 		OTPExpiryMinutes:   wait,
 		Token:              token,
@@ -1425,22 +1489,27 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 	user, err := s.FindUserByDevice(ctx, deviceUUID)
 	userFound := err == nil && user != nil
 
+	var userEntity entities.User
 	// Generate device lookup token using TempTokenMaker
-	userEntity := &entities.User{
-		ID:          user.ID,
-		FullName:    user.FullName,
-		PhoneNumber: user.PhoneNumber,
-		Email:       user.Email,
-		Realm:       user.Realm,
-		MemberType:  user.MemberType,
-		UserCode:    user.UserCode,
-		Device: struct {
-			DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
-			AppVersion string `json:"app_version" bson:"app_version"`
-		}{
-			DeviceUUID: deviceUUID,
-			AppVersion: appVersion,
-		},
+	if userFound {
+		userEntity = entities.User{
+			ID:          user.ID,
+			FullName:    user.FullName,
+			PhoneNumber: user.PhoneNumber,
+			Email:       user.Email,
+			Realm:       user.Realm,
+			MemberType:  user.MemberType,
+			UserCode:    user.UserCode,
+			Device: struct {
+				DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
+				AppVersion string `json:"app_version" bson:"app_version"`
+			}{
+				DeviceUUID: deviceUUID,
+				AppVersion: appVersion,
+			},
+		}
+	} else {
+		return nil, errPleaseRegisterFirst
 	}
 
 	permissions := []string{"device_lookup"}
@@ -1449,7 +1518,7 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 		"token_type": "device_lookup",
 	}
 
-	token, err := utils.TempTokenMaker(userEntity, permissions, "device_lookup", additional, "device_lookup", s.cfg)
+	token, err := utils.TempTokenMaker(&userEntity, permissions, "device_lookup", additional, "device_lookup", s.cfg)
 	if err != nil {
 		s.logger.Errorf("Failed to generate device lookup token: %v", err)
 		return nil, fmt.Errorf("TOKEN_GENERATION_FAILED")
@@ -1479,6 +1548,131 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 		UserFound:   userFound,
 		Token:       token,
 		TokenType:   "device_lookup",
+		TokenExpiry: time.Now().Add(5 * time.Minute),
+		NextStep:    nextStep,
+	}
+
+	if userFound && !user.IsVerified {
+
+		otpCode := utils.OTPGenerator(6)
+
+		// TEAM_APPROVED: Required direct syscall. See ADR-17 for justification.
+		if s.cfg.GoEnv == "dev" || s.cfg.GoEnv == "uat" {
+			response.OTPCode = otpCode
+		}
+
+		encOtpCode, _, err := utils.LocalEncryptPassword(otpCode, "otp", "", "", s.cfg)
+		if err != nil {
+			s.logger.Errorf("Failed to encrypt OTP: %v", err)
+			return nil, fmt.Errorf("OTP_ENCRYPTION_FAILED")
+		}
+
+		wait, err := strconv.Atoi(s.cfg.OtpWaitingTime)
+		if err != nil {
+			wait = 10
+		}
+		expirationTime := time.Duration(wait) * time.Minute
+
+		userRealm := sourceApp
+		if userRealm == "" {
+			userRealm = "member"
+		}
+
+		otpRecord := OTPRecord{
+			UserCode:   response.UserID,
+			OTP:        encOtpCode,
+			FullName:   response.FullName,
+			OTPFor:     string(enums.OTPForPINSet), // Using enum for "pin_set"
+			UserRealm:  userRealm,                  // Using sourceApp as user_realm
+			ExpiresAt:  time.Now().Add(expirationTime),
+			CreatedAt:  time.Now(),
+			DeviceUUID: deviceUUID,
+		}
+
+		if err := s.CreateOtp(ctx, otpRecord); err != nil {
+			s.logger.Errorf("Failed to create OTP record: %v", err)
+			return nil, fmt.Errorf("OTP_CREATION_FAILED")
+		}
+
+		go func() {
+			message := fmt.Sprintf("Your device lookup OTP is: %s. Valid for %d minutes.", otpCode, wait)
+			if err := utils.AxiosSendSms(ctx, user.PhoneNumber, message); err != nil {
+				s.logger.Errorf("Failed to send SMS: %v", err)
+			}
+		}()
+
+		s.logger.Infof("OTP generated and sent for device lookup - Device: %s, User: %s, OTP: %s, IsVerified: %v, UserRealm: %s", deviceUUID, user.PhoneNumber, otpCode, user.IsVerified, userRealm)
+	}
+
+	s.logger.Infof("Device lookup completed for device %s, user found: %v", deviceUUID, userFound)
+	return response, nil
+}
+
+func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVersion, sourceApp, phone_number string) (*dto.DeviceLookupResponse, error) {
+
+	// Check if device is linked to any user
+	user, err := s.FindUserByPhone(ctx, phone_number)
+	userFound := err == nil && user != nil
+
+	var userEntity entities.User
+	// Generate device lookup token using TempTokenMaker
+	if userFound {
+		userEntity = entities.User{
+			ID:          user.ID,
+			FullName:    user.FullName,
+			PhoneNumber: user.PhoneNumber,
+			Email:       user.Email,
+			Realm:       user.Realm,
+			MemberType:  user.MemberType,
+			UserCode:    user.UserCode,
+			Device: struct {
+				DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
+				AppVersion string `json:"app_version" bson:"app_version"`
+			}{
+				DeviceUUID: deviceUUID,
+				AppVersion: appVersion,
+			},
+		}
+	} else {
+		return nil, err
+	}
+
+	permissions := []string{"device_lookup"}
+	additional := map[string]interface{}{
+		"platform":   platform,
+		"token_type": "device_lookup",
+	}
+
+	token, err := utils.TempTokenMaker(&userEntity, permissions, "pre_login", additional, "device_lookup", s.cfg)
+	if err != nil {
+		s.logger.Errorf("Failed to generate device lookup token: %v", err)
+		return nil, fmt.Errorf("TOKEN_GENERATION_FAILED")
+	}
+
+	hqData, err := s.repository.GetOneHQ(ctx, map[string]interface{}{})
+	isLatest := true
+	if err == nil && hqData != nil {
+		isLatest = s.isAppVersionLatest(platform, appVersion, hqData)
+	}
+
+	nextStep := "register"
+	if userFound {
+		nextStep = "verify_otp"
+	}
+
+	response := &dto.DeviceLookupResponse{
+		DeviceUUID:  deviceUUID,
+		UserID:      user.ID.Hex(),
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		PhoneNumber: user.PhoneNumber,
+		Email:       user.Email,
+		Platform:    platform,
+		AppVersion:  appVersion,
+		IsLatest:    isLatest,
+		UserFound:   userFound,
+		Token:       token,
+		TokenType:   "pre_login",
 		TokenExpiry: time.Now().Add(5 * time.Minute),
 		NextStep:    nextStep,
 	}

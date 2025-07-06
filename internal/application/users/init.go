@@ -7,6 +7,7 @@ import (
 	dto "cbe-super-app-member-users/internal/application/dto"
 	domainUsers "cbe-super-app-member-users/internal/domain/users"
 	userPort "cbe-super-app-member-users/internal/port/inbound/users"
+	"cbe-super-app-member-users/pkgs/entities"
 
 	// "cbe-super-app-member-users/pkgs/config"
 
@@ -19,14 +20,16 @@ type ApplicationService interface {
 	GenerateEmailOTP(ctx context.Context, req userPort.OTPRequest) (string, error)
 	VerifyEmailOTP(ctx context.Context, req userPort.OTPVerification) error
 	UpdateProfilePicture(ctx context.Context, id string, file multipart.File, fileHeader *multipart.FileHeader) (string, error)
+	UpdateProfileTheme(ctx context.Context, id string, themeType string) (*entities.User, error)
 	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
 	ChangePin(ctx context.Context, req userPort.ChangePinRequest) error
 	// CheckDevice(ctx context.Context, header map[string]interface{}) (map[string]interface{}, error)
 	GetOneHQ(ctx context.Context, req map[string]interface{}) (*domainUsers.HQ, error)
 	DeviceLookup(ctx context.Context, header map[string]interface{}) (*dto.DeviceLookupResponse, error)
-	VerifyOtp(ctx context.Context, userID, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error)
+	PreLogin(ctx context.Context, header map[string]interface{}, phone string) (*dto.DeviceLookupResponse, error)
+	VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error)
 	SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error)
-	Register(ctx context.Context, phone, deviceUUID, platform string) (*dto.RegisterResponse, error)
+	Register(ctx context.Context, phone, full_name, email, deviceUUID, platform string) (*dto.RegisterResponse, error)
 	CompleteRegistration(ctx context.Context, registrationID, phone, deviceUUID, platform, fullName string) (*dto.CompleteRegistrationResponse, error)
 	Login(ctx context.Context, phone, deviceUUID, pin string) (*dto.LoginResponse, error)
 	ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) (*dto.ForgetPinSendOtpResponse, error)

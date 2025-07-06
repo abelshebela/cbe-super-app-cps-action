@@ -55,7 +55,7 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.Us
 
 	userFilter := bson.M{
 		"_id":        objectID,
-		"is_deleted": bson.M{"$ne": true},
+		"is_deleted": false,
 	}
 	userEntity, err := r.userDal.FindOne(ctx, userFilter, nil)
 	if err != nil {
@@ -351,7 +351,7 @@ func (r *MongoRepository) UpdateProfileImageURL(ctx context.Context, id string, 
 	}
 
 	updateProfileURL := bson.M{
-		"avatar": imageURL,
+		"avater": imageURL,
 	}
 
 	_, err = r.userDal.UpdateOne(ctx, userFilter, updateProfileURL)
@@ -362,10 +362,31 @@ func (r *MongoRepository) UpdateProfileImageURL(ctx context.Context, id string, 
 	return nil
 }
 
-func (r *MongoRepository) DeleteOtp(ctx context.Context, userCode, otpCode, otpFor string) error {
+func (r *MongoRepository) UpdateProfileTheme(ctx context.Context, id string, themeType string) (*entities.User, error) {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
 
-	filter := bson.M{"otp_code": otpCode, "otp_for": otpFor, "user_code": userCode}
-	fmt.Println("filter", filter)
+	userFilter := bson.M{
+		"_id":        oid,
+		"is_deleted": bson.M{"$ne": true},
+	}
+
+	updateProfileURL := bson.M{
+		"profile_theme_type": themeType,
+	}
+
+	user, err := r.userDal.UpdateOne(ctx, userFilter, updateProfileURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+func (r *MongoRepository) DeleteOtp(ctx context.Context, phone, otpCode, otpFor string) error {
+
+	filter := bson.M{"otp_code": otpCode, "otp_for": otpFor, "phone_number": phone}
 	err := r.otpDal.DeleteOne(ctx, filter)
 
 	if err != nil {
@@ -483,7 +504,7 @@ func (r *MongoRepository) FindUserByPhone(ctx context.Context, phone string) (*u
 		"phone_number": phone,
 		"is_deleted":   false,
 	}
-
+	fmt.Println("filter phone", filter)
 	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -630,16 +651,15 @@ func (r *MongoRepository) mapUserEntityToDomain(userEntity *entities.User) *user
 }
 
 // Registration-related methods
-func (r *MongoRepository) FindPendingRegistration(ctx context.Context, userID, deviceUUID string) (*userPort.RegistrationRecord, error) {
+func (r *MongoRepository) FindPendingRegistration(ctx context.Context, phone, deviceUUID string) (*userPort.RegistrationRecord, error) {
 	filter := bson.M{
-		"user_code":   userID,
-		"device_uuid": deviceUUID,
-		"status":      string(entities.Pending),
-		"is_deleted":  false,
-		"expires_at":  bson.M{"$gt": time.Now()},
+		"phone_number": phone,
+		"device_uuid":  deviceUUID,
+		"status":       string(entities.Pending),
+		"is_deleted":   false,
 	}
 
-	fmt.Println("filter", filter)
+	fmt.Println("filter====", filter)
 	otpEntity, err := r.otpDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -653,6 +673,7 @@ func (r *MongoRepository) FindPendingRegistration(ctx context.Context, userID, d
 	return &userPort.RegistrationRecord{
 		ID:          otpEntity.ID.Hex(),
 		PhoneNumber: otpEntity.PhoneNumber,
+		FullName:    otpEntity.FullName,
 		DeviceUUID:  deviceUUIDStr,
 		Platform:    constants.DefaultPlatform, // Default platform since it's not in OTP model
 		OTP:         otpEntity.OTPCode,
@@ -712,6 +733,7 @@ func (r *MongoRepository) CreatePendingRegistration(ctx context.Context, registr
 		PhoneNumber: registration.PhoneNumber,
 		DeviceUUID:  &registration.DeviceUUID,
 		OTPCode:     registration.OTP,
+		FullName:    registration.FullName,
 		OTPFor:      entities.OTPFor(registration.OTPFor),
 		Status:      entities.OTPStatus(registration.Status),
 		ExpiresAt:   registration.ExpiresAt,
@@ -752,6 +774,7 @@ func (r *MongoRepository) UpdatePendingRegistration(ctx context.Context, registr
 }
 
 func (r *MongoRepository) CreateUser(ctx context.Context, user *userPort.User) error {
+	fmt.Println("users========", user)
 	userEntity := entities.User{
 		ID:                user.ID,
 		UserCode:          user.UserCode,

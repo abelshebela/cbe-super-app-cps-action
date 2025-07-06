@@ -165,6 +165,7 @@ type OTPRecord struct {
 	UserID     string
 	Email      string
 	OTP        string
+	FullName   string
 	CreatedAt  time.Time
 	ExpiresAt  time.Time
 	UserRealm  string
@@ -245,6 +246,7 @@ type RegistrationRecord struct {
 	DeviceUUID  string    `bson:"device_uuid" json:"device_uuid"`
 	Platform    string    `bson:"platform" json:"platform"`
 	OTP         string    `bson:"otp" json:"otp"`
+	FullName    string    `bson:"full_name" json:"full_name"`
 	OTPFor      string    `bson:"otp_for" json:"otp_for"`
 	Status      string    `bson:"status" json:"status"`
 	ExpiresAt   time.Time `bson:"expires_at" json:"expires_at"`
