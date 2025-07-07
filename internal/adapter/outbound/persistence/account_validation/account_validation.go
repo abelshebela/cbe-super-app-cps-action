@@ -229,7 +229,7 @@ func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Contex
 			RejectionReason: a.RejectionReason,
 			CreatedAt:       a.CreatedAt,
 			LastModifiedAt:  a.LastModifiedAt,
-			ID:              a.ID.Hex(),
+			ID:              a.ID,
 		})
 	}
 

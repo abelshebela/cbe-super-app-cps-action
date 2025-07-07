@@ -12,6 +12,7 @@ import (
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 
+	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
@@ -38,6 +39,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
+	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 )
 
 type Adapter struct {
@@ -60,6 +62,7 @@ type Adapter struct {
 	PasswordRuleAdapter    inbound.PasswordRuleInbound
 	PortalCardAdapter      inbound.PortalCardBound
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
+	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -73,15 +76,15 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
 		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
 
-		UnlinkAdapter:        unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
-		BudgetAdapter:        budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
-		AccountAdapter:       accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
-		BulkServiceAdapter:   bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),
-		CPSUserAdapter:       cpsmakerhandler.InitCPSUserMakerHandler(application.CPSUserApplication, logger),
-		PasswordRuleAdapter:  passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
-		PortalCardAdapter:    portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
-		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
-
-		DepartmentAdapter: department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		UnlinkAdapter:         unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
+		BudgetAdapter:         budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
+		AccountAdapter:        accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
+		BulkServiceAdapter:    bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),
+		CPSUserAdapter:        cpsmakerhandler.InitCPSUserMakerHandler(application.CPSUserApplication, logger),
+		PasswordRuleAdapter:   passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
+		PortalCardAdapter:     portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
+		ServiceDetailAdapter:  service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
+		DepartmentAdapter:     department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		BudgetCategoryAdapter: budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 	}
 }

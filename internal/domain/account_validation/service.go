@@ -172,7 +172,7 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 
 		updatedRule := currentAction.Rule
 
-		if updatedRule.ID == "" || updatedRule.ID != cpsAction.ID {
+		if updatedRule.ID == "" || updatedRule.ID != cpsAction.ID.String() {
 			s.logger.Errorf("validation rule ID mismatch", "action_id", actionID, "rule_id", updatedRule.ID, "unique_id", cpsAction.ID)
 			return fmt.Errorf("VALIDATION_RULE_ID_MISMATCH")
 		}

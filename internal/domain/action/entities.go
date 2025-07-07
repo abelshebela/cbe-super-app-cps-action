@@ -1,6 +1,10 @@
 package action
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type UserType string
 
@@ -38,20 +42,21 @@ type CurrentAction struct {
 	Action bool
 }
 type CPSAction struct {
-	ID              string
-	ActionCode      string
-	UniqueId        string
-	Maker           User
-	Checker         User
-	Department      string
-	RejectionReason *string
-	PreviosAction   interface{}
-	CurrentAction   interface{}
-	ActionStatus    ActionStatus
-	ActionType      ActionType
-	RequestAction   RequestAction
-	CreatedAt       time.Time
-	LastModifiedAt  time.Time
+	ID              bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	ActionCode      string        `bson:"action_code,omitempty" json:"action_code,omitempty"`
+	UniqueId        string        `bson:"unique_id,omitempty" json:"unique_id,omitempty"`
+	Maker           User          `bson:"maker,omitempty" json:"maker,omitempty"`
+	Checker         User          `bson:"checker,omitempty" json:"checker,omitempty"`
+	Department      string        `bson:"department,omitempty" json:"department,omitempty"`
+	RejectionReason *string       `bson:"rejection_reason,omitempty" json:"rejection_reason,omitempty"`
+	PreviosAction   interface{}   `bson:"previous_action,omitempty" json:"previous_action,omitempty"`
+	CurrentAction   interface{}   `bson:"current_action,omitempty" json:"current_action,omitempty"`
+	ActionStatus    ActionStatus  `bson:"action_status,omitempty" json:"action_status,omitempty"`
+	ActionType      ActionType    `bson:"action_type,omitempty" json:"action_type,omitempty"`
+	RequestAction   RequestAction `bson:"request_action,omitempty" json:"request_action,omitempty"`
+	CreatedAt       time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	LastModifiedAt  time.Time     `bson:"last_modified_at,omitempty" json:"last_modified_at,omitempty"`
+	IsDeleted       bool          `bson:"is_deleted,omitempty" json:"is_deleted,omitempty"`
 }
 
 type RequestAction string
@@ -91,6 +96,9 @@ const (
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
+	RequestBudgetUpdate             RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestBudgetCreate             RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestBudgetDelete             RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
@@ -280,53 +288,50 @@ type PasswordRule struct {
 	CreatedAt      time.Time
 }
 type Branch struct {
-    ID            string
-    BranchCode    string
-    BranchName    string
-    BranchAddress string
-    DistrictCode  string
-    DistrictName  string
-    BranchRegion  string
-    RecordStat    string
-    CreatedAt     time.Time
-    UpdatedAt     time.Time
-    Version       int
-    Enabled       bool
+	ID            string
+	BranchCode    string
+	BranchName    string
+	BranchAddress string
+	DistrictCode  string
+	DistrictName  string
+	BranchRegion  string
+	RecordStat    string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Version       int
+	Enabled       bool
 }
 
 type Region struct {
-    ID            string
-    RegionCode    string
-    RegionName    string
-    RegionAddress string
-    CreatedAt     time.Time
-    UpdatedAt     time.Time
-    Enabled       bool
+	ID            string
+	RegionCode    string
+	RegionName    string
+	RegionAddress string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Enabled       bool
 }
 type District struct {
-	ID            string
-	DistrictCode   string
-	DistrictName   string
+	ID              string
+	DistrictCode    string
+	DistrictName    string
 	DistrictAddress string
-	RegionID      string
-	RegionName    string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Enabled       bool
+	RegionID        string
+	RegionName      string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	Enabled         bool
 }
 type City struct {
-	ID            string
-	CityCode       string
-	CityName       string
-	CityAddress    string
-	DistrictID    string
-	DistrictName  string
-	RegionID      string
-	RegionName    string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Enabled       bool
+	ID           string
+	CityCode     string
+	CityName     string
+	CityAddress  string
+	DistrictID   string
+	DistrictName string
+	RegionID     string
+	RegionName   string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Enabled      bool
 }
-
-
-	

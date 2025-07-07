@@ -13,7 +13,7 @@ func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset in
 }
 
 func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, makerId string) (string, error) {
-	
+
 	service, err := s.Repository.GetHqServiceById(ctx, id)
 	if err != nil {
 		return "", err
@@ -108,7 +108,7 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, id []string, action
 	if err != nil {
 		return "", err
 	}
-	return result.ID, nil
+	return result.ID.String(), nil
 }
 
 func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action bool, checker_id string) error {

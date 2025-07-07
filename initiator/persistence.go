@@ -14,34 +14,37 @@ import (
 	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
 
+	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/action"
+	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
+	budget_category_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-
-	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 )
 
 type Persitence struct {
-	CustomerPersistence      *customer_repo.CustomerDetailRepo
-	FeedBackPersistence      *feedback_repo.FeedbackRepo
-	UnlinkPersistence        *unlink_repo.UnlinkRepo
-	BudgetPersistence        *budget_repo.BudgetPersistence
-	AccountPersistence       *account_validation.AccountValidationRepo
-	BulkServicesPersistence  bulkOutbound.OutboundInfra
-	CPSUserPersistence       cpsUserOutbound.OutboundInfra
-	PasswordRulesPersistence passwordRuleOutbound.OutboundPasswordRuleInfra
-	BankPersistance          bank.BankPersistence
-	DepartmentPersistence    *dept_repo.DepartmentPersistence
-	CPSActionPersistance     department.CPSActionRepository
-	advertPersistence        ad.ADRepo
-	avatarPersitence         avatar.AvatarOutbound
+	CustomerPersistence       *customer_repo.CustomerDetailRepo
+	FeedBackPersistence       *feedback_repo.FeedbackRepo
+	UnlinkPersistence         *unlink_repo.UnlinkRepo
+	BudgetPersistence         *budget_repo.BudgetPersistence
+	AccountPersistence        *account_validation.AccountValidationRepo
+	BulkServicesPersistence   bulkOutbound.OutboundInfra
+	CPSUserPersistence        cpsUserOutbound.OutboundInfra
+	PasswordRulesPersistence  passwordRuleOutbound.OutboundPasswordRuleInfra
+	BankPersistance           bank.BankPersistence
+	DepartmentPersistence     *dept_repo.DepartmentPersistence
+	CPSActionPersistance      department.CPSActionRepository
+	advertPersistence         ad.ADRepo
+	avatarPersitence          avatar.AvatarOutbound
+	actionPersistance         action.ActionRepository
+	BudgetCategoryPersistence budget_category_repo.BudgetCategoryRepoInterface
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -77,8 +80,8 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"password_rules",
 			"cps_actions",
 		}),
-
-		BankPersistance:       bank_repo.InitBank(client, database_name, []string{"cps_actions", "banks"}, logger),
-		DepartmentPersistence: dept_repo.InitDepartment(client, database_name, 5*time.Second, logger),
+		BudgetCategoryPersistence: budget_category_repo.NewBudgetCategoryRepo(client, database_name),
+		BankPersistance:           bank_repo.InitBank(client, database_name, []string{"cps_actions", "banks"}, logger),
+		DepartmentPersistence:     dept_repo.InitDepartment(client, database_name, 5*time.Second, logger),
 	}
 }
