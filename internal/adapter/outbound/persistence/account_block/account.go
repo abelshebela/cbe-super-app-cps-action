@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -15,7 +16,7 @@ import (
 	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
-
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -47,11 +48,15 @@ func NewOutboundAccountBlockStore(
 	}
 }
 func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+	fmt.Printf("FilterSingleBranches called with region: %s, district: %s\n", region, district) // Debug print
+
 	if region == "" || district == "" {
 		return nil, errors.New("region and district are required")
 	}
 
 	filter := bson.M{"branchRegion": region, "districtName": district}
+	fmt.Printf("Mongo filter: %+v\n", filter)
+
 	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
 	if err != nil {
 		fmt.Printf("failed to fetch branches: %v\n", err)
@@ -87,6 +92,7 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
 	if len(branches) == 0 {
 	} else {
 	}
+	fmt.Printf("Found %d branches\n", len(branches))
 
 	var result []action.Branch
 	for _, b := range branches {
@@ -110,7 +116,7 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
 	return result, nil
 }
 func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
-	department, _ := ctx.Value("department").(string)
+	department, _ := ctx.Value(constant.ContextKey("department")).(string)
 	if strings.TrimSpace(department) == "" {
 		return errors.New("department is required in context")
 	}
@@ -157,37 +163,63 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	return err
 }
+
 func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("actionID is required")
+	}
+
 	filter := bson.M{"action_code": actionID}
-	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-	if err != nil || actionDoc == nil {
-		return errors.New("action not found")
+	update := bson.M{
+		"last_modified_at": time.Now(),
 	}
-	if !approve {
-		update := bson.M{"$set": bson.M{"action_status": "REJECTED", "last_modified_at": time.Now()}}
-		_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-		return err
+
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
 	}
-	var branch action.Branch
-	currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
-	if !ok {
-		return errors.New("invalid current action data")
-	}
-	_ = json.Unmarshal(currentActionBytes, &branch)
-	update := bson.M{"$set": bson.M{"enabled": false, "updated_at": time.Now()}}
-	_, err = o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, update)
+
+	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
-	updateAction := bson.M{"$set": bson.M{"action_status": "APPROVED", "last_modified_at": time.Now()}}
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, updateAction)
-	return err
-}
 
+	if approve {
+		actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+		if err != nil || actionDoc == nil {
+			return errors.New("action not found after update")
+		}
+		var branch action.Branch
+		currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
+		if !ok {
+			return fmt.Errorf("CurrentAction is not []byte, got %T", actionDoc.CurrentAction)
+		}
+		if err := json.Unmarshal(currentActionBytes, &branch); err != nil {
+			return fmt.Errorf("failed to unmarshal branch: %w", err)
+		}
+		if branch.BranchCode == "" {
+			return errors.New("branch code is required in action data")
+		}
+		branchUpdate := bson.M{
+			"enabled":    false,
+			"updated_at": time.Now(),
+		}
+		_, err = o.MongoDalBranch.UpdateOne(ctx, bson.M{"branchCode": branch.BranchCode}, branchUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to update branch: %w", err)
+		}
+	}
+
+	return nil
+}
 func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
-	filter := bson.M{"branch_region": region}
+	filter := bson.M{"branchRegion": region}
 	if district != "" {
-		filter["district_name"] = district
+		filter["districtName"] = district
 	}
 	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
 	if err != nil {
@@ -215,15 +247,17 @@ func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, 
 	}
 	return result, nil
 }
+
 func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
-	department, _ := ctx.Value("department").(string)
+	department, _ := ctx.Value(constant.ContextKey("department")).(string)
 	if strings.TrimSpace(department) == "" {
 		return errors.New("department is required in context")
 	}
+
 	currAction, _ := json.Marshal(branches)
 	var prevBranches []model.Branch
 	for _, branch := range branches {
-		prevBranchPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"branch_code": branch.BranchCode}, bson.M{})
+		prevBranchPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"branchCode": branch.BranchCode}, bson.M{})
 		if err == nil && prevBranchPtr != nil {
 			prevBranches = append(prevBranches, *prevBranchPtr)
 		}
@@ -246,38 +280,58 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 	_, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	return err
 }
-
 func (o *outboundAccountBlockStore) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("actionID is required")
+	}
+
 	filter := bson.M{"action_code": actionID}
 	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil || actionDoc == nil {
 		return errors.New("action not found")
 	}
-	if !approve {
-		update := bson.M{"$set": bson.M{"action_status": "REJECTED", "last_modified_at": time.Now()}}
-		_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-		return err
+
+	update := bson.M{
+		"last_modified_at": time.Now(),
 	}
-	var branches []action.Branch
-	currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
-	if !ok {
-		return errors.New("invalid current action data")
-	}
-	_ = json.Unmarshal(currentActionBytes, &branches)
-	for _, branch := range branches {
-		update := bson.M{"$set": bson.M{"enabled": false, "updated_at": time.Now()}}
-		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, update)
-		if err != nil {
-			return err
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
 		}
 	}
-	updateAction := bson.M{"$set": bson.M{"action_status": "APPROVED", "last_modified_at": time.Now()}}
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, updateAction)
-	return err
-}
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
 
+	if approve {
+		var branches []action.Branch
+		currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
+		if !ok {
+			return fmt.Errorf("CurrentAction is not []byte, got %T", actionDoc.CurrentAction)
+		}
+		if err := json.Unmarshal(currentActionBytes, &branches); err != nil {
+			return fmt.Errorf("failed to unmarshal branches: %w", err)
+		}
+		for _, branch := range branches {
+			branchUpdate := bson.M{
+				"enabled":    false,
+				"updated_at": time.Now(),
+			}
+			_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branchCode": branch.BranchCode}, branchUpdate)
+			if err != nil {
+				return fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
+			}
+		}
+	}
+
+	return nil
+}
 func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error) {
-	filter := bson.M{"branch_code": branchCode}
+	filter := bson.M{"branchCode": branchCode}
 	b, err := o.MongoDalBranch.FindOne(ctx, filter, nil)
 	if err != nil || b == nil {
 		return action.Branch{}, err
@@ -297,13 +351,9 @@ func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchC
 		Enabled:       b.Enabled,
 	}, nil
 }
-func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionID string, maker action.CPSAction) error {
-	department, _ := ctx.Value("department").(string)
-	if strings.TrimSpace(department) == "" {
-		return errors.New("department is required in context")
-	}
-
-	prevRegionPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"id": regionID}, bson.M{})
+func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error {
+	department, _ := ctx.Value(constant.ContextKey("department")).(string)
+	prevRegionPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"id": region.ID}, bson.M{})
 	var prevAction json.RawMessage
 	if err == nil && prevRegionPtr != nil {
 		prevAction, _ = json.Marshal(prevRegionPtr)
@@ -311,12 +361,7 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionID st
 		prevAction = json.RawMessage("null")
 	}
 
-	currAction, _ := json.Marshal(regionID)
-
-	var rejectionReason string
-	if maker.RejectionReason != nil {
-		rejectionReason = *maker.RejectionReason
-	}
+	currAction, _ := json.Marshal(region.ID)
 
 	cpsAction := model.CPSAction{
 		ActionCode:         utils.RandomGenerator(24),
@@ -326,16 +371,21 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionID st
 		CheckerID:          maker.CheckerID,
 		CheckerName:        maker.CheckerName,
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
-		UniqueId:           regionID,
+		UniqueId:           region.ID,
 		Department:         department,
-		RejectionReason:    rejectionReason,
-		PreviosAction:      prevAction,
-		CurrentAction:      currAction,
-		ActionStatus:       string(model.ActionPending),
-		ActionType:         string(model.ActionDelete),
-		RequestAction:      string(model.RequestBlockRegion),
-		CreatedAt:          time.Now(),
-		LastModifiedAt:     time.Now(),
+		RejectionReason: func() string {
+			if maker.RejectionReason != nil {
+				return *maker.RejectionReason
+			}
+			return ""
+		}(),
+		PreviosAction:  prevAction,
+		CurrentAction:  currAction,
+		ActionStatus:   string(model.ActionPending),
+		ActionType:     string(model.ActionDelete),
+		RequestAction:  string(model.RequestBlockRegion),
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -356,15 +406,28 @@ func (o *outboundAccountBlockStore) UpdateRegion(ctx context.Context, region act
 	_, err := o.MongoDalRegion.UpdateOne(ctx, filter, update)
 	return err
 }
-func (o *outboundAccountBlockStore) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
+
+func (o *outboundAccountBlockStore) ApproveRegionBlock(
+	ctx context.Context,
+	actionID string,
+	approve bool,
+	reason *string,
+	checker action.User,
+) error {
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("actionID is required")
+	}
+
 	filter := bson.M{"action_code": actionID}
 	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil || actionDoc == nil {
 		return errors.New("action not found")
 	}
 
+	regionID := actionDoc.UniqueId
+
 	checkerInfo := bson.M{
-		"checker_code": checker.UserCode,
+		"checker_code": checker.UserID,
 		"checker_name": checker.FullName,
 		"checked_at":   time.Now(),
 	}
@@ -383,27 +446,45 @@ func (o *outboundAccountBlockStore) ApproveRegionBlock(ctx context.Context, acti
 		_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 		return err
 	}
-
-	var regionID string
-	currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
-	if !ok {
-		return errors.New("invalid current action data")
-	}
-	if err := json.Unmarshal(currentActionBytes, &regionID); err != nil {
-		return errors.New("failed to parse regionID from action")
-	}
-
-	updateRegion := bson.M{
-		"$set": bson.M{
-			"enabled":    false,
-			"updated_at": time.Now(),
-		},
-	}
-	_, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"id": regionID}, updateRegion)
+	regionObjID, err := primitive.ObjectIDFromHex(regionID)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid regionID: %w", err)
 	}
 
+	fmt.Printf("Looking for region with _id: %s\n", regionObjID.Hex())
+
+	regionDoc, err := o.MongoDalRegion.FindOne(ctx, bson.M{"_id": regionObjID}, nil)
+	if err != nil || regionDoc == nil {
+		return fmt.Errorf("region not found: %w", err)
+	}
+	fmt.Printf("regionID: %s, regionObjID: %v, type: %T\n", regionID, regionObjID, regionObjID)
+	regionName := regionDoc.RegionName
+
+	regionUpdate := bson.M{
+		"enabled":    false,
+		"updated_at": time.Now(),
+	}
+	_, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"_id": regionObjID}, regionUpdate)
+	if err != nil {
+		return fmt.Errorf("failed to disable region: %w", err)
+	}
+
+	branches, err := o.MongoDalBranch.FindAll(ctx, bson.M{"branchRegion": regionName}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to fetch branches in region: %w", err)
+	}
+	branchUpdate := bson.M{
+		"enabled":    false,
+		"updated_at": time.Now(),
+	}
+	for _, branch := range branches {
+		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"_id": branch.ID}, branchUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to disable branch %v: %w", branch.ID, err)
+		}
+	}
+
+	// Update the action status to APPROVED
 	updateAction := bson.M{
 		"$set": bson.M{
 			"action_status":    "APPROVED",
@@ -417,6 +498,7 @@ func (o *outboundAccountBlockStore) ApproveRegionBlock(ctx context.Context, acti
 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, updateAction)
 	return err
 }
+
 func (o *outboundAccountBlockStore) GetRegionByID(ctx context.Context, regionID string) (action.Region, error) {
 	if regionID == "" {
 		return action.Region{}, fmt.Errorf("regionID is required")
@@ -453,14 +535,8 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
 
 	currAction, _ := json.Marshal(districtID)
 
-	var rejectionReason string
-	if maker.RejectionReason != nil {
-		rejectionReason = *maker.RejectionReason
-	}
-
 	cpsAction := model.CPSAction{
-		ActionCode: utils.RandomGenerator(24),
-
+		ActionCode:         utils.RandomGenerator(24),
 		MakerID:            maker.MakerID,
 		MakerName:          maker.MakerName,
 		MakerPhoneNumber:   maker.MakerPhoneNumber,
@@ -469,7 +545,7 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtI
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           districtID,
 		Department:         department,
-		RejectionReason:    rejectionReason,
+		RejectionReason:    *maker.RejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
 		ActionStatus:       string(model.ActionPending),
@@ -508,15 +584,20 @@ func (o *outboundAccountBlockStore) ApproveBlockDistrict(ctx context.Context, di
 	}
 
 	checkerInfo := bson.M{
-		"checker_code": checker.CheckerID,
-		"checker_name": checker.CheckerName,
-		"checked_at":   time.Now(),
+		"checker_id":           checker.CheckerID,
+		"checker_name":         checker.CheckerName,
+		"checker_phone_number": checker.CheckerPhoneNumber,
+		"checked_at":           time.Now(),
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"action_status":    "APPROVED",
-			"last_modified_at": time.Now(),
+			"action_status":        "APPROVED",
+			"last_modified_at":     time.Now(),
+			"checker_id":           checker.CheckerID,
+			"checker_name":         checker.CheckerName,
+			"checker_phone_number": checker.CheckerPhoneNumber,
+			"checker_action_time":  time.Now(),
 		},
 		"$push": bson.M{
 			"checker_history": checkerInfo,
@@ -542,11 +623,6 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
 
 	currAction, _ := json.Marshal(cityID)
 
-	var rejectionReason string
-	if maker.RejectionReason != nil {
-		rejectionReason = *maker.RejectionReason
-	}
-
 	cpsAction := model.CPSAction{
 		ActionCode:         utils.RandomGenerator(24),
 		MakerID:            maker.MakerID,
@@ -557,7 +633,7 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           cityID,
 		Department:         department,
-		RejectionReason:    rejectionReason,
+		RejectionReason:    *maker.RejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
 		ActionStatus:       string(model.ActionPending),
@@ -566,7 +642,6 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityID string
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 	}
-
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	return err
 }
@@ -600,15 +675,20 @@ func (o *outboundAccountBlockStore) ApproveBlockCity(ctx context.Context, cityID
 	}
 
 	checkerInfo := bson.M{
-		"checker_code": checker.CheckerID,
-		"checker_name": checker.CheckerName,
-		"checked_at":   time.Now(),
+		"checker_id":           checker.CheckerID,
+		"checker_name":         checker.CheckerName,
+		"checker_phone_number": checker.CheckerPhoneNumber,
+		"checked_at":           time.Now(),
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"action_status":    "APPROVED",
-			"last_modified_at": time.Now(),
+			"action_status":        "APPROVED",
+			"last_modified_at":     time.Now(),
+			"checker_id":           checker.CheckerID,
+			"checker_name":         checker.CheckerName,
+			"checker_phone_number": checker.CheckerPhoneNumber,
+			"checker_action_time":  time.Now(),
 		},
 		"$push": bson.M{
 			"checker_history": checkerInfo,
@@ -617,7 +697,6 @@ func (o *outboundAccountBlockStore) ApproveBlockCity(ctx context.Context, cityID
 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	return err
 }
-
 func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
 	department, _ := ctx.Value("department").(string)
 	if strings.TrimSpace(department) == "" {
@@ -634,10 +713,6 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 
 	currAction, _ := json.Marshal(userID)
 
-	var rejectionReason string
-	if maker.RejectionReason != nil {
-		rejectionReason = *maker.RejectionReason
-	}
 	cpsAction := model.CPSAction{
 		ActionCode:         utils.RandomGenerator(24),
 		MakerID:            maker.MakerID,
@@ -648,7 +723,7 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 		CheckerPhoneNumber: maker.CheckerPhoneNumber,
 		UniqueId:           userID,
 		Department:         department,
-		RejectionReason:    rejectionReason,
+		RejectionReason:    *maker.RejectionReason,
 		PreviosAction:      prevAction,
 		CurrentAction:      currAction,
 		ActionStatus:       string(model.ActionPending),
@@ -657,6 +732,9 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 	}
+
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	return err
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	return err
@@ -681,9 +759,10 @@ func (o *outboundAccountBlockStore) ApproveBlockUser(ctx context.Context, userID
 	}
 
 	checkerInfo := bson.M{
-		"checker_code": checker.CheckerID,
-		"checker_name": checker.CheckerName,
-		"checked_at":   time.Now(),
+		"checker_id":           checker.CheckerID,
+		"checker_name":         checker.CheckerName,
+		"checker_phone_number": checker.CheckerPhoneNumber,
+		"checked_at":           time.Now(),
 	}
 
 	update := bson.M{

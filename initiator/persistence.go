@@ -16,11 +16,15 @@ import (
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	// bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
+	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+
+	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -42,6 +46,7 @@ type Persitence struct {
 	CPSActionPersistance     department.CPSActionRepository
 	advertPersistence        ad.ADRepo
 	avatarPersitence         avatar.AvatarOutbound
+	AccountBlockPersistance  account_block.AccountBlockOutboundPort
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -80,5 +85,17 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 
 		BankPersistance:       bank_repo.InitBank(client, database_name, []string{"cps_actions", "banks"}, logger),
 		DepartmentPersistence: dept_repo.InitDepartment(client, database_name, 5*time.Second, logger),
+		AccountBlockPersistance: account_block_repo.NewOutboundAccountBlockStore(
+			client,
+			database_name,
+
+			"branches",
+			"regions",
+			"cps_actions",
+			"districts",
+			"users",
+			"cities",
+			logger,
+		),
 	}
 }

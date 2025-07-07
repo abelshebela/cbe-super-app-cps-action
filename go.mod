@@ -19,15 +19,9 @@ require (
 	go.uber.org/mock v0.5.2
 )
 
-require gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
-
 require (
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.27.0 // direct
-	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/spf13/viper v1.20.1 // indirect
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
+	go.mongodb.org/mongo-driver v1.17.4
 )
 
 require (
@@ -35,6 +29,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/spf13/viper v1.20.1 // indirect
 )
 
 require (

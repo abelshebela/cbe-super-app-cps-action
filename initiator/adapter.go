@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	accountblock_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	accountblock "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block"
 	inboundAccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_validation"
 	inboundAD "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
@@ -60,6 +62,8 @@ type Adapter struct {
 	PasswordRuleAdapter    inbound.PasswordRuleInbound
 	PortalCardAdapter      inbound.PortalCardBound
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
+	AccountBlockAdapter   accountblock.AccountBlockHandler
+
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -83,5 +87,6 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
 
 		DepartmentAdapter: department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
 	}
 }
