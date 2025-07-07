@@ -37,6 +37,7 @@ const (
 	PendingRequestExists         = "PENDING_REQUEST_EXISTS"
 	InvalidActionData            = "INVALID_ACTION_DATA"
 	GeneralDBQueryFailed         = "GENERAL_DB_QUERY_FAILED"
+	RequiredFieldsMissing        = "REQUIRED_FIELDS_MISSING"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"

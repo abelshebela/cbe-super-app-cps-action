@@ -110,11 +110,11 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsRes, err := b.bankHandler.CreateOneBank(ctx, *cpsRequest)
 	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		common_util.SendErrorResponse(w, err, 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsRes, "")
+	common_util.WriteSuccessResponse(w, cpsRes, "Banks create successfully")
 }
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +142,7 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Banks update successfully")
 }
 
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +162,7 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Banks delete successfully")
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
@@ -195,7 +195,7 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, banks, "")
+	common_util.WriteSuccessResponse(w, banks, "Banks retrieved successfully")
 }
 
 func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
@@ -208,7 +208,7 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, bank, "")
+	common_util.WriteSuccessResponse(w, bank, "Banks retrieved successfully")
 }
 
 func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +228,7 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, authAction, "")
+	common_util.WriteSuccessResponse(w, authAction, "Banks authorize successfully")
 }
 
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
@@ -257,7 +257,7 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, rejectAction, "")
+	common_util.WriteSuccessResponse(w, rejectAction, "Banks rejection successfully")
 }
 
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -277,7 +277,7 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Banks disable successfully")
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -297,5 +297,5 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Banks enable successfully")
 }

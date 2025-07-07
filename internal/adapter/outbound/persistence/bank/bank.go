@@ -36,8 +36,8 @@ func InitBank(client *mongo.Client, database string, collections []string, logge
 
 func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
 	filter := bson.M{
-		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
+		"maker_phone_number": cpsReq.MakerUser.PhoneNumber,
+		"action_status":                  model.ActionPending,
 		"department":              cpsReq.Department,
 		"request_action":          cpsReq.RequestAction,
 	}

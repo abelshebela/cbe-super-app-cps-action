@@ -471,6 +471,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_112",
 			Message: "cps user not found",
 		},
+		"REQUIRED_FIELDS_MISSING": {
+			Code:    "GEN_113",
+			Message: "One or more required fields are missing.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -718,7 +722,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "FILE_005",
 			Message: "Failed to upload file.",
 		},
-		// Additional missing error from the other definition
 		"MISSING_OR_INVALID_LOGO": {
 			Code:    "FILE_006",
 			Message: "Missing or invalid logo.",
@@ -780,7 +783,7 @@ var DefineError = ErrorDefinitions{
 	Bank: ErrorGroup{
 		"BANKS_NOT_FOUND": {
 			Code:    "BNK_001",
-			Message: "Banks data not found.",
+			Message: "Bank data not found.",
 		},
 		"INVALID_BANK_NAME": {
 			Code:    "BNK_002",

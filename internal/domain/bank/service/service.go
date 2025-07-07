@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -46,21 +45,6 @@ func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioC
 	}
 }
 
-func stripFieldPrefix(err error) string {
-	// Removes "field: message." format from ozzo-validation errors
-	// Example: "logo: INVALID_FILE_TYPE." → "INVALID_FILE_TYPE"
-	if err == nil {
-		return ""
-	}
-
-	errStr := err.Error()
-	if idx := strings.Index(errStr, ":"); idx != -1 {
-		errStr = strings.TrimSpace(errStr[idx+1:])
-	}
-	errStr = strings.TrimSuffix(errStr, ".")
-	return errStr
-}
-
 func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateBank
 	err := b.bankRepo.CPSActionExists(ctx, req)
@@ -75,8 +59,8 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	}
 
 	if err := actionData.Validate(); err != nil {
-		b.logger.Errorf("validation error", err)
-		return nil, fmt.Errorf("%s", stripFieldPrefix(err))
+		b.logger.Errorf("validation error", err.Error())
+		return nil, err
 	}
 
 	exist, err := b.minioClient.BucketExist(ctx, b.bucketName)

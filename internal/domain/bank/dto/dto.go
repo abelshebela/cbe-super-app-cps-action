@@ -36,7 +36,7 @@ func (c CreateBankRequest) Validate() error {
 		validation.Field(&c.Name, validation.Required.Error(error_codes.MissingBankName), validation.Length(3, 10), is.Alpha),
 		validation.Field(&c.Code, validation.Required.Error(error_codes.MissingBankCode)),
 		validation.Field(&c.BIC, validation.Required.Error(error_codes.MissingBankBIC)),
-		validation.Field(&c.Logo, validation.By(func(value interface{}) error {
+		validation.Field(&c.Logo, validation.By(func(value any) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {
 				return fmt.Errorf(error_codes.InvalidInput)
@@ -44,7 +44,7 @@ func (c CreateBankRequest) Validate() error {
 
 			// Check file size (2 MB max)
 			if file.Size > (2 << 20) {
-				return fmt.Errorf(error_codes.FileTooLarge)
+				return validation.NewError("logo", error_codes.FileTooLarge)
 			}
 
 			// Check the file type
@@ -70,7 +70,7 @@ func (c CreateBankRequest) Validate() error {
 			case "image/jpeg", "image/png", "image/gif", "image/webp":
 				return nil
 			default:
-				return fmt.Errorf(error_codes.InvalidFileType)
+				return validation.NewError("logo", error_codes.InvalidFileType)
 			}
 		})),
 	)

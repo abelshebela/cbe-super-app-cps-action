@@ -83,7 +83,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cps_actions",
 		}),
 
-		BankPersistance:       bank_repo.InitBank(client, database_name, []string{"cps_actions", "banks"}, logger),
+		BankPersistance:       bank_repo.InitBank(client, database_name, []string{"banks", "cps_actions"}, logger),
 		DepartmentPersistence: dept_repo.InitDepartment(client, database_name, 5*time.Second, logger),
 		AccountBlockPersistance: account_block_repo.NewOutboundAccountBlockStore(
 			client,
