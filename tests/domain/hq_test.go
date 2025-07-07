@@ -226,7 +226,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionApproved,
+				Decision:       "approved",
 				RejectedReason: "",
 			},
 			mockAction: action.CPSAction{
@@ -246,7 +246,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionDenied,
+				Decision:       "denied",
 				RejectedReason: "Not needed",
 			},
 			mockAction: action.CPSAction{
@@ -261,7 +261,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionDenied,
+				Decision:       "denied",
 				RejectedReason: "",
 			},
 			mockAction: action.CPSAction{
@@ -276,7 +276,7 @@ func TestService_UpdateBlockTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionApproved,
+				Decision:       "approved",
 				RejectedReason: "",
 			},
 			mockAction:    action.CPSAction{},
@@ -332,7 +332,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionApproved,
+				Decision:       "approved",
 				RejectedReason: "",
 			},
 			mockAction: action.CPSAction{
@@ -352,7 +352,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionDenied,
+				Decision:       "denied",
 				RejectedReason: "Not needed",
 			},
 			mockAction: action.CPSAction{
@@ -367,7 +367,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionDenied,
+				Decision:       "denied",
 				RejectedReason: "",
 			},
 			mockAction: action.CPSAction{
@@ -382,7 +382,7 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 			request: hq.ApproveRejectRequest{
 				ActionCode:     "test-action",
 				CheckerID:      "test-checker",
-				Decision:       utils.DecisionApproved,
+				Decision:       "approved",
 				RejectedReason: "",
 			},
 			mockAction:    action.CPSAction{},

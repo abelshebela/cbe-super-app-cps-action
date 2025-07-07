@@ -192,7 +192,8 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if request.Decision == utils.DecisionApproved {
+	switch request.Decision {
+case utils.DecisionApproved:
 		var updatedHQ HQ
 		var currentActionBytes []byte
 		switch v := cpsAction.CurrentAction.(type) {
@@ -231,7 +232,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 
 		cpsAction.ActionStatus = action.ActionApproved
 		s.logger.Infof("HQ block time approved successfully", "action_id", request.ActionCode)
-	} else if request.Decision == utils.DecisionDenied {
+	case utils.DecisionDenied:
 		cpsAction.ActionStatus = action.ActionRejected
 		if request.RejectedReason != "" {
 			cpsAction.RejectionReason = &request.RejectedReason
@@ -239,7 +240,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 			cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
 		}
 		s.logger.Infof("HQ block time update rejected", "action_id", request.ActionCode)
-	} else {
+	default:
 		return fmt.Errorf("INVALID_DECISION")
 	}
 
