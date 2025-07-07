@@ -40,11 +40,10 @@ type Domain struct {
 	PortalCardDomain   portalcard.PortaCardInterface
 	SeviceDetailDomain service.ServiceInterface
 	DepartmentDomain   department.Service
-<<<<<<< Updated upstream
+
 	AccountBlockDomain account_block.ApplicationServices
-=======
+
 	PermissionDomain   permission.Service
->>>>>>> Stashed changes
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {

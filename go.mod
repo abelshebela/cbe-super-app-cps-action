@@ -20,7 +20,6 @@ require (
 )
 
 require (
-<<<<<<< Updated upstream
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
 	go.mongodb.org/mongo-driver v1.17.4
 )
@@ -34,7 +33,6 @@ require (
 )
 
 require (
-=======
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -43,7 +41,7 @@ require (
 )
 
 require (
->>>>>>> Stashed changes
+
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

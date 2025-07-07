@@ -4,11 +4,9 @@ package department
 import (
 	"context"
 	"fmt"
-<<<<<<< Updated upstream
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
-=======
+
 	"log"
->>>>>>> Stashed changes
+
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
