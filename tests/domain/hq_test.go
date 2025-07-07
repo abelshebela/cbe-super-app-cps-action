@@ -224,16 +224,16 @@ func TestService_UpdateBlockTime(t *testing.T) {
 		{
 			name: "success approve",
 			request: hq.ApproveRejectRequest{
-				ActionCode: "test-action",
-				CheckerID:  "test-checker",
-				Approved:   true,
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionApproved,
+				RejectedReason: "",
 			},
 			mockAction: action.CPSAction{
 				ActionCode:   "test-action",
 				ActionStatus: action.ActionPending,
 				CurrentAction: hq.HQ{
-					ID: "test-id",
-
+					ID:        "test-id",
 					Name:      "Test HQ",
 					BlockTime: 3600,
 				},
@@ -244,9 +244,10 @@ func TestService_UpdateBlockTime(t *testing.T) {
 		{
 			name: "success reject",
 			request: hq.ApproveRejectRequest{
-				ActionCode: "test-action",
-				CheckerID:  "test-checker",
-				Approved:   false,
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionDenied,
+				RejectedReason: "Not needed",
 			},
 			mockAction: action.CPSAction{
 				ActionCode:   "test-action",
@@ -256,11 +257,27 @@ func TestService_UpdateBlockTime(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "reject missing reason",
+			request: hq.ApproveRejectRequest{
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionDenied,
+				RejectedReason: "",
+			},
+			mockAction: action.CPSAction{
+				ActionCode:   "test-action",
+				ActionStatus: action.ActionPending,
+			},
+			mockError:     nil,
+			expectedError: true, // Should error due to missing rejected reason
+		},
+		{
 			name: "action not found",
 			request: hq.ApproveRejectRequest{
-				ActionCode: "test-action",
-				CheckerID:  "test-checker",
-				Approved:   true,
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionApproved,
+				RejectedReason: "",
 			},
 			mockAction:    action.CPSAction{},
 			mockError:     errors.New("action not found"),
@@ -313,16 +330,16 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 		{
 			name: "success approve",
 			request: hq.ApproveRejectRequest{
-				ActionCode: "test-action",
-				CheckerID:  "test-checker",
-				Approved:   true,
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionApproved,
+				RejectedReason: "",
 			},
 			mockAction: action.CPSAction{
 				ActionCode:   "test-action",
 				ActionStatus: action.ActionPending,
 				CurrentAction: hq.HQ{
-					ID: "test-id",
-
+					ID:          "test-id",
 					Name:        "Test HQ",
 					ArchiveTime: 86400,
 				},
@@ -333,9 +350,10 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 		{
 			name: "success reject",
 			request: hq.ApproveRejectRequest{
-				ActionCode: "test-action",
-				CheckerID:  "test-checker",
-				Approved:   false,
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionDenied,
+				RejectedReason: "Not needed",
 			},
 			mockAction: action.CPSAction{
 				ActionCode:   "test-action",
@@ -345,11 +363,27 @@ func TestService_UpdateArchiveTime(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "reject missing reason",
+			request: hq.ApproveRejectRequest{
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionDenied,
+				RejectedReason: "",
+			},
+			mockAction: action.CPSAction{
+				ActionCode:   "test-action",
+				ActionStatus: action.ActionPending,
+			},
+			mockError:     nil,
+			expectedError: true, // Should error due to missing rejected reason
+		},
+		{
 			name: "action not found",
 			request: hq.ApproveRejectRequest{
-				ActionCode: "test-action",
-				CheckerID:  "test-checker",
-				Approved:   true,
+				ActionCode:     "test-action",
+				CheckerID:      "test-checker",
+				Decision:       utils.DecisionApproved,
+				RejectedReason: "",
 			},
 			mockAction:    action.CPSAction{},
 			mockError:     errors.New("action not found"),

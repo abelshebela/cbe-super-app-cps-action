@@ -5,8 +5,9 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain_hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
@@ -19,10 +20,10 @@ type ApplicationAbstracts interface {
 
 type ApplicationStore struct {
 	service domain_hq.Service
-	logger  utils.Logger
+	logger  sharedutils.Logger
 }
 
-func NewApplication(service domain_hq.Service, logger utils.Logger) ApplicationAbstracts {
+func NewApplication(service domain_hq.Service, logger sharedutils.Logger) ApplicationAbstracts {
 	return &ApplicationStore{service: service, logger: logger}
 }
 
@@ -61,20 +62,32 @@ func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request
 
 func (a *ApplicationStore) UpdateBlockTime(ctx context.Context, request dto.ApproveRejectRequest, checkerID, phone, fullName string) error {
 	return a.service.UpdateBlockTime(ctx, domain_hq.ApproveRejectRequest{
-		ActionCode:   request.ActionID,
+		ActionCode:   request.ActionCode,
 		CheckerID:    checkerID,
 		CheckerName:  fullName,
 		CheckerPhone: phone,
-		Approved:     request.Approve,
+		Decision:     request.Decison,
+		RejectedReason: func() string {
+			if request.Decison == utils.DecisionDenied {
+				return request.RejectedReason
+			}
+			return ""
+		}(),
 	})
 }
 
 func (a *ApplicationStore) UpdateArchiveTime(ctx context.Context, request dto.ApproveRejectRequest, checkerID, phone, fullName string) error {
 	return a.service.UpdateArchiveTime(ctx, domain_hq.ApproveRejectRequest{
-		ActionCode:   request.ActionID,
+		ActionCode:   request.ActionCode,
 		CheckerID:    checkerID,
 		CheckerName:  fullName,
 		CheckerPhone: phone,
-		Approved:     request.Approve,
+		Decision:     request.Decison,
+		RejectedReason: func() string {
+			if request.Decison == utils.DecisionDenied {
+				return request.RejectedReason
+			}
+			return ""
+		}(),
 	})
 }

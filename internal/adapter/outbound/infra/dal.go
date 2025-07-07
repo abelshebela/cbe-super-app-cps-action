@@ -16,6 +16,7 @@ type MongoDal[T, K any] interface {
 	InsertOne(ctx context.Context, req T) (T, error)
 	UpdateOne(ctx context.Context, filter, update bson.M) (T, error)
 	DeleteOne(ctx context.Context, filter bson.M) error
+	Collection() *mongo.Collection
 }
 
 type mongoDal[T any, K any] struct {
@@ -103,4 +104,8 @@ func (m *mongoDal[T, K]) DeleteOne(ctx context.Context, filter bson.M) error {
 		},
 	)
 	return err
+}
+
+func (m *mongoDal[T, K]) Collection() *mongo.Collection {
+	return m.collection
 }

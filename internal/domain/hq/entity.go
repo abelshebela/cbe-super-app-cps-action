@@ -1,6 +1,10 @@
 package hq
 
-import "time"
+import (
+	"time"
+
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+)
 
 type HQ struct {
 	ID        string
@@ -30,9 +34,10 @@ type UpdateArchiveTimeRequest struct {
 }
 
 type ApproveRejectRequest struct {
-	ActionCode   string `json:"action_code"`
-	CheckerID    string `json:"checker_id"`
-	CheckerName  string `json:"checker_name,omitempty"`
-	CheckerPhone string `json:"checker_phone,omitempty"`
-	Approved     bool   `json:"approved"`
+	ActionCode     string            `json:"action_code"`
+	CheckerID      string            `json:"checker_id"`
+	CheckerName    string            `json:"checker_name,omitempty"`
+	CheckerPhone   string            `json:"checker_phone,omitempty"`
+	Decision       utils.DecisonEnum `json:"decision"`
+	RejectedReason string            `json:"rejected_reason"`
 }

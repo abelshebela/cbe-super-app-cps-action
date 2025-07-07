@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+       utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq/"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service interface {
@@ -22,10 +24,10 @@ type Service interface {
 type ServiceStore struct {
 	repository Repository
 	actionRepo action.Repository
-	logger     utils.Logger
+	logger     sharedutils.Logger
 }
 
-func NewService(repo Repository, actionRepo action.Repository, logger utils.Logger) Service {
+func NewService(repo Repository, actionRepo action.Repository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,
@@ -70,9 +72,9 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	}
 
 	s.logger.Infof("original HQ: %+v", originalHQ)
-	s.logger.Infof("updated HQ: %+v", updatedHQ)
+	
 
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
 		ActionCode:         actionID,
@@ -128,7 +130,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	s.logger.Infof("original HQ: %+v", originalHQ)
 	s.logger.Infof("updated HQ: %+v", updatedHQ)
 
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
 		ActionCode:         actionID,
@@ -171,7 +173,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 		return fmt.Errorf("CHECKER_ID_EMPTY")
 	}
 
-	s.logger.Infof("processing HQ block time update", "action_id", request.ActionCode, "approve", request.Approved, "checker_id", request.CheckerID)
+	s.logger.Infof("processing HQ block time update", "action_id", request.ActionCode, "decision", request.Decision, "checker_id", request.CheckerID)
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, request.ActionCode)
 	if err != nil {
@@ -190,7 +192,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if request.Approved {
+	if request.Decision == utils.DecisionApproved {
 		var updatedHQ HQ
 		var currentActionBytes []byte
 		switch v := cpsAction.CurrentAction.(type) {
@@ -229,10 +231,16 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 
 		cpsAction.ActionStatus = action.ActionApproved
 		s.logger.Infof("HQ block time approved successfully", "action_id", request.ActionCode)
-	} else {
+	} else if request.Decision == utils.DecisionDenied {
 		cpsAction.ActionStatus = action.ActionRejected
-		cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		if request.RejectedReason != "" {
+			cpsAction.RejectionReason = &request.RejectedReason
+		} else {
+			cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		}
 		s.logger.Infof("HQ block time update rejected", "action_id", request.ActionCode)
+	} else {
+		return fmt.Errorf("INVALID_DECISION")
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {
@@ -254,7 +262,7 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 		return fmt.Errorf("CHECKER_ID_EMPTY")
 	}
 
-	s.logger.Infof("processing HQ archive time update", "action_id", request.ActionCode, "approve", request.Approved, "checker_id", request.CheckerID)
+	s.logger.Infof("processing HQ archive time update", "action_id", request.ActionCode, "decision", request.Decision, "checker_id", request.CheckerID)
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, request.ActionCode)
 	if err != nil {
@@ -273,7 +281,7 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if request.Approved {
+	if request.Decision == utils.DecisionApproved {
 		var updatedHQ HQ
 		var currentActionBytes []byte
 		switch v := cpsAction.CurrentAction.(type) {
@@ -306,8 +314,17 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 		}
 
 		cpsAction.ActionStatus = action.ActionApproved
-	} else {
+		s.logger.Infof("HQ archive time approved successfully", "action_id", request.ActionCode)
+	} else if request.Decision == utils.DecisionDenied {
 		cpsAction.ActionStatus = action.ActionRejected
+		if request.RejectedReason != "" {
+			cpsAction.RejectionReason = &request.RejectedReason
+		} else {
+			cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		}
+		s.logger.Infof("HQ archive time update rejected", "action_id", request.ActionCode)
+	} else {
+		return fmt.Errorf("INVALID_DECISION")
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {

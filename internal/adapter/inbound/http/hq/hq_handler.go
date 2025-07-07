@@ -100,6 +100,11 @@ func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if err := request.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
+		return
+	}
+
 	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
 	if !ok {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
@@ -118,6 +123,11 @@ func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request
 	var request dto.ApproveRejectRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
+		return
+	}
+
+	if err := request.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 

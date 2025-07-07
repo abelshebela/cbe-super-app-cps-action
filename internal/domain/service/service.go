@@ -23,7 +23,7 @@ type ServiceDetails struct {
 type ServiceRepository interface {
 	GetServiceDetailsByID(ctx context.Context, id string) (ServiceDetails, error)
 	UpdateServiceDetails(ctx context.Context, id string, update ServiceDetails) error
-	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error)
+	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
 	UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error
 	ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error
 }

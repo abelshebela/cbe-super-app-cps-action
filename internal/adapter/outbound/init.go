@@ -16,6 +16,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	bpscalls "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
@@ -105,8 +106,8 @@ func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.
 }
 
 func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
-	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "CPSServices")
-	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "CPSActions")
+	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "cps_services")
+	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
 
 	return &outboundStore{
 		MongoDalServiceDetails: mongoDalServiceDetails,
@@ -414,8 +415,17 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		rejectionReason = *domainAction.RejectionReason
 	}
 
+	var objID primitive.ObjectID
+	if domainAction.ID != "" {
+		var err error
+		objID, err = primitive.ObjectIDFromHex(domainAction.ID)
+		if err != nil {
+			objID = primitive.NilObjectID
+		}
+	}
+
 	return model.CPSAction{
-		ID:                 domainAction.ID,
+		ID:                 objID,
 		ActionCode:         domainAction.ActionCode,
 		UniqueId:           domainAction.UniqueId,
 		MakerID:            domainAction.MakerID,
@@ -445,7 +455,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 	}
 
 	return domain.CPSAction{
-		ID:                 modelAction.ID,
+		ID:                 modelAction.ID.Hex(),
 		ActionCode:         modelAction.ActionCode,
 		UniqueId:           modelAction.UniqueId,
 		MakerID:            modelAction.MakerID,
@@ -514,34 +524,8 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 	if err != nil {
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
-	var rejectionReason *string
-	if data.RejectionReason != "" {
-		rejectionReason = &data.RejectionReason
-	}
 
-	result := domain.CPSAction{
-		ID:                 data.ID,
-		ActionCode:         data.ActionCode,
-		UniqueId:           data.UniqueId,
-		MakerID:            data.MakerID,
-		MakerName:          data.MakerName,
-		MakerPhoneNumber:   data.MakerPhoneNumber,
-		CheckerID:          data.CheckerID,
-		CheckerName:        data.CheckerName,
-		CheckerPhoneNumber: data.CheckerPhoneNumber,
-		Department:         data.Department,
-		RejectionReason:    rejectionReason,
-		PreviosAction:      data.PreviosAction,
-		CurrentAction:      data.CurrentAction,
-		ActionStatus:       domain.ActionStatus(data.ActionStatus),
-		ActionType:         domain.ActionType(data.ActionType),
-		RequestAction:      domain.RequestAction(data.RequestAction),
-		CreatedAt:          data.CreatedAt,
-		LastModifiedAt:     data.LastModifiedAt,
-		MakerActionTime:    data.MakerActionTime,
-		CheckerActionTime:  data.CheckerActionTime,
-	}
-	return result, nil
+	return modelToDomainCPSAction(*data), nil
 }
 
 func (o *outboundStore) FetchAccountsByAccountNumber(ctx context.Context, accountNumber string) ([]domain.LinkedAccount, error) {
@@ -700,63 +684,10 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 	if err != nil {
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
-	var data = *d[len(d)-1]
-	var rejectionReason *string
-	if data.RejectionReason != "" {
-		rejectionReason = &data.RejectionReason
+	if len(d) == 0 {
+		return domain.CPSAction{}, nil
 	}
-
-	result := domain.CPSAction{
-		ID:              data.ID, // Use string directly
-		ActionCode:      data.ActionCode,
-		Department:      data.Department,
-		RejectionReason: rejectionReason,
-		PreviosAction:   data.PreviosAction, // Assuming this is directly mapped
-		CurrentAction: domain.CurrentAction{
-			Id: func() []string {
-				var currentAction model.CurrentAction
-				var b []byte
-				switch v := data.CurrentAction.(type) {
-				case []byte:
-					b = v
-				case json.RawMessage:
-					b = v
-				case string:
-					b = []byte(v)
-				default:
-					b, _ = json.Marshal(v)
-				}
-				if err := json.Unmarshal(b, &currentAction); err != nil {
-					return nil // Handle error or return empty slice
-				}
-				return currentAction.Id
-			}(),
-			Action: func() bool {
-				var currentAction model.CurrentAction
-				var b []byte
-				switch v := data.CurrentAction.(type) {
-				case []byte:
-					b = v
-				case json.RawMessage:
-					b = v
-				case string:
-					b = []byte(v)
-				default:
-					b, _ = json.Marshal(v)
-				}
-				if err := json.Unmarshal(b, &currentAction); err != nil {
-					return false // Handle error or return default value
-				}
-				return currentAction.Action
-			}(),
-		},
-		ActionStatus:   domain.ActionStatus(data.ActionStatus),
-		ActionType:     domain.ActionType(data.ActionType),
-		RequestAction:  domain.RequestAction(data.RequestAction),
-		CreatedAt:      data.CreatedAt,
-		LastModifiedAt: data.LastModifiedAt,
-	}
-	return result, nil
+	return modelToDomainCPSAction(*d[len(d)-1]), nil
 }
 func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDomain.Card, error) {
 
@@ -1088,48 +1019,10 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode st
 	var actions []domain.CPSAction
 	for _, ptr := range actionPtrs {
 		if ptr != nil {
-			actions = append(actions, domain.CPSAction{
-				ID:             ptr.ID,
-				ActionCode:     ptr.ActionCode,
-				Department:     ptr.Department,
-				ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
-				ActionType:     domain.ActionType(ptr.ActionType),
-				RequestAction:  domain.RequestAction(ptr.RequestAction),
-				CreatedAt:      ptr.CreatedAt,
-				LastModifiedAt: ptr.LastModifiedAt,
-			})
+			actions = append(actions, modelToDomainCPSAction(*ptr))
 		}
 	}
 	return actions, nil
-	// department, _ := ctx.Value("department").(string)
-	// filter := bson.M{
-	// 	"action_status": model.ActionPending,
-	// 	"department":    department,
-	// }
-	// if actionCode != "" {
-	// 	filter["action_code"] = actionCode
-	// }
-	// fmt.Printf("Fetching pending actions with filter: %+v\n", filter)
-	// actionPtrs, err := o.MongoDalCPSAction.FindAll(ctx, filter, bson.M{})
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// var actions []domain.CPSAction
-	// for _, ptr := range actionPtrs {
-	// 	if ptr != nil {
-	// 		actions = append(actions, domain.CPSAction{
-	// 			ID:             ptr.ID.Hex(),
-	// 			ActionCode:     ptr.ActionCode,
-	// 			Department:     ptr.Department,
-	// 			ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
-	// 			ActionType:     domain.ActionType(ptr.ActionType),
-	// 			RequestAction:  domain.RequestAction(ptr.RequestAction),
-	// 			CreatedAt:      ptr.CreatedAt,
-	// 			LastModifiedAt: ptr.LastModifiedAt,
-	// 		})
-	// 	}
-	// }
-	// return actions, nil
 }
 
 func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*domain.CPSUser, error) {
@@ -1229,7 +1122,7 @@ func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDom
 }
 
 func (o *outboundStore) GetOneServiceDetail(ctx context.Context, id string) (serviceDomain.Service, error) {
-	objID, err := bson.ObjectIDFromHex(id)
+	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return serviceDomain.Service{}, err
 	}

@@ -27,9 +27,9 @@ func (m *MockRepository) UpdateHQ(ctx context.Context, id string, hq hq.HQ) erro
 	return nil
 }
 
-func (m *MockRepository) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error) {
+func (m *MockRepository) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error) {
 	if m.FetchPendingActionsByUniqueIDFunc != nil {
-		return m.FetchPendingActionsByUniqueIDFunc(ctx, uniqueID)
+		return m.FetchPendingActionsByUniqueID(ctx, uniqueID)
 	}
 	return nil, nil
 }

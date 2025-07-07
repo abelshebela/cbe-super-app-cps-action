@@ -12,6 +12,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/mocks"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 // NoOpLogger implements the utils.Logger interface but does nothing
@@ -100,7 +101,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 			CheckerID:          "",
 			CheckerName:        "",
 			CheckerPhoneNumber: "",
-			Department:         "test-service",
+			Department:         "test-department",
 			ActionType:         action.ActionUpdate,
 			RequestAction:      action.RequestUpdateAccountValidation,
 			ActionStatus:       action.ActionPending,
@@ -111,7 +112,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(expectedAction, nil).Once()
 
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "", "")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "", "", "test-department")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, actionID)
 		assert.Contains(t, actionID, "CPS_")
@@ -120,14 +121,14 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 	t.Run("validation rule not found", func(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(account_validation.ValidationRule{}, assert.AnError).Once()
 
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "", "")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "", "", "test-department")
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "NOT_FOUND", err.Error())
 	})
 
 	t.Run("empty id", func(t *testing.T) {
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "", updatedRule, "maker-123", "", "")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "", updatedRule, "maker-123", "", "", "test-department")
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "INVALID_ID", err.Error())
@@ -135,11 +136,6 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 }
 
 func TestUpdateAccountValidation(t *testing.T) {
-	mockRepo := new(mocks.AccountValidationRepository)
-	mockActionRepo := new(mocks.ActionRepository)
-	logger := &NoOpLogger{}
-	service := account_validation.NewService(mockRepo, mockActionRepo, logger)
-
 	ctx := context.Background()
 	actionID := "CPS_123"
 	checkerID := "checker-123"
@@ -162,6 +158,11 @@ func TestUpdateAccountValidation(t *testing.T) {
 	currentActionBytes, _ := json.Marshal(currentAction)
 
 	t.Run("successful approval", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
 		expectedAction := action.CPSAction{
 			ID:                 validationRule.ID,
 			ActionCode:         actionID,
@@ -185,11 +186,16 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo.On("UpdateAccountValidation", ctx, "test-id", mock.Anything).Return(nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, true, checkerID, "", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
 		assert.NoError(t, err)
 	})
 
 	t.Run("successful rejection", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
 		expectedAction := action.CPSAction{
 			ActionCode:         actionID,
 			MakerID:            "maker-123",
@@ -211,31 +217,51 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, false, checkerID, "", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionDenied, checkerID, "", "", "Rejection reason")
 		assert.NoError(t, err)
 	})
 
 	t.Run("empty action ID", func(t *testing.T) {
-		err := service.UpdateAccountValidation(ctx, "", true, checkerID, "", "")
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		err := service.UpdateAccountValidation(ctx, "", utils.DecisionApproved, checkerID, "", "", "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_ID_EMPTY", err.Error())
 	})
 
 	t.Run("empty checker ID", func(t *testing.T) {
-		err := service.UpdateAccountValidation(ctx, actionID, true, "", "", "")
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, "", "", "", "")
 		assert.Error(t, err)
 		assert.Equal(t, "CHECKER_ID_EMPTY", err.Error())
 	})
 
 	t.Run("action not found", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(action.CPSAction{}, assert.AnError).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, true, checkerID, "", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_NOT_FOUND", err.Error())
 	})
 
 	t.Run("action not pending", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
 		expectedAction := action.CPSAction{
 			ActionCode:         actionID,
 			MakerID:            "maker-123",
@@ -256,8 +282,172 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, true, checkerID, "", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_NOT_PENDING", err.Error())
+	})
+
+	t.Run("CPS action creation error", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		// Define test data for this specific test
+		testOriginalRule := account_validation.ValidationRule{
+			ID:            "test-id",
+			EntityType:    "account",
+			ValidationFor: "phone",
+			Identifier:    "phone_number",
+			MinLength:     10,
+			MaxLength:     15,
+			Enabled:       true,
+			ServiceID:     "test-service",
+		}
+		testUpdatedRule := testOriginalRule
+		testUpdatedRule.MinLength = 11
+
+		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(testOriginalRule, nil).Once()
+		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(action.CPSAction{}, assert.AnError).Once()
+
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", testUpdatedRule, "maker-123", "", "", "test-department")
+		assert.Error(t, err)
+		assert.Empty(t, actionID)
+		assert.Equal(t, "FAILED_TO_CREATE_CPS_ACTION", err.Error())
+	})
+
+	t.Run("CPS action update error", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		expectedAction := action.CPSAction{
+			ID:                 validationRule.ID, // Set the ID to match the validation rule
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CurrentAction:      currentActionBytes,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
+		}
+
+		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
+		mockRepo.On("UpdateAccountValidation", ctx, "test-id", mock.Anything).Return(nil).Once()
+		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(assert.AnError).Once()
+
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
+		assert.Error(t, err)
+		assert.Equal(t, "FAILED_TO_UPDATE_CPS_ACTION", err.Error())
+	})
+
+	t.Run("validation rule update error", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		expectedAction := action.CPSAction{
+			ID:                 validationRule.ID,
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CurrentAction:      currentActionBytes,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
+		}
+
+		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
+		mockRepo.On("UpdateAccountValidation", ctx, "test-id", mock.Anything).Return(assert.AnError).Once()
+
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
+		assert.Error(t, err)
+		assert.Equal(t, "FAILED_TO_UPDATE_VALIDATION_RULE", err.Error())
+	})
+
+	t.Run("validation rule ID mismatch", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		// Create a rule with different ID than the action
+		mismatchedRule := validationRule
+		mismatchedRule.ID = "different-id"
+		mismatchedActionBytes, _ := json.Marshal(CurrentAction{Rule: mismatchedRule})
+
+		expectedAction := action.CPSAction{
+			ID:                 "test-id", // Different from rule ID
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CurrentAction:      mismatchedActionBytes,
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
+		}
+
+		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
+
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
+		assert.Error(t, err)
+		assert.Equal(t, "VALIDATION_RULE_ID_MISMATCH", err.Error())
+	})
+
+	t.Run("current action is nil", func(t *testing.T) {
+		mockRepo := new(mocks.AccountValidationRepository)
+		mockActionRepo := new(mocks.ActionRepository)
+		logger := &NoOpLogger{}
+		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+
+		expectedAction := action.CPSAction{
+			ActionCode:         actionID,
+			MakerID:            "maker-123",
+			MakerName:          "",
+			MakerPhoneNumber:   "",
+			CheckerID:          "",
+			CheckerName:        "",
+			CheckerPhoneNumber: "",
+			Department:         "test-service",
+			ActionType:         action.ActionUpdate,
+			RequestAction:      action.RequestUpdateAccountValidation,
+			ActionStatus:       action.ActionPending,
+			CurrentAction:      nil, // Nil current action
+			CreatedAt:          time.Now(),
+			LastModifiedAt:     time.Now(),
+			RejectionReason:    nil,
+		}
+
+		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
+
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "", "", "")
+		assert.Error(t, err)
+		assert.Equal(t, "CURRENT_ACTION_NIL", err.Error())
 	})
 }

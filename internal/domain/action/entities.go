@@ -39,6 +39,10 @@ type CurrentAction struct {
 	Id     []string
 	Action bool
 }
+type ActionResponse struct {
+	ID string `json:"_id,omitempty"`
+	ActionId string `json:"action_id"`
+}
 type CPSAction struct {
 	ID                 string        `json:"_id,omitempty"`
 	ActionCode         string        `json:"action_code"`

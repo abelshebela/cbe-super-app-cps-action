@@ -28,7 +28,7 @@ func (m *ServiceDetailsRepository) UpdateOneServiceDetail(ctx context.Context, i
 	return args.Error(0)
 }
 
-func (m *ServiceDetailsRepository) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error) {
+func (m *ServiceDetailsRepository) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error) {
 	args := m.Called(ctx, uniqueID)
-	return args.Get(0).([]action.CPSAction), args.Error(1)
+	return args.Get(0).([]action.ActionResponse), args.Error(1)
 }

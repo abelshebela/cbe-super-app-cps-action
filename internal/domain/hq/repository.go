@@ -10,5 +10,5 @@ import (
 type Repository interface {
 	GetHQByID(ctx context.Context, id string) (HQ, error)
 	UpdateHQ(ctx context.Context, id string, update HQ) error
-	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error)
+	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
 }

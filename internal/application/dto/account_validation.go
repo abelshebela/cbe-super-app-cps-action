@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -44,13 +45,34 @@ func (r UpdateAccountValidationRequest) Validate() error {
 	)
 }
 
+// DecisionEnum as a string type with constants
+// DecisonEnum represents the allowed values for decision
+// Use string type for enum-like behavior in Go
+
 type UpdateAccountValidationResponse struct {
 	ActionID string `json:"action_id"`
 }
 
 type ApproveRejectRequest struct {
-	ActionID string `json:"action_id"`
-	Approve  bool   `json:"approve"`
+	ActionCode     string            `json:"action_code"`
+	Decison        utils.DecisonEnum `json:"decison"`
+	RejectedReason string            `json:"rejected_reason"`
+}
+
+// Validate checks that Decison is valid and if DENIED, RejectedReason is required
+func (r ApproveRejectRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ActionCode, validation.Required.Error("action_code is required")),
+		validation.Field(&r.Decison, validation.Required.Error("decison is required"), validation.In(utils.DecisionApproved, utils.DecisionDenied).Error("decison must be either APPROVED or DENIED")),
+		validation.Field(&r.RejectedReason, validation.By(func(value interface{}) error {
+			if r.Decison == utils.DecisionDenied {
+				if str, ok := value.(string); !ok || str == "" {
+					return validation.NewError("validation_rejected_reason", "rejected_reason is required when decison is DENIED")
+				}
+			}
+			return nil
+		})),
+	)
 }
 
 // Conversion function from domain to DTO

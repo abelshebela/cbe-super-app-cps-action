@@ -53,7 +53,9 @@ type User struct {
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
 type CPSAction struct {
-	ID                 string      `bson:"_id,omitempty" json:"_id,omitempty"`
+
+	ID                 bson.ObjectID      `bson:"_id,omitempty" json:"_id,omitempty"`
+
 	ActionCode         string      `bson:"action_code" json:"action_code"`
 	UniqueId           string      `bson:"unique_id" json:"unique_id"`
 	MakerID            string      `bson:"maker_id" json:"maker_id"`

@@ -8,23 +8,23 @@ import (
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service interface {
 	GetAccountValidation(ctx context.Context, id string) (ValidationRule, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error)
-	UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string, PhoneNumber string, FullName string) error
+	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string, Department string) (string, error)
+	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checkerID string, PhoneNumber string, FullName string, rejectedReason string) error
 }
 
 type ServiceStore struct {
 	repository Repository
 	actionRepo action.Repository
-	logger     utils.Logger
+	logger     sharedutils.Logger
 }
 
-func NewService(repo Repository, actionRepo action.Repository, logger utils.Logger) Service {
+func NewService(repo Repository, actionRepo action.Repository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,
@@ -46,7 +46,7 @@ func (s *ServiceStore) GetAccountValidation(ctx context.Context, id string) (Val
 	return rule, nil
 }
 
-func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error) {
+func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string, Department string) (string, error) {
 	if id == "" {
 		s.logger.Errorf("ID is empty")
 		return "", fmt.Errorf("INVALID_ID")
@@ -55,6 +55,17 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 	if err != nil {
 		s.logger.Errorf("failed to fetch account validation: %v", err)
 		return "", fmt.Errorf("NOT_FOUND")
+	}
+
+	fmt.Println("hellloo",id)
+	pendingActions, err := s.repository.FetchPendingActionsByUniqueID(ctx, id)
+	if err != nil {
+		s.logger.Errorf("failed to fetch pending actions: %v", err)
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		s.logger.Errorf("pending action already exists for validation rule: %s", id)
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	previousActionJSON, err := json.Marshal(originalRule)
@@ -76,7 +87,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 	s.logger.Infof("original rule: %+v", originalRule)
 	s.logger.Infof("new rule: %+v", update)
 
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
 		ActionCode:         actionID,
@@ -86,7 +97,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 		CheckerID:          "",
 		CheckerName:        "",
 		CheckerPhoneNumber: "",
-		Department:         update.ServiceID,
+		Department:         Department,
 		UniqueId:           id,
 		ActionType:         action.ActionUpdate,
 		RequestAction:      action.RequestUpdateAccountValidation,
@@ -109,7 +120,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 	return createdAction.ActionCode, nil
 }
 
-func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string, PhoneNumber string, FullName string) error {
+func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checkerID string, PhoneNumber string, FullName string, rejectedReason string) error {
 	if actionID == "" {
 		s.logger.Errorf("action ID is empty")
 		return fmt.Errorf("ACTION_ID_EMPTY")
@@ -120,7 +131,7 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 		return fmt.Errorf("CHECKER_ID_EMPTY")
 	}
 
-	s.logger.Infof("processing account validation update", "action_id", actionID, "approve", approve, "checker_id", checkerID)
+	s.logger.Infof("processing account validation update", "action_id", actionID, "decision", decision, "checker_id", checkerID)
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionID)
 	if err != nil {
@@ -138,7 +149,7 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if approve {
+	if decision == utils.DecisionApproved {
 		var currentAction struct {
 			Rule ValidationRule `json:"rule"`
 		}
@@ -183,10 +194,16 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 
 		cpsAction.ActionStatus = action.ActionApproved
 		s.logger.Infof("validation rule approved successfully", "action_id", actionID)
-	} else {
+	} else if decision == utils.DecisionDenied {
 		cpsAction.ActionStatus = action.ActionRejected
-		cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		if rejectedReason != "" {
+			cpsAction.RejectionReason = &rejectedReason
+		} else {
+			cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		}
 		s.logger.Infof("validation rule update rejected", "action_id", actionID)
+	} else {
+		return fmt.Errorf("INVALID_DECISION")
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {
