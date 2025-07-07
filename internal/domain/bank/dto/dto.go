@@ -33,9 +33,9 @@ type CreateBankRequest struct {
 
 func (c CreateBankRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Name, validation.Required.Error("name is required"), validation.Length(3, 10), is.Alpha),
-		validation.Field(&c.Code, validation.Required.Error("code is required")),
-		validation.Field(&c.BIC, validation.Required.Error("bank identifier code is required")),
+		validation.Field(&c.Name, validation.Required.Error(error_codes.MissingBankName), validation.Length(3, 10), is.Alpha),
+		validation.Field(&c.Code, validation.Required.Error(error_codes.MissingBankCode)),
+		validation.Field(&c.BIC, validation.Required.Error(error_codes.MissingBankBIC)),
 		validation.Field(&c.Logo, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {

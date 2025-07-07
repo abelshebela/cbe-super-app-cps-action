@@ -123,7 +123,11 @@ const (
 	PortalCardsInvalid      = "PORTAL_CARDS_INVALID"
 
 	// Bank
-	BankNotFound = "BANKS_NOT_FOUND"
+	BankNotFound    = "BANKS_NOT_FOUND"
+	MissingBankName = "MISSING_BANK_NAME"
+	InvalidBankName = "INVALID_BANK_NAME"
+	MissingBankCode = "MISSING_BANK_CODE"
+	MissingBankBIC  = "MISSING_BANK_BIC"
 
 	// Action
 	InvalidDecison               = "INVALID_DECISION"

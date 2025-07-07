@@ -195,7 +195,11 @@ var errorKeyToStatus = map[string]int{
 	"UNIDENTIFIED_KEY": 500,
 
 	// Banks
-	"BANKS_NOT_FOUND": 404,
+	"BANKS_NOT_FOUND":   404,
+	"INVALID_BANK_NAME": 400,
+	"MISSING_BANK_NAME": 400,
+	"MISSING_BANK_CODE": 400,
+	"MISSING_BANK_BIC":  400,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -233,6 +237,8 @@ func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, a
 		common.DefineError.OTP,
 		common.DefineError.File,
 		common.DefineError.Branch,
+		common.DefineError.Bank,
+		common.DefineError.Department,
 	}
 
 	for _, group := range errorGroups {

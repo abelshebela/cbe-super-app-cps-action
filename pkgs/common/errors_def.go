@@ -782,6 +782,22 @@ var DefineError = ErrorDefinitions{
 			Code:    "BNK_001",
 			Message: "Banks data not found.",
 		},
+		"INVALID_BANK_NAME": {
+			Code:    "BNK_002",
+			Message: "Bank name must be between 3 and 10 alphabetic characters.",
+		},
+		"MISSING_BANK_NAME": {
+			Code:    "BNK_003",
+			Message: "Bank name is required.",
+		},
+		"MISSING_BANK_CODE": {
+			Code:    "BNK_004",
+			Message: "Bank code is required.",
+		},
+		"MISSING_BANK_BIC": {
+			Code:    "BNK_005",
+			Message: "Bank identifier code (BIC) is required.",
+		},
 	},
 	Action: ErrorGroup{
 		"PENDING_CPS_ACTION_EXISTS": {
