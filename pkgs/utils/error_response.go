@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"maps"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
@@ -264,9 +264,10 @@ func SendErrorResponse(w http.ResponseWriter, errorKey any, statusCode int, addi
 			errorKeyString = "GEN_113"
 			isValidationError = true
 		} else {
-			code = "GEN_UNKNOWN"
-			message = v.Error()
-			errorKeyString = "GEN_UNKNOWN"
+			def := lookupErrorDefinition(v.Error())
+			code = def.Code
+			message = def.Message
+			errorKeyString = def.Code
 		}
 
 	default:
