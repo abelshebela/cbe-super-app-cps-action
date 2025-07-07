@@ -164,13 +164,32 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
             return errors.New("action not found after update")
         }
         var branch action.Branch
-        currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
-        if !ok {
-            return fmt.Errorf("CurrentAction is not []byte, got %T", actionDoc.CurrentAction)
+
+        switch v := actionDoc.CurrentAction.(type) {
+        case []byte:
+            if err := json.Unmarshal(v, &branch); err != nil {
+                return fmt.Errorf("failed to unmarshal branch ([]byte): %w", err)
+            }
+        case string:
+            if err := json.Unmarshal([]byte(v), &branch); err != nil {
+                return fmt.Errorf("failed to unmarshal branch (string): %w", err)
+            }
+        case bson.Binary:
+            if err := json.Unmarshal(v.Data, &branch); err != nil {
+                return fmt.Errorf("failed to unmarshal branch (bson.Binary): %w", err)
+            }
+        case map[string]interface{}:
+            b, err := json.Marshal(v)
+            if err != nil {
+                return fmt.Errorf("failed to marshal branch (map): %w", err)
+            }
+            if err := json.Unmarshal(b, &branch); err != nil {
+                return fmt.Errorf("failed to unmarshal branch (map): %w", err)
+            }
+        default:
+            return fmt.Errorf("CurrentAction is not a supported type, got %T", v)
         }
-        if err := json.Unmarshal(currentActionBytes, &branch); err != nil {
-            return fmt.Errorf("failed to unmarshal branch: %w", err)
-        }
+
         if branch.BranchCode == "" {
             return errors.New("branch code is required in action data")
         }
@@ -187,37 +206,46 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
     return nil
 }
 func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
-	filter := bson.M{"branchRegion": region}
-	if district != "" {
-		filter["districtName"] = district
-	}
-	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
-	if err != nil {
-		return nil, err
-	}
-	var result []action.Branch
-	for _, b := range data {
-		if b == nil {
-			continue
-		}
-		result = append(result, action.Branch{
-			ID:            b.ID.Hex(),
-			BranchCode:    b.BranchCode,
-			BranchName:    b.BranchName,
-			BranchAddress: b.BranchAddress,
-			DistrictCode:  b.DistrictCode,
-			DistrictName:  b.DistrictName,
-			BranchRegion:  b.BranchRegion,
-			RecordStat:    b.RecordStat,
-			CreatedAt:     b.CreatedAt,
-			UpdatedAt:     b.UpdatedAt,
-			Version:       b.Version,
-			Enabled:       b.Enabled,
-		})
-	}
-	return result, nil
-}
+    if region == "" {
+        return nil, errors.New("region is required")
+    }
 
+    filter := bson.M{"branch_region": region}
+    if district != "" {
+        filter["district_name"] = district
+    }
+
+    data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
+    if err != nil {
+        fmt.Printf("failed to fetch branches: %v\n", err)
+        return nil, fmt.Errorf("failed to fetch branches: %w", err)
+    }
+
+    var result []action.Branch
+    for _, b := range data {
+        if b == nil {
+            fmt.Println("Skipping nil branch document")
+            continue
+        }
+        ab := action.Branch{
+            ID:            b.ID.Hex(),
+            BranchCode:    b.BranchCode,
+            BranchName:    b.BranchName,
+            BranchAddress: b.BranchAddress,
+            DistrictCode:  b.DistrictCode,
+            DistrictName:  b.DistrictName,
+            BranchRegion:  b.BranchRegion,
+            RecordStat:    b.RecordStat,
+            CreatedAt:     b.CreatedAt,
+            UpdatedAt:     b.UpdatedAt,
+            Version:       b.Version,
+            Enabled:       b.Enabled,
+        }
+        result = append(result, ab)
+    }
+
+    return result, nil
+}
 func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
 	department, _ := ctx.Value(constant.ContextKey("department")).(string)
 	if strings.TrimSpace(department) == "" {
@@ -251,54 +279,77 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 	return err
 }
 func (o *outboundAccountBlockStore) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
-	if strings.TrimSpace(actionID) == "" {
-		return errors.New("actionID is required")
-	}
+    if strings.TrimSpace(actionID) == "" {
+        return errors.New("actionID is required")
+    }
 
-	filter := bson.M{"action_code": actionID}
-	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-	if err != nil || actionDoc == nil {
-		return errors.New("action not found")
-	}
+    filter := bson.M{"action_code": actionID}
+    update := bson.M{
+        "last_modified_at": time.Now(),
+    }
 
-	update := bson.M{
-		"last_modified_at": time.Now(),
-	}
-	if approve {
-		update["action_status"] = "APPROVED"
-	} else {
-		update["action_status"] = "REJECTED"
-		if reason != nil {
-			update["rejection_reason"] = *reason
-		}
-	}
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
+    if approve {
+        update["action_status"] = "APPROVED"
+    } else {
+        update["action_status"] = "REJECTED"
+        if reason != nil {
+            update["rejection_reason"] = *reason
+        }
+    }
 
-	if approve {
-		var branches []action.Branch
-		currentActionBytes, ok := actionDoc.CurrentAction.([]byte)
-		if !ok {
-			return fmt.Errorf("CurrentAction is not []byte, got %T", actionDoc.CurrentAction)
-		}
-		if err := json.Unmarshal(currentActionBytes, &branches); err != nil {
-			return fmt.Errorf("failed to unmarshal branches: %w", err)
-		}
-		for _, branch := range branches {
-			branchUpdate := bson.M{
-				"enabled":    false,
-				"updated_at": time.Now(),
-			}
-			_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branchCode": branch.BranchCode}, branchUpdate)
-			if err != nil {
-				return fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
-			}
-		}
-	}
+    _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+    if err != nil {
+        return err
+    }
 
-	return nil
+    if approve {
+        actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+        if err != nil || actionDoc == nil {
+            return errors.New("action not found after update")
+        }
+        var branches []action.Branch
+
+        switch v := actionDoc.CurrentAction.(type) {
+        case []byte:
+            if err := json.Unmarshal(v, &branches); err != nil {
+                return fmt.Errorf("failed to unmarshal branches ([]byte): %w", err)
+            }
+        case string:
+            if err := json.Unmarshal([]byte(v), &branches); err != nil {
+                return fmt.Errorf("failed to unmarshal branches (string): %w", err)
+            }
+        case bson.Binary:
+            if err := json.Unmarshal(v.Data, &branches); err != nil {
+                return fmt.Errorf("failed to unmarshal branches (bson.Binary): %w", err)
+            }
+        case map[string]interface{}:
+            b, err := json.Marshal(v)
+            if err != nil {
+                return fmt.Errorf("failed to marshal branches (map): %w", err)
+            }
+            if err := json.Unmarshal(b, &branches); err != nil {
+                return fmt.Errorf("failed to unmarshal branches (map): %w", err)
+            }
+        default:
+            return fmt.Errorf("CurrentAction is not a supported type, got %T", v)
+        }
+
+        for _, branch := range branches {
+            if branch.BranchCode == "" {
+                return errors.New("branch code is required in action data")
+            }
+            branchUpdate := bson.M{
+                "enabled":    false,
+                "updated_at": time.Now(),
+            }
+            _, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, branchUpdate)
+            if err != nil {
+                return fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
+            }
+        }
+    }
+
+    return nil
 }
 func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error) {
 	filter := bson.M{"branch_code": branchCode}
