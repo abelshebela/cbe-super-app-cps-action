@@ -18,7 +18,7 @@ type AccountBlockRepo interface {
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
-	BlockRegion(ctx context.Context, regionID string, maker action.CPSAction) error
+	BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error
 	GetRegionByID(ctx context.Context, regionID string) (action.Region, error)
 	UpdateRegion(ctx context.Context, region action.Region) error
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error

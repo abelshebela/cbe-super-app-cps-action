@@ -21,6 +21,7 @@ type ApplicationService interface {
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
+
 	BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error
 	UpdateRegion(ctx context.Context, region action.Region) error
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
@@ -84,7 +85,7 @@ func (h *Handler) BlockRegion(ctx context.Context, region action.Region, maker a
 	if err := h.repo.UpdateRegion(ctx, region); err != nil {
 		return err
 	}
-	return h.repo.BlockRegion(ctx, region.ID, maker)
+	return h.repo.BlockRegion(ctx, region, maker)
 }
 
 func (h *Handler) UpdateRegion(ctx context.Context, region action.Region) error {

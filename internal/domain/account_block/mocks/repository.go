@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	gomock "github.com/golang/mock/gomock"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
@@ -149,17 +149,17 @@ func (mr *MockAccountBlockRepoMockRecorder) BlockDistrict(ctx, districtID, maker
 }
 
 // BlockRegion mocks base method.
-func (m *MockAccountBlockRepo) BlockRegion(ctx context.Context, regionID string, maker action.CPSAction) error {
+func (m *MockAccountBlockRepo) BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockRegion", ctx, regionID, maker)
+	ret := m.ctrl.Call(m, "BlockRegion", ctx, region, maker)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BlockRegion indicates an expected call of BlockRegion.
-func (mr *MockAccountBlockRepoMockRecorder) BlockRegion(ctx, regionID, maker interface{}) *gomock.Call {
+func (mr *MockAccountBlockRepoMockRecorder) BlockRegion(ctx, region, maker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRegion", reflect.TypeOf((*MockAccountBlockRepo)(nil).BlockRegion), ctx, regionID, maker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRegion", reflect.TypeOf((*MockAccountBlockRepo)(nil).BlockRegion), ctx, region, maker)
 }
 
 // BlockUser mocks base method.

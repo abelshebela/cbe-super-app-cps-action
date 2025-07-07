@@ -14,7 +14,7 @@ type AccountService struct {
 	repo AccountBlockRepo
 }
 
-func NewAccountService(repo AccountBlockRepo) *AccountService {
+func NewAccountService(repo AccountBlockRepo)  ApplicationServices {
 	return &AccountService{repo: repo}
 }
 
@@ -68,7 +68,7 @@ func (s *AccountService) BlockRegion(ctx context.Context, region action.Region, 
 	if region.ID == "" || region.RegionName == "" {
 		return fmt.Errorf("region ID and name are required")
 	}
-	return s.repo.BlockRegion(ctx, region.ID, maker)
+	return s.repo.BlockRegion(ctx, region, maker)
 }
 func (s *AccountService) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
 	if actionID == "" {

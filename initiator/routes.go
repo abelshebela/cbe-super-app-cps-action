@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	accountblock_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
@@ -47,5 +48,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		passwordrule.RegisterPasswordRuleRoutes(sub, adapter.PasswordRuleAdapter, authMiddleware)
 		portalcard.InitPortalCardRoutes(sub, adapter.PortalCardAdapter, authMiddleware)
 		service_details_inbound.InitServiceDetailsRoutes(sub, adapter.ServiceDetailAdapter, authMiddleware)
+		accountblock_handler.RegisterAccountBlockRoutes(sub, adapter.AccountBlockAdapter, authMiddleware)
 	})
 }
