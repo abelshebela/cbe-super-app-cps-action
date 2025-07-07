@@ -522,8 +522,8 @@ func (h UsersAdapter) SetPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.NewPin == "" {
-		utils.SendErrorResponse(w, "MISSING_REQUIRED_FIELDS", http.StatusBadRequest, nil)
+	if err := h.validateSetPinRequest(req); err != nil {
+		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -623,8 +623,7 @@ func (h UsersAdapter) validateRegisterRequest(req RegisterRequest) error {
 }
 
 type LoginRequest struct {
-	Phone string `json:"phone" validate:"required"`
-	Pin   string `json:"pin" validate:"required,min=6,max=6"`
+	Pin string `json:"pin" validate:"required,min=6,max=6"`
 }
 
 func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
@@ -688,21 +687,22 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 	utils.BaseResponseMaker(response, w, "Login successful", http.StatusOK)
 }
 
-func (h UsersAdapter) validateLoginRequest(req LoginRequest) error {
-	if req.Phone == "" {
-		return fmt.Errorf("MISSING_REQUIRED_FIELDS: phone number is required")
-	}
+func (h UsersAdapter) validateSetPinRequest(req SetPinRequest) error {
 
-	if req.Pin == "" {
+	if req.NewPin == "" {
 		return fmt.Errorf("MISSING_REQUIRED_FIELDS: PIN is required")
 	}
 
-	if err := validatePhone(req.Phone); err != nil {
+	if err := validatePin(req.NewPin); err != nil {
 		return err
 	}
+	return nil
+}
 
-	if err := validatePin(req.Pin); err != nil {
-		return err
+func (h UsersAdapter) validateLoginRequest(req LoginRequest) error {
+
+	if req.Pin == "" {
+		return fmt.Errorf("MISSING_REQUIRED_FIELDS: PIN is required")
 	}
 
 	return nil
