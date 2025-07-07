@@ -644,7 +644,8 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Device UUID mismatch", http.StatusBadRequest)
 		return
 	}
-	phone := utils.FormatPhoneNumber(req.Phone)
+	phone_number := r.Context().Value(utils.ContextKey("phone_number")).(string)
+	phone := utils.FormatPhoneNumber(phone_number)
 	loginResult, err := h.Application.Login(r.Context(), phone, deviceUUID, req.Pin)
 	if err != nil {
 		status := http.StatusUnauthorized

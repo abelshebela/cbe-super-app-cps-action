@@ -627,6 +627,8 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 			return "", fmt.Errorf("INVALID_OTP")
 		}
 
+		s.repository.DeleteOtp(ctx, registration.ID, otp, otpFor)
+
 		return registration.FullName, nil
 	}
 
