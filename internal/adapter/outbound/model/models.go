@@ -456,17 +456,17 @@ type HQ struct {
 }
 type Branch struct {
 	ID            bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	BranchCode    string        `bson:"branchCode" json:"BranchCode"`
-	BranchName    string        `bson:"branchName" json:"BranchName"`
-	BranchAddress string        `bson:"branchAddress" json:"BranchAddress"`
-	DistrictCode  string        `bson:"districtCode" json:"DistrictCode"`
-	DistrictName  string        `bson:"districtName" json:"DistrictName"`
-	BranchRegion  string        `bson:"branchRegion" json:"BranchRegion"`
-	RecordStat    string        `bson:"RecordStat" json:"RecordStat"`
-	CreatedAt     time.Time     `bson:"createdAt" json:"CreatedAt"`
-	UpdatedAt     time.Time     `bson:"updatedAt" json:"UpdatedAt"`
-	Version       int           `bson:"__v" json:"Version"`
-	Enabled       bool          `bson:"enabled" json:"Enabled"`
+	BranchCode    string        `bson:"branch_code" json:"branchCode"`
+	BranchName    string        `bson:"branch_name" json:"branchName"`
+	BranchAddress string        `bson:"branch_address" json:"branchAddress"`
+	DistrictCode  string        `bson:"district_code" json:"districtCode"`
+	DistrictName  string        `bson:"district_name" json:"districtName"`
+	BranchRegion  string        `bson:"branch_region" json:"branchRegion"`
+	RecordStat    string        `bson:"record_stat" json:"recordStat"`
+	CreatedAt     time.Time     `bson:"created_at" json:"createdAt"`
+	UpdatedAt     time.Time     `bson:"updated_at" json:"updatedAt"`
+	Version       int           `bson:"__v" json:"__v"`
+	Enabled       bool          `bson:"enabled" json:"enabled"`
 }
 
 type Region struct {
