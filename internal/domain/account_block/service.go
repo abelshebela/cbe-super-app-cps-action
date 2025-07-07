@@ -14,7 +14,7 @@ type AccountService struct {
 	repo AccountBlockRepo
 }
 
-func NewAccountService(repo AccountBlockRepo)  ApplicationServices {
+func NewAccountService(repo AccountBlockRepo) ApplicationServices {
 	return &AccountService{repo: repo}
 }
 

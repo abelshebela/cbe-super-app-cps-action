@@ -62,8 +62,7 @@ type Adapter struct {
 	PasswordRuleAdapter    inbound.PasswordRuleInbound
 	PortalCardAdapter      inbound.PortalCardBound
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
-	AccountBlockAdapter   accountblock.AccountBlockHandler
-
+	AccountBlockAdapter    accountblock.AccountBlockHandler
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -86,7 +85,7 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		PortalCardAdapter:    portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
 		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
 
-		DepartmentAdapter: department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		DepartmentAdapter:   department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
 		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
 	}
 }

@@ -5,8 +5,8 @@
 package mock
 
 import (
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	context "context"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

@@ -1,8 +1,8 @@
 package department
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	"context"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 )
 
 type CPSActionRepository interface {

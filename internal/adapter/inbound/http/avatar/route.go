@@ -8,7 +8,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-
 	"github.com/go-chi/chi/v5"
 )
 

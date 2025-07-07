@@ -59,13 +59,13 @@ func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]i
 		MakerName:        user.FullName,
 		MakerPhoneNumber: user.PhoneNumber,
 		MakerActionTime:  time.Now(),
-		Department:    user.Department.String(),
-		ActionStatus:  "PENDING",
-		RequestAction: action.RequestAction(requestAction),
-		ActionType:    action.ActionType(actionType),
-		CurrentAction: actionData,
-		PreviosAction: previousData,
-		CreatedAt:     time.Now(),
+		Department:       user.Department.String(),
+		ActionStatus:     "PENDING",
+		RequestAction:    action.RequestAction(requestAction),
+		ActionType:       action.ActionType(actionType),
+		CurrentAction:    actionData,
+		PreviosAction:    previousData,
+		CreatedAt:        time.Now(),
 	}
 }
 

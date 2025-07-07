@@ -451,7 +451,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 						ActionStatus:    string(model.ActionPending),
 						RequestAction:   string(model.RequestUpdateWallet),
 						ActionType:      string(model.ActionUpdate),
-						CurrentAction:      testCPSAction.ActionData,
+						CurrentAction:   testCPSAction.ActionData,
 						MakerActionTime: testTime,
 					}, nil)
 			},

@@ -79,7 +79,7 @@ func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction)
 		ActionStatus:     string(model.ActionPending),
 		RequestAction:    string(model.RequestCreateWallet),
 		ActionType:       string(model.ActionCreate),
-		CurrentAction:       cpsReq.ActionData,
+		CurrentAction:    cpsReq.ActionData,
 		MakerActionTime:  time.Now(),
 	})
 
@@ -132,7 +132,7 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 			"name": wallet.Name,
 			"code": wallet.Code,
 		},
-		CurrentAction:     cpsReq.ActionData,
+		CurrentAction:   cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -243,7 +243,7 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 			"code":    wallet.Code,
 			"enabled": wallet.Enabled,
 		},
-		CurrentAction:     cpsReq.ActionData,
+		CurrentAction:   cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {

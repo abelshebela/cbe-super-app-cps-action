@@ -1,4 +1,5 @@
 package accountblock
+
 import "net/http"
 
 type AccountBlockHandler interface {

@@ -9,7 +9,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 )
 
 func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsInbound, middleware middleware.AuthMiddleware) {

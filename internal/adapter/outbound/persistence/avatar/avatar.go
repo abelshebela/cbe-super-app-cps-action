@@ -307,21 +307,21 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerID:     cpsReq.MakerUser.UserCode,
-		MakerName: cpsReq.MakerUser.UserCode,
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.UserCode,
 		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
-		Department:    cpsReq.Department,
-		ActionStatus:  string(model.ActionPending),
-		ActionType:    string(model.ActionUpdate),
-		RequestAction: string(requestAction),
+		Department:       cpsReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(requestAction),
 		PreviosAction: map[string]any{
 			"avatar": avatar.Avatar,
 			"label":  avatar.Label,
 			"enable": avatar.Enable,
 		},
-		CurrentAction:     cpsReq.ActionData,
+		CurrentAction:   cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -409,19 +409,19 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerID:     cpsActionReq.MakerUser.UserCode,
-		MakerName: cpsActionReq.MakerUser.FullName,
+		ID:               bson.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsActionReq.MakerUser.UserCode,
+		MakerName:        cpsActionReq.MakerUser.FullName,
 		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
-		Department:    cpsActionReq.Department,
-		ActionStatus:  string(model.ActionPending),
-		ActionType:    string(model.ActionUpdate),
-		RequestAction: string(model.RequestUpdateAvatar),
+		Department:       cpsActionReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(model.RequestUpdateAvatar),
 		PreviosAction: map[string]any{
 			"avatar": avatar.Avatar,
 		},
-		CurrentAction:     cpsActionReq.ActionData,
+		CurrentAction:   cpsActionReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {

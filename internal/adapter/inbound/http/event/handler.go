@@ -10,7 +10,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 )
 
 type HttpStore struct {

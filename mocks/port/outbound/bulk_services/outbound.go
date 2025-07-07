@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockOutboundInfra is a mock of OutboundInfra interface.

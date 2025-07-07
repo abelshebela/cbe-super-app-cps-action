@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	event "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockEventService is a mock of EventService interface.

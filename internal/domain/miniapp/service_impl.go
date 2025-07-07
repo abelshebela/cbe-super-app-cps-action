@@ -2,8 +2,9 @@ package miniapp
 
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	
-	"context")
+
+	"context"
+)
 
 type MiniAppStore struct {
 	Repository Repository

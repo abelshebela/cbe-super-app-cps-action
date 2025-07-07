@@ -14,8 +14,8 @@ import (
 	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	// bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"

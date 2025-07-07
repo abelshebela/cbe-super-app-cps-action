@@ -2,9 +2,9 @@
 package department
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	"context"
 	"fmt"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	"time"
 
 	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
