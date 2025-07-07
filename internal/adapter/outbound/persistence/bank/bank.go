@@ -37,9 +37,9 @@ func InitBank(client *mongo.Client, database string, collections []string, logge
 func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
 	filter := bson.M{
 		"maker_phone_number": cpsReq.MakerUser.PhoneNumber,
-		"action_status":                  model.ActionPending,
-		"department":              cpsReq.Department,
-		"request_action":          cpsReq.RequestAction,
+		"action_status":      model.ActionPending,
+		"department":         cpsReq.Department,
+		"request_action":     cpsReq.RequestAction,
 	}
 
 	projection := bson.M{
@@ -61,7 +61,7 @@ func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction
 
 func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,
@@ -103,7 +103,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	}
 
 	cpsRes, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,
@@ -204,7 +204,7 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	}
 
 	cps, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,
@@ -406,7 +406,7 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string,
 	}
 
 	cps, err := b.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,

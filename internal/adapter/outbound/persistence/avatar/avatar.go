@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "net/http"
 	"time"
 
@@ -63,7 +64,7 @@ func (a *AvatarPersistence) CPSActionExists(ctx context.Context, cpsReq model.Cr
 
 func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
 	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsActionReq.MakerUser.UserCode,
 		MakerName:        cpsActionReq.MakerUser.FullName,
@@ -110,7 +111,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 	}
 
 	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsActionReq.MakerUser.UserCode,
 		MakerName:        cpsActionReq.MakerUser.FullName,
@@ -307,7 +308,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.UserCode,
@@ -409,7 +410,7 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsActionReq.MakerUser.UserCode,
 		MakerName:        cpsActionReq.MakerUser.FullName,

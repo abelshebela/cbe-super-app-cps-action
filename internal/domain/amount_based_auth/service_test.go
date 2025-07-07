@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	"github.com/golang/mock/gomock"
+		"go.mongodb.org/mongo-driver/v2/bson"
+
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
@@ -62,7 +64,7 @@ func TestService_UpdateAuthTier(t *testing.T) {
 		MakerActionTime: testTime,
 	}
 	testCpsActionRes := &model.CPSAction{
-		ID:               "CPS001",
+		ID:               bson.NewObjectID(),
 		ActionCode:       "ACT001",
 		MakerName:        testUser.FullName,
 		MakerPhoneNumber: testUser.PhoneNumber,
@@ -145,7 +147,7 @@ func TestService_ApproveAuthTierApprove(t *testing.T) {
 		CheckerActionTime: testTime,
 	}
 	testCpsAction := &model.CPSAction{
-		ID:                 "CPS001",
+		ID:                 bson.NewObjectID(),
 		ActionCode:         "ACT001",
 		CheckerID:          testChecker.UserCode,
 		CheckerName:        testChecker.FullName,
@@ -240,7 +242,7 @@ func TestService_RejectAuthTier(t *testing.T) {
 		CheckerActionTime: testTime,
 	}
 	testCpsAction := &model.CPSAction{
-		ID:                 "CPS001",
+		ID:                 bson.NewObjectID(),
 		ActionCode:         "ACT001",
 		MakerID:            testMaker.UserCode,
 		MakerName:          testMaker.FullName,

@@ -261,7 +261,7 @@ func (a AmountBasedAuthRepo) UpdateAuthTier(ctx context.Context, request amount_
 	}
 
 	actionInsert, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsAction.MakerUser.UserCode,
 		MakerName:        cpsAction.MakerUser.FullName,

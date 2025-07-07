@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/mock/gomock"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -139,7 +140,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			Enable: true,
 		}
 		expectedCpsAction := model.CPSAction{
-			ID:              "CPS001",
+			ID:              bson.NewObjectID(),
 			ActionCode:      "ACT001",
 			MakerName:       testUser.FullName,
 			Department:      "IT",
@@ -243,7 +244,7 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 		}
 		expectedCpsAction := model.CPSAction{
 
-			ID:               "CPS003",
+			ID:               bson.NewObjectID(),
 			ActionCode:       "ACT003",
 			MakerID:          testUser.UserCode,
 			MakerName:        testUser.FullName,
@@ -356,7 +357,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 			Enable: true,
 		}
 		expectedCpsAction := model.CPSAction{
-			ID:               "CPS006",
+			ID:               bson.NewObjectID(),
 			ActionCode:       "ACT006",
 			MakerID:          testUser.UserCode,
 			MakerName:        testUser.FullName,
@@ -621,7 +622,7 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 		}
 
 		expectedCpsAction := model.CPSAction{
-			ID:                 "CPS001",
+			ID:                 bson.NewObjectID(),
 			ActionCode:         actionCode,
 			MakerID:            "USER001",
 			MakerName:          "John Doe",
@@ -691,7 +692,7 @@ func TestAvatarDomain_Reject(t *testing.T) {
 		}
 
 		expectedCpsAction := model.CPSAction{
-			ID:                 "CPS001",
+			ID:                 bson.NewObjectID(),
 			ActionCode:         actionCode,
 			MakerID:            "USER001",
 			MakerName:          "John Doe",
@@ -783,7 +784,7 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 		}
 
 		expectedCpsAction := &model.CPSAction{
-			ID:               "CPS010",
+			ID:               bson.NewObjectID(),
 			ActionCode:       "ACT010",
 			MakerID:          "USER001",
 			MakerName:        "John Doe",
@@ -818,7 +819,7 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 		}
 
 		expectedCpsAction := &model.CPSAction{
-			ID:               "CPS011",
+			ID:               bson.NewObjectID(),
 			ActionCode:       "ACT011",
 			MakerID:          "USER001",
 			MakerName:        "John Doe",

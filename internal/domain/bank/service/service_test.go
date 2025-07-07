@@ -15,6 +15,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/mocks"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
@@ -163,7 +164,7 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 				mockRepo.EXPECT().
 					CreateBank(gomock.Any(), gomock.Any()).
 					Return(&model.CPSAction{
-						ID:               "CPS001",
+						ID:               bson.NewObjectID(),
 						ActionCode:       "ACT001",
 						MakerID:          testUser.UserCode,
 						MakerName:        testUser.FullName,
@@ -177,7 +178,7 @@ func TestBankDomain_CreateOneBank(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:               "CPS001",
+				ID:               bson.NewObjectID(),
 				ActionCode:       "ACT001",
 				MakerID:          testUser.UserCode,
 				MakerName:        testUser.FullName,
@@ -441,7 +442,7 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 				mockRepo.EXPECT().
 					UpdateBank(gomock.Any(), "BANK001", testCPSAction).
 					Return(&model.CPSAction{
-						ID:               "CPS002",
+						ID:               bson.NewObjectID(),
 						ActionCode:       "ACT002",
 						MakerID:          testUser.UserCode,
 						MakerName:        testUser.FullName,
@@ -455,7 +456,7 @@ func TestBankDomain_UpdateOneBank(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:               "CPS002",
+				ID:               bson.NewObjectID(),
 				ActionCode:       "ACT002",
 				MakerID:          testUser.UserCode,
 				MakerName:        testUser.FullName,
@@ -547,7 +548,7 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 				mockRepo.EXPECT().
 					DeleteBank(gomock.Any(), "BANK001", testCPSAction).
 					Return(&model.CPSAction{
-						ID:               "CPS003",
+						ID:               bson.NewObjectID(),
 						ActionCode:       "ACT003",
 						MakerID:          testUser.UserCode,
 						MakerName:        testUser.FullName,
@@ -561,7 +562,7 @@ func TestBankDomain_DeleteOneBank(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:               "CPS003",
+				ID:               bson.NewObjectID(),
 				ActionCode:       "ACT003",
 				MakerID:          testUser.UserCode,
 				MakerName:        testUser.FullName,
@@ -650,7 +651,7 @@ func TestBankDomain_Authorize(t *testing.T) {
 				mockRepo.EXPECT().
 					Authorize(gomock.Any(), testAuthorizeReq).
 					Return(&model.CPSAction{
-						ID:                 "CPS001",
+						ID:                 bson.NewObjectID(),
 						ActionCode:         "ACT001",
 						MakerID:            testMakerUser.UserCode,
 						MakerName:          testMakerUser.FullName,
@@ -668,7 +669,7 @@ func TestBankDomain_Authorize(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:                 "CPS001",
+				ID:                 bson.NewObjectID(),
 				ActionCode:         "ACT001",
 				MakerID:            testMakerUser.UserCode,
 				MakerName:          testMakerUser.FullName,
@@ -768,7 +769,7 @@ func TestBankDomain_Reject(t *testing.T) {
 				mockRepo.EXPECT().
 					Reject(gomock.Any(), testRejectReq).
 					Return(&model.CPSAction{
-						ID:                 "CPS001",
+						ID:                 bson.NewObjectID(),
 						ActionCode:         "ACT001",
 						MakerID:            testMakerUser.UserCode,
 						MakerName:          testMakerUser.FullName,
@@ -787,7 +788,7 @@ func TestBankDomain_Reject(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:                 "CPS001",
+				ID:                 bson.NewObjectID(),
 				ActionCode:         "ACT001",
 				MakerID:            testMakerUser.UserCode,
 				MakerName:          testMakerUser.FullName,
@@ -892,7 +893,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 				mockRepo.EXPECT().
 					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestEnableBank, testCPSAction).
 					Return(&model.CPSAction{
-						ID:               "CPS004",
+						ID:               bson.NewObjectID(),
 						ActionCode:       "ACT004",
 						MakerID:          testUser.UserCode,
 						MakerName:        testUser.FullName,
@@ -906,7 +907,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:               "CPS004",
+				ID:               bson.NewObjectID(),
 				ActionCode:       "ACT004",
 				MakerID:          testUser.UserCode,
 				MakerName:        testUser.FullName,
@@ -932,7 +933,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 				mockRepo.EXPECT().
 					EnableOrDisableBank(gomock.Any(), "WALLET001", model.RequestDisableBank, testDisableCPSAction).
 					Return(&model.CPSAction{
-						ID:               "CPS004",
+						ID:               bson.NewObjectID(),
 						ActionCode:       "ACT004",
 						MakerID:          testUser.UserCode,
 						MakerName:        testUser.FullName,
@@ -946,7 +947,7 @@ func TestBankDomain_EnableOrDisableBank(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:               "CPS004",
+				ID:               bson.NewObjectID(),
 				ActionCode:       "ACT004",
 				MakerID:          testUser.UserCode,
 				MakerName:        testUser.FullName,

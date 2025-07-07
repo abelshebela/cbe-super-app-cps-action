@@ -70,7 +70,7 @@ func (w *Wallet) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSActi
 
 func (w *Wallet) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,
@@ -119,7 +119,7 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 	}
 
 	cps, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,
@@ -171,7 +171,7 @@ func (w *Wallet) DeleteWallet(ctx context.Context, id string, cpsReq model.Creat
 	}
 
 	cpsRes, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,
@@ -229,7 +229,7 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string,
 	}
 
 	cps, err := w.cpsDal.InsertOne(ctx, model.CPSAction{
-		ID:               bson.NewObjectID().Hex(),
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsReq.MakerUser.UserCode,
 		MakerName:        cpsReq.MakerUser.FullName,

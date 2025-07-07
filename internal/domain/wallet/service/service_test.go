@@ -19,6 +19,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/mock/gomock"
 )
 
@@ -166,7 +167,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 				mockRepo.EXPECT().
 					CreateWallet(gomock.Any(), gomock.Any()).
 					Return(&model.CPSAction{
-						ID:              "CPS001",
+						ID:              bson.NewObjectID(),
 						ActionCode:      "ACT001",
 						MakerName:       testUser.FullName,
 						Department:      "IT",
@@ -178,7 +179,7 @@ func TestWalletDomain_CreateWallet(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:              "CPS001",
+				ID:              bson.NewObjectID(),
 				ActionCode:      "ACT001",
 				MakerName:       testUser.FullName,
 				Department:      "IT",
@@ -444,7 +445,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 				mockRepo.EXPECT().
 					UpdateWallet(gomock.Any(), "WALLET001", testCPSAction).
 					Return(&model.CPSAction{
-						ID:              "CPS002",
+						ID:              bson.NewObjectID(),
 						ActionCode:      "ACT002",
 						MakerName:       testUser.FullName,
 						Department:      "IT",
@@ -456,7 +457,7 @@ func TestWalletDomain_UpdateWallet(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:              "CPS002",
+				ID:              bson.NewObjectID(),
 				ActionCode:      "ACT002",
 				MakerName:       testUser.FullName,
 				Department:      "IT",
@@ -543,7 +544,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 				mockRepo.EXPECT().
 					DeleteWallet(gomock.Any(), "WALLET001", testCPSAction).
 					Return(&model.CPSAction{
-						ID:              "CPS003",
+						ID:              bson.NewObjectID(),
 						ActionCode:      "ACT003",
 						MakerName:       testUser.FullName,
 						Department:      "IT",
@@ -555,7 +556,7 @@ func TestWalletDomain_DeleteWallet(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:              "CPS003",
+				ID:              bson.NewObjectID(),
 				ActionCode:      "ACT003",
 				MakerName:       testUser.FullName,
 				Department:      "IT",
@@ -642,7 +643,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 				mockRepo.EXPECT().
 					Authorize(gomock.Any(), testAuthorizeReq).
 					Return(&model.CPSAction{
-						ID:                "CPS001",
+						ID:                bson.NewObjectID(),
 						ActionCode:        "ACT001",
 						MakerName:         testMakerUser.FullName,
 						CheckerName:       testCheckerUser.FullName,
@@ -656,7 +657,7 @@ func TestWalletDomain_Authorize(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:                "CPS001",
+				ID:                bson.NewObjectID(),
 				ActionCode:        "ACT001",
 				MakerID:           testMakerUser.FullName,
 				CheckerName:       testCheckerUser.FullName,
@@ -750,7 +751,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 				mockRepo.EXPECT().
 					Reject(gomock.Any(), testRejectReq).
 					Return(&model.CPSAction{
-						ID:                "CPS001",
+						ID:                bson.NewObjectID(),
 						ActionCode:        "ACT001",
 						MakerName:         testMakerUser.FullName,
 						CheckerName:       testCheckerUser.FullName,
@@ -765,7 +766,7 @@ func TestWalletDomain_Reject(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:                "CPS001",
+				ID:                bson.NewObjectID(),
 				ActionCode:        "ACT001",
 				MakerName:         testMakerUser.FullName,
 				CheckerName:       testCheckerUser.FullName,
@@ -867,7 +868,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 				mockRepo.EXPECT().
 					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestEnableWallet, testEnableCPSAction).
 					Return(&model.CPSAction{
-						ID:              "CPS004",
+						ID:              bson.NewObjectID(),
 						ActionCode:      "ACT004",
 						MakerName:       testUser.FullName,
 						Department:      "IT",
@@ -879,7 +880,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:              "CPS004",
+				ID:              bson.NewObjectID(),
 				ActionCode:      "ACT004",
 				MakerName:       testUser.FullName,
 				Department:      "IT",
@@ -903,7 +904,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 				mockRepo.EXPECT().
 					EnableOrDisableWallet(gomock.Any(), "WALLET001", model.RequestDisableWallet, testDisableCPSAction).
 					Return(&model.CPSAction{
-						ID:              "CPS004",
+						ID:              bson.NewObjectID(),
 						ActionCode:      "ACT004",
 						MakerName:       testUser.FullName,
 						Department:      "IT",
@@ -915,7 +916,7 @@ func TestWalletDomain_EnableOrDisableWallet(t *testing.T) {
 					}, nil)
 			},
 			want: &model.CPSAction{
-				ID:              "CPS004",
+				ID:              bson.NewObjectID(),
 				ActionCode:      "ACT004",
 				MakerName:       testUser.FullName,
 				Department:      "IT",

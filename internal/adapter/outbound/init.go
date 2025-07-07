@@ -16,7 +16,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	bpscalls "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
@@ -415,12 +414,12 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		rejectionReason = *domainAction.RejectionReason
 	}
 
-	var objID primitive.ObjectID
+	var objID bson.ObjectID
 	if domainAction.ID != "" {
 		var err error
-		objID, err = primitive.ObjectIDFromHex(domainAction.ID)
+		objID, err = bson.ObjectIDFromHex(domainAction.ID)
 		if err != nil {
-			objID = primitive.NilObjectID
+			objID = bson.NilObjectID
 		}
 	}
 
@@ -1122,7 +1121,7 @@ func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDom
 }
 
 func (o *outboundStore) GetOneServiceDetail(ctx context.Context, id string) (serviceDomain.Service, error) {
-	objID, err := primitive.ObjectIDFromHex(id)
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return serviceDomain.Service{}, err
 	}
@@ -1590,7 +1589,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		rejectionReason = &data.RejectionReason
 	}
 	result := &action.CPSAction{
-		ID:                 data.ID,
+		ID:                 data.ID.Hex(),
 		ActionCode:         data.ActionCode,
 		MakerID:            data.MakerID,
 		MakerName:          data.MakerName,
@@ -1632,7 +1631,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		rejectionReason = &data.RejectionReason
 	}
 	result := &action.CPSAction{
-		ID:                 data.ID,
+		ID:                 data.ID.Hex(),
 		ActionCode:         data.ActionCode,
 		MakerID:            data.MakerID,
 		MakerName:          data.MakerName,

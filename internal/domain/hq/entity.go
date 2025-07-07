@@ -34,10 +34,10 @@ type UpdateArchiveTimeRequest struct {
 }
 
 type ApproveRejectRequest struct {
-	ActionCode     string            `json:"action_code"`
-	CheckerID      string            `json:"checker_id"`
-	CheckerName    string            `json:"checker_name,omitempty"`
-	CheckerPhone   string            `json:"checker_phone,omitempty"`
-	Decision       utils.DecisonEnum `json:"decision"`
-	RejectedReason string            `json:"rejected_reason"`
+    ActionCode     string         `json:"action_code"`
+    CheckerID      string         `json:"checker_id"`
+    CheckerName    string         `json:"checker_name,omitempty"`
+    CheckerPhone   string         `json:"checker_phone,omitempty"`
+    Decision       utils.DecisonEnum `json:"decision"`
+    RejectedReason string         `json:"rejected_reason"`
 }
