@@ -48,72 +48,43 @@ func NewOutboundAccountBlockStore(
 	}
 }
 func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
-	fmt.Printf("FilterSingleBranches called with region: %s, district: %s\n", region, district) // Debug print
 
-	if region == "" || district == "" {
-		return nil, errors.New("region and district are required")
-	}
+    if region == "" || district == "" {
+        return nil, errors.New("region and district are required")
+    }
 
-	filter := bson.M{"branchRegion": region, "districtName": district}
-	fmt.Printf("Mongo filter: %+v\n", filter)
+    filter := bson.M{"branch_region": region, "district_name": district}
 
-	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
-	if err != nil {
-		fmt.Printf("failed to fetch branches: %v\n", err)
-		return nil, fmt.Errorf("failed to fetch branches: %w", err)
-	}
+    data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
+    if err != nil {
+        fmt.Printf("failed to fetch branches: %v\n", err)
+        return nil, fmt.Errorf("failed to fetch branches: %w", err)
+    }
 
-	var branches []model.Branch
-	for _, b := range data {
-		if b == nil {
-			fmt.Println("Skipping nil branch document")
-			continue
-		}
-		branch := model.Branch{
-			ID:            b.ID,
-			BranchCode:    b.BranchCode,
-			BranchName:    b.BranchName,
-			BranchAddress: b.BranchAddress,
-			DistrictCode:  b.DistrictCode,
-			DistrictName:  b.DistrictName,
-			BranchRegion:  b.BranchRegion,
-			RecordStat:    b.RecordStat,
-			CreatedAt:     b.CreatedAt,
-			UpdatedAt:     b.UpdatedAt,
-			Version:       b.Version,
-			Enabled:       b.Enabled,
-		}
-		if branch.ID.Hex() == "" {
-			fmt.Printf("Warning: Branch has empty ID or unmapped fields: %+v\n", b)
-		}
-		branches = append(branches, branch)
-	}
+    var result []action.Branch
+    for _, b := range data {
+        if b == nil {
+            fmt.Println("Skipping nil branch document")
+            continue
+        }
+        ab := action.Branch{
+            ID:            b.ID.Hex(),
+            BranchCode:    b.BranchCode,
+            BranchName:    b.BranchName,
+            BranchAddress: b.BranchAddress,
+            DistrictCode:  b.DistrictCode,
+            DistrictName:  b.DistrictName,
+            BranchRegion:  b.BranchRegion,
+            RecordStat:    b.RecordStat,
+            CreatedAt:     b.CreatedAt,
+            UpdatedAt:     b.UpdatedAt,
+            Version:       b.Version,
+            Enabled:       b.Enabled,
+        }
+        result = append(result, ab)
+    }
 
-	if len(branches) == 0 {
-	} else {
-	}
-	fmt.Printf("Found %d branches\n", len(branches))
-
-	var result []action.Branch
-	for _, b := range branches {
-		ab := action.Branch{
-			ID:            b.ID.Hex(),
-			BranchCode:    b.BranchCode,
-			BranchName:    b.BranchName,
-			BranchAddress: b.BranchAddress,
-			DistrictCode:  b.DistrictCode,
-			DistrictName:  b.DistrictName,
-			BranchRegion:  b.BranchRegion,
-			RecordStat:    b.RecordStat,
-			CreatedAt:     b.CreatedAt,
-			UpdatedAt:     b.UpdatedAt,
-			Version:       b.Version,
-			Enabled:       b.Enabled,
-		}
-		result = append(result, ab)
-	}
-
-	return result, nil
+    return result, nil
 }
 func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
 	department, _ := ctx.Value(constant.ContextKey("department")).(string)
@@ -733,8 +704,6 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string
 		LastModifiedAt:     time.Now(),
 	}
 
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	return err
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	return err

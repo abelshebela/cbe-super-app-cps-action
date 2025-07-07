@@ -31,6 +31,8 @@ type User struct {
 	FullName    string
 	PhoneNumber string
 	Timestamp   time.Time
+	Department  string 
+
 }
 
 type CurrentAction struct {
@@ -286,50 +288,51 @@ type PasswordRule struct {
 	CreatedAt      time.Time
 }
 type Branch struct {
-	ID            string
-	BranchCode    string
-	BranchName    string
-	BranchAddress string
-	DistrictCode  string
-	DistrictName  string
-	BranchRegion  string
-	RecordStat    string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Version       int
-	Enabled       bool
+    ID            string
+    BranchCode    string
+    BranchName    string
+    BranchAddress string
+    DistrictCode  string
+    DistrictName  string
+    BranchRegion  string
+    RecordStat    string
+    CreatedAt     time.Time
+    UpdatedAt     time.Time
+    Version       int
+    Enabled       bool
 }
 
 type Region struct {
+    ID            string
+    RegionCode    string
+    RegionName    string
+    RegionAddress string
+    CreatedAt     time.Time
+    UpdatedAt     time.Time
+    Enabled       bool
+}
+type District struct {
 	ID            string
-	RegionCode    string
+	DistrictCode   string
+	DistrictName   string
+	DistrictAddress string
+	RegionID      string
 	RegionName    string
-	RegionAddress string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	Enabled       bool
 }
-type District struct {
-	ID              string
-	DistrictCode    string
-	DistrictName    string
-	DistrictAddress string
-	RegionID        string
-	RegionName      string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	Enabled         bool
-}
 type City struct {
-	ID           string
-	CityCode     string
-	CityName     string
-	CityAddress  string
-	DistrictID   string
-	DistrictName string
-	RegionID     string
-	RegionName   string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Enabled      bool
+	ID            string
+	CityCode       string
+	CityName       string
+	CityAddress    string
+	DistrictID    string
+	DistrictName  string
+	RegionID      string
+	RegionName    string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Enabled       bool
 }
+

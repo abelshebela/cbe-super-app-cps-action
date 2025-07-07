@@ -9,7 +9,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 	"github.com/go-chi/chi"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -25,41 +24,49 @@ func NewAccountBlockHandler(service account_block.ApplicationService, logger uti
 }
 
 func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Region   string `json:"region"`
-		District string `json:"district"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "Invalid JSON body"}
-		resp.SendJSON()
-		return
-	}
+    var req struct {
+        Region   string `json:"region"`
+        District string `json:"district"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "Invalid JSON body"}
+        resp.SendJSON()
+        return
+    }
 
-	req.Region = strings.TrimSpace(req.Region)
-	req.District = strings.TrimSpace(req.District)
+    req.Region = strings.TrimSpace(req.Region)
+    req.District = strings.TrimSpace(req.District)
 
-	if req.Region == "" || req.District == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
-		resp.SendJSON()
-		return
-	}
+    if req.Region == "" || req.District == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
+        resp.SendJSON()
+        return
+    }
 
-	if len(req.Region) < 3 || len(req.District) < 3 {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district must be at least 3 characters"}
-		resp.SendJSON()
-		return
-	}
+    if len(req.Region) < 3 || len(req.District) < 3 {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district must be at least 3 characters"}
+        resp.SendJSON()
+        return
+    }
 
-	branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
-	if err != nil {
-		h.logger.Errorf("FilterSingleBranches failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-		resp.SendJSON()
-		return
-	}
+    branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
+    if err != nil {
+        h.logger.Errorf("FilterSingleBranches failed: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+        resp.SendJSON()
+        return
+    }
 
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: branches}
-	resp.SendJSON()
+    if branches == nil {
+        branches = []action.Branch{}
+    }
+
+    resp := common.Response[map[string]any]{
+        ResponseWriter: w,
+        Status:         http.StatusOK,
+        Data:           map[string]any{"branches": branches},
+    }
+    resp.SendJSON()
 }
 func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -70,38 +77,59 @@ func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
 		resp.SendJSON()
 		return
 	}
+
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
+
 	branch, err := h.service.GetBranchByCode(r.Context(), req.BranchCode)
 	if err != nil {
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "Branch not found"}
 		resp.SendJSON()
 		return
 	}
+
 	maker := action.User{
-		UserID:      userPayload.UserID,
-		FullName:    userPayload.FullName,
-		PhoneNumber: userPayload.PhoneNumber,
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
 	}
+
 	err = h.service.DisableSingleBranch(r.Context(), branch, maker)
 	if err != nil {
 		h.logger.Errorf("DisableSingleBranch failed: %v", err)
-		status := http.StatusInternalServerError
-		if strings.Contains(err.Error(), "already exists") {
-			status = http.StatusConflict
+		if strings.Contains(err.Error(), "Duplicate key error") || strings.Contains(err.Error(), "already exists") {
+			resp := common.Response[any]{ResponseWriter: w, Status: http.StatusConflict, Data: "A pending disable action already exists for this branch"}
+			resp.SendJSON()
+			return
 		}
-		resp := common.Response[any]{ResponseWriter: w, Status: status, Data: err.Error()}
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "Branch is disabled and CPS action created"}
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusCreated,
+		Data:           map[string]string{"message": "Branch is disabled and CPS action created"},
+	}
 	resp.SendJSON()
 }
-
 func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		ActionID string  `json:"action_id"`
@@ -113,13 +141,27 @@ func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, 
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
 		resp.SendJSON()
 		return
 	}
-	h.logger.Infof("ApproveSingleBranchDisable requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
+
+	h.logger.Infof("ApproveSingleBranchDisable requested by user: %s (%s)", userID, fullName)
 	err := h.service.ApproveSingleBranchDisable(r.Context(), req.ActionID, req.Approve, req.Reason)
 	if err != nil {
 		h.logger.Errorf("ApproveSingleBranchDisable failed: %v", err)
@@ -127,10 +169,14 @@ func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, 
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]string{"message": "Action processed successfully"},
+	}
 	resp.SendJSON()
 }
-
 func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Region   string `json:"region"`
@@ -160,9 +206,14 @@ func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *h
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: branches}
+	resp := common.Response[map[string]any]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]any{"branches": branches},
+	}
 	resp.SendJSON()
 }
+
 func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		BranchCodes []string `json:"branch_codes"`
@@ -172,12 +223,21 @@ func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" ||
+		strings.TrimSpace(department) == "" {
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
 		resp.SendJSON()
 		return
 	}
+
 	var branches []action.Branch
 	for _, code := range req.BranchCodes {
 		branch, err := h.service.GetBranchByCode(r.Context(), code)
@@ -188,11 +248,14 @@ func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *
 		}
 		branches = append(branches, branch)
 	}
+
 	maker := action.User{
-		UserID:      userPayload.UserID,
-		FullName:    userPayload.FullName,
-		PhoneNumber: userPayload.PhoneNumber,
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
 	}
+
 	err := h.service.DisableMultipleBranches(r.Context(), branches, maker)
 	if err != nil {
 		h.logger.Errorf("DisableMultipleBranches failed: %v", err)
@@ -200,10 +263,14 @@ func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "Branches are disabled and CPS action created"}
+
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusCreated,
+		Data:           map[string]string{"message": "Branches are disabled and CPS action created"},
+	}
 	resp.SendJSON()
 }
-
 func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		ActionID string  `json:"action_id"`
@@ -215,13 +282,27 @@ func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, 
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
 		resp.SendJSON()
 		return
 	}
-	h.logger.Infof("ApproveBulkBranchesDisable requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
+
+	h.logger.Infof("ApproveBulkBranchesDisable requested by user: %s (%s)", userID, fullName)
 	err := h.service.ApproveBulkBranchesDisable(r.Context(), req.ActionID, req.Approve, req.Reason)
 	if err != nil {
 		h.logger.Errorf("ApproveBulkBranchesDisable failed: %v", err)
@@ -229,40 +310,65 @@ func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, 
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]string{"message": "Action processed successfully"},
+	}
 	resp.SendJSON()
 }
+
 func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		RegionID string `json:"region_id"`
+		RegionID   string `json:"region_id"`
+		RegionName string `json:"region_name"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.RegionID) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_id is required"}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+		strings.TrimSpace(req.RegionID) == "" || strings.TrimSpace(req.RegionName) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_id and name are required"}
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
 		resp.SendJSON()
 		return
 	}
-	maker := action.CPSAction{
-		MakerID:          userPayload.UserID,
-		MakerName:        userPayload.FullName,
-		MakerPhoneNumber: userPayload.PhoneNumber,
+
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
 	}
-	err := h.service.BlockRegion(r.Context(), action.Region{ID: req.RegionID}, maker)
+
+	cpsAction := action.CPSAction{
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+	}
+
+	err := h.service.BlockRegion(r.Context(), action.Region{ID: req.RegionID, RegionName: req.RegionName}, cpsAction)
 	if err != nil {
 		h.logger.Errorf("BlockRegion failed: %v", err)
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "Region block action created"}
+
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusCreated,
+		Data:           map[string]string{"message": "Region block action created"},
+	}
 	resp.SendJSON()
 }
-
 func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Request) {
 	var req action.Region
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ID) == "" {
@@ -270,14 +376,26 @@ func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Reques
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
+		resp.SendJSON()
+		return
+	}
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
 		resp.SendJSON()
 		return
 	}
 
-	h.logger.Infof("UpdateRegion requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+	h.logger.Infof("UpdateRegion requested by user: %s (%s)", userID, fullName)
 
 	err := h.service.UpdateRegion(r.Context(), req)
 	if err != nil {
@@ -286,7 +404,11 @@ func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Reques
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Region updated successfully"}
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]string{"message": "Region updated successfully"},
+	}
 	resp.SendJSON()
 }
 
@@ -301,17 +423,31 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
 		resp.SendJSON()
 		return
 	}
-	userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-	if !ok {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "User info missing in context"}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
 		resp.SendJSON()
 		return
 	}
-	h.logger.Infof("ApproveRegionBlock requested by user: %s (%s)", userPayload.UserID, userPayload.FullName)
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
+
+	h.logger.Infof("ApproveRegionBlock requested by user: %s (%s)", userID, fullName)
 	maker := action.User{
-		UserID:      userPayload.UserID,
-		FullName:    userPayload.FullName,
-		PhoneNumber: userPayload.PhoneNumber,
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
 	}
 	err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, maker)
 	if err != nil {
@@ -320,9 +456,14 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: "Action processed successfully"}
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]string{"message": "Action processed successfully"},
+	}
 	resp.SendJSON()
 }
+
 func (h *AccountBlockHandler) GetRegionByID(w http.ResponseWriter, r *http.Request) {
 	regionID := chi.URLParam(r, "id")
 	if strings.TrimSpace(regionID) == "" {
@@ -337,7 +478,11 @@ func (h *AccountBlockHandler) GetRegionByID(w http.ResponseWriter, r *http.Reque
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusOK, Data: region}
+	resp := common.Response[map[string]any]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]any{"region": region},
+	}
 	resp.SendJSON()
 }
 func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
@@ -359,6 +504,7 @@ func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Reque
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
 	}
 	err := h.service.BlockDistrict(r.Context(), req.DistrictID, maker)
 	if err != nil {
@@ -409,6 +555,7 @@ func (h *AccountBlockHandler) ApproveBlockDistrict(w http.ResponseWriter, r *htt
 		CheckerID:          userPayload.UserID,
 		CheckerName:        userPayload.FullName,
 		CheckerPhoneNumber: userPayload.PhoneNumber,
+		Department:         userPayload.Department,
 	}
 	err := h.service.ApproveBlockDistrict(r.Context(), req.DistrictID, maker)
 	if err != nil {
@@ -439,6 +586,7 @@ func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) 
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
 	}
 	err := h.service.BlockCity(r.Context(), req.CityID, maker)
 	if err != nil {
@@ -490,6 +638,7 @@ func (h *AccountBlockHandler) ApproveBlockCity(w http.ResponseWriter, r *http.Re
 		CheckerID:          userPayload.UserID,
 		CheckerName:        userPayload.FullName,
 		CheckerPhoneNumber: userPayload.PhoneNumber,
+		Department:         userPayload.Department,
 	}
 	err := h.service.ApproveBlockCity(r.Context(), req.CityID, maker)
 	if err != nil {
@@ -520,6 +669,7 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
 	}
 	err := h.service.BlockUser(r.Context(), req.UserID, maker)
 	if err != nil {
@@ -572,6 +722,7 @@ func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Re
 		CheckerID:          userPayload.UserID,
 		CheckerName:        userPayload.FullName,
 		CheckerPhoneNumber: userPayload.PhoneNumber,
+		Department:         userPayload.Department,
 	}
 	err := h.service.ApproveBlockUser(r.Context(), req.UserID, maker)
 	if err != nil {
