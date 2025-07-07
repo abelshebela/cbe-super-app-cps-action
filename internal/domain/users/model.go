@@ -47,7 +47,7 @@ type User struct {
 	BranchCode        string              `json:"branch_code" bson:"branch_code"`
 	DistrictCode      string              `json:"district_code" bson:"district_code"`
 	ResidentialStatus string              `json:"residential_status" bson:"residential_status"`
-	IssuedDate        time.Time           `json:"issued_date" bson:"isssued_date"`
+	IssuedDate        *time.Time          `json:"issued_date,omitempty" bson:"isssued_date,omitempty"`
 	PhoneNumber       string              `json:"phone_number" bson:"phone_number"`
 	Gender            enums.Gender        `json:"gender" bson:"gender"`
 	MartialStatus     enums.MartialStatus `json:"marital_status" bson:"marital_status"`
@@ -225,18 +225,8 @@ type LinkedAccount struct {
 	AccountBranchCode string           `json:"account_branch_code" bson:"account_branch_code"`
 	CurrencyCode      string           `json:"currency" bson:"curreny"`
 	IsMain            bool             `json:"is_main" bson:"is_main"` // default: false, first account: true
-	MakerAndChecker   struct {
-		Linkers struct {
-			Maker   string `json:"maker" bson:"maker"`
-			Checker string `json:"checker" bson:"checker"`
-		} `json:"linkers" bson:"linkers"`
-		Unlinkers struct {
-			Maker   string `json:"maker" bson:"maker"`
-			Checker string `json:"checker" bson:"checker"`
-		} `json:"unlinkers" bson:"unlinkers,omitempty"`
-	} `json:"maker_and_checker" bson:"maker_and_checker"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"  bson:"updated_at"`
+	CreatedAt         time.Time        `json:"created_at" bson:"created_at"`
+	UpdatedAt         time.Time        `json:"updated_at"  bson:"updated_at"`
 }
 
 // RegistrationRecord represents a pending user registration
