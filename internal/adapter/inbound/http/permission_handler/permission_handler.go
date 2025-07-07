@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -51,17 +51,13 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
+	ctx := ctx_util.ExtractUserContext(r)
 
 	cpsAction := entities.CPSAction{
-		MakerID:          claims.UserID,
-		MakerName:        claims.FullName,
-		MakerPhoneNumber: claims.PhoneNumber,
-		Department:       claims.Department,
+		MakerID:          ctx.UserID,
+		MakerName:        ctx.FullName,
+		MakerPhoneNumber: ctx.PhoneNumber,
+		Department:       ctx.Department,
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		RequestAction:    entities.RequestPermissionGroup,
@@ -80,7 +76,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", claims.UserID)
+	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", ctx.UserID)
 	resp := common.Response[any]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
@@ -93,19 +89,15 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 
 func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
+	ctx := ctx_util.ExtractUserContext(r)
 
 	h.logger.Infof("[ApprovePermissionGroup] approving action %s", actionCode)
 
 	checker := entities.CPSAction{
-		CheckerID:          claims.UserID,
-		CheckerName:        claims.FullName,
-		CheckerPhoneNumber: claims.PhoneNumber,
-		Department:         claims.Department,
+		CheckerID:          ctx.UserID,
+		CheckerName:        ctx.FullName,
+		CheckerPhoneNumber: ctx.PhoneNumber,
+		Department:         ctx.Department,
 	}
 
 	err := h.permissionService.ApprovePermissionGroup(actionCode, checker)

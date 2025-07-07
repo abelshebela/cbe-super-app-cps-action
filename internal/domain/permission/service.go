@@ -27,19 +27,22 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 
 func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction entities.CPSAction) error {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, cpsAction.ActionStatus, cpsAction.RequestAction); err != nil {
+		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
 		return errors.New("you have pending request for this action")
 	}
 
 	if exists := s.permissionGroupRepo.CheckPermissionGroupExists(groupName); exists {
+		s.logger.Warnf("Permission group already exists with name: %s", groupName)
 		return errors.New("permission group already exists")
 	}
 
 	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(permissionCategoryLists)
 	if err != nil {
+		s.logger.Errorf("Failed to validate permission categories: %v", err)
 		return err
 	}
 
-	cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "PER_GROUP_"})
+	cpsAction.ActionCode = utils.RandomGenerator(20)
 	cpsAction.CurrentAction = map[string]interface{}{
 		"group_name":            groupName,
 		"permission_categories": validCategories,
@@ -48,7 +51,14 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 	}
 	cpsAction.MakerActionTime = time.Now()
 
-	return s.cpsActionRepo.CreatePermissionGroup(cpsAction)
+	err = s.cpsActionRepo.CreatePermissionGroup(cpsAction)
+	if err != nil {
+		s.logger.Errorf("Failed to create CPSAction: %v", err)
+		return err
+	}
+
+	s.logger.Infof("Successfully created permission group request with ActionCode: %s", cpsAction.ActionCode)
+	return nil
 }
 
 func (s *Service) ApprovePermissionGroup(actionCode string, action entities.CPSAction) error {
@@ -59,11 +69,15 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action entities.CPSA
 
 	switch action.ActionType {
 	case "CREATE":
-		return s.permissionGroupRepo.CreatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(action)
 	case "UPDATE":
-		return s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
 	default:
 		return errors.New("invalid action type")
+	}
+
+	if err != nil {
+		return err
 	}
 
 	if err := s.cpsActionRepo.ApproveActionRequest(actionCode, action); err != nil {

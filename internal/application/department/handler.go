@@ -3,6 +3,7 @@ package department
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
@@ -21,6 +22,7 @@ type DepartmentData struct {
 }
 
 type DepartmentService interface {
+	CreateCPSAction(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error
 	CreateDepartment(ctx context.Context, input string, portalCards []string, cpsAction entities.CPSAction) error
 	UpdateDepartment(ctx context.Context, code string, req CreateDepartmentRequest) error
 	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error)
@@ -43,23 +45,21 @@ func InitDepartmentHandler(service *domain.Service, logger utils.Logger) Departm
 }
 
 func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData, error) {
-
-	if current == nil {
-		h.logger.Errorf("current data is nil")
-		return nil, fmt.Errorf(err_msg.InvalidInput)
-	}
 	var data map[string]any
 
 	switch v := current.(type) {
 	case map[string]any:
 		data = v
-		if data == nil {
-			h.logger.Errorf("data map is nil")
+	default:
+		bytes, err := json.Marshal(current)
+		if err != nil {
+			h.logger.Errorf("failed to marshal action data: %v", err)
 			return nil, fmt.Errorf(err_msg.InvalidInput)
 		}
-	default:
-		h.logger.Errorf("unsupported data type: %T", current)
-		return nil, fmt.Errorf(err_msg.InvalidInput)
+		if err := json.Unmarshal(bytes, &data); err != nil {
+			h.logger.Errorf("failed to unmarshal action data: %v", err)
+			return nil, fmt.Errorf(err_msg.InvalidJSONPayload)
+		}
 	}
 
 	name, ok := data["department"].(string)
@@ -93,13 +93,13 @@ func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData,
 	}, nil
 }
 
-func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
+func (h *DepartmentHandler) CreateCPSAction(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
 	// Check request exists
-	if ok, err := h.service.CheckRequestExists(ctx, cpsAction); err != nil {
-		return err
-	} else if ok {
-		return fmt.Errorf(err_msg.PendingRequestExists)
-	}
+	if existing, err := h.service.CheckRequestExists(ctx, cpsAction); err != nil {
+        return err
+    } else if existing != nil {
+        return fmt.Errorf(err_msg.PendingRequestExists)
+    }
 
 	// check department exist
 	if exists, err := h.service.CheckDepartmentExists(ctx, department); err != nil {
@@ -109,12 +109,23 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department str
 	}
 
 	// createing dep
-	err := h.service.CreateDepartment(ctx, department, portalCards, cpsAction)
+	err := h.service.CreateCPSAction(ctx, department, portalCards, cpsAction)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
+	h.logger.Infof("Creating department: %s with portal cards: %v", department, portalCards)
+	err := h.service.CreateDepartment(ctx, department, portalCards, cpsAction)
+	if err != nil {
+		h.logger.Errorf("Failed to create department: %v", err)
+		return err
+	}
+	h.logger.Infof("Department created successfully: %s", department)
+	return nil
+}
+
 func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, code string, req CreateDepartmentRequest) error {
 	if exists, err := h.service.CheckDepartmentExists(ctx, req.Department); err != nil {
 		return err
@@ -152,6 +163,7 @@ func (h *DepartmentHandler) ApproveCreateAction(ctx context.Context, action *ent
 	if err != nil {
 		return err
 	}
+
 	return h.CreateDepartment(ctx, data.Name, data.PortalCards, *action)
 }
 

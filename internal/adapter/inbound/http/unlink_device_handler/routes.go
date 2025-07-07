@@ -20,7 +20,7 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				Handler: handler.UnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			}, {
 				Method:  http.MethodPost,
@@ -28,7 +28,7 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				Handler: handler.ApproveUnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 		}

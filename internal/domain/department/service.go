@@ -4,8 +4,14 @@ package department
 import (
 	"context"
 	"fmt"
+<<<<<<< Updated upstream
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+=======
+	"log"
+>>>>>>> Stashed changes
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 
 	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
@@ -31,20 +37,26 @@ func InitDepartmentDomain(cpsActionRepo CPSActionRepository, departmentRepo Depa
 	}
 }
 
-func (s *Service) CheckRequestExists(ctx context.Context, cpsAction entities.CPSAction) (bool, error) {
-	return s.cpsActionRepo.CheckRequestExists(ctx, cpsAction)
+
+func (s *Service) CheckRequestExists(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	action, err := s.cpsActionRepo.CheckRequestExists(ctx, cpsAction)
+	if err != nil {
+		return nil, err
+	}
+
+	return  action, nil
 }
 
 func (s *Service) CheckDepartmentExists(ctx context.Context, department string) (bool, error) {
 	return s.departmentRepo.CheckDepartmentExists(ctx, department)
 }
 
-func (s *Service) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
 
-	cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: CPSPrefix})
+func (s *Service) CreateCPSAction(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
+
+	cpsAction.ActionCode = utils.RandomGenerator(20)
 	cpsAction.CurrentAction = map[string]any{
 		"department":      department,
-		"department_code": utils.Random(10, &utils.PreSufix{Prefix: DeptPrefix}),
 		"portal_cards":    portalCards,
 	}
 	cpsAction.MakerActionTime = time.Now()
@@ -57,10 +69,25 @@ func (s *Service) CreateDepartment(ctx context.Context, department string, porta
 	return nil
 
 }
+func (s *Service) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
+	dept := entities.Department{
+		DepartmentCode: utils.RandomGenerator(20),
+		Department:     department,
+		PortalCards:    portalCards,
+		CreatedAt:      time.Now(),
+		LastModified:   time.Now(),
+	}
+	if err := s.departmentRepo.CreateDepartment(ctx, dept); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (s *Service) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error) {
 	action, err := s.cpsActionRepo.FindByActionCode(ctx, actionCode)
 	if err != nil {
+		log.Println("error", err)
 		return nil, err
 	}
 

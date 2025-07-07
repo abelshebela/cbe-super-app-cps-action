@@ -25,7 +25,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 		return val
 	}
 
-	branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
+	//branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
 
 	return UserContext{
 		UserCode:    get("user_code"),
@@ -34,7 +34,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 		PhoneNumber: get("phone_number"),
 		Department:  get("department"),
 		UserRole:    get("user_role"),
-		BranchCode:  branchCode,
+		//BranchCode:  branchCode,
 	}
 }
 

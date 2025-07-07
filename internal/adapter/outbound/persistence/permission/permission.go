@@ -155,7 +155,6 @@ func (r *PermissionPersistence) ValidateActionRequest(actionCode, department str
 func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.CPSAction) error {
 	ctx := context.Background()
 
-	// Step 1: Normalize action.CurrentAction into map[string]interface{}
 	var actionData map[string]interface{}
 	bytes, err := json.Marshal(action.CurrentAction)
 	if err != nil {
@@ -165,7 +164,6 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.
 		return fmt.Errorf("failed to unmarshal CurrentAction: %v", err)
 	}
 
-	// Step 2: Extract fields
 	groupName, ok := actionData["group_name"].(string)
 	if !ok {
 		return errors.New("invalid group_name")
@@ -201,7 +199,6 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.
 		return errors.New("invalid realm")
 	}
 
-	// Step 3: Save to DB
 	newPermissionGroup := entities.PermissionGroup{
 		GroupName:          groupName,
 		PermissionCategory: permissionCategories,

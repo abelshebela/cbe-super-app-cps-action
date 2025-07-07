@@ -6,7 +6,7 @@ import (
 )
 
 type CPSActionRepository interface {
-	CheckRequestExists(ctx context.Context, action entities.CPSAction) (bool, error)
+	CheckRequestExists(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error)
 	CreateCPSAction(ctx context.Context, department string, portalCards []string, action entities.CPSAction) error
 	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error)
 	FindByActionCode(ctx context.Context, code string) (*entities.CPSAction, error)

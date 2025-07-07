@@ -13,9 +13,10 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 )
 
 type BudgetHandler struct {
@@ -162,25 +163,22 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 	var req budget.BudgetCreateColor
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request payload", http.StatusBadRequest)
+		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		common_util.SendErrorResponse(w, common_util.InvalidInput, http.StatusBadRequest, nil)
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx := ctx_util.ExtractUserContext(r)
 
 	cpsAction := entities.CPSAction{
-		MakerID:          user_code,
-		MakerName:        full_name,
-		MakerPhoneNumber: phone_number,
-		Department:       department,
+		MakerID:          ctx.UserID,
+		MakerName:        ctx.FullName,
+		MakerPhoneNumber: ctx.PhoneNumber,
+		Department:       ctx.Department,
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"color": req.Color},
@@ -190,7 +188,7 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 
 	action, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+			common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
@@ -268,17 +266,14 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "action_code")
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	ctx := ctx_util.ExtractUserContext(r)
 
 	cpsAction := entities.CPSAction{
 		ActionCode:         code,
-		CheckerID:          user_code,
-		CheckerName:        full_name,
-		CheckerPhoneNumber: phone_number,
-		Department:         department,
+		CheckerID:          ctx.UserID,
+		CheckerName:        ctx.FullName,
+		CheckerPhoneNumber: ctx.PhoneNumber,
+		Department:         ctx.Department,
 		CheckerActionTime:  time.Now(),
 	}
 

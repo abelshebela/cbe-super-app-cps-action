@@ -4,7 +4,6 @@ package department
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -40,21 +39,20 @@ func InitDepartment(client *mongo.Client, dbName string, timeout time.Duration, 
 		logger:        logger,
 	}
 }
-func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action entities.CPSAction) (bool, error) {
-	_, err := r.cpsdal.FindOne(ctx, bson.M{
+func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error) {
+	res, err := r.cpsdal.FindOne(ctx, bson.M{
 		"request_action": action.RequestAction,
 		"action_status":  action.ActionStatus,
 		"maker_id":       action.MakerID,
 	}, bson.M{})
 	if err == mongo.ErrNoDocuments {
-		return false, nil
+		return nil, nil
 	}
 
 	if err != nil {
-		return false, fmt.Errorf(error_codes.GeneralDBQueryFailed)
+		return nil, fmt.Errorf(error_codes.GeneralDBInsertFailed)
 	}
-	return true, nil
-
+	return res, nil
 }
 
 func (r *DepartmentPersistence) CheckDepartmentExists(ctx context.Context, dept string) (bool, error) {
@@ -125,8 +123,6 @@ func (r *DepartmentPersistence) UpdateDepartment(ctx context.Context, code strin
 }
 
 func (r *DepartmentPersistence) FindByActionCode(ctx context.Context, code string) (*entities.CPSAction, error) {
-
-	log.Println("Finding action by code:", code)
 	filter := bson.M{"action_code": code}
 	var action *entities.CPSAction
 
@@ -135,7 +131,6 @@ func (r *DepartmentPersistence) FindByActionCode(ctx context.Context, code strin
 		return nil, fmt.Errorf(error_codes.ActionNotFound)
 	}
 
-	log.Println("Found action:", action)
 	return action, nil
 }
 

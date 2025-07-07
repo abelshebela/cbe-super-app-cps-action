@@ -1,7 +1,11 @@
 package initiator
 
 import (
+<<<<<<< Updated upstream
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
+=======
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
+>>>>>>> Stashed changes
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
@@ -40,7 +44,11 @@ type Application struct {
 	PortalCardApplication    portalcard.PortalCardApplication
 	ServiceDetailApplication service_details_app.ApplicationAbstracts
 	DepartmentApplication    department.DepartmentService
+<<<<<<< Updated upstream
 	AccountBlockApplication  account_block.ApplicationService
+=======
+	PermissionApplication    permission.PermissionService
+>>>>>>> Stashed changes
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -64,5 +72,6 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		ServiceDetailApplication: service_details_app.NewApplication(domain.SeviceDetailDomain, logger),
 		DepartmentApplication:    department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 		AccountBlockApplication:  account_block.NewApplicationHandler(domain.AccountBlockDomain),
+		PermissionApplication: permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 	}
 }

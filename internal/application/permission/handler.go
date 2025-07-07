@@ -25,13 +25,18 @@ func InitPermissionHandler(service *domain.Service, logger utils.Logger) Permiss
 }
 
 func (h *PermissionHandler) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction entities.CPSAction) error {
+	h.logger.Infof("Handler: Initiating CreatePermissionGroup with groupName: %s, role: %s, makerID: %s", groupName, role, cpsAction.MakerID)
+
 	err := h.service.CreatePermissionGroup(groupName, role, permissionCategoryLists, cpsAction)
 	if err != nil {
-		h.logger.Errorf("Failed to create permission group: %v", err)
+		h.logger.Errorf("Handler: Failed to create permission group '%s' for role '%s': %v", groupName, role, err)
 		return err
 	}
+
+	h.logger.Infof("Handler: Successfully initiated permission group creation for '%s'", groupName)
 	return nil
 }
+
 
 func (h *PermissionHandler) ApprovePermissionGroup(actionCode string, action entities.CPSAction) error {
 	err := h.service.ApprovePermissionGroup(actionCode, action)

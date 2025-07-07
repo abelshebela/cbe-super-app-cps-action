@@ -284,9 +284,12 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 
 	filter := bson.M{"_id": action.ID}
 	update := bson.M{
-		"action_status":       entities.ActionApproved,
-		"checker_action_time": action.CheckerActionTime,
-		"last_modified_at":    time.Now(),
+		"action_status":        entities.ActionApproved,
+		"checker_action_time":  action.CheckerActionTime,
+		"checker_id":           cpsAction.CheckerID,
+		"checker_name":         cpsAction.CheckerName,
+		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"last_modified_at":     time.Now(),
 	}
 	res, err := b.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {

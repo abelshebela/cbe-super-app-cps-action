@@ -11,6 +11,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
@@ -39,7 +40,11 @@ type Domain struct {
 	PortalCardDomain   portalcard.PortaCardInterface
 	SeviceDetailDomain service.ServiceInterface
 	DepartmentDomain   department.Service
+<<<<<<< Updated upstream
 	AccountBlockDomain account_block.ApplicationServices
+=======
+	PermissionDomain   permission.Service
+>>>>>>> Stashed changes
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
@@ -57,5 +62,6 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		BankDomain:         bank_service.InitBankDomain(persitence.BankPersistance, minioClient, "banks", logger),
 		DepartmentDomain:   *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
 		AccountBlockDomain: account_block.NewAccountService(persitence.AccountBlockPersistance),
+		PermissionDomain: *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence,persitence.PermissionPersistence,logger),
 	}
 }

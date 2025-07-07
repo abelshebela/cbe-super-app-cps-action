@@ -89,7 +89,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	cpsAction := h.createCPSActionMaker(ctx)
 
 	// creating department
-	if err := h.departmentService.CreateDepartment(cur_ctx, request.Department, request.PortalCards, cpsAction); err != nil {
+	if err := h.departmentService.CreateCPSAction(cur_ctx, request.Department, request.PortalCards, cpsAction); err != nil {
 		h.logger.Errorf("[CreateDepartment] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
@@ -112,8 +112,6 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 		return
 	}
 
-	h.logger.Infof("[ApproveRequest] user %s is approving action %s", ctx.Department, actionCode)
-
 	cpsAction, err := h.departmentService.ValidateActionRequest(cur_ctx, actionCode, ctx.Department)
 	if err != nil {
 		h.logger.Errorf("[ApproveRequest] validation failed: %v", err)
@@ -125,10 +123,8 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 		common_util.SendErrorResponse(w, common_util.AccountNotFound, http.StatusNotFound, nil)
 		return
 	}
-	h.logger.Infof("[ApproveRequest] action validated: %+v", cpsAction)
 
 	actionCopy := *cpsAction
-	actionCopy.ActionType = entities.ActionUpdate
 
 	if serviceErr := h.departmentService.ApproveActionByType(cur_ctx, actionCopy); serviceErr != nil {
 		h.logger.Errorf("[ApproveRequest] service error: %v", serviceErr)

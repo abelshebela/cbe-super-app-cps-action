@@ -12,7 +12,7 @@ import (
 )
 
 func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/budget", func(r chi.Router) {
+	router.Route("/budget", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
