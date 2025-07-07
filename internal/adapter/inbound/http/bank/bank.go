@@ -114,7 +114,7 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsRes, "Banks create successfully")
+	common_util.WriteSuccessResponse(w, cpsRes, "Bank createing successfully")
 }
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
@@ -208,7 +208,7 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, bank, "Banks retrieved successfully")
+	common_util.WriteSuccessResponse(w, bank, "Bank retrieved successfully")
 }
 
 func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +228,7 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, authAction, "Banks authorize successfully")
+	common_util.WriteSuccessResponse(w, authAction, "Bank authorize successfully")
 }
 
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
@@ -257,7 +257,7 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, rejectAction, "Banks rejection successfully")
+	common_util.WriteSuccessResponse(w, rejectAction, "Bank rejection successfully")
 }
 
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -277,7 +277,7 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Banks disable successfully")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank disable successfully")
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -297,5 +297,5 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Banks enable successfully")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank enable successfully")
 }
