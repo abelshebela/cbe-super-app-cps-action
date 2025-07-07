@@ -33,6 +33,10 @@ type ChangePinRequest struct {
 	NewPin string `json:"new_pin"`
 }
 
+type SetProfileThemeRequest struct {
+	ThemeType string `json:"theme_type"`
+}
+
 type RegisterRequest struct {
 	Phone      string `json:"phone" validate:"required"`
 	DeviceUUID string `json:"device_uuid" validate:"required"`
@@ -47,6 +51,7 @@ type RegisterResponse struct {
 	DeviceUUID         string    `json:"device_uuid"`
 	Platform           string    `json:"platform"`
 	OTPSent            bool      `json:"otp_sent"`
+	Otp                string    `json:"otp"`
 	OTPExpiryMinutes   int       `json:"otp_expiry_minutes"`
 	Token              string    `json:"token,omitempty"`
 	TokenType          string    `json:"token_type,omitempty"`
@@ -60,6 +65,10 @@ type LoginRequest struct {
 	Phone      string `json:"phone" validate:"required"`
 	DeviceUUID string `json:"device_uuid" validate:"required"`
 	Pin        string `json:"pin" validate:"required,min=6,max=6"`
+}
+
+type PhoneLoginRequest struct {
+	Phone string `json:"phone" validate:"required"`
 }
 
 type LoginResponse struct {

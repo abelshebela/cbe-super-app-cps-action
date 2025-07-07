@@ -11,6 +11,7 @@ import (
 	domainUsers "cbe-super-app-member-users/internal/domain/users"
 	userPort "cbe-super-app-member-users/internal/port/inbound/users"
 	"cbe-super-app-member-users/pkgs/common"
+	"cbe-super-app-member-users/pkgs/entities"
 	localModel "cbe-super-app-member-users/pkgs/entities"
 	"cbe-super-app-member-users/pkgs/utils"
 
@@ -317,6 +318,24 @@ func (h UsersHandler) UpdateProfilePicture(ctx context.Context, id string, file 
 	}
 	return imageURL, nil
 }
+func (h UsersHandler) UpdateProfileTheme(ctx context.Context, id string, themeType string) (*entities.User, error) {
+	data, err := h.userService.UpdateProfileTheme(ctx, id, themeType)
+	if err != nil {
+		return nil, err
+	}
+	resp := &entities.User{
+		FullName:    data.FullName,
+		Avatar:      data.Avatar,
+		PhoneNumber: data.PhoneNumber,
+		Device: struct {
+			DeviceUUID string "json:\"device_uuid\" bson:\"device_uuid\""
+			AppVersion string "json:\"app_version\" bson:\"app_version\""
+		}{
+			DeviceUUID: data.Device.DeviceUUID,
+		},
+	}
+	return resp, nil
+}
 
 func (h UsersHandler) UnlinkDevice(ctx context.Context, userID string, deviceID string) error {
 	err := h.userService.UnlinkDevice(ctx, userID, deviceID)
@@ -363,7 +382,31 @@ func (h UsersHandler) DeviceLookup(ctx context.Context, header map[string]interf
 	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
 }
 
-func (h UsersHandler) VerifyOtp(ctx context.Context, userID, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
+func (h UsersHandler) PreLogin(ctx context.Context, header map[string]interface{}, phone string) (*dto.DeviceLookupResponse, error) {
+	deviceUUID, ok := header["device_uuid"].(string)
+	if !ok || deviceUUID == "" {
+		return nil, fmt.Errorf("MISSING_DEVICE_UUID")
+	}
+
+	platform, ok := header["platform"].(string)
+	if !ok || platform == "" {
+		return nil, fmt.Errorf("MISSING_PLATFORM")
+	}
+
+	appVersion, ok := header["app_version"].(string)
+	if !ok {
+		appVersion = ""
+	}
+
+	sourceApp, ok := header["source_app"].(string)
+	if !ok {
+		sourceApp = "" // Default to empty string if not provided
+	}
+
+	return h.userService.PreLogin(ctx, deviceUUID, platform, appVersion, sourceApp, phone)
+}
+
+func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("context error: %w", err)
 	}
@@ -371,14 +414,13 @@ func (h UsersHandler) VerifyOtp(ctx context.Context, userID, otp string, deviceU
 	if err := h.validateOtpInputs(userID, otp, userRealm, otpFor); err != nil {
 		return nil, err
 	}
-
 	defer func() { otp = "" }()
 	encOtp, _, err := utils.LocalEncryptPassword(otp, "otp", "", "", h.vaultConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt OTP: %w", err)
 	}
 
-	return h.userService.VerifyOtp(ctx, userID, encOtp, deviceUUID, userRealm, otpFor)
+	return h.userService.VerifyOtp(ctx, userID, phone_number, encOtp, deviceUUID, userRealm, otpFor)
 }
 
 func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
@@ -389,15 +431,6 @@ func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 	if err := h.validateSetPinInputs(userID, newPin, userRealm); err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		if len(newPin) > 0 {
-			pinBytes := []byte(newPin)
-			for i := range pinBytes {
-				pinBytes[i] = 0
-			}
-		}
-	}()
 
 	return h.userService.SetPin(ctx, userID, newPin, deviceUUID, userRealm)
 }
@@ -419,26 +452,24 @@ func (h UsersHandler) validateOtpInputs(userID, otp, userRealm, otpFor string) e
 	return nil
 }
 
-func (h UsersHandler) Register(ctx context.Context, phone, deviceUUID, platform string) (*dto.RegisterResponse, error) {
-	// Validate input parameters
+func (h UsersHandler) Register(ctx context.Context, phone, full_name, email, deviceUUID, platform string) (*dto.RegisterResponse, error) {
 	if err := h.validateRegistrationInputs(phone, deviceUUID, platform); err != nil {
 		return nil, err
 	}
 
-	// Call domain service for registration
-	return h.userService.Register(ctx, phone, deviceUUID, platform)
+	return h.userService.Register(ctx, phone, full_name, email, deviceUUID, platform)
 }
 
 // validateRegistrationInputs validates the registration input parameters
 func (h UsersHandler) validateRegistrationInputs(phone, deviceUUID, platform string) error {
 	if phone == "" {
-		return fmt.Errorf("INVALID_INPUT: phone number is required")
+		return fmt.Errorf("INVALID_INPUT")
 	}
 	if deviceUUID == "" {
-		return fmt.Errorf("INVALID_INPUT: device UUID is required")
+		return fmt.Errorf("INVALID_INPUT")
 	}
 	if platform == "" {
-		return fmt.Errorf("INVALID_INPUT: platform is required")
+		return fmt.Errorf("INVALID_INPUT")
 	}
 
 	// Validate phone number format

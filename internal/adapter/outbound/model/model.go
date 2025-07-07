@@ -22,24 +22,24 @@ type Service struct {
 type UserType string
 
 const (
-	Maker   UserType = "MAKER"
-	Checker UserType = "CHECKER"
+	Maker   UserType = "maker"
+	Checker UserType = "checker"
 )
 
 type ActionStatus string
 
 const (
-	ActionPending  ActionStatus = "PENDING"
-	ActionApproved ActionStatus = "APPROVED"
-	ActionRejected ActionStatus = "REJECTED"
+	ActionPending  ActionStatus = "pending"
+	ActionApproved ActionStatus = "approved"
+	ActionRejected ActionStatus = "rejected"
 )
 
 type ActionType string
 
 const (
-	ActionCreate ActionType = "CREATE"
-	ActionUpdate ActionType = "UPDATE"
-	ActionDelete ActionType = "DELETE"
+	ActionCreate ActionType = "create"
+	ActionUpdate ActionType = "update"
+	ActionDelete ActionType = "delete"
 )
 
 type CurrentAction struct {
@@ -56,8 +56,8 @@ type CurrentAction struct {
 type RegistrationType string
 
 const (
-	RegistrationTypeNew    RegistrationType = "NEW"
-	RegistrationTypeLinked RegistrationType = "LINKED"
+	RegistrationTypeNew    RegistrationType = "new"
+	RegistrationTypeLinked RegistrationType = "linked"
 )
 
 type LinkedAccount struct {
@@ -134,17 +134,17 @@ type LinkedAccountResponse struct {
 type EnvironmentType string
 
 const (
-	UatEnvironment        EnvironmentType = "UAT"
-	DevEnvironment        EnvironmentType = "DEV"
-	TestEnvironment       EnvironmentType = "TEST"
-	ProductionEnvironment EnvironmentType = "PRODUCTION"
+	UatEnvironment        EnvironmentType = "uat"
+	DevEnvironment        EnvironmentType = "dev"
+	TestEnvironment       EnvironmentType = "test"
+	ProductionEnvironment EnvironmentType = "production"
 )
 
 type BranchType string
 
 const (
-	IFB BranchType = "IFB"
-	CB  BranchType = "CB"
+	IFB BranchType = "ifb"
+	CB  BranchType = "cb"
 )
 
 type ProductCode struct {
@@ -183,88 +183,88 @@ type Password struct {
 type OTPFor string
 
 const (
-	OTPForLogin            OTPFor = "LOGIN"
-	OTPForAddAccount       OTPFor = "ADD_ACCOUNT"
-	OTPForPINSet           OTPFor = "PIN_SET"
-	OTPForTransfer         OTPFor = "TRANSFER"
-	OTPForAcctivateAccount OTPFor = "ACCTIVATE_ACCOUNT"
-	OTPForPINReset         OTPFor = "PIN_RESET"
-	OTPForSignup           OTPFor = "SIGNUP"
-	OTPForAccountLink      OTPFor = "ACCOUNT_LINK"
-	OTPForChangePhone      OTPFor = "CHANGE_PHONE"
-	OTPForDetachPhone      OTPFor = "DETACH_PHONE"
-	OTPForAttachPhone      OTPFor = "ATTACH_PHONE"
-	OTPForEnable           OTPFor = "ENABLE"
-	OTPForTransferLimit    OTPFor = "TRANSFER_LIMIT"
-	OTPForChangeEmail      OTPFor = "CHANGE_EMAIL"
-	OTPForUpgradeLimit     OTPFor = "UPGRADE_LIMIT"
+	OTPForLogin            OTPFor = "login"
+	OTPForAddAccount       OTPFor = "add_account"
+	OTPForPINSet           OTPFor = "pin_set"
+	OTPForTransfer         OTPFor = "transfer"
+	OTPForAcctivateAccount OTPFor = "acctivate_account"
+	OTPForPINReset         OTPFor = "pin_reset"
+	OTPForSignup           OTPFor = "signup"
+	OTPForAccountLink      OTPFor = "account_link"
+	OTPForChangePhone      OTPFor = "change_phone"
+	OTPForDetachPhone      OTPFor = "detach_phone"
+	OTPForAttachPhone      OTPFor = "attach_phone"
+	OTPForEnable           OTPFor = "enable"
+	OTPForTransferLimit    OTPFor = "transfer_limit"
+	OTPForChangeEmail      OTPFor = "change_email"
+	OTPForUpgradeLimit     OTPFor = "upgrade_limit"
 )
 
 type Realm string
 
 const (
-	ElstRealm     Realm = "ELST"
-	BankRealm     Realm = "BANK"
-	DistrictRealm Realm = "DISTRICT"
-	BranchRealm   Realm = "BRANCH"
-	MerchantRealm Realm = "MERCHANT"
-	CompanyRealm  Realm = "COMPANY"
-	MemberRealm   Realm = "MEMBER"
+	ElstRealm     Realm = "elst"
+	BankRealm     Realm = "bank"
+	DistrictRealm Realm = "district"
+	BranchRealm   Realm = "branch"
+	MerchantRealm Realm = "merchant"
+	CompanyRealm  Realm = "company"
+	MemberRealm   Realm = "member"
 )
 
 type KYCStatus string
 
 const (
-	KYCStatusPending  KYCStatus = "PENDING"
-	KYCStatusApproved KYCStatus = "APPROVED"
-	KYCStatusRejected KYCStatus = "REJECTED"
+	KYCStatusPending  KYCStatus = "pending"
+	KYCStatusApproved KYCStatus = "approved"
+	KYCStatusRejected KYCStatus = "rejected"
 )
 
 type BPSStatus string
 
 const (
-	BPSStatusAuthorized BPSStatus = "AUTHORIZED"
-	BPSStatusDenied     BPSStatus = "DENIED"
-	BPSStatusPending    BPSStatus = "PENDING"
-	BPSStatusInitiated  BPSStatus = "INITIATED"
+	BPSStatusAuthorized BPSStatus = "authorized"
+	BPSStatusDenied     BPSStatus = "denied"
+	BPSStatusPending    BPSStatus = "pending"
+	BPSStatusInitiated  BPSStatus = "initiated"
 )
 
 type Gender string
 
 const (
-	Male   Gender = "MALE"
-	Female Gender = "FEMALE"
+	Male   Gender = "male"
+	Female Gender = "female"
 )
 
 type MaritalStatus string
 
 const (
-	Single   MaritalStatus = "SINGLE"
-	Married  MaritalStatus = "MARRID"
-	Divorced MaritalStatus = "DIVORCED"
-	Widow    MaritalStatus = "WIDOW"
+	Single   MaritalStatus = "single"
+	Married  MaritalStatus = "married"
+	Divorced MaritalStatus = "divorced"
+	Widow    MaritalStatus = "widow"
 )
 
 type PrimaryAuthentication string
 
 const (
-	PrimaryAuthenticationByPhoneNumber         PrimaryAuthentication = "PHONE_NUMBER"
-	PrimaryAuthenticationByEmail               PrimaryAuthentication = "EMAIL"
-	PrimaryAuthenticationByEmailAndPhoneNumber PrimaryAuthentication = "EMAIL_AND_PHONE_NUMBER"
+	PrimaryAuthenticationByPhoneNumber         PrimaryAuthentication = "phone_number"
+	PrimaryAuthenticationByEmail               PrimaryAuthentication = "email"
+	PrimaryAuthenticationByEmailAndPhoneNumber PrimaryAuthentication = "email_and_phone_number"
 )
 
 type DeviceStatus string
 
 const (
-	Linked   DeviceStatus = "LINKED"
-	UnLinked DeviceStatus = "UNLINKED"
+	Linked   DeviceStatus = "linked"
+	UnLinked DeviceStatus = "unlinked"
 )
 
 type DeviceType string
 
 const (
-	Android DeviceType = "Android"
-	IOS     DeviceType = "IOS"
+	Android DeviceType = "android"
+	IOS     DeviceType = "ios"
 )
 
 type Device struct {
@@ -274,24 +274,24 @@ type Device struct {
 type OTPStatus string
 
 const (
-	Pending  OTPStatus = "PENDING"
-	Verified OTPStatus = "VERIFIED"
-	Denied   OTPStatus = "DENIED"
+	Pending  OTPStatus = "pending"
+	Verified OTPStatus = "verified"
+	Denied   OTPStatus = "denied"
 )
 
 type MerchantRole string
 
 const (
-	MerchantRoleOwner MerchantRole = "OWNER"
-	MerchantRoleAgent MerchantRole = "AGENT"
+	MerchantRoleOwner MerchantRole = "owner"
+	MerchantRoleAgent MerchantRole = "agent"
 )
 
 type PoolSource string
 
 const (
-	PoolSourcePortal PoolSource = "PORTAL"
-	PoolSourceApp    PoolSource = "APP"
-	PoolSourceAgent  PoolSource = "AGENT"
+	PoolSourcePortal PoolSource = "portal"
+	PoolSourceApp    PoolSource = "app"
+	PoolSourceAgent  PoolSource = "agent"
 )
 
 type MemberType string
@@ -299,8 +299,8 @@ type MemberType string
 type AccountStatus string
 
 const (
-	Active   AccountStatus = "ACTIVE"
-	InActive AccountStatus = "IN_ACTIVE"
+	Active   AccountStatus = "active"
+	InActive AccountStatus = "in_active"
 )
 
 type User struct {
@@ -318,6 +318,7 @@ type User struct {
 	IssuedDate        time.Time     `json:"issued_date" bson:"isssued_date"`
 	PhoneNumber       string        `json:"phone_number" bson:"phone_number"`
 	Gender            Gender        `json:"gender" bson:"gender"`
+	ProfileThemeType  string        `json:"profile_theme_type" bson:"profile_theme_type"`
 
 	Fayda struct {
 		FaydaID          string `json:"id_number" bson:"id_number"`
@@ -411,6 +412,7 @@ type OTP struct {
 	UserRealm     Realm         `json:"user_realm" bson:"user_realm"`
 	Email         string        `json:"email" bson:"email"`
 	UserCode      string        `json:"user_code" bson:"user_code"`
+	FullName      string        `json:"full_name" bson:"full_name"`
 	OTPCode       string        `json:"otp_code" bson:"otp_code"`
 	BillNo        *string       `json:"bill_no,omitempty" bson:"bill_no,omitempty"`
 	DeviceUUID    *string       `json:"device_uuid,omitempty" bson:"device_uuid,omitempty"`

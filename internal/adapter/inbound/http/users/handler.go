@@ -63,6 +63,14 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 		},
 		{
 			Method:  http.MethodPost,
+			Path:    "/api/v1/cbesuperapp/member_auth/set-profile-theme",
+			Handler: handler.UpdateProfileTheme,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPost,
 			Path:    "/api/v1/cbesuperapp/member_auth/unlink-device",
 			Handler: handler.UnlinkDevice,
 			Middlewares: []func(next http.Handler) http.Handler{
@@ -143,6 +151,12 @@ func InitUserRoutes(router chi.Router, handler users_inbound.InBound, authMiddle
 			Method:      http.MethodGet,
 			Path:        "/api/v1/cbesuperapp/member_auth/device-lookup",
 			Handler:     handler.DeviceLookup,
+			Middlewares: []func(next http.Handler) http.Handler{},
+		},
+		{
+			Method:      http.MethodPost,
+			Path:        "/api/v1/cbesuperapp/member_auth/pre-login",
+			Handler:     handler.PreLogin,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
 		{

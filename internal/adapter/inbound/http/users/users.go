@@ -126,11 +126,49 @@ func (h UsersAdapter) DeviceLookup(w http.ResponseWriter, r *http.Request) {
 
 	response, err := h.Application.DeviceLookup(r.Context(), headerData)
 	if err != nil {
-		utils.BaseResponseMaker(nil, w, "Device lookup failed", http.StatusInternalServerError)
+		utils.BaseResponseMaker(nil, w, "Device lookup failed", http.StatusNoContent)
 		return
 	}
 
+	data, _ := utils.StructToMap(response)
+	utils.BaseResponseMaker(data, w, "Device Successfly Found", 200)
 	h.sendSuccessResponse(w, http.StatusOK, response)
+}
+
+func (h UsersAdapter) PreLogin(w http.ResponseWriter, r *http.Request) {
+	platform, appVersion, deviceUUID, sourceApp, installationDate, additionalHeaders := utils.HeaderRequirement(r, nil)
+
+	if deviceUUID == "" || platform == "" {
+		utils.BaseResponseMaker(nil, w, "Missing required headers", http.StatusBadRequest)
+		return
+	}
+	var req dto.PhoneLoginRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.SendErrorResponse(w, "INVALID_PAYLOAD", 403, nil)
+		return
+	}
+	headerData := map[string]interface{}{
+		"platform":          platform,
+		"app_version":       appVersion,
+		"device_uuid":       deviceUUID,
+		"source_app":        sourceApp,
+		"installation_date": installationDate,
+	}
+
+	// Add any additional headers
+	for key, value := range additionalHeaders {
+		headerData[key] = value
+	}
+
+	response, err := h.Application.PreLogin(r.Context(), headerData, req.Phone)
+	if err != nil {
+		utils.SendErrorResponse(w, "PHONE_LOOKUP_FAILED", 400, nil)
+		return
+	}
+
+	data, _ := utils.StructToMap(response)
+	utils.BaseResponseMaker(data, w, "Phone successfuly found", 200)
 }
 
 func (h UsersAdapter) ForgetPin(w http.ResponseWriter, r *http.Request) {
@@ -222,6 +260,7 @@ func (h UsersAdapter) UpdateProfilePicture(w http.ResponseWriter, r *http.Reques
 
 	file, fileHeader, err := r.FormFile("profile_picture")
 	if err != nil {
+		fmt.Println("error", err)
 		utils.SendErrorResponse(w, "NO_FILE", http.StatusBadRequest, nil)
 		return
 	}
@@ -252,6 +291,29 @@ func (h UsersAdapter) UpdateProfilePicture(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+func (h UsersAdapter) UpdateProfileTheme(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	if !ok {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
+	var req dto.SetProfileThemeRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.SendErrorResponse(w, "INVALID_PAYLOAD", 403, nil)
+		return
+	}
+
+	_, err := h.Application.UpdateProfileTheme(r.Context(), userID, req.ThemeType)
+	if err != nil {
+		status := http.StatusInternalServerError
+
+		utils.SendErrorResponse(w, err.Error(), status, nil)
+		return
+	}
+
+	utils.BaseResponseMaker(map[string]interface{}{}, w, "Profile theme set successfuly", 200)
+}
 func (h UsersAdapter) VerifyEmailOTP(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
 	if !ok {
@@ -386,7 +448,7 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	phoneNumber := r.Context().Value("phone_number")
+	phoneNumber := r.Context().Value(constant.ContextKey("phone_number")).(string)
 
 	_, _, deviceUUID, sourceApp, _, _ := utils.HeaderRequirement(r, nil)
 
@@ -401,13 +463,13 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowedOtpTypes := map[string]bool{"pin_set": true, "registration": true, "pin_reset": true}
+	allowedOtpTypes := map[string]bool{"pin_set": true, "registration": true, "pin_reset": true, "login": true}
 	if !allowedOtpTypes[req.OtpFor] {
 		utils.SendErrorResponse(w, "INVALID_OTP_TYPE", http.StatusBadRequest, nil)
 		return
 	}
 
-	token, err := h.Application.VerifyOtp(r.Context(), userID, req.Otp, deviceUUID, sourceApp, req.OtpFor)
+	token, err := h.Application.VerifyOtp(r.Context(), userID, phoneNumber, req.Otp, deviceUUID, sourceApp, req.OtpFor)
 
 	if err != nil {
 		status := http.StatusBadRequest
@@ -507,12 +569,12 @@ func (h UsersAdapter) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.validateRegisterRequest(req); err != nil {
-		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	if deviceUUID != "" && deviceUUID != req.DeviceUUID {
-		utils.BaseResponseMaker(map[string]interface{}{}, w, "Device UUID mismatch", http.StatusBadRequest)
+		utils.SendErrorResponse(w, "DEVICE_UUID_MISMATCH", 0, nil)
 		return
 	}
 
@@ -522,24 +584,9 @@ func (h UsersAdapter) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call application service for registration
-	response, err := h.Application.Register(r.Context(), req.Phone, req.DeviceUUID, req.Platform)
+	response, err := h.Application.Register(r.Context(), req.Phone, req.FullName, req.Email, req.DeviceUUID, req.Platform)
 	if err != nil {
-		status := http.StatusBadRequest
-		switch err.Error() {
-		case "PHONE_ALREADY_EXISTS":
-			status = http.StatusConflict
-		case "DEVICE_ALREADY_REGISTERED":
-			status = http.StatusConflict
-		case "INVALID_PHONE_NUMBER":
-			status = http.StatusBadRequest
-		case "INVALID_PLATFORM":
-			status = http.StatusBadRequest
-		case "REGISTRATION_RATE_LIMITED":
-			status = http.StatusTooManyRequests
-		default:
-			status = http.StatusInternalServerError
-		}
-		utils.SendErrorResponse(w, err.Error(), status, nil)
+		utils.SendErrorResponse(w, err.Error(), 400, nil)
 		return
 	}
 
@@ -917,8 +964,9 @@ func (h UsersAdapter) CompleteRegistration(w http.ResponseWriter, r *http.Reques
 		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	phoneNumber := r.Context().Value("phone_number").(string)
 
-	_, err := h.Application.VerifyOtp(r.Context(), req.RegistrationID, req.OTP, req.DeviceUUID, req.Platform, "registration")
+	_, err := h.Application.VerifyOtp(r.Context(), req.RegistrationID, phoneNumber, req.OTP, req.DeviceUUID, req.Platform, "registration")
 	if err != nil {
 		status := http.StatusBadRequest
 		switch err.Error() {

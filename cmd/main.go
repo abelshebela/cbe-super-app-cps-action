@@ -52,6 +52,7 @@ func main() {
 			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
 		}
 	}()
+
 	log.Println("Connected to MongoDB!")
 
 	minioClient, err := config.NewMinioClient(&config.VaultConfig{
@@ -59,6 +60,7 @@ func main() {
 		MinioAccessKey: cfg.MinioAccessKey,
 		MinioSecretKey: cfg.MinioSecretKey,
 	})
+
 	if err != nil {
 		logger.Fatalf("failed to initialize minio client: %v", err)
 	}

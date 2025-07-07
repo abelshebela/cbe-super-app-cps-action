@@ -107,11 +107,12 @@ var errorKeyToStatus = map[string]int{
 	"USER_KYC_LEVEL_WRONG":  400,
 
 	// File
-	"INVALID_FORM":      400,
-	"NO_FILE":           400,
-	"FILE_TOO_LARGE":    413,
-	"INVALID_FILE_TYPE": 400,
-	"UPLOAD_FAILED":     500,
+	"INVALID_FORM":         400,
+	"NO_FILE":              400,
+	"FILE_TOO_LARGE":       413,
+	"INVALID_FILE_TYPE":    400,
+	"UPLOAD_FAILED":        500,
+	"DEVICE_UUID_MISMATCH": 400,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -136,9 +137,37 @@ func getStatusForErrorKey(key string) int {
 }
 
 func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, additionalData map[string]interface{}) {
+	var errorDef common.ErrorDefinition
+	found := false
+
+	errorGroups := []common.ErrorGroup{
+		common.DefineError.General,
+		common.DefineError.Auth,
+		common.DefineError.User,
+		common.DefineError.Transaction,
+		common.DefineError.Account,
+		common.DefineError.OTP,
+		common.DefineError.File,
+	}
+
+	for _, group := range errorGroups {
+		if def, ok := group[errorKey]; ok {
+			errorDef = def
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		errorDef = common.ErrorDefinition{
+			Code:    errorKey,
+			Message: errorKey,
+		}
+	}
+
 	response := APIErrorResponse{
-		Message: errorKey,
-		Code:    errorKey,
+		Message: errorDef.Message,
+		Code:    errorDef.Code,
 	}
 
 	if additionalData != nil {
@@ -153,19 +182,20 @@ func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, a
 		}
 	}
 
-	responseBytes, _ := json.Marshal(response)
-	var responseMap map[string]interface{}
-	json.Unmarshal(responseBytes, &responseMap)
-
-	// Use the provided statusCode if non-zero, otherwise use the mapped status
 	status := statusCode
 	if status == 0 {
 		status = getStatusForErrorKey(errorKey)
 	}
 
+	returnData := make(map[string]interface{})
+	returnData["status"] = status
+	returnData["message"] = response.Message
+	returnData["data"] = map[string]interface{}{"code": response.Code}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	ResponseMaker(responseMap, w)
+	responseBytes, _ := json.Marshal(returnData)
+
+	w.Write(responseBytes)
 }
 
 // func HandleServiceError(w http.ResponseWriter, err error) {
