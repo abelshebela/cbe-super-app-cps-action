@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
@@ -30,9 +31,9 @@ func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWrite
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
-	// fmt.Println(req, "required")
+	fmt.Println(req, "required")
 	if err := req.Validate(); err != nil {
-		// fmt.Println("HOLAAA",err)
+		fmt.Println("HOLAAA", err)
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
@@ -56,19 +57,27 @@ func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWrite
 		FullName:    fullName,
 		PhoneNumber: phoneNumber,
 	}
+
 	req.Rule.ID = req.ID
-_, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker, department)
+
+	start := time.Now()
+	actionID, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker, department)
+	elapsed := time.Since(start)
+	fmt.Printf("Password rule update request took %s\n", elapsed)
 
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
+	response := map[string]interface{}{
 		"status":  "success",
-		"message": "update request " + action + " successfully Approved",
-		"data":    action,
+		"message": "Update request submitted for approval",
+		"data":    map[string]interface{}{"action_id": actionID},
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.ResponseWriter, r *http.Request) {
