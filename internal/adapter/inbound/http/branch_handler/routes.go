@@ -12,11 +12,11 @@ import (
 )
 
 func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddleware middleware.AuthMiddleware) {
-	r.Route("/branch", func(rou chi.Router) {
+	r.Route("/branches", func(rou chi.Router) {
 		routes := []sharedhttp.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/filter_single",
+				Path:    "/filter/single",
 				Handler: handler.FilterSingleBranches,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,25 +25,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/disable_single",
-				Handler: handler.DisableSingleBranch,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/approve_disable_single",
-				Handler: handler.ApproveSingleBranchDisable,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/filter_multiple",
+				Path:    "/filter/multiple",
 				Handler: handler.FilterMultipleBranches,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -52,7 +34,16 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/disable_multiple",
+				Path:    "/disable/single",
+				Handler: handler.ApproveSingleBranchDisable,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/disable/multiple",
 				Handler: handler.DisableMultipleBranches,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -61,7 +52,16 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve_disable_multiple",
+				Path:    "/disable/single/approve",
+				Handler: handler.DisableMultipleBranches,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/disable/multiple/approve",
 				Handler: handler.ApproveBulkBranchesDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

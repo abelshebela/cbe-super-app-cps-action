@@ -17,7 +17,7 @@ func InitPortalCardRoutes(router chi.Router, portalcardHandler inbound.PortalCar
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/fetch",
+				Path:    "/",
 				Handler: portalcardHandler.GetAllPortalCard,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

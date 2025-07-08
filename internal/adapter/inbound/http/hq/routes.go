@@ -1,3 +1,4 @@
+// Package hq provides HTTP route definitions and handlers for HQ-related endpoints.
 package hq
 
 import (
@@ -10,54 +11,56 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InitHQRoutes(r chi.Router, handler *HQHTTPHandler, authMiddleware middleware.AuthMiddleware) {
-	routes := []route.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/hq/{id}",
-			Handler: handler.GetHQ,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware middleware.AuthMiddleware) {
+	router.Route("/hq", func(r chi.Router) {
+		routes := []route.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/{id}",
+				Handler: handler.GetHQ,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/hq/block-time/update_request",
-			Handler: handler.UpdateBlockTimeRequest,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/block-time",
+				Handler: handler.UpdateBlockTimeRequest,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/hq/archive-time/update_request",
-			Handler: handler.UpdateArchiveTimeRequest,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/archive-time",
+				Handler: handler.UpdateArchiveTimeRequest,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/hq/block-time/update_approve",
-			Handler: handler.UpdateBlockTime,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/block-time/approve",
+				Handler: handler.UpdateBlockTime,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/hq/archive-time/update_approve",
-			Handler: handler.UpdateArchiveTime,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/archive-time/approve",
+				Handler: handler.UpdateArchiveTime,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-	}
+		}
 
-	route.RegisterRoutes(r, routes)
+		route.RegisterRoutes(r, routes)
+	})
 }

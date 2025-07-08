@@ -27,11 +27,11 @@ func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts, logge
 }
 
 func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/bulk_service", func(r chi.Router) {
+	router.Route("/bulk-services", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/enable_disable_service_maker",
+				Path:    "/actions/enable-disable/request",
 				Handler: handler.EnableDisableServicesMaker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -40,16 +40,18 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/fetch_service",
+				Path:    "/services",
 				Handler: handler.FetchServices,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{
+						role.Maker, role.IFBMaker, role.Checker, role.IFBChecker,
+					}),
 				},
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/enable_disable_service_maker",
+				Path:    "/actions/enable-disable/approve",
 				Handler: handler.EnableDisableServicesChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -58,25 +60,27 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/cif_search",
+				Path:    "/accounts/search",
 				Handler: handler.SearchAccountByCif,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{
+						role.Maker, role.IFBMaker, role.Checker, role.IFBChecker,
+					}),
 				},
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/cif_remove_maker",
+				Path:    "/accounts/remove/request",
 				Handler: handler.RemoveCifMaker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/cif_remove_checker",
+				Path:    "/accounts/remove/approve",
 				Handler: handler.RemoveCifChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

@@ -23,27 +23,28 @@ func NewHttpBulkService(app miniapp_application.ApplicationAbstracts) Inbound.In
 }
 
 func InitServiceHandlerMaker(router chi.Router, handler Inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
-
-	routes := []route.Route{
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/mini_app_create_maker",
-			Handler: handler.MakerCreateMiniApp,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+	router.Route("/mini-apps", func(r chi.Router) {
+		routes := []route.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/",
+				Handler: handler.MakerCreateMiniApp,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/mini_app_create_checker",
-			Handler: handler.CheckerMiniApp,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/approve",
+				Handler: handler.CheckerMiniApp,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-	}
+		}
 
-	route.RegisterRoutes(router, routes)
+		route.RegisterRoutes(r, routes)
+	})
 }

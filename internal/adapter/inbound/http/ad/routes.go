@@ -16,7 +16,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: ad.CreateOneAdvert,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 			},
 			{
 				Method:  http.MethodPatch,
-				Path:    "/update/{id}",
+				Path:    "/{id}",
 				Handler: ad.UpdateOneAdvert,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -34,7 +34,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 			},
 			{
 				Method:  http.MethodDelete,
-				Path:    "/delete/{id}",
+				Path:    "/{id}",
 				Handler: ad.DeleteOneAdvert,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

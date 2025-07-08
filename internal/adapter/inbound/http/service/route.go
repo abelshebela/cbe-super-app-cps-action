@@ -12,7 +12,7 @@ import (
 )
 
 func InitServiceRoutes(router chi.Router, serviceHandler inbound.ServiceBound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/service", func(r chi.Router) {
+	router.Route("/service", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,

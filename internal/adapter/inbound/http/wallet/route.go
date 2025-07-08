@@ -12,11 +12,11 @@ import (
 )
 
 func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/wallet", func(r chi.Router) {
+	router.Route("/wallets", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: wallet.CreateWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 			},
 			{
 				Method:  http.MethodPatch,
-				Path:    "/update/{id}",
+				Path:    "/{id}",
 				Handler: wallet.UpdateWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -34,7 +34,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 			},
 			{
 				Method:  http.MethodDelete,
-				Path:    "/delete/{id}",
+				Path:    "/{id}",
 				Handler: wallet.DeleteWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -52,7 +52,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/wallets",
+				Path:    "/",
 				Handler: wallet.GetAllWallet,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -61,27 +61,25 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve/{action_code}",
+				Path:    "/{action_code}/approve",
 				Handler: wallet.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
-
 			{
 				Method:  http.MethodPost,
-				Path:    "/reject/{action_code}",
+				Path:    "/{action_code}/reject",
 				Handler: wallet.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
-
 			{
 				Method:  http.MethodPost,
-				Path:    "/enable/{id}",
+				Path:    "/{id}/enable",
 				Handler: wallet.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -90,7 +88,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/disable/{id}",
+				Path:    "/{id}/disable",
 				Handler: wallet.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

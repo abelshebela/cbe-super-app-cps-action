@@ -13,7 +13,7 @@ import (
 )
 
 func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/bank", func(r chi.Router) {
+	router.Route("/banks", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
@@ -26,7 +26,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodPatch,
-				Path:    "/update/{id}",
+				Path:    "/{id}",
 				Handler: bank.UpdateOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -35,7 +35,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodDelete,
-				Path:    "/delete/{id}",
+				Path:    "/{id}",
 				Handler: bank.DeleteOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -53,7 +53,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/banks",
+				Path:    "/",
 				Handler: bank.GetAllBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -62,17 +62,16 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve/{action_code}",
+				Path:    "/{action_code}/approve",
 				Handler: bank.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
-
 			{
 				Method:  http.MethodPost,
-				Path:    "/reject/{action_code}",
+				Path:    "/{action_code}/reject",
 				Handler: bank.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -81,7 +80,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/enable/{id}",
+				Path:    "/{id}/enable",
 				Handler: bank.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -90,7 +89,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/disable/{id}",
+				Path:    "/{id}/disable",
 				Handler: bank.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

@@ -12,11 +12,11 @@ import (
 )
 
 func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.DepartmentPortHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/department", func(r chi.Router) {
+	router.Route("/departments", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: departmentHandler.CreateDepartment,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve/request/{action_code}",
+				Path:    "/{action_code}/approve",
 				Handler: departmentHandler.ApproveDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
