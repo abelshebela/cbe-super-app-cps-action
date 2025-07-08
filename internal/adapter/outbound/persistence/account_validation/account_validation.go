@@ -148,7 +148,7 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 		return errors.New("validation rule ID cannot be empty")
 	}
 	update := bson.M{
-		"$set": bson.M{
+		
 			"entity_type":      rule.EntityType,
 			"validation_for":   rule.ValidationFor,
 			"identifier":       rule.Identifier,
@@ -158,7 +158,7 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 			"is_deleted":       rule.IsDeleted,
 			"service_id":       rule.ServiceID,
 			"last_modified_at": rule.LastModifiedAt,
-		},
+		
 	}
 
 	filter := bson.M{"_id": objID}

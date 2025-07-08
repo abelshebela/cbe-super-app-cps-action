@@ -423,6 +423,16 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		}
 	}
 
+	// Convert CurrentAction to map[string]interface{} if needed
+	var currentAction interface{}
+	switch v := domainAction.CurrentAction.(type) {
+	case map[string]interface{}:
+		currentAction = v
+	default:
+		b, _ := json.Marshal(v)
+		json.Unmarshal(b, &currentAction)
+	}
+
 	return model.CPSAction{
 		ID:                 objID,
 		ActionCode:         domainAction.ActionCode,
@@ -436,7 +446,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		Department:         domainAction.Department,
 		RejectionReason:    rejectionReason,
 		PreviosAction:      domainAction.PreviosAction,
-		CurrentAction:      domainAction.CurrentAction,
+		CurrentAction:      currentAction,
 		ActionStatus:       string(domainAction.ActionStatus),
 		ActionType:         string(domainAction.ActionType),
 		RequestAction:      string(domainAction.RequestAction),
@@ -444,6 +454,25 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		LastModifiedAt:     domainAction.LastModifiedAt,
 		MakerActionTime:    domainAction.MakerActionTime,
 		CheckerActionTime:  domainAction.CheckerActionTime,
+	}
+}
+
+// Helper to recursively convert bson.D to map[string]interface{}
+func bsonDToMap(i interface{}) interface{} {
+	switch v := i.(type) {
+	case bson.D:
+		m := make(map[string]interface{})
+		for _, e := range v {
+			m[e.Key] = bsonDToMap(e.Value)
+		}
+		return m
+	case []interface{}:
+		for i, e := range v {
+			v[i] = bsonDToMap(e)
+		}
+		return v
+	default:
+		return v
 	}
 }
 
@@ -466,7 +495,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		Department:         modelAction.Department,
 		RejectionReason:    rejectionReason,
 		PreviosAction:      modelAction.PreviosAction,
-		CurrentAction:      modelAction.CurrentAction,
+		CurrentAction:      bsonDToMap(modelAction.CurrentAction), // always map/slice, never bson.D
 		ActionStatus:       domain.ActionStatus(modelAction.ActionStatus),
 		ActionType:         domain.ActionType(modelAction.ActionType),
 		RequestAction:      domain.RequestAction(modelAction.RequestAction),
@@ -491,24 +520,22 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		"action_code": modelAction.ActionCode,
 	}
 	update := map[string]interface{}{
-		"$set": map[string]interface{}{
-			"maker_id":             modelAction.MakerID,
-			"maker_name":           modelAction.MakerName,
-			"maker_phone_number":   modelAction.MakerPhoneNumber,
-			"checker_id":           modelAction.CheckerID,
-			"checker_name":         modelAction.CheckerName,
-			"checker_phone_number": modelAction.CheckerPhoneNumber,
-			"unique_id":            modelAction.UniqueId,
-			"department":           modelAction.Department,
-			"rejection_reason":     modelAction.RejectionReason,
-			"previos_action":       modelAction.PreviosAction,
-			"current_action":       modelAction.CurrentAction,
-			"action_status":        modelAction.ActionStatus,
-			"action_type":          modelAction.ActionType,
-			"request_action":       modelAction.RequestAction,
-			"created_at":           modelAction.CreatedAt,
-			"last_modified_at":     modelAction.LastModifiedAt,
-		},
+		"maker_id":             modelAction.MakerID,
+		"maker_name":           modelAction.MakerName,
+		"maker_phone_number":   modelAction.MakerPhoneNumber,
+		"checker_id":           modelAction.CheckerID,
+		"checker_name":         modelAction.CheckerName,
+		"checker_phone_number": modelAction.CheckerPhoneNumber,
+		"unique_id":            modelAction.UniqueId,
+		"department":           modelAction.Department,
+		"rejection_reason":     modelAction.RejectionReason,
+		"previos_action":       modelAction.PreviosAction,
+		"current_action":       modelAction.CurrentAction,
+		"action_status":        modelAction.ActionStatus,
+		"action_type":          modelAction.ActionType,
+		"request_action":       modelAction.RequestAction,
+		"created_at":           modelAction.CreatedAt,
+		"last_modified_at":     modelAction.LastModifiedAt,
 	}
 	if _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update); err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)

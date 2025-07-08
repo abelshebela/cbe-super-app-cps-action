@@ -475,6 +475,54 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_113",
 			Message: "One or more required fields are missing.",
 		},
+		"VALIDATION_RULE_ID_MISMATCH": {
+			Code:    "GEN_201",
+			Message: "Validation rule ID does not match the expected value.",
+		},
+		"FAILED_TO_UPDATE_VALIDATION_RULE": {
+			Code:    "GEN_202",
+			Message: "Failed to update the validation rule.",
+		},
+		"FAILED_TO_UNMARSHAL_CURRENT_ACTION": {
+			Code:    "GEN_203",
+			Message: "Failed to parse the current action data.",
+		},
+		"CURRENT_ACTION_INVALID_TYPE": {
+			Code:    "GEN_204",
+			Message: "Current action has an invalid data type.",
+		},
+		"CURRENT_ACTION_NIL": {
+			Code:    "GEN_205",
+			Message: "Current action is missing or nil.",
+		},
+		"ACTION_NOT_PENDING": {
+			Code:    "GEN_206",
+			Message: "Action is not in a pending state.",
+		},
+		"CHECKER_ID_EMPTY": {
+			Code:    "GEN_207",
+			Message: "Checker ID is required but was not provided.",
+		},
+		"ACTION_ID_EMPTY": {
+			Code:    "GEN_208",
+			Message: "Action ID is required but was not provided.",
+		},
+		"FAILED_TO_MARSHAL_CURRENT_ACTION": {
+			Code:    "GEN_209",
+			Message: "Failed to serialize the current action data.",
+		},
+		"FAILED_TO_MARSHAL_PREVIOUS_ACTION": {
+			Code:    "GEN_210",
+			Message: "Failed to serialize the previous action data.",
+		},
+		"PENDING_ACTION_EXISTS": {
+			Code:    "GEN_211",
+			Message: "A pending action already exists for this validation rule.",
+		},
+		"FAILED_TO_FETCH_PENDING_ACTIONS": {
+			Code:    "GEN_212",
+			Message: "Failed to fetch pending actions for this validation rule.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
