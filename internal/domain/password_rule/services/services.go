@@ -107,7 +107,7 @@ func (s *passwordRuleService) ApproveOrRejectPasswordRuleAction(ctx context.Cont
 			return fmt.Errorf("FAILED_TO_UPDATE_PASSWORD_RULE: %w", err)
 		}
 		cpsAction.ActionStatus = action.ActionApproved
-	} else if decision == "REJECTED" {
+	} else if decision == "DENIED" {
 		cpsAction.ActionStatus = action.ActionRejected
 		if rejectionReason != nil {
 			cpsAction.RejectionReason = rejectionReason

@@ -117,8 +117,14 @@ func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.Respo
 		return
 	}
 
+	response := map[string]interface{}{
+		"status":  "success",
+		"message": "Action processed successfully",
+		"data":    map[string]interface{}{"action_id": req.ActionID},
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Action processed successfully"})
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (h *PasswordRuleHTTPHandler) GetPasswordRuleUpdateActionByID(w http.ResponseWriter, r *http.Request) {
@@ -140,8 +146,14 @@ func (h *PasswordRuleHTTPHandler) GetPasswordRuleUpdateActionByID(w http.Respons
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
+	response := map[string]interface{}{
+		"status":  "success",
+		"message": "Fetched password rule update action successfully",
+		"data":    result,
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http.Request) {
@@ -169,8 +181,14 @@ func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
+	response := map[string]interface{}{
+		"status":  "success",
+		"message": "Fetched update action successfully",
+		"data":    result,
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 type CheckPasswordDTO struct {
@@ -185,19 +203,20 @@ func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *ht
 	}
 	valid, msg := h.service.CheckPasswordRule(r.Context(), req.Password)
 
-	resp := map[string]interface{}{
-		"status":  "success",
+	statusCode := http.StatusOK
+	status := "success"
+	if !valid {
+		status = "fail"
+		statusCode = http.StatusBadRequest
+	}
+	response := map[string]interface{}{
+		"status":  status,
 		"message": msg,
 		"data":    map[string]interface{}{"valid": valid},
 	}
-	statusCode := http.StatusOK
-	if !valid {
-		resp["status"] = "fail"
-		statusCode = http.StatusBadRequest
-	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (h *PasswordRuleHTTPHandler) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {

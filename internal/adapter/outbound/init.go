@@ -340,64 +340,64 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 		"_id": service.ID,
 	}
 	update := map[string]interface{}{
-		
-			"key":         service.Key,
-			"serviceName": service.ServiceName,
-			"serviceType": service.ServiceType,
-			"cap": map[string]interface{}{
-				"kyc_level":  service.Cap.KYCLevel,
-				"single_cap": service.Cap.SingleCap,
-				"daily_cap":  service.Cap.DailyCap,
-				"min_amount": service.Cap.MinAmount,
-			},
-			"cbe_product_codes": map[string]interface{}{
-				"prd":    service.CBEProductCodes.PRD,
-				"vatprd": service.CBEProductCodes.VATPRD,
-				"sfprd":  service.CBEProductCodes.SFPRD,
-				"trxn":   service.CBEProductCodes.TRXN,
-			},
-			"cbe_ifb_product_codes": map[string]interface{}{
-				"prd":    service.CBEIFBProductCodes.PRD,
-				"vatprd": service.CBEIFBProductCodes.VATPRD,
-				"sfprd":  service.CBEIFBProductCodes.SFPRD,
-				"trxn":   service.CBEIFBProductCodes.TRXN,
-			},
-			"above_amount":      service.AboveAmount,
-			"above_service_fee": service.AboveServiceFee,
-			"payment_type":      service.PaymentType,
-			"tiers": func() []map[string]interface{} {
-				var tiers []map[string]interface{}
-				for _, tier := range service.Tiers {
-					tiers = append(tiers, map[string]interface{}{
-						"id":         tier.ID,
-						"min":        tier.Min,
-						"max":        tier.Max,
-						"fee_amount": tier.FeeAmount,
-					})
-				}
-				return tiers
-			}(),
-			"cbe_gl_entry": map[string]interface{}{
-				"product_account":     service.CBEGLEntry.ProductAccount,
-				"product_branch_code": service.CBEGLEntry.ProductBranchCode,
-				"service_account":     service.CBEGLEntry.ServiceAccount,
-				"service_branch_code": service.CBEGLEntry.ServiceBranchCode,
-				"vat_account":         service.CBEGLEntry.VatAccount,
-				"vat_branch_code":     service.CBEGLEntry.VatBranchCode,
-			},
-			"cbe_ifb_gl_entry": map[string]interface{}{
-				"product_account":     service.CBEIFBGLEntry.ProductAccount,
-				"product_branch_code": service.CBEIFBGLEntry.ProductBranchCode,
-				"service_account":     service.CBEIFBGLEntry.ServiceAccount,
-				"service_branch_code": service.CBEIFBGLEntry.ServiceBranchCode,
-				"vat_account":         service.CBEIFBGLEntry.VatAccount,
-				"vat_branch_code":     service.CBEIFBGLEntry.VatBranchCode,
-			},
-			"enabled":          service.Enabled,
-			"is_deleted":       service.IsDeleted,
-			"last_modified_at": service.LastModifiedAt,
-		}
-	
+
+		"key":         service.Key,
+		"serviceName": service.ServiceName,
+		"serviceType": service.ServiceType,
+		"cap": map[string]interface{}{
+			"kyc_level":  service.Cap.KYCLevel,
+			"single_cap": service.Cap.SingleCap,
+			"daily_cap":  service.Cap.DailyCap,
+			"min_amount": service.Cap.MinAmount,
+		},
+		"cbe_product_codes": map[string]interface{}{
+			"prd":    service.CBEProductCodes.PRD,
+			"vatprd": service.CBEProductCodes.VATPRD,
+			"sfprd":  service.CBEProductCodes.SFPRD,
+			"trxn":   service.CBEProductCodes.TRXN,
+		},
+		"cbe_ifb_product_codes": map[string]interface{}{
+			"prd":    service.CBEIFBProductCodes.PRD,
+			"vatprd": service.CBEIFBProductCodes.VATPRD,
+			"sfprd":  service.CBEIFBProductCodes.SFPRD,
+			"trxn":   service.CBEIFBProductCodes.TRXN,
+		},
+		"above_amount":      service.AboveAmount,
+		"above_service_fee": service.AboveServiceFee,
+		"payment_type":      service.PaymentType,
+		"tiers": func() []map[string]interface{} {
+			var tiers []map[string]interface{}
+			for _, tier := range service.Tiers {
+				tiers = append(tiers, map[string]interface{}{
+					"id":         tier.ID,
+					"min":        tier.Min,
+					"max":        tier.Max,
+					"fee_amount": tier.FeeAmount,
+				})
+			}
+			return tiers
+		}(),
+		"cbe_gl_entry": map[string]interface{}{
+			"product_account":     service.CBEGLEntry.ProductAccount,
+			"product_branch_code": service.CBEGLEntry.ProductBranchCode,
+			"service_account":     service.CBEGLEntry.ServiceAccount,
+			"service_branch_code": service.CBEGLEntry.ServiceBranchCode,
+			"vat_account":         service.CBEGLEntry.VatAccount,
+			"vat_branch_code":     service.CBEGLEntry.VatBranchCode,
+		},
+		"cbe_ifb_gl_entry": map[string]interface{}{
+			"product_account":     service.CBEIFBGLEntry.ProductAccount,
+			"product_branch_code": service.CBEIFBGLEntry.ProductBranchCode,
+			"service_account":     service.CBEIFBGLEntry.ServiceAccount,
+			"service_branch_code": service.CBEIFBGLEntry.ServiceBranchCode,
+			"vat_account":         service.CBEIFBGLEntry.VatAccount,
+			"vat_branch_code":     service.CBEIFBGLEntry.VatBranchCode,
+		},
+		"enabled":          service.Enabled,
+		"is_deleted":       service.IsDeleted,
+		"last_modified_at": service.LastModifiedAt,
+	}
+
 	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
@@ -622,37 +622,37 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 	for _, acc := range linkedAccounts {
 		filter := map[string]interface{}{"_id": acc.ID}
 		update := map[string]interface{}{
-			
-				"user_id":             acc.UserID,
-				"customer_number":     acc.CustomerNumber,
-				"account_number":      acc.AccountNumber,
-				"account_holder_name": acc.AccountHolderName,
-				"account_type":        acc.AccountType,
-				"branch_code":         acc.BranchCode,
-				"linked_status":       acc.LinkedStatus,
-				"last_linked_status":  acc.LastLinkedStatus,
-				"linked_at":           acc.LinkedAt,
-				"linker_branch":       acc.LinkedBranch,
-				"registration_type":   acc.RegistrationType,
-				"is_account_active":   acc.IsAccountActive,
-				"and_or_status":       acc.AndOrStatus,
-				"account_branch_code": acc.AccountBranchCode,
-				"currency":            acc.CurrencyCode,
-				"is_main":             acc.IsMain,
-				"maker_and_checker": map[string]interface{}{
-					"linkers": map[string]interface{}{
-						"maker":   acc.MakerAndChecker.Linkers.Maker,
-						"checker": acc.MakerAndChecker.Linkers.Checker,
-					},
-					"unlinkers": map[string]interface{}{
-						"maker":   acc.MakerAndChecker.Unlinkers.Maker,
-						"checker": acc.MakerAndChecker.Unlinkers.Checker,
-					},
+
+			"user_id":             acc.UserID,
+			"customer_number":     acc.CustomerNumber,
+			"account_number":      acc.AccountNumber,
+			"account_holder_name": acc.AccountHolderName,
+			"account_type":        acc.AccountType,
+			"branch_code":         acc.BranchCode,
+			"linked_status":       acc.LinkedStatus,
+			"last_linked_status":  acc.LastLinkedStatus,
+			"linked_at":           acc.LinkedAt,
+			"linker_branch":       acc.LinkedBranch,
+			"registration_type":   acc.RegistrationType,
+			"is_account_active":   acc.IsAccountActive,
+			"and_or_status":       acc.AndOrStatus,
+			"account_branch_code": acc.AccountBranchCode,
+			"currency":            acc.CurrencyCode,
+			"is_main":             acc.IsMain,
+			"maker_and_checker": map[string]interface{}{
+				"linkers": map[string]interface{}{
+					"maker":   acc.MakerAndChecker.Linkers.Maker,
+					"checker": acc.MakerAndChecker.Linkers.Checker,
 				},
-				"created_at": acc.CreatedAt,
-				"updated_at": acc.UpdatedAt,
-			}
-		
+				"unlinkers": map[string]interface{}{
+					"maker":   acc.MakerAndChecker.Unlinkers.Maker,
+					"checker": acc.MakerAndChecker.Unlinkers.Checker,
+				},
+			},
+			"created_at": acc.CreatedAt,
+			"updated_at": acc.UpdatedAt,
+		}
+
 		_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 		if err != nil {
 			return nil, err
@@ -665,37 +665,37 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error) {
 	filter := map[string]interface{}{"_id": linkedAccount.ID}
 	update := map[string]interface{}{
-		
-			"user_id":             linkedAccount.UserID,
-			"customer_number":     linkedAccount.CustomerNumber,
-			"account_number":      linkedAccount.AccountNumber,
-			"account_holder_name": linkedAccount.AccountHolderName,
-			"account_type":        linkedAccount.AccountType,
-			"branch_code":         linkedAccount.BranchCode,
-			"linked_status":       linkedAccount.LinkedStatus,
-			"last_linked_status":  linkedAccount.LastLinkedStatus,
-			"linked_at":           linkedAccount.LinkedAt,
-			"linker_branch":       linkedAccount.LinkedBranch,
-			"registration_type":   linkedAccount.RegistrationType,
-			"is_account_active":   linkedAccount.IsAccountActive,
-			"and_or_status":       linkedAccount.AndOrStatus,
-			"account_branch_code": linkedAccount.AccountBranchCode,
-			"currency":            linkedAccount.CurrencyCode,
-			"is_main":             linkedAccount.IsMain,
-			"maker_and_checker": map[string]interface{}{
-				"linkers": map[string]interface{}{
-					"maker":   linkedAccount.MakerAndChecker.Linkers.Maker,
-					"checker": linkedAccount.MakerAndChecker.Linkers.Checker,
-				},
-				"unlinkers": map[string]interface{}{
-					"maker":   linkedAccount.MakerAndChecker.Unlinkers.Maker,
-					"checker": linkedAccount.MakerAndChecker.Unlinkers.Checker,
-				},
+
+		"user_id":             linkedAccount.UserID,
+		"customer_number":     linkedAccount.CustomerNumber,
+		"account_number":      linkedAccount.AccountNumber,
+		"account_holder_name": linkedAccount.AccountHolderName,
+		"account_type":        linkedAccount.AccountType,
+		"branch_code":         linkedAccount.BranchCode,
+		"linked_status":       linkedAccount.LinkedStatus,
+		"last_linked_status":  linkedAccount.LastLinkedStatus,
+		"linked_at":           linkedAccount.LinkedAt,
+		"linker_branch":       linkedAccount.LinkedBranch,
+		"registration_type":   linkedAccount.RegistrationType,
+		"is_account_active":   linkedAccount.IsAccountActive,
+		"and_or_status":       linkedAccount.AndOrStatus,
+		"account_branch_code": linkedAccount.AccountBranchCode,
+		"currency":            linkedAccount.CurrencyCode,
+		"is_main":             linkedAccount.IsMain,
+		"maker_and_checker": map[string]interface{}{
+			"linkers": map[string]interface{}{
+				"maker":   linkedAccount.MakerAndChecker.Linkers.Maker,
+				"checker": linkedAccount.MakerAndChecker.Linkers.Checker,
 			},
-			"created_at": linkedAccount.CreatedAt,
-			"updated_at": linkedAccount.UpdatedAt,
-		}
-	
+			"unlinkers": map[string]interface{}{
+				"maker":   linkedAccount.MakerAndChecker.Unlinkers.Maker,
+				"checker": linkedAccount.MakerAndChecker.Unlinkers.Checker,
+			},
+		},
+		"created_at": linkedAccount.CreatedAt,
+		"updated_at": linkedAccount.UpdatedAt,
+	}
+
 	_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return domain.LinkedAccount{}, err
@@ -923,17 +923,16 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	// currActionJSON, _ := json.Marshal(updated)
 
 	updateDoc := bson.M{
-		
-			"user_code":           updated.UserCode,
-			"user_name":           updated.UserName,
-			"full_name":           updated.FullName,
-			"phone_number":        updated.PhoneNumber,
-			"role":                updated.Role,
-			"department":          updated.Department,
-			"permission_category": updated.PermissionCategory,
-			"permission_group":    updated.PermissionGroup,
-			"last_modified":       time.Now(),
-		
+
+		"user_code":           updated.UserCode,
+		"user_name":           updated.UserName,
+		"full_name":           updated.FullName,
+		"phone_number":        updated.PhoneNumber,
+		"role":                updated.Role,
+		"department":          updated.Department,
+		"permission_category": updated.PermissionCategory,
+		"permission_group":    updated.PermissionGroup,
+		"last_modified":       time.Now(),
 	}
 	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
@@ -1190,25 +1189,24 @@ func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, u
 
 	filter := map[string]interface{}{"_id": objID}
 	updateDoc := map[string]interface{}{
-		
-			"serviceCode":        update.ServiceCode,
-			"serviceName":        update.ServiceName,
-			"serviceType":        update.ServiceType,
-			"key":                update.Key,
-			"cap":                convertToModelCap(update.Cap),
-			"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
-			"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
-			"aboveAmount":        update.AboveAmount,
-			"aboveServiceFee":    update.AboveServiceFee,
-			"paymentType":        update.PaymentType,
-			"tiers":              convertToModelTiers(update.Tiers),
-			"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
-			"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
-			"enabled":            update.Enabled,
-			"isDeleted":          update.IsDeleted,
-			"lastModifiedAt":     update.LastModifiedAt,
-			"deletedAt":          update.DeletedAt,
-		
+
+		"serviceCode":        update.ServiceCode,
+		"serviceName":        update.ServiceName,
+		"serviceType":        update.ServiceType,
+		"key":                update.Key,
+		"cap":                convertToModelCap(update.Cap),
+		"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
+		"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
+		"aboveAmount":        update.AboveAmount,
+		"aboveServiceFee":    update.AboveServiceFee,
+		"paymentType":        update.PaymentType,
+		"tiers":              convertToModelTiers(update.Tiers),
+		"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
+		"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
+		"enabled":            update.Enabled,
+		"isDeleted":          update.IsDeleted,
+		"lastModifiedAt":     update.LastModifiedAt,
+		"deletedAt":          update.DeletedAt,
 	}
 
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
@@ -1413,14 +1411,13 @@ func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction se
 		"action_status": "PENDING",
 	}
 	update := bson.M{
-		
-			"checker_id":           cpsAction.CheckerID,
-			"checker_name":         cpsAction.CheckerName,
-			"checker_phone_number": cpsAction.CheckerPhoneNumber,
-			"action_status":        "REJECTED",
-			"rejection_reason":     cpsAction.RejectionReason,
-			"checker_action_time":  time.Now(),
-	
+
+		"checker_id":           cpsAction.CheckerID,
+		"checker_name":         cpsAction.CheckerName,
+		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"action_status":        "REJECTED",
+		"rejection_reason":     cpsAction.RejectionReason,
+		"checker_action_time":  time.Now(),
 	}
 	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1443,25 +1440,24 @@ func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id st
 
 	filter := map[string]interface{}{"_id": objID}
 	updateDoc := map[string]interface{}{
-		
-			"serviceCode":        update.ServiceCode,
-			"serviceName":        update.ServiceName,
-			"serviceType":        update.ServiceType,
-			"key":                update.Key,
-			"cap":                convertToModelCap(update.Cap),
-			"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
-			"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
-			"aboveAmount":        update.AboveAmount,
-			"aboveServiceFee":    update.AboveServiceFee,
-			"paymentType":        update.PaymentType,
-			"tiers":              convertToModelTiers(update.Tiers),
-			"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
-			"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
-			"enabled":            update.Enabled,
-			"isDeleted":          update.IsDeleted,
-			"lastModifiedAt":     update.LastModifiedAt,
-			"deletedAt":          update.DeletedAt,
-		
+
+		"serviceCode":        update.ServiceCode,
+		"serviceName":        update.ServiceName,
+		"serviceType":        update.ServiceType,
+		"key":                update.Key,
+		"cap":                convertToModelCap(update.Cap),
+		"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
+		"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
+		"aboveAmount":        update.AboveAmount,
+		"aboveServiceFee":    update.AboveServiceFee,
+		"paymentType":        update.PaymentType,
+		"tiers":              convertToModelTiers(update.Tiers),
+		"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
+		"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
+		"enabled":            update.Enabled,
+		"isDeleted":          update.IsDeleted,
+		"lastModifiedAt":     update.LastModifiedAt,
+		"deletedAt":          update.DeletedAt,
 	}
 
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
@@ -1474,10 +1470,9 @@ func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAm
 	}
 	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
-		
-			"cap.min_amount": minAmount,
-			"lastModifiedAt": time.Now(),
-		
+
+		"cap.min_amount": minAmount,
+		"lastModifiedAt": time.Now(),
 	}
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	return err
@@ -1630,18 +1625,18 @@ func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.Pass
 	}
 	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
-		
-			"password_id":     rule.PasswordID,
-			"name":            rule.Name,
-			"min_length":      rule.MinLength,
-			"max_length":      rule.MaxLength,
-			"numbers":         rule.Numbers,
-			"capital_letters": rule.CapitalLetters,
-			"small_letters":   rule.SmallLetters,
-			"characters":      rule.Characters,
-			"created_at":      rule.CreatedAt,
-		}
-	
+
+		"password_id":     rule.PasswordID,
+		"name":            rule.Name,
+		"min_length":      rule.MinLength,
+		"max_length":      rule.MaxLength,
+		"numbers":         rule.Numbers,
+		"capital_letters": rule.CapitalLetters,
+		"small_letters":   rule.SmallLetters,
+		"characters":      rule.Characters,
+		"created_at":      rule.CreatedAt,
+	}
+
 	_, err = o.MongoDalPasswordRule.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to update password rule: %w", err)
