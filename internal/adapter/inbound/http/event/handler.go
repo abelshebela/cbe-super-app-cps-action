@@ -23,27 +23,28 @@ func NewHttpBulkService(app event_application.ApplicationAbstracts) event_inboun
 }
 
 func InitServiceHandlerMaker(router chi.Router, handler event_inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
-
-	routes := []route.Route{
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/maker_create_event",
-			Handler: handler.MakerCreateEvent,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+	router.Route("/events", func(r chi.Router) {
+		routes := []route.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/create",
+				Handler: handler.MakerCreateEvent,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/checker_event",
-			Handler: handler.CheckerEvent,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/review",
+				Handler: handler.CheckerEvent,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-	}
+		}
 
-	route.RegisterRoutes(router, routes)
+		route.RegisterRoutes(r, routes)
+	})
 }
