@@ -11,43 +11,41 @@ import (
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-func RegisterPasswordRuleRoutes(router chi.Router, handler inbound.PasswordRuleInbound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/password-rule", func(r chi.Router) {
-		routes := []sharedhttp.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/",
-				Handler: handler.RequestPasswordRuleUpdate,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
+func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInbound, authMiddleware middleware.AuthMiddleware) {
+	routes := []sharedhttp.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/password_rule/update_request",
+			Handler: handler.RequestPasswordRuleUpdate,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/approve",
-				Handler: handler.ApproveOrRejectPasswordRuleAction,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/password_rule/update_approve",
+			Handler: handler.ApproveOrRejectPasswordRuleAction,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/{id}",
-				Handler: handler.GetPasswordRuleUpdateActionByID,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/password_rule/action_by_id",
+			Handler: handler.GetPasswordRuleUpdateActionByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/check",
-				Handler: handler.CheckPasswordRule,
-			},
-		}
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/password_rule/check",
+			Handler: handler.CheckPasswordRule,
+		},
+	}
 
-		sharedhttp.RegisterRoutes(r, routes)
-	})
+	sharedhttp.RegisterRoutes(r, routes)
 }
