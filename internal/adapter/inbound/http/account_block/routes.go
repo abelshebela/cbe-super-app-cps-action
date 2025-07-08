@@ -102,7 +102,7 @@ func RegisterAccountBlockRoutes(
 			{
 				Method:  http.MethodGet,
 				Path:    "/region/{id}",
-				Handler: handler.GetRegionByID,
+				Handler: handler.GetRegionByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),

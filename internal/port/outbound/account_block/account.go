@@ -19,10 +19,10 @@ type AccountBlockOutboundPort interface {
 
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 
-	BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error
-	UpdateRegion(ctx context.Context, region action.Region) error
+	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) error
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
-	GetRegionByID(ctx context.Context, regionID string) (action.Region, error)
+	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
+	UpdateRegion(ctx context.Context, region action.Region) error
 
 	BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error
 	GetDistrictByID(ctx context.Context, districtID string) (action.District, error)

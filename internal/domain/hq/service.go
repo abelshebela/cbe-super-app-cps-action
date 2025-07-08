@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-       utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq/"
 )
 
@@ -72,7 +71,6 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	}
 
 	s.logger.Infof("original HQ: %+v", originalHQ)
-	
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
@@ -193,7 +191,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 	cpsAction.LastModifiedAt = time.Now()
 
 	switch request.Decision {
-case utils.DecisionApproved:
+	case utils.DecisionApproved:
 		var updatedHQ HQ
 		var currentActionBytes []byte
 		switch v := cpsAction.CurrentAction.(type) {

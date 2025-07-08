@@ -3,7 +3,6 @@ package account_block
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 
@@ -63,13 +62,19 @@ func (s *AccountService) GetBranchByCode(ctx context.Context, branchCode string)
 	}
 	return s.repo.GetBranchByCode(ctx, branchCode)
 }
-
-func (s *AccountService) BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error {
-	if region.ID == "" || region.RegionName == "" {
-		return fmt.Errorf("region ID and name are required")
+func (s *AccountService) GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error) {
+	if regionCode == "" {
+		return action.Region{}, fmt.Errorf("regionCode is required")
 	}
-	return s.repo.BlockRegion(ctx, region, maker)
+	return s.repo.GetRegionByCode(ctx, regionCode)
 }
+func (s *AccountService) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) error {
+	if regionCode == "" {
+		return fmt.Errorf("regionCode is required")
+	}
+	return s.repo.BlockRegion(ctx, regionCode, maker)
+}
+
 func (s *AccountService) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
 	if actionID == "" {
 		return fmt.Errorf("actionID is required")
@@ -77,18 +82,10 @@ func (s *AccountService) ApproveRegionBlock(ctx context.Context, actionID string
 	return s.repo.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
 }
 func (s *AccountService) UpdateRegion(ctx context.Context, region action.Region) error {
-	if region.ID == "" || region.RegionName == "" {
-		return fmt.Errorf("region ID and name are required")
+	if region.RegionCode == "" {
+		return fmt.Errorf("regionCode is required")
 	}
-	region.UpdatedAt = time.Now()
 	return s.repo.UpdateRegion(ctx, region)
-}
-
-func (s *AccountService) GetRegionByID(ctx context.Context, regionID string) (action.Region, error) {
-	if regionID == "" {
-		return action.Region{}, fmt.Errorf("regionID is required")
-	}
-	return s.repo.GetRegionByID(ctx, regionID)
 }
 
 func (s *AccountService) BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error {

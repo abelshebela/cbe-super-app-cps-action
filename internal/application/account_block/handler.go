@@ -22,10 +22,10 @@ type ApplicationService interface {
 
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 
-	BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error
+	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) error
 	UpdateRegion(ctx context.Context, region action.Region) error
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
-	GetRegionByID(ctx context.Context, regionID string) (action.Region, error)
+	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
 
 	BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error
 	GetDistrictByID(ctx context.Context, districtID string) (action.District, error)
@@ -78,35 +78,43 @@ func (h *Handler) GetBranchByCode(ctx context.Context, branchCode string) (actio
 	return h.repo.GetBranchByCode(ctx, branchCode)
 }
 
-func (h *Handler) BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error {
+func (h *Handler) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) error {
+	region, err := h.repo.GetRegionByCode(ctx, regionCode)
+	if err != nil {
+		return fmt.Errorf("failed to get region by code: %w", err)
+	}
 
 	region.Enabled = false
 	region.UpdatedAt = time.Now()
 	if err := h.repo.UpdateRegion(ctx, region); err != nil {
 		return err
 	}
-	return h.repo.BlockRegion(ctx, region, maker)
-}
-
-func (h *Handler) UpdateRegion(ctx context.Context, region action.Region) error {
-	region.UpdatedAt = time.Now()
-	return h.repo.UpdateRegion(ctx, region)
+	return h.repo.BlockRegion(ctx, region.RegionCode, maker)
 }
 
 func (h *Handler) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
 	return h.repo.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
 }
-func (h *Handler) GetRegionByID(ctx context.Context, regionID string) (action.Region, error) {
-	if regionID == "" {
-		return action.Region{}, fmt.Errorf("regionID is required")
+
+func (h *Handler) GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error) {
+	if regionCode == "" {
+		return action.Region{}, fmt.Errorf("regionCode is required")
 	}
 
-	region, err := h.repo.GetRegionByID(ctx, regionID)
+	region, err := h.repo.GetRegionByCode(ctx, regionCode)
 	if err != nil {
-		return action.Region{}, fmt.Errorf("failed to get region by ID: %w", err)
+		return action.Region{}, fmt.Errorf("failed to get region by code: %w", err)
 	}
 
 	return region, nil
+}
+func (h *Handler) UpdateRegion(ctx context.Context, region action.Region) error {
+    if region.RegionCode == "" {
+        return fmt.Errorf("regionCode is required")
+    }
+
+    region.UpdatedAt = time.Now()
+    return h.repo.UpdateRegion(ctx, region)
 }
 func (h *Handler) BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error {
 	if districtID == "" {
