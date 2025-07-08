@@ -26,35 +26,38 @@ func NewHttpAccountValidation(app accountvalidation_app.ApplicationAbstracts, lo
 }
 
 func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inbound, middleware middleware.AuthMiddleware) {
-	routes := []route.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/account_validation/one",
-			Handler: handler.FetchAccountValidation,
-			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{role.Maker, role.Checker}),
+	router.Route("/account_validation", func(r chi.Router) {
+		routes := []route.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/one",
+				Handler: handler.FetchAccountValidation,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{role.Maker, role.Checker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/account_validation/update_request",
-			Handler: handler.UpdateAccountValidationMaker,
-			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{role.Maker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/update_request",
+				Handler: handler.UpdateAccountValidationMaker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{role.Maker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/account_validation/update_approve",
-			Handler: handler.UpdateAccountValidationChecker,
-			Middlewares: []func(next http.Handler) http.Handler{
-				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{role.Checker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/update_approve",
+				Handler: handler.UpdateAccountValidationChecker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{role.Checker}),
+				},
 			},
-		},
-	}
+		}
 
-	route.RegisterRoutes(router, routes)
+		route.RegisterRoutes(r, routes)
+
+	})
 }
