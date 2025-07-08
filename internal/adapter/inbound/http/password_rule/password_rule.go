@@ -3,6 +3,7 @@ package passwordrule
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type PasswordRuleHTTPHandler struct {
@@ -28,42 +30,45 @@ func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWrite
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+	// fmt.Println(req, "required")
 	if err := req.Validate(); err != nil {
+		// fmt.Println("HOLAAA",err)
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	userID, _ := r.Context().Value("user_id").(string)
-	fullName, _ := r.Context().Value("full_name").(string)
-	phoneNumber, _ := r.Context().Value("phone_number").(string)
-	department, _ := r.Context().Value("department").(string)
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	userCode, _ := r.Context().Value(constant.ContextKey("user_code")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
 
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
+	if strings.TrimSpace(userID) == "" || strings.TrimSpace(userCode) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
-	if strings.TrimSpace(department) == "" {
-		utils.SendErrorResponse(w, "INVALID_INPUT", 0, map[string]interface{}{"message": "department is required in context"})
-		return
-	}
-
-	ctx := context.WithValue(r.Context(), "department", department)
+	ctx := context.WithValue(r.Context(), constant.ContextKey("department"), department)
 
 	maker := action.User{
 		UserID:      userID,
+		UserCode:    userCode,
 		FullName:    fullName,
 		PhoneNumber: phoneNumber,
 	}
+	req.Rule.ID = req.ID
+_, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker, department)
 
-	_, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Action created successfully"})
+	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"message": "update request " + action + " successfully Approved",
+		"data":    action,
+	}
 }
 
 func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.ResponseWriter, r *http.Request) {
@@ -72,28 +77,32 @@ func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.Respo
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+	fmt.Println(req, "required")
 	if err := req.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	userID, _ := r.Context().Value("user_id").(string)
-	fullName, _ := r.Context().Value("full_name").(string)
-	phoneNumber, _ := r.Context().Value("phone_number").(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" {
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	userCode, _ := r.Context().Value(constant.ContextKey("user_code")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	fmt.Println(userID, userCode, fullName, phoneNumber, department, "nodjghdjkfgheidgjfdk")
+	if strings.TrimSpace(userID) == "" || strings.TrimSpace(userCode) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
 	checker := action.User{
 		UserID:      userID,
+		UserCode:    userCode,
 		FullName:    fullName,
 		PhoneNumber: phoneNumber,
 	}
 
 	ctx := r.Context()
-	err := h.service.ApproveOrRejectPasswordRuleAction(ctx, req.ActionID, req.Approve, checker, req.RejectionReason)
+	err := h.service.ApproveOrRejectPasswordRuleAction(ctx, req.ActionID, req.Decision, checker, req.RejectionReason, department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -180,4 +189,11 @@ func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *ht
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *PasswordRuleHTTPHandler) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(data)
 }

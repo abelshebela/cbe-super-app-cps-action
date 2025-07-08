@@ -1522,89 +1522,6 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 
 	return o.UpdateCpsAction(ctx, action)
 }
-func (o *outboundStore) CreatePasswordRuleUpdateAction(ctx context.Context, rule *action.PasswordRule, maker action.User) (string, error) {
-	department, _ := ctx.Value("department").(string)
-	if strings.TrimSpace(department) == "" {
-		return "", errors.New("department is required in context")
-	}
-
-	filter := bson.M{
-		"department":    department,
-		"maker_id":      maker.UserID,
-		"action_status": "PENDING",
-		"action_type":   "UPDATE",
-	}
-	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
-		return "", fmt.Errorf("pending update action already exists for this maker")
-	}
-
-	var prevAction json.RawMessage
-	prevRulePtr, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
-	if err == nil && prevRulePtr != nil {
-		prevAction, _ = json.Marshal(prevRulePtr)
-	} else {
-		prevAction = json.RawMessage("null")
-	}
-
-	currAction, _ := json.Marshal(rule)
-	cpsAction := model.CPSAction{
-		ActionCode:       utils.RandomGenerator(24),
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       department,
-		ActionStatus:     "PENDING",
-		ActionType:       "UPDATE",
-		RequestAction:    "UPDATE_PASSWORD_RULE",
-		PreviosAction:    prevAction,
-		CurrentAction:    currAction,
-		CreatedAt:        time.Now(),
-		LastModifiedAt:   time.Now(),
-	}
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	if err != nil {
-		return "", err
-	}
-	return cpsAction.ActionCode, nil
-}
-func (o *outboundStore) ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, approve bool, checker action.User, rejectionReason *string) error {
-	filter := map[string]interface{}{"action_code": actionID}
-	action, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-	if err != nil {
-		return err
-	}
-	update := map[string]interface{}{
-		"checker_id":           checker.UserID,
-		"checker_name":         checker.FullName,
-		"checker_phone_number": checker.PhoneNumber,
-		"last_modified_at":     time.Now(),
-	}
-	if approve {
-		update["action_status"] = "APPROVED"
-		var rule model.PasswordRule
-		currentActionBytes, ok := action.CurrentAction.([]byte)
-		if !ok {
-			return errors.New("invalid current action data")
-		}
-		if err := json.Unmarshal(currentActionBytes, &rule); err != nil {
-			return err
-		}
-		rule.ID = bson.NewObjectID()
-		_, err := o.MongoDalPasswordRule.InsertOne(ctx, rule)
-		if err != nil {
-			return err
-		}
-	} else {
-		update["action_status"] = "REJECTED"
-		if rejectionReason != nil {
-			update["rejection_reason"] = *rejectionReason
-		}
-	}
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, map[string]interface{}{"$set": update})
-	return err
-}
-
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	filter := map[string]interface{}{"action_code": actionID}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
@@ -1700,4 +1617,34 @@ func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.Pas
 		CreatedAt:      ruleModel.CreatedAt,
 	}
 	return rule, nil
+}
+
+// Add this method to outboundStore:
+func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.PasswordRule) error {
+	if strings.TrimSpace(rule.ID) == "" {
+		return errors.New("password rule ID is required")
+	}
+	objID, err := bson.ObjectIDFromHex(rule.ID)
+	if err != nil {
+		return errors.New("invalid password rule ID format")
+	}
+	filter := map[string]interface{}{"_id": objID}
+	update := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"password_id":     rule.PasswordID,
+			"name":            rule.Name,
+			"min_length":      rule.MinLength,
+			"max_length":      rule.MaxLength,
+			"numbers":         rule.Numbers,
+			"capital_letters": rule.CapitalLetters,
+			"small_letters":   rule.SmallLetters,
+			"characters":      rule.Characters,
+			"created_at":      rule.CreatedAt,
+		},
+	}
+	_, err = o.MongoDalPasswordRule.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update password rule: %w", err)
+	}
+	return nil
 }

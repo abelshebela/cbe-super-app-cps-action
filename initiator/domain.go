@@ -11,10 +11,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
-	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
+	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
+	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
@@ -43,7 +44,7 @@ type Domain struct {
 
 	AccountBlockDomain account_block.ApplicationServices
 
-	PermissionDomain   permission.Service
+	PermissionDomain permission.Service
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
@@ -57,10 +58,10 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		AccountDomain:      account_validation.NewService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
 		BulkServicesDomain: action.NewService(persitence.BulkServicesPersistence, logger),
 		CPSUserDomain:      services.NewCPSUserService(persitence.CPSUserPersistence),
-		PasswordRuleDomain: password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence),
+		PasswordRuleDomain: password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
 		BankDomain:         bank_service.InitBankDomain(persitence.BankPersistance, minioClient, "banks", logger),
 		DepartmentDomain:   *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
 		AccountBlockDomain: account_block.NewAccountService(persitence.AccountBlockPersistance),
-		PermissionDomain: *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence,persitence.PermissionPersistence,logger),
+		PermissionDomain:   *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
 	}
 }
