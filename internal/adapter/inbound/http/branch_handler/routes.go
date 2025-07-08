@@ -12,62 +12,64 @@ import (
 )
 
 func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddleware middleware.AuthMiddleware) {
-	routes := []sharedhttp.Route{
-		{
-			Method:  http.MethodPost,
-			Path:    "/branch/filter_single",
-			Handler: handler.FilterSingleBranches,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+	r.Route("/branch", func(rou chi.Router) {
+		routes := []sharedhttp.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/filter_single",
+				Handler: handler.FilterSingleBranches,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/branch/disable_single",
-			Handler: handler.DisableSingleBranch,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/disable_single",
+				Handler: handler.DisableSingleBranch,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/branch/approve_disable_single",
-			Handler: handler.ApproveSingleBranchDisable,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/approve_disable_single",
+				Handler: handler.ApproveSingleBranchDisable,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/branch/filter_multiple",
-			Handler: handler.FilterMultipleBranches,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/filter_multiple",
+				Handler: handler.FilterMultipleBranches,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/branch/disable_multiple",
-			Handler: handler.DisableMultipleBranches,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/disable_multiple",
+				Handler: handler.DisableMultipleBranches,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/branch/approve_disable_multiple",
-			Handler: handler.ApproveBulkBranchesDisable,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/approve_disable_multiple",
+				Handler: handler.ApproveBulkBranchesDisable,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-	}
+		}
 
-	sharedhttp.RegisterRoutes(r, routes)
+		sharedhttp.RegisterRoutes(rou, routes)
+	})
 }
