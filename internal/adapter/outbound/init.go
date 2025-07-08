@@ -340,7 +340,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 		"_id": service.ID,
 	}
 	update := map[string]interface{}{
-		"$set": map[string]interface{}{
+		
 			"key":         service.Key,
 			"serviceName": service.ServiceName,
 			"serviceType": service.ServiceType,
@@ -396,8 +396,8 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 			"enabled":          service.Enabled,
 			"is_deleted":       service.IsDeleted,
 			"last_modified_at": service.LastModifiedAt,
-		},
-	}
+		}
+	
 	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
@@ -622,7 +622,7 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 	for _, acc := range linkedAccounts {
 		filter := map[string]interface{}{"_id": acc.ID}
 		update := map[string]interface{}{
-			"$set": map[string]interface{}{
+			
 				"user_id":             acc.UserID,
 				"customer_number":     acc.CustomerNumber,
 				"account_number":      acc.AccountNumber,
@@ -651,8 +651,8 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 				},
 				"created_at": acc.CreatedAt,
 				"updated_at": acc.UpdatedAt,
-			},
-		}
+			}
+		
 		_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 		if err != nil {
 			return nil, err
@@ -665,7 +665,7 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error) {
 	filter := map[string]interface{}{"_id": linkedAccount.ID}
 	update := map[string]interface{}{
-		"$set": map[string]interface{}{
+		
 			"user_id":             linkedAccount.UserID,
 			"customer_number":     linkedAccount.CustomerNumber,
 			"account_number":      linkedAccount.AccountNumber,
@@ -694,8 +694,8 @@ func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.
 			},
 			"created_at": linkedAccount.CreatedAt,
 			"updated_at": linkedAccount.UpdatedAt,
-		},
-	}
+		}
+	
 	_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return domain.LinkedAccount{}, err
@@ -923,7 +923,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	// currActionJSON, _ := json.Marshal(updated)
 
 	updateDoc := bson.M{
-		"$set": bson.M{
+		
 			"user_code":           updated.UserCode,
 			"user_name":           updated.UserName,
 			"full_name":           updated.FullName,
@@ -933,7 +933,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 			"permission_category": updated.PermissionCategory,
 			"permission_group":    updated.PermissionGroup,
 			"last_modified":       time.Now(),
-		},
+		
 	}
 	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
@@ -1190,7 +1190,7 @@ func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, u
 
 	filter := map[string]interface{}{"_id": objID}
 	updateDoc := map[string]interface{}{
-		"$set": map[string]interface{}{
+		
 			"serviceCode":        update.ServiceCode,
 			"serviceName":        update.ServiceName,
 			"serviceType":        update.ServiceType,
@@ -1208,7 +1208,7 @@ func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, u
 			"isDeleted":          update.IsDeleted,
 			"lastModifiedAt":     update.LastModifiedAt,
 			"deletedAt":          update.DeletedAt,
-		},
+		
 	}
 
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
@@ -1413,14 +1413,14 @@ func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction se
 		"action_status": "PENDING",
 	}
 	update := bson.M{
-		"$set": bson.M{
+		
 			"checker_id":           cpsAction.CheckerID,
 			"checker_name":         cpsAction.CheckerName,
 			"checker_phone_number": cpsAction.CheckerPhoneNumber,
 			"action_status":        "REJECTED",
 			"rejection_reason":     cpsAction.RejectionReason,
 			"checker_action_time":  time.Now(),
-		},
+	
 	}
 	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1443,7 +1443,7 @@ func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id st
 
 	filter := map[string]interface{}{"_id": objID}
 	updateDoc := map[string]interface{}{
-		"$set": map[string]interface{}{
+		
 			"serviceCode":        update.ServiceCode,
 			"serviceName":        update.ServiceName,
 			"serviceType":        update.ServiceType,
@@ -1461,7 +1461,7 @@ func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id st
 			"isDeleted":          update.IsDeleted,
 			"lastModifiedAt":     update.LastModifiedAt,
 			"deletedAt":          update.DeletedAt,
-		},
+		
 	}
 
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
@@ -1474,10 +1474,10 @@ func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAm
 	}
 	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
-		"$set": map[string]interface{}{
+		
 			"cap.min_amount": minAmount,
 			"lastModifiedAt": time.Now(),
-		},
+		
 	}
 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	return err
@@ -1630,7 +1630,7 @@ func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.Pass
 	}
 	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
-		"$set": map[string]interface{}{
+		
 			"password_id":     rule.PasswordID,
 			"name":            rule.Name,
 			"min_length":      rule.MinLength,
@@ -1640,11 +1640,40 @@ func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.Pass
 			"small_letters":   rule.SmallLetters,
 			"characters":      rule.Characters,
 			"created_at":      rule.CreatedAt,
-		},
-	}
+		}
+	
 	_, err = o.MongoDalPasswordRule.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to update password rule: %w", err)
 	}
 	return nil
+}
+
+func (o *outboundStore) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error) {
+	if strings.TrimSpace(uniqueID) == "" {
+		return nil, fmt.Errorf("invalid unique ID")
+	}
+	filter := map[string]interface{}{
+		"unique_id":     uniqueID,
+		"action_status": "PENDING",
+	}
+	projection := map[string]interface{}{
+		"action_code": 1,
+		"_id":         1,
+	}
+	doc, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return []action.ActionResponse{}, nil
+		}
+		return nil, fmt.Errorf("failed to fetch pending action: %w", err)
+	}
+	if doc == nil {
+		return []action.ActionResponse{}, nil
+	}
+	response := action.ActionResponse{
+		ID:       doc.ID.Hex(),
+		ActionId: doc.ActionCode,
+	}
+	return []action.ActionResponse{response}, nil
 }

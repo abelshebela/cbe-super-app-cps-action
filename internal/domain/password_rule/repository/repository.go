@@ -16,4 +16,5 @@ type PasswordRuleRepository interface {
 	UpdatePasswordRule(ctx context.Context, rule action.PasswordRule) error
 	UpdateCpsAction(ctx context.Context, action action.CPSAction) error
 	CreateCpsAction(ctx context.Context, action action.CPSAction) (action.CPSAction, error)
+	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
 }

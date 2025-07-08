@@ -38,12 +38,12 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 		return "", fmt.Errorf("NOT_FOUND")
 	}
 
-	existingAction, err := s.repo.GetUpdateAction(ctx, maker)
+	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, rule.ID)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
 	}
-	if existingAction != nil && existingAction.ActionStatus == action.ActionPending && existingAction.ActionType == action.ActionUpdate {
-		return "", fmt.Errorf("PENDING_UPDATE_ACTION_EXISTS")
+	if len(pendingActions) > 0 {
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	prevAction := dbRule

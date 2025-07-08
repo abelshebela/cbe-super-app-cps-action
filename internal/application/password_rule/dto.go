@@ -31,11 +31,11 @@ func (r RequestPasswordRuleUpdateDTO) Validate() error {
 }
 
 type ApproveOrRejectPasswordRuleActionDTO struct {
-	ActionID        string      `json:"action_id"`
-	Decision        string      `json:"decision"`
+	ActionID        string      `json:"action_code"`
+	Decision        string      `json:"decison"`
 	
 	RejectionReason *string     `json:"rejection_reason"`
-	Department      string      `json:"department"`
+	// Department      string      `json:"department"`
 }
 
 func (r ApproveOrRejectPasswordRuleActionDTO) Validate() error {
@@ -43,6 +43,6 @@ func (r ApproveOrRejectPasswordRuleActionDTO) Validate() error {
 		validation.Field(&r.ActionID, validation.Required.Error("action_id is required")),
 		validation.Field(&r.Decision, validation.Required.Error("decision is required")),
 
-		validation.Field(&r.Department, validation.Required.Error("department is required")),
+		// validation.Field(&r.Department, validation.Required.Error("department is required")),
 	)
 }
