@@ -10,10 +10,10 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	entity "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/entity"
-	e "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
-	event "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/event"
+	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	e "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	event "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 )
 
 // MockOutbound is a mock of Outbound interface.

@@ -2,10 +2,14 @@ package dto
 
 import (
 	"fmt"
+	"io"
 	"mime/multipart"
+	"net/http"
 	"time"
 
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
@@ -35,12 +39,39 @@ func (c CreateBankRequest) Validate() error {
 		validation.Field(&c.Logo, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {
-				return fmt.Errorf("invalid file")
+				return fmt.Errorf(error_codes.InvalidInput)
 			}
+
+			// Check file size (2 MB max)
 			if file.Size > (2 << 20) {
-				return fmt.Errorf("file size should be less than 2MB")
+				return fmt.Errorf(error_codes.FileTooLarge)
 			}
-			return nil
+
+			// Check the file type
+			src, err := file.Open()
+			if err != nil {
+				return fmt.Errorf(error_codes.UnhandledServerError)
+			}
+			defer src.Close()
+
+			buffer := make([]byte, 512)
+			_, err = src.Read(buffer)
+			if err != nil {
+				return fmt.Errorf(error_codes.UnhandledServerError)
+			}
+
+			// Reset file pointer to the beginning
+			if seeker, ok := src.(io.Seeker); ok {
+				_, _ = seeker.Seek(0, io.SeekStart)
+			}
+
+			contentType := http.DetectContentType(buffer)
+			switch contentType {
+			case "image/jpeg", "image/png", "image/gif", "image/webp":
+				return nil
+			default:
+				return fmt.Errorf(error_codes.InvalidFileType)
+			}
 		})),
 	)
 }

@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
+	// "net/http"
 	"regexp"
 	"strings"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/outbound"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -84,29 +84,18 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no customers data found", err)
-			err = fmt.Errorf("customer not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "no customers data found",
-			})
-			return nil, err
+
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
 		}
 		c.logger.Errorf("failed to get customers data", err)
-		err = fmt.Errorf("failed to get customers %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
 	}
 
 	total, err := c.mongoDal.TotalCount(ctx, bson.M{})
 	if err != nil {
 		c.logger.Errorf("failed to get total counts", err)
-		err := fmt.Errorf("failed to get total counts %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
 
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
 	return &entity.CustomerRespose{
@@ -121,20 +110,13 @@ func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*m
 	userID, err := bson.ObjectIDFromHex(id)
 	if userID.IsZero() {
 		c.logger.Errorf("invalid id provided", err)
-		err = fmt.Errorf("invalid id provided %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid id",
-		})
-		return nil, err
+		return nil, fmt.Errorf("INVALID_ID")
 	}
 
 	if err != nil {
 		c.logger.Errorf("failed to convert id to object id", err)
-		err = fmt.Errorf("failed to convert id to object id %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
 	}
 
 	filter := bson.M{"_id": userID}
@@ -143,18 +125,11 @@ func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*m
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("customer not found", err)
-			err = fmt.Errorf("customer not found %w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "customer not found",
-			})
-			return nil, err
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
 		}
 		c.logger.Errorf("failed to get customer", err)
-		err = fmt.Errorf("failed to get customer %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
 	}
 	return member, nil
 }

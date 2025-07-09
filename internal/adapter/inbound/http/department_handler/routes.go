@@ -1,16 +1,19 @@
 package department_handler
 
 import (
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/department"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"net/http"
+
 
 	"github.com/go-chi/chi/v5"
 )
 
 func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.DepartmentPortHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/department", func(r chi.Router) {
+	router.Route("/department", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
@@ -18,7 +21,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				Handler: departmentHandler.CreateDepartment,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -27,7 +30,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				Handler: departmentHandler.ApproveDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 		}

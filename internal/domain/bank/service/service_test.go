@@ -9,14 +9,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/mocks"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/bank/service"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.uber.org/mock/gomock"
 )

@@ -3,8 +3,8 @@ package miniapp
 import (
 	"context"
 
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	miniApp_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/miniapp"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
 type Outbound interface {

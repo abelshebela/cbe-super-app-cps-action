@@ -6,15 +6,19 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	avatarAPP "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/avatar"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	dto "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/avatar"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/avatar"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	util_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type AvatarHTTPHandler struct {
@@ -34,11 +38,7 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 
 	if err := r.ParseMultipartForm(2 << 20); err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
-		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid multipart form",
-		})
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
@@ -47,11 +47,8 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 	file, fileHeader, err := r.FormFile("avatar")
 	if err != nil {
 		a.logger.Errorf("avatar error: %v", err)
-		err = fmt.Errorf("failed to read avatar: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "missing or invalid avatar",
-		})
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+
 		return
 	}
 	defer file.Close()
@@ -60,7 +57,7 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 	var cpsRequest model.CreateCPSAction
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -72,21 +69,14 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	cpsRes, err := a.avatarHandler.CreateAvatar(ctx, cpsRequest)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[constant.SuccesResponse]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data: constant.SuccesResponse{
-			Ok:         true,
-			StatusCode: http.StatusOK,
-			Data:       cpsRes,
-		},
-	}
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(cpsRes)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
-	res.SendJSON()
 }
 
 func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
@@ -109,17 +99,14 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	cpsAction, err := a.avatarHandler.DeleteAvatar(ctx, id, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(cpsAction)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
-	res.SendJSON()
 }
 
 func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +116,7 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -140,16 +127,13 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authAction, err := a.avatarHandler.Authorize(ctx, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           authAction,
-	}
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(authAction)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
@@ -159,17 +143,13 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		a.logger.Errorf("failed to decode avatar request", err)
-		err = fmt.Errorf("failed to decode avatar request error data %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid request",
-		})
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -184,12 +164,9 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           rejectAction,
-	}
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(rejectAction)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +174,8 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+
 		return
 	}
 
@@ -212,17 +190,13 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(ctx, id, model.RequestDisableAvatar, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(cpsAction)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
@@ -230,7 +204,7 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -245,17 +219,13 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(ctx, id, model.RequestEnableAvatar, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(cpsAction)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request) {
@@ -286,16 +256,14 @@ func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request)
 
 	avatars, err := a.avatarHandler.GetAllAvatar(ctx, filterParams)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+
 		return
 	}
 
-	res := common.Response[dto.AvatarResponse]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           avatars,
-	}
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(avatars)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
@@ -305,17 +273,13 @@ func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
 
 	avatar, err := a.avatarHandler.GetAvatar(ctx, id)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*dto.Avatar]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           avatar,
-	}
-
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(avatar)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
@@ -325,22 +289,15 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
-		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid multipart form",
-		})
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
 	file, fileHeader, err := r.FormFile("avatar")
 	if err != nil {
 		a.logger.Errorf("avatar error: %v", err)
-		err = fmt.Errorf("failed to read avatar: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "missing or invalid avatar",
-		})
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+
 		return
 	}
 	defer file.Close()
@@ -348,7 +305,8 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 	req.Avatar = fileHeader
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+
 		return
 	}
 
@@ -361,17 +319,13 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	cpsAction, err := a.avatarHandler.UpdateAvatar(ctx, id, updateRequest)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(cpsAction)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a *AvatarHTTPHandler) extractUserFromContext(r *http.Request) (model.User, string, error) {

@@ -1,10 +1,12 @@
 package permission_handler
 
 import (
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/permission"
 	"net/http"
+
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -18,7 +20,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				Handler: permissionHandler.CreatePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -27,7 +29,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				Handler: permissionHandler.ApprovePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 		}

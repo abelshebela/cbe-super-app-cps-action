@@ -3,10 +3,12 @@ package amount_based_auth_handler
 import (
 	"net/http"
 
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
 )
 
 func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAuthHandler, authMiddleware middleware.AuthMiddleware) {
@@ -18,7 +20,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Handler: handler.UpdateAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -27,7 +29,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Handler: handler.ApproveAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 			{
@@ -36,7 +38,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 				Handler: handler.RejectAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Checker}),
 				},
 			},
 		}

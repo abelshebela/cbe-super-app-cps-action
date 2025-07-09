@@ -5,10 +5,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	miniapp_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/mini_app"
-	Inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/miniapp"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
+	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type HttpStore struct {
@@ -30,7 +31,7 @@ func InitServiceHandlerMaker(router chi.Router, handler Inbound.Inbound, authMid
 			Handler: handler.MakerCreateMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -39,7 +40,7 @@ func InitServiceHandlerMaker(router chi.Router, handler Inbound.Inbound, authMid
 			Handler: handler.CheckerMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 	}

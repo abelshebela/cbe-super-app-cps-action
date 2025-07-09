@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type ActionRepository struct {

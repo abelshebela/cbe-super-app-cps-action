@@ -5,9 +5,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 )
 
 func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsInbound, middleware middleware.AuthMiddleware) {
@@ -18,7 +20,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.GetAllServiceDetails,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker", "checker"}),
+				middleware.AccessControl([]string{role.Maker, role.Checker}),
 			},
 		},
 		{
@@ -27,7 +29,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.GetServiceDetailsByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker", "checker"}),
+				middleware.AccessControl([]string{role.Maker, role.Checker}),
 			},
 		},
 		{
@@ -36,7 +38,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.UpdateServiceDetailsMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker", "ifb-maker"}),
+				middleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -45,7 +47,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.UpdateServiceDetailsChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"checker"}),
+				middleware.AccessControl([]string{role.Checker}),
 			},
 		},
 		{
@@ -54,7 +56,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ServiceDetailsDailyCapMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker"}),
+				middleware.AccessControl([]string{role.Maker}),
 			},
 		},
 		{
@@ -63,7 +65,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ServiceDetailsSingleCapMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker"}),
+				middleware.AccessControl([]string{role.Maker}),
 			},
 		},
 		{
@@ -72,43 +74,16 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.TotalTransferCapMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker"}),
+				middleware.AccessControl([]string{role.Maker}),
 			},
 		},
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_initiate",
-		// 	Handler: handler.ServiceFeeMaker,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		middleware.AuthenticateToken,
-		// 		middleware.AccessControl([]string{"MAKER"}),
-		// 	},
-		// },
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_Approve",
-		// 	Handler: handler.ServiceFeeApprove,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		middleware.AuthenticateToken,
-		// 		middleware.AccessControl([]string{"CHEKER"}),
-		// 	},
-		// },
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/api/v1/cbesuperapp/cps_config/service_fee_Reject",
-		// 	Handler: handler.ServiceFeeReject,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		middleware.AuthenticateToken,
-		// 		middleware.AccessControl([]string{"CHEKER"}),
-		// 	},
-		// },
 		{
 			Method:  http.MethodPost,
 			Path:    "/api/v1/cbesuperapp/cps_config/update_min_cap",
 			Handler: handler.UpdateCapMinAmountHandler,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker", "ifb-maker"}),
+				middleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -117,7 +92,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ApproveServiceDetailsHandler,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"checker"}),
+				middleware.AccessControl([]string{role.Checker}),
 			},
 		},
 		{
@@ -126,7 +101,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.InitiateServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"checker", "ifb-checker"}),
+				middleware.AccessControl([]string{role.Checker, role.Checker}),
 			},
 		},
 		{
@@ -135,7 +110,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.ApproveServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker"}),
+				middleware.AccessControl([]string{role.Maker}),
 			},
 		},
 		{
@@ -144,7 +119,7 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 			Handler: handler.RejectServiceFeeUpdate,
 			Middlewares: []func(next http.Handler) http.Handler{
 				middleware.AuthenticateToken,
-				middleware.AccessControl([]string{"maker", "ifb-maker"}),
+				middleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

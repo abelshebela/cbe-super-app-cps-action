@@ -3,9 +3,10 @@ package budget_handler
 import (
 	"net/http"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/budget"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -19,7 +20,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.CreateBudgetIcon,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -28,7 +29,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetFetchIcons,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
 				},
 			},
 			{
@@ -37,7 +38,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetUpdateIcon,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -46,7 +47,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetCreateColor,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -55,7 +56,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetFetchColors,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
 				},
 			},
 
@@ -65,7 +66,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetUpdateColor,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker"}),
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 			{
@@ -74,7 +75,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 				Handler: budgetHandler.BudgetCheckerApproval,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 		}

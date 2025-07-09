@@ -6,10 +6,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	bulkservices_application "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/bulk_services"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
+
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type HttpStore struct {
@@ -25,7 +27,6 @@ func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts, logge
 }
 
 func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
-
 	routes := []route.Route{
 		{
 			Method:  http.MethodPost,
@@ -33,7 +34,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.EnableDisableServicesMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -42,7 +43,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.FetchServices,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -51,7 +52,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.EnableDisableServicesChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -60,7 +61,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.SearchAccountByCif,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"maker", "ifb-maker", "checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -69,7 +70,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.RemoveCifMaker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -78,7 +79,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			Handler: handler.RemoveCifChecker,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 			},
 		},
 	}

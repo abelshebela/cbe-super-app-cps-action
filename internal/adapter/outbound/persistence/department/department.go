@@ -1,14 +1,18 @@
+// Package department provides persistence logic for department and CPS action entities.
 package department
 
 import (
 	"context"
-	"errors"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"fmt"
 	"log"
 
-	repository "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/department/entities"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -36,8 +40,7 @@ func InitDepartment(client *mongo.Client, dbName string, timeout time.Duration, 
 		logger:        logger,
 	}
 }
-func (r *DepartmentPersistence) CheckRequestExists(action entities.CPSAction) (bool, error) {
-	ctx := context.Background()
+func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action entities.CPSAction) (bool, error) {
 	_, err := r.cpsdal.FindOne(ctx, bson.M{
 		"request_action": action.RequestAction,
 		"action_status":  action.ActionStatus,
@@ -46,35 +49,47 @@ func (r *DepartmentPersistence) CheckRequestExists(action entities.CPSAction) (b
 	if err == mongo.ErrNoDocuments {
 		return false, nil
 	}
-	return err == nil, err
+
+	if err != nil {
+		return false, fmt.Errorf(error_codes.GeneralDBQueryFailed)
+	}
+	return true, nil
 
 }
 
-func (r *DepartmentPersistence) CheckDepartmentExists(dept string) (bool, error) {
-	ctx := context.Background()
+func (r *DepartmentPersistence) CheckDepartmentExists(ctx context.Context, dept string) (bool, error) {
+
 	_, err := r.departmentdal.FindOne(ctx, bson.M{"department": dept}, bson.M{})
 	if err == mongo.ErrNoDocuments {
 		return false, nil
 	}
-	return err == nil, err
+
+	if err != nil {
+		return false, fmt.Errorf(error_codes.GeneralDBQueryFailed)
+	}
+
+	return true, nil
 }
 
-func (r DepartmentPersistence) CreateCPSAction(department string, portalCards []string, action entities.CPSAction) error {
-	ctx := context.Background()
+func (r DepartmentPersistence) CreateCPSAction(ctx context.Context, department string, portalCards []string, action entities.CPSAction) error {
+
 	action.CreatedAt = time.Now()
 	action.LastModifiedAt = time.Now()
 	_, err := r.cpsdal.InsertOne(ctx, action)
 	return err
 }
 
-func (r *DepartmentPersistence) CreateDepartment(dept entities.Department) error {
-	ctx := context.Background()
+func (r *DepartmentPersistence) CreateDepartment(ctx context.Context, dept entities.Department) error {
+
 	_, err := r.departmentdal.InsertOne(ctx, dept)
-	return err
+	if err != nil {
+		return fmt.Errorf(error_codes.GeneralDBInsertFailed)
+	}
+	return nil
 }
 
-func (r *DepartmentPersistence) ValidateActionRequest(actionCode string, userDept string) (*entities.CPSAction, error) {
-	ctx := context.Background()
+func (r *DepartmentPersistence) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error) {
+
 	filter := bson.M{
 		"action_code":   actionCode,
 		"action_status": entities.ActionPending,
@@ -82,19 +97,21 @@ func (r *DepartmentPersistence) ValidateActionRequest(actionCode string, userDep
 	var action *entities.CPSAction
 	action, err := r.cpsdal.FindOne(ctx, filter, bson.M{})
 	if err == mongo.ErrNoDocuments {
-		return nil, nil
+		return nil, fmt.Errorf(error_codes.ActionNotFound)
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
+
 	if action == nil {
-		return nil, errors.New("action not found")
+		return nil, fmt.Errorf(error_codes.ActionNotFound)
 	}
+
 	return action, nil
 }
 
-func (r *DepartmentPersistence) UpdateDepartment(code string, department string, portalCards []string) error {
-	ctx := context.Background()
+func (r *DepartmentPersistence) UpdateDepartment(ctx context.Context, code string, department string, portalCards []string) error {
+
 	filter := bson.M{"department_code": code}
 	update := bson.M{
 		"department":   department,
@@ -102,45 +119,41 @@ func (r *DepartmentPersistence) UpdateDepartment(code string, department string,
 	}
 	_, err := r.departmentdal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return err
+		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
-	// if result.MatchedCount == 0 {
-	// 	return errors.New("department not found")
-	// }
 	return nil
 }
 
-func (r *DepartmentPersistence) FindByActionCode(code string) (*entities.CPSAction, error) {
-	ctx := context.Background()
+func (r *DepartmentPersistence) FindByActionCode(ctx context.Context, code string) (*entities.CPSAction, error) {
+
 	log.Println("Finding action by code:", code)
 	filter := bson.M{"action_code": code}
 	var action *entities.CPSAction
+
 	action, err := r.cpsdal.FindOne(ctx, filter, bson.M{})
 	if err == mongo.ErrNoDocuments {
-		return nil, nil
+		return nil, fmt.Errorf(error_codes.ActionNotFound)
 	}
+
 	log.Println("Found action:", action)
-	return action, err
+	return action, nil
 }
 
-func (r *DepartmentPersistence) UpdateActionStatus(actionCode string, status string) error {
-	ctx := context.Background()
+func (r *DepartmentPersistence) UpdateActionStatus(ctx context.Context, actionCode string, status string) error {
+
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{"action_status": status, "last_modified_at": time.Now()}
+
 	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return err
+		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
-	// if result.MatchedCount == 0 {
-	// 	return errors.New("action not found")
-	// }
+
 	return nil
 }
 
-func (r *DepartmentPersistence) ApproveActionRequest(actionCode string, user entities.CPSAction) error {
+func (r *DepartmentPersistence) ApproveActionRequest(ctx context.Context, actionCode string, user entities.CPSAction) error {
 
-	log.Println("user", user)
-	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{
 		"checker_name":         user.CheckerName,
@@ -149,9 +162,10 @@ func (r *DepartmentPersistence) ApproveActionRequest(actionCode string, user ent
 		"action_status":        entities.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
+
 	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return err
+		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
 	return nil
 }

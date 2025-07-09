@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	        "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type AccountService struct {
@@ -43,7 +43,6 @@ func (s *AccountService) FilterMultipleBranches(ctx context.Context, region, dis
 	return s.repo.FilterMultipleBranches(ctx, region, district)
 }
 
-
 func (s *AccountService) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
 	if len(branches) == 0 {
 		return fmt.Errorf("branches list is empty")
@@ -65,7 +64,6 @@ func (s *AccountService) GetBranchByCode(ctx context.Context, branchCode string)
 	return s.repo.GetBranchByCode(ctx, branchCode)
 }
 
-
 func (s *AccountService) BlockRegion(ctx context.Context, region action.Region, maker action.CPSAction) error {
 	if region.ID == "" || region.RegionName == "" {
 		return fmt.Errorf("region ID and name are required")
@@ -73,10 +71,10 @@ func (s *AccountService) BlockRegion(ctx context.Context, region action.Region, 
 	return s.repo.BlockRegion(ctx, region.ID, maker)
 }
 func (s *AccountService) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
-    if actionID == "" {
-        return fmt.Errorf("actionID is required")
-    }
-    return s.repo.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
+	if actionID == "" {
+		return fmt.Errorf("actionID is required")
+	}
+	return s.repo.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
 }
 func (s *AccountService) UpdateRegion(ctx context.Context, region action.Region) error {
 	if region.ID == "" || region.RegionName == "" {
@@ -93,66 +91,65 @@ func (s *AccountService) GetRegionByID(ctx context.Context, regionID string) (ac
 	return s.repo.GetRegionByID(ctx, regionID)
 }
 
-
 func (s *AccountService) BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error {
-    if districtID == "" {
-        return fmt.Errorf("districtID is required")
-    }
-    return s.repo.BlockDistrict(ctx, districtID, maker)
+	if districtID == "" {
+		return fmt.Errorf("districtID is required")
+	}
+	return s.repo.BlockDistrict(ctx, districtID, maker)
 }
 
 func (s *AccountService) GetDistrictByID(ctx context.Context, districtID string) (action.District, error) {
-    if districtID == "" {
-        return action.District{}, fmt.Errorf("districtID is required")
-    }
-    return s.repo.GetDistrictByID(ctx, districtID)
+	if districtID == "" {
+		return action.District{}, fmt.Errorf("districtID is required")
+	}
+	return s.repo.GetDistrictByID(ctx, districtID)
 }
 
 func (s *AccountService) ApproveBlockDistrict(ctx context.Context, districtID string, checker action.CPSAction) error {
-    if districtID == "" {
-        return fmt.Errorf("districtID is required")
-    }
-    return s.repo.ApproveBlockDistrict(ctx, districtID, checker)
+	if districtID == "" {
+		return fmt.Errorf("districtID is required")
+	}
+	return s.repo.ApproveBlockDistrict(ctx, districtID, checker)
 }
 
 func (s *AccountService) BlockCity(ctx context.Context, cityID string, maker action.CPSAction) error {
-    if cityID == "" {
-        return fmt.Errorf("cityID is required")
-    }
-    return s.repo.BlockCity(ctx, cityID, maker)
+	if cityID == "" {
+		return fmt.Errorf("cityID is required")
+	}
+	return s.repo.BlockCity(ctx, cityID, maker)
 }
 
 func (s *AccountService) GetCityByID(ctx context.Context, cityID string) (action.City, error) {
-    if cityID == "" {
-        return action.City{}, fmt.Errorf("cityID is required")
-    }
-    return s.repo.GetCityByID(ctx, cityID)
+	if cityID == "" {
+		return action.City{}, fmt.Errorf("cityID is required")
+	}
+	return s.repo.GetCityByID(ctx, cityID)
 }
 
 func (s *AccountService) ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error {
-    if cityID == "" {
-        return fmt.Errorf("cityID is required")
-    }
-    return s.repo.ApproveBlockCity(ctx, cityID, checker)
+	if cityID == "" {
+		return fmt.Errorf("cityID is required")
+	}
+	return s.repo.ApproveBlockCity(ctx, cityID, checker)
 }
 
 func (s *AccountService) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
-    if userID == "" {
-        return fmt.Errorf("userID is required")
-    }
-    return s.repo.BlockUser(ctx, userID, maker)
+	if userID == "" {
+		return fmt.Errorf("userID is required")
+	}
+	return s.repo.BlockUser(ctx, userID, maker)
 }
 
 func (s *AccountService) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
-    if userID == "" {
-        return member.User{}, fmt.Errorf("userID is required")
-    }
-    return s.repo.GetUserByID(ctx, userID, maker)
+	if userID == "" {
+		return member.User{}, fmt.Errorf("userID is required")
+	}
+	return s.repo.GetUserByID(ctx, userID, maker)
 }
 
 func (s *AccountService) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
-    if userID == "" {
-        return fmt.Errorf("userID is required")
-    }
-    return s.repo.ApproveBlockUser(ctx, userID, checker)
+	if userID == "" {
+		return fmt.Errorf("userID is required")
+	}
+	return s.repo.ApproveBlockUser(ctx, userID, checker)
 }

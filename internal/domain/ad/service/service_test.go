@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/mocks"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/ad/mocks"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"go.uber.org/mock/gomock"
 )
 

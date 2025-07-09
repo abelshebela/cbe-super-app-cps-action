@@ -1,17 +1,20 @@
 package customerhandler
 
 import (
+	// "encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/feedback"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/feedback"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
+	// "cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type FeedbackHTTPHandler struct {
@@ -52,16 +55,14 @@ func (f FeedbackHTTPHandler) GetFeedbacks(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 	feedbacks, err := f.feedbackService.GetFeedbacks(ctx, filterParams)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+
 		return
 	}
+	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(feedbacks)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
-	res := common.Response[any]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           feedbacks,
-	}
-	res.SendJSON()
 }
 
 func (f FeedbackHTTPHandler) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
@@ -69,14 +70,10 @@ func (f FeedbackHTTPHandler) GetFeedbackByID(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 	feedback, err := f.feedbackService.GetFeedbackByID(ctx, id)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
-	res := common.Response[any]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           feedback,
-	}
-	res.SendJSON()
+	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(feedback)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }

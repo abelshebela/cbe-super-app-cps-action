@@ -5,15 +5,18 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/customer"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/customer/entity"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
+	common "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type CustomerHTTPHandler struct {
@@ -55,16 +58,15 @@ func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 	customers, err := c.applicationService.GetCustomersDeatil(ctx, filterParams)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+
 		return
 	}
 
-	res := common.Response[*entity.CustomerRespose]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           customers,
-	}
-	res.SendJSON()
+	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(customers)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+
 }
 
 func (c CustomerHTTPHandler) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
@@ -72,14 +74,11 @@ func (c CustomerHTTPHandler) GetCustomerByID(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 	customer, err := c.applicationService.GetCustomerByID(ctx, id)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*member.User]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           customer,
-	}
-	res.SendJSON()
+	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	data, _ := util.StructToMap(customer)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }

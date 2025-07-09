@@ -6,14 +6,15 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
+	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/wallet"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	inboundWallet "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/wallet"
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

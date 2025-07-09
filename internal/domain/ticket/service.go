@@ -6,7 +6,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 func (s *TicketStore) CreateTicketAction(ctx context.Context, ticket Ticket, makerId string) (string, error) {

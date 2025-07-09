@@ -3,10 +3,11 @@ package faydaaccount
 import (
 	"net/http"
 
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -19,7 +20,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 				Handler: faydaHandler.InitiateDisableFaydaAccount,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -28,7 +29,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 				Handler: faydaHandler.AuthorizeFaydaAccountDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
@@ -37,7 +38,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 				Handler: faydaHandler.RejectFaydaAccountDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 		}

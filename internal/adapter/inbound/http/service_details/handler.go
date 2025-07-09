@@ -8,17 +8,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/dto"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	service_details_app "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/service_details"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
+
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/service_details"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/pkgs/utils"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type HttpStore struct {

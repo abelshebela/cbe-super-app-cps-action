@@ -3,14 +3,16 @@ package unlink_device_handler
 import (
 	"net/http"
 
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
+
 	"github.com/go-chi/chi/v5"
-	route "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/port/inbound/unlink"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/unlink", func(r chi.Router) {
+	router.Route("/unlink", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
@@ -18,7 +20,7 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				Handler: handler.UnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "ifb-maker"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			}, {
 				Method:  http.MethodPost,
@@ -26,7 +28,7 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				Handler: handler.ApproveUnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"checker", "ifb-checker"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 		}

@@ -15,19 +15,23 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	constant "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type UserPayload struct {
-	PhoneNumber string   `json:"phoneNumber,omitempty"`
-	UserName    string   `json:"UserName,omitempty"`
-	UserRole    string   `json:"user_role,omitempty"`
-	UserRealm   string   `json:"realm,omitempty"`
-	UserID      string   `json:"user_id,omitempty"`
-	BranchCode  []string `json:"branch_code,omitempty"`
-	UserCode    string   `json:"user_code,omitempty"`
-	FullName    string   `json:"fullname,omitempty"`
-	Department  string   `json:"department,omitempty"`
+	UserID        string `json:"user_id"`
+	UserRole      string `json:"user_role"`
+	FullName      string `json:"full_name"`
+	UserName      string `json:"username"`
+	Department    string `json:"department"`
+	Realm         string `json:"realm"`
+	PhoneNumber   string `json:"phone_number"`
+	SourceApp     string `json:"source_app"`
+	UserCode      string `json:"user_code"`
+	BranchCode    string `json:"branch_code"`
+	SessionExpiry int    `json:"session_expiry"`
+	Action        string `json:"action"`
+	IsTemporary   string `json:"is_temporary"`
 }
 
 type authMiddleware struct {
@@ -147,6 +151,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 					Message: "invalid or expired token",
 				},
 			}
+
 			res.SendJSON()
 			return
 		}

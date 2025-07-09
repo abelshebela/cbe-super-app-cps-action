@@ -1,0 +1,4 @@
+package initiator
+
+
+func InitLogger() {}

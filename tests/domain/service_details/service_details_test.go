@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/action"
-	serviceDomain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/internal/domain/service"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks"
-	mock_domain_action "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/action"
-	mock_domain "gitlab.com/bersufekadgetachew/cbe-super-app-cps-action/mocks/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/mocks"
+	mock_domain_action "github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/action"
+	mock_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/mocks/domain/service"
 )
 
 // NoOpLogger implements the utils.Logger interface but does nothing
