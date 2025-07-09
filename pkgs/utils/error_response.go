@@ -113,6 +113,11 @@ var errorKeyToStatus = map[string]int{
 	"FAILED_TO_UPDATE_SERVICE_FEE":                               500,
 	"FAILED_TO_REJECT_SERVICE_FEE_UPDATE":                        500,
 	"REQUIRED_FIELDS_MISSING":                                    400,
+	"TIERS_REQUIRED":                                             400,
+	"TIERS_FIRST_MIN_ZERO":                                       400,
+	"TIERS_MIN_MUST_EQUAL_PREV_MAX":                              400,
+	"TIERS_MAX_MUST_INCREASE":                                    400,
+	"TIERS_ABOVE_AMOUNT_MISMATCH":                                400,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
@@ -204,6 +209,9 @@ var errorKeyToStatus = map[string]int{
 	"MISSING_BANK_NAME": 400,
 	"MISSING_BANK_CODE": 400,
 	"MISSING_BANK_BIC":  400,
+
+	// Action
+	"FAILED_TO_CREATE_ACTION": 500,
 }
 
 func getStatusForErrorKey(key string) int {

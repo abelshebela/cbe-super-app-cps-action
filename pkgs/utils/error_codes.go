@@ -38,6 +38,13 @@ const (
 	InvalidActionData            = "INVALID_ACTION_DATA"
 	GeneralDBQueryFailed         = "GENERAL_DB_QUERY_FAILED"
 	RequiredFieldsMissing        = "REQUIRED_FIELDS_MISSING"
+	ServiceNotFound              = "SERVICE_NOT_FOUND"
+	FailedToCreateAction         = "FAILED_TO_CREATE_ACTION"
+	TiersRequired                = "TIERS_REQUIRED"
+	TiersFirstMinZero            = "TIERS_FIRST_MIN_ZERO"
+	TiersMinMustEqualPrevMax     = "TIERS_MIN_MUST_EQUAL_PREV_MAX"
+	TiersMaxMustIncrease         = "TIERS_MAX_MUST_INCREASE"
+	TiersAboveAmountMismatch     = "TIERS_ABOVE_AMOUNT_MISMATCH"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"

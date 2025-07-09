@@ -15,9 +15,8 @@ import (
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-	
+
 	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
-	// bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	perm_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
@@ -32,6 +31,10 @@ import (
 
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/service"
+	adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 )
 
 type Persitence struct {
@@ -50,6 +53,7 @@ type Persitence struct {
 	advertPersistence        ad.ADRepo
 	avatarPersitence         avatar.AvatarOutbound
 	AccountBlockPersistance  account_block.AccountBlockOutboundPort
+	ServiceDetailsStore      service.Repository
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -101,5 +105,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
+		ServiceDetailsStore: adapter.NewServiceDetailsPersistence(client, "service", logger),
 	}
 }

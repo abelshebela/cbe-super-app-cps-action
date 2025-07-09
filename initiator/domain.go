@@ -18,6 +18,7 @@ import (
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -39,12 +40,12 @@ type Domain struct {
 	CPSUserDomain      services.CPSUserService
 	PasswordRuleDomain password_service.PasswordRuleService
 	PortalCardDomain   portalcard.PortaCardInterface
-	SeviceDetailDomain service.ServiceInterface
 	DepartmentDomain   department.Service
-
 	AccountBlockDomain account_block.ApplicationServices
-
-	PermissionDomain permission.Service
+	PermissionDomain   permission.Service
+	ServiceDomain      service.ServiceInterface
+	ServiceRepo        service.Repository
+	ActionRepo         action.Repository
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
@@ -63,5 +64,9 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		DepartmentDomain:   *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
 		AccountBlockDomain: account_block.NewAccountService(persitence.AccountBlockPersistance),
 		PermissionDomain:   *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
+		ServiceDomain:      service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
+		// ServiceRepo:        service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
+		// ActionRepo:         service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
 	}
+
 }
