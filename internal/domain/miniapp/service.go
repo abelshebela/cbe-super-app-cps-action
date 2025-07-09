@@ -13,7 +13,7 @@ import (
 
 func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	previos_action := miniApp
+	previous_action := miniApp
 	action := domain.CPSAction{
 		ActionCode:       actionId,
 		MakerID:          maker.UserCode,
@@ -23,7 +23,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 		ActionType:       domain.ActionCreate,
 		RequestAction:    domain.RequestCreateMiniAppMerchant,
 		ActionStatus:     domain.ActionPending,
-		PreviosAction:    previos_action,
+		PreviosAction:    previous_action,
 	}
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)
 	if err != nil {

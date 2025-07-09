@@ -409,10 +409,6 @@ func stringPointer(s string) *string {
 }
 
 func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
-	rejectionReason := "rejected by the checker"
-	if domainAction.RejectionReason != nil {
-		rejectionReason = *domainAction.RejectionReason
-	}
 
 	var objID bson.ObjectID
 	if domainAction.ID != "" {
@@ -444,16 +440,21 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		CheckerName:        domainAction.CheckerName,
 		CheckerPhoneNumber: domainAction.CheckerPhoneNumber,
 		Department:         domainAction.Department,
-		RejectionReason:    rejectionReason,
-		PreviosAction:      domainAction.PreviosAction,
-		CurrentAction:      currentAction,
-		ActionStatus:       string(domainAction.ActionStatus),
-		ActionType:         string(domainAction.ActionType),
-		RequestAction:      string(domainAction.RequestAction),
-		CreatedAt:          domainAction.CreatedAt,
-		LastModifiedAt:     domainAction.LastModifiedAt,
-		MakerActionTime:    domainAction.MakerActionTime,
-		CheckerActionTime:  domainAction.CheckerActionTime,
+		RejectionReason: func() string {
+			if domainAction.RejectionReason != nil {
+				return *domainAction.RejectionReason
+			}
+			return ""
+		}(),
+		PreviosAction:     domainAction.PreviosAction,
+		CurrentAction:     currentAction,
+		ActionStatus:      string(domainAction.ActionStatus),
+		ActionType:        string(domainAction.ActionType),
+		RequestAction:     string(domainAction.RequestAction),
+		CreatedAt:         domainAction.CreatedAt,
+		LastModifiedAt:    domainAction.LastModifiedAt,
+		MakerActionTime:   domainAction.MakerActionTime,
+		CheckerActionTime: domainAction.CheckerActionTime,
 	}
 }
 
@@ -529,7 +530,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		"unique_id":            modelAction.UniqueId,
 		"department":           modelAction.Department,
 		"rejection_reason":     modelAction.RejectionReason,
-		"previos_action":       modelAction.PreviosAction,
+		"previous_action":      modelAction.PreviosAction,
 		"current_action":       modelAction.CurrentAction,
 		"action_status":        modelAction.ActionStatus,
 		"action_type":          modelAction.ActionType,
@@ -545,6 +546,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 	return nil
 }
 func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string) (domain.CPSAction, error) {
+	// fmt.Println("holnvfnkednvg", Action_Id)
 	filter := map[string]interface{}{"action_code": Action_Id}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
