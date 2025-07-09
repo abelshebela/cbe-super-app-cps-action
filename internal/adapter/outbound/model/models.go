@@ -445,7 +445,7 @@ type PasswordRule struct {
 }
 
 type HQ struct {
-	ID                string    `bson:"_id" json:"id"`
+	ID                bson.ObjectID    `bson:"_id" json:"id"`
 	UniqueId          string    `bson:"unique_id" json:"unique_id"`
 	Name              string    `bson:"name" json:"name"`
 	BlockTime         uint      `bson:"block_time" json:"block_time"`

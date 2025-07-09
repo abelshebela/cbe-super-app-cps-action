@@ -4,11 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
-
 	models "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,20 +13,17 @@ import (
 )
 
 type HQPersistence struct {
-	hqDal        dal.MongoDal[models.HQ, models.HQ]
-	cpsActionDal dal.MongoDal[action.CPSAction, action.CPSAction]
-	timeout      time.Duration
-	logger       utils.Logger
+	hqDal   dal.MongoDal[models.HQ, models.HQ]
+	timeout time.Duration
+	logger  utils.Logger
 }
 
 func NewHQPersistence(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *HQPersistence {
 	hqDal := dal.NewMongoDal[models.HQ, models.HQ](client, dbName, "hq")
-	cpsActionDal := dal.NewMongoDal[action.CPSAction, action.CPSAction](client, dbName, "cps_actions")
 	return &HQPersistence{
-		hqDal:        hqDal,
-		cpsActionDal: cpsActionDal,
-		timeout:      timeout,
-		logger:       logger,
+		hqDal:   hqDal,
+		timeout: timeout,
+		logger:  logger,
 	}
 }
 
@@ -37,21 +31,38 @@ func (p *HQPersistence) GetHQByID(ctx context.Context, id string) (hq.HQ, error)
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
-	result, err := p.hqDal.FindOne(ctx, bson.M{"_id": id}, bson.M{})
+	if id == "" {
+		p.logger.Errorf("invalid HQ ID: empty")
+		return hq.HQ{}, mongo.ErrNoDocuments
+	}
+
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("invalid HQ ObjectID: %v", err)
+		return hq.HQ{}, err
+	}
+
+	filter := bson.M{"_id": objID}
+
+	result, err := p.hqDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			p.logger.Errorf("HQ not found", "id", id)
+			p.logger.Errorf("HQ not found: id=%s", id)
 			return hq.HQ{}, err
 		}
 		p.logger.Errorf("failed to fetch HQ: %v", err)
 		return hq.HQ{}, err
+	}
+	if result == nil {
+		p.logger.Errorf("HQ not found: id=%s", id)
+		return hq.HQ{}, mongo.ErrNoDocuments
 	}
 	return modelToDomainHQ(*result), nil
 }
 
 func modelToDomainHQ(m models.HQ) hq.HQ {
 	return hq.HQ{
-		ID:           m.ID,
+		ID:           m.ID.Hex(),
 		Name:         m.Name,
 		BlockTime:    m.BlockTime,
 		ArchiveTime:  m.ArchiveTime,
@@ -75,28 +86,4 @@ func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) e
 		return err
 	}
 	return nil
-}
-
-func (p *HQPersistence) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error) {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
-
-	filter := bson.M{
-		"department":    uniqueID,
-		"action_status": action.ActionPending,
-	}
-
-	results, err := p.cpsActionDal.FindAll(ctx, filter, bson.M{})
-	if err != nil {
-		p.logger.Errorf("failed to fetch pending actions: %v", err)
-		return nil, err
-	}
-
-	actions := make([]action.CPSAction, 0, len(results))
-	for _, result := range results {
-		if result != nil {
-			actions = append(actions, *result)
-		}
-	}
-	return actions, nil
 }

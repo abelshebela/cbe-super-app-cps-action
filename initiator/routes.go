@@ -24,6 +24,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	hq_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 )
 
 func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger utils.Logger) {
@@ -50,5 +51,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		portalcard.InitPortalCardRoutes(sub, adapter.PortalCardAdapter, authMiddleware)
 		service_details_inbound.InitServiceDetailsRoutes(sub, adapter.ServiceDetailAdapter, authMiddleware)
 		accountblock_handler.RegisterAccountBlockRoutes(sub, adapter.AccountBlockAdapter, authMiddleware)
+		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware)
 	})
 }

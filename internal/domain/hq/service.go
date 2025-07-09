@@ -50,10 +50,24 @@ func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 }
 
 func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (string, error) {
-	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
+	if request.ID == "" {
+		return "", fmt.Errorf("INVALID_ID")
+	}
+	originalHQ, err := s.repository.GetHQByID(ctx, request.ID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return "", fmt.Errorf("NOT_FOUND")
+	}
+
+	// Use actionRepo to check for pending actions by unique ID (outbound/init)
+	pendingActions, err := s.actionRepo.(interface {
+		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
+	}).FetchPendingActionsByUniqueID(ctx, request.ID)
+	if err != nil {
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	previousActionJSON, err := json.Marshal(originalHQ)
@@ -70,10 +84,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		return "", fmt.Errorf("FAILED_TO_MARSHAL_CURRENT_ACTION")
 	}
 
-	s.logger.Infof("original HQ: %+v", originalHQ)
-
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
-
 	a := action.CPSAction{
 		ActionCode:         actionID,
 		MakerID:            request.MakerID,
@@ -93,6 +104,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		RejectionReason:    nil,
 		MakerActionTime:    time.Now(),
 		CheckerActionTime:  time.Time{},
+		UniqueId:           request.ID,
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -100,15 +112,28 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		return "", fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
-	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
 	return createdAction.ActionCode, nil
 }
 
 func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (string, error) {
-	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
+	if request.ID == "" {
+		return "", fmt.Errorf("INVALID_ID")
+	}
+	originalHQ, err := s.repository.GetHQByID(ctx, request.ID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return "", fmt.Errorf("NOT_FOUND")
+	}
+
+	// Use actionRepo to check for pending actions by unique ID (outbound/init)
+	pendingActions, err := s.actionRepo.(interface {
+		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
+	}).FetchPendingActionsByUniqueID(ctx, request.ID)
+	if err != nil {
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	previousActionJSON, err := json.Marshal(originalHQ)
@@ -125,11 +150,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		return "", fmt.Errorf("FAILED_TO_MARSHAL_CURRENT_ACTION")
 	}
 
-	s.logger.Infof("original HQ: %+v", originalHQ)
-	s.logger.Infof("updated HQ: %+v", updatedHQ)
-
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
-
 	a := action.CPSAction{
 		ActionCode:         actionID,
 		MakerID:            request.MakerID,
@@ -149,6 +170,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		RejectionReason:    nil,
 		MakerActionTime:    time.Now(),
 		CheckerActionTime:  time.Time{},
+		UniqueId:           request.ID,
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -156,7 +178,6 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		return "", fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
-	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
 	return createdAction.ActionCode, nil
 }
 

@@ -13,6 +13,7 @@ import (
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
+	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
@@ -41,6 +42,7 @@ type Domain struct {
 	PortalCardDomain   portalcard.PortaCardInterface
 	SeviceDetailDomain service.ServiceInterface
 	DepartmentDomain   department.Service
+	HQDomain           hq.Service
 
 	AccountBlockDomain account_block.ApplicationServices
 
@@ -63,5 +65,6 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		DepartmentDomain:   *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
 		AccountBlockDomain: account_block.NewAccountService(persitence.AccountBlockPersistance),
 		PermissionDomain:   *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
+		HQDomain:           hq.NewService(persitence.HQPersistence, persitence.BulkServicesPersistence, logger),
 	}
 }

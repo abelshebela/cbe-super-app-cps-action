@@ -15,7 +15,7 @@ import (
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-	
+
 	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	// bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
@@ -31,6 +31,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
+	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 )
 
@@ -50,6 +51,7 @@ type Persitence struct {
 	advertPersistence        ad.ADRepo
 	avatarPersitence         avatar.AvatarOutbound
 	AccountBlockPersistance  account_block.AccountBlockOutboundPort
+	HQPersistence            *hq_persistence.HQPersistence
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -101,5 +103,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
+		HQPersistence: hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 	}
 }

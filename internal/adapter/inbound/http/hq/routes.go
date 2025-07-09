@@ -31,6 +31,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
+				
 			},
 			{
 				Method:  http.MethodPost,

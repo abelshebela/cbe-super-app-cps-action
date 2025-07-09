@@ -1,10 +1,8 @@
 package initiator
 
 import (
-
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
@@ -16,7 +14,9 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account"
 	feedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
 	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
@@ -44,9 +44,9 @@ type Application struct {
 	ServiceDetailApplication service_details_app.ApplicationAbstracts
 	DepartmentApplication    department.DepartmentService
 	AccountBlockApplication  account_block.ApplicationService
+	HQApplication            hq.ApplicationAbstracts
 
-	PermissionApplication    permission.PermissionService
-
+	PermissionApplication permission.PermissionService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -70,6 +70,7 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		ServiceDetailApplication: service_details_app.NewApplication(domain.SeviceDetailDomain, logger),
 		DepartmentApplication:    department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 		AccountBlockApplication:  account_block.NewApplicationHandler(domain.AccountBlockDomain),
-		PermissionApplication: permission.InitPermissionHandler(&domain.PermissionDomain, logger),
+		HQApplication:            hq.NewApplication(domain.HQDomain, logger),
+		PermissionApplication:    permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 	}
 }

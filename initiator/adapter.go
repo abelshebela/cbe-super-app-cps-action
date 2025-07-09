@@ -40,6 +40,7 @@ import (
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 )
 
@@ -64,6 +65,7 @@ type Adapter struct {
 	PortalCardAdapter      inbound.PortalCardBound
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
 	AccountBlockAdapter    accountblock.AccountBlockHandler
+	HQAdapter              *hq.HQHTTPHandler
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -87,7 +89,8 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
 
 		DepartmentAdapter:   department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
-		PermissionAdapter: permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
+		PermissionAdapter:   permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
 		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
+		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
 	}
 }
