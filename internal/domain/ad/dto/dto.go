@@ -1,4 +1,4 @@
-package ad
+package dto
 
 import (
 	"fmt"
@@ -103,7 +103,7 @@ func (c CreateAdvertRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
 			validation.Required.Error("title is required"), validation.Length(3, 10).Error("title length is between 3 and 10"), is.Alpha),
-		validation.Field(&c.Description, validation.Length(30, 100).Error("description length is between 30 and 100")),
+		validation.Field(&c.Description, validation.Length(30, 100).Error("description length is between 30 and 100"), is.Alpha),
 		validation.Field(&c.AdvertFor, validation.In(
 			Both,
 			IFB,
@@ -130,56 +130,19 @@ type UpdateAdvert struct {
 	Date        AdvertDate `form:"date" json:"date"`
 }
 
+func (u UpdateAdvert) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Title,
+			validation.NilOrNotEmpty,
+			validation.Length(3, 10),
+		),
+	)
+}
+
 type UpdateAdvertRequest struct {
 	ID          string     `json:"id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
 	AdvertFor   AdvertFor  `json:"advert_for"`
 	Date        AdvertDate `json:"date"`
-}
-
-type CreateCPSAction struct {
-	ID                string              `json:"id,omitempty"`
-	ActionCode        string              `json:"action_code,omitempty"`
-	CheckerUser       User                `json:"checker_user"`
-	MakerUser         User                `json:"maker_user"`
-	RejectedReason    string              `json:"rejected_reason,omitempty"`
-	Department        string              `json:"department,omitempty"`
-	Status            ActionStatus        `json:"status,omitempty"`
-	RequestAction     RequestAction       `json:"request_action,omitempty"`
-	ActionType        ActionType          `json:"action_type,omitempty"`
-	ActionData        CreateAdvertRequest `json:"action_data"`
-	PreviousData      any                 `json:"previous_action,omitempty"`
-	CurrentData       any                 `json:"current_action,omitempty"`
-	MakerActionTime   time.Time           `json:"maker_action_time,omitzero"`
-	CheckerActionTime time.Time           `json:"checker_action_time,omitzero"`
-}
-
-type CPSAction struct {
-	ID                string         `json:"id,omitempty"`
-	ActionCode        string         `json:"action_code,omitempty"`
-	CheckerUser       User           `json:"checker_user"`
-	MakerUser         User           `json:"maker_user"`
-	RejectedReason    string         `json:"rejected_reason,omitempty"`
-	Department        string         `json:"department,omitempty"`
-	Status            ActionStatus   `json:"status,omitempty"`
-	RequestAction     RequestAction  `json:"request_action,omitempty"`
-	ActionType        ActionType     `json:"action_type,omitempty"`
-	ActionData        AdvertResponse `json:"action_data"`
-	PreviousData      any            `json:"previous_action,omitempty"`
-	CurrentData       any            `json:"current_action,omitempty"`
-	MakerActionTime   time.Time      `json:"maker_action_time,omitzero"`
-	CheckerActionTime time.Time      `json:"checker_action_time,omitzero"`
-}
-
-type ActionData struct {
-	UseCode     string `json:"user_code"`
-	FullName    string `json:"full_name"`
-	PhoneNumber string `json:"phone_number"`
-}
-
-type User struct {
-	UserCode    string `json:"user_code,omitempty" bson:"user_code"`
-	FullName    string `json:"full_name,omitempty" bson:"user_code"`
-	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number"`
 }

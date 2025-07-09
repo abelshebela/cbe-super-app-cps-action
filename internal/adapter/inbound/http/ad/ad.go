@@ -9,9 +9,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+
 	inboundAd "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -81,7 +83,7 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 
 	advertReq.BannerImage = fileHeader
 
-	var cpsReq ad.CreateCPSAction
+	var cpsReq model.CreateCPSAction
 
 	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -89,7 +91,7 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsReq.ActionData = advertReq
-	cpsReq.MakerUser = ad.User{
+	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
@@ -122,27 +124,29 @@ func (a ADAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data i
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var cpsReq ad.CreateCPSAction
+	var cpsReq model.CreateCPSAction
 
 	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsReq.ActionData.ID = id
-	cpsReq.MakerUser = ad.User{
+	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
 	ctx := r.Context()
-	if err := a.adHandler.DeleteOneAdvert(ctx, cpsReq); err != nil {
+
+	res, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
+	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	util.BaseResponseMaker(nil, w, def.Message, http.StatusAccepted)
+	data, _ := util.StructToMap(res)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
@@ -214,9 +218,9 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	var cpsReq ad.CreateCPSAction
+	var cpsReq model.CreateCPSAction
 
-	cpsReq.MakerUser = ad.User{
+	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
@@ -231,7 +235,7 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cpsAction, err := a.adHandler.UpdateOneAdvert(ctx, cpsReq)
+	cpsAction, err := a.adHandler.UpdateOneAdvert(ctx, id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -245,14 +249,14 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	action_code := chi.URLParam(r, "action_code")
 
-	var cpsReq entity.CPSAction
+	var cpsReq model.AuthorizeCPSAction
 
 	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsReq.CheckerUser = entity.User{
+	cpsReq.CheckerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
@@ -277,7 +281,7 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	var cpsReq entity.CPSAction
+	var cpsReq model.RejectCPSAction
 	action_code := chi.URLParam(r, "action_code")
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
@@ -291,7 +295,7 @@ func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsReq.CheckerUser = entity.User{
+	cpsReq.CheckerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,

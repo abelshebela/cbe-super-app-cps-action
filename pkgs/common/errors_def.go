@@ -523,6 +523,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_212",
 			Message: "Failed to fetch pending actions for this validation rule.",
 		},
+		"FAILED_TO_GET_AD": {
+			Code:    "GEN_213",
+			Message: "Failed to get ad.",
+		},
+		"ADVERT_NOT_FOUND": {
+			Code:    "GEN_214",
+			Message: "advert not found",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
