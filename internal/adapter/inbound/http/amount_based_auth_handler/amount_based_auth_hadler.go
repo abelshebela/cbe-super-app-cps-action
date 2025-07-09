@@ -9,7 +9,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
-	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -17,7 +16,6 @@ import (
 
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -30,32 +28,11 @@ type Resp struct {
 	message string
 }
 
-type CurrentUser struct {
-	Department  string
-	UserCode    string
-	FullName    string
-	PhoneNumber string
-}
-
 func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService, logger utils.Logger) inbound.AmountBasedAuthHandler {
 	return &AmountBasedAuthHandler{
 		amountBasedAuthService: service,
 		logger:                 logger,
 	}
-}
-
-func (a *AmountBasedAuthHandler) buildUserContext(r *http.Request) (*CurrentUser, error) {
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
-	}
-
-	return &CurrentUser{
-		Department:  userContext.Department,
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-	}, nil
 }
 
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
@@ -73,19 +50,18 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 
 	var cpsActionRequest model.CreateCPSAction
-	curUser, curErr := a.buildUserContext(r)
 
-	if curErr != nil {
-		middleware.ErrorHandler(w, curErr)
-		return
-	}
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsActionRequest.MakerUser = model.User{
-		UserCode:    curUser.UserCode,
-		FullName:    curUser.FullName,
-		PhoneNumber: curUser.PhoneNumber,
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
 	}
-	cpsActionRequest.Department = curUser.Department
+	cpsActionRequest.Department = department
 	request.Id = id
 	cpsActionRequest.CurrentData = request
 
@@ -96,13 +72,13 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	response := common.Response[*model.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           amountBasedAuth,
+	data, err := common_util.StructToMap(amountBasedAuth)
+	if err != nil {
+		common_util.SendErrorResponse(w, err, 500, nil)
+		return
 	}
-
-	response.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	return
 
 }
 
@@ -113,19 +89,17 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 
 	var cpsReq model.AuthorizeCPSAction
 
-	curUser, curErr := a.buildUserContext(r)
-
-	if curErr != nil {
-		middleware.ErrorHandler(w, curErr)
-		return
-	}
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsReq.CheckerUser = model.User{
-		UserCode:    curUser.UserCode,
-		FullName:    curUser.FullName,
-		PhoneNumber: curUser.PhoneNumber,
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
 	}
-	cpsReq.Department = curUser.Department
+	cpsReq.Department = department
 
 	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(ctx, id, cpsReq)
 	if err != nil {
@@ -133,13 +107,13 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 		return
 	}
 
-	response := common.Response[*model.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           amountBasedAuth,
+	data, err := common_util.StructToMap(amountBasedAuth)
+	if err != nil {
+		common_util.SendErrorResponse(w, err, 500, nil)
+		return
 	}
-
-	response.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	return
 }
 
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
@@ -157,19 +131,17 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	curUser, curErr := a.buildUserContext(r)
-
-	if curErr != nil {
-		middleware.ErrorHandler(w, curErr)
-		return
-	}
+	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsReq.CheckerUser = model.User{
-		UserCode:    curUser.UserCode,
-		FullName:    curUser.FullName,
-		PhoneNumber: curUser.PhoneNumber,
+		UserCode:    user_code,
+		FullName:    full_name,
+		PhoneNumber: phone_number,
 	}
-	cpsReq.Department = curUser.Department
+	cpsReq.Department = department
 
 	ctx := r.Context()
 	rejectAction, err := a.amountBasedAuthService.RejectAmountBasedAuth(ctx, id, cpsReq)
@@ -178,10 +150,11 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	res := common.Response[*model.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           rejectAction,
+	data, err := common_util.StructToMap(rejectAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, err, 500, nil)
+		return
 	}
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	return
 }

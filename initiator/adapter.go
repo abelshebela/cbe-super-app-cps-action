@@ -40,7 +40,9 @@ import (
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	amountBasedAuth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
+	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 )
 
@@ -66,6 +68,7 @@ type Adapter struct {
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
 	AccountBlockAdapter    accountblock.AccountBlockHandler
 	HQAdapter              *hq.HQHTTPHandler
+	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -92,5 +95,6 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		PermissionAdapter:   permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
 		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
 		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
+		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 	}
 }

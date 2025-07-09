@@ -22,6 +22,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
+	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -46,31 +47,33 @@ type Application struct {
 	AccountBlockApplication  account_block.ApplicationService
 	HQApplication            hq.ApplicationAbstracts
 
-	PermissionApplication permission.PermissionService
+	PermissionApplication      permission.PermissionService
+	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
 
 func InitApplication(domain Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
 	return Application{
-		BankApplication:          bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:            ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
-		AvatarApplication:        avatar_app.InitAvatarAPP(domain.AvatarDomian, logger),
-		WalletApplication:        wallet.InitWalletHanlder(domain.WalletDomain, logger),
-		FaydaApplication:         faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
-		CustomerApplication:      customer.InitCustomerHandler(domain.CustomerDomain, logger),
-		FeedbackApplication:      feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
-		UnlinkApplication:        unlink.NewUnlinkHandler(domain.UnlinkDomain),
-		BudgetApplication:        budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger),
-		AccountApplication:       accountvalidation_app.NewApplication(domain.AccountDomain, logger),
-		BulkServicesApplication:  bulkservices_application.NewAttachDetachChecker(domain.BulkServicesDomain, logger),
-		CPSUserApplication:       cpsusermaker.NewApplicationHandler(domain.CPSUserDomain),
-		PasswordRuleApplication:  passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
-		PortalCardApplication:    portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
-		ServiceDetailApplication: service_details_app.NewApplication(domain.SeviceDetailDomain, logger),
-		DepartmentApplication:    department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
-		AccountBlockApplication:  account_block.NewApplicationHandler(domain.AccountBlockDomain),
-		HQApplication:            hq.NewApplication(domain.HQDomain, logger),
-		PermissionApplication:    permission.InitPermissionHandler(&domain.PermissionDomain, logger),
+		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
+		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
+		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, logger),
+		WalletApplication:          wallet.InitWalletHanlder(domain.WalletDomain, logger),
+		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
+		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
+		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
+		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
+		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger),
+		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
+		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.BulkServicesDomain, logger),
+		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain),
+		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
+		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
+		ServiceDetailApplication:   service_details_app.NewApplication(domain.SeviceDetailDomain, logger),
+		DepartmentApplication:      department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
+		AccountBlockApplication:    account_block.NewApplicationHandler(domain.AccountBlockDomain),
+		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
+		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
+		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 	}
 }

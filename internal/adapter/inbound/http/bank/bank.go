@@ -110,6 +110,10 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsRes, err := b.bankHandler.CreateOneBank(ctx, *cpsRequest)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err, 0, nil)
 		return
 	}
@@ -138,6 +142,10 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsAction, err := b.bankHandler.UpdateOneBank(ctx, id, *cpsReq)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
@@ -158,6 +166,10 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsAction, err := b.bankHandler.DeleteOneBank(ctx, id, *cpsReq)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
@@ -191,6 +203,10 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	banks, err := b.bankHandler.GetAllBank(ctx, filterParams)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
@@ -204,6 +220,10 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	bank, err := b.bankHandler.GetOneBank(ctx, id)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
@@ -224,6 +244,10 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authAction, err := b.bankHandler.Authorize(ctx, *cpsReq)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
@@ -253,6 +277,10 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rejectAction, err := b.bankHandler.Reject(ctx, *cpsReq)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
@@ -273,11 +301,15 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestDisableBank, *cpsReq)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank disable successfully")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank disable request sent successfully")
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -293,9 +325,13 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsAction, err := b.bankHandler.EnableOrDisableBank(ctx, id, model.RequestEnableBank, *cpsReq)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			common_util.SendErrorResponse(w, "BANK_NOT_EXIST", 400, nil)
+			return
+		}
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank enable successfully")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank enable request sent successfully")
 }

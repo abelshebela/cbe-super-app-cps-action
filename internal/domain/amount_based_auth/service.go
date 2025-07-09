@@ -20,13 +20,13 @@ func NewAmountBasedAuthService(repo Repository, logger utils.Logger) *Service {
 	}
 }
 
-func (service *Service) UpdateAuthTier(ctx context.Context, request UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (service *Service) UpdateAmountBasedAuth(ctx context.Context, request UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
 	if err := request.Valiadate(); err != nil {
 		service.logger.Errorf("validation error: %v", err)
 		return nil, err
 	}
 
-	cpsActionRes, err := service.repo.UpdateAuthTier(ctx, request, cpsAction)
+	cpsActionRes, err := service.repo.UpdateAmountBasedAuth(ctx, request, cpsAction)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (service *Service) UpdateAuthTier(ctx context.Context, request UpdateAmount
 	return cpsActionRes, nil
 }
 
-func (service *Service) ApproveAuthTierApprove(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+func (service *Service) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
 	auth, err := service.repo.ApproveAmountBasedAuth(ctx, id, cpsAction)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (service *Service) ApproveAuthTierApprove(ctx context.Context, id string, c
 	return auth, nil
 }
 
-func (service *Service) RejectAuthTier(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
+func (service *Service) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
 	if err := cpsAction.Validate(); err != nil {
 		service.logger.Errorf("validation error: %v", err)
 		return nil, err

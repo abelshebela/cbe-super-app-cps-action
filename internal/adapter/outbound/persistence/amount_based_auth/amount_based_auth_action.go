@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/lib"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -41,10 +42,10 @@ func InitAmountBasedAuth(client *mongo.Client, database string, collection []str
 
 func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsAction model.CreateCPSAction) error {
 	filter := bson.M{
-		"maker_user.phone_number": cpsAction.MakerUser.PhoneNumber,
-		"status":                  model.ActionPending,
-		"department":              cpsAction.Department,
-		"request_action":          model.RequestAuthTier,
+		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
+		"action_status":      model.ActionPending,
+		"department":         cpsAction.Department,
+		"request_action":     model.RequestAuthTier,
 	}
 
 	projection := bson.M{
@@ -214,8 +215,8 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 	return nil
 }
 
-func (a AmountBasedAuthRepo) UpdateAuthTier(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
-	cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
+	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
 
 	if err := a.checkExistingAuthTier(ctx, cpsAction); err != nil {
 		return nil, err
@@ -285,25 +286,27 @@ func (a AmountBasedAuthRepo) UpdateAuthTier(ctx context.Context, request amount_
 
 	log.Printf("actionInsert %v", actionInsert)
 
-	return &actionInsert, nil
+	return lib.MapCPSAction(actionInsert), nil
 
 }
 
-func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 	filter := bson.M{
-		"id":         id,
-		"department": cpsAction.Department,
-		"status":     model.ActionPending,
+		"_id":           objectId,
+		"department":    cpsAction.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    cpsAction.CheckerUser.FullName,
-			"phone_number": cpsAction.CheckerUser.PhoneNumber,
-			"user_code":    cpsAction.CheckerUser.UserCode,
-		},
-		"status":              model.ActionApproved,
-		"checker_action_time": time.Now(),
+		"checker_name":         cpsAction.CheckerUser.FullName,
+		"checker_id":           cpsAction.CheckerUser.UserCode,
+		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 
 	// Fetch the action document
@@ -325,7 +328,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 		return nil, err
 	}
 
-	var actionData amount_based_auth_domain.AuthTier
+	var actionData amount_based_auth_domain.UpdateAmountBasedAuth
 
 	// Decode CurrentAction
 	rawDoc, err := bson.Marshal(savedAction.CurrentAction)
@@ -348,13 +351,23 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 
 	// Update the document in the DB
 	if actionData.Method == amount_based_auth_domain.OPEN {
+		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		var maxAmount, minAmount uint64
 		openFilter := bson.M{
-			"id": actionData.ID,
+			"_id": objectId,
+		}
+		if actionData.MaxAmount != 0 {
+			maxAmount = uint64(actionData.MaxAmount)
+		}
+		if actionData.MinAmount != 0 {
+			minAmount = uint64(actionData.MinAmount)
 		}
 		updateOpenFilter := bson.M{
-			"max_amount": actionData.MaxAmount,
+			"max_amount": maxAmount,
+			"min_amount": minAmount,
 		}
 
+		fmt.Println("Filter----------", openFilter)
 		actionData, err := a.authTier.UpdateOne(ctx, openFilter, updateOpenFilter)
 		if err != nil {
 			a.logger.Errorf("Failed to update open auth tier: %v", err)
@@ -364,15 +377,32 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 			})
 		}
 
+		savedAction.CurrentAction = actionData
+		return lib.MapCPSAction(savedAction), nil
+	}
+
+	if actionData.Method == amount_based_auth_domain.PIN {
+
+		objectId, err = bson.ObjectIDFromHex(actionData.Id)
 		pinFilter := bson.M{
-			"method":     amount_based_auth_domain.PIN,
-			"is_deleted": false,
-		}
-		updatePinFilter := bson.M{
-			"min_amount": actionData.MaxAmount,
+			"_id": objectId,
 		}
 
-		_, err = a.authTier.UpdateOne(ctx, pinFilter, updatePinFilter)
+		var minAmount, maxAmount uint64
+
+		if actionData.MinAmount > 0 {
+			minAmount = uint64(actionData.MinAmount)
+		}
+		if actionData.MaxAmount > 0 {
+			maxAmount = uint64(actionData.MaxAmount)
+		}
+
+		updatePinFilter := bson.M{
+			"min_amount": minAmount,
+			"max_amount": maxAmount,
+		}
+
+		actionData, err := a.authTier.UpdateOne(ctx, pinFilter, updatePinFilter)
 		if err != nil {
 			a.logger.Errorf("Failed to update pin auth tier: %v", err)
 			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
@@ -382,93 +412,28 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 		}
 
 		savedAction.CurrentAction = actionData
-		return &savedAction, nil
-	}
+		return lib.MapCPSAction(savedAction), nil
 
-	if actionData.Method == amount_based_auth_domain.PIN {
-		if actionData.MinAmount > 0 {
-			pinFilter := bson.M{
-				"id": actionData.ID,
-			}
-			updatePinFilter := bson.M{
-				"min_amount": actionData.MinAmount,
-			}
-			actionData, err := a.authTier.UpdateOne(ctx, pinFilter, updatePinFilter)
-			if err != nil {
-				a.logger.Errorf("Failed to update pin auth tier: %v", err)
-				return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				})
-			}
-
-			openFilter := bson.M{
-				"method":     amount_based_auth_domain.OPEN,
-				"is_deleted": false,
-			}
-			updateOpenFilter := bson.M{
-				"max_amount": actionData.MinAmount,
-			}
-			_, err = a.authTier.UpdateOne(ctx, openFilter, updateOpenFilter)
-			if err != nil {
-				a.logger.Errorf("Failed to update open auth tier: %v", err)
-				return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				})
-			}
-
-			savedAction.CurrentAction = actionData
-			return &savedAction, nil
-		}
-
-		if actionData.MaxAmount > 0 {
-			pinFilter := bson.M{
-				"id": actionData.ID,
-			}
-
-			updatePinFilter := bson.M{
-				"max_amount": actionData.MaxAmount,
-			}
-
-			actionData, err := a.authTier.UpdateOne(ctx, pinFilter, updatePinFilter)
-			if err != nil {
-				a.logger.Errorf("Failed to update pin auth tier: %v", err)
-				return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				})
-			}
-
-			openFilter := bson.M{
-				"method":     amount_based_auth_domain.OTPANDPIN,
-				"is_deleted": false,
-			}
-			updateOpenFilter := bson.M{
-				"min_amount": actionData.MaxAmount,
-			}
-
-			_, err = a.authTier.UpdateOne(ctx, openFilter, updateOpenFilter)
-			if err != nil {
-				a.logger.Errorf("Failed to update open auth tier: %v", err)
-				return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				})
-			}
-
-			savedAction.CurrentAction = actionData
-			return &savedAction, nil
-		}
 	}
 
 	if actionData.Method == amount_based_auth_domain.OTPANDPIN {
+		objectId, err = bson.ObjectIDFromHex(actionData.Id)
 		filter := bson.M{
-			"id": actionData.ID,
+			"_id": objectId,
+		}
+
+		var minAmount, maxAmount uint64
+
+		if actionData.MinAmount > 0 {
+			minAmount = uint64(actionData.MinAmount)
+		}
+		if actionData.MaxAmount > 0 {
+			maxAmount = uint64(actionData.MaxAmount)
 		}
 
 		updateFilter := bson.M{
-			"min_amount": actionData.MinAmount,
+			"min_amount": minAmount,
+			"max_amount": maxAmount,
 		}
 
 		actionData, err := a.authTier.UpdateOne(ctx, filter, updateFilter)
@@ -479,49 +444,34 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 				Message: "internal server error",
 			})
 		}
-		openFilter := bson.M{
-			"method":     amount_based_auth_domain.PIN,
-			"is_deleted": false,
-		}
-		updateOpenFilter := bson.M{
-			"max_amount": actionData.MinAmount,
-		}
-
-		_, err = a.authTier.UpdateOne(ctx, openFilter, updateOpenFilter)
-		if err != nil {
-			a.logger.Errorf("Failed to update open auth tier: %v", err)
-			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-		}
 
 		savedAction.CurrentAction = actionData
-		return &savedAction, nil
+		return lib.MapCPSAction(savedAction), nil
 	}
 
-	return &savedAction, nil
+	return lib.MapCPSAction(savedAction), nil
 }
 
-func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
+func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 	filter := bson.M{
-		"id":         id,
-		"department": cpsAction.Department,
-		"status":     model.ActionPending,
+		"_id":           objectId,
+		"department":    cpsAction.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    cpsAction.CheckerUser.FullName,
-			"phone_number": cpsAction.CheckerUser.PhoneNumber,
-			"user_code":    cpsAction.CheckerUser.UserCode,
-		},
-		"status":              model.ActionRejected,
-		"rejected_reason":     cpsAction.RejectedReason,
-		"checker_action_time": time.Now(),
+		"checker_name":         cpsAction.CheckerUser.FullName,
+		"checker_id":           cpsAction.CheckerUser.UserCode,
+		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionRejected,
+		"rejected_reason":      cpsAction.RejectedReason,
+		"checker_action_time":  time.Now(),
 	}
 
-	// Fetch the action document
 	savedAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -540,6 +490,6 @@ func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id strin
 		return nil, err
 	}
 
-	return &savedAction, nil
+	return lib.MapCPSAction(savedAction), nil
 
 }

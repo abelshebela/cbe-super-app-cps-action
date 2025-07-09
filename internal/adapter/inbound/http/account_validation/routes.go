@@ -30,7 +30,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 		routes := []route.Route{
 			{
 				Method:  http.MethodGet,
-				Path:    "/one",
+				Path:    "/{id}",
 				Handler: handler.FetchAccountValidation,
 				Middlewares: []func(next http.Handler) http.Handler{
 					middleware.AuthenticateToken,
@@ -38,8 +38,8 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/update_request",
+				Method:  http.MethodPatch,
+				Path:    "/update/{id}",
 				Handler: handler.UpdateAccountValidationMaker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					middleware.AuthenticateToken,
@@ -48,7 +48,7 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/update_approve",
+				Path:    "/approve_reject",
 				Handler: handler.UpdateAccountValidationChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					middleware.AuthenticateToken,

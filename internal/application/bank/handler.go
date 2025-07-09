@@ -2,8 +2,10 @@ package bank
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -36,6 +38,18 @@ func InitBankHanlder(bankDomin service.BankService, logger utils.Logger) BankHan
 }
 
 func (b *BankHandler) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
+
+	reqData := req.ActionData.(dto.CreateBankRequest)
+
+	existing, err := b.CheckExstingBank(ctx, reqData.Name)
+	if err != nil {
+
+		return nil, err
+	}
+
+	if existing {
+		return nil, fmt.Errorf("BANK_NAME_ALREADY_EXIST")
+	}
 	cpsRes, err := b.bankDomain.CreateOneBank(ctx, req)
 	if err != nil {
 		return nil, err
@@ -104,4 +118,20 @@ func (b *BankHandler) EnableOrDisableBank(ctx context.Context, id string, reques
 	}
 
 	return cpsAction, nil
+}
+
+func (b *BankHandler) CheckExstingBank(ctx context.Context, name string) (bool, error) {
+
+	bank, err := b.bankDomain.CheckExistingBank(ctx, name)
+
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return false, nil
+		}
+		return false, err
+	}
+	if bank {
+		return true, nil
+	}
+	return false, nil
 }

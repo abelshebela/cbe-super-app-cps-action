@@ -30,28 +30,31 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
+	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 )
 
 type Persitence struct {
-	CustomerPersistence      *customer_repo.CustomerDetailRepo
-	FeedBackPersistence      *feedback_repo.FeedbackRepo
-	UnlinkPersistence        *unlink_repo.UnlinkRepo
-	BudgetPersistence        *budget_repo.BudgetPersistence
-	AccountPersistence       *account_validation.AccountValidationRepo
-	BulkServicesPersistence  bulkOutbound.OutboundInfra
-	CPSUserPersistence       cpsUserOutbound.OutboundInfra
-	PasswordRulesPersistence passwordRuleOutbound.OutboundPasswordRuleInfra
-	BankPersistance          bank.BankPersistence
-	DepartmentPersistence    *dept_repo.DepartmentPersistence
-	PermissionPersistence    *perm_repo.PermissionPersistence
-	CPSActionPersistance     department.CPSActionRepository
-	advertPersistence        ad.ADRepo
-	avatarPersitence         avatar.AvatarOutbound
-	AccountBlockPersistance  account_block.AccountBlockOutboundPort
-	HQPersistence            *hq_persistence.HQPersistence
+	CustomerPersistence        *customer_repo.CustomerDetailRepo
+	FeedBackPersistence        *feedback_repo.FeedbackRepo
+	UnlinkPersistence          *unlink_repo.UnlinkRepo
+	BudgetPersistence          *budget_repo.BudgetPersistence
+	AccountPersistence         *account_validation.AccountValidationRepo
+	BulkServicesPersistence    bulkOutbound.OutboundInfra
+	CPSUserPersistence         cpsUserOutbound.OutboundInfra
+	PasswordRulesPersistence   passwordRuleOutbound.OutboundPasswordRuleInfra
+	BankPersistance            bank.BankPersistence
+	DepartmentPersistence      *dept_repo.DepartmentPersistence
+	PermissionPersistence      *perm_repo.PermissionPersistence
+	CPSActionPersistance       department.CPSActionRepository
+	advertPersistence          ad.ADRepo
+	avatarPersitence           avatar.AvatarOutbound
+	AccountBlockPersistance    account_block.AccountBlockOutboundPort
+	HQPersistence              *hq_persistence.HQPersistence
+	AmountBasedAuthPersistence amount_based_auth.AmountBasedAuthRepo
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -103,6 +106,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		HQPersistence: hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
+		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
+		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
 	}
 }

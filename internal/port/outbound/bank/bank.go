@@ -18,4 +18,5 @@ type BankPersistence interface {
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error
+	CheckExistingBank(ctx context.Context, name string) (bool, error)
 }
