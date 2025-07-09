@@ -89,15 +89,22 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	cpsAction := h.createCPSActionMaker(ctx)
 
 	// creating department
-	if err := h.departmentService.CreateCPSAction(cur_ctx, request.Department, request.PortalCards, cpsAction); err != nil {
+	createdAction, err := h.departmentService.CreateCPSAction(cur_ctx, request.Department, request.PortalCards, cpsAction)
+	if err != nil {
 		h.logger.Errorf("[CreateDepartment] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	// writing response
-	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s", userID)
-	common_util.WriteSuccessResponse(w, nil, RequestSentSuccesfully)
+	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
+
+	data, err := common_util.StructToMap(createdAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(data, w, RequestSentSuccesfully, 200)
 }
 
 func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request) {
@@ -141,5 +148,68 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 	}
 
 	h.logger.Infof("[ApproveRequest] action %s approved by user %s", actionCode, ctx.UserID)
-	common_util.WriteSuccessResponse(w, nil, ActionApproved)
+	common_util.BaseResponseMaker(nil, w, ActionApproved, 200)
+}
+
+func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
+	var request department.UpdateDepartmentRequest
+	cur_ctx := r.Context()
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		h.logger.Errorf("[UpdateDepartmentRequest] failed to decode request: %v", err)
+		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
+		return
+	}
+
+	if err := request.Validate(); err != nil {
+		h.logger.Warnf("[UpdateDepartmentRequest] validation failed: %v", err)
+		common_util.SendErrorResponse(w, common_util.InvalidInput, http.StatusBadRequest, nil)
+		return
+	}
+
+	ctx := ctx_util.ExtractUserContext(r)
+	userID := ctx.UserID
+
+	if ctx.IsIncomplete() {
+		h.logger.Errorf("[UpdateDepartmentRequest] incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
+		return
+	}
+
+	cpsAction := entities.CPSAction{
+		MakerID:          ctx.UserID,
+		MakerName:        ctx.FullName,
+		MakerPhoneNumber: ctx.PhoneNumber,
+		Department:       ctx.Department,
+		ActionStatus:     entities.ActionPending,
+		ActionType:       entities.ActionUpdate,
+		RequestAction:    entities.RequestDepartment,
+		CurrentAction: map[string]interface{}{
+			"department_code": request.DepartmentCode,
+			"department":      request.Department,
+			"portal_cards":    request.PortalCards,
+		},
+	}
+
+	createdAction, err := h.departmentService.CreateDepartmentUpdateCPSAction(cur_ctx, cpsAction)
+	if err != nil {
+		h.logger.Errorf("[UpdateDepartmentRequest] service error: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
+	// writing response with action_code
+
+	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
+
+	data, err := common_util.StructToMap(createdAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	common_util.BaseResponseMaker(data, w, RequestSentSuccesfully, 200)
+}
+
+func (h *DepartmentHandler) RejectDepartmentRequest(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented", http.StatusNotImplemented)
 }
