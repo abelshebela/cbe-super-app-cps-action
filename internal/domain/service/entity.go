@@ -1,6 +1,10 @@
 package service
 
-import "time"
+import (
+	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+)
 
 type KYCLevel string
 
@@ -119,4 +123,12 @@ type CPSAction struct {
 
 type UpdateServiceDetailsResponse struct {
 	ActionID string `json:"action_id"`
+}
+
+func (s Service) Validate() error {
+	return validation.ValidateStruct(&s,
+		validation.Field(&s.ServiceCode, validation.Required.Error("service code cannot be empty")),
+		validation.Field(&s.ServiceName, validation.Required.Error("service name cannot be empty")),
+		validation.Field(&s.ServiceType, validation.Required.Error("service type cannot be empty")),
+	)
 }

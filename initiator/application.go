@@ -72,6 +72,6 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		DepartmentApplication:    department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 		AccountBlockApplication:  account_block.NewApplicationHandler(domain.AccountBlockDomain),
 		PermissionApplication:    permission.InitPermissionHandler(&domain.PermissionDomain, logger),
-		ServiceApplication:       service.NewServiceApp(domain.ServiceRepo, domain.ActionRepo, logger),
+		ServiceApplication:       service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 	}
 }

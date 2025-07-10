@@ -31,7 +31,7 @@ func TestGetAccountValidation(t *testing.T) {
 	mockRepo := new(mocks.AccountValidationRepository)
 	mockActionRepo := new(mocks.ActionRepository)
 	logger := &NoOpLogger{}
-	service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+	service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 	ctx := context.Background()
 	expectedRule := account_validation.ValidationRule{
@@ -73,7 +73,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 	mockRepo := new(mocks.AccountValidationRepository)
 	mockActionRepo := new(mocks.ActionRepository)
 	logger := &NoOpLogger{}
-	service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+	service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 	ctx := context.Background()
 	originalRule := account_validation.ValidationRule{
@@ -161,7 +161,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		expectedAction := action.CPSAction{
 			ID:                 validationRule.ID,
@@ -194,7 +194,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		expectedAction := action.CPSAction{
 			ActionCode:         actionID,
@@ -225,7 +225,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		err := service.UpdateAccountValidation(ctx, "", utils.DecisionApproved, checkerID, "", "", "")
 		assert.Error(t, err)
@@ -236,7 +236,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, "", "", "", "")
 		assert.Error(t, err)
@@ -247,7 +247,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(action.CPSAction{}, assert.AnError).Once()
 
@@ -260,7 +260,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		expectedAction := action.CPSAction{
 			ActionCode:         actionID,
@@ -291,7 +291,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		// Define test data for this specific test
 		testOriginalRule := account_validation.ValidationRule{
@@ -320,7 +320,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		expectedAction := action.CPSAction{
 			ID:                 validationRule.ID, // Set the ID to match the validation rule
@@ -354,7 +354,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		expectedAction := action.CPSAction{
 			ID:                 validationRule.ID,
@@ -387,7 +387,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		// Create a rule with different ID than the action
 		mismatchedRule := validationRule
@@ -424,7 +424,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo := new(mocks.AccountValidationRepository)
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
-		service := account_validation.NewService(mockRepo, mockActionRepo, logger)
+		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
 
 		expectedAction := action.CPSAction{
 			ActionCode:         actionID,

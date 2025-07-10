@@ -145,6 +145,11 @@ const (
 	PendingActionRejectionFailed = "PENDING_ACTION_REJECTION_FAILED"
 	PendingActionCheckFailed     = "PENDING_ACTION_CHECK_FAILED"
 	PendingCPSActionExists       = "PENDING_CPS_ACTION_EXISTS"
+	ActionNotPending             = "ACTION_NOT_PENDING"
+	FailedToUpdateAction         = "FAILED_TO_UPDATE_ACTION"
+	FailedToFetchAction          = "FAILED_TO_FETCH_ACTION"
+	FailedToUpdateService        = "FAILED_TO_UPDATE_SERVICE"
+	FailedToUpdateCapMin         = "FAILED_TO_UPDATE_CAP_MIN"
 
 	// User
 	UserStatusUpdateFailed = "USER_STATUS_UPDATE_FAILED"

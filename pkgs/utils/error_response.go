@@ -211,7 +211,12 @@ var errorKeyToStatus = map[string]int{
 	"MISSING_BANK_BIC":  400,
 
 	// Action
-	"FAILED_TO_CREATE_ACTION": 500,
+	"FAILED_TO_CREATE_ACTION":  500,
+	"FAILED_TO_UPDATE_ACTION":  500,
+	"FAILED_TO_FETCH_ACTION":   500,
+	"ACTION_NOT_PENDING":       400,
+	"FAILED_TO_UPDATE_SERVICE": 500,
+	"FAILED_TO_UPDATE_CAP_MIN": 500,
 }
 
 func getStatusForErrorKey(key string) int {

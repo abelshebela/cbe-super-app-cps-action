@@ -44,8 +44,7 @@ type Domain struct {
 	AccountBlockDomain account_block.ApplicationServices
 	PermissionDomain   permission.Service
 	ServiceDomain      service.ServiceInterface
-	ServiceRepo        service.Repository
-	ActionRepo         action.Repository
+	ActionDomain       action.ServiceImpl
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
@@ -56,7 +55,7 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		FeedbackDomain:     feedback_service.InitFeedbackDomain(persitence.FeedBackPersistence, logger),
 		UnlinkDomain:       unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
 		BudgetDomain:       budget_service.InitBudgetDomain(persitence.BudgetPersistence, logger),
-		AccountDomain:      account_validation.NewService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
+		AccountDomain:      account_validation.NewAccountValidationService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
 		BulkServicesDomain: action.NewService(persitence.BulkServicesPersistence, logger),
 		CPSUserDomain:      services.NewCPSUserService(persitence.CPSUserPersistence),
 		PasswordRuleDomain: password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
@@ -65,8 +64,7 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		AccountBlockDomain: account_block.NewAccountService(persitence.AccountBlockPersistance),
 		PermissionDomain:   *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
 		ServiceDomain:      service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
-		// ServiceRepo:        service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
-		// ActionRepo:         service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
+		ActionDomain:       action.NewService(persitence.BulkServicesPersistence, logger),
 	}
 
 }

@@ -23,12 +23,12 @@ type ServiceApplication interface {
 }
 
 type serviceApp struct {
-	serviceDomain serviceDomain.Repository
-	actionDomain  action.Repository
+	serviceDomain serviceDomain.ServiceInterface
+	actionDomain  action.ServiceImpl
 	logger        utils.Logger
 }
 
-func NewServiceApp(service serviceDomain.Repository, actions action.Repository, logger utils.Logger) ServiceApplication {
+func NewServiceApp(service serviceDomain.ServiceInterface, actions action.ServiceImpl, logger utils.Logger) ServiceApplication {
 	return &serviceApp{
 		serviceDomain: service,
 		actionDomain:  actions,
@@ -37,11 +37,11 @@ func NewServiceApp(service serviceDomain.Repository, actions action.Repository, 
 }
 
 func (s *serviceApp) GetOneService(ctx context.Context, id string) (*serviceDomain.Service, error) {
-	service, err := s.serviceDomain.GetOneServiceDetail(ctx, id)
+	service, err := s.serviceDomain.GetServiceDetailsByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return &service, nil
+	return service, nil
 }
 
 func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]any, requestAction, actionType string, previousData *serviceDomain.Service) action.CPSAction {

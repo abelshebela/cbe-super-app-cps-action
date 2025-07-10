@@ -13,13 +13,14 @@ import (
 	feedback_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
 	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
 
 	bank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	perm_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
+	service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
@@ -30,11 +31,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
-
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/service"
-	adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 )
 
 type Persitence struct {
@@ -45,7 +43,7 @@ type Persitence struct {
 	AccountPersistence       *account_validation.AccountValidationRepo
 	BulkServicesPersistence  bulkOutbound.OutboundInfra
 	CPSUserPersistence       cpsUserOutbound.OutboundInfra
-	PasswordRulesPersistence passwordRuleOutbound.OutboundPasswordRuleInfra
+	PasswordRulesPersistence cpsUserOutbound.OutboundPasswordRuleInfra
 	BankPersistance          bank.BankPersistence
 	DepartmentPersistence    *dept_repo.DepartmentPersistence
 	PermissionPersistence    *perm_repo.PermissionPersistence
@@ -53,7 +51,8 @@ type Persitence struct {
 	advertPersistence        ad.ADRepo
 	avatarPersitence         avatar.AvatarOutbound
 	AccountBlockPersistance  account_block.AccountBlockOutboundPort
-	ServiceDetailsStore      service.Repository
+	ServiceDetailsStore      service.ServiceRepository
+	ServicePersistance       service_repo.ServiceFeePersistence
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -105,6 +104,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore: adapter.NewServiceDetailsPersistence(client, "service", logger),
+		ServiceDetailsStore: outboundStore.NewServiceDetailsPersistence(client, "service", logger),
+		ServicePersistance:  *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 	}
 }

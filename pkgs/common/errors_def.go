@@ -903,6 +903,25 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACT_008",
 			Message: "Unable to create action.",
 		},
+		"ACTION_NOT_PENDING": {
+			Code:    "ACT_009",
+			Message: "Action is not in pending status.",
+		},
+		"FAILED_TO_UPDATE_ACTION": {
+			Code:    "ACT_010",
+			Message: "Failed to update action.",
+		}, "FAILED_TO_FETCH_ACTION": {
+			Code:    "ACT_011",
+			Message: "Failed to fetch action.",
+		},
+		"FAILED_TO_UPDATE_SERVICE": {
+			Code:    "ACT_012",
+			Message: "Failed to update service details.",
+		},
+		"FAILED_TO_UPDATE_CAP_MIN": {
+			Code:    "ACT_013",
+			Message: "Failed to update cap minimum amount.",
+		},
 	},
 	User: ErrorGroup{
 		"USER_STATUS_UPDATE_FAILED": {
