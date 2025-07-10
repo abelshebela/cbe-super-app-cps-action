@@ -38,6 +38,14 @@ const (
 	InvalidActionData            = "INVALID_ACTION_DATA"
 	GeneralDBQueryFailed         = "GENERAL_DB_QUERY_FAILED"
 	RequiredFieldsMissing        = "REQUIRED_FIELDS_MISSING"
+	ServiceNotFound              = "SERVICE_NOT_FOUND"
+	FailedToCreateAction         = "FAILED_TO_CREATE_ACTION"
+	TiersRequired                = "TIERS_REQUIRED"
+	TiersFirstMinZero            = "TIERS_FIRST_MIN_ZERO"
+	TiersMinMustEqualPrevMax     = "TIERS_MIN_MUST_EQUAL_PREV_MAX"
+	TiersMaxMustIncrease         = "TIERS_MAX_MUST_INCREASE"
+	TiersAboveAmountMismatch     = "TIERS_ABOVE_AMOUNT_MISMATCH"
+	NotImplemented               = "NOT_IMPLEMENTED"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
@@ -138,6 +146,11 @@ const (
 	PendingActionRejectionFailed = "PENDING_ACTION_REJECTION_FAILED"
 	PendingActionCheckFailed     = "PENDING_ACTION_CHECK_FAILED"
 	PendingCPSActionExists       = "PENDING_CPS_ACTION_EXISTS"
+	ActionNotPending             = "ACTION_NOT_PENDING"
+	FailedToUpdateAction         = "FAILED_TO_UPDATE_ACTION"
+	FailedToFetchAction          = "FAILED_TO_FETCH_ACTION"
+	FailedToUpdateService        = "FAILED_TO_UPDATE_SERVICE"
+	FailedToUpdateCapMin         = "FAILED_TO_UPDATE_CAP_MIN"
 
 	// User
 	UserStatusUpdateFailed = "USER_STATUS_UPDATE_FAILED"

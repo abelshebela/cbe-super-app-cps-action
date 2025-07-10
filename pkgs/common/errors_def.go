@@ -476,51 +476,51 @@ var DefineError = ErrorDefinitions{
 			Message: "One or more required fields are missing.",
 		},
 		"VALIDATION_RULE_ID_MISMATCH": {
-			Code:    "GEN_201",
+			Code:    "GEN_114",
 			Message: "Validation rule ID does not match the expected value.",
 		},
 		"FAILED_TO_UPDATE_VALIDATION_RULE": {
-			Code:    "GEN_202",
+			Code:    "GEN_115",
 			Message: "Failed to update the validation rule.",
 		},
 		"FAILED_TO_UNMARSHAL_CURRENT_ACTION": {
-			Code:    "GEN_203",
+			Code:    "GEN_116",
 			Message: "Failed to parse the current action data.",
 		},
 		"CURRENT_ACTION_INVALID_TYPE": {
-			Code:    "GEN_204",
+			Code:    "GEN_117",
 			Message: "Current action has an invalid data type.",
 		},
 		"CURRENT_ACTION_NIL": {
-			Code:    "GEN_205",
+			Code:    "GEN_118",
 			Message: "Current action is missing or nil.",
 		},
 		"ACTION_NOT_PENDING": {
-			Code:    "GEN_206",
+			Code:    "GEN_119",
 			Message: "Action is not in a pending state.",
 		},
 		"CHECKER_ID_EMPTY": {
-			Code:    "GEN_207",
+			Code:    "GEN_120",
 			Message: "Checker ID is required but was not provided.",
 		},
 		"ACTION_ID_EMPTY": {
-			Code:    "GEN_208",
+			Code:    "GEN_121",
 			Message: "Action ID is required but was not provided.",
 		},
 		"FAILED_TO_MARSHAL_CURRENT_ACTION": {
-			Code:    "GEN_209",
+			Code:    "GEN_122",
 			Message: "Failed to serialize the current action data.",
 		},
 		"FAILED_TO_MARSHAL_PREVIOUS_ACTION": {
-			Code:    "GEN_210",
+			Code:    "GEN_123",
 			Message: "Failed to serialize the previous action data.",
 		},
 		"PENDING_ACTION_EXISTS": {
-			Code:    "GEN_211",
+			Code:    "GEN_124",
 			Message: "A pending action already exists for this validation rule.",
 		},
 		"FAILED_TO_FETCH_PENDING_ACTIONS": {
-			Code:    "GEN_212",
+			Code:    "GEN_125",
 			Message: "Failed to fetch pending actions for this validation rule.",
 		},
 		"FAILED_TO_GET_AD": {
@@ -550,6 +550,30 @@ var DefineError = ErrorDefinitions{
 		"FAILED_TO_SAVE_OBJECT_TO_MINIO": {
 			Code:    "GEN_219",
 			Message: "failed to save object to MinIO",
+		},
+		"TIERS_REQUIRED": {
+			Code:    "GEN_126",
+			Message: "At least one tier is required.",
+		},
+		"TIERS_FIRST_MIN_ZERO": {
+			Code:    "GEN_127",
+			Message: "The first tier's minimum must start from 0.",
+		},
+		"TIERS_MIN_MUST_EQUAL_PREV_MAX": {
+			Code:    "GEN_127",
+			Message: "Tier minimum must equal the previous tier's maximum.",
+		},
+		"TIERS_MAX_MUST_INCREASE": {
+			Code:    "GEN_129",
+			Message: "Tier maximum must be greater than the previous tier's maximum.",
+		},
+		"TIERS_ABOVE_AMOUNT_MISMATCH": {
+			Code:    "GEN_130",
+			Message: "Above amount must match the last tier's maximum value.",
+		},
+		"NOT_IMPLEMENTED": {
+			Code:    "GEN_131",
+			Message: "Not implemented.",
 		},
 	},
 	Auth: ErrorGroup{
@@ -906,6 +930,29 @@ var DefineError = ErrorDefinitions{
 		"PENDING_ACTION_CHECK_FAILED": {
 			Code:    "ACT_007",
 			Message: "Failed to check pending actions.",
+		},
+		"FAILED_TO_CREATE_ACTION": {
+			Code:    "ACT_008",
+			Message: "Unable to create action.",
+		},
+		"ACTION_NOT_PENDING": {
+			Code:    "ACT_009",
+			Message: "Action is not in pending status.",
+		},
+		"FAILED_TO_UPDATE_ACTION": {
+			Code:    "ACT_010",
+			Message: "Failed to update action.",
+		}, "FAILED_TO_FETCH_ACTION": {
+			Code:    "ACT_011",
+			Message: "Failed to fetch action.",
+		},
+		"FAILED_TO_UPDATE_SERVICE": {
+			Code:    "ACT_012",
+			Message: "Failed to update service details.",
+		},
+		"FAILED_TO_UPDATE_CAP_MIN": {
+			Code:    "ACT_013",
+			Message: "Failed to update cap minimum amount.",
 		},
 	},
 	User: ErrorGroup{

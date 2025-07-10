@@ -159,3 +159,11 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action b
 	}
 	return nil
 }
+
+func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (CPSAction, error) {
+	createdAction, err := s.Repository.CreateCpsAction(ctx, action)
+	if err != nil {
+		return CPSAction{}, err
+	}
+	return createdAction, nil
+}

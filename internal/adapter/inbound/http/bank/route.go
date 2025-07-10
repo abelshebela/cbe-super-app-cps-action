@@ -17,7 +17,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: bank.CreateOneBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

@@ -38,6 +38,7 @@ mockgenRepository:
 	mockgen -source=./internal/domain/event/repository.go -destination=./mocks/domain/event/repository.go -package=mock_domain
 	mockgen -source=./internal/domain/miniapp/repository.go -destination=./mocks/domain/miniapp/repository.go -package=mock_domain
 	mockgen -source=./internal/domain/service/repository.go -destination=./mocks/domain/service/repository.go -package=mock_domain
+	mockgen -source=./internal/domain/department/repository.go -destination=./internal/domain/department/mocks/repo_mock.go -package=mocks
 
 mockgen_Mongo:
 	mockgen -source=./internal/adapter/outbound/mongo/init.go -destination=./mocks/port/outbound/mongo/mongo.go -package=mock_mongo

@@ -8,7 +8,7 @@ import (
 // Response structure for consistent API responses
 // swagger:model APIResponse
 type APIResponse struct {
-	Success bool        `json:"success"`
+	Status  int         `json:"status"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"` // Optional field, included only when necessary
 }
@@ -26,7 +26,7 @@ func WriteSuccessResponse(w http.ResponseWriter, data interface{}, message strin
 	w.WriteHeader(http.StatusOK) // 200 OK
 
 	response := APIResponse{
-		Success: true,
+		Status:  200,
 		Message: message,
 		Data:    data,
 	}
@@ -50,7 +50,7 @@ func WriteErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	w.WriteHeader(statusCode)
 
 	response := APIResponse{
-		Success: false,
+		Status:  400,
 		Message: message,
 	}
 

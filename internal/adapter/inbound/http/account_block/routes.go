@@ -101,7 +101,7 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/region/{id}",
+				Path:    "/region", 
 				Handler: handler.GetRegionByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

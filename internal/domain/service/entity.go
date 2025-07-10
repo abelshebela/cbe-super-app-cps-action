@@ -1,6 +1,10 @@
 package service
 
-import "time"
+import (
+	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+)
 
 type KYCLevel string
 
@@ -84,6 +88,7 @@ type RequestAction string
 
 const (
 	RequestServiceFeeUpdate RequestAction = "SERVICE_FEE_UPDATE"
+	RequestServiceFeeCreate RequestAction = "SERVICE_FEE_CREATE"
 )
 
 type ActionStatus string
@@ -106,7 +111,7 @@ type CPSAction struct {
 	CheckerPhoneNumber string        `json:"checker_phone_number" bson:"checker_phone_number"`
 	Department         string        `json:"department" bson:"department"`
 	RejectionReason    string        `json:"rejection_reason" bson:"rejection_reason"`
-	PreviosAction      any           `json:"previos_action" bson:"previos_action"`
+	PreviosAction      any           `json:"previous_action" bson:"previous_action"`
 	CurrentAction      any           `json:"current_action" bson:"current_action"`
 	ActionStatus       ActionStatus  `json:"action_status" bson:"action_status"`
 	ActionType         ActionType    `json:"action_type" bson:"action_type"`
@@ -119,4 +124,12 @@ type CPSAction struct {
 
 type UpdateServiceDetailsResponse struct {
 	ActionID string `json:"action_id"`
+}
+
+func (s Service) Validate() error {
+	return validation.ValidateStruct(&s,
+		validation.Field(&s.ServiceCode, validation.Required.Error("service code cannot be empty")),
+		validation.Field(&s.ServiceName, validation.Required.Error("service name cannot be empty")),
+		validation.Field(&s.ServiceType, validation.Required.Error("service type cannot be empty")),
+	)
 }

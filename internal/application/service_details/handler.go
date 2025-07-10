@@ -220,5 +220,5 @@ func (a *ApplicationStore) UpdateServiceCap(ctx context.Context, id string, cap 
 	}, nil
 }
 func (a *ApplicationStore) ApproveServiceDetails(ctx context.Context, req *dto.ApproveServiceDetailsRequest) error {
-	return a.service.ApproveServiceDetails(ctx, req.ActionID, req.Approve, req.CheckerID, req.RejectionReason)
+	return a.service.UpdateServiceDetails(ctx, req.ActionID, req.Approve, req.CheckerID, req.RejectionReason)
 }

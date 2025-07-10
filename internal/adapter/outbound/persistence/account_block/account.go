@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -372,19 +371,29 @@ func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchC
 		Enabled:       b.Enabled,
 	}, nil
 }
+
 func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) error {
-	department, _ := ctx.Value("department").(string)
-	if strings.TrimSpace(department) == "" {
-		return errors.New("department is required in context")
+	filter := bson.M{
+		"maker_user.user_code":       maker.MakerID,
+		"action_status":              model.ActionPending,
+		"action_type":                model.ActionDelete,
+		"request_action":             model.RequestDisableMultiBranches,
+		"current_action.region_code": regionCode,
+	}
+	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return fmt.Errorf("database error on FindOne CPSAction: %w", err)
+	}
+	if err == nil && existing != nil {
+		return fmt.Errorf("pending block action already exists for this region and maker")
 	}
 
-	fmt.Printf("Querying for region with region_code: %s\n", regionCode)
 	prevRegionPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"region_code": regionCode}, bson.M{})
-	fmt.Printf("FindOne error: %v\n", err)
-	fmt.Printf("FindOne result: %+v\n", prevRegionPtr)
-
+	if err != nil && err != mongo.ErrNoDocuments {
+		return fmt.Errorf("database error on FindOne Region: %w", err)
+	}
 	var prevAction json.RawMessage
-	if err == nil && prevRegionPtr != nil {
+	if prevRegionPtr != nil {
 		prevAction, _ = json.Marshal(prevRegionPtr)
 	} else {
 		prevAction = json.RawMessage("null")
@@ -393,27 +402,24 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode 
 	currAction, _ := json.Marshal(regionCode)
 
 	cpsAction := model.CPSAction{
-		ActionCode:         utils.RandomGenerator(24),
-		MakerID:            maker.MakerID,
-		MakerName:          maker.MakerName,
-		MakerPhoneNumber:   maker.MakerPhoneNumber,
-		CheckerID:          maker.CheckerID,
-		CheckerName:        maker.CheckerName,
-		CheckerPhoneNumber: maker.CheckerPhoneNumber,
-		UniqueId:           regionCode,
-		Department:         department,
-		RejectionReason:    *maker.RejectionReason,
-		PreviosAction:      prevAction,
-		CurrentAction:      currAction,
-		ActionStatus:       string(model.ActionPending),
-		ActionType:         string(model.ActionDelete),
-		RequestAction:      string(model.RequestDisableMultiBranches),
-		CreatedAt:          time.Now(),
-		LastModifiedAt:     time.Now(),
+		ActionCode:       utils.RandomGenerator(24),
+		MakerID:          maker.MakerID,
+		MakerName:        maker.MakerName,
+		MakerPhoneNumber: maker.MakerPhoneNumber,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestDisableMultiBranches),
+		PreviosAction:    prevAction,
+		CurrentAction:    currAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	return err
+	if err != nil {
+		return fmt.Errorf("database error on InsertOne CPSAction: %w", err)
+	}
+	return nil
 }
 func (o *outboundAccountBlockStore) UpdateRegion(ctx context.Context, region action.Region) error {
 	filter := bson.M{"id": region.ID}
@@ -430,7 +436,6 @@ func (o *outboundAccountBlockStore) UpdateRegion(ctx context.Context, region act
 	_, err := o.MongoDalRegion.UpdateOne(ctx, filter, update)
 	return err
 }
-
 func (o *outboundAccountBlockStore) ApproveRegionBlock(
 	ctx context.Context,
 	actionID string,
@@ -443,86 +448,90 @@ func (o *outboundAccountBlockStore) ApproveRegionBlock(
 	}
 
 	filter := bson.M{"action_code": actionID}
-	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-	if err != nil || actionDoc == nil {
-		return errors.New("action not found")
+	update := bson.M{
+		"last_modified_at": time.Now(),
 	}
-
-	regionID := actionDoc.UniqueId
-
-	checkerInfo := bson.M{
-		"checker_code": checker.UserID,
-		"checker_name": checker.FullName,
-		"checked_at":   time.Now(),
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
+	}
+	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
 	}
 
 	if !approve {
-		update := bson.M{
-			"$set": bson.M{
-				"action_status":    "REJECTED",
-				"last_modified_at": time.Now(),
-				"reason":           reason,
-			},
-			"$push": bson.M{
-				"checker_history": checkerInfo,
-			},
-		}
-		_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-		return err
+		return nil
 	}
-	regionObjID, err := primitive.ObjectIDFromHex(regionID)
+
+	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil || actionDoc == nil {
+		return errors.New("action not found after update")
+	}
+	var regionCode string
+	switch v := actionDoc.CurrentAction.(type) {
+	case string:
+		regionCode = strings.Trim(v, `"`)
+	case []byte:
+		_ = json.Unmarshal(v, &regionCode)
+		regionCode = strings.Trim(regionCode, `"`)
+	case bson.Binary:
+		_ = json.Unmarshal(v.Data, &regionCode)
+		regionCode = strings.Trim(regionCode, `"`)
+	default:
+		return errors.New("region_code missing in action")
+	}
+	regionCode = strings.TrimSpace(regionCode)
+	if regionCode == "" {
+		return errors.New("region_code missing in action")
+	}
+
+	region, err := o.GetRegionByCode(ctx, regionCode)
 	if err != nil {
-		return fmt.Errorf("invalid regionID: %w", err)
-	}
-
-	fmt.Printf("Looking for region with _id: %s\n", regionObjID.Hex())
-
-	regionDoc, err := o.MongoDalRegion.FindOne(ctx, bson.M{"_id": regionObjID}, nil)
-	if err != nil || regionDoc == nil {
 		return fmt.Errorf("region not found: %w", err)
 	}
-	fmt.Printf("regionID: %s, regionObjID: %v, type: %T\n", regionID, regionObjID, regionObjID)
-	regionName := regionDoc.RegionName
+
+	branchUpdate := bson.M{
+		"$set": bson.M{
+			"enabled":    false,
+			"updated_at": time.Now(),
+		},
+	}
+	branchFilter := bson.M{
+		"$or": []bson.M{
+			{"branch_region_code": region.RegionCode},
+			{"branch_region": region.RegionName},
+		},
+	}
+	branches, err := o.MongoDalBranch.FindAll(ctx, branchFilter, nil)
+	if err != nil {
+		return fmt.Errorf("failed to fetch branches in region: %w", err)
+	}
+	for _, branch := range branches {
+		if branch == nil {
+			continue
+		}
+		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"_id": branch.ID}, branchUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to disable branch %s: %w", branch.BranchCode, err)
+		}
+	}
 
 	regionUpdate := bson.M{
 		"enabled":    false,
 		"updated_at": time.Now(),
 	}
-	_, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"_id": regionObjID}, regionUpdate)
+	_, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"region_code": regionCode}, regionUpdate)
 	if err != nil {
-		return fmt.Errorf("failed to disable region: %w", err)
+		return fmt.Errorf("failed to disable region %s: %w", regionCode, err)
 	}
 
-	branches, err := o.MongoDalBranch.FindAll(ctx, bson.M{"branchRegion": regionName}, nil)
-	if err != nil {
-		return fmt.Errorf("failed to fetch branches in region: %w", err)
-	}
-	branchUpdate := bson.M{
-		"enabled":    false,
-		"updated_at": time.Now(),
-	}
-	for _, branch := range branches {
-		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"_id": branch.ID}, branchUpdate)
-		if err != nil {
-			return fmt.Errorf("failed to disable branch %v: %w", branch.ID, err)
-		}
-	}
-
-	// Update the action status to APPROVED
-	updateAction := bson.M{
-		"$set": bson.M{
-			"action_status":    "APPROVED",
-			"last_modified_at": time.Now(),
-			"reason":           reason,
-		},
-		"$push": bson.M{
-			"checker_history": checkerInfo,
-		},
-	}
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, updateAction)
-	return err
+	return nil
 }
-
 func (o *outboundAccountBlockStore) GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error) {
 	if regionCode == "" {
 		return action.Region{}, fmt.Errorf("regionCode is required")

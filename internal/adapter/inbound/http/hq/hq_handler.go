@@ -6,7 +6,6 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -126,18 +125,33 @@ func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
-	if err := h.handler.UpdateBlockTime(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName); err != nil {
+	if err := h.handler.UpdateBlockTime(r.Context(), request, userID, phoneNumber, fullName); err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
+	action := "approved"
+	if request.Decison == utils.DecisionDenied {
+		action = "rejected"
+	}
+	response := map[string]interface{}{
+		"status":  "success",
+		"message": "update request " + action + " successfully Approved",
+		"data":    map[string]interface{}{"action": action},
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request) {
@@ -152,16 +166,31 @@ func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
 		return
 	}
 
-	if err := h.handler.UpdateArchiveTime(r.Context(), request, claims.UserID, claims.PhoneNumber, claims.FullName); err != nil {
+	if err := h.handler.UpdateArchiveTime(r.Context(), request, userID, phoneNumber, fullName); err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
+	action := "approved"
+	if request.Decison == utils.DecisionDenied {
+		action = "rejected"
+	}
+	response := map[string]interface{}{
+		"status":  "success",
+		"message": "update request " + action + " successfully Approved",
+		"data":    map[string]interface{}{"action": action},
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
 }

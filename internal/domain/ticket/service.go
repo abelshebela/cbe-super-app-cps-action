@@ -11,7 +11,7 @@ import (
 
 func (s *TicketStore) CreateTicketAction(ctx context.Context, ticket Ticket, makerId string) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	previos_action := ticket
+	previous_action := ticket
 	action := domain.CPSAction{
 		ActionCode: actionId,
 		MakerID:    makerId,
@@ -19,7 +19,7 @@ func (s *TicketStore) CreateTicketAction(ctx context.Context, ticket Ticket, mak
 		ActionType:    domain.ActionCreate,
 		RequestAction: domain.RequestCreateMiniAppMerchant,
 		ActionStatus:  domain.ActionPending,
-		PreviosAction: previos_action,
+		PreviosAction: previous_action,
 	}
 	a, err := s.repository.CreateTicketAction(ctx, action)
 	if err != nil {

@@ -75,12 +75,18 @@ func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) e
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("invalid HQ ObjectID: %v", err)
+		return err
+	}
+	// fmt.Println("update", update)
 	updateDoc := bson.M{
 		"block_time":       update.BlockTime,
 		"archive_time":     update.ArchiveTime,
 		"last_modified_at": time.Now(),
 	}
-	_, err := p.hqDal.UpdateOne(ctx, bson.M{"_id": id}, updateDoc)
+	_, err = p.hqDal.UpdateOne(ctx, bson.M{"_id": objID}, updateDoc)
 	if err != nil {
 		p.logger.Errorf("failed to update HQ: %v", err)
 		return err
