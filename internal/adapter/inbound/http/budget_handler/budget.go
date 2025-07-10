@@ -14,9 +14,9 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 )
 
 type BudgetHandler struct {
@@ -34,22 +34,14 @@ func NewBudgetHTTPHandler(budgetService budget.BudgetService, logger utils.Logge
 func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		h.logger.Errorf("failed to parse form data: %v", err)
-		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid multipart form",
-		})
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, "Failed to parse multipart form", http.StatusBadRequest, nil)
 		return
 	}
 
 	file, fileHeader, err := r.FormFile("icons_image")
 	if err != nil {
-		err = fmt.Errorf("failed to read icons image: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "missing or invalid icons image",
-		})
-		h.logger.Errorf("icons_image error: %v", err)
-		middleware.ErrorHandler(w, err)
+		h.logger.Errorf("failed to read icons image: %c", err)
+		common_util.SendErrorResponse(w, "Missing or invalid icons image", http.StatusBadRequest, nil)
 		return
 	}
 	defer file.Close()
@@ -74,17 +66,16 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 	action, err := h.budgetService.CreateIcon(r.Context(), cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to create budget icon: %v", err)
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
-	res := common.Response[*entities.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           action,
+	data, err := common_util.StructToMap(action)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
 	}
-
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Budget icon request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
@@ -146,17 +137,18 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 
 	action, err := h.budgetService.UpdateIcon(r.Context(), id, cpsAction)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// http.Error(w, err.Error(), http.StatusInternalServerError)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
+
 		return
 	}
 
-	res := common.Response[*entities.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           action,
+	data, err := common_util.StructToMap(action)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
 	}
 
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Update request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request) {
@@ -188,7 +180,7 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 
 	action, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {
-			common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 

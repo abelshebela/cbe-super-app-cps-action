@@ -44,11 +44,7 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	cps, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("failed to create CPS action")
 	}
 
 	return &cps, nil
@@ -77,6 +73,7 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 			Code:    http.StatusNotFound,
 			Message: "icon not found",
 		})
+
 		return nil, err
 	}
 
