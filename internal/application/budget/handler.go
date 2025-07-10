@@ -133,10 +133,7 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 	iconData, ok := cpsAction.CurrentAction.(map[string]interface{})
 	if !ok {
 		b.logger.Errorf("invalid current action type")
-		return nil, fmt.Errorf("invalid current action: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid icon action format",
-		})
+		return nil, fmt.Errorf("invalid current action type")
 	}
 
 	imageFileHeader, ok := iconData["icon_url"].(*multipart.FileHeader)

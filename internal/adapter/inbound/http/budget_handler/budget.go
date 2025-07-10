@@ -2,7 +2,6 @@ package budget_handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
@@ -81,39 +79,27 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
 	icons, err := h.budgetService.FetchIcons(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.logger.Errorf("failed to fetch budget icons: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
-	res := common.Response[[]*entities.Icon]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           icons,
-	}
-
-	res.SendJSON()
+	data := map[string]interface{}{"icons": icons}
+	common_util.BaseResponseMaker(data, w, "Icons fetched successfully", 200)
 }
 
 func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		h.logger.Errorf("failed to parse form data: %v", err)
-		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid multipart form",
-		})
-		middleware.ErrorHandler(w, err)
+		// h.logger.Errorf("failed to parse form data: %v", err)
+		// common_util.SendErrorResponse(w, "Failed to parse multipart form", http.StatusBadRequest, nil)
 		return
 	}
 
 	file, fileHeader, err := r.FormFile("icons_image")
 	if err != nil {
-		err = fmt.Errorf("failed to read icons image: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "missing or invalid icons image",
-		})
 		h.logger.Errorf("icons_image error: %v", err)
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, "Missing or invalid icons image", http.StatusBadRequest, nil)
 		return
 	}
 	defer file.Close()
@@ -137,7 +123,7 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 
 	action, err := h.budgetService.UpdateIcon(r.Context(), id, cpsAction)
 	if err != nil {
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.logger.Errorf("failed to update budger icon: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 
 		return
