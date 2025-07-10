@@ -34,6 +34,7 @@ type BankService interface {
 	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	CheckExistingBank(ctx context.Context, name string) (bool, error)
+	UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioClientInterface,
@@ -62,6 +63,15 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	if err := actionData.Validate(); err != nil {
 		b.logger.Errorf("validation error", err.Error())
 		return nil, err
+	}
+
+	BankExists, err := b.bankRepo.CheckExistingBank(ctx, actionData.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if BankExists {
+		return nil, fmt.Errorf(error_codes.BankAlreadyExists)
 	}
 
 	exist, err := b.minioClient.BucketExist(ctx, b.bucketName)
@@ -213,4 +223,58 @@ func (b *BankDomain) CheckExistingBank(ctx context.Context, name string) (bool, 
 	}
 
 	return false, nil
+}
+
+func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
+	req.RequestAction = model.RequestUpdateBank
+	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
+		return nil, err
+	}
+
+	actionData, ok := req.ActionData.(dto.UpdateLogo)
+	if !ok {
+		b.logger.Errorf("failed to cast action data to bank request")
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
+	}
+
+	if err := actionData.Validate(); err != nil {
+		b.logger.Errorf("validation error", err)
+		return nil, err
+	}
+
+	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), actionData.Logo.Filename)
+	file, err := actionData.Logo.Open()
+	if err != nil {
+		b.logger.Errorf("failed to open uploaded file: %v", err)
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+	}
+	defer file.Close()
+
+	saveObj, err := b.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  b.bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        actionData.Logo.Size,
+		ContentType: config.ContentType(actionData.Logo.Header.Get("Content-Type")),
+	})
+
+	if err != nil {
+		b.logger.Errorf("failed to save object to MinIO: %v", err)
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+	}
+
+	cpsRes, err := b.bankRepo.UpdateLogo(ctx, id, model.CreateCPSAction{
+		MakerUser:  req.MakerUser,
+		Department: req.Department,
+		ActionData: entity.UpdateLogo{
+			ID:   actionData.ID,
+			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cpsRes, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -21,8 +22,8 @@ type BankHandlerService interface {
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
-	EnableOrDisableBank(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 type BankHandler struct {
@@ -38,17 +39,14 @@ func InitBankHanlder(bankDomin service.BankService, logger utils.Logger) BankHan
 }
 
 func (b *BankHandler) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
-
 	reqData := req.ActionData.(dto.CreateBankRequest)
-
 	existing, err := b.CheckExstingBank(ctx, reqData.Name)
 	if err != nil {
-
 		return nil, err
 	}
 
 	if existing {
-		return nil, fmt.Errorf("BANK_NAME_ALREADY_EXIST")
+		return nil, fmt.Errorf(common_util.BankAlreadyExists)
 	}
 	cpsRes, err := b.bankDomain.CreateOneBank(ctx, req)
 	if err != nil {
@@ -134,4 +132,8 @@ func (b *BankHandler) CheckExstingBank(ctx context.Context, name string) (bool, 
 		return true, nil
 	}
 	return false, nil
+}
+
+func (b *BankHandler) UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
+	return b.bankDomain.UpdateLogo(ctx, id, req)
 }
