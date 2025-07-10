@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	mockrepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository/mocks"
@@ -174,8 +175,8 @@ func TestCPSUserService_GetPendingUserActions(t *testing.T) {
 
 	actionCode := "AC1"
 	expected := []action.CPSAction{
-		{ID: "1", ActionCode: "AC1"},
-		{ID: "2", ActionCode: "AC1"},
+		{ID: bson.NewObjectID(), ActionCode: "AC1"},
+		{ID: bson.NewObjectID(), ActionCode: "AC1"},
 	}
 
 	tests := []struct {

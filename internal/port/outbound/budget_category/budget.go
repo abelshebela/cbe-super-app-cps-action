@@ -9,13 +9,13 @@ import (
 )
 
 type BudgetCategoryOutbound interface {
-	CreateBudgetCategoryAction(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest, maker action_entity.User) (string, error)
-	UpdateBudgetCategoryAction(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest, maker action_entity.User) (string, error)
-	DeleteBudgetCategoryAction(ctx context.Context, budgetCategory dto.DeleteBudgetCategoryRequest, maker action_entity.User) (string, error)
-	ApproveBudgetCategoryAction(ctx context.Context, actionId string, approve bool, checker action_entity.User) error
+	CreateAction(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest, maker action_entity.User) (action_entity.CPSAction, error)
+	ApproveAction(ctx context.Context, approveRequest dto.ApproveBudgetCategoryRequest, checker action_entity.User) (action_entity.CPSAction, error)
+
 	CreateBudgetCategory(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest) (entity.BudgetCategory, error)
 	UpdateBudgetCategory(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest) (entity.BudgetCategory, error)
 	DeleteBudgetCategory(ctx context.Context, budgetCategory dto.DeleteBudgetCategoryRequest) error
+
 	GetBudgetCategory(ctx context.Context, budgetCategory dto.GetBudgetCategoryRequest) (*entity.BudgetCategory, error)
 	GetAllBudgetCategory(ctx context.Context, getAllBudgetCategory dto.GetAllBudgetCategoryRequest) ([]*entity.BudgetCategory, error)
 }

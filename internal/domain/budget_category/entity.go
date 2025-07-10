@@ -13,5 +13,5 @@ type BudgetCategory struct {
 	Description   string        `bson:"description,omitempty" json:"description,omitempty"`
 	CreatedAt     time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	LastUpdatedAt time.Time     `bson:"last_updated_at,omitempty" json:"last_updated_at,omitempty"`
-	IsDeleted     bool          `bson:"is_deleted,omitempty" json:"is_deleted,omitempty"`
+	IsDeleted     bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
 }

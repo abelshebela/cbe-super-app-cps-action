@@ -3,6 +3,7 @@ package dto
 import (
 	"errors"
 
+	action_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
@@ -18,6 +19,9 @@ type CreateBudgetCategoryRequest struct {
 	BucketName  string `json:"bucket_name,omitempty" form:"bucket_name,omitempty"`
 	ObjectName  string `json:"object_name,omitempty" form:"object_name,omitempty"`
 	Description string `json:"description,omitempty" form:"description,omitempty"`
+
+	ActionType    string `json:"action_type,omitempty" bson:"action_type,omitempty"`
+	RequestAction string `json:"request_action,omitempty" bson:"request_action,omitempty"`
 }
 
 type UpdateBudgetCategoryRequest struct {
@@ -28,6 +32,9 @@ type UpdateBudgetCategoryRequest struct {
 	BucketName  string `json:"bucket_name,omitempty" bson:"bucket_name,omitempty"`
 	ObjectName  string `json:"object_name,omitempty" bson:"object_name,omitempty"`
 	Description string `json:"description,omitempty" bson:"description,omitempty"`
+
+	ActionType    string `json:"action_type,omitempty" bson:"action_type,omitempty"`
+	RequestAction string `json:"request_action,omitempty" bson:"request_action,omitempty"`
 }
 
 type GetBudgetCategoryRequest struct {
@@ -36,6 +43,9 @@ type GetBudgetCategoryRequest struct {
 
 type DeleteBudgetCategoryRequest struct {
 	ID string `json:"id"`
+
+	ActionType    string `json:"action_type,omitempty" bson:"action_type,omitempty"`
+	RequestAction string `json:"request_action,omitempty" bson:"request_action,omitempty"`
 }
 
 type GetAllBudgetCategoryRequest struct {
@@ -46,7 +56,7 @@ type GetAllBudgetCategoryRequest struct {
 
 type ApproveBudgetCategoryRequest struct {
 	ActionID string `json:"action_id"`
-	Approve  bool   `json:"approve"`
+	Status   string `json:"status"`
 	Reason   string `json:"reason"`
 }
 
@@ -65,7 +75,8 @@ func (r CreateBudgetCategoryRequest) Validate() error {
 func (r UpdateBudgetCategoryRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID,
-			validation.Required.Error("ID is required"),
+			validation.Required.Error("The Budget Category id is required"),
+			is.MongoID.Error("invalid ID format"),
 		),
 		validation.Field(&r.Name,
 			validation.When(r.Name != "", validation.Length(2, 100).Error("name must be between 2-100 characters")),
@@ -82,7 +93,8 @@ func (r UpdateBudgetCategoryRequest) Validate() error {
 func (r GetBudgetCategoryRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID,
-			validation.Required.Error("ID is required"),
+			validation.Required.Error("The Budget Category id is required"),
+			is.MongoID.Error("invalid ID format"),
 		),
 	)
 }
@@ -90,7 +102,7 @@ func (r GetBudgetCategoryRequest) Validate() error {
 func (r DeleteBudgetCategoryRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID,
-			validation.Required.Error("ID is required"),
+			validation.Required.Error("The Budget Category id is required"),
 			is.MongoID.Error("invalid ID format"),
 		),
 	)
@@ -130,11 +142,36 @@ func (r ApproveBudgetCategoryRequest) Validate() error {
 			validation.Required.Error("action_id is required"),
 			is.MongoID.Error("invalid action_id format"),
 		),
-		validation.Field(&r.Approve,
-			validation.Required.Error("approve is required"),
+		validation.Field(&r.Status,
+			validation.Required.Error("status is required"),
+			validation.In("APPROVED", "REJECTED").Error("status must be APPROVED or REJECTED"),
 		),
 		validation.Field(&r.Reason,
-			validation.Required.Error("reason is required"),
+			validation.When(r.Status == "REJECTED", validation.Required.Error("reason is required")),
 		),
 	)
+}
+
+func (r CreateBudgetCategoryRequest) GetActionType() action_entity.ActionType {
+	return action_entity.ActionCreate
+}
+
+func (r CreateBudgetCategoryRequest) GetRequestAction() string {
+	return r.RequestAction
+}
+
+func (r UpdateBudgetCategoryRequest) GetActionType() action_entity.ActionType {
+	return action_entity.ActionUpdate
+}
+
+func (r UpdateBudgetCategoryRequest) GetRequestAction() string {
+	return r.RequestAction
+}
+
+func (r DeleteBudgetCategoryRequest) GetActionType() action_entity.ActionType {
+	return action_entity.ActionDelete
+}
+
+func (r DeleteBudgetCategoryRequest) GetRequestAction() string {
+	return r.RequestAction
 }

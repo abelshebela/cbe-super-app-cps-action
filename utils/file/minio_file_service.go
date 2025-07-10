@@ -33,8 +33,12 @@ func (m *fileService) UploadImage(ctx context.Context, file multipart.File, head
 		return nil, fmt.Errorf("UPLOAD_FAILED")
 	}
 	defer func() {
-		tempFile.Close()
-		os.Remove(tempFile.Name())
+		if err := tempFile.Close(); err != nil {
+			m.logger.Errorf("failed to close temp file: %v", err)
+		}
+		if err := os.Remove(tempFile.Name()); err != nil {
+			m.logger.Errorf("failed to remove temp file: %v", err)
+		}
 	}()
 
 	if _, err := io.Copy(tempFile, file); err != nil {

@@ -49,7 +49,12 @@ func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, a
 		}
 	}
 
-	responseBytes, _ := json.Marshal(response)
+	responseBytes, err := json.Marshal(response)
+	if err != nil {
+		log.Printf("failed to marshal response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	var responseMap map[string]interface{}
 
 	if err := json.Unmarshal(responseBytes, &responseMap); err != nil {
@@ -57,7 +62,9 @@ func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, a
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	ResponseMaker(responseMap, w)
+	if err := json.NewEncoder(w).Encode(responseMap); err != nil {
+		log.Printf("failed to encode error response: %v", err)
+	}
 }
 
 func SendSuccessResponse(w http.ResponseWriter, data interface{}, statusCode int) {

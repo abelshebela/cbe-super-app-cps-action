@@ -58,6 +58,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		PasswordRuleDomain:   password_service.NewPasswordRuleService(persistence.PasswordRulesPersistence),
 		BankDomain:           bank_service.InitBankDomain(persistence.BankPersistance, minioClient, "banks", logger),
 		DepartmentDomain:     *department.InitDepartmentDomain(persistence.DepartmentPersistence, persistence.DepartmentPersistence, logger),
-		BudgetCategoryDomain: *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, persistence.actionPersistance, logger),
+		BudgetCategoryDomain: *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, logger),
 	}
 }

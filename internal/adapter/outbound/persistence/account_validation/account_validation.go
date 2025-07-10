@@ -80,7 +80,7 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 		}
 
 		return account_validation.ValidationRule{
-			ID:             rule.ID.Hex(),
+			ID:             rule.ID,
 			EntityType:     rule.EntityType,
 			ValidationFor:  rule.ValidationFor,
 			Identifier:     rule.Identifier,
@@ -118,7 +118,7 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 	}
 
 	return account_validation.ValidationRule{
-		ID:             rule.ID.Hex(),
+		ID:             rule.ID,
 		EntityType:     rule.EntityType,
 		ValidationFor:  rule.ValidationFor,
 		Identifier:     rule.Identifier,

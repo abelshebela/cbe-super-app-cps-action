@@ -16,6 +16,7 @@ type ErrorDefinitions struct {
 	OTP         ErrorGroup
 	File        ErrorGroup
 	Budget      ErrorGroup
+	Action      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -310,7 +311,20 @@ var DefineError = ErrorDefinitions{
 			Message: "Failed to upload file.",
 		},
 	},
-
+	Action: ErrorGroup{
+		"ACTION_ALREADY_APPROVED": {
+			Code:    "ACT_001",
+			Message: "Action already approved.",
+		},
+		"ACTION_ALREADY_REJECTED": {
+			Code:    "ACT_002",
+			Message: "Action already rejected.",
+		},
+		"ACTION_NOT_FOUND": {
+			Code:    "ACT_003",
+			Message: "Action not found.",
+		},
+	},
 	Budget: ErrorGroup{
 		"BUDGET_ALREADY_SET": {
 			Code:    "BUG_001",

@@ -30,11 +30,11 @@ const (
 )
 
 type User struct {
-	UserID      string
-	UserCode    string
-	FullName    string
-	PhoneNumber string
-	Timestamp   time.Time
+	UserID      string    `bson:"user_id,omitempty" json:"user_id,omitempty"`
+	UserCode    string    `bson:"user_code,omitempty" json:"user_code,omitempty"`
+	FullName    string    `bson:"full_name,omitempty" json:"full_name,omitempty"`
+	PhoneNumber string    `bson:"phone_number,omitempty" json:"phone_number,omitempty"`
+	Timestamp   time.Time `bson:"timestamp,omitempty" json:"timestamp,omitempty"`
 }
 
 type CurrentAction struct {
@@ -56,7 +56,7 @@ type CPSAction struct {
 	RequestAction   RequestAction `bson:"request_action,omitempty" json:"request_action,omitempty"`
 	CreatedAt       time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	LastModifiedAt  time.Time     `bson:"last_modified_at,omitempty" json:"last_modified_at,omitempty"`
-	IsDeleted       bool          `bson:"is_deleted,omitempty" json:"is_deleted,omitempty"`
+	IsDeleted       bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
 }
 
 type RequestAction string

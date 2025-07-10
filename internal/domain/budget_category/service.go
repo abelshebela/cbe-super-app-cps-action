@@ -12,154 +12,98 @@ import (
 
 type BudgetCategoryService struct {
 	repository Repository
-	actionRepo action.IActionRepository
 	logger     utils.Logger
 }
 
-func NewBudgetCategoryService(repository Repository, actionRepo action.IActionRepository, logger utils.Logger) *BudgetCategoryService {
+func NewBudgetCategoryService(repository Repository, logger utils.Logger) *BudgetCategoryService {
 	return &BudgetCategoryService{
 		repository: repository,
-		actionRepo: actionRepo,
 		logger:     logger,
 	}
 }
 
-func (s *BudgetCategoryService) CreateBudgetCategoryAction(ctx context.Context, req dto.CreateBudgetCategoryRequest, maker action.User) (string, error) {
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	cpsAction := action.CPSAction{
-		ActionCode:     actionId,
-		Maker:          maker,
-		ActionType:     action.ActionCreate,
-		RequestAction:  action.RequestAction("CREATE_BUDGET_CATEGORY"),
-		ActionStatus:   action.ActionPending,
-		CurrentAction:  req,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	}
-	_, err := s.actionRepo.CreateCpsAction(ctx, cpsAction)
-	if err != nil {
-		return "", err
-	}
-	return actionId, nil
+func (s *BudgetCategoryService) CreateAction(ctx context.Context, req any, maker action.User) (action.CPSAction, error) {
+	return s.repository.CreateAction(ctx, req, maker)
 }
 
-func (s *BudgetCategoryService) UpdateBudgetCategoryAction(ctx context.Context, req dto.UpdateBudgetCategoryRequest, maker action.User) (string, error) {
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	cpsAction := action.CPSAction{
-		ActionCode:     actionId,
-		Maker:          maker,
-		ActionType:     action.ActionUpdate,
-		RequestAction:  action.RequestAction("UPDATE_BUDGET_CATEGORY"),
-		ActionStatus:   action.ActionPending,
-		CurrentAction:  req,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	}
-	_, err := s.actionRepo.CreateCpsAction(ctx, cpsAction)
+func (s *BudgetCategoryService) ApproveAction(ctx context.Context, approveRequest dto.ApproveBudgetCategoryRequest, checker action.User) (action.CPSAction, error) {
+	cpsAction, err := s.repository.FindActionById(ctx, approveRequest.ActionID)
 	if err != nil {
-		return "", err
-	}
-	return actionId, nil
-}
-
-func (s *BudgetCategoryService) DeleteBudgetCategoryAction(ctx context.Context, req dto.DeleteBudgetCategoryRequest, maker action.User) (string, error) {
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	cpsAction := action.CPSAction{
-		ActionCode:     actionId,
-		Maker:          maker,
-		ActionType:     action.ActionDelete,
-		RequestAction:  action.RequestAction("DELETE_BUDGET_CATEGORY"),
-		ActionStatus:   action.ActionPending,
-		CurrentAction:  req,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	}
-	_, err := s.actionRepo.CreateCpsAction(ctx, cpsAction)
-	if err != nil {
-		return "", err
-	}
-	return actionId, nil
-}
-func (s *BudgetCategoryService) ApproveBudgetCategoryAction(ctx context.Context, actionId string, approve bool, checker action.User) error {
-	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionId)
-	if err != nil {
-		return err
+		s.logger.Errorf("find action by id error: %v", err)
+		return action.CPSAction{}, err
 	}
 
 	if cpsAction.ActionStatus == action.ActionApproved {
-		return dto.ErrActionApproved
+		s.logger.Errorf("action already approved")
+		return action.CPSAction{}, dto.ErrActionApproved
 	}
 
 	if cpsAction.ActionStatus == action.ActionRejected {
-		return dto.ErrActionRejected
+		s.logger.Errorf("action already rejected")
+		return action.CPSAction{}, dto.ErrActionRejected
 	}
 
 	var operationErr error
 
-	if approve {
+	if approveRequest.Status == "APPROVED" {
 		cpsAction.ActionStatus = action.ActionApproved
-
-		switch cpsAction.ActionType {
-		case action.ActionCreate:
-			var req dto.CreateBudgetCategoryRequest
-			if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
-				return err
-			}
-			_, operationErr = s.CreateBudgetCategory(ctx, req)
-
-		case action.ActionUpdate:
-			var req dto.UpdateBudgetCategoryRequest
-			if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
-				return err
-			}
-			_, operationErr = s.UpdateBudgetCategory(ctx, req)
-			if operationErr == nil {
-				s.logger.Infof("Budget category updated successfully")
-			}
-
-		case action.ActionDelete:
-			var req dto.DeleteBudgetCategoryRequest
-			if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
-				return err
-			}
-			operationErr = s.DeleteBudgetCategory(ctx, req)
-		}
+		operationErr = s.executeApprovedAction(ctx, cpsAction)
 	} else {
 		cpsAction.ActionStatus = action.ActionRejected
-
-		if cpsAction.ActionType == action.ActionCreate {
-			// var req dto.CreateBudgetCategoryRequest
-			// if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
-			// 	return err
-			// }
-
-			// deleteObjectBody := config.DeleteObjectBody{
-			// 	BucketName: req.BucketName,
-			// 	ObjectName: req.ObjectName,
-			// }
-
-			// if _, err := s.minioClient.DeleteObject(ctx, deleteObjectBody); err != nil {
-			// 	s.logger.Errorf("failed to delete object from minio: %v", err)
-			// 	return err
-			// }
-		}
+		cpsAction.RejectionReason = &approveRequest.Reason
 	}
 
 	cpsAction.Checker = checker
 	cpsAction.LastModifiedAt = time.Now()
 
-	if _, updateErr := s.actionRepo.UpdateCpsAction(ctx, *cpsAction); updateErr != nil {
+	if _, updateErr := s.repository.UpdateAction(ctx, cpsAction.ID, checker, cpsAction.ActionStatus); updateErr != nil {
 		if operationErr != nil {
-			s.logger.Errorf("operationErr: %v", operationErr)
+			s.logger.Errorf("operation error: %v", operationErr)
 		}
-		return updateErr
+		return *cpsAction, updateErr
 	}
 
-	return operationErr
+	return *cpsAction, operationErr
+}
+
+func (s *BudgetCategoryService) executeApprovedAction(ctx context.Context, cpsAction *action.CPSAction) error {
+	switch cpsAction.ActionType {
+	case action.ActionCreate:
+		var req dto.CreateBudgetCategoryRequest
+		if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
+			return err
+		}
+		_, err := s.CreateBudgetCategory(ctx, req)
+		return err
+
+	case action.ActionUpdate:
+		var req dto.UpdateBudgetCategoryRequest
+		if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
+			return err
+		}
+		_, err := s.UpdateBudgetCategory(ctx, req)
+		if err == nil {
+			s.logger.Infof("Budget category updated successfully")
+		}
+		return err
+
+	case action.ActionDelete:
+		var req dto.DeleteBudgetCategoryRequest
+		if err := bindAction(cpsAction.CurrentAction, &req); err != nil {
+			return err
+		}
+		return s.DeleteBudgetCategory(ctx, req)
+
+	default:
+		return nil
+	}
 }
 
 func (s *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest) (BudgetCategory, error) {
 	return s.repository.CreateBudgetCategory(ctx, budgetCategory)
+}
+func (s *BudgetCategoryService) FindBudgetCategoryById(ctx context.Context, id string) (*BudgetCategory, error) {
+	return s.repository.FindBudgetCategoryById(ctx, id)
 }
 
 func (s *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest) (BudgetCategory, error) {

@@ -5,15 +5,17 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Repository interface {
-	CreateBudgetCategoryAction(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest, maker action.User) (string, error)
-	UpdateBudgetCategoryAction(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest, maker action.User) (string, error)
-	DeleteBudgetCategoryAction(ctx context.Context, budgetCategory dto.DeleteBudgetCategoryRequest, maker action.User) (string, error)
-	ApproveBudgetCategoryAction(ctx context.Context, actionId string, approve bool, checker action.User) error
+	CreateAction(ctx context.Context, data interface{}, maker action.User) (action.CPSAction, error)
+	UpdateAction(ctx context.Context, actionId bson.ObjectID, checker action.User, status action.ActionStatus) (action.CPSAction, error)
+	FindActionById(ctx context.Context, actionId string) (*action.CPSAction, error)
+	ApproveAction(ctx context.Context, approveRequest dto.ApproveBudgetCategoryRequest, checker action.User) (action.CPSAction, error)
 
 	CreateBudgetCategory(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest) (BudgetCategory, error)
+	FindBudgetCategoryById(ctx context.Context, id string) (*BudgetCategory, error)
 	UpdateBudgetCategory(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest) (BudgetCategory, error)
 	DeleteBudgetCategory(ctx context.Context, budgetCategory dto.DeleteBudgetCategoryRequest) error
 

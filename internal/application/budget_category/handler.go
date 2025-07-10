@@ -8,7 +8,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	budgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -16,13 +16,13 @@ import (
 
 type BudgetCategoryApplictionService interface {
 	CreateBudgetCategory(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest) (budgetCategory.BudgetCategory, error)
+	FindBudgetCategoryById(ctx context.Context, id string) (*budgetCategory.BudgetCategory, error)
 	UpdateBudgetCategory(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest) (budgetCategory.BudgetCategory, error)
 	DeleteBudgetCategory(ctx context.Context, budgetCategory dto.DeleteBudgetCategoryRequest) error
 
-	ApproveBudgetCategoryAction(ctx context.Context, actionId string, approve bool, checker action.User) error
-	CreateBudgetCategoryAction(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest, maker action.User) (string, error)
-	UpdateBudgetCategoryAction(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest, maker action.User) (string, error)
-	DeleteBudgetCategoryAction(ctx context.Context, budgetCategory dto.DeleteBudgetCategoryRequest, maker action.User) (string, error)
+	ApproveAction(ctx context.Context, req dto.ApproveBudgetCategoryRequest, checker action.User) (action.CPSAction, error)
+	CreateAction(ctx context.Context, data interface{}, maker action.User) (action.CPSAction, error)
+
 	GetBudgetCategory(ctx context.Context, budgetCategory dto.GetBudgetCategoryRequest) (*budgetCategory.BudgetCategory, error)
 	GetAllBudgetCategory(ctx context.Context, getAllBudgetCategory dto.GetAllBudgetCategoryRequest) ([]*budgetCategory.BudgetCategory, error)
 	ApproveBudgetCategoryActionHTTP(w http.ResponseWriter, r *http.Request)
@@ -44,6 +44,10 @@ func (h BudgetCategoryHandler) CreateBudgetCategory(ctx context.Context, req dto
 	return h.service.CreateBudgetCategory(ctx, req)
 }
 
+func (h BudgetCategoryHandler) FindBudgetCategoryById(ctx context.Context, id string) (*budgetCategory.BudgetCategory, error) {
+	return h.service.FindBudgetCategoryById(ctx, id)
+}
+
 func (h BudgetCategoryHandler) UpdateBudgetCategory(ctx context.Context, req dto.UpdateBudgetCategoryRequest) (budgetCategory.BudgetCategory, error) {
 	return h.service.UpdateBudgetCategory(ctx, req)
 }
@@ -52,20 +56,12 @@ func (h BudgetCategoryHandler) DeleteBudgetCategory(ctx context.Context, req dto
 	return h.service.DeleteBudgetCategory(ctx, req)
 }
 
-func (h BudgetCategoryHandler) CreateBudgetCategoryAction(ctx context.Context, req dto.CreateBudgetCategoryRequest, maker action.User) (string, error) {
-	return h.service.CreateBudgetCategoryAction(ctx, req, maker)
+func (h BudgetCategoryHandler) CreateAction(ctx context.Context, data interface{}, maker action.User) (action.CPSAction, error) {
+	return h.service.CreateAction(ctx, data, maker)
 }
 
-func (h BudgetCategoryHandler) UpdateBudgetCategoryAction(ctx context.Context, req dto.UpdateBudgetCategoryRequest, maker action.User) (string, error) {
-	return h.service.UpdateBudgetCategoryAction(ctx, req, maker)
-}
-
-func (h BudgetCategoryHandler) DeleteBudgetCategoryAction(ctx context.Context, req dto.DeleteBudgetCategoryRequest, maker action.User) (string, error) {
-	return h.service.DeleteBudgetCategoryAction(ctx, req, maker)
-}
-
-func (h BudgetCategoryHandler) ApproveBudgetCategoryAction(ctx context.Context, actionId string, approve bool, checker action.User) error {
-	return h.service.ApproveBudgetCategoryAction(ctx, actionId, approve, checker)
+func (h BudgetCategoryHandler) ApproveAction(ctx context.Context, req dto.ApproveBudgetCategoryRequest, checker action.User) (action.CPSAction, error) {
+	return h.service.ApproveAction(ctx, req, checker)
 }
 
 func (h BudgetCategoryHandler) GetBudgetCategory(ctx context.Context, budgetCategory dto.GetBudgetCategoryRequest) (*budgetCategory.BudgetCategory, error) {
@@ -80,39 +76,54 @@ func (h BudgetCategoryHandler) ApproveBudgetCategoryActionHTTP(w http.ResponseWr
 	var req dto.ApproveBudgetCategoryRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": err.Error()})
+		h.logger.Errorf("failed to decode request body: %v", err)
+		common.ErrorResponse(w, http.StatusBadRequest, "INVALID_INPUT", map[string]interface{}{"error": err.Error()})
 		return
 	}
-	if req.ActionID == "" {
-		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": "action_id is required"})
+
+	if err := req.Validate(); err != nil {
+		h.logger.Errorf("validation failed: %v", err)
+		common.ErrorResponse(w, http.StatusBadRequest, "INVALID_INPUT", common.FormatValidationErrors(err))
+		return
+	}
+
+	user := ctx_util.ExtractUserContext(r)
+	if user.IsIncomplete() {
+		h.logger.Errorf("user context is incomplete")
+		common.ErrorResponse(w, http.StatusUnauthorized, "UNAUTHORIZED", map[string]interface{}{"error": "user context is incomplete"})
 		return
 	}
 
 	checker := action.User{
-		UserCode:    r.Context().Value(constant.ContextKey("user_id")).(string),
-		FullName:    r.Context().Value(constant.ContextKey("full_name")).(string),
-		PhoneNumber: r.Context().Value(constant.ContextKey("phone_number")).(string),
+		UserID:      user.UserID,
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		PhoneNumber: user.PhoneNumber,
 	}
 
-	err := h.ApproveBudgetCategoryAction(r.Context(), req.ActionID, req.Approve, checker)
+	action, err := h.ApproveAction(r.Context(), req, checker)
 	if err != nil && err == mongo.ErrNoDocuments {
-		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": "action not found"})
+		h.logger.Errorf("action not found")
+		common.ErrorResponse(w, http.StatusNotFound, "ACTION_NOT_FOUND", map[string]interface{}{"error": "action not found"})
 		return
 	}
 
 	if err != nil && err == dto.ErrActionApproved {
-		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": "action already approved"})
+		h.logger.Errorf("action already approved")
+		common.ErrorResponse(w, http.StatusBadRequest, "ACTION_ALREADY_APPROVED", map[string]interface{}{"error": "action already approved"})
 		return
 	}
 	if err != nil && err == dto.ErrActionRejected {
-		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": "action already rejected"})
+		h.logger.Errorf("action already rejected")
+		common.ErrorResponse(w, http.StatusBadRequest, "ACTION_ALREADY_REJECTED", map[string]interface{}{"error": "action already rejected"})
 		return
 	}
 
 	if err != nil {
-		common.ErrorResponse(w, http.StatusInternalServerError, "BAD_REQUEST", map[string]interface{}{"error": err.Error()})
+		h.logger.Errorf("approve action failed: %v", err)
+		common.ErrorResponse(w, http.StatusInternalServerError, "UNHANDLED_SERVER_ERROR", map[string]interface{}{"error": err.Error()})
 		return
 	}
 
-	common.SuccessResponse(w, http.StatusOK, "SUCCESS", map[string]string{"status": "success"})
+	common.SuccessResponse(w, http.StatusOK, "SUCCESS", map[string]interface{}{"action": action})
 }

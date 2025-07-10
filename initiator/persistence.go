@@ -80,7 +80,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"password_rules",
 			"cps_actions",
 		}),
-		BudgetCategoryPersistence: budget_category_repo.NewBudgetCategoryRepo(client, database_name),
+		BudgetCategoryPersistence: budget_category_repo.NewBudgetCategoryRepo(client, database_name, logger),
 		BankPersistance:           bank_repo.InitBank(client, database_name, []string{"cps_actions", "banks"}, logger),
 		DepartmentPersistence:     dept_repo.InitDepartment(client, database_name, 5*time.Second, logger),
 	}
