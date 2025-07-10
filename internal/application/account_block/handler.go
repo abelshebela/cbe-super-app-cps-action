@@ -10,11 +10,11 @@ import (
 
 type ApplicationService interface {
 	FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
-	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string ,error)
+	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error)
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
-	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string ,error)
+	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
@@ -32,9 +32,9 @@ type ApplicationService interface {
 	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
 	ApproveBlockCity(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
-	BlockUser(ctx context.Context, userID string, maker action.CPSAction) error
-	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error)
-	ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error
+	BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error)
+	GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error)
+	ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 }
 
 type Handler struct {
@@ -51,7 +51,7 @@ func (h *Handler) FilterSingleBranches(ctx context.Context, region, district str
 	return h.service.FilterSingleBranches(ctx, region, district)
 }
 func (h *Handler) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
-    return h.service.DisableSingleBranch(ctx, branch, maker)
+	return h.service.DisableSingleBranch(ctx, branch, maker)
 }
 
 func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
@@ -63,7 +63,7 @@ func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district s
 }
 
 func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
-    return h.service.DisableMultipleBranches(ctx, branches, maker)
+	return h.service.DisableMultipleBranches(ctx, branches, maker)
 }
 
 func (h *Handler) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
@@ -110,14 +110,14 @@ func (h *Handler) ApproveBlockCity(ctx context.Context, actionID string, approve
 	return h.service.ApproveBlockCity(ctx, actionID, approve, reason, checker)
 }
 
-func (h *Handler) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
-	return h.service.BlockUser(ctx, userID, maker)
+func (h *Handler) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
+    return h.service.BlockUser(ctx, userID, maker)
 }
 
-func (h *Handler) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
-	return h.service.GetUserByID(ctx, userID, maker)
+func (h *Handler) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
+    return h.service.GetUserByPhone(ctx, phoneNumber, maker)
 }
 
-func (h *Handler) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
-	return h.service.ApproveBlockUser(ctx, userID, checker)
+func (h *Handler) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
+    return h.service.ApproveBlockUser(ctx, actionID, approve, reason, checker)
 }

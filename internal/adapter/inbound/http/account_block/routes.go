@@ -182,8 +182,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/user/{id}",
-				Handler: handler.GetUserByID,
+				Path:    "/user",
+				Handler: handler.GetUserByPhone,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),

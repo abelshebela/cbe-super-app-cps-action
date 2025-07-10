@@ -903,80 +903,121 @@ func (o *outboundAccountBlockStore) ApproveBlockCity(
 	return nil
 }
 
-func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
-	department, _ := ctx.Value("department").(string)
-	if strings.TrimSpace(department) == "" {
-		return errors.New("department is required in context")
-	}
+func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
+    department, _ := ctx.Value("department").(string)
+    if strings.TrimSpace(department) == "" {
+        return "", errors.New("department is required in context")
+    }
 
-	prevUserPtr, err := o.MongoDalUser.FindOne(ctx, bson.M{"user_id": userID}, bson.M{})
-	var prevAction json.RawMessage
-	if err == nil && prevUserPtr != nil {
-		prevAction, _ = json.Marshal(prevUserPtr)
-	} else {
-		prevAction = json.RawMessage("null")
-	}
+    prevUserPtr, err := o.MongoDalUser.FindOne(ctx, bson.M{"user_id": userID}, bson.M{})
+    var prevAction json.RawMessage
+    if err == nil && prevUserPtr != nil {
+        prevAction, _ = json.Marshal(prevUserPtr)
+    } else {
+        prevAction = json.RawMessage("null")
+    }
 
-	currAction, _ := json.Marshal(userID)
+    currAction, _ := json.Marshal(userID)
+    actionCode := utils.RandomGenerator(24)
+    cpsAction := model.CPSAction{
+        ActionCode:       actionCode,
+        MakerID:          maker.MakerID,
+        MakerName:        maker.MakerName,
+        MakerPhoneNumber: maker.MakerPhoneNumber,
+        Department:       department,
+        PreviosAction:    prevAction,
+        CurrentAction:    currAction,
+        ActionStatus:     string(model.ActionPending),
+        ActionType:       string(model.ActionDelete),
+        RequestAction:    string(model.RequestBlockUser),
+        CreatedAt:        time.Now(),
+        LastModifiedAt:   time.Now(),
+    }
 
-	cpsAction := model.CPSAction{
-		ActionCode:         utils.RandomGenerator(24),
-		MakerID:            maker.MakerID,
-		MakerName:          maker.MakerName,
-		MakerPhoneNumber:   maker.MakerPhoneNumber,
-		CheckerID:          maker.CheckerID,
-		CheckerName:        maker.CheckerName,
-		CheckerPhoneNumber: maker.CheckerPhoneNumber,
-		UniqueId:           userID,
-		Department:         department,
-		RejectionReason:    *maker.RejectionReason,
-		PreviosAction:      prevAction,
-		CurrentAction:      currAction,
-		ActionStatus:       string(model.ActionPending),
-		ActionType:         string(model.ActionDelete),
-		RequestAction:      string(model.RequestBlockUser),
-		CreatedAt:          time.Now(),
-		LastModifiedAt:     time.Now(),
-	}
+    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+    if err != nil {
+        return "", err
+    }
+    return actionCode, nil
+}
+func (o *outboundAccountBlockStore) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
+    if strings.TrimSpace(phoneNumber) == "" {
+        return member.User{}, fmt.Errorf("phoneNumber is required")
+    }
 
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	return err
+    filter := bson.M{"phone_number": phoneNumber}
+    userDoc, err := o.MongoDalUser.FindOne(ctx, filter, nil)
+    if err == nil && userDoc != nil {
+        return *userDoc, nil
+    }
+
+    if strings.HasPrefix(phoneNumber, "+") {
+        filter = bson.M{"phone_number": phoneNumber[1:]}
+    } else {
+        filter = bson.M{"phone_number": "+" + phoneNumber}
+    }
+    userDoc, err = o.MongoDalUser.FindOne(ctx, filter, nil)
+    if err == nil && userDoc != nil {
+        return *userDoc, nil
+    }
+
+    return member.User{}, fmt.Errorf("failed to get user by phone number: %w", err)
 }
 
-func (o *outboundAccountBlockStore) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
-	if userID == "" {
-		return member.User{}, fmt.Errorf("userID is required")
-	}
-	filter := bson.M{"user_id": userID}
-	userDoc, err := o.MongoDalUser.FindOne(ctx, filter, nil)
-	if err != nil || userDoc == nil {
-		return member.User{}, fmt.Errorf("failed to get user by ID: %w", err)
-	}
-	return *userDoc, nil
-}
-func (o *outboundAccountBlockStore) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
-	filter := bson.M{"action_code": userID}
-	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-	if err != nil || actionDoc == nil {
-		return errors.New("action not found")
-	}
+func (o *outboundAccountBlockStore) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
+    filter := bson.M{"action_code": actionID}
+    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+    if err != nil || actionDoc == nil {
+        return errors.New("action not found")
+    }
 
-	checkerInfo := bson.M{
-		"checker_id":           checker.CheckerID,
-		"checker_name":         checker.CheckerName,
-		"checker_phone_number": checker.CheckerPhoneNumber,
-		"checked_at":           time.Now(),
-	}
+    update := bson.M{
+        "last_modified_at":     time.Now(),
+        "checker_id":           checker.UserID,
+        "checker_name":         checker.FullName,
+        "checker_phone_number": checker.PhoneNumber,
+        "checker_action_time":  time.Now(),
+    }
+    if approve {
+        update["action_status"] = "APPROVED"
+    } else {
+        update["action_status"] = "REJECTED"
+        if reason != nil {
+            update["rejection_reason"] = *reason
+        }
+    }
+    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+    if err != nil {
+        return err
+    }
 
-	update := bson.M{
-		"$set": bson.M{
-			"action_status":    "APPROVED",
-			"last_modified_at": time.Now(),
-		},
-		"$push": bson.M{
-			"checker_history": checkerInfo,
-		},
-	}
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	return err
+    if !approve {
+        return nil
+    }
+
+    var userID string
+    switch v := actionDoc.CurrentAction.(type) {
+    case string:
+        userID = v
+    case []byte:
+        _ = json.Unmarshal(v, &userID)
+    case bson.Binary:
+        _ = json.Unmarshal(v.Data, &userID)
+    }
+    userID = strings.TrimSpace(userID)
+    if userID == "" {
+        return errors.New("user_id missing in action")
+    }
+
+    userUpdate := bson.M{
+        "is_account_blocked": true,
+        "last_modified_at":   time.Now(),
+    }
+    _, err = o.MongoDalUser.UpdateOne(ctx, bson.M{"user_id": userID}, userUpdate)
+    if err != nil {
+        return fmt.Errorf("failed to block user %s: %w", userID, err)
+    }
+
+    return nil
 }
+

@@ -25,6 +25,6 @@ type AccountBlockHandler interface {
 	ApproveBlockCity(w http.ResponseWriter, r *http.Request)
 
 	BlockUser(w http.ResponseWriter, r *http.Request)
-	GetUserByID(w http.ResponseWriter, r *http.Request)
+	GetUserByPhone(w http.ResponseWriter, r *http.Request)
 	ApproveBlockUser(w http.ResponseWriter, r *http.Request)
 }

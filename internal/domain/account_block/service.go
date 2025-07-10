@@ -138,23 +138,23 @@ func (s *AccountService) ApproveBlockCity(ctx context.Context, actionID string, 
 	}
 	return s.repo.ApproveBlockCity(ctx, actionID, approve, reason, checker)
 }
-func (s *AccountService) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
-	if userID == "" {
-		return fmt.Errorf("userID is required")
-	}
-	return s.repo.BlockUser(ctx, userID, maker)
+func (s *AccountService) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
+    if strings.TrimSpace(phoneNumber) == "" {
+        return member.User{}, fmt.Errorf("phoneNumber is required")
+    }
+    return s.repo.GetUserByPhone(ctx, phoneNumber, maker)
 }
 
-func (s *AccountService) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
-	if userID == "" {
-		return member.User{}, fmt.Errorf("userID is required")
-	}
-	return s.repo.GetUserByID(ctx, userID, maker)
+func (s *AccountService) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
+    if strings.TrimSpace(userID) == "" {
+        return "", fmt.Errorf("userID is required")
+    }
+    return s.repo.BlockUser(ctx, userID, maker)
 }
 
-func (s *AccountService) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
-	if userID == "" {
-		return fmt.Errorf("userID is required")
-	}
-	return s.repo.ApproveBlockUser(ctx, userID, checker)
+func (s *AccountService) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
+    if strings.TrimSpace(actionID) == "" {
+        return fmt.Errorf("actionID is required")
+    }
+    return s.repo.ApproveBlockUser(ctx, actionID, approve, reason, checker)
 }
