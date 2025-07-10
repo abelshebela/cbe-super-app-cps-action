@@ -15,6 +15,14 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 	router.Route("/departments", func(r chi.Router) {
 		routes := []route.Route{
 			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: departmentHandler.GetAllDepartments,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/",
 				Handler: departmentHandler.CreateDepartment,
