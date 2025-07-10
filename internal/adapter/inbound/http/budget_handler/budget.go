@@ -166,33 +166,28 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 
 	action, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	res := common.Response[*entities.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           action,
+	data, err := common_util.StructToMap(action)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
 	}
 
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Color creattion request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchColors(w http.ResponseWriter, r *http.Request) {
 	colors, err := h.budgetService.FetchColors(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	res := common.Response[[]*entities.Color]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           colors,
-	}
-
-	res.SendJSON()
+	data := map[string]interface{}{"colors": colors}
+	common_util.BaseResponseMaker(data, w, "Colors fetched successfully", 200)
 }
 
 func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request) {

@@ -99,18 +99,14 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		err = fmt.Errorf("failed to queue icon update: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("failed to queue color creation")
 	}
 
 	return &createdAction, nil
 }
 
 func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := b.colorDal.FindAll(ctx, bson.M{"isDeleted": false}, bson.M{})
+	colors, err := b.colorDal.FindAll(ctx, bson.M{}, bson.M{})
 	if err != nil {
 		return nil, err
 	}
