@@ -33,10 +33,9 @@ import (
 	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-
 )
 
 type Persitence struct {
@@ -57,8 +56,8 @@ type Persitence struct {
 	AccountBlockPersistance    account_block.AccountBlockOutboundPort
 	HQPersistence              *hq_persistence.HQPersistence
 	AmountBasedAuthPersistence amount_based_auth.AmountBasedAuthRepo
-	ServiceDetailsStore      service.ServiceRepository
-	ServicePersistance       service_repo.ServiceFeePersistence
+	ServiceDetailsStore        service.ServiceRepository
+	ServicePersistance         service_repo.ServiceFeePersistence
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -76,7 +75,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		advertPersistence: advert.InitAD(client, database_name, []string{"adverts", "cps_actions"}, logger),
 		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, database_name, []string{"cps_actions", "avatars"}, logger),
 
-		CustomerPersistence:     customer_repo.InitCustomerDetail(client, database_name, "customers", logger),
+		CustomerPersistence:     customer_repo.InitCustomerDetail(client, database_name, "user", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, database_name, "feedbacks", logger),
 		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, database_name, []string{"user", "otp", "cps_actions"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, database_name, []string{"icons", "colors", "cps_actions"}, logger),
@@ -110,8 +109,8 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore: outboundStore.NewServiceDetailsPersistence(client, "service", logger),
-		ServicePersistance:  *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
+		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, "service", logger),
+		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
 	}

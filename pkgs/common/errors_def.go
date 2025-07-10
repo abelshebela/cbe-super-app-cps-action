@@ -523,6 +523,34 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_125",
 			Message: "Failed to fetch pending actions for this validation rule.",
 		},
+		"FAILED_TO_GET_AD": {
+			Code:    "GEN_213",
+			Message: "Failed to get ad.",
+		},
+		"ADVERT_NOT_FOUND": {
+			Code:    "GEN_214",
+			Message: "advert not found",
+		},
+		"FAILED_TO_CAST_ACTION_DATA": {
+			Code:    "GEN_215",
+			Message: "failed to cast action data to ad request",
+		},
+		"FAILED_TO_CHECK_AD_BUCKET": {
+			Code:    "GEN_216",
+			Message: "failed to check ad bucket",
+		},
+		"FAILED_TO_CREATE_AD_BUCKET": {
+			Code:    "GEN_217",
+			Message: "failed to create ad bucket",
+		},
+		"FAILED_TO_OPEN_FILE": {
+			Code:    "GEN_218",
+			Message: "failed to create ad bucket",
+		},
+		"FAILED_TO_SAVE_OBJECT_TO_MINIO": {
+			Code:    "GEN_219",
+			Message: "failed to save object to MinIO",
+		},
 		"TIERS_REQUIRED": {
 			Code:    "GEN_126",
 			Message: "At least one tier is required.",

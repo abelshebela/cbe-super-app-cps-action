@@ -101,7 +101,7 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/region", 
+				Path:    "/region",
 				Handler: handler.GetRegionByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -128,8 +128,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/district/{id}",
-				Handler: handler.GetDistrictByID,
+				Path:    "/district",
+				Handler: handler.GetDistrictByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -155,8 +155,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/city/{id}",
-				Handler: handler.GetCityByID,
+				Path:    "/city",
+				Handler: handler.GetCityByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),

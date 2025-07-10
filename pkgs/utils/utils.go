@@ -35,11 +35,10 @@ func OTPGenerator(length uint8) string {
 	for i := range result {
 		result[i] = numberic[r.Intn(len(numberic))]
 	}
-
 	return string(result)
 }
 func BaseResponseMaker(res map[string]interface{}, w http.ResponseWriter, message string, statusCode interface{}) {
-
+	fmt.Println(message)
 	response := make(map[string]interface{})
 	if res == nil {
 		res = make(map[string]interface{})
