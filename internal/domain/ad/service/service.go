@@ -12,6 +12,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
+	// "github.com/mitchellh/mapstructure"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -60,12 +61,39 @@ func InitADDomian(bucketName string, minioClient config.MinioClientInterface, ad
 }
 
 func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+
 	actionData, ok := cpsAction.ActionData.(dto.CreateAdvertRequest)
-	fmt.Println("ok========================", ok)
+
 	if !ok {
 		a.logger.Errorf("failed to cast action data to ad request")
-		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		return nil, fmt.Errorf("FAILED_TO_CAST_ACTION_DATA")
 	}
+
+	// var actionData dto.CreateAdvertRequest
+	// fmt.Println("----------+++++++++++++++++++++++")
+	// fmt.Println(cpsAction.ActionData)
+	// fmt.Println("----------+++++++++++++++++++++++")
+	// err := mapstructure.Decode(cpsAction.ActionData, &actionData)
+	// if err != nil {
+	// 	a.logger.Errorf("Failed to decode:", err)
+	// }
+	// fmt.Println("+++++++++++++++++++++++")
+	// fmt.Println(actionData)
+	// fmt.Println("+++++++++++++++++++++++")
+
+	// var actionData dto.CreateAdvertRequest
+
+	// bytes, err := json.Marshal(cpsAction.ActionData)
+	// if err != nil {
+	// 	a.logger.Errorf("Failed to marshal ActionData: %v", err)
+	// }
+
+	// err = json.Unmarshal(bytes, &actionData)
+	// if err != nil {
+	// 	a.logger.Errorf("Failed to unmarshal into dto.CreateAdvertRequest: %v", err)
+	// }
+
+	// fmt.Println("Decoded actionData:", actionData)
 
 	if err := actionData.Validate(); err != nil {
 		a.logger.Errorf("validation error", err)
@@ -75,10 +103,11 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
 		a.logger.Errorf("failed to check ad bucket: %v", err)
-		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		return nil, fmt.Errorf("FAILED_TO_CHECK_AD_BUCKET")
 	}
 
 	if !exist {
+		fmt.Println("bucket name=====================", a.bucketName)
 		created, err := a.minioClient.MakeBucket(ctx, a.bucketName)
 		if !created || err != nil {
 			a.logger.Errorf("failed to create ad bucket: %v", err)
@@ -86,12 +115,12 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 		}
 	}
 
-	fileName := fmt.Sprintf("ad-%d-%s", time.Now().UnixNano(), actionData.BannerImage.Filename)
+	fileName := fmt.Sprintf("upload-%d-%s", time.Now().UnixNano(), actionData.BannerImage.Filename)
 
 	file, err := actionData.BannerImage.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open file", err)
-		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		return nil, fmt.Errorf("FAILED_TO_OPEN_FILE")
 	}
 	defer file.Close()
 	// Save to MinIO
@@ -153,7 +182,7 @@ func (a *ADDomain) GetOneAdvert(ctx context.Context, id string) (*entity.Advert,
 
 func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
 
-	actionData, ok := cpsAction.ActionData.(dto.UpdateAdvert)
+	actionData, ok := cpsAction.ActionData.(dto.UpdateAdvertRequest)
 	if !ok {
 		a.logger.Errorf("failed to cast action data to advert request")
 		return nil, fmt.Errorf("")

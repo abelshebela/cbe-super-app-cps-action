@@ -115,7 +115,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsActio
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("invalid id provided", err)
+		a.logger.Errorf("invalid id providedd", err)
 		return nil, fmt.Errorf("INVALID_ID")
 	}
 
@@ -428,17 +428,17 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
-		"action_code": req.ActionCode,
-		"department":  req.Department,
-		"status":      model.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
 		"checker_id":           req.CheckerUser.UserCode,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
 		"checker_name":         req.CheckerUser.FullName,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
-		"rejected_reason":      req.RejectedReason,
+		"rejection_reason":     req.RejectedReason,
 		"checker_action_time":  time.Now(),
 	}
 

@@ -103,7 +103,7 @@ func (c CreateAdvertRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
 			validation.Required.Error("title is required"), validation.Length(3, 10).Error("title length is between 3 and 10"), is.Alpha),
-		validation.Field(&c.Description, validation.Length(30, 100).Error("description length is between 30 and 100"), is.Alpha),
+		validation.Field(&c.Description, validation.Length(30, 100).Error("description length is between 30 and 100")),
 		validation.Field(&c.AdvertFor, validation.In(
 			Both,
 			IFB,
@@ -123,26 +123,19 @@ func (c CreateAdvertRequest) Validate() error {
 	)
 }
 
-type UpdateAdvert struct {
-	Title       string     `form:"title" json:"title"`
-	Description string     `form:"description" json:"descritption"`
-	AdvertFor   AdvertFor  `form:"advert_for" json:"advert_for"`
-	Date        AdvertDate `form:"date" json:"date"`
-}
-
-func (u UpdateAdvert) Validate() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.Title,
-			validation.NilOrNotEmpty,
-			validation.Length(3, 10),
-		),
-	)
-}
-
 type UpdateAdvertRequest struct {
 	ID          string     `json:"id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
 	AdvertFor   AdvertFor  `json:"advert_for"`
 	Date        AdvertDate `json:"date"`
+}
+
+func (u UpdateAdvertRequest) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Title,
+			validation.NilOrNotEmpty,
+			validation.Length(3, 20),
+		),
+	)
 }
