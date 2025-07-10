@@ -65,17 +65,17 @@ func (mr *MockAccountBlockRepoMockRecorder) ApproveBlockDistrict(ctx, actionID, 
 }
 
 // ApproveBlockUser mocks base method.
-func (m *MockAccountBlockRepo) ApproveBlockUser(ctx context.Context, userID string, checker action.CPSAction) error {
+func (m *MockAccountBlockRepo) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApproveBlockUser", ctx, userID, checker)
+	ret := m.ctrl.Call(m, "ApproveBlockUser", ctx, actionID, approve, reason, checker)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ApproveBlockUser indicates an expected call of ApproveBlockUser.
-func (mr *MockAccountBlockRepoMockRecorder) ApproveBlockUser(ctx, userID, checker interface{}) *gomock.Call {
+func (mr *MockAccountBlockRepoMockRecorder) ApproveBlockUser(ctx, actionID, approve, reason, checker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveBlockUser", reflect.TypeOf((*MockAccountBlockRepo)(nil).ApproveBlockUser), ctx, userID, checker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveBlockUser", reflect.TypeOf((*MockAccountBlockRepo)(nil).ApproveBlockUser), ctx, actionID, approve, reason, checker)
 }
 
 // ApproveBulkBranchesDisable mocks base method.
@@ -166,11 +166,12 @@ func (mr *MockAccountBlockRepoMockRecorder) BlockRegion(ctx, regionCode, maker i
 }
 
 // BlockUser mocks base method.
-func (m *MockAccountBlockRepo) BlockUser(ctx context.Context, userID string, maker action.CPSAction) error {
+func (m *MockAccountBlockRepo) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockUser", ctx, userID, maker)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // BlockUser indicates an expected call of BlockUser.
@@ -180,11 +181,12 @@ func (mr *MockAccountBlockRepoMockRecorder) BlockUser(ctx, userID, maker interfa
 }
 
 // DisableMultipleBranches mocks base method.
-func (m *MockAccountBlockRepo) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
+func (m *MockAccountBlockRepo) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableMultipleBranches", ctx, branches, maker)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DisableMultipleBranches indicates an expected call of DisableMultipleBranches.
@@ -194,11 +196,12 @@ func (mr *MockAccountBlockRepoMockRecorder) DisableMultipleBranches(ctx, branche
 }
 
 // DisableSingleBranch mocks base method.
-func (m *MockAccountBlockRepo) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
+func (m *MockAccountBlockRepo) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableSingleBranch", ctx, branch, maker)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DisableSingleBranch indicates an expected call of DisableSingleBranch.
@@ -297,19 +300,19 @@ func (mr *MockAccountBlockRepoMockRecorder) GetRegionByCode(ctx, regionCode inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegionByCode", reflect.TypeOf((*MockAccountBlockRepo)(nil).GetRegionByCode), ctx, regionCode)
 }
 
-// GetUserByID mocks base method.
-func (m *MockAccountBlockRepo) GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error) {
+// GetUserByPhone mocks base method.
+func (m *MockAccountBlockRepo) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByID", ctx, userID, maker)
+	ret := m.ctrl.Call(m, "GetUserByPhone", ctx, phoneNumber, maker)
 	ret0, _ := ret[0].(member.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserByID indicates an expected call of GetUserByID.
-func (mr *MockAccountBlockRepoMockRecorder) GetUserByID(ctx, userID, maker interface{}) *gomock.Call {
+// GetUserByPhone indicates an expected call of GetUserByPhone.
+func (mr *MockAccountBlockRepoMockRecorder) GetUserByPhone(ctx, phoneNumber, maker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockAccountBlockRepo)(nil).GetUserByID), ctx, userID, maker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhone", reflect.TypeOf((*MockAccountBlockRepo)(nil).GetUserByPhone), ctx, phoneNumber, maker)
 }
 
 // UpdateRegion mocks base method.

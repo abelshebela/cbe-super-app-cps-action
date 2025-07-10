@@ -210,6 +210,7 @@ var errorKeyToStatus = map[string]int{
 	"MISSING_BANK_NAME": 400,
 	"MISSING_BANK_CODE": 400,
 	"MISSING_BANK_BIC":  400,
+	"BANK_ALREADY_EXISTS": 409,
 
 	// Action
 	"FAILED_TO_CREATE_ACTION":  500,

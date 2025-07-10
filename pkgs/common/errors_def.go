@@ -901,6 +901,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "BNK_005",
 			Message: "Bank identifier code (BIC) is required.",
 		},
+		"BANK_ALREADY_EXISTS": {
+			Code:    "BNK_006",
+			Message: "Bank with this name already exists.",
+		},
 	},
 	Action: ErrorGroup{
 		"PENDING_CPS_ACTION_EXISTS": {

@@ -96,6 +96,15 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/{id}/logo",
+				Handler: bank.UpdateLogo,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
 		}
 
 		route.RegisterRoutes(r, routes)

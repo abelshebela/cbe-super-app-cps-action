@@ -2,7 +2,6 @@ package budget
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -133,10 +132,7 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 	iconData, ok := cpsAction.CurrentAction.(map[string]interface{})
 	if !ok {
 		b.logger.Errorf("invalid current action type")
-		return nil, fmt.Errorf("invalid current action: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid icon action format",
-		})
+		return nil, fmt.Errorf("invalid current action type")
 	}
 
 	imageFileHeader, ok := iconData["icon_url"].(*multipart.FileHeader)
@@ -229,8 +225,10 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 func (b *BudgetHandler) CreateColor(ctx context.Context, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.ActionCode = utils.RandomGenerator(20)
 	if hexCode == "" {
-		return nil, errors.New("hex code cannot be empty")
+		b.logger.Errorf("hex code cannot be empty")
+		return nil, fmt.Errorf("hex code cannno be empty")
 	}
+
 	action, err := b.service.CreateColor(ctx, hexCode, cpsAction)
 	if err != nil {
 		return nil, err

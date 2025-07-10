@@ -126,7 +126,7 @@ func TestAccountService_DisableSingleBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.DisableSingleBranch(ctx, tt.branch, tt.maker)
+			_, err := service.DisableSingleBranch(ctx, tt.branch, tt.maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -324,7 +324,7 @@ func TestAccountService_DisableMultipleBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.DisableMultipleBranches(ctx, tt.branches, tt.maker)
+			_, err := service.DisableMultipleBranches(ctx, tt.branches, tt.maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

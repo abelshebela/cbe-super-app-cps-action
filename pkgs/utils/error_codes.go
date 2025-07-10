@@ -46,6 +46,7 @@ const (
 	TiersMaxMustIncrease         = "TIERS_MAX_MUST_INCREASE"
 	TiersAboveAmountMismatch     = "TIERS_ABOVE_AMOUNT_MISMATCH"
 	NotImplemented               = "NOT_IMPLEMENTED"
+	InvalidInputParameters       = "INVALID_INPUT_PARAMETERS"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
@@ -132,11 +133,12 @@ const (
 	PortalCardsInvalid      = "PORTAL_CARDS_INVALID"
 
 	// Bank
-	BankNotFound    = "BANKS_NOT_FOUND"
-	MissingBankName = "MISSING_BANK_NAME"
-	InvalidBankName = "INVALID_BANK_NAME"
-	MissingBankCode = "MISSING_BANK_CODE"
-	MissingBankBIC  = "MISSING_BANK_BIC"
+	BankNotFound      = "BANKS_NOT_FOUND"
+	MissingBankName   = "MISSING_BANK_NAME"
+	InvalidBankName   = "INVALID_BANK_NAME"
+	MissingBankCode   = "MISSING_BANK_CODE"
+	MissingBankBIC    = "MISSING_BANK_BIC"
+	BankAlreadyExists = "BANK_ALREADY_EXISTS"
 
 	// Action
 	InvalidDecison               = "INVALID_DECISION"

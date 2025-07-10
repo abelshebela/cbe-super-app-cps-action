@@ -62,18 +62,18 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context) ([]*entities.Icon, e
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.MakerActionTime = time.Now()
 
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid object ID: %w", err)
+	}
+
 	filter := bson.M{
-		"_id":        id,
+		"_id":        objectID,
 		"is_deleted": false,
 	}
 	existingIcon, err := b.iconDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		b.logger.Errorf("icon not found or db error: %v", err)
-		err = fmt.Errorf("icon not found: %w", constant.ErrorDefinition{
-			Code:    http.StatusNotFound,
-			Message: "icon not found",
-		})
-
 		return nil, err
 	}
 
@@ -99,18 +99,14 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		err = fmt.Errorf("failed to queue icon update: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("failed to queue color creation")
 	}
 
 	return &createdAction, nil
 }
 
 func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := b.colorDal.FindAll(ctx, bson.M{"isDeleted": false}, bson.M{})
+	colors, err := b.colorDal.FindAll(ctx, bson.M{}, bson.M{})
 	if err != nil {
 		return nil, err
 	}
