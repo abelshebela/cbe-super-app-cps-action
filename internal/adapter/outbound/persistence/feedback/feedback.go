@@ -98,6 +98,7 @@ func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.
 
 	filter := bson.M{"_id": feedbackID}
 	projection := bson.M{}
+	// fmt.Println(filter, projection,"dataaaaaaa")
 	feedback, err := c.mongoDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
