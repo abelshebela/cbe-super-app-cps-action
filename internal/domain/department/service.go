@@ -157,6 +157,6 @@ func (s *Service) RejectDepartmentUpdate(ctx context.Context, cpsAction entities
 	return nil
 }
 
-func (s *Service) GetAllDepartments(ctx context.Context) ([]entities.Department, error) {
+func (s *Service) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
 	return s.departmentRepo.GetAllDepartments(ctx)
 }

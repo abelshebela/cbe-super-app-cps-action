@@ -367,9 +367,9 @@ func (r *DepartmentPersistence) RejectDepartmentUpdate(ctx context.Context, cpsA
 	return nil
 }
 
-func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context) ([]entities.Department, error) {
+func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
 	filter := bson.M{}
-	departments, err := r.departmentdal.Find(ctx, filter, bson.M{})
+	departments, err := r.departmentdal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
 		return nil, err
 	}
