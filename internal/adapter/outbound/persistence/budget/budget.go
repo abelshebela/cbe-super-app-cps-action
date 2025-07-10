@@ -2,7 +2,6 @@ package budget
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -51,7 +50,7 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 }
 
 func (b *BudgetPersistence) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := b.iconDal.FindAll(ctx, bson.M{}, bson.M{})
+	icons, err := b.iconDal.FindAll(ctx, bson.M{"is_deleted": false}, bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +114,12 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color
 }
 
 func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entities.Color, error) {
-	colors, err := b.colorDal.FindOne(ctx, bson.M{"_id": id}, bson.M{})
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid object ID")
+	}
+
+	colors, err := b.colorDal.FindOne(ctx, bson.M{"_id": objectId}, bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -140,10 +144,6 @@ func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		err = fmt.Errorf("failed to queue icon update: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
 		return nil, err
 	}
 
@@ -153,10 +153,13 @@ func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities
 func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	action, err := b.cpsDal.FindOne(ctx, bson.M{"action_code": cpsAction.ActionCode}, bson.M{})
 	if err != nil || action == nil {
-		return nil, errors.New("action not found")
+		b.logger.Errorf("action not found: %s, error: %v", cpsAction.ActionCode, err)
+		return nil, err
 	}
+
 	if action.ActionStatus != "PENDING" {
-		return nil, errors.New("action already processed")
+		b.logger.Errorf("action already processed: %s", action.ActionCode)
+		return nil, fmt.Errorf("action already processed")
 	}
 
 	action.CheckerActionTime = time.Now()
@@ -176,10 +179,12 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 	case "BUDGET_ICON":
 		current, err := castToBsonM(action.CurrentAction)
 		if err != nil {
-			return nil, fmt.Errorf("invalid currentAction format for icon: %w", err)
+			b.logger.Errorf("invalid currentAction format for icon approval: %v", err)
+			return nil, fmt.Errorf("invalid currentAction format for icon approval")
 		}
 		iconURL, ok := current["icon_url"].(string)
 		if !ok || iconURL == "" {
+			b.logger.Errorf("missing icon_url in currentAction")
 			return nil, fmt.Errorf("missing icon_url in currentAction")
 		}
 
@@ -201,10 +206,12 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 		case entities.ActionUpdate:
 			prev, err := castToBsonM(action.PreviousAction)
 			if err != nil {
+				b.logger.Errorf("invalid previousAction format for icon update: %v", err)
 				return nil, fmt.Errorf("invalid previousAction format for icon update: %w", err)
 			}
 			iconID, ok := prev["icon_id"].(string)
 			if !ok || iconID == "" {
+				b.logger.Errorf("missing icon_id in previousAction")
 				return nil, fmt.Errorf("missing icon_id in previousAction")
 			}
 

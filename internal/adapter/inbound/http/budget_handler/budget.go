@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
@@ -195,12 +194,12 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 
 	var req budget.UpdateColorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		common_util.SendErrorResponse(w, common_util.InvalidInput, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -223,17 +222,17 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 
 	action, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	res := common.Response[*entities.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           action,
+	data, err := common_util.StructToMap(action)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
 	}
 
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Color update request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Request) {
@@ -252,15 +251,15 @@ func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Req
 
 	action, err := h.budgetService.ApproveAction(r.Context(), cpsAction)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	res := common.Response[*entities.CPSAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           action,
+	data, err := common_util.StructToMap(action)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
 	}
 
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Action approved successfully", 200)
 }

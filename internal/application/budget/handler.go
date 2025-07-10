@@ -255,6 +255,7 @@ func (b *BudgetHandler) UpdateColor(ctx context.Context, id, hexCode string, cps
 
 	return actions, nil
 }
+
 func (b *BudgetHandler) ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsActionRes, err := b.service.ApproveAction(ctx, cpsAction)
 	if err != nil {

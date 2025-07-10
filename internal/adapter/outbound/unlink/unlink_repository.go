@@ -41,7 +41,6 @@ func NewUnlinkInfrastructure(client *mongo.Client, dbName string, collectionName
 }
 
 func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction) error {
-	u.logger.Infof("[UnlinkDevice] initiated for user: %s by %s", userCode, cpsAction.MakerID)
 	ctx := context.Background()
 	filter := bson.M{"user_code": userCode}
 	
@@ -57,14 +56,9 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 		return fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
-	// if user.IsDetached {
-	// 	u.logger.Warnf("[UnlinkDevice] user %s is already detached", userCode)
-	// 	return fmt.Errorf("user already detached")
-	// }
-
 	if user.IsAccountBlocked {
 		u.logger.Warnf("[UnlinkDevice] user %s is blocked", userCode)
-		return fmt.Errorf("the account is blocked")
+		return fmt.Errorf(error_codes.AccountBlocked)
 	}
 
 	pendingFilter := bson.M{
@@ -163,7 +157,7 @@ func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason string, cpsActi
 			"device_status":         "UNLINKED",
 			"login_pin.pin":         "",
 			"bps_reject_status":     "AUTHORIZED",
-            "login_pin.pin_history": user.LoginPIN.PIN,
+			"login_pin.pin_history": user.LoginPIN.PIN,
 		}
 
 		if _, err = u.user.UpdateOne(ctx, filter, updateUser); err != nil {
@@ -187,11 +181,6 @@ func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason string, cpsActi
 			u.logger.Errorf("[ApproveOrDecline] failed to reject action: %v", err)
 			return fmt.Errorf(error_codes.ActionRejectionFailed)
 		}
-
-		// if _, err = u.user.UpdateOne(ctx, filter, bson.M{"bps_reject_status": "DENIED"}); err != nil {
-		// 	u.logger.Errorf("[ApproveOrDecline] failed to update user status: %v", err)
-		// 	return fmt.Errorf(error_codes.UserStatusUpdateFailed)
-		// }
 
 		u.logger.Infof("[ApproveOrDecline] unlink denied for user: %s", userCode)
 		return nil

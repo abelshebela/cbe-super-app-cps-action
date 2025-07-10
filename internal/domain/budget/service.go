@@ -2,7 +2,6 @@ package budget
 
 import (
 	"context"
-	"errors"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -67,7 +66,7 @@ func (s *BudgetService) FetchColors(ctx context.Context) ([]*entities.Color, err
 func (s *BudgetService) UpdateColor(ctx context.Context, id, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	existing, err := s.repo.GetByIDColor(ctx, id)
 	if err != nil || existing == nil {
-		return nil, errors.New("color not found")
+		return nil, err
 	}
 
 	colors, err := s.repo.CreateAction(ctx, cpsAction)
