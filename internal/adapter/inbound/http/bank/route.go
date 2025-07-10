@@ -53,7 +53,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/",
+				Path:    "/list",
 				Handler: bank.GetAllBank,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

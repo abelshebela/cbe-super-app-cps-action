@@ -44,6 +44,7 @@ func (a *ApplicationStore) GetHQ(ctx context.Context, id string) (dto.HQ, error)
 
 func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName string) (string, error) {
 	return a.service.UpdateBlockTimeRequest(ctx, domain_hq.UpdateBlockTimeRequest{
+		ID:         request.ID,
 		BlockTime:  request.BlockTime,
 		MakerID:    makerID,
 		MakerName:  fullName,
@@ -53,6 +54,7 @@ func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request d
 
 func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName string) (string, error) {
 	return a.service.UpdateArchiveTimeRequest(ctx, domain_hq.UpdateArchiveTimeRequest{
+		ID:          request.ID,
 		ArchiveTime: request.ArchiveTime,
 		MakerID:     makerID,
 		MakerName:   fullName,

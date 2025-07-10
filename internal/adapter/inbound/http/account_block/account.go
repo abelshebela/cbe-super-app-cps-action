@@ -24,49 +24,49 @@ func NewAccountBlockHandler(service account_block.ApplicationService, logger uti
 }
 
 func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
-    var req struct {
-        Region   string `json:"region"`
-        District string `json:"district"`
-    }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "Invalid JSON body"}
-        resp.SendJSON()
-        return
-    }
+	var req struct {
+		Region   string `json:"region"`
+		District string `json:"district"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "Invalid JSON body"}
+		resp.SendJSON()
+		return
+	}
 
-    req.Region = strings.TrimSpace(req.Region)
-    req.District = strings.TrimSpace(req.District)
+	req.Region = strings.TrimSpace(req.Region)
+	req.District = strings.TrimSpace(req.District)
 
-    if req.Region == "" || req.District == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
-        resp.SendJSON()
-        return
-    }
+	if req.Region == "" || req.District == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district are required"}
+		resp.SendJSON()
+		return
+	}
 
-    if len(req.Region) < 3 || len(req.District) < 3 {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district must be at least 3 characters"}
-        resp.SendJSON()
-        return
-    }
+	if len(req.Region) < 3 || len(req.District) < 3 {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region and district must be at least 3 characters"}
+		resp.SendJSON()
+		return
+	}
 
-    branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
-    if err != nil {
-        h.logger.Errorf("FilterSingleBranches failed: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-        resp.SendJSON()
-        return
-    }
+	branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
+	if err != nil {
+		h.logger.Errorf("FilterSingleBranches failed: %v", err)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+		resp.SendJSON()
+		return
+	}
 
-    if branches == nil {
-        branches = []action.Branch{}
-    }
+	if branches == nil {
+		branches = []action.Branch{}
+	}
 
-    resp := common.Response[map[string]any]{
-        ResponseWriter: w,
-        Status:         http.StatusOK,
-        Data:           map[string]any{"branches": branches},
-    }
-    resp.SendJSON()
+	resp := common.Response[map[string]any]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]any{"branches": branches},
+	}
+	resp.SendJSON()
 }
 func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -320,106 +320,60 @@ func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, 
 }
 
 func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request) {
-    var req struct {
-        RegionCode string `json:"region_code"`
-        RegionName string `json:"region_name"`
-    }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-        strings.TrimSpace(req.RegionCode) == "" || strings.TrimSpace(req.RegionName) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_code and name are required"}
-        resp.SendJSON()
-        return
-    }
-    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-    if strings.TrimSpace(department) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-        resp.SendJSON()
-        return
-    }
+	var req struct {
+		RegionCode string `json:"region_code"`
+		RegionName string `json:"region_name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+		strings.TrimSpace(req.RegionCode) == "" || strings.TrimSpace(req.RegionName) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_code and name are required"}
+		resp.SendJSON()
+		return
+	}
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
 
-    maker := action.User{
-        UserID:      userID,
-        FullName:    fullName,
-        PhoneNumber: phoneNumber,
-        Department:  department,
-    }
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
 
-    cpsAction := action.CPSAction{
-        MakerID:          maker.UserID,
-        MakerName:        maker.FullName,
-        MakerPhoneNumber: maker.PhoneNumber,
-        Department:       maker.Department,
-    }
+	cpsAction := action.CPSAction{
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+	}
 
-    err := h.service.BlockRegion(r.Context(), req.RegionCode, cpsAction)
-    if err != nil {
-        h.logger.Errorf("BlockRegion failed: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-        resp.SendJSON()
-        return
-    }
+	err := h.service.BlockRegion(r.Context(), req.RegionCode, cpsAction)
+	if err != nil {
+		h.logger.Errorf("BlockRegion failed: %v", err)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+		resp.SendJSON()
+		return
+	}
 
-    resp := common.Response[map[string]string]{
-        ResponseWriter: w,
-        Status:         http.StatusCreated,
-        Data:           map[string]string{"message": "Region block action created"},
-    }
-    resp.SendJSON()
+	resp := common.Response[map[string]string]{
+		ResponseWriter: w,
+		Status:         http.StatusCreated,
+		Data:           map[string]string{"message": "Region block action created"},
+	}
+	resp.SendJSON()
 }
 
 func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Request) {
-    var req action.Region
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.RegionCode) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region code is required"}
-        resp.SendJSON()
-        return
-    }
-
-    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-    if strings.TrimSpace(userID) == "" ||
-        strings.TrimSpace(fullName) == "" ||
-        strings.TrimSpace(phoneNumber) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-        resp.SendJSON()
-        return
-    }
-    if strings.TrimSpace(department) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-        resp.SendJSON()
-        return
-    }
-
-    h.logger.Infof("UpdateRegion requested by user: %s (%s)", userID, fullName)
-
-    err := h.service.UpdateRegion(r.Context(), req)
-    if err != nil {
-        h.logger.Errorf("UpdateRegion failed: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-        resp.SendJSON()
-        return
-    }
-    resp := common.Response[map[string]string]{
-        ResponseWriter: w,
-        Status:         http.StatusOK,
-        Data:           map[string]string{"message": "Region updated successfully"},
-    }
-    resp.SendJSON()
-}
-func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "action_id is required"}
+	var req action.Region
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.RegionCode) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region code is required"}
 		resp.SendJSON()
 		return
 	}
@@ -442,48 +396,125 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
 		return
 	}
 
-	h.logger.Infof("ApproveRegionBlock requested by user: %s (%s)", userID, fullName)
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-	err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, maker)
+	h.logger.Infof("UpdateRegion requested by user: %s (%s)", userID, fullName)
+
+	err := h.service.UpdateRegion(r.Context(), req)
 	if err != nil {
-		h.logger.Errorf("ApproveRegionBlock failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
+		h.logger.Errorf("UpdateRegion failed: %v", err)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
 		resp.SendJSON()
 		return
 	}
 	resp := common.Response[map[string]string]{
 		ResponseWriter: w,
 		Status:         http.StatusOK,
-		Data:           map[string]string{"message": "Action processed successfully"},
+		Data:           map[string]string{"message": "Region updated successfully"},
 	}
 	resp.SendJSON()
 }
+func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        ActionID string  `json:"action_id"`
+        Approve  bool    `json:"approve"`
+        Reason   *string `json:"reason,omitempty"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
+        h.logger.Errorf("ApproveRegionBlock: invalid request body or missing action_id, err=%v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "action_id is required"}
+        resp.SendJSON()
+        return
+    }
 
-func (h *AccountBlockHandler) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
-    regionCode := chi.URLParam(r, "code")
-    if strings.TrimSpace(regionCode) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_code is required"}
+    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+    if strings.TrimSpace(userID) == "" ||
+        strings.TrimSpace(fullName) == "" ||
+        strings.TrimSpace(phoneNumber) == "" {
+        h.logger.Errorf("ApproveRegionBlock: Incomplete user information in context: userID=%s, fullName=%s, phoneNumber=%s", userID, fullName, phoneNumber)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
         resp.SendJSON()
         return
     }
-    region, err := h.service.GetRegionByCode(r.Context(), regionCode)
+    if strings.TrimSpace(department) == "" {
+        h.logger.Errorf("ApproveRegionBlock: department is required in context")
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+        resp.SendJSON()
+        return
+    }
+
+    h.logger.Infof("ApproveRegionBlock requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
+    checker := action.User{
+        UserID:      userID,
+        FullName:    fullName,
+        PhoneNumber: phoneNumber,
+        Department:  department,
+    }
+
+    err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
     if err != nil {
-        h.logger.Errorf("GetRegionByCode failed: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "Region not found"}
+        h.logger.Errorf("ApproveRegionBlock failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
+        if strings.Contains(err.Error(), "not allowed") {
+            resp := common.Response[any]{ResponseWriter: w, Status: http.StatusForbidden, Data: err.Error()}
+            resp.SendJSON()
+            return
+        }
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
         resp.SendJSON()
         return
     }
-    resp := common.Response[map[string]any]{
+
+    h.logger.Infof("ApproveRegionBlock succeeded for actionID=%s by user=%s", req.ActionID, userID)
+    resp := common.Response[map[string]string]{
         ResponseWriter: w,
         Status:         http.StatusOK,
-        Data:           map[string]any{"region": region},
+        Data:           map[string]string{"message": "Action processed successfully"},
     }
     resp.SendJSON()
+}
+func (h *AccountBlockHandler) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
+	regionCode := r.URL.Query().Get("region_code")
+	if strings.TrimSpace(regionCode) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region_code is required"}
+		resp.SendJSON()
+		return
+	}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
+		resp.SendJSON()
+		return
+	}
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
+
+	h.logger.Infof("GetRegionByCode requested by user: %s (%s)", userID, fullName)
+
+	region, err := h.service.GetRegionByCode(r.Context(), regionCode)
+	if err != nil {
+		h.logger.Errorf("GetRegionByCode failed: %v", err)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "Region not found"}
+		resp.SendJSON()
+		return
+	}
+	resp := common.Response[map[string]any]{
+		ResponseWriter: w,
+		Status:         http.StatusOK,
+		Data:           map[string]any{"region": region},
+	}
+	resp.SendJSON()
 }
 func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
 	var req struct {

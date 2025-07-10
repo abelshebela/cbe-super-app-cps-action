@@ -29,14 +29,13 @@ func (v ValidationRuleDTO) Validate() error {
 }
 
 type UpdateAccountValidationRequest struct {
-	ID         string            `json:"id"`
-	Validation ValidationRuleDTO `json:"validation"`
+	ValidationRuleDTO
 }
 
 func (r UpdateAccountValidationRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID, validation.Required.Error("id is required")),
-		validation.Field(&r.Validation, validation.Required, validation.By(func(value interface{}) error {
+		validation.Field(&r, validation.By(func(value interface{}) error {
 			if v, ok := value.(ValidationRuleDTO); ok {
 				return v.Validate()
 			}

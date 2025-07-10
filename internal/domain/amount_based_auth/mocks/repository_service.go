@@ -37,10 +37,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // ApproveAmountBasedAuth mocks base method.
-func (m *MockRepository) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+func (m *MockRepository) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApproveAmountBasedAuth", ctx, id, cpsAction)
-	ret0, _ := ret[0].(*model.CPSAction)
+	ret0, _ := ret[0].(*model.CpsActionNormalized)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,10 +52,10 @@ func (mr *MockRepositoryMockRecorder) ApproveAmountBasedAuth(ctx, id, cpsAction 
 }
 
 // RejectAmountBasedAuth mocks base method.
-func (m *MockRepository) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
+func (m *MockRepository) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RejectAmountBasedAuth", ctx, id, cpsAction)
-	ret0, _ := ret[0].(*model.CPSAction)
+	ret0, _ := ret[0].(*model.CpsActionNormalized)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -67,10 +67,10 @@ func (mr *MockRepositoryMockRecorder) RejectAmountBasedAuth(ctx, id, cpsAction i
 }
 
 // UpdateAuthTier mocks base method.
-func (m *MockRepository) UpdateAuthTier(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (m *MockRepository) AmountBasedAuthAuthTier(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAuthTier", ctx, request, cpsAction)
-	ret0, _ := ret[0].(*model.CPSAction)
+	ret0, _ := ret[0].(*model.CpsActionNormalized)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -78,5 +78,5 @@ func (m *MockRepository) UpdateAuthTier(ctx context.Context, request amount_base
 // UpdateAuthTier indicates an expected call of UpdateAuthTier.
 func (mr *MockRepositoryMockRecorder) UpdateAuthTier(ctx, request, cpsAction interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAuthTier", reflect.TypeOf((*MockRepository)(nil).UpdateAuthTier), ctx, request, cpsAction)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAuthTier", reflect.TypeOf((*MockRepository)(nil).AmountBasedAuthAuthTier), ctx, request, cpsAction)
 }

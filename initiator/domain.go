@@ -5,6 +5,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
+	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	budget_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
@@ -13,6 +14,7 @@ import (
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
+	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
@@ -41,30 +43,36 @@ type Domain struct {
 	PasswordRuleDomain password_service.PasswordRuleService
 	PortalCardDomain   portalcard.PortaCardInterface
 	DepartmentDomain   department.Service
+	HQDomain           hq.Service
+
 	AccountBlockDomain account_block.ApplicationServices
-	PermissionDomain   permission.Service
-	ServiceDomain      service.ServiceInterface
-	ActionDomain       action.ServiceImpl
+
+	PermissionDomain      permission.Service
+	AmountBasedAuthDomain amount_based_auth_domain.Repository
+	ServiceDomain         service.ServiceInterface
+	ActionDomain          action.ServiceImpl
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
 	return Domain{
-		AdDomain:           ad_service.InitADDomian(persitence.advertPersistence, logger),
-		AvatarDomian:       avatar_domain.InitAvatarDomain(persitence.avatarPersitence, minioClient, "avatars", logger),
-		CustomerDomain:     customer_service.IntiCustomerDomain(persitence.CustomerPersistence, logger),
-		FeedbackDomain:     feedback_service.InitFeedbackDomain(persitence.FeedBackPersistence, logger),
-		UnlinkDomain:       unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
-		BudgetDomain:       budget_service.InitBudgetDomain(persitence.BudgetPersistence, logger),
-		AccountDomain:      account_validation.NewAccountValidationService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
-		BulkServicesDomain: action.NewService(persitence.BulkServicesPersistence, logger),
-		CPSUserDomain:      services.NewCPSUserService(persitence.CPSUserPersistence),
-		PasswordRuleDomain: password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
-		BankDomain:         bank_service.InitBankDomain(persitence.BankPersistance, minioClient, "banks", logger),
-		DepartmentDomain:   *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
-		AccountBlockDomain: account_block.NewAccountService(persitence.AccountBlockPersistance),
-		PermissionDomain:   *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
-		ServiceDomain:      service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
-		ActionDomain:       action.NewService(persitence.BulkServicesPersistence, logger),
+		AdDomain:              ad_service.InitADDomian(persitence.advertPersistence, logger),
+		AvatarDomian:          avatar_domain.InitAvatarDomain(persitence.avatarPersitence, minioClient, "avatars", logger),
+		CustomerDomain:        customer_service.IntiCustomerDomain(persitence.CustomerPersistence, logger),
+		FeedbackDomain:        feedback_service.InitFeedbackDomain(persitence.FeedBackPersistence, logger),
+		UnlinkDomain:          unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
+		BudgetDomain:          budget_service.InitBudgetDomain(persitence.BudgetPersistence, logger),
+		AccountDomain:         account_validation.NewAccountValidationService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
+		BulkServicesDomain:    action.NewService(persitence.BulkServicesPersistence, logger),
+		CPSUserDomain:         services.NewCPSUserService(persitence.CPSUserPersistence),
+		PasswordRuleDomain:    password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
+		BankDomain:            bank_service.InitBankDomain(persitence.BankPersistance, minioClient, "banks", logger),
+		DepartmentDomain:      *department.InitDepartmentDomain(persitence.DepartmentPersistence, persitence.DepartmentPersistence, logger),
+		AccountBlockDomain:    account_block.NewAccountService(persitence.AccountBlockPersistance),
+		PermissionDomain:      *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
+		HQDomain:              hq.NewService(persitence.HQPersistence, persitence.BulkServicesPersistence, logger),
+		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persitence.AmountBasedAuthPersistence, logger),
+		ServiceDomain:         service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
+		ActionDomain:          action.NewService(persitence.BulkServicesPersistence, logger),
 	}
 
 }

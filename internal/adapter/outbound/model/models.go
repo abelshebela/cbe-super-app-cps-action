@@ -53,6 +53,19 @@ type User struct {
 	FullName    string `json:"full_name" bson:"full_name"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
+
+type Bank struct {
+	ID             string    `json:"id,omitempty" bson:"id"`
+	Name           string    `json:"name" bson:"name"`
+	Logo           string    `json:"logo" bson:"logo"`
+	Code           string    `json:"code" bson:"code"`
+	BIC            string    `json:"bic" bson:"bic"`
+	Enabled        bool      `json:"enabled" bson:"enabled"`
+	IsDeleted      bool      `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt      time.Time `json:"created_at,omitzero" bson:"created_at"`
+	LastModifiedAt time.Time `json:"last_modified_at,omitzero" bson:"last_modified_at"`
+}
+
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -244,6 +257,28 @@ type AppType struct {
 	Dev        string `bson:"dev"`
 }
 
+type CpsActionNormalized struct {
+	ID                 string      `bson:"_id,omitempty" json:"_id,omitempty"`
+	ActionCode         string      `bson:"action_code" json:"action_code"`
+	UniqueId           string      `bson:"unique_id" json:"unique_id"`
+	MakerID            string      `bson:"maker_id" json:"maker_id"`
+	MakerName          string      `bson:"maker_name" json:"maker_name"`
+	MakerPhoneNumber   string      `bson:"maker_phone_number" json:"maker_phone_number"`
+	CheckerID          string      `bson:"checker_id" json:"checker_id"`
+	CheckerName        string      `bson:"checker_name" json:"checker_name"`
+	CheckerPhoneNumber string      `bson:"checker_phone_number" json:"checker_phone_number"`
+	Department         string      `bson:"department" json:"department"`
+	RejectionReason    string      `bson:"rejection_reason" json:"rejection_reason"`
+	PreviosAction      interface{} `bson:"previous_action" json:"previous_action"`
+	CurrentAction      interface{} `bson:"current_action" json:"current_action"`
+	ActionStatus       string      `bson:"action_status" json:"action_status"`
+	ActionType         string      `bson:"action_type" json:"action_type"`
+	RequestAction      string      `bson:"request_action" json:"request_action"`
+	CreatedAt          time.Time   `bson:"created_at" json:"created_at"`
+	LastModifiedAt     time.Time   `bson:"last_modified_at" json:"last_modified_at"`
+	MakerActionTime    time.Time   `bson:"maker_action_time" json:"maker_action_time"`
+	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
+}
 type CredentialInformation struct {
 	ID            string          `bson:"id"`
 	Environment   EnvironmentType `bson:"environment"`
@@ -445,15 +480,15 @@ type PasswordRule struct {
 }
 
 type HQ struct {
-	ID                string    `bson:"_id" json:"id"`
-	UniqueId          string    `bson:"unique_id" json:"unique_id"`
-	Name              string    `bson:"name" json:"name"`
-	BlockTime         uint      `bson:"block_time" json:"block_time"`
-	BlockTimeStatus   string    `bson:"block_time_status" json:"block_time_status"`
-	ArchiveTime       uint      `bson:"archive_time" json:"archive_time"`
-	ArchiveTimeStatus string    `bson:"archive_time_status" json:"archive_time_status"`
-	CreatedAt         time.Time `bson:"created_at" json:"created_at"`
-	LastModifiedAt    time.Time `bson:"last_modified_at" json:"last_modified_at"`
+	ID                bson.ObjectID `bson:"_id" json:"id"`
+	UniqueId          string        `bson:"unique_id" json:"unique_id"`
+	Name              string        `bson:"name" json:"name"`
+	BlockTime         uint          `bson:"block_time" json:"block_time"`
+	BlockTimeStatus   string        `bson:"block_time_status" json:"block_time_status"`
+	ArchiveTime       uint          `bson:"archive_time" json:"archive_time"`
+	ArchiveTimeStatus string        `bson:"archive_time_status" json:"archive_time_status"`
+	CreatedAt         time.Time     `bson:"created_at" json:"created_at"`
+	LastModifiedAt    time.Time     `bson:"last_modified_at" json:"last_modified_at"`
 }
 type Branch struct {
 	ID            bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`

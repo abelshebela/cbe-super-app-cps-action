@@ -33,6 +33,7 @@ type BankService interface {
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	CheckExistingBank(ctx context.Context, name string) (bool, error)
 }
 
 func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioClientInterface,
@@ -162,6 +163,7 @@ func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.Cre
 }
 
 func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
+
 	cpsAction, err := b.bankRepo.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -197,4 +199,18 @@ func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
 	}
 
 	return cpsAction, nil
+}
+
+func (b *BankDomain) CheckExistingBank(ctx context.Context, name string) (bool, error) {
+
+	bank, err := b.bankRepo.CheckExistingBank(ctx, name)
+	if err != nil {
+		return false, err
+	}
+
+	if bank {
+		return true, nil
+	}
+
+	return false, nil
 }
