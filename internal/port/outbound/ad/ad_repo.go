@@ -13,6 +13,6 @@ type ADRepo interface {
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	DeleteOneAdvert(ctx context.Context, cpsAction entity.CPSAction) error
-	Authorize(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction entity.CPSAction) (*entity.AdvertResponse, error)
 	Reject(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error)
 }
