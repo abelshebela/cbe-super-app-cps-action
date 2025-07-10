@@ -169,6 +169,7 @@ var errorKeyToStatus = map[string]int{
 	"ACCOUNT_DETAIL_FAILED":         502,
 	"INVALID_CORE_RESPONSE":         502,
 	"ACCOUNT_ALREADY_LINKED":        409,
+	"ACCOUNT_BLOCKED":               403,
 
 	// OTP
 	"INVALID_OTP":            400,
@@ -205,11 +206,11 @@ var errorKeyToStatus = map[string]int{
 	"UNIDENTIFIED_KEY": 500,
 
 	// Banks
-	"BANKS_NOT_FOUND":   404,
-	"INVALID_BANK_NAME": 400,
-	"MISSING_BANK_NAME": 400,
-	"MISSING_BANK_CODE": 400,
-	"MISSING_BANK_BIC":  400,
+	"BANKS_NOT_FOUND":     404,
+	"INVALID_BANK_NAME":   400,
+	"MISSING_BANK_NAME":   400,
+	"MISSING_BANK_CODE":   400,
+	"MISSING_BANK_BIC":    400,
 	"BANK_ALREADY_EXISTS": 409,
 
 	// Action

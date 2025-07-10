@@ -13,11 +13,11 @@ type PortalCardApplication interface {
 }
 
 type portalCardApp struct {
-	portalDomain portalcardDomain.Repository
+	portalDomain portalcardDomain.PortalCardRepository
 	logger       utils.Logger
 }
 
-func NewPortalCardApp(service portalcardDomain.Repository, logger utils.Logger) PortalCardApplication {
+func NewPortalCardApp(service portalcardDomain.PortalCardRepository, logger utils.Logger) PortalCardApplication {
 	return &portalCardApp{
 		portalDomain: service,
 		logger:       logger,

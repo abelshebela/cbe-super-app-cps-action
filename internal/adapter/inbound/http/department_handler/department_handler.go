@@ -2,6 +2,7 @@
 package department_handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -47,6 +48,10 @@ func (h *DepartmentHandler) createCPSActionMaker(ctx ctx_util.UserContext) entit
 	return cpsAction
 }
 
+func (h *DepartmentHandler) getContext(r *http.Request) context.Context {
+	return r.Context()
+}
+
 func (h *DepartmentHandler) createCPSActionChecker(ctx ctx_util.UserContext) entities.CPSAction {
 	cpsAction := entities.CPSAction{
 		CheckerID:          ctx.UserID,
@@ -59,7 +64,7 @@ func (h *DepartmentHandler) createCPSActionChecker(ctx ctx_util.UserContext) ent
 
 func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	var request department.CreateDepartmentRequest
-	cur_ctx := r.Context()
+	curCtx := h.getContext(r)
 
 	// this is decoding
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -89,7 +94,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	cpsAction := h.createCPSActionMaker(ctx)
 
 	// creating department
-	createdAction, err := h.departmentService.CreateCPSAction(cur_ctx, request.Department, request.PortalCards, cpsAction)
+	createdAction, err := h.departmentService.CreateCPSAction(curCtx, request.Department, request.PortalCards, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[CreateDepartment] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
@@ -110,7 +115,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
 	ctx := ctx_util.ExtractUserContext(r)
-	cur_ctx := r.Context()
+	curCtx := h.getContext(r)
 
 	// context validation
 	if ctx.IsIncomplete() {
@@ -119,7 +124,7 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 		return
 	}
 
-	cpsAction, err := h.departmentService.ValidateActionRequest(cur_ctx, actionCode, ctx.Department)
+	cpsAction, err := h.departmentService.ValidateActionRequest(curCtx, actionCode, ctx.Department)
 	if err != nil {
 		h.logger.Errorf("[ApproveRequest] validation failed: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
@@ -133,7 +138,7 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 
 	actionCopy := *cpsAction
 
-	if serviceErr := h.departmentService.ApproveActionByType(cur_ctx, actionCopy); serviceErr != nil {
+	if serviceErr := h.departmentService.ApproveActionByType(curCtx, actionCopy); serviceErr != nil {
 		h.logger.Errorf("[ApproveRequest] service error: %v", serviceErr)
 		common_util.SendErrorResponse(w, serviceErr.Error(), http.StatusInternalServerError, nil)
 		return
@@ -141,7 +146,7 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 
 	checker := h.createCPSActionChecker(ctx)
 
-	if err := h.departmentService.ApproveActionRequest(cur_ctx, actionCode, checker); err != nil {
+	if err := h.departmentService.ApproveActionRequest(curCtx, actionCode, checker); err != nil {
 		h.logger.Errorf("[ApproveRequest] failed to approve action request: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
@@ -153,7 +158,7 @@ func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *h
 
 func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
 	var request department.UpdateDepartmentRequest
-	cur_ctx := r.Context()
+	curCtx := h.getContext(r)
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[UpdateDepartmentRequest] failed to decode request: %v", err)
@@ -184,21 +189,19 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionUpdate,
 		RequestAction:    entities.RequestDepartment,
-		CurrentAction: map[string]interface{}{
+		CurrentAction: map[string]any{
 			"department_code": request.DepartmentCode,
 			"department":      request.Department,
 			"portal_cards":    request.PortalCards,
 		},
 	}
 
-	createdAction, err := h.departmentService.CreateDepartmentUpdateCPSAction(cur_ctx, cpsAction)
+	createdAction, err := h.departmentService.CreateDepartmentUpdateCPSAction(curCtx, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[UpdateDepartmentRequest] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
-
-	// writing response with action_code
 
 	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
 

@@ -53,7 +53,6 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
 	}
 
 	filter := bson.M{"branch_region": region, "district_name": district}
-
 	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
 	if err != nil {
 		fmt.Printf("failed to fetch branches: %v\n", err)
