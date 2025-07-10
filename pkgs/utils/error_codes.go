@@ -153,6 +153,7 @@ const (
 	FailedToFetchAction          = "FAILED_TO_FETCH_ACTION"
 	FailedToUpdateService        = "FAILED_TO_UPDATE_SERVICE"
 	FailedToUpdateCapMin         = "FAILED_TO_UPDATE_CAP_MIN"
+	AccountBlocked               = "ACCOUNT_BLOCKED"
 
 	// User
 	UserStatusUpdateFailed = "USER_STATUS_UPDATE_FAILED"

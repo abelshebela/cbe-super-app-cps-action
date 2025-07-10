@@ -22,8 +22,6 @@ type ServiceFeePersistence struct {
 	logger        utils.Logger
 }
 
-// var _ outbound.OutboundServiceDetailInfra = (*ServiceFeePersistence)(nil)
-
 func NewServiceFeePersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) *ServiceFeePersistence {
 	return &ServiceFeePersistence{
 		client:        client,
