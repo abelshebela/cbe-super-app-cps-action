@@ -8,7 +8,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -86,7 +86,8 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		a.logger.Errorf("failed to extract department", err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
