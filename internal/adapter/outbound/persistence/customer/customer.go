@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "net/http"
 	"regexp"
 	"strings"
@@ -60,7 +61,9 @@ func InitCustomerDetail(client *mongo.Client, database string, collection string
 }
 
 func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
-	filter := bson.M{}
+	filter := bson.M{
+		"is_deleted": false,
+	}
 	projection := bson.M{}
 
 	if filterParams.Search != "" {
@@ -80,7 +83,10 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 
+	fmt.Println("filter-------------", filter)
 	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	fmt.Println("filtered==========", err)
+	fmt.Println("filtered==========", customers)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no customers data found", err)

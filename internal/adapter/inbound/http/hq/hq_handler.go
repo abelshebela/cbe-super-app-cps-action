@@ -2,6 +2,7 @@ package hq
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
@@ -36,7 +37,12 @@ func (h *HQHTTPHandler) GetHQ(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(hqResp)
+	data, err := utils.StructToMap(hqResp)
+	if err != nil {
+		utils.SendErrorResponse(w, fmt.Errorf("Unhandled Server Error"), 500, nil)
+		return
+	}
+	utils.BaseResponseMaker(data, w, "Successfly fetched", 200)
 }
 
 func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +73,7 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "Update block time request submitted for approval",
 		"data":    map[string]interface{}{"action_id": actionCode},
 	}
@@ -104,7 +110,7 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 	}
 
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "Update archive time request submitted for approval",
 		"data":    map[string]interface{}{"action_id": actionCode},
 	}
@@ -145,7 +151,7 @@ func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) 
 		action = "rejected"
 	}
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "update request " + action + " successfully Approved",
 		"data":    map[string]interface{}{"action": action},
 	}
@@ -186,7 +192,7 @@ func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request
 		action = "rejected"
 	}
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "update request " + action + " successfully Approved",
 		"data":    map[string]interface{}{"action": action},
 	}
