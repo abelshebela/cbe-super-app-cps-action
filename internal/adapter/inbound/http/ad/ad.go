@@ -2,7 +2,6 @@ package ad
 
 import (
 	"encoding/json"
-	"fmt"
 
 	// "fmt"
 	"net/http"
@@ -46,15 +45,12 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	started_at := r.FormValue("started_at")
-	fmt.Println("==========================", r.FormValue("description"))
 	started_at_time, err := time.Parse(time.RFC3339, started_at)
 	if err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
-	fmt.Println("==========FormValue==============")
-	fmt.Println(r.FormValue("title"))
 
 	expired_at := r.FormValue("expired_at")
 	expired_at_time, err := time.Parse(time.RFC3339, expired_at)
@@ -65,7 +61,6 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	advertReq.Title = r.FormValue("title")
-	fmt.Printf("title %v", advertReq.Title)
 	advertReq.Description = r.FormValue("description")
 	advertReq.AdvertFor = ad.AdvertFor(r.FormValue("advert_for"))
 	advertReq.Date.StartedAt = started_at_time
@@ -257,9 +252,6 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
-	fmt.Println("===========================================================")
-	fmt.Println(cpsReq.CheckerUser)
-	fmt.Println("===========================================================")
 
 	cpsReq.Department = department
 	cpsReq.ActionCode = action_code

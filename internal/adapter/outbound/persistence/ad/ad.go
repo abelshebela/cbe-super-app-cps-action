@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -38,9 +37,9 @@ func InitAD(client *mongo.Client, database string, collections []string, logger 
 
 func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error) {
 	filter := bson.M{
-		"maker_user.phone_number": cpsAction.MakerUser.PhoneNumber,
-		"status":                  entity.ActionPending,
-		"department":              cpsAction.Department,
+		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
+		"action_status":      entity.ActionPending,
+		"department":         cpsAction.Department,
 	}
 
 	projection := bson.M{
@@ -77,10 +76,11 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction entity.CP
 }
 
 func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error) {
+
 	filter := bson.M{
-		"maker_user.phone_number": cpsAction.MakerUser.PhoneNumber,
-		"status":                  entity.ActionPending,
-		"department":              cpsAction.Department,
+		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
+		"action_status":      entity.ActionPending,
+		"department":         cpsAction.Department,
 	}
 
 	projection := bson.M{
@@ -91,10 +91,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 	existingAd, err := a.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		a.logger.Errorf("failed to get ad", err)
-		err = fmt.Errorf("failed to get ad %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+
 		return nil, err
 	} else if existingAd != nil {
 
@@ -105,8 +102,12 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 
 	}
 
+	objectId, err := bson.ObjectIDFromHex(cpsAction.ActionData.ID)
+	if err != nil {
+		return nil, err
+	}
 	adFilter := bson.M{
-		"id":         cpsAction.ActionData.ID,
+		"_id":        objectId,
 		"is_deleted": false,
 	}
 
@@ -156,7 +157,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, cpsAction entity.CP
 func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, cpsAction entity.CPSAction) error {
 	filter := bson.M{
 		"maker_user.phone_number": cpsAction.MakerUser.PhoneNumber,
-		"status":                  entity.ActionPending,
+		"action_status":           entity.ActionPending,
 		"department":              cpsAction.Department,
 	}
 
@@ -247,7 +248,7 @@ func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant
 	projection := bson.M{}
 
 	if filterParams.Filters != "" {
-		filter["status"] = filterParams.Filters
+		filter["action_status"] = filterParams.Filters
 	}
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
@@ -283,27 +284,27 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 	var err error
 
 	filter := bson.M{
-		"action_code": cpsAction.ActionCode,
-		"department":  cpsAction.Department,
-		"status":      entity.ActionPending,
+		"action_code":   cpsAction.ActionCode,
+		"department":    cpsAction.Department,
+		"action_status": entity.ActionApproved,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    cpsAction.CheckerUser.FullName,
-			"phone_number": cpsAction.CheckerUser.PhoneNumber,
-			"user_code":    cpsAction.CheckerUser.UserCode,
-		},
-		"status":              entity.ActionApproved,
-		"checker_action_time": time.Now(),
+		"checker_id":           cpsAction.CheckerUser.UserCode,
+		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"checker_name":         cpsAction.CheckerUser.FullName,
+		"action_action_status": entity.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
+
 	cpsAction, err = a.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("failed to update cps action", err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
-	if cpsAction.ActionType == entity.ActionCreate {
+	if entity.ActionType(cpsAction.RequestAction) == entity.ActionType(entity.RequestCreateAdvert) {
+		fmt.Println("checke------------------")
 		req := entity.Advert{
 			ID:          bson.NewObjectID().Hex(),
 			Title:       cpsAction.ActionData.Title,
@@ -325,8 +326,14 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 
 	}
 
-	if cpsAction.ActionType == entity.ActionUpdate {
-		filter := bson.M{"id": cpsAction.ActionData.ID}
+	if entity.ActionType(cpsAction.RequestAction) == entity.ActionType(entity.RequestUpdateAdvert) {
+		objectId, err := bson.ObjectIDFromHex(cpsAction.ActionData.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		filter := bson.M{"_id": objectId}
 		update := bson.M{}
 
 		if cpsAction.ActionData.Title != "" {
@@ -358,9 +365,15 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 		return &cpsAction, nil
 	}
 
-	if cpsAction.ActionType == entity.ActionDelete {
+	if entity.ActionType(cpsAction.RequestAction) == entity.ActionType(entity.RequestDeleteAdvert) {
+		objectId, err := bson.ObjectIDFromHex(cpsAction.ActionData.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
 		filter := bson.M{
-			"id": cpsAction.ActionData.ID,
+			"_id": objectId,
 		}
 
 		update := bson.M{
@@ -385,9 +398,9 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction entity.CPSActio
 
 func (a *ADPersistence) Reject(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error) {
 	filter := bson.M{
-		"action_code": cpsAction.ActionCode,
-		"department":  cpsAction.Department,
-		"status":      entity.ActionPending,
+		"action_code":   cpsAction.ActionCode,
+		"department":    cpsAction.Department,
+		"action_status": entity.ActionPending,
 	}
 
 	update := bson.M{
@@ -396,14 +409,14 @@ func (a *ADPersistence) Reject(ctx context.Context, cpsAction entity.CPSAction) 
 			"phone_number": cpsAction.CheckerUser.PhoneNumber,
 			"user_code":    cpsAction.CheckerUser.UserCode,
 		},
-		"status":              entity.ActionRejected,
+		"action_status":       entity.ActionRejected,
 		"rejected_reason":     cpsAction.RejectedReason,
 		"checker_action_time": time.Now(),
 	}
 
 	cpsAction, err := a.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("failed to update advert status", err)
+		a.logger.Errorf("failed to update advert action_status", err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
 
 	}

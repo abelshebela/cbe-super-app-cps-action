@@ -107,10 +107,12 @@ func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq CreateCPSAction
 	}
 
 	cpsAction, err := a.adDomain.CreateOneAdvert(ctx, entity.CPSAction{
-		ActionCode: utils.RandomGenerator(20),
-		MakerUser:  entity.User(adCpsReq.MakerUser),
-		Department: adCpsReq.Department,
-		ActionData: entity.Advert{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          adCpsReq.MakerUser.UserCode,
+		MakerName:        adCpsReq.MakerUser.FullName,
+		MakerPhoneNumber: adCpsReq.MakerUser.PhoneNumber,
+		Department:       adCpsReq.Department,
+		CurrentAction: entity.Advert{
 			Title:       adCpsReq.ActionData.Title,
 			Description: adCpsReq.ActionData.Description,
 			BannerImage: saveObj.Bucket + "/" + saveObj.Key,
@@ -127,38 +129,28 @@ func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq CreateCPSAction
 	}
 
 	return &CPSAction{
-		ID:         cpsAction.ID,
-		ActionCode: cpsAction.ActionCode,
-		MakerUser: User{
-			UserCode:    cpsAction.MakerUser.UserCode,
-			FullName:    cpsAction.MakerUser.FullName,
-			PhoneNumber: cpsAction.MakerUser.PhoneNumber,
-		},
-		Department:      cpsAction.Department,
-		Status:          ActionStatus(cpsAction.Status),
-		RequestAction:   RequestAction(cpsAction.RequestAction),
-		ActionType:      ActionType(cpsAction.ActionType),
-		MakerActionTime: cpsAction.MakerActionTime,
-		ActionData: AdvertResponse{
-			ID:          cpsAction.ActionData.ID,
-			Title:       cpsAction.ActionData.Title,
-			Description: cpsAction.ActionData.Description,
-			BannerImage: cpsAction.ActionData.BannerImage,
-			AdvertFor:   AdvertFor(cpsAction.ActionData.AdvertFor),
-			Date: AdvertDate{
-				StartedAt: cpsAction.ActionData.Date.StartedAt,
-				ExpiredAt: cpsAction.ActionData.Date.ExpiredAt,
-			},
-		},
+		ID:               cpsAction.ID,
+		ActionCode:       cpsAction.ActionCode,
+		MakerID:          cpsAction.MakerID,
+		MakerName:        cpsAction.MakerName,
+		MakerPhoneNumber: cpsAction.MakerPhoneNumber,
+		Department:       cpsAction.Department,
+		ActionStatus:     ActionStatus(cpsAction.ActionStatus),
+		RequestAction:    RequestAction(cpsAction.RequestAction),
+		ActionType:       ActionType(cpsAction.ActionType),
+		MakerActionTime:  cpsAction.MakerActionTime,
+		CurrentAction:    cpsAction.CurrentAction,
 	}, nil
 }
 
 func (a ADHandler) DeleteOneAdvert(ctx context.Context, adCpsReq CreateCPSAction) error {
 	err := a.adDomain.DeleteOneAdvert(ctx, entity.CPSAction{
-		ActionCode: utils.RandomGenerator(20),
-		MakerUser:  entity.User(adCpsReq.MakerUser),
-		Department: adCpsReq.Department,
-		ActionData: entity.Advert{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          adCpsReq.MakerUser.UserCode,
+		MakerName:        adCpsReq.MakerUser.FullName,
+		MakerPhoneNumber: adCpsReq.MakerUser.PhoneNumber,
+		Department:       adCpsReq.Department,
+		CurrentAction: entity.Advert{
 			ID: adCpsReq.ActionData.ID,
 		},
 	})
@@ -191,11 +183,14 @@ func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*AdvertResponse
 }
 
 func (a ADHandler) UpdateOneAdvert(ctx context.Context, cpsAction CreateCPSAction) (*entity.CPSAction, error) {
+
 	advertCpsAction, err := a.adDomain.UpdateOneAdvert(ctx, entity.CPSAction{
-		ActionCode: utils.RandomGenerator(20),
-		MakerUser:  entity.User(cpsAction.MakerUser),
-		Department: cpsAction.Department,
-		ActionData: entity.Advert{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsAction.MakerUser.UserCode,
+		MakerName:        cpsAction.MakerUser.FullName,
+		MakerPhoneNumber: cpsAction.MakerUser.PhoneNumber,
+		Department:       cpsAction.Department,
+		CurrentAction: entity.Advert{
 			ID:          cpsAction.ActionData.ID,
 			Title:       cpsAction.ActionData.Title,
 			Description: cpsAction.ActionData.Description,
