@@ -180,11 +180,12 @@ func (mr *MockAccountBlockRepoMockRecorder) BlockUser(ctx, userID, maker interfa
 }
 
 // DisableMultipleBranches mocks base method.
-func (m *MockAccountBlockRepo) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
+func (m *MockAccountBlockRepo) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableMultipleBranches", ctx, branches, maker)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DisableMultipleBranches indicates an expected call of DisableMultipleBranches.
@@ -194,11 +195,12 @@ func (mr *MockAccountBlockRepoMockRecorder) DisableMultipleBranches(ctx, branche
 }
 
 // DisableSingleBranch mocks base method.
-func (m *MockAccountBlockRepo) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
+func (m *MockAccountBlockRepo) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableSingleBranch", ctx, branch, maker)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DisableSingleBranch indicates an expected call of DisableSingleBranch.

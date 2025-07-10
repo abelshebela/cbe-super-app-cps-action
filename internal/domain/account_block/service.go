@@ -25,10 +25,12 @@ func (s *AccountService) FilterSingleBranches(ctx context.Context, region, distr
 	return s.repo.FilterSingleBranches(ctx, region, district)
 }
 
-func (s *AccountService) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
+func (s *AccountService) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
+	if branch.BranchCode == "" {
+		return "", fmt.Errorf("branchCode is required")
+	}
 	return s.repo.DisableSingleBranch(ctx, branch, maker)
 }
-
 func (s *AccountService) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if actionID == "" {
 		return fmt.Errorf("actionID is required")
@@ -42,10 +44,9 @@ func (s *AccountService) FilterMultipleBranches(ctx context.Context, region, dis
 	}
 	return s.repo.FilterMultipleBranches(ctx, region, district)
 }
-
-func (s *AccountService) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
+func (s *AccountService) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	if len(branches) == 0 {
-		return fmt.Errorf("branches list is empty")
+		return "", fmt.Errorf("branches list is empty")
 	}
 	return s.repo.DisableMultipleBranches(ctx, branches, maker)
 }

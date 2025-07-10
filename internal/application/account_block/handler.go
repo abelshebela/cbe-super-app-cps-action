@@ -10,11 +10,11 @@ import (
 
 type ApplicationService interface {
 	FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
-	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error
+	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string ,error)
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
-	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error
+	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string ,error)
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
@@ -50,9 +50,8 @@ func NewApplicationHandler(service account_block.ApplicationServices) Applicatio
 func (h *Handler) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
 	return h.service.FilterSingleBranches(ctx, region, district)
 }
-
-func (h *Handler) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) error {
-	return h.service.DisableSingleBranch(ctx, branch, maker)
+func (h *Handler) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
+    return h.service.DisableSingleBranch(ctx, branch, maker)
 }
 
 func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
@@ -63,8 +62,8 @@ func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district s
 	return h.service.FilterMultipleBranches(ctx, region, district)
 }
 
-func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error {
-	return h.service.DisableMultipleBranches(ctx, branches, maker)
+func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
+    return h.service.DisableMultipleBranches(ctx, branches, maker)
 }
 
 func (h *Handler) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
