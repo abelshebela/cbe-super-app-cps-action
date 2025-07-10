@@ -44,6 +44,7 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 	u.logger.Infof("[UnlinkDevice] initiated for user: %s by %s", userCode, cpsAction.MakerID)
 	ctx := context.Background()
 	filter := bson.M{"user_code": userCode}
+	
 	user, err := u.user.FindOne(ctx, filter, bson.M{})
 
 	if err != nil {

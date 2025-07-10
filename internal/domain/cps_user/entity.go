@@ -7,11 +7,11 @@ import (
 )
 
 type CPSUser struct {
-	ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+	ID                 string          `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode           string          `json:"user_code,omitempty" bson:"user_code,omitempty"`
 	FullName           string          `json:"full_name,omitempty" bson:"full_name,omitempty"`
 	Role               string          `json:"role,omitempty" bson:"role,omitempty"`
-	Department         bson.ObjectID   `json:"department,omitempty" bson:"department,omitempty"`
+	Department         string          `json:"department,omitempty" bson:"department,omitempty"`
 	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
 	PhoneNumber        string          `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
 	Email              string          `json:"email,omitempty" bson:"email,omitempty"`

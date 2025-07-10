@@ -142,19 +142,18 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	var err error
 
 	filter := bson.M{
-		"action_code": req.ActionCode,
-		"department":  req.Department,
-		"status":      model.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"status":              model.ActionApproved,
-		"checker_action_time": time.Now(),
+
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_name":         req.CheckerUser.FullName,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)

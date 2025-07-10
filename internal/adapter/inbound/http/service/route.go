@@ -1,3 +1,4 @@
+// Package service handles HTTP requests related to services.
 package service
 
 import (
@@ -16,7 +17,7 @@ func InitServiceRoutes(router chi.Router, serviceHandler inbound.ServiceBound, a
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/update",
+				Path:    "/update/{id}",
 				Handler: serviceHandler.UpdateServiceFee,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

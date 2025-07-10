@@ -1,3 +1,4 @@
+// Package adapter provides outbound adapters for database and external service interactions
 package adapter
 
 import (
@@ -401,6 +402,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
+		
 	}
 	return nil
 }
@@ -508,6 +510,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 }
 
 func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error) {
+	Action.ActionCode = utils.RandomGenerator(20)
 	modelAction := domainToModelCPSAction(Action)
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, modelAction)
 	if err != nil {

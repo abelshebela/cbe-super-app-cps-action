@@ -9,19 +9,20 @@ import (
 type ServiceImpl interface {
 	GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error)
 	UpdateServiceFlagRequest(ctx context.Context, id string, action bool, maker_id string) (string, error)
-	UpdateServiceFlag(ctx context.Context, action_id string, action bool, checker_id string) error
+	UpdateServiceFlag(ctx context.Context, actionID string, action bool, checker_id string) error
 
 	GetAccountByAccount(ctx context.Context, Account string) ([]LinkedAccount, error)
 	RemoveCifRequest(ctx context.Context, id []string, action bool, maker_id string) (string, error)
-	RemoveCif(ctx context.Context, action_id string, action bool, checker_id string) error
+	RemoveCif(ctx context.Context, actionID string, action bool, checker_id string) error
+	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
 }
 
 type ServiceStore struct {
-	Repository Repository
+	Repository ActionRepository
 	Logger     utils.Logger
 }
 
-func NewService(repo Repository, logger utils.Logger) ServiceImpl {
+func NewService(repo ActionRepository, logger utils.Logger) ServiceImpl {
 	return &ServiceStore{
 		Repository: repo,
 		Logger:     logger,

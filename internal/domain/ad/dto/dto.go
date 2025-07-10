@@ -1,4 +1,4 @@
-package ad
+package dto
 
 import (
 	"fmt"
@@ -123,13 +123,6 @@ func (c CreateAdvertRequest) Validate() error {
 	)
 }
 
-type UpdateAdvert struct {
-	Title       string     `form:"title" json:"title"`
-	Description string     `form:"description" json:"descritption"`
-	AdvertFor   AdvertFor  `form:"advert_for" json:"advert_for"`
-	Date        AdvertDate `form:"date" json:"date"`
-}
-
 type UpdateAdvertRequest struct {
 	ID          string     `json:"id"`
 	Title       string     `json:"title"`
@@ -138,53 +131,11 @@ type UpdateAdvertRequest struct {
 	Date        AdvertDate `json:"date"`
 }
 
-type CreateCPSAction struct {
-	ID                string              `json:"id,omitempty"`
-	ActionCode        string              `json:"action_code,omitempty"`
-	CheckerUser       User                `json:"checker_user"`
-	MakerUser         User                `json:"maker_user"`
-	RejectedReason    string              `json:"rejected_reason,omitempty"`
-	Department        string              `json:"department,omitempty"`
-	Status            ActionStatus        `json:"status,omitempty"`
-	RequestAction     RequestAction       `json:"request_action,omitempty"`
-	ActionType        ActionType          `json:"action_type,omitempty"`
-	ActionData        CreateAdvertRequest `json:"action_data"`
-	PreviousData      any                 `json:"previous_action,omitempty"`
-	CurrentData       any                 `json:"current_action,omitempty"`
-	MakerActionTime   time.Time           `json:"maker_action_time,omitzero"`
-	CheckerActionTime time.Time           `json:"checker_action_time,omitzero"`
-}
-
-type CPSAction struct {
-	ID                 string        `json:"id"`
-	ActionCode         string        `json:"action_code"`
-	UniqueId           string        `json:"unique_id"`
-	MakerID            string        `json:"maker_id"`
-	MakerName          string        `json:"maker_name"`
-	MakerPhoneNumber   string        `json:"maker_phone_number"`
-	CheckerID          string        `json:"checker_id"`
-	CheckerName        string        `json:"checker_name"`
-	CheckerPhoneNumber string        `json:"checker_phone_number"`
-	Department         string        `json:"department"`
-	RejectionReason    *string       `json:"rejection_reason"`
-	PreviosAction      interface{}   `json:"previos_action"`
-	CurrentAction      interface{}   `json:"current_action"`
-	ActionStatus       ActionStatus  `json:"action_status"`
-	ActionType         ActionType    `json:"action_type"`
-	RequestAction      RequestAction `json:"request_action"`
-	CreatedAt          time.Time     `json:"created_at"`
-	LastModifiedAt     time.Time     `json:"last_modified_at"`
-	MakerActionTime    time.Time     `json:"maker_action_time"`
-	CheckerActionTime  time.Time     `json:"checker_action_time"`
-}
-type ActionData struct {
-	UseCode     string `json:"user_code"`
-	FullName    string `json:"full_name"`
-	PhoneNumber string `json:"phone_number"`
-}
-
-type User struct {
-	UserCode    string `json:"user_code,omitempty" bson:"user_code"`
-	FullName    string `json:"full_name,omitempty" bson:"user_code"`
-	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number"`
+func (u UpdateAdvertRequest) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Title,
+			validation.NilOrNotEmpty,
+			validation.Length(3, 20),
+		),
+	)
 }

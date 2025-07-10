@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -9,9 +10,12 @@ import (
 	serviceApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	"github.com/go-chi/chi/v5"
+
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type serviceHandler struct {
@@ -27,92 +31,83 @@ func NewServiceHandler(domain serviceApp.ServiceApplication, logger utils.Logger
 }
 
 func (s *serviceHandler) AuthorizeServiceFee(w http.ResponseWriter, r *http.Request) {
+	// TODO implement the logic for authorizing service fees
+	common_util.SendErrorResponse(w, "error", http.StatusNotImplemented, nil)
 
 }
 func (s *serviceHandler) RejectServiceFee(w http.ResponseWriter, r *http.Request) {
+	// TODO implement the logic for rejecting service fees
+	common_util.SendErrorResponse(w, "responnd", http.StatusNotImplemented, nil)
 
 }
 
-func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request) {
-	var req dto.UpdateServiceFeeRequest
-	returndata := make(map[string]interface{})
-
-	queryId := r.Header.Get("query_id")
-	var user cpsuser.CPSUser
-	userContext := r.Header.Get("_user")
-
-	err := json.Unmarshal([]byte(userContext), &user)
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		returndata["success"] = false
-		returndata["message"] = "invalid json data"
-		returndata["error"] = err.Error()
-
-		w.WriteHeader(http.StatusForbidden)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(returndata)
-		return
-	}
-
-	if err := s.appService.ValidateTiers(req.Tiers, req.AboveAmount); err != nil {
-		returndata["success"] = false
-		returndata["message"] = err.Error()
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(returndata)
-		return
-	}
-
-	objectID, err := bson.ObjectIDFromHex(queryId)
-	if err != nil {
-		returndata["success"] = false
-		returndata["message"] = "Invalid message query id"
-		w.Header().Set("Content-Type", "applicatoin/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(returndata)
-		return
-	}
-
-	service, err := s.appService.GetOneService(r.Context(), objectID)
-	if err != nil {
-		returndata["success"] = false
-		returndata["message"] = "Service not found"
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	serviceName := service.ServiceName
-
-	// Prepare CPS action data
-	action := map[string]interface{}{
+func (s *serviceHandler) buildServiceFeeActionData(req dto.UpdateServiceFeeRequest, serviceID, serviceName string) map[string]any {
+	return map[string]any{
 		"aboveServiceFee":   req.AboveServiceFee / 100,
 		"minAmountVIRTUAL":  req.MinAmountVIRTUAL,
 		"dailyCapLevelOne":  req.DailyCapLevelOne,
 		"singleCapLevelOne": req.SingleCapLevelOne,
-		"service_id":        queryId,
+		"service_id":        serviceID,
 		"service_name":      serviceName,
 		"tiers":             req.Tiers,
 		"paymentType":       req.PaymentType,
 		"serviceType":       req.ServiceType,
 		"lastModified":      time.Now(),
 	}
-	initAction := s.appService.InitCPSAction(user, action, "CREATE", "UPDATE SERVICE FEE", service)
+}
 
-	err = s.appService.CreateAction(r.Context(), initAction)
+func (s *serviceHandler) extractCPSUserFromRequest(r *http.Request) (cpsuser.CPSUser, error) {
+	userCtx := ctx_util.ExtractUserContext(r)
+	if userCtx.IsIncomplete() {
+		return cpsuser.CPSUser{}, errors.New(common_util.Unauthorized)
+	}
+	return cpsuser.CPSUser{
+		ID:          userCtx.UserID,
+		FullName:    userCtx.FullName,
+		PhoneNumber: userCtx.PhoneNumber,
+		Department:  userCtx.Department,
+	}, nil
+}
+
+func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request) {
+	var req dto.UpdateServiceFeeRequest
+
+	queryID := chi.URLParam(r, "id")
+	if queryID == "" {
+		common_util.SendErrorResponse(w, common_util.InvalidID, http.StatusBadRequest, nil)
+		return
+	}
+	user, err := s.extractCPSUserFromRequest(r)
 	if err != nil {
-		returndata["success"] = false
-		returndata["message"] = "Unable to Create  Action"
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(returndata)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusUnauthorized, nil)
 		return
 	}
 
-	returndata["message"] = "Request Sent Successfuly"
-	returndata["status"] = true
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(returndata)
-	return
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, 0, nil)
+		return
+	}
+
+	if err := s.appService.ValidateTiers(req.Tiers, req.AboveAmount); err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	service, err := s.appService.GetOneService(r.Context(), queryID)
+	if err != nil {
+		common_util.SendErrorResponse(w, "service not found", 0, nil)
+		return
+	}
+
+	// Prepare CPS action data
+	actionData := s.buildServiceFeeActionData(req, queryID, service.ServiceName)
+	initAction := s.appService.InitCPSAction(user, actionData, "CREATE", "UPDATE SERVICE FEE", service)
+
+	err = s.appService.CreateAction(r.Context(), initAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, "failde", http.StatusConflict, nil)
+		return
+	}
+
+	common_util.WriteSuccessResponse(w, nil, "Request Sent Successfuly")
 }

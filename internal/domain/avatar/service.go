@@ -43,6 +43,7 @@ func InitAvatarDomain(avatarRepo AvatarRepository,
 }
 
 func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CPSAction, error) {
+
 	req.RequestAction = model.RequestCreateAvatar
 	err := a.avatarRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -50,6 +51,7 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	}
 
 	actionData, ok := req.ActionData.(CreateAvatar)
+
 	if !ok {
 		a.logger.Errorf("failed to cast action data to avatar request")
 		return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{

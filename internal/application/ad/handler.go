@@ -2,12 +2,8 @@ package ad
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-	"os"
-	"path/filepath"
-	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -17,13 +13,13 @@ import (
 )
 
 type ADHandlers interface {
-	CreateOneAdvert(ctx context.Context, adCpsReq CreateCPSAction) (*CPSAction, error)
+	CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error)
-	GetOneAdvert(ctx context.Context, id string) (*AdvertResponse, error)
-	UpdateOneAdvert(ctx context.Context, cpsAction CreateCPSAction) (*entity.CPSAction, error)
-	DeleteOneAdvert(ctx context.Context, adCpsReq CreateCPSAction) error
-	Authorize(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error)
-	Reject(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error)
+	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
+	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error)
 }
 
 type ADHandler struct {
@@ -42,119 +38,17 @@ func InitADHandler(adDomain service.AdvertService, minioClinet config.MinioClien
 	}
 }
 
-func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq CreateCPSAction) (*CPSAction, error) {
-	if err := adCpsReq.ActionData.Validate(); err != nil {
-		a.logger.Errorf("invalid data", err)
-		return nil, err
-	}
-
-	exist, err := a.minio.BucketExist(ctx, a.bucketName)
-	if err != nil {
-		a.logger.Errorf("failed to check advert bucket: %v", err)
-		return nil, fmt.Errorf("failed to check advert bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	if !exist {
-		created, err := a.minio.MakeBucket(ctx, a.bucketName)
-		if !created || err != nil {
-			a.logger.Errorf("failed to create advert bucket: %v", err)
-			return nil, fmt.Errorf("failed to create advert bucket: %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-		}
-	}
-
-	fileName := fmt.Sprintf("upload-%d-%s", time.Now().UnixNano(), adCpsReq.ActionData.BannerImage.Filename)
-	dir, err := os.Getwd()
-	if err != nil {
-		a.logger.Errorf("failed to get current working directory", err)
-		return nil, fmt.Errorf("failed to create advert bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-	filePath := filepath.Join(dir, fileName)
-
-	tempFile, err := os.Create(filePath)
-	if err != nil {
-		a.logger.Errorf("failed to create temp file: %v", err)
-		return nil, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-	defer func() {
-		tempFile.Close()
-		os.Remove(filePath)
-	}()
-
-	// Save to MinIO
-	saveObj, err := a.minio.SaveObject(ctx, config.SaveObjectBody{
-		BucketName: a.bucketName,
-		ObjectName: fileName,
-		File:       filePath,
-	})
-	if err != nil {
-		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("failed to save object to MinIO: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-	}
-
-	cpsAction, err := a.adDomain.CreateOneAdvert(ctx, entity.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          adCpsReq.MakerUser.UserCode,
-		MakerName:        adCpsReq.MakerUser.FullName,
-		MakerPhoneNumber: adCpsReq.MakerUser.PhoneNumber,
-		Department:       adCpsReq.Department,
-		CurrentAction: entity.Advert{
-			Title:       adCpsReq.ActionData.Title,
-			Description: adCpsReq.ActionData.Description,
-			BannerImage: saveObj.Bucket + "/" + saveObj.Key,
-			AdvertFor:   entity.AdvertFor(adCpsReq.ActionData.AdvertFor),
-			Date: entity.AdvertDate{
-				StartedAt: adCpsReq.ActionData.Date.StartedAt,
-				ExpiredAt: adCpsReq.ActionData.Date.ExpiredAt,
-			},
-		},
-	})
-
+func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	cpsAction, err := a.adDomain.CreateOneAdvert(ctx, adCpsReq)
 	if err != nil {
 		return nil, err
 	}
 
-	return &CPSAction{
-		ID:               cpsAction.ID,
-		ActionCode:       cpsAction.ActionCode,
-		MakerID:          cpsAction.MakerID,
-		MakerName:        cpsAction.MakerName,
-		MakerPhoneNumber: cpsAction.MakerPhoneNumber,
-		Department:       cpsAction.Department,
-		ActionStatus:     ActionStatus(cpsAction.ActionStatus),
-		RequestAction:    RequestAction(cpsAction.RequestAction),
-		ActionType:       ActionType(cpsAction.ActionType),
-		MakerActionTime:  cpsAction.MakerActionTime,
-		CurrentAction:    cpsAction.CurrentAction,
-	}, nil
+	return cpsAction, nil
 }
 
-func (a ADHandler) DeleteOneAdvert(ctx context.Context, adCpsReq CreateCPSAction) error {
-	err := a.adDomain.DeleteOneAdvert(ctx, entity.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          adCpsReq.MakerUser.UserCode,
-		MakerName:        adCpsReq.MakerUser.FullName,
-		MakerPhoneNumber: adCpsReq.MakerUser.PhoneNumber,
-		Department:       adCpsReq.Department,
-		CurrentAction: entity.Advert{
-			ID: adCpsReq.ActionData.ID,
-		},
-	})
-	return err
+func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	return a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
 }
 
 func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error) {
@@ -166,41 +60,17 @@ func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filt
 	return adverts, nil
 }
 
-func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*AdvertResponse, error) {
+func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error) {
 	advert, err := a.adDomain.GetOneAdvert(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &AdvertResponse{
-		ID:          advert.ID,
-		Title:       advert.Title,
-		Description: advert.Description,
-		BannerImage: advert.BannerImage,
-		AdvertFor:   AdvertFor(advert.AdvertFor),
-		Date:        AdvertDate(advert.Date),
-	}, nil
+	return advert, nil
 }
 
-func (a ADHandler) UpdateOneAdvert(ctx context.Context, cpsAction CreateCPSAction) (*entity.CPSAction, error) {
-
-	advertCpsAction, err := a.adDomain.UpdateOneAdvert(ctx, entity.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          cpsAction.MakerUser.UserCode,
-		MakerName:        cpsAction.MakerUser.FullName,
-		MakerPhoneNumber: cpsAction.MakerUser.PhoneNumber,
-		Department:       cpsAction.Department,
-		CurrentAction: entity.Advert{
-			ID:          cpsAction.ActionData.ID,
-			Title:       cpsAction.ActionData.Title,
-			Description: cpsAction.ActionData.Description,
-			AdvertFor:   entity.AdvertFor(cpsAction.ActionData.AdvertFor),
-			Date: entity.AdvertDate{
-				StartedAt: cpsAction.ActionData.Date.StartedAt,
-				ExpiredAt: cpsAction.ActionData.Date.ExpiredAt,
-			},
-		},
-	})
+func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+	advertCpsAction, err := a.adDomain.UpdateOneAdvert(ctx, id, cpsAction)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +78,7 @@ func (a ADHandler) UpdateOneAdvert(ctx context.Context, cpsAction CreateCPSActio
 	return advertCpsAction, nil
 }
 
-func (a ADHandler) Authorize(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error) {
+func (a ADHandler) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	cpsActionRes, err := a.adDomain.Authorize(ctx, cpsAction)
 	if err != nil {
 		return nil, err
@@ -217,7 +87,7 @@ func (a ADHandler) Authorize(ctx context.Context, cpsAction entity.CPSAction) (*
 	return cpsActionRes, nil
 }
 
-func (a ADHandler) Reject(ctx context.Context, cpsAction entity.CPSAction) (*entity.CPSAction, error) {
+func (a ADHandler) Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
 	cpsActionRes, err := a.adDomain.Reject(ctx, cpsAction)
 	if err != nil {
 		return nil, err

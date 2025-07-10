@@ -3,6 +3,8 @@ package initiator
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
+
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
@@ -47,6 +49,7 @@ type Application struct {
 	AccountBlockApplication  account_block.ApplicationService
 	HQApplication            hq.ApplicationAbstracts
 
+	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 }
@@ -69,11 +72,12 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
-		ServiceDetailApplication:   service_details_app.NewApplication(domain.SeviceDetailDomain, logger),
+		ServiceDetailApplication:   service_details_app.NewApplication(domain.ServiceDomain, logger),
 		DepartmentApplication:      department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 		AccountBlockApplication:    account_block.NewApplicationHandler(domain.AccountBlockDomain),
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
+		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 	}
 }

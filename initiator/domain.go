@@ -20,6 +20,7 @@ import (
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -41,7 +42,6 @@ type Domain struct {
 	CPSUserDomain      services.CPSUserService
 	PasswordRuleDomain password_service.PasswordRuleService
 	PortalCardDomain   portalcard.PortaCardInterface
-	SeviceDetailDomain service.ServiceInterface
 	DepartmentDomain   department.Service
 	HQDomain           hq.Service
 
@@ -49,17 +49,19 @@ type Domain struct {
 
 	PermissionDomain      permission.Service
 	AmountBasedAuthDomain amount_based_auth_domain.Repository
+	ServiceDomain         service.ServiceInterface
+	ActionDomain          action.ServiceImpl
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
 	return Domain{
-		AdDomain:              ad_service.InitADDomian(persitence.advertPersistence, logger),
+		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persitence.advertPersistence, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persitence.avatarPersitence, minioClient, "avatars", logger),
 		CustomerDomain:        customer_service.IntiCustomerDomain(persitence.CustomerPersistence, logger),
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persitence.FeedBackPersistence, logger),
 		UnlinkDomain:          unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
 		BudgetDomain:          budget_service.InitBudgetDomain(persitence.BudgetPersistence, logger),
-		AccountDomain:         account_validation.NewService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
+		AccountDomain:         account_validation.NewAccountValidationService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
 		BulkServicesDomain:    action.NewService(persitence.BulkServicesPersistence, logger),
 		CPSUserDomain:         services.NewCPSUserService(persitence.CPSUserPersistence),
 		PasswordRuleDomain:    password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
@@ -69,5 +71,8 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		PermissionDomain:      *permission.InitPermissionDomain(persitence.PermissionPersistence, persitence.PermissionPersistence, persitence.PermissionPersistence, logger),
 		HQDomain:              hq.NewService(persitence.HQPersistence, persitence.BulkServicesPersistence, logger),
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persitence.AmountBasedAuthPersistence, logger),
+		ServiceDomain:         service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
+		ActionDomain:          action.NewService(persitence.BulkServicesPersistence, logger),
 	}
+
 }

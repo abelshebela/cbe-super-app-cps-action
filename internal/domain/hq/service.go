@@ -10,7 +10,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq/"
 )
 
 type Service interface {
@@ -23,11 +22,11 @@ type Service interface {
 
 type ServiceStore struct {
 	repository Repository
-	actionRepo action.Repository
+	actionRepo action.ActionRepository
 	logger     sharedutils.Logger
 }
 
-func NewService(repo Repository, actionRepo action.Repository, logger sharedutils.Logger) Service {
+func NewService(repo Repository, actionRepo action.ActionRepository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,

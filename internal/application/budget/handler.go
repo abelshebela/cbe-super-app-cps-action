@@ -2,7 +2,6 @@ package budget
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -49,48 +48,33 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	iconData, ok := cpsAction.CurrentAction.(map[string]interface{})
 	if !ok {
 		b.logger.Errorf("invalid current action type")
-		return nil, fmt.Errorf("invalid current action: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid icon action format",
-		})
+		return nil, fmt.Errorf("invalid currect action")
 	}
 
 	imageFileHeader, ok := iconData["icon_url"].(*multipart.FileHeader)
 	if !ok {
 		b.logger.Errorf("banner image is not present or invalid")
-		return nil, fmt.Errorf("banner image missing or invalid: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "banner image is required",
-		})
+		return nil, fmt.Errorf("banner image missing or invalid")
 	}
 
 	file, err := imageFileHeader.Open()
 	if err != nil {
 		b.logger.Errorf("failed to open uploaded image: %v", err)
-		return nil, fmt.Errorf("failed to open uploaded image: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid image file",
-		})
+		return nil, fmt.Errorf("failed to open uploaded image")
 	}
 	defer file.Close()
 
 	exist, err := b.minio.BucketExist(ctx, b.bucketName)
 	if err != nil {
 		b.logger.Errorf("failed to check icon bucket: %v", err)
-		return nil, fmt.Errorf("failed to check icon bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf("failed to check icon bucket")
 	}
 
 	if !exist {
 		created, err := b.minio.MakeBucket(ctx, b.bucketName)
 		if !created || err != nil {
 			b.logger.Errorf("failed to create icon bucket: %v", err)
-			return nil, fmt.Errorf("failed to create icon bucket: %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return nil, fmt.Errorf("failed to create icon bucker")
 		}
 	}
 
@@ -98,10 +82,7 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	dir, err := os.Getwd()
 	if err != nil {
 		b.logger.Errorf("failed to get current working directory", err)
-		return nil, fmt.Errorf("failed to create advert bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf("failed to create advert bucket")
 	}
 
 	filePath := filepath.Join(dir, fileName)
@@ -109,10 +90,7 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	tempFile, err := os.Create(filePath)
 	if err != nil {
 		b.logger.Errorf("failed to create temp file: %v", err)
-		return nil, fmt.Errorf("failed to create temp file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf("failed to create temp file")
 	}
 	defer func() {
 		tempFile.Close()
@@ -126,10 +104,7 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	})
 	if err != nil {
 		b.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("failed to save object to MinIO: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf("failed to save object to MinIo")
 	}
 
 	cpsAction.CurrentAction = map[string]interface{}{"icon_url": saveObj.Bucket + "/" + saveObj.Key}
@@ -137,10 +112,7 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	code, err := b.service.CreateIcon(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to persist CPS action: %v", err)
-		return nil, fmt.Errorf("failed to create icon record: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "could not save icon request",
-		})
+		return nil, fmt.Errorf("failed to persist CPS action")
 	}
 
 	return code, nil
@@ -160,10 +132,7 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 	iconData, ok := cpsAction.CurrentAction.(map[string]interface{})
 	if !ok {
 		b.logger.Errorf("invalid current action type")
-		return nil, fmt.Errorf("invalid current action: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid icon action format",
-		})
+		return nil, fmt.Errorf("invalid current action type")
 	}
 
 	imageFileHeader, ok := iconData["icon_url"].(*multipart.FileHeader)
@@ -256,8 +225,10 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 func (b *BudgetHandler) CreateColor(ctx context.Context, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.ActionCode = utils.RandomGenerator(20)
 	if hexCode == "" {
-		return nil, errors.New("hex code cannot be empty")
+		b.logger.Errorf("hex code cannot be empty")
+		return nil, fmt.Errorf("hex code cannno be empty")
 	}
+
 	action, err := b.service.CreateColor(ctx, hexCode, cpsAction)
 	if err != nil {
 		return nil, err

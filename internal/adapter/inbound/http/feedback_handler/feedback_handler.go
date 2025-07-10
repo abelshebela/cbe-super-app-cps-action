@@ -12,7 +12,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
 	// "cbe-super-app-cps-action/internal/application/middleware"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
@@ -59,9 +59,9 @@ func (f FeedbackHTTPHandler) GetFeedbacks(w http.ResponseWriter, r *http.Request
 
 		return
 	}
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	message := "successfully fetched the feedback"
 	data, _ := util.StructToMap(feedbacks)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.BaseResponseMaker(data, w, message, http.StatusAccepted)
 
 }
 
@@ -73,7 +73,8 @@ func (f FeedbackHTTPHandler) GetFeedbackByID(w http.ResponseWriter, r *http.Requ
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	message := "successfully fetched the feed back"
+	
 	data, _ := util.StructToMap(feedback)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.BaseResponseMaker(data, w, message, http.StatusAccepted)
 }
