@@ -91,9 +91,6 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsReq.ActionData = advertReq
-	fmt.Println("============================")
-	fmt.Println(cpsReq.ActionData)
-	fmt.Println("============================")
 
 	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,

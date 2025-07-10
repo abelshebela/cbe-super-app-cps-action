@@ -160,7 +160,8 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rejectAction, err := a.avatarHandler.Reject(ctx, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		a.logger.Errorf("failed to decode avatar request", err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
