@@ -543,6 +543,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_130",
 			Message: "Above amount must match the last tier's maximum value.",
 		},
+		"NOT_IMPLEMENTED": {
+			Code:    "GEN_131",
+			Message: "Not implemented.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

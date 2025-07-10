@@ -45,6 +45,7 @@ const (
 	TiersMinMustEqualPrevMax     = "TIERS_MIN_MUST_EQUAL_PREV_MAX"
 	TiersMaxMustIncrease         = "TIERS_MAX_MUST_INCREASE"
 	TiersAboveAmountMismatch     = "TIERS_ABOVE_AMOUNT_MISMATCH"
+	NotImplemented               = "NOT_IMPLEMENTED"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"

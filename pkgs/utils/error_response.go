@@ -118,6 +118,7 @@ var errorKeyToStatus = map[string]int{
 	"TIERS_MIN_MUST_EQUAL_PREV_MAX":                              400,
 	"TIERS_MAX_MUST_INCREASE":                                    400,
 	"TIERS_ABOVE_AMOUNT_MISMATCH":                                400,
+	"NOT_IMPLEMENTED":                                            501,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,

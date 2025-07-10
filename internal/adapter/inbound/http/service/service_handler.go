@@ -10,6 +10,7 @@ import (
 	serviceApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	"github.com/go-chi/chi/v5"
 
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -30,9 +31,13 @@ func NewServiceHandler(domain serviceApp.ServiceApplication, logger utils.Logger
 }
 
 func (s *serviceHandler) AuthorizeServiceFee(w http.ResponseWriter, r *http.Request) {
+	// TODO implement the logic for authorizing service fees
+	common_util.SendErrorResponse(w, common_util.NotImplemented, http.StatusNotImplemented, nil)
 
 }
 func (s *serviceHandler) RejectServiceFee(w http.ResponseWriter, r *http.Request) {
+	// TODO implement the logic for rejecting service fees
+	common_util.SendErrorResponse(w, common_util.NotImplemented, http.StatusNotImplemented, nil)
 
 }
 
@@ -67,7 +72,11 @@ func (s *serviceHandler) extractCPSUserFromRequest(r *http.Request) (cpsuser.CPS
 func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request) {
 	var req dto.UpdateServiceFeeRequest
 
-	queryID := r.Header.Get("query_id")
+	queryID := chi.URLParam(r, "id")
+	if queryID == "" {
+		common_util.SendErrorResponse(w, common_util.InvalidID, http.StatusBadRequest, nil)
+		return
+	}
 	user, err := s.extractCPSUserFromRequest(r)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), http.StatusUnauthorized, nil)
