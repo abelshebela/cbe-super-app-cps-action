@@ -575,6 +575,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_131",
 			Message: "Not implemented.",
 		},
+		"FAILED_TO_GET_AVATAR": {
+			Code:    "GEN_132",
+			Message: "failed to get avatar",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

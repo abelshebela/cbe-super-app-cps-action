@@ -41,7 +41,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				},
 			},
 			{
-				Method:  http.MethodGet,
+				Method:  http.MethodPost,
 				Path:    "/{action_code}/approve",
 				Handler: departmentHandler.ApproveDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
