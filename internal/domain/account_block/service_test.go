@@ -476,25 +476,25 @@ func TestAccountService_BlockRegion(t *testing.T) {
 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(nil)
 
-		err := service.BlockRegion(ctx, region.ID, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.NoError(t, err)
 	})
 
 	t.Run("missing region ID", func(t *testing.T) {
-		err := service.BlockRegion(ctx, "", maker)
+		_, err := service.BlockRegion(ctx, "", maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("update region error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(errors.New("fail"))
-		err := service.BlockRegion(ctx, region.ID, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("filter branches error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(nil, errors.New("fail"))
-		err := service.BlockRegion(ctx, region.ID, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
@@ -502,7 +502,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(errors.New("fail"))
-		err := service.BlockRegion(ctx, region.ID, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
@@ -511,7 +511,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(errors.New("fail"))
-		err := service.BlockRegion(ctx, region.ID, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 }
