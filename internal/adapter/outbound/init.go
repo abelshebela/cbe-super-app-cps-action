@@ -402,6 +402,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
+		
 	}
 	return nil
 }
