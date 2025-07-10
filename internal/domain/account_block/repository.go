@@ -17,19 +17,19 @@ type AccountBlockRepo interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) error
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
-	
+
 	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
-    UpdateRegion(ctx context.Context, region action.Region) error
-	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) error
+	UpdateRegion(ctx context.Context, region action.Region) error
+	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string ,error)
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
-	BlockDistrict(ctx context.Context, districtID string, maker action.CPSAction) error
-	GetDistrictByID(ctx context.Context, districtID string) (action.District, error)
-	ApproveBlockDistrict(ctx context.Context, districtID string, checker action.CPSAction) error
+	BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (action.District, error)
+	ApproveBlockDistrict(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
-	BlockCity(ctx context.Context, cityID string, maker action.CPSAction) error
-	GetCityByID(ctx context.Context, cityID string) (action.City, error)
-	ApproveBlockCity(ctx context.Context, cityID string, checker action.CPSAction) error
+	BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
+	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
+	ApproveBlockCity(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) error
 	GetUserByID(ctx context.Context, userID string, maker action.CPSAction) (member.User, error)
