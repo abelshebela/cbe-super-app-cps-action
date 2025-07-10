@@ -73,6 +73,7 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persitence.AmountBasedAuthPersistence, logger),
 		ServiceDomain:         service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
 		ActionDomain:          action.NewService(persitence.BulkServicesPersistence, logger),
+		PortalCardDomain:      portalcard.NewPortalCardDomain(persitence.PortalCardPersistance, logger),
 	}
 
 }

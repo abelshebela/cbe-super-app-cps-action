@@ -738,6 +738,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACC_014",
 			Message: "Failed to update account.",
 		},
+		"ACCOUNT_BLOCKED": {
+			Code:    "ACC_014",
+			Message: "The account is blocked.",
+		},
 	},
 	OTP: ErrorGroup{
 		"INVALID_OTP": {

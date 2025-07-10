@@ -739,7 +739,7 @@ func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDoma
 		}
 	}
 	return result, nil
-
+	
 }
 
 func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error) {

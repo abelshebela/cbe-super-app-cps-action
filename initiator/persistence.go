@@ -20,6 +20,7 @@ import (
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	perm_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
 	service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
+	portalCardRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
 
@@ -27,16 +28,16 @@ import (
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
+	portal_card_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-
 )
 
 type Persitence struct {
@@ -57,8 +58,9 @@ type Persitence struct {
 	AccountBlockPersistance    account_block.AccountBlockOutboundPort
 	HQPersistence              *hq_persistence.HQPersistence
 	AmountBasedAuthPersistence amount_based_auth.AmountBasedAuthRepo
-	ServiceDetailsStore      service.ServiceRepository
-	ServicePersistance       service_repo.ServiceFeePersistence
+	ServiceDetailsStore        service.ServiceRepository
+	ServicePersistance         service_repo.ServiceFeePersistence
+	PortalCardPersistance      portalCardRepo.PortaCardInterface
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -106,13 +108,14 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"regions",
 			"cps_actions",
 			"districts",
-			"users",
+			"user",
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore: outboundStore.NewServiceDetailsPersistence(client, "service", logger),
-		ServicePersistance:  *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
+		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, "service", logger),
+		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
+		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, database_name, "portal_cards", logger),
 	}
 }
