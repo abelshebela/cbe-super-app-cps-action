@@ -103,7 +103,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		AccountBlockPersistance: account_block_repo.NewOutboundAccountBlockStore(
 			client,
 			database_name,
-
 			"branches",
 			"regions",
 			"cps_actions",
