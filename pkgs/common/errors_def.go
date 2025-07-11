@@ -781,7 +781,47 @@ var DefineError = ErrorDefinitions{
 		"BLOCKED_ACTION_USER_ALREADY_EXIST": {
 			Code:    "AUTH_029",
 			Message: "A pending or approved block action already exists for this user",
-	},
+		},
+		"BRANCH_DISABLE_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_008",
+			Message: "A pending or approved disable action already exists for this branch",
+		},
+		"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_010",
+			Message: "A pending or approved disable action already exists for one or more of the selected branches",
+		},
+		"BRANCH_BULK_ACTION_ALREADY_PROCESSED": {
+			Code:    "BRN_011",
+			Message: "This bulk action has already been processed for one or more branches",
+		},
+		"BRANCH_ID_REQUIRED": {
+			Code:    "BRN_006",
+			Message: "Branch ID is required.",
+		},
+		"BRANCH_REGION_AND_DISTRICT_REQUIRED": {
+			Code:    "BRN_012",
+			Message: "Region and district are required",
+		},
+		"BRANCH_REGION_AND_DISTRICT_MIN_LENGTH": {
+			Code:    "BRN_014",
+			Message: "Region and district must be at least 3 characters",
+		},
+		"FAILED_TO_FETCH_BRANCHES": {
+			Code:    "BRN_013",
+			Message: "Failed to fetch branches",
+		},
+		"INVALID_JSON_PAYLOAD": {
+			Code:    "GEN_001",
+			Message: "Invalid JSON body",
+		},
+		"BRANCH_NOT_FOUND": {
+			Code:    "BRN_001",
+			Message: "No branch found for the given region and district",
+		},
+		"UNHANDLED_SERVER_ERROR": {
+			Code:    "GEN_004",
+			Message: "Internal server error",
+		},
 		// Additional missing error from the other definition
 		"ACCOUNT_UPDATE_FAILED": {
 			Code:    "ACC_014",
