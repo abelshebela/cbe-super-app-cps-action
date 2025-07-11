@@ -87,8 +87,13 @@ func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model
 }
 
 func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("invalid object id: %v", err)
+		return model.CPSAction{}, fmt.Errorf("INVALID_OBJECT_ID")
+	}
 	filter := bson.M{
-		"id":         id,
+		"_id":        objectID,
 		"is_deleted": false,
 	}
 
@@ -142,25 +147,24 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	var err error
 
 	filter := bson.M{
-		"action_code": req.ActionCode,
-		"department":  req.Department,
-		"status":      model.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"status":              model.ActionApproved,
-		"checker_action_time": time.Now(),
+
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_name":         req.CheckerUser.FullName,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("failed to update cps action", err)
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTIONN")
 	}
 
 	var actionData dto.Avatar
@@ -263,20 +267,18 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
 	filter := bson.M{
-		"action_code": req.ActionCode,
-		"department":  req.Department,
-		"status":      model.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"status":              model.ActionRejected,
-		"rejected_reason":     req.RejectedReason,
-		"checker_action_time": time.Now(),
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionRejected,
+		"rejected_reason":      req.RejectedReason,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
@@ -289,8 +291,13 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 
 func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string,
 	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("invalid object id: %v", err)
+		return nil, fmt.Errorf("INVALID_OBJECT_ID")
+	}
 	avatarFilter := bson.M{
-		"id":         id,
+		"_id":        objectID,
 		"is_deleted": false,
 	}
 
@@ -304,7 +311,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	if err != nil {
 		a.logger.Errorf("failed to get avatar", err)
 
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
+		return nil, fmt.Errorf("FAILED_TO_GET_AVATAR")
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{

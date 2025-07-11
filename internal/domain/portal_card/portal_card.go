@@ -7,10 +7,10 @@ import (
 )
 
 type portalCardDomain struct {
-	portalInfra Repository
+	portalInfra PortalCardRepository
 }
 
-func NewPortalCardDomain(poratal Repository, logger utils.Logger) PortaCardInterface {
+func NewPortalCardDomain(poratal PortalCardRepository, logger utils.Logger) PortaCardInterface {
 	return &portalCardDomain{
 		portalInfra: poratal,
 	}

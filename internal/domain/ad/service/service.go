@@ -61,9 +61,15 @@ func InitADDomian(bucketName string, minioClient config.MinioClientInterface, ad
 }
 
 func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+	fmt.Println("+++++++++========================")
+	fmt.Println(cpsAction.ActionData)
+	fmt.Println("++++++++++++========================")
 
 	actionData, ok := cpsAction.ActionData.(dto.CreateAdvertRequest)
 
+	fmt.Println("+++++++++========================")
+	fmt.Println(actionData)
+	fmt.Println("++++++++++++========================")
 	if !ok {
 		a.logger.Errorf("failed to cast action data to ad request")
 		return nil, fmt.Errorf("FAILED_TO_CAST_ACTION_DATA")

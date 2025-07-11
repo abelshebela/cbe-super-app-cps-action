@@ -575,6 +575,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_131",
 			Message: "Not implemented.",
 		},
+		"FAILED_TO_GET_AVATAR": {
+			Code:    "GEN_132",
+			Message: "failed to get avatar",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -765,6 +769,10 @@ var DefineError = ErrorDefinitions{
 		"ACCOUNT_UPDATE_FAILED": {
 			Code:    "ACC_014",
 			Message: "Failed to update account.",
+		},
+		"ACCOUNT_BLOCKED": {
+			Code:    "ACC_014",
+			Message: "The account is blocked.",
 		},
 	},
 	OTP: ErrorGroup{
