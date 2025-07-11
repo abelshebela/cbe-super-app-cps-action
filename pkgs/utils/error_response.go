@@ -220,6 +220,7 @@ var errorKeyToStatus = map[string]int{
 	"ACTION_NOT_PENDING":       400,
 	"FAILED_TO_UPDATE_SERVICE": 500,
 	"FAILED_TO_UPDATE_CAP_MIN": 500,
+	"BLOCKED_ACTION_USER_ALREADY_EXIST":409,
 }
 
 func getStatusForErrorKey(key string) int {

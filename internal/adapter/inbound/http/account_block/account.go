@@ -7,9 +7,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -780,8 +781,7 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
         PhoneNumber string `json:"phone_number"`
     }
     if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.PhoneNumber) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "phone_number is required"}
-        resp.SendJSON()
+		constant_utils.SendErrorResponse(w, common.DefineError.General["INVALID_INPUT"].Message, http.StatusBadRequest, nil)
         return
     }
 
@@ -793,13 +793,11 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
     if strings.TrimSpace(userID) == "" ||
         strings.TrimSpace(fullName) == "" ||
         strings.TrimSpace(phoneNumberCtx) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-        resp.SendJSON()
+		constant_utils.SendErrorResponse(w, common.DefineError.General["INCOMPLETE_USER_INFO"].Message, http.StatusUnauthorized, nil)
         return
     }
     if strings.TrimSpace(department) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-        resp.SendJSON()
+		constant_utils.SendErrorResponse(w, common.DefineError.General["INCOMPLETE_USER_INFO"].Message, http.StatusUnauthorized, nil)
         return
     }
 
@@ -813,16 +811,18 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
     user, err := h.service.GetUserByPhone(r.Context(), req.PhoneNumber, maker)
     if err != nil || strings.TrimSpace(user.UserCode) == "" {
         h.logger.Errorf("BlockUser failed to find user: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "User not found"}
-        resp.SendJSON()
+		constant_utils.SendErrorResponse(w, common.DefineError.Auth["AUTH_USER_NOT_FOUND"].Message, http.StatusNotFound, nil)
         return
     }
 
     actionCode, err := h.service.BlockUser(r.Context(), user.PhoneNumber, maker)
     if err != nil {
         h.logger.Errorf("BlockUser failed: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-        resp.SendJSON()
+        if strings.Contains(err.Error(), common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message) {
+			constant_utils.SendErrorResponse(w, common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message, http.StatusConflict, nil)
+            return
+        }
+		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
         return
     }
     data := map[string]any{
@@ -831,110 +831,110 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
     constant_utils.BaseResponseMaker(data, w, "User block action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) GetUserByPhone(w http.ResponseWriter, r *http.Request) {
-    phoneNumber := r.URL.Query().Get("phone_number")
-    if strings.TrimSpace(phoneNumber) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "phone_number is required"}
-        resp.SendJSON()
-        return
-    }
+	phoneNumber := r.URL.Query().Get("phone_number")
+	if strings.TrimSpace(phoneNumber) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "phone_number is required"}
+		resp.SendJSON()
+		return
+	}
 
-    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-    phoneNumberCtx, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumberCtx, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
 
-    if strings.TrimSpace(userID) == "" ||
-        strings.TrimSpace(fullName) == "" ||
-        strings.TrimSpace(phoneNumberCtx) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-        resp.SendJSON()
-        return
-    }
-    if strings.TrimSpace(department) == "" {
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-        resp.SendJSON()
-        return
-    }
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumberCtx) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
+		resp.SendJSON()
+		return
+	}
+	if strings.TrimSpace(department) == "" {
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
 
-    h.logger.Infof("GetUserByPhone requested by user: %s (%s)", userID, fullName)
+	h.logger.Infof("GetUserByPhone requested by user: %s (%s)", userID, fullName)
 
-    maker := action.CPSAction{
-        MakerID:          userID,
-        MakerName:        fullName,
-        MakerPhoneNumber: phoneNumberCtx,
-        Department:       department,
-    }
-    user, err := h.service.GetUserByPhone(r.Context(), phoneNumber, maker)
-    if err != nil {
-        h.logger.Errorf("GetUserByPhone failed: %v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "User not found"}
-        resp.SendJSON()
-        return
-    }
-    data, err := constant_utils.StructToMap(user)
-    if err != nil {
-        constant_utils.SendErrorResponse(w, http.StatusInternalServerError, 500, nil)
-        return
-    }
-    constant_utils.BaseResponseMaker(data, w, "User retrieved successfully", http.StatusOK)
+	maker := action.CPSAction{
+		MakerID:          userID,
+		MakerName:        fullName,
+		MakerPhoneNumber: phoneNumberCtx,
+		Department:       department,
+	}
+	user, err := h.service.GetUserByPhone(r.Context(), phoneNumber, maker)
+	if err != nil {
+		h.logger.Errorf("GetUserByPhone failed: %v", err)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "User not found"}
+		resp.SendJSON()
+		return
+	}
+	data, err := constant_utils.StructToMap(user)
+	if err != nil {
+		constant_utils.SendErrorResponse(w, http.StatusInternalServerError, 500, nil)
+		return
+	}
+	constant_utils.BaseResponseMaker(data, w, "User retrieved successfully", http.StatusOK)
 }
 func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Request) {
-    var req struct {
-        ActionID string  `json:"action_id"`
-        Approve  bool    `json:"approve"`
-        Reason   *string `json:"reason,omitempty"`
-    }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-        h.logger.Errorf("ApproveBlockUser: invalid request body or missing action_id, err=%v", err)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "action_id is required"}
-        resp.SendJSON()
-        return
-    }
+	var req struct {
+		ActionID string  `json:"action_id"`
+		Approve  bool    `json:"approve"`
+		Reason   *string `json:"reason,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
+		h.logger.Errorf("ApproveBlockUser: invalid request body or missing action_id, err=%v", err)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "action_id is required"}
+		resp.SendJSON()
+		return
+	}
 
-    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
 
-    if strings.TrimSpace(userID) == "" ||
-        strings.TrimSpace(fullName) == "" ||
-        strings.TrimSpace(phoneNumber) == "" {
-        h.logger.Errorf("ApproveBlockUser: Incomplete user information in context: userID=%s, fullName=%s, phoneNumber=%s", userID, fullName, phoneNumber)
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-        resp.SendJSON()
-        return
-    }
-    if strings.TrimSpace(department) == "" {
-        h.logger.Errorf("ApproveBlockUser: department is required in context")
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-        resp.SendJSON()
-        return
-    }
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" {
+		h.logger.Errorf("ApproveBlockUser: Incomplete user information in context: userID=%s, fullName=%s, phoneNumber=%s", userID, fullName, phoneNumber)
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
+		resp.SendJSON()
+		return
+	}
+	if strings.TrimSpace(department) == "" {
+		h.logger.Errorf("ApproveBlockUser: department is required in context")
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+		resp.SendJSON()
+		return
+	}
 
-    h.logger.Infof("ApproveBlockUser requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
-    checker := action.User{
-        UserID:      userID,
-        FullName:    fullName,
-        PhoneNumber: phoneNumber,
-        Department:  department,
-    }
+	h.logger.Infof("ApproveBlockUser requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
+	checker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
 
-    err := h.service.ApproveBlockUser(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
-    if err != nil {
-        h.logger.Errorf("ApproveBlockUser failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
-        if strings.Contains(err.Error(), "not allowed") {
-            resp := common.Response[any]{ResponseWriter: w, Status: http.StatusForbidden, Data: err.Error()}
-            resp.SendJSON()
-            return
-        }
-        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
-        resp.SendJSON()
-        return
-    }
+	err := h.service.ApproveBlockUser(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
+	if err != nil {
+		h.logger.Errorf("ApproveBlockUser failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
+		if strings.Contains(err.Error(), "not allowed") {
+			resp := common.Response[any]{ResponseWriter: w, Status: http.StatusForbidden, Data: err.Error()}
+			resp.SendJSON()
+			return
+		}
+		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
+		resp.SendJSON()
+		return
+	}
 
-    h.logger.Infof("ApproveBlockUser succeeded for actionID=%s by user=%s", req.ActionID, userID)
-    data := map[string]any{
-        "message": "Action processed successfully",
-    }
-    constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
+	h.logger.Infof("ApproveBlockUser succeeded for actionID=%s by user=%s", req.ActionID, userID)
+	data := map[string]any{
+		"message": "Action processed successfully",
+	}
+	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }

@@ -765,6 +765,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACC_013",
 			Message: "Account is already linked to another user.",
 		},
+		"BLOCKED_ACTION_USER_ALREADY_EXIST": {
+			Code:    "AUTH_029",
+			Message: "A pending or approved block action already exists for this user",
+	},
 		// Additional missing error from the other definition
 		"ACCOUNT_UPDATE_FAILED": {
 			Code:    "ACC_014",

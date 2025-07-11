@@ -107,7 +107,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"regions",
 			"cps_actions",
 			"districts",
-			"users",
+			"user",
 			"cities",
 			logger,
 		),

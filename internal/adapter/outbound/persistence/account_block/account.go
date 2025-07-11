@@ -1007,7 +1007,7 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, phoneNumber s
     }
     existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
     if err == nil && existing != nil {
-        return "", fmt.Errorf("A pending or approved block action already exists for this user")
+        return "", fmt.Errorf("BLOCKED_ACTION_USER_ALREADY_EXIST")
     }
 
     prevAction, _ := json.Marshal(user)
