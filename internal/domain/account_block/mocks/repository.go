@@ -240,6 +240,21 @@ func (mr *MockAccountBlockRepoMockRecorder) FilterSingleBranches(ctx, region, di
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterSingleBranches", reflect.TypeOf((*MockAccountBlockRepo)(nil).FilterSingleBranches), ctx, region, district)
 }
 
+// FindDisableSingleBranchAction mocks base method.
+func (m *MockAccountBlockRepo) FindDisableSingleBranchAction(ctx context.Context, branchCode, userID, department string) (interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindDisableSingleBranchAction", ctx, branchCode, userID, department)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindDisableSingleBranchAction indicates an expected call of FindDisableSingleBranchAction.
+func (mr *MockAccountBlockRepoMockRecorder) FindDisableSingleBranchAction(ctx, branchCode, userID, department interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDisableSingleBranchAction", reflect.TypeOf((*MockAccountBlockRepo)(nil).FindDisableSingleBranchAction), ctx, branchCode, userID, department)
+}
+
 // GetBranchByCode mocks base method.
 func (m *MockAccountBlockRepo) GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error) {
 	m.ctrl.T.Helper()
