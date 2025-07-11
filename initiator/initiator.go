@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/responseutil"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -56,6 +57,7 @@ func Initiator() {
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	}))
+	r.NotFound(responseutil.NotFoundHandler)
 	logger.Infof("Chi router initialized")
 
 	logger.Infof("Initializing routes...")

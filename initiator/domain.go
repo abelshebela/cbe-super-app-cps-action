@@ -74,6 +74,7 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		ServiceDomain:         service.NewServiceStore(persitence.ServiceDetailsStore, persitence.BulkServicesPersistence, logger),
 		ActionDomain:          action.NewService(persitence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persitence.PortalCardPersistance, logger),
+		WalletDomain:          wallet_service.InitWalletDomain(persitence.WalletPersistance, minioClient, "wallets", logger),
 	}
 
 }

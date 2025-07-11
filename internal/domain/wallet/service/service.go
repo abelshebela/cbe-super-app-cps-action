@@ -1,15 +1,16 @@
+// Package service provides business logic for wallet operations in the CBE Super App.
 package service
 
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -47,6 +48,7 @@ func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.
 func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
+	fmt.Println(err, "kbsdfkbsdf ksmcfvnsdbfbsdsdv vodsogkbs")
 	if err != nil {
 		return nil, err
 	}
@@ -54,10 +56,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	actionData, ok := req.ActionData.(dto.CreateWalletRequest)
 	if !ok {
 		w.logger.Errorf("failed to cast action data to wallet request")
-		return nil, fmt.Errorf("failed to create waalet bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
@@ -68,20 +67,14 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	exist, err := w.minioClient.BucketExist(ctx, w.bucketName)
 	if err != nil {
 		w.logger.Errorf("failed to check wallet bucket: %v", err)
-		return nil, fmt.Errorf("failed to check wallet bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	if !exist {
 		created, err := w.minioClient.MakeBucket(ctx, w.bucketName)
 		if !created || err != nil {
 			w.logger.Errorf("failed to create bank bucket: %v", err)
-			return nil, fmt.Errorf("failed to create bank bucket: %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 	}
 
@@ -89,10 +82,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	file, err := actionData.Avatar.Open()
 	if err != nil {
 		w.logger.Errorf("failed to open uploaded file: %v", err)
-		return nil, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -106,10 +96,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 
 	if err != nil {
 		w.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	cpsRes, err := w.walletRepo.CreateWallet(ctx, model.CreateCPSAction{

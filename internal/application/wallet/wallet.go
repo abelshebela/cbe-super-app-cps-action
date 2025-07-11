@@ -11,7 +11,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type WalletHandlerService interface {
+type WalletHandlerAppllication interface {
 	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -28,7 +28,7 @@ type WalletHandler struct {
 	logger       utils.Logger
 }
 
-func InitWalletHanlder(walletDomain service.WalletService, logger utils.Logger) WalletHandlerService {
+func InitWalletApplication(walletDomain service.WalletService, logger utils.Logger) WalletHandlerAppllication {
 	return &WalletHandler{
 		walletDomain: walletDomain,
 		logger:       logger,

@@ -63,6 +63,7 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 	}
 
 	cpsRes, err := a.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsAction.MakerUser.UserCode,
 		MakerName:        cpsAction.MakerUser.FullName,

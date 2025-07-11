@@ -60,7 +60,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/{action_code}/approve",
 				Handler: wallet.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -69,7 +69,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/{action_code}/reject",
 				Handler: wallet.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -78,7 +78,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/{id}/enable",
 				Handler: wallet.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -87,7 +87,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/{id}/disable",
 				Handler: wallet.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{

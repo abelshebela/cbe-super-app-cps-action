@@ -119,6 +119,10 @@ var errorKeyToStatus = map[string]int{
 	"TIERS_MAX_MUST_INCREASE":                                    400,
 	"TIERS_ABOVE_AMOUNT_MISMATCH":                                400,
 	"NOT_IMPLEMENTED":                                            501,
+	"INPUT_TOO_LONG":                                             400,
+	"INPUT_INVALID_CHARACTERS":                                   400,
+	"PAGE_NOT_FOUND":                                             404,
+	"MISSING_OR_INVALID_IMAGE":                                   400,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
@@ -188,12 +192,14 @@ var errorKeyToStatus = map[string]int{
 	"UPLOAD_FAILED":     500,
 
 	// Branch
-	"BRANCH_NOT_FOUND":         404,
-	"BRANCH_DISABLED":          400,
-	"FAILED_TO_FETCH_BRANCHES": 500,
-	"INVALID_BRANCH_ID":        400,
-	"INVALID_LOCATION_FILTER":  400,
-	"BRANCH_ID_REQUIRED":       400,
+	"BRANCH_NOT_FOUND":                           404,
+	"BRANCH_DISABLED":                            400,
+	"FAILED_TO_FETCH_BRANCHES":                   500,
+	"INVALID_BRANCH_ID":                          400,
+	"INVALID_LOCATION_FILTER":                    400,
+	"BRANCH_ID_REQUIRED":                         400,
+	"BRANCH_DISABLE_ACTION_ALREADY_EXISTS":       409,
+	"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": 409,
 
 	// Department
 	"DEPARTMENT_NOT_FOUND":      404,
@@ -206,12 +212,13 @@ var errorKeyToStatus = map[string]int{
 	"UNIDENTIFIED_KEY": 500,
 
 	// Banks
-	"BANKS_NOT_FOUND":     404,
-	"INVALID_BANK_NAME":   400,
-	"MISSING_BANK_NAME":   400,
-	"MISSING_BANK_CODE":   400,
-	"MISSING_BANK_BIC":    400,
-	"BANK_ALREADY_EXISTS": 409,
+	"BANKS_NOT_FOUND":                   404,
+	"INVALID_BANK_NAME":                 400,
+	"MISSING_BANK_NAME":                 400,
+	"MISSING_BANK_CODE":                 400,
+	"MISSING_BANK_BIC":                  400,
+	"BANK_ALREADY_EXISTS":               409,
+	"BLOCKED_ACTION_USER_ALREADY_EXIST": 409,
 
 	// Action
 	"FAILED_TO_CREATE_ACTION":  500,
@@ -239,6 +246,7 @@ func getStatusForErrorKey(key string) int {
 		common.DefineError.Bank,
 		common.DefineError.Department,
 		common.DefineError.Action,
+		common.DefineError.Wallet,
 	} {
 		if _, ok := group[key]; ok {
 			return http.StatusBadRequest
@@ -327,6 +335,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Branch,
 		common.DefineError.Bank,
 		common.DefineError.Department,
+		common.DefineError.Wallet,
 	}
 
 	for _, group := range errorGroups {
