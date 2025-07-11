@@ -156,3 +156,7 @@ func (s *Service) RejectDepartmentUpdate(ctx context.Context, cpsAction entities
 	s.logger.Infof("Department update action %s rejected by user from department %s", cpsAction.ActionCode, cpsAction.Department)
 	return nil
 }
+
+func (s *Service) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
+	return s.departmentRepo.GetAllDepartments(ctx)
+}

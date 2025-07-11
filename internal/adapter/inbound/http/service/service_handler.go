@@ -32,12 +32,12 @@ func NewServiceHandler(domain serviceApp.ServiceApplication, logger utils.Logger
 
 func (s *serviceHandler) AuthorizeServiceFee(w http.ResponseWriter, r *http.Request) {
 	// TODO implement the logic for authorizing service fees
-	common_util.SendErrorResponse(w, common_util.NotImplemented, http.StatusNotImplemented, nil)
+	common_util.SendErrorResponse(w, "error", http.StatusNotImplemented, nil)
 
 }
 func (s *serviceHandler) RejectServiceFee(w http.ResponseWriter, r *http.Request) {
 	// TODO implement the logic for rejecting service fees
-	common_util.SendErrorResponse(w, common_util.NotImplemented, http.StatusNotImplemented, nil)
+	common_util.SendErrorResponse(w, "responnd", http.StatusNotImplemented, nil)
 
 }
 
@@ -95,7 +95,7 @@ func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 
 	service, err := s.appService.GetOneService(r.Context(), queryID)
 	if err != nil {
-		common_util.SendErrorResponse(w, common_util.ServiceNotFound, 0, nil)
+		common_util.SendErrorResponse(w, "service not found", 0, nil)
 		return
 	}
 
@@ -105,7 +105,7 @@ func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 
 	err = s.appService.CreateAction(r.Context(), initAction)
 	if err != nil {
-		common_util.SendErrorResponse(w, common_util.FailedToCreateAction, http.StatusConflict, nil)
+		common_util.SendErrorResponse(w, "failde", http.StatusConflict, nil)
 		return
 	}
 

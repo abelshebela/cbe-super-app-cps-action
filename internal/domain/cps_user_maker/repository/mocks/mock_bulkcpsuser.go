@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -50,11 +51,11 @@ func (mr *MockCPSUserRepoMockRecorder) ApproveUserAction(ctx, actionID, approve,
 }
 
 // CreateUserRequest mocks base method.
-func (m *MockCPSUserRepo) CreateUserRequest(ctx context.Context, action action.CPSUser, maker action.User) error {
+func (m *MockCPSUserRepo) CreateUserRequest(ctx context.Context, action action.CPSUser, maker action.User) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUserRequest", ctx, action, maker)
 	ret0, _ := ret[0].(error)
-	return ret0
+	return nil, ret0
 }
 
 // CreateUserRequest indicates an expected call of CreateUserRequest.
@@ -94,11 +95,11 @@ func (mr *MockCPSUserRepoMockRecorder) GetPendingUserActions(ctx, actionCode int
 }
 
 // UpdateUserRequest mocks base method.
-func (m *MockCPSUserRepo) UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) error {
+func (m *MockCPSUserRepo) UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserRequest", ctx, updated, maker)
 	ret0, _ := ret[0].(error)
-	return ret0
+	return nil, ret0
 }
 
 // UpdateUserRequest indicates an expected call of UpdateUserRequest.

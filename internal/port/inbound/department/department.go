@@ -3,6 +3,7 @@ package department
 import "net/http"
 
 type DepartmentPortHandler interface {
+	GetAllDepartments(w http.ResponseWriter, r *http.Request)
 	CreateDepartment(w http.ResponseWriter, r *http.Request)
 	ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request)
 	RejectDepartmentRequest(w http.ResponseWriter, r *http.Request)

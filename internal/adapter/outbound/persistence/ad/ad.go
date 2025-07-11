@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	// "net/http"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -280,7 +278,7 @@ func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant
 	projection := bson.M{}
 
 	if filterParams.Filters != "" {
-		filter["status"] = filterParams.Filters
+		filter["action_status"] = filterParams.Filters
 	}
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
@@ -318,7 +316,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 	filter := bson.M{
 		"action_code":   cpsAction.ActionCode,
 		"department":    cpsAction.Department,
-		"action_status": model.ActionPending,
+		"action_status": entity.ActionApproved,
 	}
 
 	update := bson.M{

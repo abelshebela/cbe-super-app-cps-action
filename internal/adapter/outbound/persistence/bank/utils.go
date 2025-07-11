@@ -37,18 +37,10 @@ func (b *Bank) toDomain(doc *entity.BankDocument) *entity.Bank {
 	}
 }
 
-func (b *Bank) toDocument(domain *entity.Bank) (*entity.BankDocument, error) {
-	var objID bson.ObjectID
-	var err error
-	if domain.ID != "" {
-		objID, err = bson.ObjectIDFromHex(domain.ID)
-		if err != nil {
-			return nil, err
-		}
-	}
+func (b *Bank) toDocument(domain *entity.BankDocument) (*entity.BankDocument, error) {
 
 	return &entity.BankDocument{
-		ID:             objID,
+		ID:             domain.ID,
 		Name:           domain.Name,
 		Logo:           domain.Logo,
 		Code:           domain.Code,

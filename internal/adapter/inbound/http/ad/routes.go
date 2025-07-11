@@ -61,7 +61,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 			},
 
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/approve/{action_code}",
 				Handler: ad.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{

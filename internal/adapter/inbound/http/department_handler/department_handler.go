@@ -214,5 +214,84 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 }
 
 func (h *DepartmentHandler) RejectDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Not implemented", http.StatusNotImplemented)
+	actionCode := chi.URLParam(r, "action_code")
+	ctx := ctx_util.ExtractUserContext(r)
+	cur_ctx := r.Context()
+
+	// context validation
+	if ctx.IsIncomplete() {
+		h.logger.Errorf("[RejectDepartmentRequest] incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
+		return
+	}
+
+	var req RejectRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("[RejectDepartmentRequest] failed to decode request: %v", err)
+		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
+		return
+	}
+	if req.RejectionReason == "" {
+		h.logger.Warnf("[RejectDepartmentRequest] rejection reason required")
+		common_util.SendErrorResponse(w, "rejection reason required", http.StatusBadRequest, nil)
+		return
+	}
+
+	// Validate action exists and is pending
+	cpsAction, err := h.departmentService.ValidateActionRequest(cur_ctx, actionCode, ctx.Department)
+	if err != nil {
+		h.logger.Errorf("[RejectDepartmentRequest] validation failed: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+	if cpsAction == nil {
+		common_util.SendErrorResponse(w, common_util.AccountNotFound, http.StatusNotFound, nil)
+		return
+	}
+
+	// Prepare checker action with rejection reason
+	reason := req.RejectionReason
+	checker := entities.CPSAction{
+		CheckerID:          ctx.UserID,
+		CheckerName:        ctx.FullName,
+		CheckerPhoneNumber: ctx.PhoneNumber,
+		RejectionReason:    &reason,
+	}
+
+	// Call application/service layer
+	if cpsAction.ActionType == entities.ActionUpdate {
+		cpsAction.CheckerID = ctx.UserID
+		cpsAction.CheckerName = ctx.FullName
+		cpsAction.CheckerPhoneNumber = ctx.PhoneNumber
+		cpsAction.RejectionReason = &reason
+		if err := h.departmentService.RejectDepartmentUpdate(cur_ctx, *cpsAction); err != nil {
+			h.logger.Errorf("[RejectDepartmentRequest] failed to reject department update: %v", err)
+			common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+			return
+		}
+	} else {
+		if err := h.departmentService.RejectActionRequest(cur_ctx, actionCode, checker); err != nil {
+			h.logger.Errorf("[RejectDepartmentRequest] failed to reject action request: %v", err)
+			common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+			return
+		}
+	}
+
+	h.logger.Infof("[RejectDepartmentRequest] action %s rejected by user %s", actionCode, ctx.UserID)
+	common_util.BaseResponseMaker(nil, w, "Action rejected", 200)
+}
+
+func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
+	departments, err := h.departmentService.GetAllDepartments(r.Context())
+	if err != nil {
+		h.logger.Errorf("[GetAllDepartments] failed: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		return
+	}
+	data, err := common_util.StructToMap(departments)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
+	}
+	common_util.BaseResponseMaker(data, w, "Departments fetched successfully", http.StatusOK)
 }

@@ -809,7 +809,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 func stringToPointer(s string) *string {
 	return &s
 }
-func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) error {
+func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
 	department, _ := ctx.Value("department").(string)
 	actionCode := utils.RandomGenerator(24)
 
@@ -838,48 +838,44 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUs
 		"action_type":    "CREATE",
 		"request_action": "USER",
 	}
-	projection := bson.M{"_id": 1}
+	projection := bson.M{"_id": 1, "action_code": 1}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err == nil && existing != nil {
-		return fmt.Errorf("a pending user creation action already exists for this user code")
+		return nil, fmt.Errorf("a pending user creation action already exists for this user code")
 	}
 	if err != nil && err != mongo.ErrNoDocuments {
-		return err
+		return nil, err
 	}
 
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
-			return fmt.Errorf("duplicate actio code or user creation request")
+			return nil, fmt.Errorf("duplicate actio code or user creation request")
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return &data, nil
 }
-func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) error {
+func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
 
 	if strings.TrimSpace(updated.UserCode) == "" {
-		return fmt.Errorf("user_code is required")
+		return nil, fmt.Errorf("user_code is required")
 	}
 
 	if strings.TrimSpace(updated.UserCode) == "" {
-		return fmt.Errorf("user_code is required")
+		return nil, fmt.Errorf("user_code is required")
 	}
 
 	filter := bson.M{"user_code": updated.UserCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
-		return fmt.Errorf("user not found")
+		return nil, fmt.Errorf("user not found")
 	}
 
 	var permissionCategory []string
 	for _, oid := range modelUser.PermissionCategory {
 		permissionCategory = append(permissionCategory, oid.Hex())
 	}
-	// var permissionGroup []string
-	// for _, oid := range modelUser.PermissionGroup {
-	// 	permissionGroup = append(permissionGroup, oid.Hex())
-	// }
 
 	var department string
 	if len(modelUser.Department) > 0 {
@@ -887,11 +883,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	}
 
 	fmt.Println("Reched here with department:", department)
-	// var permissionCategory []string
-	// for _, oid := range modelUser.PermissionCategory {
-	// 	permissionCategory = append(permissionCategory, oid.Hex())
-	// }
-
 	var permissionGroup []string
 	for _, oid := range modelUser.PermissionGroup {
 		permissionGroup = append(permissionGroup, oid.Hex())
@@ -925,26 +916,9 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
 		fmt.Printf("Failed to update user: %v\n", err)
-		return err
+		return nil, err
 	}
-	// updateDoc := bson.M{
-	// 	"$set": bson.M{
-	// 		"user_code":           updated.UserCode,
-	// 		"user_name":           updated.UserName,
-	// 		"full_name":           updated.FullName,
-	// 		"phone_number":        updated.PhoneNumber,
-	// 		"role":                updated.Role,
-	// 		"department":          updated.Department,
-	// 		"permission_category": updated.PermissionCategory,
-	// 		"permission_group":    updated.PermissionGroup,
-	// 		"last_modified":       time.Now(),
-	// 	},
-	// }
-	// _, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
-	// if err != nil {
-	// 	fmt.Printf("Failed to update user: %v\n", err)
-	// 	return err
-	// }
+	
 
 	actionCode := utils.RandomGenerator(24)
 	departmentCtx, _ := ctx.Value("department").(string)
@@ -964,37 +938,14 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
 	}
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	dataCps, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		fmt.Printf("Failed to log update action: %v\n", err)
-		return err
+		return nil, err
 	}
-	// actionCode := utils.RandomGenerator(24)
-	// departmentCtx, _ := ctx.Value("department").(string)
-	// cpsAction := model.CPSAction{
-	// 	ActionCode: actionCode,
-	// 	MakerUser: model.User{
-	// 		UserCode:    maker.UserID,
-	// 		FullName:    maker.FullName,
-	// 		PhoneNumber: maker.PhoneNumber,
-	// 	},
-	// 	UniqueId:      updated.UserCode,
-	// 	Department:     departmentCtx,
-	// 	ActionStatus:   model.ActionPending,
-	// 	ActionType:     model.ActionUpdate,
-	// 	RequestAction:  model.RequestUser,
-	// 	PreviosAction:  prevActionJSON,
-	// 	CurrentAction:  currActionJSON,
-	// 	CreatedAt:      time.Now(),
-	// 	LastModifiedAt: time.Now(),
-	// }
-	// _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	// if err != nil {
-	// 	fmt.Printf("Failed to log update action: %v\n", err)
-	// 	return err
-	// }
+	
 
-	return nil
+	return &dataCps, nil
 	// return nil
 }
 

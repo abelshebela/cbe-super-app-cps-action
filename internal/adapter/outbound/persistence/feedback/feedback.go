@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
@@ -85,11 +86,11 @@ func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.
 		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
 	}
 
-	if feedbackID.IsZero() {
-		c.logger.Errorf("invalid id provided", err)
+	// if feedbackID.IsZero() {
+	// 	c.logger.Errorf("invalid id provided", err)
 
-		return nil, fmt.Errorf("INVALID_ID")
-	}
+	// 	return nil, fmt.Errorf("INVALID_ID")
+	// }
 
 	if err != nil {
 

@@ -34,6 +34,8 @@ type DepartmentService interface {
 	ApproveActionByType(ctx context.Context, cpsAction entities.CPSAction) error
 	ApproveDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error
 	RejectDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error
+	RejectActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error
+	GetAllDepartments(ctx context.Context) ([]*entities.Department, error)
 }
 
 type DepartmentHandler struct {
@@ -278,4 +280,12 @@ func (h *DepartmentHandler) RejectDepartmentUpdate(ctx context.Context, cpsActio
 	}
 	h.logger.Infof("Department update rejected successfully for action code: %s", cpsAction.ActionCode)
 	return nil
+}
+
+func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
+	return h.service.RejectActionRequest(ctx, actionCode, action)
+}
+
+func (h *DepartmentHandler) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
+	return h.service.GetAllDepartments(ctx)
 }

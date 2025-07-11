@@ -21,6 +21,14 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+// Secure logging helpers
+func shortActionCode(code string) string {
+	if len(code) <= 6 {
+		return code
+	}
+	return code[:3] + "***" + code[len(code)-3:]
+}
+
 type outboundAccountBlockStore struct {
 	MongoDalBranch    *infra_mongo.MongoDal[model.Branch, model.Branch]
 	MongoDalRegion    *infra_mongo.MongoDal[model.Region, model.Region]
@@ -50,13 +58,14 @@ func NewOutboundAccountBlockStore(
 func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
 
 	if region == "" || district == "" {
+		o.Logger.Errorf("region and district required for FilterSingleBranches")
 		return nil, errors.New("region and district are required")
 	}
 
 	filter := bson.M{"branch_region": region, "district_name": district}
 	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
 	if err != nil {
-		fmt.Printf("failed to fetch branches: %v\n", err)
+		o.Logger.Errorf("failed to fetch branches for region: %s, district: %s, error: %v", region, district, err)
 		return nil, fmt.Errorf("failed to fetch branches: %w", err)
 	}
 
@@ -82,7 +91,7 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
 		}
 		result = append(result, ab)
 	}
-
+	o.Logger.Infof("fetched %d branches for region: %s, district: %s", len(result), region, district)
 	return result, nil
 }
 func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
@@ -137,6 +146,7 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 }
 func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	if strings.TrimSpace(actionID) == "" {
+		o.Logger.Errorf("actionID required for ApproveSingleBranchDisable")
 		return errors.New("actionID is required")
 	}
 
@@ -171,6 +181,7 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
 
 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
+		o.Logger.Errorf("failed to update CPSAction for single branch disable, action_code: %s, error: %v", shortActionCode(actionID), err)
 		return err
 	}
 
@@ -218,6 +229,7 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
 }
 func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
 	if region == "" {
+		o.Logger.Errorf("region required for FilterMultipleBranches")
 		return nil, errors.New("region is required")
 	}
 
@@ -228,7 +240,7 @@ func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, 
 
 	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
 	if err != nil {
-		fmt.Printf("failed to fetch branches: %v\n", err)
+		o.Logger.Errorf("failed to fetch branches for region: %s, district: %s, error: %v", region, district, err)
 		return nil, fmt.Errorf("failed to fetch branches: %w", err)
 	}
 
@@ -254,7 +266,7 @@ func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, 
 		}
 		result = append(result, ab)
 	}
-
+	o.Logger.Infof("fetched %d branches for region: %s, district: %s", len(result), region, district)
 	return result, nil
 }
 func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
@@ -313,77 +325,77 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 	return actionCode, nil
 }
 func (o *outboundAccountBlockStore) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
-    if strings.TrimSpace(actionID) == "" {
-        return errors.New("actionID is required")
-    }
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("actionID is required")
+	}
 
-    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, bson.M{"action_code": actionID}, nil)
-    if err != nil || actionDoc == nil {
-        return errors.New("action not found")
-    }
+	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, bson.M{"action_code": actionID}, nil)
+	if err != nil || actionDoc == nil {
+		return errors.New("action not found")
+	}
 
-    uniqueIDs := strings.Split(actionDoc.UniqueId, ",")
-    statusCheck := "APPROVED"
-    if !approve {
-        statusCheck = "REJECTED"
-    }
-    dupFilter := bson.M{
-        "unique_id":     bson.M{"$in": uniqueIDs},
-        "action_status": statusCheck,
-        "action_type":   "DELETE",
-        "request_action": "DISABLE_MULTI_BRANCHES",
-    }
-    alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
-    if alreadyProcessed != nil {
-        return errors.New("This bulk action has already been processed for one or more branches")
-    }
+	uniqueIDs := strings.Split(actionDoc.UniqueId, ",")
+	statusCheck := "APPROVED"
+	if !approve {
+		statusCheck = "REJECTED"
+	}
+	dupFilter := bson.M{
+		"unique_id":      bson.M{"$in": uniqueIDs},
+		"action_status":  statusCheck,
+		"action_type":    "DELETE",
+		"request_action": "DISABLE_MULTI_BRANCHES",
+	}
+	alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
+	if alreadyProcessed != nil {
+		return errors.New("This bulk action has already been processed for one or more branches")
+	}
 
-    update := bson.M{
-        "last_modified_at": time.Now(),
-    }
-    if approve {
-        update["action_status"] = "APPROVED"
-    } else {
-        update["action_status"] = "REJECTED"
-        if reason != nil {
-            update["rejection_reason"] = *reason
-        }
-    }
+	update := bson.M{
+		"last_modified_at": time.Now(),
+	}
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
+	}
 
-    _, err = o.MongoDalCPSAction.UpdateOne(ctx, bson.M{"action_code": actionID}, update)
-    if err != nil {
-        return err
-    }
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, bson.M{"action_code": actionID}, update)
+	if err != nil {
+		return err
+	}
 
-    if approve {
-        var branches []action.Branch
-        switch v := actionDoc.CurrentAction.(type) {
-        case []byte:
-            _ = json.Unmarshal(v, &branches)
-        case string:
-            _ = json.Unmarshal([]byte(v), &branches)
-        case bson.Binary:
-            _ = json.Unmarshal(v.Data, &branches)
-        case map[string]interface{}:
-            b, _ := json.Marshal(v)
-            _ = json.Unmarshal(b, &branches)
-        }
-        for _, branch := range branches {
-            if branch.BranchCode == "" {
-                return errors.New("branch code is required in action data")
-            }
-            branchUpdate := bson.M{
-                "enabled":    false,
-                "updated_at": time.Now(),
-            }
-            _, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, branchUpdate)
-            if err != nil {
-                return fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
-            }
-        }
-    }
+	if approve {
+		var branches []action.Branch
+		switch v := actionDoc.CurrentAction.(type) {
+		case []byte:
+			_ = json.Unmarshal(v, &branches)
+		case string:
+			_ = json.Unmarshal([]byte(v), &branches)
+		case bson.Binary:
+			_ = json.Unmarshal(v.Data, &branches)
+		case map[string]interface{}:
+			b, _ := json.Marshal(v)
+			_ = json.Unmarshal(b, &branches)
+		}
+		for _, branch := range branches {
+			if branch.BranchCode == "" {
+				return errors.New("branch code is required in action data")
+			}
+			branchUpdate := bson.M{
+				"enabled":    false,
+				"updated_at": time.Now(),
+			}
+			_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, branchUpdate)
+			if err != nil {
+				return fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
+			}
+		}
+	}
 
-    return nil
+	return nil
 }
 func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error) {
 	filter := bson.M{"branch_code": branchCode}
@@ -408,54 +420,54 @@ func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchC
 }
 
 func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
-    department, _ := ctx.Value(constant.ContextKey("department")).(string)
-    if strings.TrimSpace(department) == "" {
-        return "", errors.New("department is required in context")
-    }
+	department, _ := ctx.Value(constant.ContextKey("department")).(string)
+	if strings.TrimSpace(department) == "" {
+		return "", errors.New("department is required in context")
+	}
 
-    filter := bson.M{
-        "unique_id":      regionCode,
-        "department":     department,
-        "action_type":    "DELETE",
-        "request_action": "DISABLE_REGION",
-        "action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
-    }
-    existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-    if err == nil && existing != nil {
-        return "", fmt.Errorf("A pending or approved disable action already exists for this region")
-    }
+	filter := bson.M{
+		"unique_id":      regionCode,
+		"department":     department,
+		"action_type":    "DELETE",
+		"request_action": "DISABLE_REGION",
+		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+	}
+	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	if err == nil && existing != nil {
+		return "", fmt.Errorf("A pending or approved disable action already exists for this region")
+	}
 
-    prevRegionPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"region_code": regionCode}, bson.M{})
-    var prevAction json.RawMessage
-    if err == nil && prevRegionPtr != nil {
-        prevAction, _ = json.Marshal(prevRegionPtr)
-    } else {
-        prevAction = json.RawMessage("null")
-    }
+	prevRegionPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"region_code": regionCode}, bson.M{})
+	var prevAction json.RawMessage
+	if err == nil && prevRegionPtr != nil {
+		prevAction, _ = json.Marshal(prevRegionPtr)
+	} else {
+		prevAction = json.RawMessage("null")
+	}
 
-    currAction, _ := json.Marshal(map[string]string{"region_code": regionCode})
+	currAction, _ := json.Marshal(map[string]string{"region_code": regionCode})
 
-    cpsAction := model.CPSAction{
-        ActionCode:       utils.RandomGenerator(24),
-        MakerID:          maker.MakerID,
-        MakerName:        maker.MakerName,
-        MakerPhoneNumber: maker.MakerPhoneNumber,
-        Department:       department,
-        UniqueId:         regionCode,
-        ActionStatus:     string(model.ActionPending),
-        ActionType:       string(model.ActionDelete),
-        RequestAction:    string(model.RequestBlockRegion),
-        PreviosAction:    prevAction,
-        CurrentAction:    currAction,
-        CreatedAt:        time.Now(),
-        LastModifiedAt:   time.Now(),
-    }
+	cpsAction := model.CPSAction{
+		ActionCode:       utils.RandomGenerator(24),
+		MakerID:          maker.MakerID,
+		MakerName:        maker.MakerName,
+		MakerPhoneNumber: maker.MakerPhoneNumber,
+		Department:       department,
+		UniqueId:         regionCode,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestBlockRegion),
+		PreviosAction:    prevAction,
+		CurrentAction:    currAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+	}
 
-    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-    if err != nil {
-        return "", fmt.Errorf("database error on InsertOne CPSAction: %w", err)
-    }
-    return cpsAction.ActionCode, nil
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		return "", fmt.Errorf("database error on InsertOne CPSAction: %w", err)
+	}
+	return cpsAction.ActionCode, nil
 }
 func (o *outboundAccountBlockStore) UpdateRegion(ctx context.Context, region action.Region) error {
 	filter := bson.M{"id": region.ID}
@@ -473,137 +485,137 @@ func (o *outboundAccountBlockStore) UpdateRegion(ctx context.Context, region act
 	return err
 }
 func (o *outboundAccountBlockStore) ApproveRegionBlock(
-    ctx context.Context,
-    actionID string,
-    approve bool,
-    reason *string,
-    checker action.User,
+	ctx context.Context,
+	actionID string,
+	approve bool,
+	reason *string,
+	checker action.User,
 ) error {
-    if strings.TrimSpace(actionID) == "" {
-        return errors.New("actionID is required")
-    }
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("actionID is required")
+	}
 
-    filter := bson.M{"action_code": actionID}
-    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-    if err != nil || actionDoc == nil {
-        filter2 := bson.M{"action_code": actionID, "request_action": "REQUEST_DISABLE_MULTI_BRANCHES"}
-        actionDoc, err = o.MongoDalCPSAction.FindOne(ctx, filter2, nil)
-        if err != nil || actionDoc == nil {
-            return errors.New("action not found after update")
-        }
-    }
+	filter := bson.M{"action_code": actionID}
+	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil || actionDoc == nil {
+		filter2 := bson.M{"action_code": actionID, "request_action": "REQUEST_DISABLE_MULTI_BRANCHES"}
+		actionDoc, err = o.MongoDalCPSAction.FindOne(ctx, filter2, nil)
+		if err != nil || actionDoc == nil {
+			return errors.New("action not found after update")
+		}
+	}
 
-    uniqueID := actionDoc.UniqueId
-    statusCheck := "APPROVED"
-    if !approve {
-        statusCheck = "REJECTED"
-    }
-    dupFilter := bson.M{
-        "unique_id":     uniqueID,
-        "action_status": statusCheck,
-        "action_type":   "DELETE",
-        "request_action": "DISABLE_REGION",
-    }
-    alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
-    if alreadyProcessed != nil {
-        return errors.New("This region action has already been processed")
-    }
+	uniqueID := actionDoc.UniqueId
+	statusCheck := "APPROVED"
+	if !approve {
+		statusCheck = "REJECTED"
+	}
+	dupFilter := bson.M{
+		"unique_id":      uniqueID,
+		"action_status":  statusCheck,
+		"action_type":    "DELETE",
+		"request_action": "DISABLE_REGION",
+	}
+	alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
+	if alreadyProcessed != nil {
+		return errors.New("This region action has already been processed")
+	}
 
-    update := bson.M{
-        "last_modified_at":     time.Now(),
-        "checker_id":           checker.UserID,
-        "checker_name":         checker.FullName,
-        "checker_phone_number": checker.PhoneNumber,
-        "checker_action_time":  time.Now(),
-    }
-    if approve {
-        update["action_status"] = "APPROVED"
-    } else {
-        update["action_status"] = "REJECTED"
-        if reason != nil {
-            update["rejection_reason"] = *reason
-        }
-    }
-    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-    if err != nil {
-        return err
-    }
+	update := bson.M{
+		"last_modified_at":     time.Now(),
+		"checker_id":           checker.UserID,
+		"checker_name":         checker.FullName,
+		"checker_phone_number": checker.PhoneNumber,
+		"checker_action_time":  time.Now(),
+	}
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
+	}
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
 
-    if !approve {
-        return nil
-    }
+	if !approve {
+		return nil
+	}
 
-    var regionCode string
-    switch v := actionDoc.CurrentAction.(type) {
-    case string:
-        var tmp struct {
-            RegionCode string `json:"region_code"`
-        }
-        _ = json.Unmarshal([]byte(v), &tmp)
-        regionCode = tmp.RegionCode
-    case []byte:
-        var tmp struct {
-            RegionCode string `json:"region_code"`
-        }
-        _ = json.Unmarshal(v, &tmp)
-        regionCode = tmp.RegionCode
-    case bson.Binary:
-        var tmp struct {
-            RegionCode string `json:"region_code"`
-        }
-        _ = json.Unmarshal(v.Data, &tmp)
-        regionCode = tmp.RegionCode
-    case map[string]interface{}:
-        if rc, ok := v["region_code"].(string); ok {
-            regionCode = rc
-        }
-    }
-    regionCode = strings.TrimSpace(regionCode)
-    if regionCode == "" {
-        return errors.New("region_code missing in action")
-    }
+	var regionCode string
+	switch v := actionDoc.CurrentAction.(type) {
+	case string:
+		var tmp struct {
+			RegionCode string `json:"region_code"`
+		}
+		_ = json.Unmarshal([]byte(v), &tmp)
+		regionCode = tmp.RegionCode
+	case []byte:
+		var tmp struct {
+			RegionCode string `json:"region_code"`
+		}
+		_ = json.Unmarshal(v, &tmp)
+		regionCode = tmp.RegionCode
+	case bson.Binary:
+		var tmp struct {
+			RegionCode string `json:"region_code"`
+		}
+		_ = json.Unmarshal(v.Data, &tmp)
+		regionCode = tmp.RegionCode
+	case map[string]interface{}:
+		if rc, ok := v["region_code"].(string); ok {
+			regionCode = rc
+		}
+	}
+	regionCode = strings.TrimSpace(regionCode)
+	if regionCode == "" {
+		return errors.New("region_code missing in action")
+	}
 
-    region, err := o.GetRegionByCode(ctx, regionCode)
-    if err != nil {
-        return fmt.Errorf("region not found: %w", err)
-    }
+	region, err := o.GetRegionByCode(ctx, regionCode)
+	if err != nil {
+		return fmt.Errorf("region not found: %w", err)
+	}
 
-    branchUpdate := bson.M{
-        "$set": bson.M{
-            "enabled":    false,
-            "updated_at": time.Now(),
-        },
-    }
-    branchFilter := bson.M{
-        "$or": []bson.M{
-            {"branch_region_code": region.RegionCode},
-            {"branch_region": region.RegionName},
-        },
-    }
-    branches, err := o.MongoDalBranch.FindAll(ctx, branchFilter, nil)
-    if err != nil {
-        return fmt.Errorf("failed to fetch branches in region: %w", err)
-    }
-    for _, branch := range branches {
-        if branch == nil {
-            continue
-        }
-        _, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"_id": branch.ID}, branchUpdate)
-        if err != nil {
-            return fmt.Errorf("failed to disable branch %s: %w", branch.BranchCode, err)
-        }
-    }
+	branchUpdate := bson.M{
+		"$set": bson.M{
+			"enabled":    false,
+			"updated_at": time.Now(),
+		},
+	}
+	branchFilter := bson.M{
+		"$or": []bson.M{
+			{"branch_region_code": region.RegionCode},
+			{"branch_region": region.RegionName},
+		},
+	}
+	branches, err := o.MongoDalBranch.FindAll(ctx, branchFilter, nil)
+	if err != nil {
+		return fmt.Errorf("failed to fetch branches in region: %w", err)
+	}
+	for _, branch := range branches {
+		if branch == nil {
+			continue
+		}
+		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"_id": branch.ID}, branchUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to disable branch %s: %w", branch.BranchCode, err)
+		}
+	}
 
-    regionUpdate := bson.M{
-        "enabled":    false,
-        "updated_at": time.Now(),
-    }
-    _, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"region_code": regionCode}, regionUpdate)
-    if err != nil {
-        return fmt.Errorf("failed to disable region %s: %w", regionCode, err)
-    }
+	regionUpdate := bson.M{
+		"enabled":    false,
+		"updated_at": time.Now(),
+	}
+	_, err = o.MongoDalRegion.UpdateOne(ctx, bson.M{"region_code": regionCode}, regionUpdate)
+	if err != nil {
+		return fmt.Errorf("failed to disable region %s: %w", regionCode, err)
+	}
 
-    return nil
+	return nil
 }
 func (o *outboundAccountBlockStore) GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error) {
 	if regionCode == "" {
@@ -625,63 +637,63 @@ func (o *outboundAccountBlockStore) GetRegionByCode(ctx context.Context, regionC
 	}, nil
 }
 func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
-    department := maker.Department
-    if strings.TrimSpace(department) == "" {
-        return "", errors.New("department is required in context")
-    }
+	department := maker.Department
+	if strings.TrimSpace(department) == "" {
+		return "", errors.New("department is required in context")
+	}
 
-    filter := bson.M{
-        "unique_id":      districtCode,
-        "department":     department,
-        "action_type":    "DELETE",
-        "request_action": "BLOCK_DISTRICT",
-        "action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
-    }
-    existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-    if err == nil && existing != nil {
-        return "", fmt.Errorf("A pending or approved block action already exists for this district")
-    }
-    if err != nil && err != mongo.ErrNoDocuments {
-        return "", fmt.Errorf("database error on FindOne CPSAction: %w", err)
-    }
+	filter := bson.M{
+		"unique_id":      districtCode,
+		"department":     department,
+		"action_type":    "DELETE",
+		"request_action": "BLOCK_DISTRICT",
+		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+	}
+	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	if err == nil && existing != nil {
+		return "", fmt.Errorf("A pending or approved block action already exists for this district")
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		return "", fmt.Errorf("database error on FindOne CPSAction: %w", err)
+	}
 
-    prevDistrictPtr, err := o.MongoDalDistrict.FindOne(ctx, bson.M{"district_code": districtCode}, bson.M{})
-    var prevAction json.RawMessage
-    if prevDistrictPtr != nil {
-        prevAction, _ = json.Marshal(prevDistrictPtr)
-    } else {
-        prevAction = json.RawMessage("null")
-    }
+	prevDistrictPtr, err := o.MongoDalDistrict.FindOne(ctx, bson.M{"district_code": districtCode}, bson.M{})
+	var prevAction json.RawMessage
+	if prevDistrictPtr != nil {
+		prevAction, _ = json.Marshal(prevDistrictPtr)
+	} else {
+		prevAction = json.RawMessage("null")
+	}
 
-    currAction, _ := json.Marshal(map[string]string{"district_code": districtCode})
+	currAction, _ := json.Marshal(map[string]string{"district_code": districtCode})
 
-    cpsAction := model.CPSAction{
-        ActionCode:       utils.RandomGenerator(24),
-        MakerID:          maker.MakerID,
-        MakerName:        maker.MakerName,
-        MakerPhoneNumber: maker.MakerPhoneNumber,
-        Department:       department,
-        UniqueId:         districtCode,
-        ActionStatus:     string(model.ActionPending),
-        ActionType:       string(model.ActionDelete),
-        RequestAction:    string(model.RequestBlockDistrict),
-        PreviosAction:    prevAction,
-        CurrentAction:    currAction,
-        CreatedAt:        time.Now(),
-        LastModifiedAt:   time.Now(),
-        RejectionReason: func() string {
-            if maker.RejectionReason != nil {
-                return *maker.RejectionReason
-            }
-            return ""
-        }(),
-    }
+	cpsAction := model.CPSAction{
+		ActionCode:       utils.RandomGenerator(24),
+		MakerID:          maker.MakerID,
+		MakerName:        maker.MakerName,
+		MakerPhoneNumber: maker.MakerPhoneNumber,
+		Department:       department,
+		UniqueId:         districtCode,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestBlockDistrict),
+		PreviosAction:    prevAction,
+		CurrentAction:    currAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		RejectionReason: func() string {
+			if maker.RejectionReason != nil {
+				return *maker.RejectionReason
+			}
+			return ""
+		}(),
+	}
 
-    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-    if err != nil {
-        return "", fmt.Errorf("database error on InsertOne CPSAction: %w", err)
-    }
-    return cpsAction.ActionCode, nil
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		return "", fmt.Errorf("database error on InsertOne CPSAction: %w", err)
+	}
+	return cpsAction.ActionCode, nil
 }
 func (o *outboundAccountBlockStore) GetDistrictByCode(ctx context.Context, districtCode string) (action.District, error) {
 	if strings.TrimSpace(districtCode) == "" {
@@ -705,163 +717,163 @@ func (o *outboundAccountBlockStore) GetDistrictByCode(ctx context.Context, distr
 	}, nil
 }
 func (o *outboundAccountBlockStore) ApproveBlockDistrict(
-    ctx context.Context,
-    actionID string,
-    approve bool,
-    reason *string,
-    checker action.User,
+	ctx context.Context,
+	actionID string,
+	approve bool,
+	reason *string,
+	checker action.User,
 ) error {
-    if strings.TrimSpace(actionID) == "" {
-        return errors.New("action_id is required")
-    }
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("action_id is required")
+	}
 
-    filter := bson.M{"action_code": actionID, "request_action": "BLOCK_DISTRICT"}
-    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-    if err != nil || actionDoc == nil {
-        return errors.New("action not found after update")
-    }
+	filter := bson.M{"action_code": actionID, "request_action": "BLOCK_DISTRICT"}
+	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil || actionDoc == nil {
+		return errors.New("action not found after update")
+	}
 
-    uniqueID := actionDoc.UniqueId
-    statusCheck := "APPROVED"
-    if !approve {
-        statusCheck = "REJECTED"
-    }
-    dupFilter := bson.M{
-        "unique_id":     uniqueID,
-        "action_status": statusCheck,
-        "action_type":   "DELETE",
-        "request_action": "BLOCK_DISTRICT",
-    }
-    alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
-    if alreadyProcessed != nil {
-        return errors.New(" This district action has already been processed")
-    }
+	uniqueID := actionDoc.UniqueId
+	statusCheck := "APPROVED"
+	if !approve {
+		statusCheck = "REJECTED"
+	}
+	dupFilter := bson.M{
+		"unique_id":      uniqueID,
+		"action_status":  statusCheck,
+		"action_type":    "DELETE",
+		"request_action": "BLOCK_DISTRICT",
+	}
+	alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
+	if alreadyProcessed != nil {
+		return errors.New(" This district action has already been processed")
+	}
 
-    update := bson.M{
-        "last_modified_at":     time.Now(),
-        "checker_id":           checker.UserID,
-        "checker_name":         checker.FullName,
-        "checker_phone_number": checker.PhoneNumber,
-        "checker_action_time":  time.Now(),
-    }
-    if approve {
-        update["action_status"] = "APPROVED"
-    } else {
-        update["action_status"] = "REJECTED"
-        if reason != nil {
-            update["rejection_reason"] = *reason
-        }
-    }
-    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-    if err != nil {
-        return fmt.Errorf("failed to update CPSAction: %w", err)
-    }
+	update := bson.M{
+		"last_modified_at":     time.Now(),
+		"checker_id":           checker.UserID,
+		"checker_name":         checker.FullName,
+		"checker_phone_number": checker.PhoneNumber,
+		"checker_action_time":  time.Now(),
+	}
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
+	}
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update CPSAction: %w", err)
+	}
 
-    if !approve {
-        return nil
-    }
+	if !approve {
+		return nil
+	}
 
-    var districtCode string
-    switch v := actionDoc.CurrentAction.(type) {
-    case string:
-        var tmp struct {
-            DistrictCode string `json:"district_code"`
-        }
-        _ = json.Unmarshal([]byte(v), &tmp)
-        districtCode = tmp.DistrictCode
-    case []byte:
-        var tmp struct {
-            DistrictCode string `json:"district_code"`
-        }
-        _ = json.Unmarshal(v, &tmp)
-        districtCode = tmp.DistrictCode
-    case bson.Binary:
-        var tmp struct {
-            DistrictCode string `json:"district_code"`
-        }
-        _ = json.Unmarshal(v.Data, &tmp)
-        districtCode = tmp.DistrictCode
-    case map[string]interface{}:
-        if dc, ok := v["district_code"].(string); ok {
-            districtCode = dc
-        }
-    default:
-        return errors.New("district_code missing in action")
-    }
-    districtCode = strings.TrimSpace(districtCode)
-    if districtCode == "" {
-        return errors.New("district_code missing in action")
-    }
+	var districtCode string
+	switch v := actionDoc.CurrentAction.(type) {
+	case string:
+		var tmp struct {
+			DistrictCode string `json:"district_code"`
+		}
+		_ = json.Unmarshal([]byte(v), &tmp)
+		districtCode = tmp.DistrictCode
+	case []byte:
+		var tmp struct {
+			DistrictCode string `json:"district_code"`
+		}
+		_ = json.Unmarshal(v, &tmp)
+		districtCode = tmp.DistrictCode
+	case bson.Binary:
+		var tmp struct {
+			DistrictCode string `json:"district_code"`
+		}
+		_ = json.Unmarshal(v.Data, &tmp)
+		districtCode = tmp.DistrictCode
+	case map[string]interface{}:
+		if dc, ok := v["district_code"].(string); ok {
+			districtCode = dc
+		}
+	default:
+		return errors.New("district_code missing in action")
+	}
+	districtCode = strings.TrimSpace(districtCode)
+	if districtCode == "" {
+		return errors.New("district_code missing in action")
+	}
 
-    districtUpdate := bson.M{
-        "enabled":    false,
-        "updated_at": time.Now(),
-    }
-    _, err = o.MongoDalDistrict.UpdateOne(ctx, bson.M{"district_code": districtCode}, districtUpdate)
-    if err != nil {
-        return fmt.Errorf("failed to disable district %s: %w", districtCode, err)
-    }
+	districtUpdate := bson.M{
+		"enabled":    false,
+		"updated_at": time.Now(),
+	}
+	_, err = o.MongoDalDistrict.UpdateOne(ctx, bson.M{"district_code": districtCode}, districtUpdate)
+	if err != nil {
+		return fmt.Errorf("failed to disable district %s: %w", districtCode, err)
+	}
 
-    return nil
+	return nil
 }
 func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
-    department := maker.Department
-    if strings.TrimSpace(department) == "" {
-        return "", errors.New("department is required in context")
-    }
+	department := maker.Department
+	if strings.TrimSpace(department) == "" {
+		return "", errors.New("department is required in context")
+	}
 
-    filter := bson.M{
-        "unique_id":      cityCode,
-        "department":     department,
-        "action_type":    "DELETE",
-        "request_action": "BLOCK_CITY",
-        "action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
-    }
-    existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-    if err == nil && existing != nil {
-        return "", fmt.Errorf("A pending or approved block action already exists for this city")
-    }
-    if err != nil && err != mongo.ErrNoDocuments {
-        return "", fmt.Errorf("database error on FindOne CPSAction: %w", err)
-    }
+	filter := bson.M{
+		"unique_id":      cityCode,
+		"department":     department,
+		"action_type":    "DELETE",
+		"request_action": "BLOCK_CITY",
+		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+	}
+	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	if err == nil && existing != nil {
+		return "", fmt.Errorf("A pending or approved block action already exists for this city")
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		return "", fmt.Errorf("database error on FindOne CPSAction: %w", err)
+	}
 
-    prevCityPtr, err := o.MongoDalCity.FindOne(ctx, bson.M{"city_code": cityCode}, bson.M{})
-    var prevAction json.RawMessage
-    if prevCityPtr != nil {
-        prevAction, _ = json.Marshal(prevCityPtr)
-    } else {
-        prevAction = json.RawMessage("null")
-    }
+	prevCityPtr, err := o.MongoDalCity.FindOne(ctx, bson.M{"city_code": cityCode}, bson.M{})
+	var prevAction json.RawMessage
+	if prevCityPtr != nil {
+		prevAction, _ = json.Marshal(prevCityPtr)
+	} else {
+		prevAction = json.RawMessage("null")
+	}
 
-    currAction, _ := json.Marshal(map[string]string{"city_code": cityCode})
+	currAction, _ := json.Marshal(map[string]string{"city_code": cityCode})
 
-    cpsAction := model.CPSAction{
-        ActionCode:       utils.RandomGenerator(24),
-        MakerID:          maker.MakerID,
-        MakerName:        maker.MakerName,
-        MakerPhoneNumber: maker.MakerPhoneNumber,
-        Department:       department,
-        UniqueId:         cityCode,
-        ActionStatus:     string(model.ActionPending),
-        ActionType:       string(model.ActionDelete),
-        RequestAction:    string(model.RequestBlockCity),
-        PreviosAction:    prevAction,
-        CurrentAction:    currAction,
-        CreatedAt:        time.Now(),
-        LastModifiedAt:   time.Now(),
-        RejectionReason: func() string {
-            if maker.RejectionReason != nil {
-                return *maker.RejectionReason
-            }
-            return ""
-        }(),
-    }
+	cpsAction := model.CPSAction{
+		ActionCode:       utils.RandomGenerator(24),
+		MakerID:          maker.MakerID,
+		MakerName:        maker.MakerName,
+		MakerPhoneNumber: maker.MakerPhoneNumber,
+		Department:       department,
+		UniqueId:         cityCode,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestBlockCity),
+		PreviosAction:    prevAction,
+		CurrentAction:    currAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		RejectionReason: func() string {
+			if maker.RejectionReason != nil {
+				return *maker.RejectionReason
+			}
+			return ""
+		}(),
+	}
 
-    _, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-    if err != nil {
-        return "", fmt.Errorf("database error on InsertOne CPSAction: %w", err)
-    }
-    return cpsAction.ActionCode, nil
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		return "", fmt.Errorf("database error on InsertOne CPSAction: %w", err)
+	}
+	return cpsAction.ActionCode, nil
 }
 func (o *outboundAccountBlockStore) GetCityByCode(ctx context.Context, cityCode string) (action.City, error) {
 	if strings.TrimSpace(cityCode) == "" {
@@ -886,104 +898,104 @@ func (o *outboundAccountBlockStore) GetCityByCode(ctx context.Context, cityCode 
 	}, nil
 }
 func (o *outboundAccountBlockStore) ApproveBlockCity(
-    ctx context.Context,
-    actionID string,
-    approve bool,
-    reason *string,
-    checker action.User,
+	ctx context.Context,
+	actionID string,
+	approve bool,
+	reason *string,
+	checker action.User,
 ) error {
-    if strings.TrimSpace(actionID) == "" {
-        return errors.New("action_id is required")
-    }
+	if strings.TrimSpace(actionID) == "" {
+		return errors.New("action_id is required")
+	}
 
-    filter := bson.M{"action_code": actionID, "request_action": "BLOCK_CITY"}
-    actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
-    if err != nil || actionDoc == nil {
-        return errors.New("action not found after update")
-    }
+	filter := bson.M{"action_code": actionID, "request_action": "BLOCK_CITY"}
+	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil || actionDoc == nil {
+		return errors.New("action not found after update")
+	}
 
-    uniqueID := actionDoc.UniqueId
-    statusCheck := "APPROVED"
-    if !approve {
-        statusCheck = "REJECTED"
-    }
-    dupFilter := bson.M{
-        "unique_id":     uniqueID,
-        "action_status": statusCheck,
-        "action_type":   "DELETE",
-        "request_action": "BLOCK_CITY",
-    }
-    alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
-    if alreadyProcessed != nil {
-        return errors.New("This city action has already been processed")
-    }
+	uniqueID := actionDoc.UniqueId
+	statusCheck := "APPROVED"
+	if !approve {
+		statusCheck = "REJECTED"
+	}
+	dupFilter := bson.M{
+		"unique_id":      uniqueID,
+		"action_status":  statusCheck,
+		"action_type":    "DELETE",
+		"request_action": "BLOCK_CITY",
+	}
+	alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
+	if alreadyProcessed != nil {
+		return errors.New("This city action has already been processed")
+	}
 
-    update := bson.M{
-        "last_modified_at":     time.Now(),
-        "checker_id":           checker.UserID,
-        "checker_name":         checker.FullName,
-        "checker_phone_number": checker.PhoneNumber,
-        "checker_action_time":  time.Now(),
-    }
-    if approve {
-        update["action_status"] = "APPROVED"
-    } else {
-        update["action_status"] = "REJECTED"
-        if reason != nil {
-            update["rejection_reason"] = *reason
-        }
-    }
-    _, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-    if err != nil {
-        return fmt.Errorf("failed to update CPSAction: %w", err)
-    }
+	update := bson.M{
+		"last_modified_at":     time.Now(),
+		"checker_id":           checker.UserID,
+		"checker_name":         checker.FullName,
+		"checker_phone_number": checker.PhoneNumber,
+		"checker_action_time":  time.Now(),
+	}
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
+	}
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update CPSAction: %w", err)
+	}
 
-    if !approve {
-        return nil
-    }
+	if !approve {
+		return nil
+	}
 
-    var cityCode string
-    switch v := actionDoc.CurrentAction.(type) {
-    case string:
-        var tmp struct {
-            CityCode string `json:"city_code"`
-        }
-        _ = json.Unmarshal([]byte(v), &tmp)
-        cityCode = tmp.CityCode
-    case []byte:
-        var tmp struct {
-            CityCode string `json:"city_code"`
-        }
-        _ = json.Unmarshal(v, &tmp)
-        cityCode = tmp.CityCode
-    case bson.Binary:
-        var tmp struct {
-            CityCode string `json:"city_code"`
-        }
-        _ = json.Unmarshal(v.Data, &tmp)
-        cityCode = tmp.CityCode
-    case map[string]interface{}:
-        if cc, ok := v["city_code"].(string); ok {
-            cityCode = cc
-        }
-    default:
-        return errors.New("city_code missing in action")
-    }
-    cityCode = strings.TrimSpace(cityCode)
-    if cityCode == "" {
-        return errors.New("city_code missing in action")
-    }
+	var cityCode string
+	switch v := actionDoc.CurrentAction.(type) {
+	case string:
+		var tmp struct {
+			CityCode string `json:"city_code"`
+		}
+		_ = json.Unmarshal([]byte(v), &tmp)
+		cityCode = tmp.CityCode
+	case []byte:
+		var tmp struct {
+			CityCode string `json:"city_code"`
+		}
+		_ = json.Unmarshal(v, &tmp)
+		cityCode = tmp.CityCode
+	case bson.Binary:
+		var tmp struct {
+			CityCode string `json:"city_code"`
+		}
+		_ = json.Unmarshal(v.Data, &tmp)
+		cityCode = tmp.CityCode
+	case map[string]interface{}:
+		if cc, ok := v["city_code"].(string); ok {
+			cityCode = cc
+		}
+	default:
+		return errors.New("city_code missing in action")
+	}
+	cityCode = strings.TrimSpace(cityCode)
+	if cityCode == "" {
+		return errors.New("city_code missing in action")
+	}
 
-    cityUpdate := bson.M{
-        "enabled":    false,
-        "updated_at": time.Now(),
-    }
-    _, err = o.MongoDalCity.UpdateOne(ctx, bson.M{"city_code": cityCode}, cityUpdate)
-    if err != nil {
-        return fmt.Errorf("failed to disable city %s: %w", cityCode, err)
-    }
+	cityUpdate := bson.M{
+		"enabled":    false,
+		"updated_at": time.Now(),
+	}
+	_, err = o.MongoDalCity.UpdateOne(ctx, bson.M{"city_code": cityCode}, cityUpdate)
+	if err != nil {
+		return fmt.Errorf("failed to disable city %s: %w", cityCode, err)
+	}
 
-    return nil
+	return nil
 }
 
 func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {

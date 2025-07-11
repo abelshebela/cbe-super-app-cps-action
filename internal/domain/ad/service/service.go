@@ -152,6 +152,7 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 			AdvertFor:   entity.AdvertFor(actionData.AdvertFor),
 			Date:        entity.AdvertDate(actionData.Date),
 		},
+		// Map other fields from cpsAction as needed
 	})
 	if err != nil {
 		return nil, err

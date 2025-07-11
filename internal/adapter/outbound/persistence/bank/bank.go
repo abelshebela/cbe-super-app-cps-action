@@ -19,6 +19,21 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+// Add helper functions for secure logging at the top after imports
+func maskPhone(phone string) string {
+	if len(phone) < 4 {
+		return "***"
+	}
+	return "***-***-" + phone[len(phone)-4:]
+}
+
+func shortActionCode(code string) string {
+	if len(code) <= 6 {
+		return code
+	}
+	return code[:3] + "***" + code[len(code)-3:]
+}
+
 type Bank struct {
 	bankDal dal.MongoDal[entity.BankDocument, entity.BankDocument]
 	cpsDal  dal.MongoDal[model.CPSAction, model.CPSAction]
@@ -49,14 +64,14 @@ func (b *Bank) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction
 
 	existingBank, err := b.cpsDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
-		b.logger.Errorf("failed to get bank", err)
+		b.logger.Errorf("failed to get bank: %v", err)
 		return fmt.Errorf(error_codes.UnhandledServerError)
 	} else if existingBank != nil {
-		b.logger.Infof("pending cps action present", cpsReq.MakerUser.FullName,
-			cpsReq.MakerUser.UserCode, cpsReq.Department)
+		b.logger.Infof("pending cps action present for user_code: %s, department: %s", cpsReq.MakerUser.UserCode, cpsReq.Department)
 		return fmt.Errorf(error_codes.PendingRequestExists)
 	}
 
+	b.logger.Infof("no pending cps action found for user_code: %s, department: %s", cpsReq.MakerUser.UserCode, cpsReq.Department)
 	return nil
 }
 
@@ -70,12 +85,14 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	b.logger.Infof("cps action created for bank creation, action_code: %s, maker_code: %s", shortActionCode(result.ActionCode), cpsReq.MakerUser.UserCode)
 	return &result, nil
 }
 
 func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	objectID, err := b.parseObjectID(id)
 	if err != nil {
+		b.logger.Errorf("invalid bank id provided: %s, error: %v", id, err)
 		return nil, err
 	}
 	bankFilter := bson.M{
@@ -92,7 +109,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 
 	bank, err := b.bankDal.FindOne(ctx, bankFilter, bankProjection)
 	if err != nil {
-		b.logger.Errorf("failed to get bank", err)
+		b.logger.Errorf("failed to get bank for deletion, id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
@@ -118,10 +135,11 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	})
 
 	if err != nil {
-		b.logger.Errorf("failed to create cps action", err)
+		b.logger.Errorf("failed to create cps action for bank deletion, bank_id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	b.logger.Infof("cps action created for bank deletion, action_code: %s, bank_id: %s, maker_code: %s", shortActionCode(cpsRes.ActionCode), id, cpsReq.MakerUser.UserCode)
 	return &cpsRes, nil
 }
 
@@ -137,7 +155,8 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 
 	banksDocs, err := b.bankDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
-		b.logger.Errorf("failed to get bank data", err)
+		b.logger.Errorf("failed to get bank data, page: %d, per_page: %d, error: %v",
+			filterParams.Page, filterParams.PerPage, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
@@ -148,10 +167,11 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 
 	total, err := b.bankDal.TotalCount(ctx, bson.M{})
 	if err != nil {
-		b.logger.Errorf("failed to get bank total counts", err)
+		b.logger.Errorf("failed to get bank total counts, error: %v", err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	b.logger.Infof("retrieved banks, page: %d, count: %d, total: %d", filterParams.Page, len(banks), total)
 	return &entity.BankResponse{
 		Page:  filterParams.Page,
 		Banks: banks,
@@ -163,6 +183,7 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 	objectID, err := b.parseObjectID(id)
 	if err != nil {
+		b.logger.Errorf("invalid bank id provided: %s, error: %v", id, err)
 		return nil, err
 	}
 
@@ -177,12 +198,14 @@ func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 	fmt.Println(err, "err")
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Errorf("bank not found", err)
+			b.logger.Errorf("bank not found, id: %s", id)
 			return nil, fmt.Errorf(error_codes.BankNotFound)
 		}
-		b.logger.Errorf("failed to get bank", err)
+		b.logger.Errorf("failed to get bank, id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
+
+	b.logger.Infof("bank retrieved, id: %s", id)
 	return b.toDomain(bank), nil
 }
 
@@ -204,10 +227,11 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 
 	result, err := b.cpsDal.InsertOne(ctx, cps)
 	if err != nil {
-		b.logger.Errorf("failed to create cps action: %v", err)
+		b.logger.Errorf("failed to create cps action for bank update, bank_id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	b.logger.Infof("cps action created for bank update, action_code: %s, bank_id: %s, maker_code: %s", shortActionCode(result.ActionCode), id, cpsReq.MakerUser.UserCode)
 	return &result, nil
 }
 
@@ -228,16 +252,17 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 	cpsAction, err := b.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("cps action not found for authorization, action_code: %s", shortActionCode(req.ActionCode))
 			return nil, fmt.Errorf(error_codes.ActionNotFound)
 		}
-		b.logger.Errorf("failed to update cps action: %v", err)
+		b.logger.Errorf("failed to update cps action for authorization, action_code: %s, error: %v", shortActionCode(req.ActionCode), err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
-	var actionData entity.Bank
+	var actionData entity.BankDocument
 	raw, _ := bson.Marshal(cpsAction.CurrentAction)
 	if err := bson.Unmarshal(raw, &actionData); err != nil {
-		b.logger.Errorf("failed to unmarshal action data: %v", err)
+		b.logger.Errorf("failed to unmarshal action data for authorization, action_code: %s", shortActionCode(req.ActionCode))
 		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
@@ -246,13 +271,16 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 	case string(model.RequestCreateBank):
 		doc, err := b.toDocument(&actionData)
 		if err != nil {
+			b.logger.Errorf("failed to convert action data to document for bank creation, action_code: %s", shortActionCode(req.ActionCode))
 			return nil, fmt.Errorf(error_codes.InvalidActionData)
 		}
 		bank, err := b.bankDal.InsertOne(ctx, *doc)
 		if err != nil {
+			b.logger.Errorf("failed to insert bank after authorization, action_code: %s", shortActionCode(req.ActionCode))
 			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 		cpsAction.CurrentAction = bank
+		b.logger.Infof("bank created after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
 
 	case string(model.RequestUpdateBank):
 		update := bson.M{}
@@ -265,33 +293,37 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 		if actionData.BIC != "" {
 			update["bic"] = actionData.BIC
 		}
-		bank, err := b.updateBankByID(ctx, actionData.ID, update)
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
 		if err != nil {
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
+		b.logger.Infof("bank updated after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
 
 	case string(model.RequestDeleteBank):
 		update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
-		bank, err := b.updateBankByID(ctx, actionData.ID, update)
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
 		if err != nil {
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
+		b.logger.Infof("bank deleted after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
 
 	case string(model.RequestEnableBank):
-		bank, err := b.updateBankByID(ctx, actionData.ID, bson.M{"enabled": true})
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": true})
 		if err != nil {
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
+		b.logger.Infof("bank enabled after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
 
 	case string(model.RequestDisableBank):
-		bank, err := b.updateBankByID(ctx, actionData.ID, bson.M{"enabled": false})
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": false})
 		if err != nil {
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
+		b.logger.Infof("bank disabled after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
 	}
 
 	return &cpsAction, nil
@@ -317,12 +349,14 @@ func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CP
 	cpsAction, err := b.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Errorf("bank not found", err)
+			b.logger.Errorf("cps action not found for rejection, action_code: %s", shortActionCode(req.ActionCode))
 			return nil, fmt.Errorf(error_codes.BankNotFound)
 		}
-		b.logger.Errorf("failed to update bank status", err)
+		b.logger.Errorf("failed to update cps action for rejection, action_code: %s, error: %v", shortActionCode(req.ActionCode), err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
+
+	b.logger.Infof("cps action rejected, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
 	return &cpsAction, nil
 }
 
@@ -345,10 +379,12 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string, requestAction
 
 	result, err := b.cpsDal.InsertOne(ctx, cps)
 	if err != nil {
-		b.logger.Errorf("failed to create cps action: %v", err)
+		b.logger.Errorf("failed to create cps action for bank enable/disable, bank_id: %s, action: %s, error: %v",
+			id, requestAction, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	b.logger.Infof("cps action created for bank enable/disable, action_code: %s, bank_id: %s, action: %s, maker_code: %s", shortActionCode(result.ActionCode), id, requestAction, cpsReq.MakerUser.UserCode)
 	return &result, nil
 }
 
@@ -359,13 +395,14 @@ func (b *Bank) CheckExistingBank(ctx context.Context, name string) (bool, error)
 	}, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Errorf("bank name not taken", err)
+			b.logger.Infof("bank name available, name: [REDACTED]")
 			return false, nil
 		}
-		b.logger.Errorf("failed to get bank", err)
+		b.logger.Errorf("failed to check existing bank, name: [REDACTED], error: %v", err)
 		return false, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 	if bank != nil {
+		b.logger.Infof("bank name already exists, name: [REDACTED]")
 		return true, nil
 	}
 	return false, nil
@@ -390,9 +427,10 @@ func (b *Bank) UpdateLogo(ctx context.Context, id string, cpsReq model.CreateCPS
 
 	result, err := b.cpsDal.InsertOne(ctx, cps)
 	if err != nil {
-		b.logger.Errorf("failed to create cps action: %v", err)
+		b.logger.Errorf("failed to create cps action for logo update, bank_id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	b.logger.Infof("cps action created for logo update, action_code: %s, bank_id: %s, maker_code: %s", shortActionCode(result.ActionCode), id, cpsReq.MakerUser.UserCode)
 	return &result, nil
 }

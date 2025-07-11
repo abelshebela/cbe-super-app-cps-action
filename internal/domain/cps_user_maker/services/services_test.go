@@ -50,7 +50,7 @@ func TestCPSUserService_CreateUserRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.CreateUserRequest(ctx, user, maker)
+			_, err := service.CreateUserRequest(ctx, user, maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -98,7 +98,7 @@ func TestCPSUserService_UpdateUserRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.UpdateUserRequest(ctx, updated, maker)
+			_, err := service.UpdateUserRequest(ctx, updated, maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

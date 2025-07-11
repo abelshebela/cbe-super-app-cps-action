@@ -71,7 +71,7 @@ func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWrite
 	}
 
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "Update request submitted for approval",
 		"data":    map[string]interface{}{"action_id": actionID},
 	}
@@ -118,7 +118,7 @@ func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.Respo
 	}
 
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "Action processed successfully",
 		"data":    map[string]interface{}{"action_id": req.ActionID},
 	}
@@ -147,7 +147,7 @@ func (h *PasswordRuleHTTPHandler) GetPasswordRuleUpdateActionByID(w http.Respons
 		return
 	}
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "Fetched password rule update action successfully",
 		"data":    result,
 	}
@@ -182,7 +182,7 @@ func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http
 		return
 	}
 	response := map[string]interface{}{
-		"status":  "success",
+		"status":  200,
 		"message": "Fetched update action successfully",
 		"data":    result,
 	}
@@ -204,9 +204,9 @@ func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *ht
 	valid, msg := h.service.CheckPasswordRule(r.Context(), req.Password)
 
 	statusCode := http.StatusOK
-	status := "success"
+	status := 200
 	if !valid {
-		status = "fail"
+		status = 200
 		statusCode = http.StatusBadRequest
 	}
 	response := map[string]interface{}{

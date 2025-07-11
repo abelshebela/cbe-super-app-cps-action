@@ -30,6 +30,10 @@ func NewMockCPSActionRepository(ctrl *gomock.Controller) *MockCPSActionRepositor
 	return mock
 }
 
+func (m *MockDepartmentRepository) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
+	return nil, nil
+}
+
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCPSActionRepository) EXPECT() *MockCPSActionRepositoryMockRecorder {
 	return m.recorder
@@ -189,6 +193,10 @@ type MockDepartmentRepository struct {
 // MockDepartmentRepositoryMockRecorder is the mock recorder for MockDepartmentRepository.
 type MockDepartmentRepositoryMockRecorder struct {
 	mock *MockDepartmentRepository
+}
+
+func (m *MockDepartmentRepository) GetAllDepartments(ctx context.Context) ([]entities.Department, error) {
+	return nil, nil
 }
 
 // NewMockDepartmentRepository creates a new mock instance.

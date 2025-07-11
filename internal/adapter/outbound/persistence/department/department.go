@@ -161,48 +161,48 @@ func (r *DepartmentPersistence) ApproveActionRequest(ctx context.Context, action
 		"checker_action_time":  time.Now(),
 	}
 
-	actionData, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
 
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
 
 	// Extract department data from CurrentAction map
-	currentActionMap, ok := actionData.CurrentAction.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("invalid current action data format")
-	}
+	// currentActionMap, ok := actionData.CurrentAction.(map[string]interface{})
+	// if !ok {
+	// 	return fmt.Errorf("invalid current action data format")
+	// }
 
-	departmentName, ok := currentActionMap["department"].(string)
-	if !ok {
-		return fmt.Errorf("invalid department name in current action")
-	}
+	// departmentName, ok := currentActionMap["department"].(string)
+	// if !ok {
+	// 	return fmt.Errorf("invalid department name in current action")
+	// }
 
-	portalCardsInterface, ok := currentActionMap["portal_cards"].([]interface{})
-	if !ok {
-		return fmt.Errorf("invalid portal cards in current action")
-	}
+	// portalCardsInterface, ok := currentActionMap["portal_cards"].([]interface{})
+	// if !ok {
+	// 	return fmt.Errorf("invalid portal cards in current action")
+	// }
 
-	// Convert portal cards to string slice
-	var portalCards []string
-	for _, card := range portalCardsInterface {
-		if cardStr, ok := card.(string); ok {
-			portalCards = append(portalCards, cardStr)
-		}
-	}
+	// // Convert portal cards to string slice
+	// var portalCards []string
+	// for _, card := range portalCardsInterface {
+	// 	if cardStr, ok := card.(string); ok {
+	// 		portalCards = append(portalCards, cardStr)
+	// 	}
+	// }
 
-	data := entities.Department{
-		Department:     departmentName,
-		DepartmentCode: utils.RandomGenerator(20),
-		PortalCards:    portalCards,
-		Enabled:        false,
-		CreatedAt:      time.Now().UTC(),
-	}
+	// data := entities.Department{
+	// 	Department:     departmentName,
+	// 	DepartmentCode: utils.RandomGenerator(20),
+	// 	PortalCards:    portalCards,
+	// 	Enabled:        false,
+	// 	CreatedAt:      time.Now().UTC(),
+	// }
 
-	_, err = r.departmentdal.InsertOne(ctx, data)
-	if err != nil {
-		return err
-	}
+	// _, err = r.departmentdal.InsertOne(ctx, data)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -365,4 +365,13 @@ func (r *DepartmentPersistence) RejectDepartmentUpdate(ctx context.Context, cpsA
 		return err
 	}
 	return nil
+}
+
+func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
+	filter := bson.M{}
+	departments, err := r.departmentdal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	return departments, nil
 }
