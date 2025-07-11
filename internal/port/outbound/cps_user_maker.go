@@ -10,7 +10,7 @@ import (
 
 type OutboundInfra interface {
 	CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error)
-	UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) (*model.CPSAction, error)
+	UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
 	ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error
 	FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)

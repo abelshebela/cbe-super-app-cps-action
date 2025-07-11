@@ -16,7 +16,7 @@ import (
 
 type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error)
-	UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) (*model.CPSAction, error)
+	UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error
 	GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)
@@ -52,8 +52,26 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	return s.repo.CreateUserRequest(ctx, cpsAction)
 }
 
-func (s *cpsUserService) UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) (*model.CPSAction, error) {
-	return s.repo.UpdateUserRequest(ctx, updated, maker)
+func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
+	userPayload := ctx_util.ExtractUserContext(r)
+	actionCode := utils.RandomGenerator(24)
+	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       actionCode,
+		UniqueId:         userPayload.UserCode,
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionCreate),
+		RequestAction:    string(model.RequestUser),
+		CurrentAction:    userData,
+		CreatedAt:        time.Now(),
+		MakerActionTime:  time.Now(),
+	}
+
+	return s.repo.UpdateUserRequest(ctx, cpsAction, userCode)
 }
 
 func (s *cpsUserService) ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error {
