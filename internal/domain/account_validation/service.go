@@ -172,12 +172,12 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 
 		updatedRule := currentAction.Rule
 
-		if updatedRule.ID == "" || updatedRule.ID != cpsAction.ID {
+		if updatedRule.ID.String() == "" || updatedRule.ID.String() != cpsAction.ID.String() {
 			s.logger.Errorf("validation rule ID mismatch", "action_id", actionID, "rule_id", updatedRule.ID, "unique_id", cpsAction.ID)
 			return fmt.Errorf("VALIDATION_RULE_ID_MISMATCH")
 		}
 
-		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID, updatedRule); err != nil {
+		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID.String(), updatedRule); err != nil {
 			s.logger.Errorf("failed to update validation rule: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_VALIDATION_RULE")
 		}

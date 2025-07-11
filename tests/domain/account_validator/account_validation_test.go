@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
@@ -34,7 +35,7 @@ func TestGetAccountValidation(t *testing.T) {
 
 	ctx := context.Background()
 	expectedRule := account_validation.ValidationRule{
-		ID:            "test-id",
+		ID:            bson.NewObjectID(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -45,9 +46,9 @@ func TestGetAccountValidation(t *testing.T) {
 	}
 
 	t.Run("successful get", func(t *testing.T) {
-		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(expectedRule, nil).Once()
+		mockRepo.On("GetAccountValidationByID", ctx, expectedRule.ID).Return(expectedRule, nil).Once()
 
-		rule, err := service.GetAccountValidation(ctx, "test-id")
+		rule, err := service.GetAccountValidation(ctx, expectedRule.ID.String())
 		assert.NoError(t, err)
 		assert.Equal(t, expectedRule, rule)
 	})
@@ -76,7 +77,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 	ctx := context.Background()
 	originalRule := account_validation.ValidationRule{
-		ID:            "test-id",
+		ID:            bson.NewObjectID(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -90,7 +91,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 	updatedRule.MinLength = 11
 
 	t.Run("successful update request", func(t *testing.T) {
-		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(originalRule, nil).Once()
+		mockRepo.On("GetAccountValidationByID", ctx, originalRule.ID).Return(originalRule, nil).Once()
 
 		expectedAction := action.CPSAction{
 			ActionCode: "CPS_123",
@@ -112,16 +113,16 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(expectedAction, nil).Once()
 
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "", "")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, originalRule.ID.String(), updatedRule, "maker-123", "", "")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, actionID)
 		assert.Contains(t, actionID, "CPS_")
 	})
 
 	t.Run("validation rule not found", func(t *testing.T) {
-		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(account_validation.ValidationRule{}, assert.AnError).Once()
+		mockRepo.On("GetAccountValidationByID", ctx, originalRule.ID).Return(account_validation.ValidationRule{}, assert.AnError).Once()
 
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "", "")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, originalRule.ID.String(), updatedRule, "maker-123", "", "")
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "NOT_FOUND", err.Error())
@@ -146,7 +147,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 	checkerID := "checker-123"
 
 	validationRule := account_validation.ValidationRule{
-		ID:            "test-id",
+		ID:            bson.NewObjectID(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -184,7 +185,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
-		mockRepo.On("UpdateAccountValidation", ctx, "test-id", mock.Anything).Return(nil).Once()
+		mockRepo.On("UpdateAccountValidation", ctx, validationRule.ID.String(), mock.Anything).Return(nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
 
 		err := service.UpdateAccountValidation(ctx, actionID, true, checkerID, "", "")

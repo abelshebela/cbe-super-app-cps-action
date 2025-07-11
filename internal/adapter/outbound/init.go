@@ -456,7 +456,7 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 	}
 
 	result := domain.CPSAction{
-		ID:              data.ID.Hex(),
+		ID:              data.ID,
 		ActionCode:      data.ActionCode,
 		Maker:           Action.Maker,
 		Checker:         Action.Checker,
@@ -552,7 +552,7 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	result := domain.CPSAction{
-		ID:              data.ID.Hex(),
+		ID:              data.ID,
 		ActionCode:      data.ActionCode,
 		Department:      data.Department,
 		RejectionReason: data.RejectionReason,
@@ -740,7 +740,7 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 	}
 	var data = *d[len(d)-1]
 	result := domain.CPSAction{
-		ID:              data.ID.Hex(),
+		ID:              data.ID,
 		ActionCode:      data.ActionCode,
 		Department:      data.Department,
 		RejectionReason: data.RejectionReason,
@@ -1104,7 +1104,7 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode st
 	for _, ptr := range actionPtrs {
 		if ptr != nil {
 			actions = append(actions, domain.CPSAction{
-				ID:             ptr.ID.Hex(),
+				ID:             ptr.ID,
 				ActionCode:     ptr.ActionCode,
 				Department:     ptr.Department,
 				ActionStatus:   domain.ActionStatus(ptr.ActionStatus),
@@ -1735,7 +1735,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		return nil, err
 	}
 	result := &action.CPSAction{
-		ID:              data.ID.Hex(),
+		ID:              data.ID,
 		ActionCode:      data.ActionCode,
 		Maker:           action.User{UserID: data.MakerUser.UserCode, FullName: data.MakerUser.FullName, PhoneNumber: data.MakerUser.PhoneNumber},
 		Checker:         action.User{UserID: data.CheckerUser.UserCode, FullName: data.CheckerUser.FullName, PhoneNumber: data.CheckerUser.PhoneNumber},
@@ -1770,7 +1770,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		return nil, err
 	}
 	result := &action.CPSAction{
-		ID:              data.ID.Hex(),
+		ID:              data.ID,
 		ActionCode:      data.ActionCode,
 		Maker:           action.User{UserID: data.MakerUser.UserCode, FullName: data.MakerUser.FullName, PhoneNumber: data.MakerUser.PhoneNumber},
 		Checker:         action.User{UserID: data.CheckerUser.UserCode, FullName: data.CheckerUser.FullName, PhoneNumber: data.CheckerUser.PhoneNumber},
@@ -1789,12 +1789,12 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 
 func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error) {
 	ruleModel, err := o.MongoDalPasswordRule.FindOne(ctx, bson.M{}, bson.M{})
-	
+
 	if err != nil || ruleModel == nil {
-		
+
 		return nil, err
 	}
-	
+
 	rule := &action.PasswordRule{
 		ID:             ruleModel.ID.Hex(),
 		PasswordID:     ruleModel.PasswordId,
