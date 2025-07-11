@@ -68,7 +68,7 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.BulkServicesDomain, logger),
-		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain),
+		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
 		ServiceDetailApplication:   service_details_app.NewApplication(domain.ServiceDomain, logger),

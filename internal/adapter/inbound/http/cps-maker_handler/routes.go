@@ -34,7 +34,7 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve",
+				Path:    "/approve_or_reject/{action_id}",
 				Handler: handler.ApproveUserAction,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

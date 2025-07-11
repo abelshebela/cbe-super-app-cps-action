@@ -809,53 +809,39 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 func stringToPointer(s string) *string {
 	return &s
 }
-func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
-	department, _ := ctx.Value("department").(string)
-	actionCode := utils.RandomGenerator(24)
-
-	prevActionJSON := json.RawMessage("null")
-	currActionJSON, _ := json.Marshal(user)
-
-	cpsAction := model.CPSAction{
-		ActionCode:       actionCode,
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		UniqueId:         user.UserCode,
-		Department:       department,
-		ActionStatus:     "PENDING",
-		ActionType:       "CREATE",
-		RequestAction:    "USER",
-		PreviosAction:    prevActionJSON,
-		CurrentAction:    currActionJSON,
-		CreatedAt:        time.Now(),
-		LastModifiedAt:   time.Now(),
-	}
-
+func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
-		"unique_id":      user.UserCode,
-		"action_status":  "PENDING",
-		"action_type":    "CREATE",
-		"request_action": "USER",
+		"unique_id":      cpsAction.UniqueId,
+		"maker_id":       cpsAction.MakerID,
+		"maker_name":     cpsAction.MakerName,
+		"action_status":  cpsAction.ActionStatus,
+		"action_type":    cpsAction.ActionType,
+		"request_action": cpsAction.RequestAction,
 	}
-	projection := bson.M{"_id": 1, "action_code": 1}
+	projection := bson.M{}
+
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err == nil && existing != nil {
-		return nil, fmt.Errorf("a pending user creation action already exists for this user code")
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("database error while checking existing user request action")
+		}
+		existing = nil
 	}
-	if err != nil && err != mongo.ErrNoDocuments {
-		return nil, err
+	if err == nil && existing != nil {
+		if existing.ActionStatus == "PENDING" {
+			return nil, fmt.Errorf("a pending action already exists for this user")
+		}
+		cpsAction.PreviosAction = existing.CurrentAction
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		if mongo.IsDuplicateKeyError(err) || (strings.Contains(err.Error(), "E11000")) {
-			return nil, fmt.Errorf("duplicate actio code or user creation request")
-		}
-		return nil, err
+		return nil, fmt.Errorf("database error while creating user request action")
 	}
+
 	return &data, nil
 }
+
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
 
 	if strings.TrimSpace(updated.UserCode) == "" {
@@ -944,24 +930,25 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	return &dataCps, nil
 }
 
-func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {
-	if actionID == "" {
-		return errors.New("actionID is required")
-	}
-	filter := bson.M{"action_code": actionID}
-	update := bson.M{
-		"last_modified_at": time.Now(),
-	}
-	if approve {
-		update["action_status"] = "APPROVED"
-	} else {
-		update["action_status"] = "REJECTED"
-	}
-	if reason != nil {
-		update["rejection_reason"] = *reason
-	}
-	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	return err
+func (o *outboundStore) ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error {
+	// if actionID == "" {
+	// 	return errors.New("actionID is required")
+	// }
+	// filter := bson.M{"action_code": actionID}
+	// update := bson.M{
+	// 	"last_modified_at": time.Now(),
+	// }
+	// if approve {
+	// 	update["action_status"] = "APPROVED"
+	// } else {
+	// 	update["action_status"] = "REJECTED"
+	// }
+	// if reason != nil {
+	// 	update["rejection_reason"] = *reason
+	// }
+	// _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	// return err
+	return nil
 }
 func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode string) ([]domain.CPSAction, error) {
 	department, _ := ctx.Value("department").(string)
