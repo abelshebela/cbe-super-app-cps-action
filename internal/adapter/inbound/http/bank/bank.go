@@ -97,7 +97,7 @@ func (b *BankAdapter) parseMultipartForm(w http.ResponseWriter, r *http.Request,
 	file, fileHeader, err := r.FormFile("logo")
 	if err != nil {
 		b.logger.Errorf("logo error: %v", err)
-		common_util.SendErrorResponse(w, common_util.MissingOrInvalidLogo, 0, nil)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return nil, nil, false
 	}
 	return file, fileHeader, true

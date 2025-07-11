@@ -33,7 +33,7 @@ type Application struct {
 	AvatarApplication        avatar_app.AvatarApplicationService
 	BankApplication          bank.BankHandlerService
 	AdApplication            ad.ADHandlers
-	WalletApplication        wallet.WalletHandlerService
+	WalletApplication        wallet.WalletHandlerAppllication
 	FaydaApplication         faydaaccount.ApplicationService
 	CustomerApplication      customer.ApplicationService
 	FeedbackApplication      feedback.FeedbackService
@@ -55,13 +55,12 @@ type Application struct {
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
-
 func InitApplication(domain Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
 		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
 		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, logger),
-		WalletApplication:          wallet.InitWalletHanlder(domain.WalletDomain, logger),
+		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
 		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
