@@ -195,10 +195,6 @@ type MockDepartmentRepositoryMockRecorder struct {
 	mock *MockDepartmentRepository
 }
 
-func (m *MockDepartmentRepository) GetAllDepartments(ctx context.Context) ([]entities.Department, error) {
-	return nil, nil
-}
-
 // NewMockDepartmentRepository creates a new mock instance.
 func NewMockDepartmentRepository(ctrl *gomock.Controller) *MockDepartmentRepository {
 	mock := &MockDepartmentRepository{ctrl: ctrl}

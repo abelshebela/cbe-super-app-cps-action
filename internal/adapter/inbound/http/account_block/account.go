@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -776,36 +775,60 @@ func (h *AccountBlockHandler) ApproveBlockCity(w http.ResponseWriter, r *http.Re
 	}
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
-
 func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) {
     var req struct {
-        UserID string `json:"user_id"`
+        PhoneNumber string `json:"phone_number"`
     }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.UserID) == "" {
-        constant_utils.BaseResponseMaker(nil, w, "user_id is required", http.StatusBadRequest)
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.PhoneNumber) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "phone_number is required"}
+        resp.SendJSON()
         return
     }
-    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-    if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
-        constant_utils.BaseResponseMaker(nil, w, "User info missing in context", http.StatusUnauthorized)
+
+    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+    phoneNumberCtx, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+    if strings.TrimSpace(userID) == "" ||
+        strings.TrimSpace(fullName) == "" ||
+        strings.TrimSpace(phoneNumberCtx) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
+        resp.SendJSON()
         return
     }
+    if strings.TrimSpace(department) == "" {
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+        resp.SendJSON()
+        return
+    }
+
     maker := action.CPSAction{
-        MakerID:          userPayload.UserID,
-        MakerName:        userPayload.FullName,
-        MakerPhoneNumber: userPayload.PhoneNumber,
-        Department:       userPayload.Department,
+        MakerID:          userID,
+        MakerName:        fullName,
+        MakerPhoneNumber: phoneNumberCtx,
+        Department:       department,
     }
-    actionCode, err := h.service.BlockUser(r.Context(), req.UserID, maker)
+
+    user, err := h.service.GetUserByPhone(r.Context(), req.PhoneNumber, maker)
+    if err != nil || strings.TrimSpace(user.UserCode) == "" {
+        h.logger.Errorf("BlockUser failed to find user: %v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "User not found"}
+        resp.SendJSON()
+        return
+    }
+
+    actionCode, err := h.service.BlockUser(r.Context(), user.PhoneNumber, maker)
     if err != nil {
         h.logger.Errorf("BlockUser failed: %v", err)
-        constant_utils.BaseResponseMaker(nil, w, err.Error(), http.StatusInternalServerError)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
+        resp.SendJSON()
         return
     }
-    respData := map[string]any{
+    data := map[string]any{
         "action_code": actionCode,
     }
-    constant_utils.BaseResponseMaker(respData, w, "User block action created", http.StatusCreated)
+    constant_utils.BaseResponseMaker(data, w, "User block action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) GetUserByPhone(w http.ResponseWriter, r *http.Request) {
     phoneNumber := r.URL.Query().Get("phone_number")
@@ -862,26 +885,54 @@ func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Re
         Reason   *string `json:"reason,omitempty"`
     }
     if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-        constant_utils.BaseResponseMaker(nil, w, "action_id is required", http.StatusBadRequest)
+        h.logger.Errorf("ApproveBlockUser: invalid request body or missing action_id, err=%v", err)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "action_id is required"}
+        resp.SendJSON()
         return
     }
-    userPayload, ok := r.Context().Value(constant.ContextKey("user_payload")).(middleware.UserPayload)
-    if !ok || strings.TrimSpace(userPayload.UserID) == "" || strings.TrimSpace(userPayload.FullName) == "" || strings.TrimSpace(userPayload.PhoneNumber) == "" {
-        constant_utils.BaseResponseMaker(nil, w, "User info missing in context", http.StatusUnauthorized)
+
+    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+    if strings.TrimSpace(userID) == "" ||
+        strings.TrimSpace(fullName) == "" ||
+        strings.TrimSpace(phoneNumber) == "" {
+        h.logger.Errorf("ApproveBlockUser: Incomplete user information in context: userID=%s, fullName=%s, phoneNumber=%s", userID, fullName, phoneNumber)
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
+        resp.SendJSON()
         return
     }
+    if strings.TrimSpace(department) == "" {
+        h.logger.Errorf("ApproveBlockUser: department is required in context")
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
+        resp.SendJSON()
+        return
+    }
+
+    h.logger.Infof("ApproveBlockUser requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
     checker := action.User{
-        UserID:      userPayload.UserID,
-        FullName:    userPayload.FullName,
-        PhoneNumber: userPayload.PhoneNumber,
-        Department:  userPayload.Department,
+        UserID:      userID,
+        FullName:    fullName,
+        PhoneNumber: phoneNumber,
+        Department:  department,
     }
+
     err := h.service.ApproveBlockUser(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
     if err != nil {
-        h.logger.Errorf("ApproveBlockUser failed: %v", err)
-        constant_utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
+        h.logger.Errorf("ApproveBlockUser failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
+        if strings.Contains(err.Error(), "not allowed") {
+            resp := common.Response[any]{ResponseWriter: w, Status: http.StatusForbidden, Data: err.Error()}
+            resp.SendJSON()
+            return
+        }
+        resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
+        resp.SendJSON()
         return
     }
+
+    h.logger.Infof("ApproveBlockUser succeeded for actionID=%s by user=%s", req.ActionID, userID)
     data := map[string]any{
         "message": "Action processed successfully",
     }
