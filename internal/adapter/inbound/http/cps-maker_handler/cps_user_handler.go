@@ -70,14 +70,17 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	ctx := r.Context()
-	if err := h.Service.CreateUserRequest(ctx, cpsuser, maker); err != nil {
+	dataCPSAction, err := h.Service.CreateUserRequest(ctx, cpsuser, maker)
+	if err != nil {
 		h.Logger.Errorf("CreateUserRequest failed: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsuser)
+
+	data, _ := util.StructToMap(dataCPSAction)
+
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
 func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
@@ -121,14 +124,15 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	ctx := r.Context()
-	if err := h.Service.UpdateUserRequest(ctx, updated, maker); err != nil {
+	dataCPSAction, err := h.Service.UpdateUserRequest(ctx, updated, maker)
+	if err != nil {
 		h.Logger.Errorf("UpdateUserRequest failed: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(updated)
+	data, _ := util.StructToMap(dataCPSAction)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusOK)
 }
 func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Request) {

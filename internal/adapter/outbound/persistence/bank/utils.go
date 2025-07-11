@@ -23,9 +23,9 @@ func (b *Bank) parseObjectID(id string) (bson.ObjectID, error) {
 	return objectID, nil
 }
 
-func (b *Bank) toDomain(doc *entity.Bank) *entity.Bank {
+func (b *Bank) toDomain(doc *entity.BankDocument) *entity.Bank {
 	return &entity.Bank{
-		ID:             doc.ID,
+		ID:             doc.ID.Hex(),
 		Name:           doc.Name,
 		Logo:           doc.Logo,
 		Code:           doc.Code,
@@ -37,9 +37,9 @@ func (b *Bank) toDomain(doc *entity.Bank) *entity.Bank {
 	}
 }
 
-func (b *Bank) toDocument(domain *entity.Bank) (*entity.Bank, error) {
+func (b *Bank) toDocument(domain *entity.BankDocument) (*entity.BankDocument, error) {
 
-	return &entity.Bank{
+	return &entity.BankDocument{
 		ID:             domain.ID,
 		Name:           domain.Name,
 		Logo:           domain.Logo,
@@ -52,7 +52,7 @@ func (b *Bank) toDocument(domain *entity.Bank) (*entity.Bank, error) {
 	}, nil
 }
 
-func (b *Bank) findBankByID(ctx context.Context, id string, projection bson.M) (*entity.Bank, error) {
+func (b *Bank) findBankByID(ctx context.Context, id string, projection bson.M) (*entity.BankDocument, error) {
 	objectID, err := b.parseObjectID(id)
 	if err != nil {
 		b.logger.Errorf("invalid id provided: %v", err)
@@ -74,7 +74,7 @@ func (b *Bank) findBankByID(ctx context.Context, id string, projection bson.M) (
 	return bank, nil
 }
 
-func (b *Bank) updateBankByID(ctx context.Context, id string, update bson.M) (*entity.Bank, error) {
+func (b *Bank) updateBankByID(ctx context.Context, id string, update bson.M) (*entity.BankDocument, error) {
 	objectID, err := b.parseObjectID(id)
 	if err != nil {
 		return nil, fmt.Errorf(error_codes.InvalidID)

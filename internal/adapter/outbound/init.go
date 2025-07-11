@@ -402,7 +402,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
-		
+
 	}
 	return nil
 }
@@ -740,7 +740,7 @@ func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDoma
 		}
 	}
 	return result, nil
-	
+
 }
 
 func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error) {
@@ -809,7 +809,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 func stringToPointer(s string) *string {
 	return &s
 }
-func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) error {
+func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
 	department, _ := ctx.Value("department").(string)
 	actionCode := utils.RandomGenerator(24)
 
@@ -838,37 +838,37 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUs
 		"action_type":    "CREATE",
 		"request_action": "USER",
 	}
-	projection := bson.M{"_id": 1}
+	projection := bson.M{"_id": 1, "action_code": 1}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err == nil && existing != nil {
-		return errors.New("a pending user creation action already exists for this user code")
+		return nil, errors.New("a pending user creation action already exists for this user code")
 	}
 	if err != nil && err != mongo.ErrNoDocuments {
-		return err
+		return nil, err
 	}
 
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
-			return errors.New("duplicate action code or user creation request")
+			return nil, errors.New("duplicate action code or user creation request")
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return &data, nil
 }
-func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) error {
+func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
 
 	if strings.TrimSpace(updated.UserCode) == "" {
-		return errors.New("user_code is required")
+		return nil, errors.New("user_code is required")
 	}
 	if strings.TrimSpace(updated.UserCode) == "" {
-		return errors.New("user_code is required")
+		return nil, errors.New("user_code is required")
 	}
 
 	filter := bson.M{"user_code": updated.UserCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
-		return errors.New("user not found")
+		return nil, errors.New("user not found")
 	}
 	// filter := bson.M{"user_code": updated.UserCode}
 	// modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
@@ -942,7 +942,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
 		fmt.Printf("Failed to update user: %v\n", err)
-		return err
+		return nil, err
 	}
 	// updateDoc := bson.M{
 	// 	"$set": bson.M{
@@ -980,10 +980,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
 	}
-	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	dataCps, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		fmt.Printf("Failed to log update action: %v\n", err)
-		return err
+		return nil, err
 	}
 	// actionCode := utils.RandomGenerator(24)
 	// departmentCtx, _ := ctx.Value("department").(string)
@@ -1010,7 +1010,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	// 	return err
 	// }
 
-	return nil
+	return &dataCps, nil
 	// return nil
 }
 func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {

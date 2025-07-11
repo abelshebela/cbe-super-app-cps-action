@@ -62,24 +62,29 @@ func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]a
 
 func (s *serviceApp) ValidateTiers(tiers []dto.Tier, aboveAmount float64) error {
 	if len(tiers) == 0 {
-		return errors.New(error_codes.TiersRequired)
+		s.logger.Errorf("tiers is required")
+		return errors.New("TIERS_REQUIRED")
 	}
 
 	if tiers[0].Min != 0 {
+		s.logger.Errorf("tiers first is minum must not be zero")
 		return errors.New(error_codes.TiersFirstMinZero)
 	}
 
 	for i := 1; i < len(tiers); i++ {
 		if tiers[i].Min != tiers[i-1].Max {
+			s.logger.Errorf("the next minumum tiers must equal to the previous max")
 			return fmt.Errorf(error_codes.TiersMinMustEqualPrevMax)
 		}
 		if tiers[i].Max <= tiers[i-1].Max {
+			s.logger.Errorf("tiers first is minum must not be zero")
 			return fmt.Errorf(error_codes.TiersMaxMustIncrease)
 		}
 	}
 
 	lastTierMax := tiers[len(tiers)-1].Max
 	if aboveAmount != lastTierMax {
+		s.logger.Errorf("tiers above amount mismatch")
 		return fmt.Errorf(error_codes.TiersAboveAmountMismatch)
 	}
 
