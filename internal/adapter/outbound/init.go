@@ -992,11 +992,6 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	if err != nil {
 		return nil, err
 	}
-	// filter := bson.M{"user_code": userCode}
-	// modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	var department string
 	if len(modelUser.Department) > 0 {
@@ -1011,14 +1006,6 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	for _, oid := range modelUser.PermissionGroup {
 		permissionGroup = append(permissionGroup, oid.Hex())
 	}
-	// var permissionCategory []string
-	// for _, oid := range modelUser.PermissionCategory {
-	// 	permissionCategory = append(permissionCategory, oid.Hex())
-	// }
-	// var permissionGroup []string
-	// for _, oid := range modelUser.PermissionGroup {
-	// 	permissionGroup = append(permissionGroup, oid.Hex())
-	// }
 
 	user := &domain.CPSUser{
 		UserCode:           modelUser.UserCode,
@@ -1031,17 +1018,7 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 		PermissionGroup:    permissionGroup,
 	}
 	return user, nil
-	// user := &domain.CPSUser{
-	// 	UserCode:           modelUser.UserCode,
-	// 	UserName:           modelUser.UserName,
-	// 	FullName:           modelUser.FullName,
-	// 	PhoneNumber:        modelUser.PhoneNumber,
-	// 	Role:               modelUser.Role,
-	// 	Department:         department,
-	// 	PermissionCategory: permissionCategory,
-	// 	PermissionGroup:    permissionGroup,
-	// }
-	// return user, nil
+
 }
 
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
