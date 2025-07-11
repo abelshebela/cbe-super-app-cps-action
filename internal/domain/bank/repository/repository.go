@@ -8,7 +8,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-type Repository interface {
+type BankRepository interface {
 	CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)

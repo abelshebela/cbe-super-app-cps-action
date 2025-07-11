@@ -119,6 +119,10 @@ var errorKeyToStatus = map[string]int{
 	"TIERS_MAX_MUST_INCREASE":                                    400,
 	"TIERS_ABOVE_AMOUNT_MISMATCH":                                400,
 	"NOT_IMPLEMENTED":                                            501,
+	"INPUT_TOO_LONG":                                             400,
+	"INPUT_INVALID_CHARACTERS":                                   400,
+	"PAGE_NOT_FOUND":                                             404,
+	"MISSING_OR_INVALID_IMAGE":                                   400,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
@@ -214,6 +218,7 @@ var errorKeyToStatus = map[string]int{
 	"BANK_ALREADY_EXISTS": 409,
 
 	// Action
+<<<<<<< HEAD
 	"FAILED_TO_CREATE_ACTION":  500,
 	"FAILED_TO_UPDATE_ACTION":  500,
 	"FAILED_TO_FETCH_ACTION":   500,
@@ -221,6 +226,39 @@ var errorKeyToStatus = map[string]int{
 	"FAILED_TO_UPDATE_SERVICE": 500,
 	"FAILED_TO_UPDATE_CAP_MIN": 500,
 	"BLOCKED_ACTION_USER_ALREADY_EXIST":409,
+=======
+	"FAILED_TO_CREATE_ACTION":    500,
+	"FAILED_TO_UPDATE_ACTION":    500,
+	"FAILED_TO_FETCH_ACTION":     500,
+	"ACTION_NOT_PENDING":         400,
+	"FAILED_TO_UPDATE_SERVICE":   500,
+	"FAILED_TO_UPDATE_CAP_MIN":   500,
+	"REJECTION_REASON_TOO_SHORT": 400,
+	"MISSING_REJECT_REASON":      400,
+
+	// Wallet
+	"WALLET_NOT_FOUND":                  404,
+	"WALLET_ALREADY_EXISTS":             409,
+	"WALLET_CREATION_FAILED":            500,
+	"WALLET_UPDATE_FAILED":              500,
+	"WALLET_DELETION_FAILED":            500,
+	"WALLET_INSUFFICIENT_FUNDS":         402,
+	"WALLET_TRANSACTION_FAILED":         500,
+	"WALLET_TRANSACTION_NOT_FOUND":      404,
+	"WALLET_TRANSACTION_ALREADY_EXISTS": 409,
+	"WALLET_INVALID_AMOUNT":             400,
+	"WALLET_INVALID_CURRENCY":           400,
+	"WALLET_INVALID_TRANSACTION_TYPE":   400,
+	"WALLET_TRANSACTION_LIMIT_EXCEEDED": 429,
+	"WALLET_ACCOUNT_NOT_FOUND":          404,
+	"WALLET_ACCOUNT_ALREADY_LINKED":     409,
+	"WALLET_ACCOUNT_BLOCKED":            403,
+	"WALLET_ACCOUNT_UNAUTHORIZED":       401,
+	"WALLET_ACCOUNT_INACTIVE":           403,
+	"WALLET_NOT_ACTIVE":                 403,
+	"WALLET_TYPE_NOT_SUPPORTED":         400,
+	"WALLET_LIMIT_EXCEEDED":             429,
+>>>>>>> ab20bf35c5c22125af79829efa84a06925622bf1
 }
 
 func getStatusForErrorKey(key string) int {
@@ -240,6 +278,7 @@ func getStatusForErrorKey(key string) int {
 		common.DefineError.Bank,
 		common.DefineError.Department,
 		common.DefineError.Action,
+		common.DefineError.Wallet,
 	} {
 		if _, ok := group[key]; ok {
 			return http.StatusBadRequest
@@ -328,6 +367,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Branch,
 		common.DefineError.Bank,
 		common.DefineError.Department,
+		common.DefineError.Wallet,
 	}
 
 	for _, group := range errorGroups {

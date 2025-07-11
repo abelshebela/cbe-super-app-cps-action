@@ -47,6 +47,9 @@ const (
 	TiersAboveAmountMismatch     = "TIERS_ABOVE_AMOUNT_MISMATCH"
 	NotImplemented               = "NOT_IMPLEMENTED"
 	InvalidInputParameters       = "INVALID_INPUT_PARAMETERS"
+	InputTooLong                 = "INPUT_TOO_LONG"
+	InputInvalidCharacters       = "INPUT_INVALID_CHARACTERS"
+	PageNotFound                 = "PAGE_NOT_FOUND"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
@@ -115,7 +118,7 @@ const (
 	FileTooLarge         = "FILE_TOO_LARGE"
 	InvalidFileType      = "INVALID_FILE_TYPE"
 	UploadFailed         = "UPLOAD_FAILED"
-	MissingOrInvalidLogo = "MISSING_OR_INVALID_LOGO"
+	MissingOrInvalidImage = "MISSING_OR_INVALID_IMAGE"
 
 	// Branch
 	BranchNotFound        = "BRANCH_NOT_FOUND"
@@ -154,7 +157,23 @@ const (
 	FailedToUpdateService        = "FAILED_TO_UPDATE_SERVICE"
 	FailedToUpdateCapMin         = "FAILED_TO_UPDATE_CAP_MIN"
 	AccountBlocked               = "ACCOUNT_BLOCKED"
+	MissingRejectionReason       = "MISSING_REJECT_REASON"
+	RejectReasonTooShort         = "REJECT_REASON_TOO_SHORT"
 
 	// User
 	UserStatusUpdateFailed = "USER_STATUS_UPDATE_FAILED"
+
+	// wallet
+	WalletNotFound                 = "WALLET_NOT_FOUND"
+	WalletAlreadyExists            = "WALLET_ALREADY_EXISTS"
+	WalletCreationFailed           = "WALLET_CREATION_FAILED"
+	WalletUpdateFailed             = "WALLET_UPDATE_FAILED"
+	WalletDeletionFailed           = "WALLET_DELETION_FAILED"
+	WalletInsufficientBalance      = "WALLET_INSUFFICIENT_BALANCE"
+	WalletTransactionFailed        = "WALLET_TRANSACTION_FAILED"
+	WalletNotActive                = "WALLET_NOT_ACTIVE"
+	WalletTypeNotSupported         = "WALLET_TYPE_NOT_SUPPORTED"
+	WalletLimitExceeded            = "WALLET_LIMIT_EXCEEDED"
+	WalletTransactionNotFound      = "WALLET_TRANSACTION_NOT_FOUND"
+	WalletTransactionAlreadyExists = "WALLET_TRANSACTION_ALREADY_EXISTS"
 )

@@ -1,3 +1,4 @@
+// Package repository provides interfaces for wallet data persistence and operations.
 package repository
 
 import (
@@ -8,7 +9,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-type Repository interface {
+type WalletRepository interface {
 	CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)

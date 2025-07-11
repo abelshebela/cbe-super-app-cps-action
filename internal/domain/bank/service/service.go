@@ -212,7 +212,6 @@ func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
 }
 
 func (b *BankDomain) CheckExistingBank(ctx context.Context, name string) (bool, error) {
-
 	bank, err := b.bankRepo.CheckExistingBank(ctx, name)
 	if err != nil {
 		return false, err
