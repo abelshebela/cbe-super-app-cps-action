@@ -881,8 +881,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 	if len(modelUser.Department) > 0 {
 		department = modelUser.Department.Hex()
 	}
-
-	fmt.Println("Reched here with department:", department)
 	var permissionGroup []string
 	for _, oid := range modelUser.PermissionGroup {
 		permissionGroup = append(permissionGroup, oid.Hex())
@@ -918,7 +916,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 		fmt.Printf("Failed to update user: %v\n", err)
 		return nil, err
 	}
-	
 
 	actionCode := utils.RandomGenerator(24)
 	departmentCtx, _ := ctx.Value("department").(string)
@@ -943,10 +940,8 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CP
 		fmt.Printf("Failed to log update action: %v\n", err)
 		return nil, err
 	}
-	
 
 	return &dataCps, nil
-	// return nil
 }
 
 func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {
