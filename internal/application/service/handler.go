@@ -18,8 +18,11 @@ import (
 type ServiceApplication interface {
 	ValidateTiers(tiers []dto.Tier, aboveAmount float64) error
 	GetOneService(ctx context.Context, id string) (*serviceDomain.Service, error)
+	GetAllService(ctx context.Context) ([]*serviceDomain.Service, error)
 	InitCPSAction(user cpsuser.CPSUser, actionData map[string]any, requestAction, actionType string, previousData *serviceDomain.Service) action.CPSAction
-	CreateAction(ctx context.Context, req action.CPSAction) error
+	CreateAction(ctx context.Context, req action.CPSAction) (*action.CPSAction, error)
+	RejectAction(ctx context.Context, action_code string, rejection_reason string) error
+	AuthorizeAction(ctx context.Context, action_code string) error
 }
 
 type serviceApp struct {
@@ -34,6 +37,16 @@ func NewServiceApp(service serviceDomain.ServiceInterface, actions action.Servic
 		actionDomain:  actions,
 		logger:        logger,
 	}
+}
+
+func (s *serviceApp) GetAllService(ctx context.Context) ([]*serviceDomain.Service, error) {
+	servicData, err := s.serviceDomain.GetAllServiceDetails(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return servicData, err
+
 }
 
 func (s *serviceApp) GetOneService(ctx context.Context, id string) (*serviceDomain.Service, error) {
@@ -91,10 +104,29 @@ func (s *serviceApp) ValidateTiers(tiers []dto.Tier, aboveAmount float64) error 
 	return nil
 }
 
-func (s *serviceApp) CreateAction(ctx context.Context, req action.CPSAction) error {
-	_, err := s.actionDomain.CreateCpsAction(ctx, req)
+func (s *serviceApp) CreateAction(ctx context.Context, req action.CPSAction) (*action.CPSAction, error) {
+	data, err := s.actionDomain.CreateCpsAction(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (s *serviceApp) RejectAction(ctx context.Context, action_code string, rejection_reason string) error {
+
+	err := s.serviceDomain.RejectServiceFeeUpdate(ctx, action_code, rejection_reason)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (s *serviceApp) AuthorizeAction(ctx context.Context, action_code string) error {
+
+	err := s.serviceDomain.ApproveServiceFeeUpdate(ctx, action_code)
+	if err != nil {
+		return nil
 	}
 
 	return nil

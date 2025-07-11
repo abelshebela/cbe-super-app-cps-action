@@ -43,26 +43,26 @@ type ActionResponse struct {
 	ActionId string `json:"action_id"`
 }
 type CPSAction struct {
-	ID                 string
-	ActionCode         string
-	UniqueId           string
-	MakerID            string
-	MakerName          string
-	MakerPhoneNumber   string
-	CheckerID          string
-	CheckerName        string
-	CheckerPhoneNumber string
-	Department         string
-	RejectionReason    *string
-	PreviosAction      interface{}
-	CurrentAction      interface{}
-	ActionStatus       ActionStatus
-	ActionType         ActionType
-	RequestAction      RequestAction
-	CreatedAt          time.Time
-	LastModifiedAt     time.Time
-	MakerActionTime    time.Time
-	CheckerActionTime  time.Time
+	ID                 string        `json:"id"`
+	ActionCode         string        `json:"action_code"`
+	UniqueId           string        `json:"unique_id"`
+	MakerID            string        `json:"maker_id"`
+	MakerName          string        `json:"maker_name"`
+	MakerPhoneNumber   string        `json:"maker_phone_number"`
+	CheckerID          string        `json:"checker_id"`
+	CheckerName        string        `json:"checker_name"`
+	CheckerPhoneNumber string        `json:"checker_phone_number"`
+	Department         string        `json:"department"`
+	RejectionReason    *string       `json:"rejection_reason"`
+	PreviosAction      interface{}   `json:"previos_action"`
+	CurrentAction      interface{}   `json:"current_action"`
+	ActionStatus       ActionStatus  `json:"action_status"`
+	ActionType         ActionType    `json:"action_type"`
+	RequestAction      RequestAction `json:"request_action"`
+	CreatedAt          time.Time     `json:"created_at"`
+	LastModifiedAt     time.Time     `json:"last_modified_at"`
+	MakerActionTime    time.Time     `json:"maker_action_time"`
+	CheckerActionTime  time.Time     `json:"checker_action_time"`
 }
 
 type RequestAction string

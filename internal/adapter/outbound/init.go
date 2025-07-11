@@ -11,6 +11,7 @@ import (
 	"time"
 
 	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -105,9 +106,9 @@ func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.
 	}
 }
 
-func NewServiceDetailsPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
-	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "cps_services")
-	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
+func NewServiceDetailsPersistence(client *mongo.Client, dbName string, collection []string, logger utils.Logger) *outboundStore {
+	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collection[0])
+	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collection[1])
 
 	return &outboundStore{
 		MongoDalServiceDetails: mongoDalServiceDetails,
@@ -1306,11 +1307,12 @@ func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req servic
 	}, nil
 }
 
-func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code string) error {
 	filter := bson.M{
-		"action_code":   cpsAction.ActionCode,
+		"action_code":   action_code,
 		"action_status": "PENDING",
 	}
+
 	projection := bson.M{}
 	cpsActionPtr, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
@@ -1318,7 +1320,7 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction s
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return service.UpdateServiceDetailsResponse{}, err
+		return err
 	}
 	serviceFilter := bson.M{
 		"action_code": cpsActionPtr.ActionCode,
@@ -1332,25 +1334,24 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction s
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return service.UpdateServiceDetailsResponse{}, err
+		return err
 	}
-	return service.UpdateServiceDetailsResponse{
-		ActionID: cpsActionPtr.ActionCode,
-	}, nil
+	return nil
 }
 
-func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, action_code string, rejection_reason string) error {
 	filter := bson.M{
-		"action_code":   cpsAction.ActionCode,
+		"action_code":   action_code,
 		"action_status": "PENDING",
 	}
+	cpsAction := contexts.ExtractContext(ctx)
 	update := bson.M{
 
-		"checker_id":           cpsAction.CheckerID,
-		"checker_name":         cpsAction.CheckerName,
-		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"checker_id":           cpsAction.UserID,
+		"checker_name":         cpsAction.FullName,
+		"checker_phone_number": cpsAction.PhoneNumber,
 		"action_status":        "REJECTED",
-		"rejection_reason":     cpsAction.RejectionReason,
+		"rejection_reason":     rejection_reason,
 		"checker_action_time":  time.Now(),
 	}
 	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
@@ -1359,11 +1360,9 @@ func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction se
 			Code:    http.StatusInternalServerError,
 			Message: "internal server error",
 		})
-		return service.UpdateServiceDetailsResponse{}, err
+		return err
 	}
-	return service.UpdateServiceDetailsResponse{
-		ActionID: cpsAction.ActionCode,
-	}, nil
+	return nil
 }
 
 func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id string, update serviceDomain.Service) error {
