@@ -59,7 +59,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 				},
 			},
 			{
-				Method:  http.MethodGet,
+				Method:  http.MethodPost,
 				Path:    "/accounts/search",
 				Handler: handler.SearchAccountByCif,
 				Middlewares: []func(next http.Handler) http.Handler{

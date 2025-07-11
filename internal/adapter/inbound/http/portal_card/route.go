@@ -16,7 +16,7 @@ func InitPortalCardRoutes(router chi.Router, portalcardHandler inbound.PortalCar
 	router.Route("/portalcard", func(r chi.Router) {
 		routes := []route.Route{
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/",
 				Handler: portalcardHandler.GetAllPortalCard,
 				Middlewares: []func(next http.Handler) http.Handler{

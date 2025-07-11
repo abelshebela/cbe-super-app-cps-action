@@ -19,6 +19,6 @@ type CifRemoveMakerResponse struct {
 }
 
 type CifRemoveCheckerRequest struct {
-	Action_Id     string `json:"service_id"`
+	Action_Id     string `json:"action_id"`
 	ServiceAction bool   `json:"service_action"`
 }
