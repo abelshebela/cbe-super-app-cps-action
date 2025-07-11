@@ -849,7 +849,7 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUs
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		if mongo.IsDuplicateKeyError(err) || (err != nil && strings.Contains(err.Error(), "E11000")) {
+		if mongo.IsDuplicateKeyError(err) || (strings.Contains(err.Error(), "E11000")) {
 			return nil, fmt.Errorf("duplicate actio code or user creation request")
 		}
 		return nil, err
@@ -1043,9 +1043,7 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	// }
 	// return user, nil
 }
-func ptrTime(t time.Time) *time.Time {
-	return &t
-}
+
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {

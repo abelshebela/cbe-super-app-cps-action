@@ -19,14 +19,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-// Add helper functions for secure logging at the top after imports
-func maskPhone(phone string) string {
-	if len(phone) < 4 {
-		return "***"
-	}
-	return "***-***-" + phone[len(phone)-4:]
-}
-
 func shortActionCode(code string) string {
 	if len(code) <= 6 {
 		return code

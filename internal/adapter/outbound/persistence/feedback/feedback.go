@@ -86,15 +86,10 @@ func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.
 		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
 	}
 
-	// if feedbackID.IsZero() {
-	// 	c.logger.Errorf("invalid id provided", err)
+	if feedbackID.IsZero() {
+		c.logger.Errorf("invalid id provided", err)
 
-	// 	return nil, fmt.Errorf("INVALID_ID")
-	// }
-
-	if err != nil {
-
-		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
+		return nil, fmt.Errorf("INVALID_ID")
 	}
 
 	filter := bson.M{"_id": feedbackID}

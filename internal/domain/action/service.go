@@ -14,11 +14,11 @@ func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset in
 
 func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, makerId string) (string, error) {
 
-	service, err := s.Repository.GetHqServiceById(ctx, id)
+	_, err := s.Repository.GetHqServiceById(ctx, id)
 	if err != nil {
 		return "", err
 	}
-	service.Enabled = action
+	// service.Enabled = action
 	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	a := CPSAction{
 		ActionCode:         actionID,
