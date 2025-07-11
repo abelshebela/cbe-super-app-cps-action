@@ -111,3 +111,7 @@ func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 
 	common_util.WriteSuccessResponse(w, nil, "Request Sent Successfuly")
 }
+
+func (s *serviceHandler) CreateServiceFee(w http.ResponseWriter, r *http.Request) {
+
+}
