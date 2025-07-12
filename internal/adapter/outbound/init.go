@@ -809,160 +809,108 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 func stringToPointer(s string) *string {
 	return &s
 }
-func (o *outboundStore) CreateUserRequest(ctx context.Context, user domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
-	department, _ := ctx.Value("department").(string)
-	actionCode := utils.RandomGenerator(24)
 
-	prevActionJSON := json.RawMessage("null")
-	currActionJSON, _ := json.Marshal(user)
-
-	cpsAction := model.CPSAction{
-		ActionCode:       actionCode,
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		UniqueId:         user.UserCode,
-		Department:       department,
-		ActionStatus:     "PENDING",
-		ActionType:       "CREATE",
-		RequestAction:    "USER",
-		PreviosAction:    prevActionJSON,
-		CurrentAction:    currActionJSON,
-		CreatedAt:        time.Now(),
-		LastModifiedAt:   time.Now(),
-	}
-
+func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
-		"unique_id":      user.UserCode,
-		"action_status":  "PENDING",
-		"action_type":    "CREATE",
-		"request_action": "USER",
+		"unique_id":      cpsAction.UniqueId,
+		"maker_id":       cpsAction.MakerID,
+		"maker_name":     cpsAction.MakerName,
+		"action_status":  cpsAction.ActionStatus,
+		"action_type":    cpsAction.ActionType,
+		"request_action": cpsAction.RequestAction,
 	}
-	projection := bson.M{"_id": 1, "action_code": 1}
+	projection := bson.M{}
+
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err == nil && existing != nil {
-		return nil, fmt.Errorf("a pending user creation action already exists for this user code")
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("database error while checking existing user request action")
+		}
+		existing = nil
 	}
-	if err != nil && err != mongo.ErrNoDocuments {
-		return nil, err
+	if err == nil && existing != nil {
+		if existing.ActionStatus == "PENDING" {
+			return nil, fmt.Errorf("a pending action already exists for this user")
+		}
+		cpsAction.PreviosAction = existing.CurrentAction
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		if mongo.IsDuplicateKeyError(err) || (strings.Contains(err.Error(), "E11000")) {
-			return nil, fmt.Errorf("duplicate actio code or user creation request")
-		}
-		return nil, err
+		return nil, fmt.Errorf("database error while creating user request action")
 	}
+
 	return &data, nil
 }
-func (o *outboundStore) UpdateUserRequest(ctx context.Context, updated domain.CPSUser, maker domain.User) (*model.CPSAction, error) {
 
-	if strings.TrimSpace(updated.UserCode) == "" {
-		return nil, fmt.Errorf("user_code is required")
+func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
+	cpsActionFilter := bson.M{
+		"unique_id":      cpsAction.UniqueId,
+		"maker_id":       cpsAction.MakerID,
+		"maker_name":     cpsAction.MakerName,
+		"action_status":  cpsAction.ActionStatus,
+		"action_type":    cpsAction.ActionType,
+		"request_action": cpsAction.RequestAction,
+	}
+	cpsUserFilter := bson.M{
+		"user_code":  userCode,
+		"is_deleted": false,
 	}
 
-	if strings.TrimSpace(updated.UserCode) == "" {
-		return nil, fmt.Errorf("user_code is required")
-	}
+	projection := bson.M{}
 
-	filter := bson.M{"user_code": updated.UserCode}
-	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil {
-		return nil, fmt.Errorf("user not found")
-	}
-
-	var permissionCategory []string
-	for _, oid := range modelUser.PermissionCategory {
-		permissionCategory = append(permissionCategory, oid.Hex())
-	}
-
-	var department string
-	if len(modelUser.Department) > 0 {
-		department = modelUser.Department.Hex()
-	}
-	var permissionGroup []string
-	for _, oid := range modelUser.PermissionGroup {
-		permissionGroup = append(permissionGroup, oid.Hex())
-	}
-
-	prevUser := domain.CPSUser{
-		UserCode:           modelUser.UserCode,
-		UserName:           modelUser.UserName,
-		FullName:           modelUser.FullName,
-		PhoneNumber:        modelUser.PhoneNumber,
-		Role:               modelUser.Role,
-		Department:         department,
-		PermissionCategory: permissionCategory,
-		PermissionGroup:    permissionGroup,
-	}
-
-	prevActionJSON, _ := json.Marshal(prevUser)
-	currActionJSON, _ := json.Marshal(updated)
-
-	updateDoc := bson.M{
-		"user_code":           updated.UserCode,
-		"user_name":           updated.UserName,
-		"full_name":           updated.FullName,
-		"phone_number":        updated.PhoneNumber,
-		"role":                updated.Role,
-		"department":          updated.Department,
-		"permission_category": updated.PermissionCategory,
-		"permission_group":    updated.PermissionGroup,
-		"last_modified":       time.Now(),
-	}
-	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
-	if err != nil {
-		fmt.Printf("Failed to update user: %v\n", err)
+	// Check if the user does exist
+	user, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
+	if err != nil && user == nil {
 		return nil, err
 	}
 
-	actionCode := utils.RandomGenerator(24)
-	departmentCtx, _ := ctx.Value("department").(string)
-	fmt.Println("Reched here with departmentCtx:", departmentCtx)
-	cpsAction := model.CPSAction{
-		ActionCode:       actionCode,
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		UniqueId:         updated.UserCode,
-		Department:       departmentCtx,
-		ActionStatus:     "PENDING",
-		ActionType:       "UPDATE",
-		RequestAction:    "USER",
-		PreviosAction:    prevActionJSON,
-		CurrentAction:    currActionJSON,
-		CreatedAt:        time.Now(),
-		LastModifiedAt:   time.Now(),
-	}
-	dataCps, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	// If the user exists, check for pending cps action
+	existing, err := o.MongoDalCPSAction.FindOne(ctx, cpsActionFilter, projection)
 	if err != nil {
-		fmt.Printf("Failed to log update action: %v\n", err)
-		return nil, err
+		if err != mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("database error while checking existing user request action")
+		}
+		existing = nil
+	}
+	if err == nil && existing != nil {
+		if existing.ActionStatus == "PENDING" {
+			return nil, fmt.Errorf("a pending action already exists for this user")
+		} else if existing.ActionStatus == string(model.ActionApproved) {
+			cpsAction.PreviosAction = existing.CurrentAction
+		}
 	}
 
-	return &dataCps, nil
+	// Create CPS action
+	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		return nil, fmt.Errorf("database error while updating user request action")
+	}
+
+	return &data, nil
 }
 
-func (o *outboundStore) ApproveUserAction(ctx context.Context, actionID string, approve bool, reason *string) error {
-	if actionID == "" {
-		return errors.New("actionID is required")
-	}
-	filter := bson.M{"action_code": actionID}
-	update := bson.M{
-		"last_modified_at": time.Now(),
-	}
-	if approve {
-		update["action_status"] = "APPROVED"
-	} else {
-		update["action_status"] = "REJECTED"
-	}
-	if reason != nil {
-		update["rejection_reason"] = *reason
-	}
-	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	return err
+func (o *outboundStore) ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error {
+	// if actionID == "" {
+	// 	return errors.New("actionID is required")
+	// }
+	// filter := bson.M{"action_code": actionID}
+	// update := bson.M{
+	// 	"last_modified_at": time.Now(),
+	// }
+	// if approve {
+	// 	update["action_status"] = "APPROVED"
+	// } else {
+	// 	update["action_status"] = "REJECTED"
+	// }
+	// if reason != nil {
+	// 	update["rejection_reason"] = *reason
+	// }
+	// _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	// return err
+	return nil
 }
+
 func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode string) ([]domain.CPSAction, error) {
 	department, _ := ctx.Value("department").(string)
 	filter := bson.M{

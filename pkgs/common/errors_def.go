@@ -19,6 +19,7 @@ type ErrorDefinitions struct {
 	Department  ErrorGroup
 	Bank        ErrorGroup
 	Action      ErrorGroup
+	Wallet      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -575,6 +576,18 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_131",
 			Message: "Not implemented.",
 		},
+		"INPUT_TOO_LONG": {
+			Code:    "GEN_132",
+			Message: "Input exceeds maximum allowed length.",
+		},
+		"INPUT_INVALID_CHARACTERS": {
+			Code:    "GEN_133",
+			Message: "Input contains invalid characters.",
+		},
+		"PAGE_NOT_FOUND": {
+			Code:    "GEN_134",
+			Message: "Page not found",
+		},
 		"FAILED_TO_GET_AVATAR": {
 			Code:    "GEN_132",
 			Message: "failed to get avatar",
@@ -765,6 +778,50 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACC_013",
 			Message: "Account is already linked to another user.",
 		},
+		"BLOCKED_ACTION_USER_ALREADY_EXIST": {
+			Code:    "AUTH_029",
+			Message: "A pending or approved block action already exists for this user",
+		},
+		"BRANCH_DISABLE_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_008",
+			Message: "A pending or approved disable action already exists for this branch",
+		},
+		"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_010",
+			Message: "A pending or approved disable action already exists for one or more of the selected branches",
+		},
+		"BRANCH_BULK_ACTION_ALREADY_PROCESSED": {
+			Code:    "BRN_011",
+			Message: "This bulk action has already been processed for one or more branches",
+		},
+		"BRANCH_ID_REQUIRED": {
+			Code:    "BRN_006",
+			Message: "Branch ID is required.",
+		},
+		"BRANCH_REGION_AND_DISTRICT_REQUIRED": {
+			Code:    "BRN_012",
+			Message: "Region and district are required",
+		},
+		"BRANCH_REGION_AND_DISTRICT_MIN_LENGTH": {
+			Code:    "BRN_014",
+			Message: "Region and district must be at least 3 characters",
+		},
+		"FAILED_TO_FETCH_BRANCHES": {
+			Code:    "BRN_013",
+			Message: "Failed to fetch branches",
+		},
+		"INVALID_JSON_PAYLOAD": {
+			Code:    "GEN_001",
+			Message: "Invalid JSON body",
+		},
+		"BRANCH_NOT_FOUND": {
+			Code:    "BRN_001",
+			Message: "No branch found for the given region and district",
+		},
+		"UNHANDLED_SERVER_ERROR": {
+			Code:    "GEN_004",
+			Message: "Internal server error",
+		},
 		// Additional missing error from the other definition
 		"ACCOUNT_UPDATE_FAILED": {
 			Code:    "ACC_014",
@@ -830,9 +887,9 @@ var DefineError = ErrorDefinitions{
 			Code:    "FILE_005",
 			Message: "Failed to upload file.",
 		},
-		"MISSING_OR_INVALID_LOGO": {
+		"MISSING_OR_INVALID_IMAGE": {
 			Code:    "FILE_006",
-			Message: "Missing or invalid logo.",
+			Message: "Missing or invalid image.",
 		},
 	},
 	Branch: ErrorGroup{
@@ -966,11 +1023,69 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACT_013",
 			Message: "Failed to update cap minimum amount.",
 		},
+		"MISSING_REJECT_REASON": {
+			Code:    "ACT_014",
+			Message: "Missing reason for rejection.",
+		},
+		"REJECT_REASON_TOO_SHORT": {
+			Code:    "ACT_015",
+			Message: "Rejection reason must be at between 30 to 100 characters long.",
+		},
 	},
 	User: ErrorGroup{
 		"USER_STATUS_UPDATE_FAILED": {
 			Code:    "USR_001",
 			Message: "Failed to update user status.",
+		},
+	},
+	Wallet: ErrorGroup{
+		"WALLET_NOT_FOUND": {
+			Code:    "WAL_001",
+			Message: "Wallet not found.",
+		},
+		"WALLET_CREATION_FAILED": {
+			Code:    "WAL_002",
+			Message: "Failed to create wallet.",
+		},
+		"WALLET_UPDATE_FAILED": {
+			Code:    "WAL_003",
+			Message: "Failed to update wallet.",
+		},
+		"WALLET_DELETION_FAILED": {
+			Code:    "WAL_004",
+			Message: "Failed to delete wallet.",
+		},
+		"WALLET_BALANCE_INSUFFICIENT": {
+			Code:    "WAL_005",
+			Message: "Insufficient wallet balance.",
+		},
+		"WALLET_TRANSACTION_FAILED": {
+			Code:    "WAL_006",
+			Message: "Failed to process wallet transaction.",
+		},
+		"WALLET_NOT_ACTIVE": {
+			Code:    "WAL_007",
+			Message: "Wallet is not active.",
+		},
+		"WALLET_ALREADY_EXISTS": {
+			Code:    "WAL_008",
+			Message: "Wallet with this ID already exists.",
+		},
+		"WALLET_TYPE_NOT_SUPPORTED": {
+			Code:    "WAL_009",
+			Message: "Wallet type is not supported.",
+		},
+		"WALLET_LIMIT_EXCEEDED": {
+			Code:    "WAL_010",
+			Message: "Wallet limit exceeded.",
+		},
+		"WALLET_TRANSACTION_NOT_FOUND": {
+			Code:    "WAL_011",
+			Message: "Wallet transaction not found.",
+		},
+		"WALLET_TRANSACTION_ALREADY_EXISTS": {
+			Code:    "WAL_012",
+			Message: "Wallet transaction already exists.",
 		},
 	},
 }

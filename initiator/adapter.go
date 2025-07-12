@@ -42,11 +42,11 @@ import (
 	inboundUnlink "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	amountBasedAuth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Adapter struct {
@@ -81,7 +81,7 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		BankAdapter:   bank.InitBankAdapter(application.BankApplication, logger),
 		AdAdapter:     ad.InitADAdapter(application.AdApplication, logger),
 
-		WalletAdapter:   wallet.InitWalletAdapter(application.WalletApplication, logger),
+		WalletAdapter:   wallet.InitWalletRouter(application.WalletApplication, logger),
 		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
 		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
 		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),

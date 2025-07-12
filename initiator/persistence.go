@@ -20,6 +20,8 @@ import (
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	perm_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
 	service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
+	wallet_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
+
 	portalCardRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
@@ -38,6 +40,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
 
 type Persitence struct {
@@ -61,6 +64,7 @@ type Persitence struct {
 	ServiceDetailsStore        service.ServiceRepository
 	ServicePersistance         service_repo.ServiceFeePersistence
 	PortalCardPersistance      portalCardRepo.PortaCardInterface
+	WalletPersistance          wallet.WalletPersistence
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -107,7 +111,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"regions",
 			"cps_actions",
 			"districts",
-			"users",
+			"user",
 			"cities",
 			logger,
 		),
@@ -116,5 +120,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, database_name, "portal_cards", logger),
+		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
 	}
 }
