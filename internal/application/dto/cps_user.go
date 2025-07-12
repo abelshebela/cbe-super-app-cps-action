@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ApproveUserActionRequest struct {
@@ -13,24 +14,25 @@ type ApproveUserActionRequest struct {
 }
 
 type CreateUserRequest struct {
-	UserName           string   `json:"user_name"`
-	FullName           string   `json:"full_name"`
-	PhoneNumber        string   `json:"phone_number"`
-	UserRole           string   `json:"user_role"`
-	Department         string   `json:"department"`
-	PermissionCategory []string `json:"permission_category"`
-	PermissionGroups   []string `json:"permission_groups"`
+	UserCode           string          `json:"user_code"`
+	UserName           string          `json:"user_name"`
+	FullName           string          `json:"full_name"`
+	PhoneNumber        string          `json:"phone_number"`
+	UserRole           string          `json:"user_role"`
+	Department         bson.ObjectID   `json:"department"`
+	PermissionCategory []bson.ObjectID `json:"permission_category"`
+	PermissionGroups   []bson.ObjectID `json:"permission_groups"`
 }
 
 type UpdateUserRequest struct {
-	UserCode           string    `json:"user_code"`
-	UserName           *string   `json:"user_name"`
-	FullName           *string   `json:"full_name"`
-	PhoneNumber        *string   `json:"phone_number"`
-	UserRole           *string   `json:"user_role"`
-	Department         *string   `json:"department"`
-	PermissionCategory *[]string `json:"permission_category"`
-	PermissionGroups   *[]string `json:"permission_groups"`
+	UserCode           string           `json:"user_code"`
+	UserName           *string          `json:"user_name"`
+	FullName           *string          `json:"full_name"`
+	PhoneNumber        *string          `json:"phone_number"`
+	UserRole           *string          `json:"user_role"`
+	Department         *bson.ObjectID   `json:"department"`
+	PermissionCategory *[]bson.ObjectID `json:"permission_category"`
+	PermissionGroups   *[]bson.ObjectID `json:"permission_groups"`
 }
 
 type ApproveCPSAction struct {
@@ -51,18 +53,28 @@ func (r ApproveUserActionRequest) Validate() error {
 }
 
 func (r *CreateUserRequest) Normalize() {
+	r.UserCode = strings.TrimSpace(r.UserCode)
 	r.UserName = strings.TrimSpace(r.UserName)
 	r.FullName = strings.TrimSpace(r.FullName)
 	r.PhoneNumber = strings.TrimSpace(r.PhoneNumber)
 	r.UserRole = strings.TrimSpace(r.UserRole)
-	r.Department = strings.TrimSpace(r.Department)
+}
 
-	for i, v := range r.PermissionCategory {
-		r.PermissionCategory[i] = strings.TrimSpace(v)
+func IsObjectIDRequired(value interface{}) error {
+	_, ok := value.(bson.ObjectID)
+	if !ok {
+		return validation.NewError("validation_is_objectid_required", "must be a valid ObjectID")
 	}
-	for i, v := range r.PermissionGroups {
-		r.PermissionGroups[i] = strings.TrimSpace(v)
+	return nil
+}
+
+// helper to check if slice of ObjectIDs is not empty
+func IsObjectIDSliceRequired(value interface{}) error {
+	_, ok := value.([]bson.ObjectID)
+	if !ok {
+		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
 	}
+	return nil
 }
 
 func (r CreateUserRequest) Validate() error {
@@ -71,9 +83,9 @@ func (r CreateUserRequest) Validate() error {
 		validation.Field(&r.FullName, validation.Required.Error("full_name is required")),
 		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required")),
 		validation.Field(&r.UserRole, validation.Required.Error("user_role is required")),
-		validation.Field(&r.Department, validation.Required.Error("department is required")),
-		validation.Field(&r.PermissionCategory, validation.Required.Error("permission_category is required")),
-		validation.Field(&r.PermissionGroups, validation.Required.Error("permission_groups is required")),
+		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
+		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
 	)
 }
 

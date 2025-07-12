@@ -33,6 +33,7 @@ func NewCPSUserService(repo repository.CPSUserRepo) CPSUserService {
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
 	userPayload := ctx_util.ExtractUserContext(r)
 	actionCode := utils.RandomGenerator(24)
+	userData.UserCode = "CPS_USER_" + utils.RandomGenerator(15)
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
@@ -76,7 +77,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 
 func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error) {
 	userPayload := ctx_util.ExtractUserContext(r)
-	checker := model.CPSAction{
+	cpsAction := model.CPSAction{
 		CheckerID:          userPayload.UserID,
 		CheckerName:        userPayload.FullName,
 		CheckerPhoneNumber: userPayload.PhoneNumber,
@@ -84,12 +85,13 @@ func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request,
 	}
 
 	if approved.Approved {
-		checker.ActionStatus = string(model.ActionApproved)
+		cpsAction.ActionStatus = string(model.ActionApproved)
 	} else if !approved.Approved {
-		checker.ActionStatus = string(model.ActionRejected)
+		cpsAction.ActionStatus = string(model.ActionRejected)
+		cpsAction.RejectionReason = *approved.Reason
 	}
 
-	return s.repo.ApproveUserAction(ctx, actionID, checker)
+	return s.repo.ApproveUserAction(ctx, actionID, cpsAction)
 }
 
 func (s *cpsUserService) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {

@@ -13,7 +13,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -891,21 +890,33 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	return &data, nil
 }
 
-func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string, checker model.CPSAction) (*model.CPSAction, error) {
+func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	// Find the CPS action
 	filter := bson.M{"action_code": actionCode}
 	projection := bson.M{}
 
 	cps_action, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err != nil {
-		return nil, err
+	if err != nil && err == mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("CPS action not found")
+	} else if err != nil {
+		return nil, fmt.Errorf("database error while finding CPS action")
+	}
+
+	if cps_action.ActionStatus == string(model.ActionApproved) {
+		return nil, fmt.Errorf("action has already been approved")
+	} else if cps_action.ActionStatus == string(model.ActionRejected) {
+		return nil, fmt.Errorf("action has already been rejected")
 	}
 
 	// Update it
-	cps_action.CheckerID = checker.CheckerID
-	cps_action.CheckerName = checker.CheckerName
-	cps_action.CheckerPhoneNumber = checker.CheckerPhoneNumber
-	cps_action.Department = checker.Department
+	cps_action.CheckerID = cpsAction.CheckerID
+	cps_action.CheckerName = cpsAction.CheckerName
+	cps_action.CheckerPhoneNumber = cpsAction.CheckerPhoneNumber
+	cps_action.Department = cpsAction.Department
+	cps_action.ActionStatus = cpsAction.ActionStatus
+	cps_action.RejectionReason = cpsAction.RejectionReason
+	cps_action.LastModifiedAt = time.Now()
+	cps_action.CheckerActionTime = time.Now()
 
 	// Conver the struct to bson.M
 	updateBytes, err := bson.Marshal(cps_action)
@@ -925,8 +936,6 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	}
 
 	// Update the users data
-	// var data bson.M
-
 	data, err := json.Marshal(updatedCPSAction.CurrentAction)
 	if err != nil {
 		return nil, err
@@ -937,32 +946,80 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		return nil, err
 	}
 
-	userdata := contexts.ExtractUserContext()(ctx)
-	userdata.
+	userCode, _ := dataMap["usercode"].(string)
+	userName, _ := dataMap["username"].(string)
+	fullName, _ := dataMap["fullname"].(string)
+	phoneNumber, _ := dataMap["phonenumber"].(string)
+	role, _ := dataMap["userrole"].(string)
+	department, _ := bson.ObjectIDFromHex(dataMap["department"].(string))
 
-	userCode := dataMap["user_code"].(string)
+	// Convert string slices to []bson.ObjectID
+	var permissionCategory []bson.ObjectID
+	if raw, ok := dataMap["permissioncategory"]; ok {
+		if arr, ok := raw.([]interface{}); ok {
+			for _, v := range arr {
+				str, ok := v.(string)
+				if !ok {
+					return nil, fmt.Errorf("permissioncategory element is not a string")
+				}
+				id, err := bson.ObjectIDFromHex(str)
+				if err != nil {
+					return nil, err
+				}
+				permissionCategory = append(permissionCategory, id)
+			}
+		}
+	}
 
-	userName := data["username"].(string)
-	fullName := data["full_name"].(string)
-	phoneNumber := data["phone_number"].(string)
-	role := data["role"].(string)
-	department := data["department"].(string)
-	permissionCategory := data["permission_category"].(string)
-	permissionGroup := data["permission_group"].(string)
+	// var permissionGroups []bson.ObjectId
+	var permissionGroups []bson.ObjectID
+	if raw, ok := dataMap["permissiongroups"]; ok {
+		if arr, ok := raw.([]interface{}); ok {
+			for _, v := range arr {
+				str, ok := v.(string)
+				if !ok {
+					return nil, fmt.Errorf("permissiongroups element is not a string")
+				}
+				id, err := bson.ObjectIDFromHex(str)
+				if err != nil {
+					return nil, err
+				}
+				permissionGroups = append(permissionGroups, id)
+			}
+		}
+	}
 
-	userUpdate := bson.M{
-		"username":            userName,
-		"full_name":           fullName,
-		"phone_number":        phoneNumber,
-		"role":                role,
-		"department":          department,
-		"permission_category": permissionCategory,
-		"permission_group":    permissionGroup,
+	userData := model.CPSUser{
+		UserCode:           userCode,
+		UserName:           userName,
+		FullName:           fullName,
+		PhoneNumber:        phoneNumber,
+		Role:               role,
+		Department:         department,
+		PermissionCategory: permissionCategory,
+		PermissionGroup:    permissionGroups,
 	}
 
 	filterUser := bson.M{"user_code": userCode}
-	if _, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, userUpdate); err != nil {
-		return nil, fmt.Errorf("failed to update CPSUser: %w", err)
+
+	if updatedCPSAction.ActionType == string(model.ActionCreate) {
+		if _, err := o.MongoDalCPSUser.InsertOne(ctx, userData); err != nil {
+			return nil, fmt.Errorf("failed to create CPSUser")
+		}
+	} else if updatedCPSAction.ActionType == string(model.ActionUpdate) {
+		update := bson.M{
+			"username":            userData.UserName,
+			"full_name":           userData.FullName,
+			"phone_number":        userData.PhoneNumber,
+			"role":                userData.Role,
+			"department":          userData.Department,
+			"permission_category": userData.PermissionCategory,
+			"permission_group":    userData.PermissionCategory,
+			"last_modified":       time.Now(),
+		}
+		if _, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, update); err != nil {
+			return nil, fmt.Errorf("failed to update CPSUser")
+		}
 	}
 
 	return &updatedCPSAction, nil
