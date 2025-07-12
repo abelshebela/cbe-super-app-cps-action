@@ -8,10 +8,12 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service/dto"
 	serviceApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	"github.com/go-chi/chi/v5"
 
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
@@ -30,15 +32,59 @@ func NewServiceHandler(domain serviceApp.ServiceApplication, logger utils.Logger
 	}
 }
 
-func (s *serviceHandler) AuthorizeServiceFee(w http.ResponseWriter, r *http.Request) {
-	// TODO implement the logic for authorizing service fees
-	common_util.SendErrorResponse(w, "error", http.StatusNotImplemented, nil)
+func (s *serviceHandler) GetAllServiceFee(w http.ResponseWriter, r *http.Request) {
+
+	services, err := s.appService.GetAllService(r.Context())
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	common_util.BaseResponseMaker(map[string]interface{}{"services": services}, w, "Successfuly service fetched", 200)
+}
+
+func (s *serviceHandler) GetServiceFeeById(w http.ResponseWriter, r *http.Request) {
 
 }
-func (s *serviceHandler) RejectServiceFee(w http.ResponseWriter, r *http.Request) {
-	// TODO implement the logic for rejecting service fees
-	common_util.SendErrorResponse(w, "responnd", http.StatusNotImplemented, nil)
+func (s *serviceHandler) AuthorizeServiceFee(w http.ResponseWriter, r *http.Request) {
+	action_code := chi.URLParam(r, "action_code")
+	if action_code == "" {
+		s.logger.Errorf("action code is required")
+		common_util.SendErrorResponse(w, "Required input missing", 403, nil)
+		return
+	}
 
+	err := s.appService.AuthorizeAction(r.Context(), action_code)
+	if err != nil {
+		s.logger.Errorf("Failed to Authorize Action Some thing goes wrong err %v", err.Error())
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(nil, w, "Successfuly Action Approved", 200)
+}
+func (s *serviceHandler) RejectServiceFee(w http.ResponseWriter, r *http.Request) {
+	var req dto.RejectActionRequest
+	action_code := chi.URLParam(r, "action_code")
+	if action_code == "" {
+		s.logger.Errorf("Action code is required")
+		common_util.SendErrorResponse(w, "action_code", 519, nil)
+		return
+	}
+
+	if req.Validate() != nil {
+		s.logger.Errorf("Input Validatin Failed to For rejection")
+		common_util.SendErrorResponse(w, req.Validate().Error(), 500, nil)
+		return
+	}
+
+	err := s.appService.RejectAction(r.Context(), action_code, req.RejectReason)
+
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(nil, w, "Successfuly Action Rejected", 200)
 }
 
 func (s *serviceHandler) buildServiceFeeActionData(req dto.UpdateServiceFeeRequest, serviceID, serviceName string) map[string]any {
@@ -103,15 +149,50 @@ func (s *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 	actionData := s.buildServiceFeeActionData(req, queryID, service.ServiceName)
 	initAction := s.appService.InitCPSAction(user, actionData, "CREATE", "UPDATE SERVICE FEE", service)
 
-	err = s.appService.CreateAction(r.Context(), initAction)
+	cpsAction, err := s.appService.CreateAction(r.Context(), initAction)
 	if err != nil {
 		common_util.SendErrorResponse(w, "failde", http.StatusConflict, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Request Sent Successfuly")
+	data, err := common_util.StructToMap(cpsAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(data, w, "Update Request Sent Successfuly", 200)
 }
 
 func (s *serviceHandler) CreateServiceFee(w http.ResponseWriter, r *http.Request) {
+	var req dto.CreateServiceRequest
 
+	userContext := contexts.ExtractUserContext(r)
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	if req.Validate() != nil {
+		common_util.SendErrorResponse(w, req.Validate(), 404, nil)
+		return
+	}
+
+	cpsAction := action.CPSAction{
+		CurrentAction:    req,
+		UniqueId:         "SRV" + common_util.GenerateRandom(5),
+		MakerID:          userContext.UserID,
+		MakerName:        userContext.FullName,
+		MakerPhoneNumber: userContext.PhoneNumber,
+		Department:       userContext.Department,
+	}
+	serviceFee, err := s.appService.CreateAction(r.Context(), cpsAction)
+
+	data, err := common_util.StructToMap(serviceFee)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(data, w, "Successfuly Action Created", 200)
 }

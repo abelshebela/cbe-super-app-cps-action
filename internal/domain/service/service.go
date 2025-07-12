@@ -29,8 +29,8 @@ type ServiceInterface interface {
 	UpdateServiceCap(ctx context.Context, id string, cap Cap) (Service, error)
 	UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error
 	InitiateServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
-	ApproveServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
-	RejectServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error)
+	ApproveServiceFeeUpdate(ctx context.Context, action_code string) error
+	RejectServiceFeeUpdate(ctx context.Context, action_code string, rejection_reason string) error
 }
 
 type ServiceStore struct {
@@ -95,12 +95,12 @@ func (s *ServiceStore) InitiateServiceFeeUpdate(ctx context.Context, cpsAction C
 	return s.handleServiceFeeUpdate(ctx, cpsAction, s.repository.InitiateServiceFeeUpdate)
 }
 
-func (s *ServiceStore) ApproveServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
-	return s.handleServiceFeeUpdate(ctx, cpsAction, s.repository.ApproveServiceFeeUpdate)
+func (s *ServiceStore) ApproveServiceFeeUpdate(ctx context.Context, action_code string) error {
+	return s.repository.ApproveServiceFeeUpdate(ctx, action_code)
 }
 
-func (s *ServiceStore) RejectServiceFeeUpdate(ctx context.Context, cpsAction CPSAction) (UpdateServiceDetailsResponse, error) {
-	return s.handleServiceFeeUpdate(ctx, cpsAction, s.repository.RejectServiceFeeUpdate)
+func (s *ServiceStore) RejectServiceFeeUpdate(ctx context.Context, action_code string, rejection_reason string) error {
+	return s.repository.RejectServiceFeeUpdate(ctx, action_code, rejection_reason)
 }
 
 func (s *ServiceStore) GetAllServiceDetails(ctx context.Context) ([]*Service, error) {

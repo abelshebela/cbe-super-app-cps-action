@@ -147,7 +147,7 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	walletsDoc, err := w.walletDal.FindAllWithPagination(ctx, filter, ifr, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find wallets", err, error_codes.WalletNotFound)
+			return nil, w.handleError("find wallets", err, "WALLET_NOT_FOUND")
 		}
 		return nil, w.handleError("find wallets", err, error_codes.UnhandledServerError)
 	}
@@ -194,7 +194,7 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find cps action", err, error_codes.WalletNotFound)
+			return nil, w.handleError("find cps action", err, "WALLET_NOT_FOUND")
 		}
 		return nil, w.handleError("update cps action", err, error_codes.UnhandledServerError)
 	}
@@ -295,7 +295,7 @@ func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.
 	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find cps action", err, error_codes.WalletNotFound)
+			return nil, w.handleError("find cps action", err, "WALLET_NOT_FOUND")
 		}
 		return nil, w.handleError("update cps action", err, error_codes.UnhandledServerError)
 	}
