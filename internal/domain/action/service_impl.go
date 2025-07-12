@@ -10,7 +10,6 @@ type ServiceImpl interface {
 	GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error)
 	UpdateServiceFlagRequest(ctx context.Context, id string, action bool, maker_id string) (string, error)
 	UpdateServiceFlag(ctx context.Context, actionID string, action bool, checker_id string) error
-
 	GetAccountByAccount(ctx context.Context, Account string) ([]LinkedAccount, error)
 	RemoveCifRequest(ctx context.Context, id []string, action bool, maker_id string) (string, error)
 	RemoveCif(ctx context.Context, actionID string, action bool, checker_id string) error
