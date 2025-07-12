@@ -16,6 +16,7 @@ type ErrorDefinitions struct {
 	OTP         ErrorGroup
 	File        ErrorGroup
 	Branch      ErrorGroup
+	Region      ErrorGroup
 	Department  ErrorGroup
 	Bank        ErrorGroup
 	Action      ErrorGroup
