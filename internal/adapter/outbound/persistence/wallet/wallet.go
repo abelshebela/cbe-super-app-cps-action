@@ -182,13 +182,11 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"action_status":       model.ActionApproved,
-		"checker_action_time": time.Now(),
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
@@ -282,14 +280,12 @@ func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"action_status":       model.ActionRejected,
-		"rejected_reason":     req.RejectedReason,
-		"checker_action_time": time.Now(),
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionRejected,
+		"rejected_reason":      req.RejectedReason,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
