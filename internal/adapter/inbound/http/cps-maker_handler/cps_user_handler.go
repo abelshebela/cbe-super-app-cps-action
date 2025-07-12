@@ -2,19 +2,13 @@ package cpsmakerhandler
 
 import (
 	"encoding/json"
-	"time"
 
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
-
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	cpsapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
-	cpsUserDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	util_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
-	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -65,44 +59,19 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
 }
 
 func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Request) {
-	actionID := strings.TrimSpace(chi.URLParam(r, "action_id"))
-	if actionID == "" {
-		h.logger.Errorf("action_id is required")
-		local_util.SendErrorResponse(w, "action_id is required", http.StatusBadRequest, nil)
-		return
-	}
-
-	var req cpsUserDTO.ApproveUserActionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to decode request body: %v", err)
-		local_util.SendErrorResponse(w, local_util.InvalidJSONPayload, http.StatusBadRequest, nil)
-		return
-	}
-
-	if err := req.Validate(); err != nil {
-		h.logger.Errorf("validattion failed: %v", err)
-		local_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		return
-	}
-
-	userPayload := ctx_util.ExtractUserContext(r)
-	cpsAction := model.CPSAction{
-		ActionCode:         actionID,
-		CheckerID:          userPayload.UserID,
-		CheckerName:        userPayload.FullName,
-		CheckerPhoneNumber: userPayload.PhoneNumber,
-		Department:         userPayload.Department,
-		RejectionReason:    *req.Reason,
-		CheckerActionTime:  time.Now(),
-	}
-
-	if err := h.Service.ApproveUserAction(r.Context(), cpsAction); err != nil {
-		h.logger.Errorf("ApproveUserAction failed: %v", err)
+	dataCPSAction, err := h.Service.ApproveUserAction(r.Context(), r)
+	if err != nil {
+		h.logger.Errorf("UpdateUserRequest failed: %v", err)
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	local_util.BaseResponseMaker(nil, w, "Action approved successfully", 200)
+	data, err := local_util.StructToMap(dataCPSAction)
+	if err != nil {
+		h.logger.Errorf("failed to convert data to map: %v", err)
+		local_util.SendErrorResponse(w, "Failed to convert data to map", http.StatusInternalServerError, nil)
+	}
+	local_util.BaseResponseMaker(data, w, "Action approved successfully", 200)
 }
 
 func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *http.Request) {

@@ -17,7 +17,7 @@ import (
 type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error)
-	ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error
+	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)
 }
@@ -64,8 +64,8 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		MakerPhoneNumber: userPayload.PhoneNumber,
 		Department:       userPayload.Department,
 		ActionStatus:     string(model.ActionPending),
-		ActionType:       string(model.ActionCreate),
-		RequestAction:    string(model.RequestUser),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(model.RequestUpdateUser),
 		CurrentAction:    userData,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
@@ -74,8 +74,22 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 	return s.repo.UpdateUserRequest(ctx, cpsAction, userCode)
 }
 
-func (s *cpsUserService) ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error {
-	return s.repo.ApproveUserAction(ctx, cpsAction)
+func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error) {
+	userPayload := ctx_util.ExtractUserContext(r)
+	checker := model.CPSAction{
+		CheckerID:          userPayload.UserID,
+		CheckerName:        userPayload.FullName,
+		CheckerPhoneNumber: userPayload.PhoneNumber,
+		Department:         userPayload.Department,
+	}
+
+	if approved.Approved {
+		checker.ActionStatus = string(model.ActionApproved)
+	} else if !approved.Approved {
+		checker.ActionStatus = string(model.ActionRejected)
+	}
+
+	return s.repo.ApproveUserAction(ctx, actionID, checker)
 }
 
 func (s *cpsUserService) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {

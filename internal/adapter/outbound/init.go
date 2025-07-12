@@ -10,7 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -22,9 +25,7 @@ import (
 	bpscalls "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
@@ -890,25 +891,81 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	return &data, nil
 }
 
-func (o *outboundStore) ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error {
-	// if actionID == "" {
-	// 	return errors.New("actionID is required")
-	// }
-	// filter := bson.M{"action_code": actionID}
-	// update := bson.M{
-	// 	"last_modified_at": time.Now(),
-	// }
-	// if approve {
-	// 	update["action_status"] = "APPROVED"
-	// } else {
-	// 	update["action_status"] = "REJECTED"
-	// }
-	// if reason != nil {
-	// 	update["rejection_reason"] = *reason
-	// }
-	// _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	// return err
-	return nil
+func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string, checker model.CPSAction) (*model.CPSAction, error) {
+	// Find the CPS action
+	filter := bson.M{"action_code": actionCode}
+	projection := bson.M{}
+
+	cps_action, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update it
+	cps_action.CheckerID = checker.CheckerID
+	cps_action.CheckerName = checker.CheckerName
+	cps_action.CheckerPhoneNumber = checker.CheckerPhoneNumber
+	cps_action.Department = checker.Department
+
+	// Conver the struct to bson.M
+	updateBytes, err := bson.Marshal(cps_action)
+	if err != nil {
+		return nil, err
+	}
+
+	var updateData bson.M
+	if err := bson.Unmarshal(updateBytes, &updateData); err != nil {
+		return nil, err
+	}
+
+	// Apply the update
+	updatedCPSAction, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, updateData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the users data
+	// var data bson.M
+
+	data, err := json.Marshal(updatedCPSAction.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(data, &dataMap); err != nil {
+		return nil, err
+	}
+
+	userdata := contexts.ExtractUserContext()(ctx)
+	userdata.
+
+	userCode := dataMap["user_code"].(string)
+
+	userName := data["username"].(string)
+	fullName := data["full_name"].(string)
+	phoneNumber := data["phone_number"].(string)
+	role := data["role"].(string)
+	department := data["department"].(string)
+	permissionCategory := data["permission_category"].(string)
+	permissionGroup := data["permission_group"].(string)
+
+	userUpdate := bson.M{
+		"username":            userName,
+		"full_name":           fullName,
+		"phone_number":        phoneNumber,
+		"role":                role,
+		"department":          department,
+		"permission_category": permissionCategory,
+		"permission_group":    permissionGroup,
+	}
+
+	filterUser := bson.M{"user_code": userCode}
+	if _, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, userUpdate); err != nil {
+		return nil, fmt.Errorf("failed to update CPSUser: %w", err)
+	}
+
+	return &updatedCPSAction, nil
 }
 
 func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode string) ([]domain.CPSAction, error) {

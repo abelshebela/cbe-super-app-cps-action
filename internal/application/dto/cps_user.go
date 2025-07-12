@@ -2,6 +2,7 @@ package dto
 
 import (
 	"fmt"
+	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -22,6 +23,7 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
+	UserCode           string    `json:"user_code"`
 	UserName           *string   `json:"user_name"`
 	FullName           *string   `json:"full_name"`
 	PhoneNumber        *string   `json:"phone_number"`
@@ -29,6 +31,11 @@ type UpdateUserRequest struct {
 	Department         *string   `json:"department"`
 	PermissionCategory *[]string `json:"permission_category"`
 	PermissionGroups   *[]string `json:"permission_groups"`
+}
+
+type ApproveCPSAction struct {
+	Approved bool    `json:"approved"`
+	Reason   *string `json:"reason"`
 }
 
 func (r ApproveUserActionRequest) Validate() error {
@@ -41,6 +48,21 @@ func (r ApproveUserActionRequest) Validate() error {
 			validation.When(!r.Approve, validation.Required.Error("reason must not be empty")),
 		),
 	)
+}
+
+func (r *CreateUserRequest) Normalize() {
+	r.UserName = strings.TrimSpace(r.UserName)
+	r.FullName = strings.TrimSpace(r.FullName)
+	r.PhoneNumber = strings.TrimSpace(r.PhoneNumber)
+	r.UserRole = strings.TrimSpace(r.UserRole)
+	r.Department = strings.TrimSpace(r.Department)
+
+	for i, v := range r.PermissionCategory {
+		r.PermissionCategory[i] = strings.TrimSpace(v)
+	}
+	for i, v := range r.PermissionGroups {
+		r.PermissionGroups[i] = strings.TrimSpace(v)
+	}
 }
 
 func (r CreateUserRequest) Validate() error {
@@ -63,6 +85,7 @@ func (r UpdateUserRequest) Validate() error {
 	}
 
 	return validation.ValidateStruct(&r,
+		validation.Field(&r.UserCode, validation.Required.Error("user_code is required")),
 		validation.Field(&r.UserName,
 			validation.When(r.UserName != nil, validation.Length(1, 100).Error("user_name cannot be empty"))),
 		validation.Field(&r.FullName,
@@ -80,4 +103,18 @@ func (r UpdateUserRequest) Validate() error {
 		validation.Field(&r.PermissionCategory),
 		validation.Field(&r.PermissionGroups),
 	)
+}
+
+func (r ApproveCPSAction) Validate() error {
+	if r.Approved && r.Reason == nil {
+		empty := ""
+		r.Reason = &empty
+	}
+
+	if !r.Approved {
+		if r.Reason == nil || strings.TrimSpace(*r.Reason) == "" {
+			return fmt.Errorf("reason is required")
+		}
+	}
+	return nil
 }
