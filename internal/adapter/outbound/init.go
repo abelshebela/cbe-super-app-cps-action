@@ -552,6 +552,9 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 	filter := map[string]interface{}{"action_code": Action_Id}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.CPSAction{}, fmt.Errorf(error_codes.ActionNotFound)
+		}
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 
@@ -753,6 +756,9 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 		filter := map[string]interface{}{"_id": objID}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
 		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, fmt.Errorf(error_codes.AccountNotFound)
+			}
 			return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 		}
 		result = append(result, domain.LinkedAccount{

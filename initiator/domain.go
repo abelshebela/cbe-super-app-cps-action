@@ -38,7 +38,6 @@ type Domain struct {
 	UnlinkDomain       *unlink_service.Service
 	BudgetDomain       *budget_service.BudgetService
 	AccountDomain      account_validation.Service
-	BulkServicesDomain action.ServiceImpl
 	CPSUserDomain      services.CPSUserService
 	PasswordRuleDomain password_service.PasswordRuleService
 	PortalCardDomain   portalcard.PortaCardInterface
@@ -50,7 +49,7 @@ type Domain struct {
 	PermissionDomain      permission.Service
 	AmountBasedAuthDomain amount_based_auth_domain.Repository
 	ServiceDomain         service.ServiceInterface
-	ActionDomain          action.ServiceImpl
+	ActionDomain          action.ServiceInterface
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
@@ -62,7 +61,6 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		UnlinkDomain:          unlink_service.NewUnlinkService(persitence.UnlinkPersistence),
 		BudgetDomain:          budget_service.InitBudgetDomain(persitence.BudgetPersistence, logger),
 		AccountDomain:         account_validation.NewAccountValidationService(persitence.AccountPersistence, persitence.BulkServicesPersistence, logger),
-		BulkServicesDomain:    action.NewService(persitence.BulkServicesPersistence, logger),
 		CPSUserDomain:         services.NewCPSUserService(persitence.CPSUserPersistence),
 		PasswordRuleDomain:    password_service.NewPasswordRuleService(persitence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
 		BankDomain:            bank_service.InitBankDomain(persitence.BankPersistance, minioClient, "banks", logger),

@@ -24,11 +24,11 @@ type ServiceApplication interface {
 
 type serviceApp struct {
 	serviceDomain serviceDomain.ServiceInterface
-	actionDomain  action.ServiceImpl
+	actionDomain  action.ServiceInterface
 	logger        utils.Logger
 }
 
-func NewServiceApp(service serviceDomain.ServiceInterface, actions action.ServiceImpl, logger utils.Logger) ServiceApplication {
+func NewServiceApp(service serviceDomain.ServiceInterface, actions action.ServiceInterface, logger utils.Logger) ServiceApplication {
 	return &serviceApp{
 		serviceDomain: service,
 		actionDomain:  actions,
