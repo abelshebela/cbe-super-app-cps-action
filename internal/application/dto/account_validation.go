@@ -89,7 +89,7 @@ func ToValidationRuleDTO(rule account_validation.ValidationRule) ValidationRuleD
 	}
 }
 
-// Conversion function from DTO to domain
+// ToDomainValidationRule Conversion function from DTO to domain
 func ToDomainValidationRule(dto ValidationRuleDTO) account_validation.ValidationRule {
 	return account_validation.ValidationRule{
 		ID:            dto.ID,

@@ -200,7 +200,7 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 	}
 
 	var actionData entity.Wallet
-	data, err := bson.Marshal(cpsAction.PreviosAction)
+	data, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		return nil, w.handleError("marshal action data", err, error_codes.InvalidActionData)
 	}

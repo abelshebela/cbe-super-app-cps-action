@@ -1,168 +1,224 @@
+// Package action provides business logic and service layer implementations for CPS actions.
 package action
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
+
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error) {
-	return s.Repository.GetAllHqServicesPaginated(ctx, offset, limit)
+const (
+	ActionIDPrefix = "CPS_"
+	ActionIDLength = 10
+)
+
+type ServiceInterface interface {
+	GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error)
+	UpdateServiceFlagRequest(ctx context.Context, id string, action bool, maker User) (string, error)
+	UpdateServiceFlag(ctx context.Context, actionID string, action bool, checker User) error
+	GetAccountByAccount(ctx context.Context, Account string) ([]LinkedAccount, error)
+	RemoveCifRequest(ctx context.Context, id []string, action bool, maker User) (string, error)
+	RemoveCif(ctx context.Context, actionID string, action bool, checker User) error
+	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
 }
 
-func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, makerId string) (string, error) {
+type ServiceStore struct {
+	Repository ActionRepository
+	Logger     utils.Logger
+}
 
-	_, err := s.Repository.GetHqServiceById(ctx, id)
-	if err != nil {
-		return "", err
+func NewService(repo ActionRepository, logger utils.Logger) ServiceInterface {
+	return &ServiceStore{
+		Repository: repo,
+		Logger:     logger,
 	}
-	// service.Enabled = action
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	a := CPSAction{
-		ActionCode:         actionID,
-		MakerID:            makerId,
-		MakerName:          "",
-		MakerPhoneNumber:   "",
-		CheckerID:          "",
-		CheckerName:        "",
-		CheckerPhoneNumber: "",
-		ActionType:         ActionCreate,
-		RequestAction:      RequestUpdateServiceRule,
-		ActionStatus:       ActionPending,
-		CurrentAction: CurrentAction{
-			Id:     []string{id},
-			Action: action,
-		},
+}
+
+func (s *ServiceStore) createCpsAction(maker User, actionID string, currentAction any) CPSAction {
+	return CPSAction{
+		ActionCode:        actionID,
+		MakerID:           maker.UserID,
+		MakerName:         maker.FullName,
+		MakerPhoneNumber:  maker.PhoneNumber,
+		ActionType:        ActionCreate,
+		RequestAction:     RequestUpdateServiceRule,
+		ActionStatus:      ActionPending,
+		CurrentAction:     currentAction,
 		CreatedAt:         time.Now(),
 		LastModifiedAt:    time.Now(),
 		MakerActionTime:   time.Now(),
 		CheckerActionTime: time.Time{},
 	}
-	_, err = s.Repository.CreateCpsAction(ctx, a)
+
+}
+
+func (s *ServiceStore) approveOrRejectAction(cpsAction *CPSAction, checker User, approved bool) {
+	if approved {
+		cpsAction.ActionStatus = ActionApproved
+	} else {
+		cpsAction.ActionStatus = ActionRejected
+	}
+	cpsAction.CheckerID = checker.UserID
+	cpsAction.CheckerName = checker.FullName
+	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
+	cpsAction.CheckerActionTime = time.Now()
+	cpsAction.LastModifiedAt = time.Now()
+}
+
+func extractCurrentAction(input any) (CurrentAction, error) {
+	var current CurrentAction
+
+	jsonBytes, err := json.Marshal(input)
+	if err != nil {
+		return current, fmt.Errorf("failed to marshal current action: %w", err)
+	}
+
+	err = json.Unmarshal(jsonBytes, &current)
+	if err != nil {
+		return current, fmt.Errorf("failed to unmarshal into CurrentAction: %w", err)
+	}
+
+	return current, nil
+}
+
+func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction) (string, error) {
+	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
+	cpsAction := s.createCpsAction(maker, actionID, current)
+	_, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		return "", err
 	}
 	return actionID, nil
 }
 
-func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, action_id string, action bool, checker_id string) error {
-	cps_action, err := s.Repository.FetchCpsActionById(ctx, action_id)
+func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error) {
+	return s.Repository.GetAllHqServicesPaginated(ctx, offset, limit)
+}
+
+func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, action bool, maker User) (string, error) {
+	_, err := s.Repository.GetHqServiceById(ctx, id)
 	if err != nil {
+		s.Logger.Errorf("UpdateServiceFlagRequest: failed to get HQ service by ID", "id", id, "error", err)
+		return "", err
+	}
+	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
+		Id:     []string{id},
+		Action: action,
+	})
+}
+
+func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, actionID string, action bool, checker User) error {
+	cpsAction, err := s.Repository.FetchCpsActionById(ctx, actionID)
+	if err != nil {
+		s.Logger.Errorf("UpdateServiceFlag: failed to fetch CPS action by ID", "actionID", actionID, "error", err)
 		return err
 	}
-	if action {
-		cps_action.ActionStatus = ActionApproved
-	} else {
-		cps_action.ActionStatus = ActionRejected
-	}
-	cps_action.CheckerID = checker_id
-	cps_action.CheckerName = ""
-	cps_action.CheckerPhoneNumber = ""
-	cps_action.CheckerActionTime = time.Now()
-	cps_action.LastModifiedAt = time.Now()
-	err = s.Repository.UpdateCpsAction(ctx, cps_action)
+
+	s.approveOrRejectAction(&cpsAction, checker, action)
+
+	err = s.Repository.UpdateCpsAction(ctx, cpsAction)
 	if err != nil {
+		s.Logger.Errorf("UpdateServiceFlag: failed to update CPS action", "actionID", actionID, "error", err)
 		return err
 	}
-	currentAction, ok := cps_action.CurrentAction.(CurrentAction)
+
+	currentAction, ok := cpsAction.CurrentAction.(CurrentAction)
 	if !ok {
-		return fmt.Errorf("failed to cast CurrentAction to its expected type")
+		s.Logger.Errorf("UpdateServiceFlag: invalid type for CurrentAction", "actionID", actionID)
+		return fmt.Errorf(common_util.UnhandledServerError)
 	}
+
 	service, err := s.Repository.GetHqServiceById(ctx, currentAction.Id[0])
 	if err != nil {
+		s.Logger.Errorf("UpdateServiceFlag: failed to fetch service by ID", "serviceID", currentAction.Id[0], "error", err)
 		return err
 	}
+
 	service.Enabled = currentAction.Action
-	return s.Repository.UpdateHqService(ctx, service)
+
+	if err := s.Repository.UpdateHqService(ctx, service); err != nil {
+		s.Logger.Errorf("UpdateServiceFlag: failed to update service", "serviceID", service.ID, "error", err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *ServiceStore) GetAccountByAccount(ctx context.Context, account string) ([]LinkedAccount, error) {
 	data, err := s.Repository.FetchAccountsByAccountNumber(ctx, account)
 	if err != nil {
+		s.Logger.Errorf("GetAccountByAccount: failed to fetch accounts", "account", account, "error", err)
 		return nil, err
 	}
 	return data, nil
 }
 
-func (s *ServiceStore) RemoveCifRequest(ctx context.Context, id []string, action bool, maker_id string) (string, error) {
-	last_action, err := s.Repository.FetchLastCpsActionByMakerID(ctx, maker_id)
+func (s *ServiceStore) RemoveCifRequest(ctx context.Context, ids []string, action bool, maker User) (string, error) {
+	lastAction, err := s.Repository.FetchLastCpsActionByMakerID(ctx, maker.UserID)
 	if err != nil {
+		s.Logger.Errorf("RemoveCifRequest: failed to fetch last CPS action", "makerID", maker.UserID, "error", err)
 		return "", err
 	}
-	if last_action.ActionStatus == ActionPending {
-		return "", fmt.Errorf("You have a pending action, please wait for it to be processed")
+	if lastAction.ActionStatus == ActionPending {
+		s.Logger.Errorf("RemoveCifRequest: pending CPS action already exists", "makerID", maker.UserID)
+		return "", fmt.Errorf(common_util.PendingCPSActionExists)
 	}
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	a := CPSAction{
-		ActionCode:         actionId,
-		MakerID:            maker_id,
-		MakerName:          "",
-		MakerPhoneNumber:   "",
-		CheckerID:          "",
-		CheckerName:        "",
-		CheckerPhoneNumber: "",
-		ActionType:         ActionCreate,
-		RequestAction:      RequestUpdateServiceRule,
-		ActionStatus:       ActionPending,
-		CurrentAction: CurrentAction{
-			Id:     id,
-			Action: action,
-		},
-		CreatedAt:         time.Now(),
-		LastModifiedAt:    time.Now(),
-		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Time{},
-	}
-	result, err := s.Repository.CreateCpsAction(ctx, a)
-	if err != nil {
-		return "", err
-	}
-	return result.ID, nil
+	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
+		Id:     ids,
+		Action: action,
+	})
 }
 
-func (s *ServiceStore) RemoveCif(ctx context.Context, action_id string, action bool, checker_id string) error {
-	cps_action, err := s.Repository.FetchCpsActionById(ctx, action_id)
+func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bool, checker User) error {
+	cpsAction, err := s.Repository.FetchCpsActionById(ctx, actionID)
 	if err != nil {
+		s.Logger.Errorf("RemoveCif: failed to fetch CPS action", "actionID", actionID, "error", err)
 		return err
 	}
-	if action {
-		cps_action.ActionStatus = ActionApproved
-	} else {
-		cps_action.ActionStatus = ActionRejected
-	}
-	cps_action.CheckerID = checker_id
-	cps_action.CheckerName = ""
-	cps_action.CheckerPhoneNumber = ""
-	cps_action.CheckerActionTime = time.Now()
-	cps_action.LastModifiedAt = time.Now()
-	err = s.Repository.UpdateCpsAction(ctx, cps_action)
-	if err != nil {
+
+	s.approveOrRejectAction(&cpsAction, checker, action)
+
+	if err := s.Repository.UpdateCpsAction(ctx, cpsAction); err != nil {
+		s.Logger.Errorf("RemoveCif: failed to update CPS action", "actionID", actionID, "error", err)
 		return err
 	}
-	currentAction, ok := cps_action.CurrentAction.(CurrentAction)
-	if !ok {
-		return fmt.Errorf("failed to cast CurrentAction to its expected type")
-	}
-	linked_accounts, err := s.Repository.FetchLinkedAccountById(ctx, currentAction.Id)
+
+	currentAction, err := extractCurrentAction(cpsAction.CurrentAction)
 	if err != nil {
+		s.Logger.Errorf("RemoveCif: failed to extract current action", "actionID", actionID, "error", err)
 		return err
 	}
-	for _, account := range linked_accounts {
+
+	fmt.Println(currentAction.Id, "currentAction IDs")
+
+	linkedAccounts, err := s.Repository.FetchLinkedAccountById(ctx, currentAction.Id)
+	if err != nil {
+		s.Logger.Errorf("RemoveCif: failed to fetch linked accounts", "accountIDs", currentAction.Id, "error", err)
+		return err
+	}
+
+	for _, account := range linkedAccounts {
 		account.LinkedStatus = false
 		account.IsAccountActive = false
-		_, err = s.Repository.UpdateAccount(ctx, account)
-		if err != nil {
-			return fmt.Errorf("failed to update account %s: %w", account.AccountNumber, err)
+
+		if _, err := s.Repository.UpdateAccount(ctx, account); err != nil {
+			s.Logger.Errorf("RemoveCif: failed to update account", "accountID", account.ID, "error", err)
+			return fmt.Errorf(common_util.GeneralDBUpdateFailed)
 		}
 	}
+
 	return nil
 }
 
 func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (CPSAction, error) {
 	createdAction, err := s.Repository.CreateCpsAction(ctx, action)
 	if err != nil {
+		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)
 		return CPSAction{}, err
 	}
 	return createdAction, nil

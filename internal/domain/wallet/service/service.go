@@ -48,7 +48,6 @@ func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.
 func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
-	fmt.Println(err, "kbsdfkbsdf ksmcfvnsdbfbsdsdv vodsogkbs")
 	if err != nil {
 		return nil, err
 	}
