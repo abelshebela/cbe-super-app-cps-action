@@ -78,6 +78,7 @@ func (h *Handler) ApproveUserAction(ctx context.Context, cpsAction model.CPSActi
 func (h *Handler) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {
 	return h.service.GetPendingUserActions(ctx, actionCode)
 }
+
 func (h *Handler) FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error) {
 	return h.service.FetchUserByUserCode(ctx, userCode)
 }

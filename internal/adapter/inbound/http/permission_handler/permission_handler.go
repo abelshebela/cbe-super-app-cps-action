@@ -2,7 +2,7 @@ package permission_handler
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -46,34 +46,28 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
-	// makerIDVal := r.Context().Value(constant.ContextKey("user_code"))
-	// fullNameVal := r.Context().Value(constant.ContextKey("full_name"))
-	// phoneNumberVal := r.Context().Value(constant.ContextKey("phone_number"))
-	// departmentVal := r.Context().Value(constant.ContextKey("department"))
 
-	// fmt.Println("=========================================== ")
-	// fmt.Println(phoneNumberVal, fullNameVal)
-	// fmt.Println("=========================================== ")
+	maker_ID, ok1 := r.Context().Value(constant.ContextKey("user_code")).(string)
+	full_name, ok2 := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phone_number, ok3 := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, ok4 := r.Context().Value(constant.ContextKey("department")).(string)
 
-	// if makerIDVal == nil || fullNameVal == nil || phoneNumberVal == nil || departmentVal == nil {
-	// 	h.logger.Warnf("[CreatePermissionGroup] missing required user claims")
-	// 	util.SendErrorResponse(w, "missing required user claims", http.StatusUnauthorized, nil)
-	// 	return
-	// }
-
-	// maker_ID := makerIDVal.(string)
-	// full_name := fullNameVal.(string)
-	// phone_number := phoneNumberVal.(string)
-	// department := departmentVal.(string)
-
-	maker_ID := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	fmt.Println("=========================================== ")
-	fmt.Println(maker_ID, full_name, phone_number, department)
-	fmt.Println("=========================================== ")
+	if !ok1 || maker_ID == "" {
+		util.SendErrorResponse(w, "missing or invalid user_code in context", http.StatusBadRequest, nil)
+		return
+	}
+	if !ok2 || full_name == "" {
+		util.SendErrorResponse(w, "missing or invalid full_name in context", http.StatusBadRequest, nil)
+		return
+	}
+	if !ok3 || phone_number == "" {
+		util.SendErrorResponse(w, "missing or invalid phone_number in context", http.StatusBadRequest, nil)
+		return
+	}
+	if !ok4 || department == "" {
+		util.SendErrorResponse(w, "missing or invalid department in context", http.StatusBadRequest, nil)
+		return
+	}
 
 	cpsAction := model.CPSAction{
 

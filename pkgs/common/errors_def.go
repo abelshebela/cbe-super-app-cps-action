@@ -589,8 +589,16 @@ var DefineError = ErrorDefinitions{
 			Message: "Page not found",
 		},
 		"FAILED_TO_GET_AVATAR": {
-			Code:    "GEN_132",
+			Code:    "GEN_135",
 			Message: "failed to get avatar",
+		},
+		"PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION": {
+			Code:    "GEN_136",
+			Message: "Permission group already exists with name",
+		},
+		"PERMISSION_GROUP_ALREADY_EXIXTS": {
+			Code:    "GEN_137",
+			Message: "Permission group already exists with name",
 		},
 	},
 	Auth: ErrorGroup{

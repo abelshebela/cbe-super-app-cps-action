@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -34,7 +35,9 @@ var _ repository.PermissionCategoryRepository = (*PermissionPersistence)(nil)
 
 func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
 	permissionGroupsDal := dal.NewMongoDal[entities.PermissionGroup, entities.PermissionGroup](client, dbName, "permission_groups")
-	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_categories")
+
+	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_category")
+
 	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
@@ -74,30 +77,37 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 
 	filter := bson.M{"group_name": groupName, "is_deleted": false}
 	result, err := r.permissionGroupsDal.FindOne(ctx, filter, bson.M{})
-	if err != nil || result == nil {
+	if err != nil {
 		r.logger.Errorf("CheckPermissionGroupExists failed:", err)
+		return false
+	}
+	if result == nil {
+		r.logger.Infof("no permission Group found ")
 		return false
 	}
 	return true
 }
 
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
+	log.Println(" ++++++++++++++++++++++++++++this is the id i got id", ids)
 	ctx := context.Background()
 
 	filter := bson.M{}
 	categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
 		r.logger.Errorf("failed to fetch permission categories: ", err)
-		return nil, fmt.Errorf("failed to fetch permission categories")
+		return nil, err
 	}
+	fmt.Println("666666666666666666666666666666666666")
+	fmt.Printf("-----------------------list of permition catagories: %v", categories)
+	fmt.Println("666666666666666666666666666666666666")
 
 	var allowedPermissionCategories []bson.ObjectID
-
 	for _, permissionID := range ids {
 		objID, err := bson.ObjectIDFromHex(permissionID)
 		if err != nil {
-			r.logger.Errorf("invalid permission category ID format: ", err)
-			continue
+			fmt.Printf("666666666666666666666666666666666666======error when loop permtion ids from pailod %v", permissionID)
+			return nil, fmt.Errorf("invalid permission category ID format: %s", permissionID)
 		}
 
 		for _, cat := range categories {

@@ -25,7 +25,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/{action_code}/approve",
+				Path:    "/approve/{action_code}",
 				Handler: permissionHandler.ApprovePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

@@ -2,6 +2,7 @@ package permission
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -29,12 +30,12 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
 		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
-		return model.CPSAction{}, errors.New("you have pending request for this action")
+		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION")
 	}
 
 	if exists := s.permissionGroupRepo.CheckPermissionGroupExists(groupName); exists {
 		s.logger.Warnf("Permission group already exists with name: %s", groupName)
-		return model.CPSAction{}, errors.New("permission group already exists")
+		return model.CPSAction{}, fmt.Errorf("PERMISSION_GROUP_ALREADY_EXIXTS")
 	}
 
 	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(permissionCategoryLists)
@@ -42,6 +43,9 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 		s.logger.Errorf("Failed to validate permission categories: %v", err)
 		return model.CPSAction{}, err
 	}
+	// fmt.Println("+++++++++++++++++++++++++++++")
+	// fmt.Println("validate permission categories list ", validCategories)
+	// fmt.Println("+++++++++++++++++++++++++++++")
 
 	cpsAction.ActionCode = utils.RandomGenerator(20)
 	cpsAction.CurrentAction = map[string]interface{}{
