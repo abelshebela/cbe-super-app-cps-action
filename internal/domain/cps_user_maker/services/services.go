@@ -2,11 +2,11 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
@@ -18,8 +18,8 @@ type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
-	GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)
+	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
 }
 
 type cpsUserService struct {
@@ -95,10 +95,25 @@ func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request,
 	return s.repo.ApproveUserAction(ctx, actionID, cpsAction)
 }
 
-func (s *cpsUserService) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {
-	return s.repo.GetPendingUserActions(ctx, actionCode)
+func (s *cpsUserService) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
+	data, err := s.repo.GetPendingUserActions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) == 0 {
+		return nil, fmt.Errorf("no pending action found")
+	}
+
+	return data, nil
 }
 
-func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error) {
-	return s.repo.FetchUserByUserCode(ctx, userCode)
+func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
+	user, err := s.repo.FetchUserByUserCode(ctx, userCode)
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

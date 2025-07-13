@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -20,8 +19,8 @@ type ApplicationService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
-	GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error)
+	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
+	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
 }
 
 type Handler struct {
@@ -98,9 +97,10 @@ func (h *Handler) ApproveUserAction(ctx context.Context, r *http.Request) (*mode
 	return h.service.ApproveUserAction(ctx, r, req, actionID)
 }
 
-func (h *Handler) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {
-	return h.service.GetPendingUserActions(ctx, actionCode)
+func (h *Handler) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
+	return h.service.GetPendingUserActions(ctx)
 }
-func (h *Handler) FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error) {
+func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error) {
+	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	return h.service.FetchUserByUserCode(ctx, userCode)
 }

@@ -1035,61 +1035,61 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	return &updatedCPSAction, nil
 }
 
-func (o *outboundStore) GetPendingUserActions(ctx context.Context, actionCode string) ([]domain.CPSAction, error) {
-	department, _ := ctx.Value("department").(string)
+func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
 	filter := bson.M{
-		"action_status": "PENDING",
-		"department":    department,
+		"action_status":  model.ActionPending,
+		"request_action": bson.M{"$in": []string{string(model.RequestUser), string(model.RequestUpdateUser)}},
 	}
-	if actionCode != "" {
-		filter["action_code"] = actionCode
-	}
-	fmt.Printf("Fetching pending actions with filter: %+v\n", filter)
-	actionPtrs, err := o.MongoDalCPSAction.FindAll(ctx, filter, bson.M{})
+	projection := bson.M{}
+
+	data, err := o.MongoDalCPSAction.FindAll(ctx, filter, projection)
 	if err != nil {
 		return nil, err
 	}
-	var actions []domain.CPSAction
-	for _, ptr := range actionPtrs {
-		if ptr != nil {
-			actions = append(actions, modelToDomainCPSAction(*ptr))
+
+	// Convert []*model.CPSAction to []model.CPSAction
+	result := make([]model.CPSAction, 0, len(data))
+	for _, d := range data {
+		if d != nil {
+			result = append(result, *d)
 		}
 	}
-	return actions, nil
+
+	return result, nil
 }
 
-func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*domain.CPSUser, error) {
+func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
 	filter := bson.M{"user_code": userCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var department string
-	if len(modelUser.Department) > 0 {
-		department = modelUser.Department.Hex()
-	}
+	// var department string
+	// if len(modelUser.Department) > 0 {
+	// 	department = modelUser.Department.Hex()
+	// }
 
-	var permissionCategory []string
-	for _, oid := range modelUser.PermissionCategory {
-		permissionCategory = append(permissionCategory, oid.Hex())
-	}
-	var permissionGroup []string
-	for _, oid := range modelUser.PermissionGroup {
-		permissionGroup = append(permissionGroup, oid.Hex())
-	}
+	// var permissionCategory []string
+	// for _, oid := range modelUser.PermissionCategory {
+	// 	permissionCategory = append(permissionCategory, oid.Hex())
+	// }
+	// var permissionGroup []string
+	// for _, oid := range modelUser.PermissionGroup {
+	// 	permissionGroup = append(permissionGroup, oid.Hex())
+	// }
 
-	user := &domain.CPSUser{
-		UserCode:           modelUser.UserCode,
-		UserName:           modelUser.UserName,
-		FullName:           modelUser.FullName,
-		PhoneNumber:        modelUser.PhoneNumber,
-		Role:               modelUser.Role,
-		Department:         department,
-		PermissionCategory: permissionCategory,
-		PermissionGroup:    permissionGroup,
-	}
-	return user, nil
+	// user := &domain.CPSUser{
+	// 	UserCode:           modelUser.UserCode,
+	// 	UserName:           modelUser.UserName,
+	// 	FullName:           modelUser.FullName,
+	// 	PhoneNumber:        modelUser.PhoneNumber,
+	// 	Role:               modelUser.Role,
+	// 	Department:         department,
+	// 	PermissionCategory: permissionCategory,
+	// 	PermissionGroup:    permissionGroup,
+	// }
+	return modelUser, nil
 
 }
 
