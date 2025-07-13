@@ -24,8 +24,8 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 				},
 			},
 			{
-				Method:  http.MethodPut,
-				Path:    "/update",
+				Method:  http.MethodPost,
+				Path:    "/update/{user_code}",
 				Handler: handler.UpdateUserRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -33,7 +33,7 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/approve_or_reject/{action_id}",
 				Handler: handler.ApproveUserAction,
 				Middlewares: []func(next http.Handler) http.Handler{

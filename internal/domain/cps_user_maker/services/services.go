@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -56,6 +56,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
 	userPayload := ctx_util.ExtractUserContext(r)
 	actionCode := utils.RandomGenerator(24)
+
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,

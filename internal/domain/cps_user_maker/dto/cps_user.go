@@ -25,7 +25,6 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	UserCode           string           `json:"user_code"`
 	UserName           *string          `json:"user_name"`
 	FullName           *string          `json:"full_name"`
 	PhoneNumber        *string          `json:"phone_number"`
@@ -97,7 +96,6 @@ func (r UpdateUserRequest) Validate() error {
 	}
 
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserCode, validation.Required.Error("user_code is required")),
 		validation.Field(&r.UserName,
 			validation.When(r.UserName != nil, validation.Length(1, 100).Error("user_name cannot be empty"))),
 		validation.Field(&r.FullName,

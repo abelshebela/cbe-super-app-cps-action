@@ -10,8 +10,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -35,6 +35,7 @@ func NewApplicationHandler(service services.CPSUserService, logger utils.Logger)
 		logger:  logger,
 	}
 }
+
 func (h *Handler) CreateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error) {
 	var req userDTO.CreateUserRequest
 
@@ -53,6 +54,13 @@ func (h *Handler) CreateUserRequest(ctx context.Context, r *http.Request) (*mode
 }
 
 func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error) {
+	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
+
+	if userCode == "" {
+		h.logger.Errorf("user_code is required")
+		return nil, fmt.Errorf("user_code is required")
+	}
+
 	var req userDTO.UpdateUserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -65,7 +73,7 @@ func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*mode
 		return nil, err
 	}
 
-	return h.service.UpdateUserRequest(ctx, r, req, req.UserCode)
+	return h.service.UpdateUserRequest(ctx, r, req, userCode)
 }
 
 func (h *Handler) ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error) {

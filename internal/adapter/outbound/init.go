@@ -819,12 +819,10 @@ func stringToPointer(s string) *string {
 
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
-		"unique_id":      cpsAction.UniqueId,
-		"maker_id":       cpsAction.MakerID,
-		"maker_name":     cpsAction.MakerName,
-		"action_status":  cpsAction.ActionStatus,
-		"action_type":    cpsAction.ActionType,
-		"request_action": cpsAction.RequestAction,
+		"unique_id":     cpsAction.UniqueId,
+		"maker_id":      cpsAction.MakerID,
+		"maker_name":    cpsAction.MakerName,
+		"action_status": cpsAction.ActionStatus,
 	}
 	projection := bson.M{}
 
@@ -852,16 +850,14 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
 	cpsActionFilter := bson.M{
-		"unique_id":      cpsAction.UniqueId,
-		"maker_id":       cpsAction.MakerID,
-		"maker_name":     cpsAction.MakerName,
-		"action_status":  cpsAction.ActionStatus,
-		"action_type":    cpsAction.ActionType,
-		"request_action": cpsAction.RequestAction,
+		"unique_id":     cpsAction.UniqueId,
+		"maker_id":      cpsAction.MakerID,
+		"maker_name":    cpsAction.MakerName,
+		"action_status": cpsAction.ActionStatus,
 	}
 	cpsUserFilter := bson.M{
-		"user_code":  userCode,
-		"is_deleted": false,
+		"user_code": userCode,
+		// "is_deleted": false,
 	}
 
 	projection := bson.M{}
@@ -873,18 +869,17 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	}
 
 	// If the user exists, check for pending cps action
-	existing, err := o.MongoDalCPSAction.FindOne(ctx, cpsActionFilter, projection)
+	existingCPSAction, err := o.MongoDalCPSAction.FindOne(ctx, cpsActionFilter, projection)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("database error while checking existing user request action")
 		}
-		existing = nil
+		existingCPSAction = nil
 	}
-	if err == nil && existing != nil {
-		if existing.ActionStatus == "PENDING" {
+
+	if err == nil && existingCPSAction != nil {
+		if existingCPSAction.ActionStatus == "PENDING" {
 			return nil, fmt.Errorf("a pending action already exists for this user")
-		} else if existing.ActionStatus == string(model.ActionApproved) {
-			cpsAction.PreviosAction = existing.CurrentAction
 		}
 	}
 
@@ -942,6 +937,11 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		return nil, err
 	}
 
+	// If cps action is rejected, return early
+	if updatedCPSAction.ActionStatus == string(model.ActionRejected) {
+		return nil, nil
+	}
+
 	// Update the users data
 	data, err := json.Marshal(updatedCPSAction.CurrentAction)
 	if err != nil {
@@ -978,7 +978,6 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		}
 	}
 
-	// var permissionGroups []bson.ObjectId
 	var permissionGroups []bson.ObjectID
 	if raw, ok := dataMap["permissiongroups"]; ok {
 		if arr, ok := raw.([]interface{}); ok {
@@ -1009,10 +1008,13 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 
 	filterUser := bson.M{"user_code": userCode}
 
+	// If the action type is "CREATE", create a new user, else if it is "UPDATE" update the exsting user
 	if updatedCPSAction.ActionType == string(model.ActionCreate) {
-		if _, err := o.MongoDalCPSUser.InsertOne(ctx, userData); err != nil {
-			return nil, fmt.Errorf("failed to create CPSUser")
+		_, err := o.MongoDalCPSUser.InsertOne(ctx, userData)
+		if err != nil {
+			return nil, err
 		}
+
 	} else if updatedCPSAction.ActionType == string(model.ActionUpdate) {
 		update := bson.M{
 			"username":            userData.UserName,
@@ -1024,8 +1026,9 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 			"permission_group":    userData.PermissionCategory,
 			"last_modified":       time.Now(),
 		}
-		if _, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, update); err != nil {
-			return nil, fmt.Errorf("failed to update CPSUser")
+		_, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, update)
+		if err != nil {
+			return nil, err
 		}
 	}
 

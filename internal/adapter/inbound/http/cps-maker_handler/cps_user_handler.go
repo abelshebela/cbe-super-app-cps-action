@@ -39,7 +39,7 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 		h.logger.Errorf("failed to convert data to map: %v", err)
 		local_util.SendErrorResponse(w, "Failed to convert data to map", http.StatusInternalServerError, nil)
 	}
-	local_util.BaseResponseMaker(data, w, "User request submitted for approval", 200)
+	local_util.BaseResponseMaker(data, w, "User request submitted successfully", 200)
 }
 
 func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
 		h.logger.Errorf("failed to convert data to map: %v", err)
 		local_util.SendErrorResponse(w, "Failed to convert data to map", http.StatusInternalServerError, nil)
 	}
-	local_util.BaseResponseMaker(data, w, "User update request submitted for approval", 200)
+	local_util.BaseResponseMaker(data, w, "User update request processed successfully", 200)
 }
 
 func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Request) {
@@ -66,12 +66,17 @@ func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if dataCPSAction == nil {
+		local_util.BaseResponseMaker(nil, w, "User update request rejected successfully", 200)
+		return
+	}
+
 	data, err := local_util.StructToMap(dataCPSAction)
 	if err != nil {
 		h.logger.Errorf("failed to convert data to map: %v", err)
 		local_util.SendErrorResponse(w, "Failed to convert data to map", http.StatusInternalServerError, nil)
 	}
-	local_util.BaseResponseMaker(data, w, "Action approved successfully", 200)
+	local_util.BaseResponseMaker(data, w, "User update request approved successfully", 200)
 }
 
 func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *http.Request) {
