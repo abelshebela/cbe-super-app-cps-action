@@ -703,6 +703,16 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_027",
 			Message: "Failed to login. you entered wrong password",
 		},
+		"ACTION_NOT_FOUND_AFTER_UPDATE": {
+			Code:    "ACT_404_UPD",
+			Message: "action not found after update",
+		},
+		"ACTION_ALREADY_APPROVED": {
+			Code:    "GEN_005",
+			Message: "This action is already approved.",
+		},
+	
+
 		"ACCOUNT_LOCKED": {
 			Code:    "AUTH_028",
 			Message: "account locked. please contact your addministrator",
