@@ -209,7 +209,7 @@ func (s *ServiceStore) UpdateAccountValidation(
 
 		}
 
-		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID.String(), updatedRule); err != nil {
+		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID, updatedRule); err != nil {
 			s.logger.Errorf("failed to update validation rule: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_VALIDATION_RULE")
 		}

@@ -82,9 +82,9 @@ func (r CreateUserRequest) Validate() error {
 		validation.Field(&r.FullName, validation.Required.Error("full_name is required")),
 		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required")),
 		validation.Field(&r.UserRole, validation.Required.Error("user_role is required")),
-		// validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		// validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		// validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
+		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
 	)
 }
 

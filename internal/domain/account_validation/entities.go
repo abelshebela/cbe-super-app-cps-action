@@ -2,12 +2,10 @@ package account_validation
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
+	// "go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ValidationRule struct {
-
 	ID             string    `json:"id"`
 	EntityType     string    `json:"entity_type"`
 	ValidationFor  string    `json:"validation_for"`
@@ -19,5 +17,4 @@ type ValidationRule struct {
 	CreatedAt      time.Time `json:"created_at"`
 	LastModifiedAt time.Time `json:"last_modified_at"`
 	ServiceID      string    `json:"service_id"`
-
 }

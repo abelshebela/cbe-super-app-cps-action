@@ -81,7 +81,7 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 		}
 
 		return account_validation.ValidationRule{
-			ID:             rule.ID,
+			ID:             rule.ID.Hex(),
 			EntityType:     rule.EntityType,
 			ValidationFor:  rule.ValidationFor,
 			Identifier:     rule.Identifier,
@@ -119,7 +119,7 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 	}
 
 	return account_validation.ValidationRule{
-		ID:             rule.ID,
+		ID:             rule.ID.Hex(),
 		EntityType:     rule.EntityType,
 		ValidationFor:  rule.ValidationFor,
 		Identifier:     rule.Identifier,
@@ -148,17 +148,16 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 		return errors.New("validation rule ID cannot be empty")
 	}
 	update := bson.M{
-		
-			"entity_type":      rule.EntityType,
-			"validation_for":   rule.ValidationFor,
-			"identifier":       rule.Identifier,
-			"min_length":       int(rule.MinLength),
-			"max_length":       int(rule.MaxLength),
-			"enabled":          rule.Enabled,
-			"is_deleted":       rule.IsDeleted,
-			"service_id":       rule.ServiceID,
-			"last_modified_at": rule.LastModifiedAt,
-		
+
+		"entity_type":      rule.EntityType,
+		"validation_for":   rule.ValidationFor,
+		"identifier":       rule.Identifier,
+		"min_length":       int(rule.MinLength),
+		"max_length":       int(rule.MaxLength),
+		"enabled":          rule.Enabled,
+		"is_deleted":       rule.IsDeleted,
+		"service_id":       rule.ServiceID,
+		"last_modified_at": rule.LastModifiedAt,
 	}
 
 	filter := bson.M{"_id": objID}

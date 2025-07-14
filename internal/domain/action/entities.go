@@ -2,8 +2,6 @@ package action
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UserType string
@@ -30,14 +28,12 @@ const (
 )
 
 type User struct {
-
 	UserID      string
 	UserCode    string
 	FullName    string
 	PhoneNumber string
 	Timestamp   time.Time
 	Department  string
-
 }
 
 type CurrentAction struct {
@@ -49,7 +45,6 @@ type ActionResponse struct {
 	ActionId string `json:"action_id"`
 }
 type CPSAction struct {
-
 	ID                 string        `json:"id"`
 	ActionCode         string        `json:"action_code"`
 	UniqueId           string        `json:"unique_id"`
@@ -70,7 +65,6 @@ type CPSAction struct {
 	LastModifiedAt     time.Time     `json:"last_modified_at"`
 	MakerActionTime    time.Time     `json:"maker_action_time"`
 	CheckerActionTime  time.Time     `json:"checker_action_time"`
-
 }
 
 type RequestAction string
