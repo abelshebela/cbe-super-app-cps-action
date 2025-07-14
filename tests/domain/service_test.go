@@ -74,7 +74,7 @@ func TestUpdateServiceFlag(t *testing.T) {
 	mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(service, nil)
 	mockRepo.EXPECT().UpdateHqService(ctx, gomock.Any()).Return(nil)
 
-	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
+	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, action.User{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestUpdateServiceFlag_Error(t *testing.T) {
 
 	mockRepo.EXPECT().GetHqServiceById(ctx, serviceID).Return(action.ServiceDetails{}, errors.New("service not found"))
 
-	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, "")
+	err := serviceStore.UpdateServiceFlag(ctx, serviceID, action_taken, action.User{})
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}

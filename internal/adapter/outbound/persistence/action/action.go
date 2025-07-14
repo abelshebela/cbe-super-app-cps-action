@@ -40,17 +40,22 @@ func (r *ActionRepo) CreateCpsAction(ctx context.Context, Action action_entity.C
 
 func (r *ActionRepo) UpdateCpsAction(ctx context.Context, Action action_entity.CPSAction) (action_entity.CPSAction, error) {
 	update := bson.M{
-		"action_code":      Action.ActionCode,
-		"maker":            Action.Maker,
-		"checker":          Action.Checker,
-		"department":       Action.Department,
-		"action_type":      Action.ActionType,
-		"request_action":   Action.RequestAction,
-		"action_status":    Action.ActionStatus,
-		"current_action":   Action.CurrentAction,
-		"previos_action":   Action.PreviosAction,
-		"rejection_reason": Action.RejectionReason,
-		"last_modified_at": Action.LastModifiedAt,
+		"action_code":          Action.ActionCode,
+		"unique_id":            Action.UniqueId,
+		"maker_id":             Action.MakerID,
+		"maker_name":           Action.MakerName,
+		"maker_phone_number":   Action.MakerPhoneNumber,
+		"checker_id":           Action.CheckerID,
+		"checker_name":         Action.CheckerName,
+		"checker_phone_number": Action.CheckerPhoneNumber,
+		"department":           Action.Department,
+		"action_type":          Action.ActionType,
+		"request_action":       Action.RequestAction,
+		"action_status":        Action.ActionStatus,
+		"current_action":       Action.CurrentAction,
+		"previos_action":       Action.PreviosAction,
+		"rejection_reason":     Action.RejectionReason,
+		"last_modified_at":     Action.LastModifiedAt,
 	}
 	return r.cpsDal.UpdateOne(ctx, bson.M{"_id": Action.ID}, update)
 }

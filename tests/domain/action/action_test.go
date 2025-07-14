@@ -50,7 +50,7 @@ func TestUpdateServiceFlagRequest(t *testing.T) {
 	ctx := context.Background()
 	id := "service-id"
 	action := true
-	makerId := "maker-id"
+	maker := actionDomain.User{UserID: "maker-id"}
 
 	service := actionDomain.ServiceDetails{
 		ID:          stringToPointer(id),
@@ -62,7 +62,7 @@ func TestUpdateServiceFlagRequest(t *testing.T) {
 	mockRepo.On("GetHqServiceById", ctx, id).Return(service, nil)
 	mockRepo.On("CreateCpsAction", ctx, mock.Anything).Return(actionDomain.CPSAction{ActionCode: "CPS_1234567890"}, nil)
 
-	actionId, err := serviceStore.UpdateServiceFlagRequest(ctx, id, action, makerId)
+	actionId, err := serviceStore.UpdateServiceFlagRequest(ctx, id, action, maker)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "CPS_1234567890", actionId)
@@ -100,7 +100,7 @@ func TestUpdateServiceFlag(t *testing.T) {
 	mockRepo.On("GetHqServiceById", ctx, "service-id").Return(service, nil)
 	mockRepo.On("UpdateHqService", ctx, mock.Anything).Return(nil)
 
-	err := serviceStore.UpdateServiceFlag(ctx, actionId, action, checkerId)
+	err := serviceStore.UpdateServiceFlag(ctx, actionId, action, actionDomain.User{UserID: checkerId})
 
 	assert.NoError(t, err)
 	mockRepo.AssertCalled(t, "FetchCpsActionById", ctx, actionId)
@@ -140,16 +140,16 @@ func TestRemoveCifRequest(t *testing.T) {
 	ctx := context.Background()
 	ids := []string{"account-id-1", "account-id-2"}
 	action := false
-	makerId := "maker-id"
+	maker := actionDomain.User{UserID: "maker-id"}
 
-	mockRepo.On("FetchLastCpsActionByMakerID", ctx, makerId).Return(actionDomain.CPSAction{ActionStatus: actionDomain.ActionApproved}, nil)
+	mockRepo.On("FetchLastCpsActionByMakerID", ctx, maker.UserID).Return(actionDomain.CPSAction{ActionStatus: actionDomain.ActionApproved}, nil)
 	mockRepo.On("CreateCpsAction", ctx, mock.Anything).Return(actionDomain.CPSAction{ActionCode: "CPS_1234567890"}, nil)
 
-	actionId, err := serviceStore.RemoveCifRequest(ctx, ids, action, makerId)
+	actionId, err := serviceStore.RemoveCifRequest(ctx, ids, action, maker)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "CPS_1234567890", actionId)
-	mockRepo.AssertCalled(t, "FetchLastCpsActionByMakerID", ctx, makerId)
+	mockRepo.AssertCalled(t, "FetchLastCpsActionByMakerID", ctx, maker.UserID)
 	mockRepo.AssertCalled(t, "CreateCpsAction", ctx, mock.Anything)
 }
 
@@ -160,7 +160,7 @@ func TestRemoveCif(t *testing.T) {
 	ctx := context.Background()
 	actionId := "action-id"
 	action := false
-	checkerId := "checker-id"
+	checker := actionDomain.User{UserID: "checker-id"}
 
 	cpsAction := actionDomain.CPSAction{
 		ActionCode:   actionId,
@@ -187,7 +187,7 @@ func TestRemoveCif(t *testing.T) {
 	mockRepo.On("FetchLinkedAccountById", ctx, []string{"account-id-1", "account-id-2"}).Return(linkedAccounts, nil)
 	mockRepo.On("UpdateAccount", ctx, mock.Anything).Return(actionDomain.LinkedAccount{}, nil)
 
-	err := serviceStore.RemoveCif(ctx, actionId, action, checkerId)
+	err := serviceStore.RemoveCif(ctx, actionId, action, checker)
 
 	assert.NoError(t, err)
 	mockRepo.AssertCalled(t, "FetchCpsActionById", ctx, actionId)
