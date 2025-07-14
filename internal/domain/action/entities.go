@@ -1,6 +1,8 @@
 package action
 
-import "time"
+import (
+	"time"
+)
 
 type UserType string
 
@@ -102,6 +104,9 @@ const (
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
+	RequestBudgetUpdate             RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestBudgetCreate             RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestBudgetDelete             RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"

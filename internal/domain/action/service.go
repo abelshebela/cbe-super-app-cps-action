@@ -74,6 +74,7 @@ func extractCurrentAction(input any) (CurrentAction, error) {
 	var current CurrentAction
 
 	jsonBytes, err := json.Marshal(input)
+
 	if err != nil {
 		return current, fmt.Errorf("failed to marshal current action: %w", err)
 	}
@@ -174,10 +175,12 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, ids []string, actio
 		s.Logger.Errorf("RemoveCifRequest: pending CPS action already exists", "makerID", maker.UserID)
 		return "", fmt.Errorf(common_util.PendingCPSActionExists)
 	}
+
 	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
 		Id:     ids,
 		Action: action,
 	})
+
 }
 
 func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bool, checker User) error {
@@ -227,7 +230,17 @@ func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (C
 		s.Logger.Errorf("CreateCpsAction: pending CPS action already exists", "makerID", action.MakerID)
 		return CPSAction{}, fmt.Errorf(common_util.PendingCPSActionExists)
 	}
-	createdAction, err := s.Repository.CreateCpsAction(ctx, action)
+	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
+	cpsAction := s.createCpsAction(
+		User{
+			UserID:      action.MakerID,
+			FullName:    action.MakerName,
+			PhoneNumber: action.MakerPhoneNumber,
+		},
+		actionID,
+		action.CurrentAction,
+	)
+	createdAction, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)
 		return CPSAction{}, err

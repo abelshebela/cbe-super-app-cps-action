@@ -18,3 +18,10 @@ type ActionRepository interface {
 	UpdateAccounts(ctx context.Context, linkedAccounts []LinkedAccount) ([]LinkedAccount, error)
 	UpdateAccount(ctx context.Context, linkedAccount LinkedAccount) (LinkedAccount, error)
 }
+
+type IActionRepository interface {
+	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
+	UpdateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
+	FetchCpsActionById(ctx context.Context, Action_Id string) (*CPSAction, error)
+	FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (*CPSAction, error)
+}

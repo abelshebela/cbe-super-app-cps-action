@@ -9,7 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service/dto"
 	serviceApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user"
+	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	"github.com/go-chi/chi/v5"
 

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository"
+	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

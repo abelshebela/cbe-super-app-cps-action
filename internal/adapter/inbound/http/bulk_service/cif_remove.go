@@ -27,7 +27,7 @@ func (h *HttpStore) RemoveCifMaker(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
 		return
 	}
-	
+
 	maker, err := h.extractUserIDFromContext(r)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), http.StatusUnauthorized, nil)
