@@ -8,6 +8,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -31,10 +32,16 @@ func NewCPSUserService(repo repository.CPSUserRepo) CPSUserService {
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
+	// Create the CPS action
 	userPayload := ctx_util.ExtractUserContext(r)
 	actionCode := utils.RandomGenerator(24)
-	userData.UserCode = "CPS_USER_" + utils.RandomGenerator(15)
 
+	user, err := entity.MapToCPSUser(userData)
+	if err != nil {
+		return nil, err
+	}
+
+	user.UserCode = "CPS_USER_" + utils.RandomGenerator(15)
 	cpsAction := model.CPSAction{
 		ActionCode:       actionCode,
 		UniqueId:         userPayload.UserCode,
@@ -45,7 +52,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionCreate),
 		RequestAction:    string(model.RequestUser),
-		CurrentAction:    userData,
+		CurrentAction:    user,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
 	}

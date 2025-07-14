@@ -14,24 +14,34 @@ type ApproveUserActionRequest struct {
 }
 
 type CreateUserRequest struct {
-	UserCode           string   `json:"user_code"`
-	UserName           string   `json:"user_name"`
-	FullName           string   `json:"full_name"`
-	PhoneNumber        string   `json:"phone_number"`
-	UserRole           string   `json:"user_role"`
-	Department         string   `json:"department"`
-	PermissionCategory []string `json:"permission_category"`
-	PermissionGroups   []string `json:"permission_groups"`
+	UserName           string          `json:"user_name"`
+	FullName           string          `json:"full_name"`
+	Department         bson.ObjectID   `json:"department"`
+	PhoneNumber        string          `json:"phone_number"`
+	Role               string          `json:"role"`
+	Gender             string          `json:"gender,omitempty"`
+	Email              string          `json:"email,omitempty"`
+	Realm              string          `json:"realm,omitempty"`
+	PermissionCategory []bson.ObjectID `json:"permission_category"`
+	PermissionGroups   []bson.ObjectID `json:"permission_groups"`
+	Enabled            bool            `json:"enabled,omitempty"`
+	Country            string          `json:"country,omitempty"`
+	Region             string          `json:"region,omitempty"`
 }
 
 type UpdateUserRequest struct {
 	UserName           *string          `json:"user_name"`
 	FullName           *string          `json:"full_name"`
-	PhoneNumber        *string          `json:"phone_number"`
-	UserRole           *string          `json:"user_role"`
 	Department         *bson.ObjectID   `json:"department"`
+	PhoneNumber        *string          `json:"phone_number"`
+	Role               *string          `json:"role"`
+	Gender             *string          `json:"gender,omitempty"`
+	Email              *string          `json:"email,omitempty"`
+	Realm              *string          `json:"realm,omitempty"`
 	PermissionCategory *[]bson.ObjectID `json:"permission_category"`
 	PermissionGroups   *[]bson.ObjectID `json:"permission_groups"`
+	Country            *string          `json:"country,omitempty"`
+	Region             *string          `json:"region,omitempty"`
 }
 
 type ApproveCPSAction struct {
@@ -52,11 +62,15 @@ func (r ApproveUserActionRequest) Validate() error {
 }
 
 func (r *CreateUserRequest) Normalize() {
-	r.UserCode = strings.TrimSpace(r.UserCode)
 	r.UserName = strings.TrimSpace(r.UserName)
 	r.FullName = strings.TrimSpace(r.FullName)
 	r.PhoneNumber = strings.TrimSpace(r.PhoneNumber)
-	r.UserRole = strings.TrimSpace(r.UserRole)
+	r.Role = strings.TrimSpace(r.Role)
+	r.Gender = strings.TrimSpace(r.Gender)
+	r.Email = strings.TrimSpace(r.Email)
+	r.Realm = strings.TrimSpace(r.Realm)
+	r.Country = strings.TrimSpace(r.Country)
+	r.Region = strings.TrimSpace(r.Region)
 }
 
 func IsObjectIDRequired(value interface{}) error {
@@ -81,35 +95,31 @@ func (r CreateUserRequest) Validate() error {
 		validation.Field(&r.UserName, validation.Required.Error("user_name is required")),
 		validation.Field(&r.FullName, validation.Required.Error("full_name is required")),
 		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required")),
-		validation.Field(&r.UserRole, validation.Required.Error("user_role is required")),
+		validation.Field(&r.Role, validation.Required.Error("user_role is required")),
 		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
 		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
 		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
+		validation.Field(&r.Email, validation.Required.Error("email is required")),
+		validation.Field(&r.Realm, validation.Required.Error("realm is required")),
+		validation.Field(&r.Country, validation.Required.Error("country is required")),
+		validation.Field(&r.Region, validation.Required.Error("region is required")),
 	)
 }
 
 func (r UpdateUserRequest) Validate() error {
 	if r.UserName == nil && r.FullName == nil && r.PhoneNumber == nil &&
-		r.UserRole == nil && r.Department == nil &&
+		r.Role == nil && r.Department == nil &&
 		r.PermissionCategory == nil && r.PermissionGroups == nil {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserName,
-			validation.When(r.UserName != nil, validation.Length(1, 100).Error("user_name cannot be empty"))),
-		validation.Field(&r.FullName,
-			validation.When(r.FullName != nil, validation.Length(1, 100).Error("full_name cannot be empty")),
-		),
-		validation.Field(&r.PhoneNumber,
-			validation.When(r.PhoneNumber != nil, validation.Length(1, 20).Error("phone_number cannot be empty")),
-		),
-		validation.Field(&r.UserRole,
-			validation.When(r.UserRole != nil, validation.Length(1, 50).Error("user_role cannot be empty")),
-		),
-		validation.Field(&r.Department,
-			validation.When(r.Department != nil, validation.Length(1, 50).Error("department cannot be empty")),
-		),
+		validation.Field(&r.UserName, validation.When(r.UserName != nil, validation.Length(1, 100).Error("user_name cannot be empty"))),
+		validation.Field(&r.FullName, validation.When(r.FullName != nil, validation.Length(1, 100).Error("full_name cannot be empty"))),
+		validation.Field(&r.PhoneNumber, validation.When(r.PhoneNumber != nil, validation.Length(1, 20).Error("phone_number cannot be empty"))),
+		validation.Field(&r.Role, validation.When(r.Role != nil, validation.Length(1, 50).Error("user_role cannot be empty"))),
+		validation.Field(&r.Department, validation.When(r.Department != nil, validation.Length(1, 50).Error("department cannot be empty"))),
 		validation.Field(&r.PermissionCategory),
 		validation.Field(&r.PermissionGroups),
 	)

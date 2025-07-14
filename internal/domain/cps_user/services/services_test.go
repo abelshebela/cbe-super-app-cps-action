@@ -23,13 +23,23 @@ func (d dummyLogger) Infof(format string, args ...interface{})  {}
 func (d dummyLogger) Warnf(format string, args ...interface{})  {}
 func (d dummyLogger) Debugf(format string, args ...interface{}) {}
 
+type ctxKey string
+
+const (
+	ctxKeyUserCode    ctxKey = "user_code"
+	ctxKeyUserID      ctxKey = "user_id"
+	ctxKeyFullName    ctxKey = "full_name"
+	ctxKeyPhoneNumber ctxKey = "phone_number"
+	ctxKeyDepartment  ctxKey = "department"
+)
+
 func makeUserContext() context.Context {
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "user_code", "U123")
-	ctx = context.WithValue(ctx, "user_id", "ID123")
-	ctx = context.WithValue(ctx, "full_name", "Test User")
-	ctx = context.WithValue(ctx, "phone_number", "1234567890")
-	ctx = context.WithValue(ctx, "department", "Dept1")
+	ctx = context.WithValue(ctx, ctxKeyUserCode, "U123")
+	ctx = context.WithValue(ctx, ctxKeyUserID, "ID123")
+	ctx = context.WithValue(ctx, ctxKeyFullName, "Test User")
+	ctx = context.WithValue(ctx, ctxKeyPhoneNumber, "1234567890")
+	ctx = context.WithValue(ctx, ctxKeyDepartment, "Dept1")
 	return ctx
 }
 
@@ -60,11 +70,11 @@ func makeCPSUser() model.CPSUser {
 func makeTestRequestWithContext() *http.Request {
 	req, _ := http.NewRequest("GET", "/", nil)
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, "user_code", "U123")
-	ctx = context.WithValue(ctx, "user_id", "ID123")
-	ctx = context.WithValue(ctx, "full_name", "Test User")
-	ctx = context.WithValue(ctx, "phone_number", "1234567890")
-	ctx = context.WithValue(ctx, "department", "Dept1")
+	ctx = context.WithValue(ctx, ctxKeyUserCode, "U123")
+	ctx = context.WithValue(ctx, ctxKeyUserID, "ID123")
+	ctx = context.WithValue(ctx, ctxKeyFullName, "Test User")
+	ctx = context.WithValue(ctx, ctxKeyPhoneNumber, "1234567890")
+	ctx = context.WithValue(ctx, ctxKeyDepartment, "Dept1")
 	req = req.WithContext(ctx)
 	return req
 }
