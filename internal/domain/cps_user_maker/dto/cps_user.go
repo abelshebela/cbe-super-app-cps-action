@@ -14,14 +14,14 @@ type ApproveUserActionRequest struct {
 }
 
 type CreateUserRequest struct {
-	UserCode           string          `json:"user_code"`
-	UserName           string          `json:"user_name"`
-	FullName           string          `json:"full_name"`
-	PhoneNumber        string          `json:"phone_number"`
-	UserRole           string          `json:"user_role"`
-	Department         bson.ObjectID   `json:"department"`
-	PermissionCategory []bson.ObjectID `json:"permission_category"`
-	PermissionGroups   []bson.ObjectID `json:"permission_groups"`
+	UserCode           string   `json:"user_code"`
+	UserName           string   `json:"user_name"`
+	FullName           string   `json:"full_name"`
+	PhoneNumber        string   `json:"phone_number"`
+	UserRole           string   `json:"user_role"`
+	Department         string   `json:"department"`
+	PermissionCategory []string `json:"permission_category"`
+	PermissionGroups   []string `json:"permission_groups"`
 }
 
 type UpdateUserRequest struct {
@@ -82,9 +82,9 @@ func (r CreateUserRequest) Validate() error {
 		validation.Field(&r.FullName, validation.Required.Error("full_name is required")),
 		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required")),
 		validation.Field(&r.UserRole, validation.Required.Error("user_role is required")),
-		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
+		// validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
+		// validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
+		// validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
 	)
 }
 
