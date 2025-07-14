@@ -10,6 +10,6 @@ type EnableDisableServiceMakerDtoResponse struct {
 }
 
 type EnableDisableServiceCheckerDtoRequest struct {
-	Action_Id     string `json:"service_id"`
-	ServiceAction bool   `json:"service_action"`
+	Action_Id     string `json:"action_code"`
+	ServiceAction bool   `json:"action"`
 }

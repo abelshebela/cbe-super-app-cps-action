@@ -338,27 +338,32 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 	}, nil
 }
 func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.ServiceDetails) error {
-	filter := map[string]interface{}{
-		"_id": service.ID,
+
+	objectId, err := bson.ObjectIDFromHex(*service.ID)
+	if err != nil {
+		return err
 	}
-	update := map[string]interface{}{
+	filter := bson.M{
+		"_id": objectId,
+	}
+	update := bson.M{
 
 		"key":         service.Key,
 		"serviceName": service.ServiceName,
 		"serviceType": service.ServiceType,
-		"cap": map[string]interface{}{
+		"cap": bson.M{
 			"kyc_level":  service.Cap.KYCLevel,
 			"single_cap": service.Cap.SingleCap,
 			"daily_cap":  service.Cap.DailyCap,
 			"min_amount": service.Cap.MinAmount,
 		},
-		"cbe_product_codes": map[string]interface{}{
+		"cbe_product_codes": bson.M{
 			"prd":    service.CBEProductCodes.PRD,
 			"vatprd": service.CBEProductCodes.VATPRD,
 			"sfprd":  service.CBEProductCodes.SFPRD,
 			"trxn":   service.CBEProductCodes.TRXN,
 		},
-		"cbe_ifb_product_codes": map[string]interface{}{
+		"cbe_ifb_product_codes": bson.M{
 			"prd":    service.CBEIFBProductCodes.PRD,
 			"vatprd": service.CBEIFBProductCodes.VATPRD,
 			"sfprd":  service.CBEIFBProductCodes.SFPRD,
@@ -367,10 +372,10 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 		"above_amount":      service.AboveAmount,
 		"above_service_fee": service.AboveServiceFee,
 		"payment_type":      service.PaymentType,
-		"tiers": func() []map[string]interface{} {
-			var tiers []map[string]interface{}
+		"tiers": func() []bson.M {
+			var tiers []bson.M
 			for _, tier := range service.Tiers {
-				tiers = append(tiers, map[string]interface{}{
+				tiers = append(tiers, bson.M{
 					"id":         tier.ID,
 					"min":        tier.Min,
 					"max":        tier.Max,
@@ -379,7 +384,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 			}
 			return tiers
 		}(),
-		"cbe_gl_entry": map[string]interface{}{
+		"cbe_gl_entry": bson.M{
 			"product_account":     service.CBEGLEntry.ProductAccount,
 			"product_branch_code": service.CBEGLEntry.ProductBranchCode,
 			"service_account":     service.CBEGLEntry.ServiceAccount,
@@ -387,7 +392,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 			"vat_account":         service.CBEGLEntry.VatAccount,
 			"vat_branch_code":     service.CBEGLEntry.VatBranchCode,
 		},
-		"cbe_ifb_gl_entry": map[string]interface{}{
+		"cbe_ifb_gl_entry": bson.M{
 			"product_account":     service.CBEIFBGLEntry.ProductAccount,
 			"product_branch_code": service.CBEIFBGLEntry.ProductBranchCode,
 			"service_account":     service.CBEIFBGLEntry.ServiceAccount,
@@ -400,7 +405,7 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 		"last_modified_at": service.LastModifiedAt,
 	}
 
-	_, err := o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
+	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 
@@ -521,10 +526,10 @@ func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAc
 }
 func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAction) error {
 	modelAction := domainToModelCPSAction(Action)
-	filter := map[string]interface{}{
+	filter := bson.M{
 		"action_code": modelAction.ActionCode,
 	}
-	update := map[string]interface{}{
+	update := bson.M{
 		"maker_id":             modelAction.MakerID,
 		"maker_name":           modelAction.MakerName,
 		"maker_phone_number":   modelAction.MakerPhoneNumber,
@@ -542,16 +547,18 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		"created_at":           modelAction.CreatedAt,
 		"last_modified_at":     modelAction.LastModifiedAt,
 	}
+	fmt.Println("Update cps action********", filter)
 	if _, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update); err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 
 	}
+	fmt.Println("Update cps action/////////////////", filter)
 
 	return nil
 }
 func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string) (domain.CPSAction, error) {
 	// fmt.Println("holnvfnkednvg", Action_Id)
-	filter := map[string]interface{}{"action_code": Action_Id}
+	filter := bson.M{"action_code": Action_Id}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

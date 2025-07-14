@@ -35,7 +35,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	actionCode := utils.RandomGenerator(24)
 	userData.UserCode = "CPS_USER_" + utils.RandomGenerator(15)
 	cpsAction := model.CPSAction{
-		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
 		UniqueId:         userPayload.UserCode,
 		MakerID:          userPayload.UserID,
@@ -50,6 +49,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		MakerActionTime:  time.Now(),
 	}
 
+	fmt.Println("check this one ------------------")
 	return s.repo.CreateUserRequest(ctx, cpsAction)
 }
 

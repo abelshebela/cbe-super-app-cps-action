@@ -89,11 +89,11 @@ func extractCurrentAction(input any) (CurrentAction, error) {
 func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction) (string, error) {
 	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
 	cpsAction := s.createCpsAction(maker, actionID, current)
-	_, err := s.Repository.CreateCpsAction(ctx, cpsAction)
+	data, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		return "", err
 	}
-	return actionID, nil
+	return data.ActionCode, nil
 }
 
 func (s *ServiceStore) GetServicePaginated(ctx context.Context, limit, offset int) ([]ServiceDetails, error) {
@@ -106,6 +106,13 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 		s.Logger.Errorf("UpdateServiceFlagRequest: failed to get HQ service by ID", "id", id, "error", err)
 		return "", err
 	}
+
+	lastAction, err := s.Repository.FetchLastCpsActionByMakerID(ctx, maker.UserID)
+	if err == nil && lastAction.ActionStatus == ActionPending {
+		s.Logger.Errorf("UpdateServiceFlagRequest: pending CPS action already exists", "makerID", maker.UserID)
+		return "", fmt.Errorf(common_util.PendingCPSActionExists)
+	}
+
 	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
 		Id:     []string{id},
 		Action: action,
@@ -127,12 +134,11 @@ func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, actionID string, a
 		return err
 	}
 
-	currentAction, ok := cpsAction.CurrentAction.(CurrentAction)
-	if !ok {
-		s.Logger.Errorf("UpdateServiceFlag: invalid type for CurrentAction", "actionID", actionID)
+	currentAction, err := extractCurrentAction(cpsAction.CurrentAction)
+	if err != nil {
+		s.Logger.Errorf("UpdateServiceFlag: invalid type for CurrentAction", "actionID", actionID, "error", err)
 		return fmt.Errorf(common_util.UnhandledServerError)
 	}
-
 	service, err := s.Repository.GetHqServiceById(ctx, currentAction.Id[0])
 	if err != nil {
 		s.Logger.Errorf("UpdateServiceFlag: failed to fetch service by ID", "serviceID", currentAction.Id[0], "error", err)
@@ -216,6 +222,11 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bo
 }
 
 func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (CPSAction, error) {
+	lastAction, err := s.Repository.FetchLastCpsActionByMakerID(ctx, action.MakerID)
+	if err == nil && lastAction.ActionStatus == ActionPending {
+		s.Logger.Errorf("CreateCpsAction: pending CPS action already exists", "makerID", action.MakerID)
+		return CPSAction{}, fmt.Errorf(common_util.PendingCPSActionExists)
+	}
 	createdAction, err := s.Repository.CreateCpsAction(ctx, action)
 	if err != nil {
 		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)
