@@ -17,4 +17,5 @@ type CPSActionRepository interface {
 	CreatePermissionGroup(action entities.CPSAction) error
 	ApproveActionRequest(actioncode string, action entities.CPSAction) error
 	ValidateActionRequest(actionCode, department string) (entities.CPSAction, error)
+	RejectActionRequest(actionCode string, action entities.CPSAction, reason string) (entities.CPSAction, error)
 }

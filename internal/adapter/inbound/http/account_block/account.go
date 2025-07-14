@@ -450,65 +450,57 @@ func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Reques
 	constant_utils.BaseResponseMaker(data, w, "Region updated successfully", http.StatusOK)
 }
 func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		h.logger.Errorf("ApproveRegionBlock: invalid request body or missing action_id, err=%v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "action_id is required"}
-		resp.SendJSON()
-		return
-	}
+    var req struct {
+        ActionID string  `json:"action_id"`
+        Approve  bool    `json:"approve"`
+        Reason   *string `json:"reason,omitempty"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
+        constant_utils.SendErrorResponse(w, "ACTION_ID_REQUIRED", http.StatusBadRequest, nil)
+        return
+    }
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+    userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+    fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+    phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+    department, _ := r.Context().Value(constant.ContextKey("department")).(string)
 
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" {
-		h.logger.Errorf("ApproveRegionBlock: Incomplete user information in context: userID=%s, fullName=%s, phoneNumber=%s", userID, fullName, phoneNumber)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-		resp.SendJSON()
-		return
-	}
-	if strings.TrimSpace(department) == "" {
-		h.logger.Errorf("ApproveRegionBlock: department is required in context")
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-		resp.SendJSON()
-		return
-	}
+    if strings.TrimSpace(userID) == "" ||
+        strings.TrimSpace(fullName) == "" ||
+        strings.TrimSpace(phoneNumber) == "" {
+        constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
+        return
+    }
+    if strings.TrimSpace(department) == "" {
+        constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
+        return
+    }
 
-	h.logger.Infof("ApproveRegionBlock requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
-	checker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
-	if err != nil {
-		h.logger.Errorf("ApproveRegionBlock failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
-		if strings.Contains(err.Error(), "not allowed") {
-			resp := common.Response[any]{ResponseWriter: w, Status: http.StatusForbidden, Data: err.Error()}
-			resp.SendJSON()
-			return
-		}
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: err.Error()}
-		resp.SendJSON()
-		return
-	}
-
-	h.logger.Infof("ApproveRegionBlock succeeded for actionID=%s by user=%s", req.ActionID, userID)
-
-	data := map[string]any{
-		"message": "Action processed successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
+    h.logger.Infof("ApproveRegionBlock requested by user: %s (%s)", userID, fullName)
+    checker := action.User{
+        UserID:      userID,
+        FullName:    fullName,
+        PhoneNumber: phoneNumber,
+        Department:  department,
+    }
+    err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
+    if err != nil {
+        h.logger.Errorf("ApproveRegionBlock failed: %v", err)
+        switch err {
+        case common.DefineError.General["ACTION_NOT_FOUND"]:
+            constant_utils.SendErrorResponse(w, "ACTION_NOT_FOUND", http.StatusNotFound, nil)
+        case common.DefineError.Branch["REGION_ACTION_ALREADY_PROCESSED"]:
+            constant_utils.SendErrorResponse(w, "REGION_ACTION_ALREADY_PROCESSED", http.StatusConflict, nil)
+        default:
+            constant_utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+        }
+        return
+    }
+    data := map[string]any{
+        "message": "Action processed successfully",
+        "code":    "ACTION_PROCESSED_SUCCESSFULLY",
+    }
+    constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
 
 func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {

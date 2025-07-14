@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -89,7 +88,6 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 }
 
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
-	log.Println(" ++++++++++++++++++++++++++++this is the id i got id", ids)
 	ctx := context.Background()
 
 	filter := bson.M{}
@@ -98,15 +96,11 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 		r.logger.Errorf("failed to fetch permission categories: ", err)
 		return nil, err
 	}
-	fmt.Println("666666666666666666666666666666666666")
-	fmt.Printf("-----------------------list of permition catagories: %v", categories)
-	fmt.Println("666666666666666666666666666666666666")
 
 	var allowedPermissionCategories []bson.ObjectID
 	for _, permissionID := range ids {
 		objID, err := bson.ObjectIDFromHex(permissionID)
 		if err != nil {
-			fmt.Printf("666666666666666666666666666666666666======error when loop permtion ids from pailod %v", permissionID)
 			return nil, fmt.Errorf("invalid permission category ID format: %s", permissionID)
 		}
 
@@ -225,9 +219,13 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPS
 	return nil
 }
 
-func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) error {
+func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error) {
 	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
+	fmt.Println("persistance =========================================")
+	fmt.Println(action.CheckerID)
+	fmt.Println("=========================================")
+
 	update := bson.M{
 		"checker_name":         action.CheckerName,
 		"checker_id":           action.CheckerID,
@@ -235,11 +233,30 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action m
 		"action_status":        entities.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
-	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
+
+	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
-	return nil
+	return ApprovedAction, nil
+}
+
+func (r *PermissionPersistence) RejectActionRequest(actionCode string, action model.CPSAction, rejectedReason string) (model.CPSAction, error) {
+	ctx := context.Background()
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{
+		"checker_name":         action.CheckerName,
+		"checker_id":           action.CheckerID,
+		"rejection_reason":     rejectedReason,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        entities.ActionRejected,
+		"checker_action_time":  time.Now(),
+	}
+	rejectedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return model.CPSAction{}, err
+	}
+	return rejectedAction, nil
 }
 
 func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPSAction) error {

@@ -147,7 +147,7 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	walletsDoc, err := w.walletDal.FindAllWithPagination(ctx, filter, ifr, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find wallets", err, error_codes.WalletNotFound)
+			return nil, w.handleError("find wallets", err, "WALLET_NOT_FOUND")
 		}
 		return nil, w.handleError("find wallets", err, error_codes.UnhandledServerError)
 	}
@@ -182,25 +182,23 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"action_status":       model.ActionApproved,
-		"checker_action_time": time.Now(),
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find cps action", err, error_codes.WalletNotFound)
+			return nil, w.handleError("find cps action", err, "WALLET_NOT_FOUND")
 		}
 		return nil, w.handleError("update cps action", err, error_codes.UnhandledServerError)
 	}
 
 	var actionData entity.Wallet
-	data, err := bson.Marshal(cpsAction.PreviosAction)
+	data, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		return nil, w.handleError("marshal action data", err, error_codes.InvalidActionData)
 	}
@@ -282,20 +280,18 @@ func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"action_status":       model.ActionRejected,
-		"rejected_reason":     req.RejectedReason,
-		"checker_action_time": time.Now(),
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionRejected,
+		"rejected_reason":      req.RejectedReason,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find cps action", err, error_codes.WalletNotFound)
+			return nil, w.handleError("find cps action", err, "WALLET_NOT_FOUND")
 		}
 		return nil, w.handleError("update cps action", err, error_codes.UnhandledServerError)
 	}

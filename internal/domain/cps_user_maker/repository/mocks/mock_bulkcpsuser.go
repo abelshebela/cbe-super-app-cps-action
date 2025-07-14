@@ -37,7 +37,7 @@ func (m *MockCPSUserRepo) EXPECT() *MockCPSUserRepoMockRecorder {
 }
 
 // ApproveUserAction mocks base method.
-func (m *MockCPSUserRepo) ApproveUserAction(ctx context.Context, cpsAction model.CPSAction) error error {
+func (m *MockCPSUserRepo) ApproveUserAction(ctx context.Context, r *http.Request, userData userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApproveUserAction", ctx, actionID, approve, reason)
 	ret0, _ := ret[0].(error)

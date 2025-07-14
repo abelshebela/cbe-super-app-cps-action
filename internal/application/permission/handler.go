@@ -3,6 +3,7 @@ package permission
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -10,7 +11,8 @@ import (
 
 type PermissionService interface {
 	CreatePermissionGroup(groupName, role string, permissionCategoryIDs []string, cpsAction model.CPSAction) (model.CPSAction, error)
-	ApprovePermissionGroup(actionCode string, action model.CPSAction) error
+	ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error)
+	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
 }
 
 type PermissionHandler struct {
@@ -38,11 +40,20 @@ func (h *PermissionHandler) CreatePermissionGroup(groupName, role string, permis
 	return cpsAction, nil
 }
 
-func (h *PermissionHandler) ApprovePermissionGroup(actionCode string, action model.CPSAction) error {
-	err := h.service.ApprovePermissionGroup(actionCode, action)
+func (h *PermissionHandler) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
+	approvedAction, err := h.service.ApprovePermissionGroup(actionCode, action)
 	if err != nil {
 		h.logger.Errorf("Failed to approve permission group: %v", err)
-		return err
+		return model.CPSAction{}, err
 	}
-	return nil
+	return approvedAction, nil
+}
+
+func (h *PermissionHandler) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
+	rejectedAction, err := h.service.RejectPermissionGroup(actionCode, action, reason)
+	if err != nil {
+		h.logger.Errorf("Failed to reject permission group: %v", err)
+		return model.CPSAction{}, err
+	}
+	return rejectedAction, nil
 }

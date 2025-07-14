@@ -126,13 +126,11 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"status":              entity.ActionApproved,
-		"checker_action_time": time.Now(),
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"status":               entity.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -173,11 +171,9 @@ func (f *FaydaAccountRepo) RejectFaydaAccountDisable(ctx context.Context, req en
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
+		"checker_name":           req.CheckerUser.FullName,
+		"checker_id":             req.CheckerUser.UserCode,
+		"checker_phone_number":   req.CheckerUser.PhoneNumber,
 		"status":                 entity.ActionRejected,
 		"rejected_action_reason": req.RejectedReason,
 		"checker_action_time":    time.Now(),

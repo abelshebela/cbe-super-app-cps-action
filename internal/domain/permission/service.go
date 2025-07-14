@@ -43,9 +43,6 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 		s.logger.Errorf("Failed to validate permission categories: %v", err)
 		return model.CPSAction{}, err
 	}
-	// fmt.Println("+++++++++++++++++++++++++++++")
-	// fmt.Println("validate permission categories list ", validCategories)
-	// fmt.Println("+++++++++++++++++++++++++++++")
 
 	cpsAction.ActionCode = utils.RandomGenerator(20)
 	cpsAction.CurrentAction = map[string]interface{}{
@@ -67,10 +64,10 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 	return cpsAction, nil
 }
 
-func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) error {
+func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
 	action, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
 
 	switch action.ActionType {
@@ -79,15 +76,29 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSActi
 	case "UPDATE":
 		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
 	default:
-		return errors.New("invalid action type")
+		return model.CPSAction{}, errors.New("invalid action type")
 	}
 
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
 
-	if err := s.cpsActionRepo.ApproveActionRequest(actionCode, action); err != nil {
-		return err
+	approvedAction, err := s.cpsActionRepo.ApproveActionRequest(actionCode, action)
+	if err != nil {
+		return model.CPSAction{}, err
 	}
-	return nil
+	return approvedAction, nil
+}
+
+func (s *Service) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
+	action, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
+	if err != nil {
+		return model.CPSAction{}, err
+	}
+
+	rejectedAction, err := s.cpsActionRepo.RejectActionRequest(actionCode, action, reason)
+	if err != nil {
+		return model.CPSAction{}, err
+	}
+	return rejectedAction, nil
 }

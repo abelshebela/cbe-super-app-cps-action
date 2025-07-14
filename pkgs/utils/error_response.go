@@ -336,6 +336,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Bank,
 		common.DefineError.Department,
 		common.DefineError.Wallet,
+		common.DefineError.Action,
 	}
 
 	for _, group := range errorGroups {
