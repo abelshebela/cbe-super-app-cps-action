@@ -11,7 +11,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
-	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
+	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account"

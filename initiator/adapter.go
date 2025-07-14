@@ -1,4 +1,3 @@
-
 // Package initiator provides adapters for initializing inbound HTTP handlers and services for the CBE Super App CPS Action module.
 package initiator
 
@@ -13,7 +12,7 @@ import (
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
-	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
+	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
@@ -104,5 +103,3 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 	}
 }
-
-
