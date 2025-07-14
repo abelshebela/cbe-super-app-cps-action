@@ -1,12 +1,15 @@
 package permission
 
-import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+import (
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+)
 
 type PermissionRepository interface {
 	CheckPendingRequest(userCode, action string) error
 	CheckPermissionGroupExists(groupName string) bool
-	CreatePermissionGroupFromAction(action entities.CPSAction) error
-	UpdatePermissionGroupFromAction(action entities.CPSAction) error
+	CreatePermissionGroupFromAction(action model.CPSAction) error
+	UpdatePermissionGroupFromAction(action model.CPSAction) error
 }
 
 type PermissionCategoryRepository interface {
@@ -14,8 +17,8 @@ type PermissionCategoryRepository interface {
 }
 
 type CPSActionRepository interface {
-	CreatePermissionGroup(action entities.CPSAction) error
-	ApproveActionRequest(actioncode string, action entities.CPSAction) error
-	ValidateActionRequest(actionCode, department string) (entities.CPSAction, error)
-	RejectActionRequest(actionCode string, action entities.CPSAction, reason string) (entities.CPSAction, error)
+	CreatePermissionGroup(action model.CPSAction) error
+	ApproveActionRequest(actioncode string, action model.CPSAction) error
+	ValidateActionRequest(actionCode, department string) (model.CPSAction, error)
+	RejectActionRequest(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
 }

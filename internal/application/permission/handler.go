@@ -6,6 +6,7 @@ import (
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
+	"fmt"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -16,7 +17,7 @@ type PermissionService interface {
 }
 
 type PermissionHandler struct {
-	service *domain.Service
+	service domain.PermissionDomainService
 	logger  utils.Logger
 }
 
@@ -41,6 +42,10 @@ func (h *PermissionHandler) CreatePermissionGroup(groupName, role string, permis
 }
 
 func (h *PermissionHandler) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
+
+	fmt.Println("app========================================")
+	fmt.Println(action.CheckerName)
+	fmt.Println("========================================")
 	approvedAction, err := h.service.ApprovePermissionGroup(actionCode, action)
 	if err != nil {
 		h.logger.Errorf("Failed to approve permission group: %v", err)

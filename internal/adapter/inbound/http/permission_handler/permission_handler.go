@@ -3,10 +3,14 @@ package permission_handler
 import (
 	"encoding/json"
 	"fmt"
+
 	// "fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
@@ -19,8 +23,7 @@ import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
-	local_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	// local_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 )
 
 type PermissionHandler struct {
@@ -49,16 +52,13 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	maker_ID, full_name, phone_number, department, ok := extractUserContextClaims(r, w)
-	if !ok {
-		return
-	}
+	makerUser := contexts.ExtractUserContext(r)
 
 	cpsAction := model.CPSAction{
-		MakerID:          maker_ID,
-		MakerName:        full_name,
-		MakerPhoneNumber: phone_number,
-		Department:       department,
+		MakerID:          makerUser.UserID,
+		MakerName:        makerUser.FullName,
+		MakerPhoneNumber: makerUser.PhoneNumber,
+		Department:       makerUser.Department,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(entities.ActionCreate),
 		RequestAction:    string(entities.RequestPermissionGroup),
@@ -71,31 +71,23 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", maker_ID)
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS ")
-	data, _ := util.StructToMap(cpsAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusCreated)
+	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", makerUser.UserID)
+
+	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request  created successfully")
+
 }
 
 func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
-	Checker_ID, full_name, phone_number, department, ok := extractUserContextClaims(r, w)
-
-	fmt.Println("handler========================================")
-	fmt.Println(Checker_ID, full_name, phone_number, department, ok)
-	fmt.Println("handler========================================")
-
-	if !ok {
-		return
-	}
+	checkerUser := contexts.ExtractUserContext(r)
 
 	h.logger.Infof("[ApprovePermissionGroup] approving action %s", actionCode)
 
 	checker := model.CPSAction{
-		CheckerID:          Checker_ID,
-		CheckerName:        full_name,
-		CheckerPhoneNumber: phone_number,
-		Department:         department,
+		CheckerID:          checkerUser.UserID,
+		CheckerName:        checkerUser.FullName,
+		CheckerPhoneNumber: checkerUser.PhoneNumber,
+		Department:         checkerUser.Department,
 	}
 
 	approvedAction, err := h.permissionService.ApprovePermissionGroup(actionCode, checker)
@@ -104,9 +96,7 @@ func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *htt
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(approvedAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusCreated)
+	common_util.WriteSuccessResponse(w, approvedAction, "Action Approved")
 }
 
 func (h *PermissionHandler) RejectPermissionGroup(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +109,7 @@ func (h *PermissionHandler) RejectPermissionGroup(w http.ResponseWriter, r *http
 	var payload struct {
 		Reason string `json:"rejection_reason"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		h.logger.Errorf("[RejectPermissionGroup] failed to decode request: %v", err)
 		util.SendErrorResponse(w, "Invalid request payload", http.StatusBadRequest, nil)
@@ -144,9 +135,7 @@ func (h *PermissionHandler) RejectPermissionGroup(w http.ResponseWriter, r *http
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(rejectedAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusCreated)
+	common_util.WriteSuccessResponse(w, rejectedAction, "Action Rejected")
 }
 
 // Extracts and validates user context claims, returns user info and ok flag
@@ -157,18 +146,22 @@ func extractUserContextClaims(r *http.Request, w http.ResponseWriter) (userID, f
 	department, ok4 := r.Context().Value(constant.ContextKey("department")).(string)
 
 	if !ok1 || userID == "" {
+		fmt.Println("[extractUserContextClaims] missing or invalid user_code in context")
 		util.SendErrorResponse(w, "missing or invalid user_code in context", http.StatusBadRequest, nil)
 		return
 	}
 	if !ok2 || fullName == "" {
+		fmt.Println("[extractUserContextClaims] missing or invalid full_name in context")
 		util.SendErrorResponse(w, "missing or invalid full_name in context", http.StatusBadRequest, nil)
 		return
 	}
 	if !ok3 || phoneNumber == "" {
+		fmt.Println("[extractUserContextClaims] missing or invalid phone_number in context")
 		util.SendErrorResponse(w, "missing or invalid phone_number in context", http.StatusBadRequest, nil)
 		return
 	}
 	if !ok4 || department == "" {
+		fmt.Println("[extractUserContextClaims] missing or invalid department in context")
 		util.SendErrorResponse(w, "missing or invalid department in context", http.StatusBadRequest, nil)
 		return
 	}

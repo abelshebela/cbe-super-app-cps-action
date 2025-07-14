@@ -230,9 +230,12 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action m
 		"checker_name":         action.CheckerName,
 		"checker_id":           action.CheckerID,
 		"checker_phone_number": action.CheckerPhoneNumber,
-		"action_status":        entities.ActionApproved,
+		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
+	fmt.Println("persistance 0000000000000000000000000000000000000")
+	fmt.Println("approve", update)
+	fmt.Println("persistance 0000000000000000000000000000000000000")
 
 	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -249,7 +252,7 @@ func (r *PermissionPersistence) RejectActionRequest(actionCode string, action mo
 		"checker_id":           action.CheckerID,
 		"rejection_reason":     rejectedReason,
 		"checker_phone_number": action.CheckerPhoneNumber,
-		"action_status":        entities.ActionRejected,
+		"action_status":        model.ActionRejected,
 		"checker_action_time":  time.Now(),
 	}
 	rejectedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)

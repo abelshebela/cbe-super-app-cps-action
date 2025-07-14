@@ -11,6 +11,12 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type PermissionDomainService interface {
+	CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
+	ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error)
+	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
+}
+
 type Service struct {
 	cpsActionRepo          CPSActionRepository
 	permissionGroupRepo    PermissionGroupRepository
@@ -65,16 +71,27 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 }
 
 func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
-	action, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
+
+	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
 		return model.CPSAction{}, err
 	}
 
-	switch action.ActionType {
+	// Set checker fields from input action to CreatedAction
+	CreatedAction.CheckerID = action.CheckerID
+	CreatedAction.CheckerName = action.CheckerName
+	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
+	// CreatedAction.Department = action.Department
+
+	fmt.Println("domain-----------------------------------")
+	fmt.Println(action.CheckerName, "action type: ", action.ActionType)
+	fmt.Println("domain-----------------------------------")
+
+	switch CreatedAction.ActionType {
 	case "CREATE":
-		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(CreatedAction)
 	case "UPDATE":
-		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(CreatedAction)
 	default:
 		return model.CPSAction{}, errors.New("invalid action type")
 	}
@@ -83,7 +100,7 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSActi
 		return model.CPSAction{}, err
 	}
 
-	approvedAction, err := s.cpsActionRepo.ApproveActionRequest(actionCode, action)
+	approvedAction, err := s.cpsActionRepo.ApproveActionRequest(actionCode, CreatedAction)
 	if err != nil {
 		return model.CPSAction{}, err
 	}
@@ -91,12 +108,15 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSActi
 }
 
 func (s *Service) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
-	action, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
+	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
 		return model.CPSAction{}, err
 	}
+	CreatedAction.CheckerID = action.CheckerID
+	CreatedAction.CheckerName = action.CheckerName
+	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
 
-	rejectedAction, err := s.cpsActionRepo.RejectActionRequest(actionCode, action, reason)
+	rejectedAction, err := s.cpsActionRepo.RejectActionRequest(actionCode, CreatedAction, reason)
 	if err != nil {
 		return model.CPSAction{}, err
 	}
