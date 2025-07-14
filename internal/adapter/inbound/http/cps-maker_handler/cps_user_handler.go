@@ -86,7 +86,12 @@ func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *htt
 		return
 	}
 
-	local_util.BaseResponseMaker(userActions, w, "Pending users fetched successfully", 200)
+	data, err := local_util.StructToMap(userActions)
+	if err != nil {
+		local_util.SendErrorResponse(w, "UNHANDLER_SERVER_ERROR", 500, nil)
+		return
+	}
+	local_util.BaseResponseMaker(data, w, "Pending users fetched successfully", 200)
 }
 
 func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
