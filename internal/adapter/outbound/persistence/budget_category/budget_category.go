@@ -80,17 +80,17 @@ func (b *BudgetCategoryRepo) CreateAction(
 	}
 
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-
 	cpsAction := action_entity.CPSAction{
-		ActionCode:     actionId,
-		Maker:          maker,
-		ActionType:     actionType,
-		RequestAction:  action_entity.RequestAction(requestAction),
-		ActionStatus:   action_entity.ActionPending,
-		CurrentAction:  data,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-		IsDeleted:      false,
+		ActionCode:       actionId,
+		MakerID:          maker.UserID, 
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		ActionType:       actionType,
+		RequestAction:    action_entity.RequestAction(requestAction),
+		ActionStatus:     action_entity.ActionPending,
+		CurrentAction:    data,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
 
 	result, err := b.cpsDal.InsertOne(ctx, cpsAction)

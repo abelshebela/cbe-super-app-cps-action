@@ -8,8 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -37,38 +36,40 @@ func (m *MockCPSUserRepo) EXPECT() *MockCPSUserRepoMockRecorder {
 }
 
 // ApproveUserAction mocks base method.
-func (m *MockCPSUserRepo) ApproveUserAction(ctx context.Context, r *http.Request, userData userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error) error {
+func (m *MockCPSUserRepo) ApproveUserAction(ctx context.Context, actionCode string, checker model.CPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApproveUserAction", ctx, actionID, approve, reason)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "ApproveUserAction", ctx, actionCode, checker)
+	ret0, _ := ret[0].(*model.CPSAction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ApproveUserAction indicates an expected call of ApproveUserAction.
-func (mr *MockCPSUserRepoMockRecorder) ApproveUserAction(ctx, actionID, approve, reason interface{}) *gomock.Call {
+func (mr *MockCPSUserRepoMockRecorder) ApproveUserAction(ctx, actionCode, checker interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveUserAction", reflect.TypeOf((*MockCPSUserRepo)(nil).ApproveUserAction), ctx, actionID, approve, reason)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveUserAction", reflect.TypeOf((*MockCPSUserRepo)(nil).ApproveUserAction), ctx, actionCode, checker)
 }
 
 // CreateUserRequest mocks base method.
-func (m *MockCPSUserRepo) CreateUserRequest(ctx context.Context, action action.CPSUser, maker action.User) (*model.CPSAction, error) {
+func (m *MockCPSUserRepo) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUserRequest", ctx, action, maker)
-	ret0, _ := ret[0].(error)
-	return nil, ret0
+	ret := m.ctrl.Call(m, "CreateUserRequest", ctx, cpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateUserRequest indicates an expected call of CreateUserRequest.
-func (mr *MockCPSUserRepoMockRecorder) CreateUserRequest(ctx, action, maker interface{}) *gomock.Call {
+func (mr *MockCPSUserRepoMockRecorder) CreateUserRequest(ctx, cpsAction interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserRequest", reflect.TypeOf((*MockCPSUserRepo)(nil).CreateUserRequest), ctx, action, maker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserRequest", reflect.TypeOf((*MockCPSUserRepo)(nil).CreateUserRequest), ctx, cpsAction)
 }
 
 // FetchUserByUserCode mocks base method.
-func (m *MockCPSUserRepo) FetchUserByUserCode(ctx context.Context, userCode string) (*action.CPSUser, error) {
+func (m *MockCPSUserRepo) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchUserByUserCode", ctx, userCode)
-	ret0, _ := ret[0].(*action.CPSUser)
+	ret0, _ := ret[0].(*model.CPSUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,30 +81,31 @@ func (mr *MockCPSUserRepoMockRecorder) FetchUserByUserCode(ctx, userCode interfa
 }
 
 // GetPendingUserActions mocks base method.
-func (m *MockCPSUserRepo) GetPendingUserActions(ctx context.Context, actionCode string) ([]action.CPSAction, error) {
+func (m *MockCPSUserRepo) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPendingUserActions", ctx, actionCode)
-	ret0, _ := ret[0].([]action.CPSAction)
+	ret := m.ctrl.Call(m, "GetPendingUserActions", ctx)
+	ret0, _ := ret[0].([]model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPendingUserActions indicates an expected call of GetPendingUserActions.
-func (mr *MockCPSUserRepoMockRecorder) GetPendingUserActions(ctx, actionCode interface{}) *gomock.Call {
+func (mr *MockCPSUserRepoMockRecorder) GetPendingUserActions(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPendingUserActions", reflect.TypeOf((*MockCPSUserRepo)(nil).GetPendingUserActions), ctx, actionCode)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPendingUserActions", reflect.TypeOf((*MockCPSUserRepo)(nil).GetPendingUserActions), ctx)
 }
 
 // UpdateUserRequest mocks base method.
-func (m *MockCPSUserRepo) UpdateUserRequest(ctx context.Context, updated action.CPSUser, maker action.User) (*model.CPSAction, error) {
+func (m *MockCPSUserRepo) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserRequest", ctx, updated, maker)
-	ret0, _ := ret[0].(error)
-	return nil, ret0
+	ret := m.ctrl.Call(m, "UpdateUserRequest", ctx, cpsAction, userCode)
+	ret0, _ := ret[0].(*model.CPSAction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateUserRequest indicates an expected call of UpdateUserRequest.
-func (mr *MockCPSUserRepoMockRecorder) UpdateUserRequest(ctx, updated, maker interface{}) *gomock.Call {
+func (mr *MockCPSUserRepoMockRecorder) UpdateUserRequest(ctx, cpsAction, userCode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRequest", reflect.TypeOf((*MockCPSUserRepo)(nil).UpdateUserRequest), ctx, updated, maker)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRequest", reflect.TypeOf((*MockCPSUserRepo)(nil).UpdateUserRequest), ctx, cpsAction, userCode)
 }
