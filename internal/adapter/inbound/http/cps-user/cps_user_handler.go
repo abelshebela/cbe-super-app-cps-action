@@ -3,7 +3,7 @@ package cpsmakerhandler
 import (
 	"net/http"
 
-	cpsapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
+	cpsapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
