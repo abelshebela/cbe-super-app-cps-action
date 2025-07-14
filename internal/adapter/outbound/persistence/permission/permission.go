@@ -76,6 +76,7 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 
 	filter := bson.M{"group_name": groupName, "is_deleted": false}
 	result, err := r.permissionGroupsDal.FindOne(ctx, filter, bson.M{})
+
 	if err != nil {
 		r.logger.Errorf("CheckPermissionGroupExists failed:", err)
 		return false
@@ -222,9 +223,6 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPS
 func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error) {
 	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
-	fmt.Println("persistance =========================================")
-	fmt.Println(action.CheckerID)
-	fmt.Println("=========================================")
 
 	update := bson.M{
 		"checker_name":         action.CheckerName,
@@ -233,9 +231,6 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action m
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
-	fmt.Println("persistance 0000000000000000000000000000000000000")
-	fmt.Println("approve", update)
-	fmt.Println("persistance 0000000000000000000000000000000000000")
 
 	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
