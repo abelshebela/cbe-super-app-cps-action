@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/mock/gomock"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -138,15 +139,15 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 			Label:  "Test Avatar",
 			Enable: true,
 		}
-		expectedCpsAction := model.CpsAction{
-			ID:              "CPS001",
+		expectedCpsAction := model.CPSAction{
+			ID:              bson.NewObjectID(),
 			ActionCode:      "ACT001",
-			MakerUser:       testUser,
+			MakerName:       testUser.FullName,
 			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestCreateAvatar,
-			ActionType:      model.ActionCreate,
-			ActionData:      expectedAvatar,
+			ActionStatus:    string(model.ActionPending),
+			RequestAction:   string(model.RequestCreateAvatar),
+			ActionType:      string(model.ActionCreate),
+			CurrentAction:   expectedAvatar,
 			MakerActionTime: testTime,
 		}
 
@@ -178,7 +179,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 
 		result, err := avatarService.CreateAvatar(context.Background(), testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 
 	t.Run("validation error file size should be less than 2MB", func(t *testing.T) {
@@ -208,7 +209,7 @@ func TestAvatarDomain_CreateAvatar(t *testing.T) {
 		result, err := avatarService.CreateAvatar(context.Background(), testCPSAction)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "file size should be less than 2MB")
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 }
 
@@ -241,20 +242,20 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 			ActionData:      nil,
 			MakerActionTime: testTime,
 		}
-		expectedCpsAction := model.CpsAction{
-			ID:              "CPS003",
-			ActionCode:      "ACT003",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          "PENDING",
-			RequestAction:   "DELETE_AVATAR",
-			ActionType:      "DELETE",
-			ActionData:      nil,
-			MakerActionTime: testTime,
-		}
+		expectedCpsAction := model.CPSAction{
 
-		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
-		mockRepo.EXPECT().DeleteAvatar(gomock.Any(), avatarID, gomock.Any()).Return(expectedCpsAction, nil)
+			ID:               bson.NewObjectID(),
+			ActionCode:       "ACT003",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     "PENDING",
+			RequestAction:    "DELETE_AVATAR",
+			ActionType:       "DELETE",
+			CurrentAction:    nil,
+			MakerActionTime:  testTime,
+		}
 
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.NoError(t, err)
@@ -264,7 +265,6 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 	t.Run("CPS action exists error", func(t *testing.T) {
 		avatarID := "AVATAR002"
 		testCPSAction := model.CreateCPSAction{
-			ActionCode:      "ACT004",
 			MakerUser:       testUser,
 			Department:      "IT",
 			Status:          "PENDING",
@@ -278,7 +278,7 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "CPS action already exists")
 	})
 
@@ -296,11 +296,11 @@ func TestAvatarDomain_DeleteAvatar(t *testing.T) {
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
-		mockRepo.EXPECT().DeleteAvatar(gomock.Any(), avatarID, gomock.Any()).Return(model.CpsAction{}, fmt.Errorf("avatar not found"))
+		mockRepo.EXPECT().DeleteAvatar(gomock.Any(), avatarID, gomock.Any()).Return(model.CPSAction{}, fmt.Errorf("avatar not found"))
 
 		result, err := avatarService.DeleteAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "avatar not found")
 	})
 }
@@ -356,16 +356,18 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 			Label:  "Old Avatar",
 			Enable: true,
 		}
-		expectedCpsAction := model.CpsAction{
-			ID:              "CPS006",
-			ActionCode:      "ACT006",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestUpdateAvatar,
-			ActionType:      model.ActionUpdate,
-			ActionData:      expectedAvatar,
-			MakerActionTime: testTime,
+		expectedCpsAction := model.CPSAction{
+			ID:               bson.NewObjectID(),
+			ActionCode:       "ACT006",
+			MakerID:          testUser.UserCode,
+			MakerName:        testUser.FullName,
+			MakerPhoneNumber: testUser.PhoneNumber,
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestUpdateAvatar),
+			ActionType:       string(model.ActionUpdate),
+			CurrentAction:    expectedAvatar,
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -397,7 +399,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 
 		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "CPS action already exists")
 	})
 
@@ -422,7 +424,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 
 		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "avatar not found")
 	})
 
@@ -453,7 +455,7 @@ func TestAvatarDomain_UpdateAvatar(t *testing.T) {
 		result, err := avatarService.UpdateAvatar(context.Background(), avatarID, testCPSAction)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "file size should be less than 2MB")
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 }
 
@@ -619,18 +621,22 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			Department:  "IT",
 		}
 
-		expectedCpsAction := model.CpsAction{
-			ID:                "CPS001",
-			ActionCode:        actionCode,
-			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
-			CheckerUser:       testCheckerUser,
-			Department:        "IT",
-			Status:            model.ActionApproved,
-			RequestAction:     model.RequestCreateAvatar,
-			ActionType:        model.ActionCreate,
-			ActionData:        avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
-			MakerActionTime:   testTime,
-			CheckerActionTime: testTime,
+		expectedCpsAction := model.CPSAction{
+			ID:                 bson.NewObjectID(),
+			ActionCode:         actionCode,
+			MakerID:            "USER001",
+			MakerName:          "John Doe",
+			MakerPhoneNumber:   "+251911234567",
+			CheckerID:          testCheckerUser.UserCode,
+			CheckerName:        testCheckerUser.FullName,
+			CheckerPhoneNumber: testCheckerUser.PhoneNumber,
+			Department:         "IT",
+			ActionStatus:       string(model.ActionApproved),
+			RequestAction:      string(model.RequestCreateAvatar),
+			ActionType:         string(model.ActionCreate),
+			CurrentAction:      avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
+			MakerActionTime:    testTime,
+			CheckerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(expectedCpsAction, nil)
@@ -648,11 +654,11 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			Department:  "IT",
 		}
 
-		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(model.CpsAction{}, fmt.Errorf("action not found"))
+		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(model.CPSAction{}, fmt.Errorf("action not found"))
 
 		result, err := avatarService.Authorize(context.Background(), testAuthorizeReq)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "action not found")
 	})
 }
@@ -685,19 +691,23 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			RejectedReason: "The uploaded image does not meet the required specifications and quality standards.",
 		}
 
-		expectedCpsAction := model.CpsAction{
-			ID:                "CPS001",
-			ActionCode:        actionCode,
-			MakerUser:         model.User{UserCode: "USER001", FullName: "John Doe", PhoneNumber: "+251911234567"},
-			CheckerUser:       testCheckerUser,
-			Department:        "IT",
-			Status:            model.ActionRejected,
-			RequestAction:     model.RequestCreateAvatar,
-			ActionType:        model.ActionCreate,
-			ActionData:        avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
-			RejectedReason:    "The uploaded image does not meet the required specifications and quality standards.",
-			MakerActionTime:   testTime,
-			CheckerActionTime: testTime,
+		expectedCpsAction := model.CPSAction{
+			ID:                 bson.NewObjectID(),
+			ActionCode:         actionCode,
+			MakerID:            "USER001",
+			MakerName:          "John Doe",
+			MakerPhoneNumber:   "+251911234567",
+			CheckerID:          testCheckerUser.UserCode,
+			CheckerName:        testCheckerUser.FullName,
+			CheckerPhoneNumber: testCheckerUser.PhoneNumber,
+			Department:         "IT",
+			ActionStatus:       string(model.ActionRejected),
+			RequestAction:      string(model.RequestCreateAvatar),
+			ActionType:         string(model.ActionCreate),
+			CurrentAction:      avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
+			RejectionReason:    "The uploaded image does not meet the required specifications and quality standards.",
+			MakerActionTime:    testTime,
+			CheckerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(expectedCpsAction, nil)
@@ -720,7 +730,7 @@ func TestAvatarDomain_Reject(t *testing.T) {
 
 		result, err := avatarService.Reject(context.Background(), testRejectReq)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 	})
 
 	t.Run("rejection failed", func(t *testing.T) {
@@ -734,11 +744,11 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			RejectedReason: "Action not found. The requested action could not be located in the system.",
 		}
 
-		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(model.CpsAction{}, fmt.Errorf("action not found"))
+		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(model.CPSAction{}, fmt.Errorf("action not found"))
 
 		result, err := avatarService.Reject(context.Background(), testRejectReq)
 		assert.Error(t, err)
-		assert.Equal(t, model.CpsAction{}, result)
+		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "action not found")
 	})
 }
@@ -773,16 +783,18 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 			MakerActionTime: testTime,
 		}
 
-		expectedCpsAction := &model.CpsAction{
-			ID:              "CPS010",
-			ActionCode:      "ACT010",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestEnableAvatar,
-			ActionType:      model.ActionUpdate,
-			ActionData:      avatar.Avatar{ID: avatarID},
-			MakerActionTime: testTime,
+		expectedCpsAction := &model.CPSAction{
+			ID:               bson.NewObjectID(),
+			ActionCode:       "ACT010",
+			MakerID:          "USER001",
+			MakerName:        "John Doe",
+			MakerPhoneNumber: "+251911234567",
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestEnableAvatar),
+			ActionType:       string(model.ActionUpdate),
+			CurrentAction:    avatar.Avatar{ID: avatarID},
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)
@@ -806,16 +818,18 @@ func TestAvatarDomain_EnableOrDisableAvatar(t *testing.T) {
 			MakerActionTime: testTime,
 		}
 
-		expectedCpsAction := &model.CpsAction{
-			ID:              "CPS011",
-			ActionCode:      "ACT011",
-			MakerUser:       testUser,
-			Department:      "IT",
-			Status:          model.ActionPending,
-			RequestAction:   model.RequestDisableAvatar,
-			ActionType:      model.ActionUpdate,
-			ActionData:      avatar.Avatar{ID: avatarID},
-			MakerActionTime: testTime,
+		expectedCpsAction := &model.CPSAction{
+			ID:               bson.NewObjectID(),
+			ActionCode:       "ACT011",
+			MakerID:          "USER001",
+			MakerName:        "John Doe",
+			MakerPhoneNumber: "+251911234567",
+			Department:       "IT",
+			ActionStatus:     string(model.ActionPending),
+			RequestAction:    string(model.RequestDisableAvatar),
+			ActionType:       string(model.ActionUpdate),
+			CurrentAction:    avatar.Avatar{ID: avatarID},
+			MakerActionTime:  testTime,
 		}
 
 		mockRepo.EXPECT().CPSActionExists(gomock.Any(), gomock.Any()).Return(nil)

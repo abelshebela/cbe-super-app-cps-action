@@ -7,9 +7,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	accountblock "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block"
 
-	"github.com/go-chi/chi/v5"
-
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"github.com/go-chi/chi/v5"
 )
 
 func RegisterAccountBlockRoutes(
@@ -17,7 +16,7 @@ func RegisterAccountBlockRoutes(
 	handler accountblock.AccountBlockHandler,
 	authMiddleware middleware.AuthMiddleware,
 ) {
-	router.Route("/api/v1/cbesuperapp/cps_action/account_block", func(r chi.Router) {
+	router.Route("/account_block", func(r chi.Router) {
 		routes := []sharedhttp.Route{
 			{
 				Method:  http.MethodPost,
@@ -102,8 +101,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/region/{id}",
-				Handler: handler.GetRegionByID,
+				Path:    "/region",
+				Handler: handler.GetRegionByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -129,8 +128,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/district/{id}",
-				Handler: handler.GetDistrictByID,
+				Path:    "/district",
+				Handler: handler.GetDistrictByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -156,8 +155,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/city/{id}",
-				Handler: handler.GetCityByID,
+				Path:    "/city",
+				Handler: handler.GetCityByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -183,8 +182,8 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/user/{id}",
-				Handler: handler.GetUserByID,
+				Path:    "/user",
+				Handler: handler.GetUserByPhone,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),

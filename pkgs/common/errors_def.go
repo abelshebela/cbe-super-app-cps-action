@@ -16,9 +16,11 @@ type ErrorDefinitions struct {
 	OTP         ErrorGroup
 	File        ErrorGroup
 	Branch      ErrorGroup
+	Region      ErrorGroup
 	Department  ErrorGroup
 	Bank        ErrorGroup
 	Action      ErrorGroup
+	Wallet      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -471,6 +473,126 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_112",
 			Message: "cps user not found",
 		},
+		"REQUIRED_FIELDS_MISSING": {
+			Code:    "GEN_113",
+			Message: "One or more required fields are missing.",
+		},
+		"VALIDATION_RULE_ID_MISMATCH": {
+			Code:    "GEN_114",
+			Message: "Validation rule ID does not match the expected value.",
+		},
+		"FAILED_TO_UPDATE_VALIDATION_RULE": {
+			Code:    "GEN_115",
+			Message: "Failed to update the validation rule.",
+		},
+		"FAILED_TO_UNMARSHAL_CURRENT_ACTION": {
+			Code:    "GEN_116",
+			Message: "Failed to parse the current action data.",
+		},
+		"CURRENT_ACTION_INVALID_TYPE": {
+			Code:    "GEN_117",
+			Message: "Current action has an invalid data type.",
+		},
+		"CURRENT_ACTION_NIL": {
+			Code:    "GEN_118",
+			Message: "Current action is missing or nil.",
+		},
+		"ACTION_NOT_PENDING": {
+			Code:    "GEN_119",
+			Message: "Action is not in a pending state.",
+		},
+		"CHECKER_ID_EMPTY": {
+			Code:    "GEN_120",
+			Message: "Checker ID is required but was not provided.",
+		},
+		"ACTION_ID_EMPTY": {
+			Code:    "GEN_121",
+			Message: "Action ID is required but was not provided.",
+		},
+		"FAILED_TO_MARSHAL_CURRENT_ACTION": {
+			Code:    "GEN_122",
+			Message: "Failed to serialize the current action data.",
+		},
+		"FAILED_TO_MARSHAL_PREVIOUS_ACTION": {
+			Code:    "GEN_123",
+			Message: "Failed to serialize the previous action data.",
+		},
+		"PENDING_ACTION_EXISTS": {
+			Code:    "GEN_124",
+			Message: "A pending action already exists for this validation rule.",
+		},
+		"FAILED_TO_FETCH_PENDING_ACTIONS": {
+			Code:    "GEN_125",
+			Message: "Failed to fetch pending actions for this validation rule.",
+		},
+		"FAILED_TO_GET_AD": {
+			Code:    "GEN_213",
+			Message: "Failed to get ad.",
+		},
+		"ADVERT_NOT_FOUND": {
+			Code:    "GEN_214",
+			Message: "advert not found",
+		},
+		"FAILED_TO_CAST_ACTION_DATA": {
+			Code:    "GEN_215",
+			Message: "failed to cast action data to ad request",
+		},
+		"FAILED_TO_CHECK_AD_BUCKET": {
+			Code:    "GEN_216",
+			Message: "failed to check ad bucket",
+		},
+		"FAILED_TO_CREATE_AD_BUCKET": {
+			Code:    "GEN_217",
+			Message: "failed to create ad bucket",
+		},
+		"FAILED_TO_OPEN_FILE": {
+			Code:    "GEN_218",
+			Message: "failed to create ad bucket",
+		},
+		"FAILED_TO_SAVE_OBJECT_TO_MINIO": {
+			Code:    "GEN_219",
+			Message: "failed to save object to MinIO",
+		},
+		"TIERS_REQUIRED": {
+			Code:    "GEN_126",
+			Message: "At least one tier is required.",
+		},
+		"TIERS_FIRST_MIN_ZERO": {
+			Code:    "GEN_127",
+			Message: "The first tier's minimum must start from 0.",
+		},
+		"TIERS_MIN_MUST_EQUAL_PREV_MAX": {
+			Code:    "GEN_127",
+			Message: "Tier minimum must equal the previous tier's maximum.",
+		},
+		"TIERS_MAX_MUST_INCREASE": {
+			Code:    "GEN_129",
+			Message: "Tier maximum must be greater than the previous tier's maximum.",
+		},
+		"TIERS_ABOVE_AMOUNT_MISMATCH": {
+			Code:    "GEN_130",
+			Message: "Above amount must match the last tier's maximum value.",
+		},
+		"NOT_IMPLEMENTED": {
+			Code:    "GEN_131",
+			Message: "Not implemented.",
+		},
+		"INPUT_TOO_LONG": {
+			Code:    "GEN_132",
+			Message: "Input exceeds maximum allowed length.",
+		},
+		"INPUT_INVALID_CHARACTERS": {
+			Code:    "GEN_133",
+			Message: "Input contains invalid characters.",
+		},
+		"PAGE_NOT_FOUND": {
+			Code:    "GEN_134",
+			Message: "Page not found",
+		},
+		"FAILED_TO_GET_AVATAR": {
+			Code:    "GEN_132",
+			Message: "failed to get avatar",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -657,10 +779,58 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACC_013",
 			Message: "Account is already linked to another user.",
 		},
+		"BLOCKED_ACTION_USER_ALREADY_EXIST": {
+			Code:    "AUTH_029",
+			Message: "A pending or approved block action already exists for this user",
+		},
+		"BRANCH_DISABLE_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_008",
+			Message: "A pending or approved disable action already exists for this branch",
+		},
+		"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_010",
+			Message: "A pending or approved disable action already exists for one or more of the selected branches",
+		},
+		"BRANCH_BULK_ACTION_ALREADY_PROCESSED": {
+			Code:    "BRN_011",
+			Message: "This bulk action has already been processed for one or more branches",
+		},
+		"BRANCH_ID_REQUIRED": {
+			Code:    "BRN_006",
+			Message: "Branch ID is required.",
+		},
+		"BRANCH_REGION_AND_DISTRICT_REQUIRED": {
+			Code:    "BRN_012",
+			Message: "Region and district are required",
+		},
+		"BRANCH_REGION_AND_DISTRICT_MIN_LENGTH": {
+			Code:    "BRN_014",
+			Message: "Region and district must be at least 3 characters",
+		},
+		"FAILED_TO_FETCH_BRANCHES": {
+			Code:    "BRN_013",
+			Message: "Failed to fetch branches",
+		},
+		"INVALID_JSON_PAYLOAD": {
+			Code:    "GEN_001",
+			Message: "Invalid JSON body",
+		},
+		"BRANCH_NOT_FOUND": {
+			Code:    "BRN_001",
+			Message: "No branch found for the given region and district",
+		},
+		"UNHANDLED_SERVER_ERROR": {
+			Code:    "GEN_004",
+			Message: "Internal server error",
+		},
 		// Additional missing error from the other definition
 		"ACCOUNT_UPDATE_FAILED": {
 			Code:    "ACC_014",
 			Message: "Failed to update account.",
+		},
+		"ACCOUNT_BLOCKED": {
+			Code:    "ACC_014",
+			Message: "The account is blocked.",
 		},
 	},
 	OTP: ErrorGroup{
@@ -718,10 +888,9 @@ var DefineError = ErrorDefinitions{
 			Code:    "FILE_005",
 			Message: "Failed to upload file.",
 		},
-		// Additional missing error from the other definition
-		"MISSING_OR_INVALID_LOGO": {
+		"MISSING_OR_INVALID_IMAGE": {
 			Code:    "FILE_006",
-			Message: "Missing or invalid logo.",
+			Message: "Missing or invalid image.",
 		},
 	},
 	Branch: ErrorGroup{
@@ -780,7 +949,27 @@ var DefineError = ErrorDefinitions{
 	Bank: ErrorGroup{
 		"BANKS_NOT_FOUND": {
 			Code:    "BNK_001",
-			Message: "Banks data not found.",
+			Message: "Bank data not found.",
+		},
+		"INVALID_BANK_NAME": {
+			Code:    "BNK_002",
+			Message: "Bank name must be between 3 and 10 alphabetic characters.",
+		},
+		"MISSING_BANK_NAME": {
+			Code:    "BNK_003",
+			Message: "Bank name is required.",
+		},
+		"MISSING_BANK_CODE": {
+			Code:    "BNK_004",
+			Message: "Bank code is required.",
+		},
+		"MISSING_BANK_BIC": {
+			Code:    "BNK_005",
+			Message: "Bank identifier code (BIC) is required.",
+		},
+		"BANK_ALREADY_EXISTS": {
+			Code:    "BNK_006",
+			Message: "Bank with this name already exists.",
 		},
 	},
 	Action: ErrorGroup{
@@ -812,11 +1001,92 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACT_007",
 			Message: "Failed to check pending actions.",
 		},
+		"FAILED_TO_CREATE_ACTION": {
+			Code:    "ACT_008",
+			Message: "Unable to create action.",
+		},
+		"ACTION_NOT_PENDING": {
+			Code:    "ACT_009",
+			Message: "Action is not in pending status.",
+		},
+		"FAILED_TO_UPDATE_ACTION": {
+			Code:    "ACT_010",
+			Message: "Failed to update action.",
+		}, "FAILED_TO_FETCH_ACTION": {
+			Code:    "ACT_011",
+			Message: "Failed to fetch action.",
+		},
+		"FAILED_TO_UPDATE_SERVICE": {
+			Code:    "ACT_012",
+			Message: "Failed to update service details.",
+		},
+		"FAILED_TO_UPDATE_CAP_MIN": {
+			Code:    "ACT_013",
+			Message: "Failed to update cap minimum amount.",
+		},
+		"MISSING_REJECT_REASON": {
+			Code:    "ACT_014",
+			Message: "Missing reason for rejection.",
+		},
+		"REJECT_REASON_TOO_SHORT": {
+			Code:    "ACT_015",
+			Message: "Rejection reason must be at between 30 to 100 characters long.",
+		},
 	},
 	User: ErrorGroup{
 		"USER_STATUS_UPDATE_FAILED": {
 			Code:    "USR_001",
 			Message: "Failed to update user status.",
+		},
+	},
+	Wallet: ErrorGroup{
+		"WALLET_NOT_FOUND": {
+			Code:    "WAL_001",
+			Message: "Wallet not found.",
+		},
+		"WALLET_CREATION_FAILED": {
+			Code:    "WAL_002",
+			Message: "Failed to create wallet.",
+		},
+		"WALLET_UPDATE_FAILED": {
+			Code:    "WAL_003",
+			Message: "Failed to update wallet.",
+		},
+		"WALLET_DELETION_FAILED": {
+			Code:    "WAL_004",
+			Message: "Failed to delete wallet.",
+		},
+		"WALLET_BALANCE_INSUFFICIENT": {
+			Code:    "WAL_005",
+			Message: "Insufficient wallet balance.",
+		},
+		"WALLET_TRANSACTION_FAILED": {
+			Code:    "WAL_006",
+			Message: "Failed to process wallet transaction.",
+		},
+		"WALLET_NOT_ACTIVE": {
+			Code:    "WAL_007",
+			Message: "Wallet is not active.",
+		},
+		"WALLET_ALREADY_EXISTS": {
+			Code:    "WAL_008",
+			Message: "Wallet with this ID already exists.",
+		},
+		"WALLET_TYPE_NOT_SUPPORTED": {
+			Code:    "WAL_009",
+			Message: "Wallet type is not supported.",
+		},
+		"WALLET_LIMIT_EXCEEDED": {
+			Code:    "WAL_010",
+			Message: "Wallet limit exceeded.",
+		},
+		"WALLET_TRANSACTION_NOT_FOUND": {
+			Code:    "WAL_011",
+			Message: "Wallet transaction not found.",
+		},
+		"WALLET_TRANSACTION_ALREADY_EXISTS": {
+			Code:    "WAL_012",
+			Message: "Wallet transaction already exists.",
 		},
 	},
 }

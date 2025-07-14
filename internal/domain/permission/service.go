@@ -4,7 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -25,33 +26,44 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 	}
 }
 
-func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction entities.CPSAction) error {
-	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, cpsAction.ActionStatus, cpsAction.RequestAction); err != nil {
-		return errors.New("you have pending request for this action")
+func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
+		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
+		return model.CPSAction{}, errors.New("you have pending request for this action")
 	}
 
 	if exists := s.permissionGroupRepo.CheckPermissionGroupExists(groupName); exists {
-		return errors.New("permission group already exists")
+		s.logger.Warnf("Permission group already exists with name: %s", groupName)
+		return model.CPSAction{}, errors.New("permission group already exists")
 	}
 
 	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(permissionCategoryLists)
 	if err != nil {
-		return err
+		s.logger.Errorf("Failed to validate permission categories: %v", err)
+		return model.CPSAction{}, err
 	}
 
-	cpsAction.ActionCode = utils.Random(10, &utils.PreSufix{Prefix: "PER_GROUP_"})
+	cpsAction.ActionCode = utils.RandomGenerator(20)
 	cpsAction.CurrentAction = map[string]interface{}{
 		"group_name":            groupName,
 		"permission_categories": validCategories,
 		"role":                  role,
 		"realm":                 "bank",
 	}
+
 	cpsAction.MakerActionTime = time.Now()
 
-	return s.cpsActionRepo.CreatePermissionGroup(cpsAction)
+	cpsAction, err = s.cpsActionRepo.CreatePermissionGroup(cpsAction)
+	if err != nil {
+		s.logger.Errorf("Failed to create CPSAction: %v", err)
+		return model.CPSAction{}, err
+	}
+
+	s.logger.Infof("Successfully created permission group request with ActionCode: %s", cpsAction.ActionCode)
+	return cpsAction, nil
 }
 
-func (s *Service) ApprovePermissionGroup(actionCode string, action entities.CPSAction) error {
+func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) error {
 	action, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
 		return err
@@ -59,11 +71,15 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action entities.CPSA
 
 	switch action.ActionType {
 	case "CREATE":
-		return s.permissionGroupRepo.CreatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(action)
 	case "UPDATE":
-		return s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
 	default:
 		return errors.New("invalid action type")
+	}
+
+	if err != nil {
+		return err
 	}
 
 	if err := s.cpsActionRepo.ApproveActionRequest(actionCode, action); err != nil {

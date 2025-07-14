@@ -1,190 +1,311 @@
 package service
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"net/http"
-// 	"time"
+import (
+	"context"
+	"errors"
+	"time"
 
-// 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-// 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service/entity"
-// 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/service_details"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
-// 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
 
-// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-// 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
-// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-// 	"go.mongodb.org/mongo-driver/v2/bson"
-// 	"go.mongodb.org/mongo-driver/v2/mongo"
-// )
+type ServiceFeePersistence struct {
+	client        *mongo.Client
+	cpsDal        dal.MongoDal[service.CPSAction, service.CPSAction]
+	serviceFeeDal dal.MongoDal[service.Service, service.Service]
+	logger        utils.Logger
+}
 
-// type serviceFeeRepo struct {
-// 	client        *mongo.Client
-// 	logger        utils.Logger
-// 	cpsDal        dal.MongoDal[service.CPSAction, service.CPSAction]
-// 	serviceFeeDal dal.MongoDal[service.Service, service.Service]
-// }
+func NewServiceFeePersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) *ServiceFeePersistence {
+	return &ServiceFeePersistence{
+		client:        client,
+		cpsDal:        dal.NewMongoDal[service.CPSAction, service.CPSAction](client, dbName, collections[0]),
+		serviceFeeDal: dal.NewMongoDal[service.Service, service.Service](client, dbName, collections[1]),
+		logger:        logger,
+	}
+}
 
-// var _ outbound.ServiceFee = (*serviceFeeRepo)(nil)
+func (s *ServiceFeePersistence) GetAllServiceDetails(ctx context.Context) ([]*service.Service, error) {
+	ctxData := contexts.ExtractContext(ctx)
 
-// func InitFaydaAccountPersistence(client *mongo.Client, database string,
-// 	cpsCollection []string, logger utils.Logger) *serviceFeeRepo {
-// 	cpsDal := dal.NewMongoDal[service.CPSAction, service.CPSAction](client, database, cpsCollection[0])
-// 	serviceFeeDal := dal.NewMongoDal[service.Service, service.Service](client, database, cpsCollection[1])
-// 	return &serviceFeeRepo{
-// 		client:        client,
-// 		logger:        logger,
-// 		cpsDal:        cpsDal,
-// 		serviceFeeDal: serviceFeeDal,
-// 	}
-// }
+	filter := bson.M{
+		"department": ctxData.Department,
+		"is_deleted": "false",
+	}
+	projection := bson.M{}
+	data, err := s.serviceFeeDal.FindAll(ctx, filter, projection)
 
-// func (s *serviceFeeRepo) InitiateServiceFeeUpdate(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
-// 	filter := bson.M{
-// 		"maker_user.phone_number": req.MakerUser.PhoneNumber,
-// 		"status":                  "PENDING",
-// 		"department":              req.Department,
-// 	}
+	if err != nil {
+		return nil, err
+	}
 
-// 	projection := bson.M{}
+	return data, nil
+}
+func (s *ServiceFeePersistence) GetOneServiceDetail(ctx context.Context, id string) (*service.Service, error) {
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
 
-// 	FindAction, err := s.cpsDal.FindOne(ctx, filter, projection)
-// 	if err != nil && err != mongo.ErrNoDocuments {
-// 		s.logger.Errorf("failed to get cps Action", err)
-// 		err = fmt.Errorf("failed to get get cps action %w", constant.ErrorDefinition{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "internal server error",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
+	filter := bson.M{
+		"_id":        objectId,
+		"is_deleted": false,
+	}
+	projection := bson.M{
+		"action_code": 1,
+	}
+	serviceData, err := s.serviceFeeDal.FindOne(ctx, filter, projection)
 
-// 	if FindAction != nil {
-// 		s.logger.Infof("pending cps action present", req.MakerUser.FullName, req.MakerUser.UserCode, req.Department)
-// 		err = fmt.Errorf("failed to get cps action  %w", constant.ErrorDefinition{
-// 			Code:    http.StatusBadRequest,
-// 			Message: "pending cps action present",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
+	return serviceData, nil
+}
+func (s *ServiceFeePersistence) CreateService(ctx context.Context, req service.CPSAction) (*service.CPSAction, error) {
+	cpsAction := service.CPSAction{
+		ID:               primitive.NewObjectID().Hex(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          req.MakerID,
+		MakerName:        req.MakerName,
+		MakerPhoneNumber: req.MakerPhoneNumber,
+		Department:       req.Department,
+		ActionStatus:     service.ActionPending,
+		RequestAction:    service.RequestServiceFeeCreate,
+		ActionType:       service.ActionCreate,
+		CurrentAction:    req.CurrentAction,
+		MakerActionTime:  time.Now(),
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+	}
+	inserted, err := s.cpsDal.InsertOne(ctx, cpsAction)
 
-// 	serviceFilter := bson.M{
-// 		"action_code": req.ActionCode,
-// 	}
+	if err != nil {
+		s.logger.Errorf("failed to create cps action: %v", err)
+		return nil, err
+	}
+	return &inserted, nil
+}
 
-// 	serviceProjection := bson.M{}
+func (s *ServiceFeePersistence) DeleteService(ctx context.Context, id string, req service.CPSAction) (*service.CPSAction, error) {
+	// Find the service to get previous data
+	filter := bson.M{"id": id, "is_deleted": false}
+	projection := bson.M{"service_code": 1, "service_name": 1, "service_type": 1}
 
-// 	var serviceFee *service.Service
-// 	serviceFee, err = s.serviceFeeDal.FindOne(ctx, serviceFilter, serviceProjection)
-// 	if err != nil {
-// 		s.logger.Errorf("failed to get service", err)
-// 		err = fmt.Errorf("failed to get service %w", constant.ErrorDefinition{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "internal server error",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
-// 	if serviceFee == nil {
-// 		s.logger.Errorf("service not found")
-// 		err = fmt.Errorf("service not found: %w", constant.ErrorDefinition{
-// 			Code:    http.StatusNotFound,
-// 			Message: "service not found",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
+	serviceObj, err := s.serviceFeeDal.FindOne(ctx, filter, projection)
 
-// 	req.Status = "PENDING"
-// 	req.RequestAction = "UPDATE"
-// 	req.ActionType = "UPDATE_SERVICE_FEE"
-// 	req.PreviousData = map[string]any{
+	if err != nil {
+		s.logger.Errorf("failed to get service: %v", err)
+		return nil, err
+	}
 
-// 		"tiers": req.PreviousData,
-// 	}
-// 	req.CurrentData = map[string]any{
-// 		"is_account_blocked": true,
-// 	}
+	cpsAction := service.CPSAction{
+		ID:               "", // set by Mongo if needed
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          req.MakerID,
+		MakerName:        req.MakerName,
+		MakerPhoneNumber: req.MakerPhoneNumber,
+		Department:       req.Department,
+		ActionStatus:     service.ActionStatus(service.ActionPending),
+		RequestAction:    service.RequestAction(model.RequestDeleteServiceFee),
+		ActionType:       service.ActionType(service.ActionDelete),
+		CurrentAction:    req.CurrentAction,
+		PreviosAction:    serviceObj,
+		MakerActionTime:  time.Now(),
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+	}
+	inserted, err := s.cpsDal.InsertOne(ctx, cpsAction)
+	if err != nil {
+		s.logger.Errorf("failed to create cps action: %v", err)
+		return nil, err
+	}
+	return &inserted, nil
+}
 
-// 	req.MakerActionTime = time.Now()
-// 	cpsAction, err := s.cpsDal.InsertOne(ctx, req)
-// 	if err != nil {
-// 		s.logger.Errorf("failed to create cps action", err)
-// 		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "internal server error",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
+func (s *ServiceFeePersistence) InitiateServiceFeeUpdate(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	filter := bson.M{
+		"maker_phone_number": req.MakerPhoneNumber,
+		"action_status":      service.ActionPending,
+		"department":         req.Department,
+	}
+	projection := bson.M{}
+	existing, err := s.cpsDal.FindOne(ctx, filter, projection)
 
-// 	return service.UpdateServiceDetailsResponse{
-// 		ActionID: cpsAction.ActionCode,
-// 	}, nil
+	if err != nil && err != mongo.ErrNoDocuments {
+		s.logger.Errorf("failed to get cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
 
-// }
+	if existing != nil {
+		return service.UpdateServiceDetailsResponse{}, errors.New("pending cps action present")
+	}
 
-// func (s *serviceFeeRepo) ApproveServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
-// 	filter := bson.M{
-// 		"action_code": cpsAction.ActionCode,
-// 		"status":      "PENDING",
-// 	}
+	req.ActionStatus = service.ActionPending
+	req.RequestAction = service.RequestServiceFeeUpdate
+	req.ActionType = service.ActionUpdate
+	req.MakerActionTime = time.Now()
+	req.CreatedAt = time.Now()
+	req.LastModifiedAt = time.Now()
 
-// 	projection := bson.M{}
-// 	cpsActionPtr, err := s.cpsDal.FindOne(ctx, filter, projection)
-// 	if err != nil {
-// 		s.logger.Errorf("failed to find cpsActon", err)
-// 		err = fmt.Errorf("failed to findCpsAction %w", constant.ErrorDefinition{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "internal server error",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
-// 	// Apply the update to the actual service
-// 	serviceFilter := bson.M{
-// 		"action_code": cpsActionPtr.ActionCode,
-// 	}
-// 	serviceUpdate := bson.M{
-// 		"set": cpsActionPtr.CurrentData,
-// 	}
-// 	_, err = s.serviceFeeDal.UpdateOne(ctx, serviceFilter, serviceUpdate)
-// 	if err != nil {
-// 		s.logger.Errorf("failed to update service fee", err)
-// 		err = fmt.Errorf("failed to update service fee %w", constant.ErrorDefinition{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "internal server error",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
-// 	return service.UpdateServiceDetailsResponse{
-// 		ActionID: cpsActionPtr.ActionCode,
-// 	}, nil
-// }
+	cpsAction, err := s.cpsDal.InsertOne(ctx, req)
 
-// func (s *serviceFeeRepo) RejectServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
-// 	filter := bson.M{
-// 		"action_code": cpsAction.ActionCode,
-// 		"status":      "PENDING",
-// 	}
+	if err != nil {
+		s.logger.Errorf("failed to create cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	return service.UpdateServiceDetailsResponse{ActionID: cpsAction.ActionCode}, nil
+}
 
-// 	update := bson.M{
-// 		"checker_user": bson.M{
-// 			"full_name":    cpsAction.CheckerUser.FullName,
-// 			"phone_number": cpsAction.CheckerUser.PhoneNumber,
-// 			"user_code":    cpsAction.CheckerUser.UserCode,
-// 		},
-// 		"status":                 "REJECTED",
-// 		"rejected_action_reason": cpsAction.RejectedReason,
-// 		"checker_action_time":    time.Now(),
-// 	}
+func (s *ServiceFeePersistence) CreateServiceAction(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	// Check for pending create action
+	filter := bson.M{
+		"maker_phone_number": req.MakerPhoneNumber,
+		"action_status":      service.ActionPending,
+		"department":         req.Department,
+		"request_action":     "CREATE_SERVICE",
+	}
+	projection := bson.M{
+		"action_code": 1,
+	}
+	existing, err := s.cpsDal.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		s.logger.Errorf("failed to get cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	if existing != nil {
+		return service.UpdateServiceDetailsResponse{}, errors.New("PENDING_CPS_ACTION_EXISTS")
+	}
 
-// 	_, err := s.cpsDal.UpdateOne(ctx, filter, update)
-// 	if err != nil {
-// 		s.logger.Errorf("failed to reject service fee update", err)
-// 		err = fmt.Errorf("failed to reject service fee update %w", constant.ErrorDefinition{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "internal server error",
-// 		})
-// 		return service.UpdateServiceDetailsResponse{}, err
-// 	}
-// 	return service.UpdateServiceDetailsResponse{
-// 		ActionID: cpsAction.ActionCode,
-// 	}, nil
-// }
+	req.ActionStatus = service.ActionPending
+	req.RequestAction = service.RequestServiceFeeCreate
+	req.ActionType = service.ActionCreate
+	req.MakerActionTime = time.Now()
+	req.CreatedAt = time.Now()
+	req.LastModifiedAt = time.Now()
+
+	cpsAction, err := s.cpsDal.InsertOne(ctx, req)
+	if err != nil {
+		s.logger.Errorf("failed to create cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	return service.UpdateServiceDetailsResponse{ActionID: cpsAction.ActionCode}, nil
+}
+
+func (s *ServiceFeePersistence) DeleteServiceAction(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	filter := bson.M{
+		"maker_phone_number": req.MakerPhoneNumber,
+		"action_status":      service.ActionPending,
+		"department":         req.Department,
+		"request_action":     "DELETE_SERVICE",
+	}
+	projection := bson.M{}
+	existing, err := s.cpsDal.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		s.logger.Errorf("failed to get cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	if existing != nil {
+		return service.UpdateServiceDetailsResponse{}, errors.New("pending delete service action present")
+	}
+
+	req.ActionStatus = service.ActionPending
+	req.RequestAction = service.RequestAction(model.RequestDeleteServiceFee)
+	req.ActionType = service.ActionDelete
+	req.MakerActionTime = time.Now()
+	req.CreatedAt = time.Now()
+	req.LastModifiedAt = time.Now()
+
+	cpsAction, err := s.cpsDal.InsertOne(ctx, req)
+	if err != nil {
+		s.logger.Errorf("failed to create cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	return service.UpdateServiceDetailsResponse{ActionID: cpsAction.ActionCode}, nil
+}
+
+func (s *ServiceFeePersistence) ApproveServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) error {
+	filter := bson.M{
+		"action_code":   cpsAction.ActionCode,
+		"action_status": service.ActionPending,
+	}
+	update := bson.M{
+		"action_status":        service.ActionApproved,
+		"checker_id":           cpsAction.CheckerID,
+		"checker_name":         cpsAction.CheckerName,
+		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"checker_action_time":  time.Now(),
+		"last_modified_at":     time.Now(),
+	}
+	_, err := s.cpsDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		s.logger.Errorf("failed to approve cps action: %v", err)
+		return err
+	}
+
+	switch cpsAction.ActionType {
+	case service.ActionCreate:
+		_, ok := cpsAction.CurrentAction.(map[string]interface{})
+		if !ok {
+			return errors.New("invalid service data for create")
+		}
+		var svc service.Service
+
+		_, err := s.serviceFeeDal.InsertOne(ctx, svc)
+		if err != nil {
+			s.logger.Errorf("failed to create service: %v", err)
+			return err
+		}
+	case service.ActionUpdate:
+		serviceCode, ok := cpsAction.CurrentAction.(map[string]interface{})["service_code"].(string)
+		if !ok {
+			return errors.New("invalid service_code in current action")
+		}
+		serviceFilter := bson.M{"service_code": serviceCode}
+		serviceUpdate := bson.M{"$set": cpsAction.CurrentAction}
+		_, err := s.serviceFeeDal.UpdateOne(ctx, serviceFilter, serviceUpdate)
+		if err != nil {
+			s.logger.Errorf("failed to update service fee: %v", err)
+			return err
+		}
+	case service.ActionDelete:
+		serviceCode, ok := cpsAction.CurrentAction.(map[string]interface{})["service_code"].(string)
+		if !ok {
+			return errors.New("invalid service_code in current action for delete")
+		}
+		serviceFilter := bson.M{"service_code": serviceCode}
+		serviceUpdate := bson.M{"is_deleted": true, "deleted_at": time.Now(), "last_modified_at": time.Now()}
+		_, err := s.serviceFeeDal.UpdateOne(ctx, serviceFilter, serviceUpdate)
+		if err != nil {
+			s.logger.Errorf("failed to delete service: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *ServiceFeePersistence) RejectServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+	filter := bson.M{
+		"action_code":   cpsAction.ActionCode,
+		"action_status": service.ActionPending,
+	}
+	update := bson.M{
+		"action_status":        service.ActionRejected,
+		"rejection_reason":     cpsAction.RejectionReason,
+		"checker_id":           cpsAction.CheckerID,
+		"checker_name":         cpsAction.CheckerName,
+		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"checker_action_time":  time.Now(),
+		"last_modified_at":     time.Now(),
+	}
+	_, err := s.cpsDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		s.logger.Errorf("failed to reject cps action: %v", err)
+		return service.UpdateServiceDetailsResponse{}, err
+	}
+	return service.UpdateServiceDetailsResponse{ActionID: cpsAction.ActionCode}, nil
+}

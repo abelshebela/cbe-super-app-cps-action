@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq/"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service interface {
@@ -21,11 +22,11 @@ type Service interface {
 
 type ServiceStore struct {
 	repository Repository
-	actionRepo action.Repository
-	logger     utils.Logger
+	actionRepo action.ActionRepository
+	logger     sharedutils.Logger
 }
 
-func NewService(repo Repository, actionRepo action.Repository, logger utils.Logger) Service {
+func NewService(repo Repository, actionRepo action.ActionRepository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,
@@ -49,10 +50,24 @@ func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 }
 
 func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (string, error) {
-	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
+	if request.ID == "" {
+		return "", fmt.Errorf("INVALID_ID")
+	}
+	originalHQ, err := s.repository.GetHQByID(ctx, request.ID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return "", fmt.Errorf("NOT_FOUND")
+	}
+
+	// Use actionRepo to check for pending actions by unique ID (outbound/init)
+	pendingActions, err := s.actionRepo.(interface {
+		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
+	}).FetchPendingActionsByUniqueID(ctx, request.ID)
+	if err != nil {
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	previousActionJSON, err := json.Marshal(originalHQ)
@@ -63,35 +78,33 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 
 	updatedHQ := originalHQ
 	updatedHQ.BlockTime = request.BlockTime
-	currentActionJSON, err := json.Marshal(updatedHQ)
-	if err != nil {
-		s.logger.Errorf("failed to marshal current action: %v", err)
-		return "", fmt.Errorf("FAILED_TO_MARSHAL_CURRENT_ACTION")
+	// Use struct wrapper for current action, matching account validation
+	type CurrentAction struct {
+		HQ HQ `json:"hq"`
 	}
+	currentAction := CurrentAction{HQ: updatedHQ}
 
-	s.logger.Infof("original HQ: %+v", originalHQ)
-	s.logger.Infof("updated HQ: %+v", updatedHQ)
-
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 	a := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      request.MakerID,
-			FullName:    request.MakerName,
-			PhoneNumber: request.MakerPhone,
-			Timestamp:   time.Now(),
-		},
-		Checker:         action.User{},
-		Department:      originalHQ.Name,
-		ActionType:      action.ActionUpdate,
-		RequestAction:   action.RequestUpdateHQBlockTime,
-		ActionStatus:    action.ActionPending,
-		CurrentAction:   currentActionJSON,
-		PreviosAction:   previousActionJSON,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
-		RejectionReason: nil,
+		ActionCode:         actionID,
+		MakerID:            request.MakerID,
+		MakerName:          request.MakerName,
+		MakerPhoneNumber:   request.MakerPhone,
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		Department:         originalHQ.Name,
+		ActionType:         action.ActionUpdate,
+		RequestAction:      action.RequestUpdateHQBlockTime,
+		ActionStatus:       action.ActionPending,
+		CurrentAction:      currentAction, // pass struct, not marshaled JSON
+		PreviosAction:      previousActionJSON,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
+		RejectionReason:    nil,
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
+		UniqueId:           request.ID,
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -99,15 +112,28 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		return "", fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
-	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
 	return createdAction.ActionCode, nil
 }
 
 func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (string, error) {
-	originalHQ, err := s.repository.GetHQByID(ctx, request.MakerID)
+	if request.ID == "" {
+		return "", fmt.Errorf("INVALID_ID")
+	}
+	originalHQ, err := s.repository.GetHQByID(ctx, request.ID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return "", fmt.Errorf("NOT_FOUND")
+	}
+
+	// Use actionRepo to check for pending actions by unique ID (outbound/init)
+	pendingActions, err := s.actionRepo.(interface {
+		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
+	}).FetchPendingActionsByUniqueID(ctx, request.ID)
+	if err != nil {
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	previousActionJSON, err := json.Marshal(originalHQ)
@@ -118,35 +144,33 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 
 	updatedHQ := originalHQ
 	updatedHQ.ArchiveTime = request.ArchiveTime
-	currentActionJSON, err := json.Marshal(updatedHQ)
-	if err != nil {
-		s.logger.Errorf("failed to marshal current action: %v", err)
-		return "", fmt.Errorf("FAILED_TO_MARSHAL_CURRENT_ACTION")
+	// Use struct wrapper for current action, matching account validation
+	type CurrentAction struct {
+		HQ HQ `json:"hq"`
 	}
+	currentAction := CurrentAction{HQ: updatedHQ}
 
-	s.logger.Infof("original HQ: %+v", originalHQ)
-	s.logger.Infof("updated HQ: %+v", updatedHQ)
-
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 	a := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      request.MakerID,
-			FullName:    request.MakerName,
-			PhoneNumber: request.MakerPhone,
-			Timestamp:   time.Now(),
-		},
-		Checker:         action.User{},
-		Department:      originalHQ.ID,
-		ActionType:      action.ActionUpdate,
-		RequestAction:   action.RequestUpdateHQArchiveTime,
-		ActionStatus:    action.ActionPending,
-		CurrentAction:   currentActionJSON,
-		PreviosAction:   previousActionJSON,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
-		RejectionReason: nil,
+		ActionCode:         actionID,
+		MakerID:            request.MakerID,
+		MakerName:          request.MakerName,
+		MakerPhoneNumber:   request.MakerPhone,
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		Department:         originalHQ.ID,
+		ActionType:         action.ActionUpdate,
+		RequestAction:      action.RequestUpdateHQArchiveTime,
+		ActionStatus:       action.ActionPending,
+		CurrentAction:      currentAction, // pass struct, not marshaled JSON
+		PreviosAction:      previousActionJSON,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
+		RejectionReason:    nil,
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
+		UniqueId:           request.ID,
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -154,8 +178,29 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		return "", fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
-	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
 	return createdAction.ActionCode, nil
+}
+
+// Add helper for robust JSON extraction, matching account validation
+func toJSONBytes(val interface{}) ([]byte, error) {
+	switch v := val.(type) {
+	case nil:
+		return nil, fmt.Errorf("value is nil")
+	case json.RawMessage:
+		return v, nil
+	case []byte:
+		return v, nil
+	case string:
+		return []byte(v), nil
+	case map[string]interface{}, []interface{}:
+		return json.Marshal(v)
+	default:
+		rv := reflect.ValueOf(v)
+		if rv.Kind() == reflect.Struct {
+			return json.Marshal(v)
+		}
+		return nil, fmt.Errorf("unsupported type: %T", v)
+	}
 }
 
 func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejectRequest) error {
@@ -169,7 +214,7 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 		return fmt.Errorf("CHECKER_ID_EMPTY")
 	}
 
-	s.logger.Infof("processing HQ block time update", "action_id", request.ActionCode, "approve", request.Approved, "checker_id", request.CheckerID)
+	s.logger.Infof("processing HQ block time update", "action_id", request.ActionCode, "decision", request.Decision, "checker_id", request.CheckerID)
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, request.ActionCode)
 	if err != nil {
@@ -182,57 +227,45 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
 
-	cpsAction.Checker = action.User{
-		UserID:      request.CheckerID,
-		FullName:    request.CheckerName,
-		PhoneNumber: request.CheckerPhone,
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = request.CheckerID
+	cpsAction.CheckerName = request.CheckerName
+	cpsAction.CheckerPhoneNumber = request.CheckerPhone
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if request.Approved {
-		var updatedHQ HQ
-		var currentActionBytes []byte
-		switch v := cpsAction.CurrentAction.(type) {
-		case json.RawMessage:
-			currentActionBytes = v
-		case []byte:
-			currentActionBytes = v
-		case string:
-			currentActionBytes = []byte(v)
-		case nil:
-			s.logger.Errorf("current action is nil", "action_id", request.ActionCode)
-			return fmt.Errorf("CURRENT_ACTION_NIL")
-		default:
-			var err error
-			currentActionBytes, err = json.Marshal(v)
-			if err != nil {
-				s.logger.Errorf("failed to marshal current action: %v", err)
-				return fmt.Errorf("CURRENT_ACTION_INVALID_TYPE")
-			}
+	switch request.Decision {
+	case utils.DecisionApproved:
+		// Use struct wrapper for current action, matching account validation
+		type CurrentAction struct {
+			HQ HQ `json:"hq"`
 		}
-
-		if err := json.Unmarshal(currentActionBytes, &updatedHQ); err != nil {
-			s.logger.Errorf("failed to unmarshal current action: %v", err)
+		var currentAction CurrentAction
+		currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
+		if err != nil {
+			s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
+			return fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
+		}
+		if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
+			s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
 			return fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
 		}
-
-		if updatedHQ.ID == "" || updatedHQ.ID != cpsAction.UniqueId {
-			s.logger.Errorf("HQ ID mismatch", "action_id", request.ActionCode, "hq_id", updatedHQ.ID, "unique_id", cpsAction.UniqueId)
-			return fmt.Errorf("HQ_ID_MISMATCH")
-		}
+		updatedHQ := currentAction.HQ
+		fmt.Println("updated hq  ", updatedHQ)
 
 		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID, updatedHQ); err != nil {
 			s.logger.Errorf("failed to update HQ: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_HQ")
 		}
-
 		cpsAction.ActionStatus = action.ActionApproved
 		s.logger.Infof("HQ block time approved successfully", "action_id", request.ActionCode)
-	} else {
+	case utils.DecisionDenied:
 		cpsAction.ActionStatus = action.ActionRejected
-		cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		if request.RejectedReason != "" {
+			cpsAction.RejectionReason = &request.RejectedReason
+		}
 		s.logger.Infof("HQ block time update rejected", "action_id", request.ActionCode)
+	default:
+		return fmt.Errorf("INVALID_DECISION")
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {
@@ -254,7 +287,7 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 		return fmt.Errorf("CHECKER_ID_EMPTY")
 	}
 
-	s.logger.Infof("processing HQ archive time update", "action_id", request.ActionCode, "approve", request.Approved, "checker_id", request.CheckerID)
+	s.logger.Infof("processing HQ archive time update", "action_id", request.ActionCode, "decision", request.Decision, "checker_id", request.CheckerID)
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, request.ActionCode)
 	if err != nil {
@@ -267,49 +300,42 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
 
-	cpsAction.Checker = action.User{
-		UserID:      request.CheckerID,
-		FullName:    request.CheckerName,
-		PhoneNumber: request.CheckerPhone,
-		Timestamp:   time.Now(),
-	}
+	cpsAction.CheckerID = request.CheckerID
+	cpsAction.CheckerName = request.CheckerName
+	cpsAction.CheckerPhoneNumber = request.CheckerPhone
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if request.Approved {
-		var updatedHQ HQ
-		var currentActionBytes []byte
-		switch v := cpsAction.CurrentAction.(type) {
-		case json.RawMessage:
-			currentActionBytes = v
-		case []byte:
-			currentActionBytes = v
-		case string:
-			currentActionBytes = []byte(v)
-		case nil:
-			s.logger.Errorf("current action is nil", "action_id", request.ActionCode)
-			return fmt.Errorf("CURRENT_ACTION_NIL")
-		default:
-			var err error
-			currentActionBytes, err = json.Marshal(v)
-			if err != nil {
-				s.logger.Errorf("failed to marshal current action: %v", err)
-				return fmt.Errorf("CURRENT_ACTION_INVALID_TYPE")
-			}
+	if request.Decision == utils.DecisionApproved {
+		// Use struct wrapper for current action, matching account validation
+		type CurrentAction struct {
+			HQ HQ `json:"hq"`
 		}
-
-		if err := json.Unmarshal(currentActionBytes, &updatedHQ); err != nil {
-			s.logger.Errorf("failed to unmarshal current action: %v", err)
+		var currentAction CurrentAction
+		currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
+		if err != nil {
+			s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
+			return fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
+		}
+		if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
+			s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
 			return fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
 		}
-
+		updatedHQ := currentAction.HQ
 		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID, updatedHQ); err != nil {
 			s.logger.Errorf("failed to update HQ: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_HQ")
 		}
-
 		cpsAction.ActionStatus = action.ActionApproved
-	} else {
+		s.logger.Infof("HQ archive time approved successfully", "action_id", request.ActionCode)
+	} else if request.Decision == utils.DecisionDenied {
 		cpsAction.ActionStatus = action.ActionRejected
+		if request.RejectedReason != "" {
+			cpsAction.RejectionReason = &request.RejectedReason
+		}
+		s.logger.Infof("HQ archive time update rejected", "action_id", request.ActionCode)
+	} else {
+		return fmt.Errorf("INVALID_DECISION")
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {

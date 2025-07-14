@@ -9,13 +9,13 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
 
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -72,13 +72,13 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	response := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           amountBasedAuth,
+	data, err := common_util.StructToMap(amountBasedAuth)
+	if err != nil {
+		common_util.SendErrorResponse(w, err, 500, nil)
+		return
 	}
-
-	response.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	return
 
 }
 
@@ -107,13 +107,13 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 		return
 	}
 
-	response := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           amountBasedAuth,
+	data, err := common_util.StructToMap(amountBasedAuth)
+	if err != nil {
+		common_util.SendErrorResponse(w, err, 500, nil)
+		return
 	}
-
-	response.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	return
 }
 
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
@@ -150,10 +150,11 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           rejectAction,
+	data, err := common_util.StructToMap(rejectAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, err, 500, nil)
+		return
 	}
-	res.SendJSON()
+	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	return
 }

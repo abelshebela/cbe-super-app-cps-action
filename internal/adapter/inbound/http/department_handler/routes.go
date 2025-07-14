@@ -8,16 +8,23 @@ import (
 
 	"net/http"
 
-
 	"github.com/go-chi/chi/v5"
 )
 
 func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.DepartmentPortHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/department", func(r chi.Router) {
+	router.Route("/departments", func(r chi.Router) {
 		routes := []route.Route{
 			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: departmentHandler.GetAllDepartments,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
+			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: departmentHandler.CreateDepartment,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,9 +32,27 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				},
 			},
 			{
+				Method:  http.MethodPut,
+				Path:    "/",
+				Handler: departmentHandler.UpdateDepartmentRequest,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker}),
+				},
+			},
+			{
 				Method:  http.MethodPost,
-				Path:    "/approve/request/{action_code}",
+				Path:    "/{action_code}/approve",
 				Handler: departmentHandler.ApproveDepartmentRequest,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/{action_code}/reject",
+				Handler: departmentHandler.RejectDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker}),

@@ -1,21 +1,27 @@
+
 package initiator
 
 import (
+	accountblock_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
-	budget_category_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
+	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
+
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 	department_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
+	hq_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	permission_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
@@ -39,7 +45,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		customerhandler.InitCustomerRoutes(sub, adapter.CustomerAdapter, authMiddleware)
 		feedbackhandler.InitFeedbackRoutes(sub, adapter.FeedbackAdapter)
 		department_handler.InitDepartmentRoutes(sub, adapter.DepartmentAdapter, authMiddleware)
-		// permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
+		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
 		unlink_device_handler.RegisterHTTPUnlinkRoutes(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)
 		bulkservices_inbound.InitServiceHandlerMaker(sub, adapter.BulkServiceAdapter, authMiddleware)
@@ -48,6 +54,10 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		passwordrule.RegisterPasswordRuleRoutes(sub, adapter.PasswordRuleAdapter, authMiddleware)
 		portalcard.InitPortalCardRoutes(sub, adapter.PortalCardAdapter, authMiddleware)
 		service_details_inbound.InitServiceDetailsRoutes(sub, adapter.ServiceDetailAdapter, authMiddleware)
-		budget_category_inbound.InitBudgetCategoryRoute(sub, adapter.BudgetCategoryAdapter, authMiddleware)
+		accountblock_handler.RegisterAccountBlockRoutes(sub, adapter.AccountBlockAdapter, authMiddleware)
+		service.InitServiceRoutes(sub, adapter.ServiceAdapter, authMiddleware)
+		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware)
+		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
+
 	})
 }

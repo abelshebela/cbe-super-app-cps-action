@@ -1,4 +1,5 @@
 package accountblock
+
 import "net/http"
 
 type AccountBlockHandler interface {
@@ -13,17 +14,17 @@ type AccountBlockHandler interface {
 	BlockRegion(w http.ResponseWriter, r *http.Request)
 	UpdateRegion(w http.ResponseWriter, r *http.Request)
 	ApproveRegionBlock(w http.ResponseWriter, r *http.Request)
-	GetRegionByID(w http.ResponseWriter, r *http.Request)
+	GetRegionByCode(w http.ResponseWriter, r *http.Request)
 
 	BlockDistrict(w http.ResponseWriter, r *http.Request)
-	GetDistrictByID(w http.ResponseWriter, r *http.Request)
+	GetDistrictByCode(w http.ResponseWriter, r *http.Request)
 	ApproveBlockDistrict(w http.ResponseWriter, r *http.Request)
 
 	BlockCity(w http.ResponseWriter, r *http.Request)
-	GetCityByID(w http.ResponseWriter, r *http.Request)
+	GetCityByCode(w http.ResponseWriter, r *http.Request)
 	ApproveBlockCity(w http.ResponseWriter, r *http.Request)
 
 	BlockUser(w http.ResponseWriter, r *http.Request)
-	GetUserByID(w http.ResponseWriter, r *http.Request)
+	GetUserByPhone(w http.ResponseWriter, r *http.Request)
 	ApproveBlockUser(w http.ResponseWriter, r *http.Request)
 }

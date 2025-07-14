@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockRepository is a mock of Repository interface.

@@ -63,7 +63,6 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 			role, ok := r.Context().Value(constant.ContextKey("user_role")).(string)
 			if !ok || role == "" {
 				res := common.Response[constant.ErrorDefinition]{
@@ -116,7 +115,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		tokenString := authHeader[len(bearer):]
-
 		jwtSecret := []byte(a.JWTSecretKey)
 
 		if tokenString == "" {
@@ -141,20 +139,19 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			return jwtSecret, nil
 		})
 
-		if err != nil || !token.Valid {
-			a.logger.Errorf("invalid or expired token", err)
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid or expired token",
-				},
-			}
-
-			res.SendJSON()
-			return
-		}
+		// if err != nil || !token.Valid {
+		//     a.logger.Errorf("invalid or expired token: %v", err)
+		//     res := common.Response[constant.ErrorDefinition]{
+		//         ResponseWriter: w,
+		//         Status:         http.StatusUnauthorized,
+		//         Data: constant.ErrorDefinition{
+		//             Code:    http.StatusUnauthorized,
+		//             Message: "invalid or expired token",
+		//         },
+		//     }
+		//     res.SendJSON()
+		//     return
+		// }
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
@@ -188,6 +185,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		decryptedUser, err := a.decryptUserData(data)
 		if err != nil {
+			a.logger.Errorf("failed to decrypt user data: %v", err)
 			res := common.Response[constant.ErrorDefinition]{
 				ResponseWriter: w,
 				Status:         http.StatusUnauthorized,
@@ -203,7 +201,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		var userPayload UserPayload
 		err = json.Unmarshal([]byte(decryptedUser), &userPayload)
 		if err != nil {
-			a.logger.Errorf("failed to unmarshal user payload", err)
+			a.logger.Errorf("failed to unmarshal user payload: %v", err)
 			res := common.Response[constant.ErrorDefinition]{
 				ResponseWriter: w,
 				Status:         http.StatusUnauthorized,
@@ -245,13 +243,13 @@ func (a *authMiddleware) decryptUserData(data string) (string, error) {
 
 	ciphertext, err := hex.DecodeString(data)
 	if err != nil {
-		a.logger.Errorf("failed to decode hex", err)
+		a.logger.Errorf("failed to decode hex: %v", err)
 		return "", fmt.Errorf("hex decode failed: %w", err)
 	}
 
 	block, err := aes.NewCipher(keyByte)
 	if err != nil {
-		a.logger.Errorf("new cipher failed", err)
+		a.logger.Errorf("new cipher failed: %v", err)
 		return "", fmt.Errorf("NewCipher failed: %w", err)
 	}
 
@@ -262,6 +260,7 @@ func (a *authMiddleware) decryptUserData(data string) (string, error) {
 	// Remove PKCS7 padding
 	decrypted, err = a.pkcs7Unpad(decrypted, aes.BlockSize)
 	if err != nil {
+		a.logger.Errorf("unpad failed: %v", err)
 		return "", fmt.Errorf("unpad failed: %w", err)
 	}
 

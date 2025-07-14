@@ -3,175 +3,173 @@ package wallet
 import (
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type WalletAdapter struct {
-	walletHandler wallet.WalletHandlerService
+	walletHandler wallet.WalletHandlerAppllication
 	logger        utils.Logger
 }
 
-func InitWalletAdapter(walletHandler wallet.WalletHandlerService, logger utils.Logger) inboundWallet.WalletAdapter {
+func InitWalletRouter(walletHandler wallet.WalletHandlerAppllication, logger utils.Logger) inboundWallet.WalletAdapter {
 	return &WalletAdapter{
 		walletHandler: walletHandler,
 		logger:        logger,
 	}
 }
 
+func getParam(w http.ResponseWriter, r *http.Request, key string, logger utils.Logger) string {
+	value := chi.URLParam(r, key)
+	if value == "" {
+		logger.Errorf("missing or invalid parameter '%s'", key)
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return ""
+	}
+	return value
+}
+
+func toModelUser(userContext ctx_util.UserContext) model.User {
+	return model.User{
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}
+}
+
+func createCPSUserForCreate(r *http.Request, actionData any) (*model.CreateCPSAction, error) {
+	userContext := ctx_util.ExtractUserContext(r)
+
+	if userContext.IsIncomplete() {
+		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
+	}
+	return &model.CreateCPSAction{
+		MakerUser:  toModelUser(userContext),
+		Department: userContext.Department,
+		ActionData: actionData,
+	}, nil
+}
+
+func createCPSUserForAuthorize(r *http.Request, actionCode string) (*model.AuthorizeCPSAction, error) {
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
+	}
+	return &model.AuthorizeCPSAction{
+		CheckerUser: toModelUser(userContext),
+		Department:  userContext.Department,
+		ActionCode:  actionCode,
+	}, nil
+}
+
+func (wa *WalletAdapter) parseMultipartForm(w http.ResponseWriter, r *http.Request, key string, maxValue int64, logger utils.Logger) (multipart.File, *multipart.FileHeader, bool) {
+	if err := r.ParseMultipartForm(maxValue); err != nil {
+		logger.Errorf("failed to parse form data: %v", err)
+		common_util.SendErrorResponse(w, common_util.InvalidForm, 0, nil)
+		return nil, nil, false
+	}
+
+	file, fileHeader, err := r.FormFile(key)
+	if err != nil {
+		wa.logger.Errorf("%v error: %v", key, err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
+		return nil, nil, false
+	}
+	return file, fileHeader, true
+}
+
 func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	var walletRequest dto.CreateWalletRequest
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		wa.logger.Errorf("failed to parse form data: %v", err)
-		err = fmt.Errorf("failed to parse multipart form: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid multipart form",
-		})
-		middleware.ErrorHandler(w, err)
-		return
-	}
-
-	walletRequest.Name = r.FormValue("name")
-	walletRequest.Code = r.FormValue("code")
-
-	file, fileHeader, err := r.FormFile("avatar")
-	if err != nil {
-		wa.logger.Errorf("logo error: %v", err)
-		err = fmt.Errorf("failed to read logo: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "missing or invalid avatar",
-		})
-		middleware.ErrorHandler(w, err)
+	file, fileHeader, valid := wa.parseMultipartForm(w, r, "avatar", 10<<20, wa.logger)
+	if !valid {
 		return
 	}
 	defer file.Close()
 
+	walletRequest.Name = r.FormValue("name")
+	walletRequest.Code = r.FormValue("code")
 	walletRequest.Avatar = fileHeader
 
-	var cpsRequest model.CreateCPSAction
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsRequest.ActionData = walletRequest
-	cpsRequest.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsRequest.Department = department
-
-	ctx := r.Context()
-	cpsRes, err := wa.walletHandler.CreateWallet(ctx, cpsRequest)
+	cpsRequest, err := createCPSUserForCreate(r, walletRequest)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to create CPS user for create wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsRes,
+	ctx := r.Context()
+	cpsRes, err := wa.walletHandler.CreateWallet(ctx, *cpsRequest)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsRes, "Wallet created successfully")
 }
 
 func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-
+	id := getParam(w, r, "id", wa.logger)
 	var updateRequest dto.UpdateWalletRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
 		wa.logger.Errorf("invalid input", err)
-		err = fmt.Errorf("failed to decode update wallet request error data %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid request",
-		})
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, common_util.InvalidReq, 0, nil)
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	var cpsReq model.CreateCPSAction
-
-	updateRequest.ID = id
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+	cpsReq, err := createCPSUserForCreate(r, updateRequest)
+	if err != nil {
+		wa.logger.Errorf("failed to create CPS user for create wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
-	cpsReq.Department = department
-	cpsReq.ActionData = updateRequest
 
 	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.UpdateWallet(ctx, id, cpsReq)
+	cpsAction, err := wa.walletHandler.UpdateWallet(ctx, id, *cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to update wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "Wallet updated successfully")
 }
 
 func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := getParam(w, r, "id", wa.logger)
 
-	var cpsReq model.CreateCPSAction
-
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.ActionData = entity.Wallet{
+	cpsReq, err := createCPSUserForCreate(r, entity.Wallet{
 		ID: id,
-	}
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
-
-	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.DeleteWallet(ctx, id, cpsReq)
+	})
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to create CPS user for create wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
+	ctx := r.Context()
+	cpsAction, err := wa.walletHandler.DeleteWallet(ctx, id, *cpsReq)
+	if err != nil {
+		wa.logger.Errorf("failed to delete wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "Wallet deleted successfully")
 }
 
 func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
@@ -182,10 +180,10 @@ func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 		page = pageInt
 	}
 
-	per_page := constant.DefaultPerPage
+	perPage := constant.DefaultPerPage
 	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
 		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
+		perPage = perPageInt
 	}
 
 	search := query.Get("search")
@@ -193,191 +191,133 @@ func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 
 	filterParams := &constant.Filter{
 		Page:    page,
-		PerPage: per_page,
+		PerPage: perPage,
 		Search:  search,
 		Filters: filter,
 	}
 
 	ctx := r.Context()
 
-	banks, err := wa.walletHandler.GetAllWallet(ctx, filterParams)
+	wallets, err := wa.walletHandler.GetAllWallet(ctx, filterParams)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		wa.logger.Errorf("failed to get all wallets", err)
 		return
 	}
 
-	res := common.Response[*entity.WalletResponse]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           banks,
-	}
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, wallets, "Wallets retrieved successfully")
 }
 
 func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := getParam(w, r, "id", wa.logger)
 
 	ctx := r.Context()
 
-	bank, err := wa.walletHandler.GetWallet(ctx, id)
+	wallet, err := wa.walletHandler.GetWallet(ctx, id)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		wa.logger.Errorf("failed to delete wallet", err)
 		return
 	}
 
-	res := common.Response[*entity.Wallet]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           bank,
-	}
-
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, wallet, "Wallet retrieved successfully")
 }
 
 func (wa *WalletAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	actionCode := getParam(w, r, "action_code", wa.logger)
 
-	var cpsReq model.AuthorizeCPSAction
-
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
-
-	ctx := r.Context()
-	authAction, err := wa.walletHandler.Authorize(ctx, cpsReq)
+	cpsReq, err := createCPSUserForAuthorize(r, actionCode)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to create CPS user for create wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           authAction,
+	ctx := r.Context()
+	authAction, err := wa.walletHandler.Authorize(ctx, *cpsReq)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		wa.logger.Errorf("failed to delete wallet", err)
+		return
 	}
-	res.SendJSON()
+
+	common_util.WriteSuccessResponse(w, authAction, "Wallet authorized successfully")
 }
 
 func (wa *WalletAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	actionCode := getParam(w, r, "action_code", wa.logger)
 
 	var cpsReq model.RejectCPSAction
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
-		wa.logger.Errorf("failed to decode wallet request", err)
-		err = fmt.Errorf("failed to decode wallet request error data %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid request",
-		})
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to decode wallet request %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
 
 	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
 	}
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+	cpsReq.Department = userContext.Department
+	cpsReq.ActionCode = actionCode
 
 	ctx := r.Context()
 	rejectAction, err := wa.walletHandler.Reject(ctx, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to reject wallet %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           rejectAction,
-	}
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, rejectAction, "Wallet rejected successfully")
 }
 
 func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := getParam(w, r, "id", wa.logger)
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
-	cpsReq.ActionData = entity.Wallet{
+	cpsReq, err := createCPSUserForCreate(r, entity.Wallet{
 		ID: id,
-	}
-
-	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestDisableWallet, cpsReq)
+	})
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to create CPS user for create wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
+	ctx := r.Context()
+	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestDisableWallet, *cpsReq)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		wa.logger.Errorf("failed to delete wallet", err)
+		return
 	}
 
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "Wallet disabled successfully")
 }
 
 func (wa *WalletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := getParam(w, r, "id", wa.logger)
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
-	cpsReq.ActionData = entity.Wallet{
+	cpsReq, err := createCPSUserForCreate(r, entity.Wallet{
 		ID: id,
-	}
-
-	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestEnableWallet, cpsReq)
+	})
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		wa.logger.Errorf("failed to create CPS user for create wallet", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	res := common.Response[*model.CpsAction]{
-		ResponseWriter: w,
-		Status:         http.StatusOK,
-		Data:           cpsAction,
+	ctx := r.Context()
+	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestEnableWallet, *cpsReq)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		wa.logger.Errorf("failed to delete wallet", err)
+		return
 	}
 
-	res.SendJSON()
+	common_util.WriteSuccessResponse(w, cpsAction, "Wallet enabled successfully")
 }

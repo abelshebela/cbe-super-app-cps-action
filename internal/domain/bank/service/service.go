@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -27,13 +26,15 @@ type BankDomain struct {
 type BankService interface {
 	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error)
 	GetOneBank(ctx context.Context, id string) (*entity.Bank, error)
-	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
+	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	CheckExistingBank(ctx context.Context, name string) (bool, error)
+	UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioClientInterface,
@@ -46,22 +47,7 @@ func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioC
 	}
 }
 
-func stripFieldPrefix(err error) string {
-	// Removes "field: message." format from ozzo-validation errors
-	// Example: "logo: INVALID_FILE_TYPE." → "INVALID_FILE_TYPE"
-	if err == nil {
-		return ""
-	}
-
-	errStr := err.Error()
-	if idx := strings.Index(errStr, ":"); idx != -1 {
-		errStr = strings.TrimSpace(errStr[idx+1:])
-	}
-	errStr = strings.TrimSuffix(errStr, ".")
-	return errStr
-}
-
-func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateBank
 	err := b.bankRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -75,8 +61,17 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	}
 
 	if err := actionData.Validate(); err != nil {
-		b.logger.Errorf("validation error", err)
-		return nil, fmt.Errorf("%s", stripFieldPrefix(err))
+		b.logger.Errorf("validation error", err.Error())
+		return nil, err
+	}
+
+	BankExists, err := b.bankRepo.CheckExistingBank(ctx, actionData.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if BankExists {
+		return nil, fmt.Errorf(error_codes.BankAlreadyExists)
 	}
 
 	exist, err := b.minioClient.BucketExist(ctx, b.bucketName)
@@ -132,7 +127,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	return cpsRes, nil
 }
 
-func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestDeleteBank
 	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
 		return nil, err
@@ -164,7 +159,7 @@ func (b *BankDomain) GetOneBank(ctx context.Context, id string) (*entity.Bank, e
 	return bank, nil
 }
 
-func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestUpdateBank
 	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
 		return nil, err
@@ -177,7 +172,8 @@ func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
+
 	cpsAction, err := b.bankRepo.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -186,7 +182,7 @@ func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("validation error", err)
 		return nil, err
@@ -200,7 +196,7 @@ func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*mo
 }
 
 func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 
 	cpsReq.RequestAction = requestAction
 	if err := b.bankRepo.CPSActionExists(ctx, cpsReq); err != nil {
@@ -213,4 +209,71 @@ func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
 	}
 
 	return cpsAction, nil
+}
+
+func (b *BankDomain) CheckExistingBank(ctx context.Context, name string) (bool, error) {
+	bank, err := b.bankRepo.CheckExistingBank(ctx, name)
+	if err != nil {
+		return false, err
+	}
+
+	if bank {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
+	req.RequestAction = model.RequestUpdateBank
+	if err := b.bankRepo.CPSActionExists(ctx, req); err != nil {
+		return nil, err
+	}
+
+	actionData, ok := req.ActionData.(dto.UpdateLogo)
+	if !ok {
+		b.logger.Errorf("failed to cast action data to bank request")
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
+	}
+
+	if err := actionData.Validate(); err != nil {
+		b.logger.Errorf("validation error", err)
+		return nil, err
+	}
+
+	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), actionData.Logo.Filename)
+	file, err := actionData.Logo.Open()
+	if err != nil {
+		b.logger.Errorf("failed to open uploaded file: %v", err)
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+	}
+	defer file.Close()
+
+	saveObj, err := b.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  b.bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        actionData.Logo.Size,
+		ContentType: config.ContentType(actionData.Logo.Header.Get("Content-Type")),
+	})
+
+	if err != nil {
+		b.logger.Errorf("failed to save object to MinIO: %v", err)
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+	}
+
+	cpsRes, err := b.bankRepo.UpdateLogo(ctx, id, model.CreateCPSAction{
+		MakerUser:  req.MakerUser,
+		Department: req.Department,
+		ActionData: entity.UpdateLogo{
+			ID:   actionData.ID,
+			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cpsRes, nil
 }

@@ -3,6 +3,8 @@ package entity
 import (
 	"mime/multipart"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type AdvertFor string
@@ -19,17 +21,17 @@ type AdvertDate struct {
 }
 
 type Advert struct {
-	ID            string     `json:"id" bson:"id"`
-	Title         string     `json:"title" bson:"title"`
-	Description   string     `json:"description" bson:"description"`
-	BannerImage   string     `json:"banner_image" bson:"banner_image"`
-	AdvertFor     AdvertFor  `json:"advert_for" bson:"advert_for"`
-	Date          AdvertDate `json:"advert_date" bson:"advert_date"`
-	Enabled       bool       `json:"enabled" bson:"enabled"`
-	IsDeleted     bool       `json:"is_deleted" bson:"is_deleted"`
-	DeletedAt     time.Time  `json:"deleted_at" bson:"deleted_at"`
-	CreatedAt     time.Time  `json:"created_at" bson:"created_at"`
-	LastUpdatedAt time.Time  `json:"last_updated_at" bson:"last_updated_at"`
+	ID            bson.ObjectID `json:"_id" bson:"_id"`
+	Title         string        `json:"title" bson:"title"`
+	Description   string        `json:"description" bson:"description"`
+	BannerImage   string        `json:"banner_image" bson:"banner_image"`
+	AdvertFor     AdvertFor     `json:"advert_for" bson:"advert_for"`
+	Date          AdvertDate    `json:"advert_date" bson:"advert_date"`
+	Enabled       bool          `json:"enabled" bson:"enabled"`
+	IsDeleted     bool          `json:"is_deleted" bson:"is_deleted"`
+	DeletedAt     time.Time     `json:"deleted_at" bson:"deleted_at"`
+	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
+	LastUpdatedAt time.Time     `json:"last_updated_at" bson:"last_updated_at"`
 }
 
 type CreateAdvert struct {
@@ -42,22 +44,27 @@ type CreateAdvert struct {
 }
 
 type CPSAction struct {
-	ID                string        `json:"id,omitempty"`
-	ActionCode        string        `json:"action_code" bson:"action_code"`
-	CheckerUser       User          `json:"checker_user" bson:"checker_user"`
-	MakerUser         User          `json:"maker_user" bson:"maker_user"`
-	RejectedReason    string        `json:"rejected_reason,omitempty" bson:"rejected_reason"`
-	Department        string        `json:"department,omitempty" bson:"department"`
-	Status            ActionStatus  `json:"status,omitempty" bson:"status"`
-	RequestAction     RequestAction `json:"request_action,omitempty" bson:"request_action"`
-	ActionType        ActionType    `json:"action_type,omitempty" bson:"action_type"`
-	ActionData        Advert        `json:"action_data" bson:"action_data"`
-	PreviousData      any           `json:"previous_action,omitempty"`
-	CurrentData       any           `json:"current_action,omitempty"`
-	MakerActionTime   time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time"`
-	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
+	ID                 string
+	ActionCode         string
+	UniqueId           string
+	MakerID            string
+	MakerName          string
+	MakerPhoneNumber   string
+	CheckerID          string
+	CheckerName        string
+	CheckerPhoneNumber string
+	Department         string
+	RejectionReason    *string
+	PreviosAction      interface{}
+	CurrentAction      interface{}
+	ActionStatus       ActionStatus
+	ActionType         ActionType
+	RequestAction      RequestAction
+	CreatedAt          time.Time
+	LastModifiedAt     time.Time
+	MakerActionTime    time.Time
+	CheckerActionTime  time.Time
 }
-
 type ActionType string
 
 const (

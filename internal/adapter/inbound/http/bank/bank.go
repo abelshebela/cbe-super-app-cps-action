@@ -4,6 +4,7 @@ package bank
 import (
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -78,12 +79,35 @@ func toModelUser(userContext ctx_util.UserContext) model.User {
 	}
 }
 
+func getParam(r *http.Request, key string) (string, error) {
+	value := chi.URLParam(r, key)
+	if value == "" {
+		return "", fmt.Errorf(common_util.InvalidInputParameters)
+	}
+	return value, nil
+}
+
+func (b *BankAdapter) parseMultipartForm(w http.ResponseWriter, r *http.Request, logger utils.Logger) (multipart.File, *multipart.FileHeader, bool) {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		logger.Errorf("failed to parse form data: %v", err)
+		common_util.SendErrorResponse(w, common_util.InvalidForm, 0, nil)
+		return nil, nil, false
+	}
+
+	file, fileHeader, err := r.FormFile("logo")
+	if err != nil {
+		b.logger.Errorf("logo error: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
+		return nil, nil, false
+	}
+	return file, fileHeader, true
+}
+
 func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	var bankRequest dto.CreateBankRequest
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		b.logger.Errorf("failed to parse form data: %v", err)
-		common_util.SendErrorResponse(w, common_util.InvalidForm, 0, nil)
+	file, fileHeader, ok := b.parseMultipartForm(w, r, b.logger)
+	if !ok {
 		return
 	}
 
@@ -91,12 +115,6 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
 
-	file, fileHeader, err := r.FormFile("logo")
-	if err != nil {
-		b.logger.Errorf("logo error: %v", err)
-		common_util.SendErrorResponse(w, common_util.MissingOrInvalidLogo, 0, nil)
-		return
-	}
 	defer file.Close()
 	bankRequest.Logo = fileHeader
 
@@ -110,15 +128,21 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cpsRes, err := b.bankHandler.CreateOneBank(ctx, *cpsRequest)
 	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		common_util.SendErrorResponse(w, err, 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsRes, "")
+	common_util.WriteSuccessResponse(w, cpsRes, "Bank createing successfully")
 }
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+
+	id, err := getParam(r, "id")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'id': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	var updateRequest dto.UpdateBankRequest
 	if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
@@ -142,11 +166,16 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Banks update successfully")
 }
 
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, err := getParam(r, "id")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'id': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForCreate(r)
 	if err != nil {
@@ -162,7 +191,7 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Banks delete successfully")
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
@@ -195,11 +224,16 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, banks, "")
+	common_util.WriteSuccessResponse(w, banks, "Banks retrieved successfully")
 }
 
 func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, err := getParam(r, "id")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'id': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	ctx := r.Context()
 	bank, err := b.bankHandler.GetOneBank(ctx, id)
@@ -208,11 +242,16 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, bank, "")
+	common_util.WriteSuccessResponse(w, bank, "Bank retrieved successfully")
 }
 
 func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode := chi.URLParam(r, "action_code")
+	actionCode, err := getParam(r, "action_code")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'action_code': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForAuthorize(r)
 	if err != nil {
@@ -228,11 +267,16 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, authAction, "")
+	common_util.WriteSuccessResponse(w, authAction, "Bank authorize successfully")
 }
 
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	actionCode := chi.URLParam(r, "action_code")
+	actionCode, err := getParam(r, "action_code")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'action_code': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForReject(r)
 	if err != nil {
@@ -257,11 +301,16 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, rejectAction, "")
+	common_util.WriteSuccessResponse(w, rejectAction, "Bank rejection successfully")
 }
 
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, err := getParam(r, "id")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'id': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForCreate(r)
 	if err != nil {
@@ -277,11 +326,16 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank disable request sent successfully")
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, err := getParam(r, "id")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'id': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForCreate(r)
 	if err != nil {
@@ -297,5 +351,39 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank enable request sent successfully")
+}
+
+func (b *BankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
+	id, err := getParam(r, "id")
+	if err != nil {
+		b.logger.Errorf("failed to get parameter 'id': %v", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	var updateLogo dto.UpdateLogo
+
+	file, fileHeader, ok := b.parseMultipartForm(w, r, b.logger)
+	if !ok {
+		return
+	}
+	defer file.Close()
+	updateLogo.Logo = fileHeader
+	updateLogo.ID = id
+
+	cpsRequest, err := createCPSUserForCreate(r)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	cpsRequest.ActionData = updateLogo
+
+	ctx := r.Context()
+	cpsRes, err := b.bankHandler.UpdateLogo(ctx, id, *cpsRequest)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.WriteSuccessResponse(w, cpsRes, "")
 }

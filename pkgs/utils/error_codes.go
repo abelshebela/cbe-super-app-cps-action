@@ -37,6 +37,19 @@ const (
 	PendingRequestExists         = "PENDING_REQUEST_EXISTS"
 	InvalidActionData            = "INVALID_ACTION_DATA"
 	GeneralDBQueryFailed         = "GENERAL_DB_QUERY_FAILED"
+	RequiredFieldsMissing        = "REQUIRED_FIELDS_MISSING"
+	ServiceNotFound              = "SERVICE_NOT_FOUND"
+	FailedToCreateAction         = "FAILED_TO_CREATE_ACTION"
+	TiersRequired                = "TIERS_REQUIRED"
+	TiersFirstMinZero            = "TIERS_FIRST_MIN_ZERO"
+	TiersMinMustEqualPrevMax     = "TIERS_MIN_MUST_EQUAL_PREV_MAX"
+	TiersMaxMustIncrease         = "TIERS_MAX_MUST_INCREASE"
+	TiersAboveAmountMismatch     = "TIERS_ABOVE_AMOUNT_MISMATCH"
+	NotImplemented               = "NOT_IMPLEMENTED"
+	InvalidInputParameters       = "INVALID_INPUT_PARAMETERS"
+	InputTooLong                 = "INPUT_TOO_LONG"
+	InputInvalidCharacters       = "INPUT_INVALID_CHARACTERS"
+	PageNotFound                 = "PAGE_NOT_FOUND"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
@@ -105,7 +118,7 @@ const (
 	FileTooLarge         = "FILE_TOO_LARGE"
 	InvalidFileType      = "INVALID_FILE_TYPE"
 	UploadFailed         = "UPLOAD_FAILED"
-	MissingOrInvalidLogo = "MISSING_OR_INVALID_LOGO"
+	MissingOrInvalidImage = "MISSING_OR_INVALID_IMAGE"
 
 	// Branch
 	BranchNotFound        = "BRANCH_NOT_FOUND"
@@ -123,7 +136,12 @@ const (
 	PortalCardsInvalid      = "PORTAL_CARDS_INVALID"
 
 	// Bank
-	BankNotFound = "BANKS_NOT_FOUND"
+	BankNotFound      = "BANKS_NOT_FOUND"
+	MissingBankName   = "MISSING_BANK_NAME"
+	InvalidBankName   = "INVALID_BANK_NAME"
+	MissingBankCode   = "MISSING_BANK_CODE"
+	MissingBankBIC    = "MISSING_BANK_BIC"
+	BankAlreadyExists = "BANK_ALREADY_EXISTS"
 
 	// Action
 	InvalidDecison               = "INVALID_DECISION"
@@ -133,7 +151,29 @@ const (
 	PendingActionRejectionFailed = "PENDING_ACTION_REJECTION_FAILED"
 	PendingActionCheckFailed     = "PENDING_ACTION_CHECK_FAILED"
 	PendingCPSActionExists       = "PENDING_CPS_ACTION_EXISTS"
+	ActionNotPending             = "ACTION_NOT_PENDING"
+	FailedToUpdateAction         = "FAILED_TO_UPDATE_ACTION"
+	FailedToFetchAction          = "FAILED_TO_FETCH_ACTION"
+	FailedToUpdateService        = "FAILED_TO_UPDATE_SERVICE"
+	FailedToUpdateCapMin         = "FAILED_TO_UPDATE_CAP_MIN"
+	AccountBlocked               = "ACCOUNT_BLOCKED"
+	MissingRejectionReason       = "MISSING_REJECT_REASON"
+	RejectReasonTooShort         = "REJECT_REASON_TOO_SHORT"
 
 	// User
 	UserStatusUpdateFailed = "USER_STATUS_UPDATE_FAILED"
+
+	// wallet
+	WalletNotFound                 = "WALLET_NOT_FOUND"
+	WalletAlreadyExists            = "WALLET_ALREADY_EXISTS"
+	WalletCreationFailed           = "WALLET_CREATION_FAILED"
+	WalletUpdateFailed             = "WALLET_UPDATE_FAILED"
+	WalletDeletionFailed           = "WALLET_DELETION_FAILED"
+	WalletInsufficientBalance      = "WALLET_INSUFFICIENT_BALANCE"
+	WalletTransactionFailed        = "WALLET_TRANSACTION_FAILED"
+	WalletNotActive                = "WALLET_NOT_ACTIVE"
+	WalletTypeNotSupported         = "WALLET_TYPE_NOT_SUPPORTED"
+	WalletLimitExceeded            = "WALLET_LIMIT_EXCEEDED"
+	WalletTransactionNotFound      = "WALLET_TRANSACTION_NOT_FOUND"
+	WalletTransactionAlreadyExists = "WALLET_TRANSACTION_ALREADY_EXISTS"
 )

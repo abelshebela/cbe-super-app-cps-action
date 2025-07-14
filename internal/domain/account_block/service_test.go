@@ -126,7 +126,7 @@ func TestAccountService_DisableSingleBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.DisableSingleBranch(ctx, tt.branch, tt.maker)
+			_, err := service.DisableSingleBranch(ctx, tt.branch, tt.maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -324,7 +324,7 @@ func TestAccountService_DisableMultipleBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			err := service.DisableMultipleBranches(ctx, tt.branches, tt.maker)
+			_, err := service.DisableMultipleBranches(ctx, tt.branches, tt.maker)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -467,51 +467,51 @@ func TestAccountService_BlockRegion(t *testing.T) {
 	service := NewAccountService(mockRepo)
 
 	region := action.Region{ID: "R1", RegionName: "Addis"}
-	maker := action.CPSAction{Maker: action.User{UserCode: "U1"}}
+	maker := action.CPSAction{MakerID: "U1", MakerName: "Test User", MakerPhoneNumber: "+251911234567"}
 	branches := []action.Branch{{BranchCode: "BR1"}, {BranchCode: "BR2"}}
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
-		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), maker.Maker).Return(nil)
+		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(nil)
 
-		err := service.BlockRegion(ctx, region, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.NoError(t, err)
 	})
 
 	t.Run("missing region ID", func(t *testing.T) {
-		err := service.BlockRegion(ctx, action.Region{ID: "", RegionName: ""}, maker)
+		_, err := service.BlockRegion(ctx, "", maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("update region error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(errors.New("fail"))
-		err := service.BlockRegion(ctx, region, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("filter branches error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(nil, errors.New("fail"))
-		err := service.BlockRegion(ctx, region, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("disable branches error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
-		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), maker.Maker).Return(errors.New("fail"))
-		err := service.BlockRegion(ctx, region, maker)
+		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(errors.New("fail"))
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("block region error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
-		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), maker.Maker).Return(nil)
+		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(errors.New("fail"))
-		err := service.BlockRegion(ctx, region, maker)
+		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 }

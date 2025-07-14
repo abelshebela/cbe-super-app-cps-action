@@ -1,8 +1,12 @@
+
+// Package initiator provides adapters for initializing inbound HTTP handlers and services for the CBE Super App CPS Action module.
 package initiator
 
 import (
+	accountblock_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
@@ -12,11 +16,11 @@ import (
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 
-	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
+	serviceHandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	avatar_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
@@ -25,21 +29,25 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	inboudService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	accountblock "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block"
 	inboundAccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_validation"
 	inboundAD "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
+	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
 	inboundBudget "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
 	inboundBulkServices "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
 	inboundDepartment "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	inboundFeedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
 	inboundPermission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	inboundUnlink "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
-	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
+	amountBasedAuth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
+	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Adapter struct {
@@ -62,7 +70,10 @@ type Adapter struct {
 	PasswordRuleAdapter    inbound.PasswordRuleInbound
 	PortalCardAdapter      inbound.PortalCardBound
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
-	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
+	AccountBlockAdapter    accountblock.AccountBlockHandler
+	ServiceAdapter         inboudService.ServiceBound
+	HQAdapter              *hq.HQHTTPHandler
+	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -71,20 +82,27 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		BankAdapter:   bank.InitBankAdapter(application.BankApplication, logger),
 		AdAdapter:     ad.InitADAdapter(application.AdApplication, logger),
 
-		WalletAdapter:   wallet.InitWalletAdapter(application.WalletApplication, logger),
+		WalletAdapter:   wallet.InitWalletRouter(application.WalletApplication, logger),
 		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
 		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
 		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
 
-		UnlinkAdapter:         unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
-		BudgetAdapter:         budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
-		AccountAdapter:        accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
-		BulkServiceAdapter:    bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),
-		CPSUserAdapter:        cpsmakerhandler.InitCPSUserMakerHandler(application.CPSUserApplication, logger),
-		PasswordRuleAdapter:   passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
-		PortalCardAdapter:     portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
-		ServiceDetailAdapter:  service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
-		DepartmentAdapter:     department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
-		BudgetCategoryAdapter: budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
+		UnlinkAdapter:        unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
+		BudgetAdapter:        budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
+		AccountAdapter:       accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
+		BulkServiceAdapter:   bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),
+		CPSUserAdapter:       cpsmakerhandler.InitCPSUserMakerHandler(application.CPSUserApplication, logger),
+		PasswordRuleAdapter:  passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
+		PortalCardAdapter:    portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
+		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
+
+		DepartmentAdapter:   department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		PermissionAdapter:   permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
+		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
+		ServiceAdapter:      serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
+		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
+		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 	}
 }
+
+

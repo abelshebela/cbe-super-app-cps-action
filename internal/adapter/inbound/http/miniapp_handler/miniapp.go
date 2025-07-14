@@ -2,12 +2,28 @@ package miniapphandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
+
+func (h *HttpStore) createUser(w http.ResponseWriter, r *http.Request) (*model.User, error) {
+	ctx_extract := ctx_util.ExtractUserContext(r)
+	if ctx_extract.IsIncomplete() {
+		return nil, fmt.Errorf("Unauthrozed")
+	}
+	maker := &model.User{
+		UserCode:    ctx_extract.UserID,
+		FullName:    ctx_extract.FullName,
+		PhoneNumber: ctx_extract.PhoneNumber,
+	}
+
+	return maker, nil
+}
 
 func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	var req dto.MiniAppCreateRequest
@@ -16,14 +32,15 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
+
+	maker, UserErr := h.createUser(w, r)
+	if UserErr != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	maker_id := claims.UserID
+
 	// Process the request using application logic
-	response, err := h.Application.MakerCreateMiniApp(r.Context(), req, maker_id)
+	response, err := h.Application.MakerCreateMiniApp(r.Context(), req, *maker)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to create mini app")
 		return
@@ -37,13 +54,14 @@ func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		utils.WriteErrorResponse(w, http.StatusUnauthorized, "unauthorized")
+
+	checker, UserErr := h.createUser(w, r)
+	if UserErr != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	checker_id := claims.UserID
-	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, checker_id)
+
+	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, *checker)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "")
 		return

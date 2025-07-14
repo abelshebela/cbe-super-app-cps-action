@@ -44,10 +44,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Authorize mocks base method.
-func (m *MockRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (m *MockRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authorize", ctx, req)
-	ret0, _ := ret[0].(*model.CpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -73,10 +73,10 @@ func (mr *MockRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *gomock.C
 }
 
 // CreateBank mocks base method.
-func (m *MockRepository) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (m *MockRepository) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateBank", ctx, cpsReq)
-	ret0, _ := ret[0].(*model.CpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,10 +88,10 @@ func (mr *MockRepositoryMockRecorder) CreateBank(ctx, cpsReq any) *gomock.Call {
 }
 
 // DeleteBank mocks base method.
-func (m *MockRepository) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (m *MockRepository) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteBank", ctx, id, cpsReq)
-	ret0, _ := ret[0].(*model.CpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -103,10 +103,10 @@ func (mr *MockRepositoryMockRecorder) DeleteBank(ctx, id, cpsReq any) *gomock.Ca
 }
 
 // EnableOrDisableBank mocks base method.
-func (m *MockRepository) EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (m *MockRepository) EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnableOrDisableBank", ctx, id, requestAction, cpsReq)
-	ret0, _ := ret[0].(*model.CpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -148,10 +148,10 @@ func (mr *MockRepositoryMockRecorder) GetBank(ctx, id any) *gomock.Call {
 }
 
 // Reject mocks base method.
-func (m *MockRepository) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (m *MockRepository) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Reject", ctx, req)
-	ret0, _ := ret[0].(*model.CpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,10 +163,10 @@ func (mr *MockRepositoryMockRecorder) Reject(ctx, req any) *gomock.Call {
 }
 
 // UpdateBank mocks base method.
-func (m *MockRepository) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+func (m *MockRepository) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateBank", ctx, id, cpsReq)
-	ret0, _ := ret[0].(*model.CpsAction)
+	ret0, _ := ret[0].(*model.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

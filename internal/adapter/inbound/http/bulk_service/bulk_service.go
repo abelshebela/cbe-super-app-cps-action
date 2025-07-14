@@ -6,16 +6,23 @@ import (
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
-func (h *HttpStore) extractUserIDFromContext(r *http.Request) (string, error) {
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		return "", fmt.Errorf(utils.Unauthorized)
+func (h *HttpStore) extractUserIDFromContext(r *http.Request) (domain.User, error) {
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		return domain.User{}, fmt.Errorf(utils.IncompleteUserInfo)
 	}
-	return claims.UserID, nil
+	return domain.User{
+		UserID:      userContext.UserID,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+		Department:  userContext.Department,
+	}, nil
 }
 
 func (h *HttpStore) buildServiceActionMessage(serviceID string, isEnable bool, verb string) string {

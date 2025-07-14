@@ -21,8 +21,9 @@ func InitPasswordRuleHandler(service services.PasswordRuleService, logger utils.
 	}
 }
 
-func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User) (string, error) {
-	actionID, err := h.PasswordRuleService.RequestPasswordRuleUpdate(ctx, rule, maker)
+func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error) {
+	
+	actionID, err := h.PasswordRuleService.RequestPasswordRuleUpdate(ctx, rule, maker, department)
 	if err != nil {
 		h.logger.Errorf("Failed to request password rule update: %v", err)
 		return "", err
@@ -30,8 +31,8 @@ func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rul
 	return actionID, nil
 }
 
-func (h *PasswordRuleHandler) ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, approve bool, checker action.User, rejectionReason *string) error {
-	err := h.PasswordRuleService.ApproveOrRejectPasswordRuleAction(ctx, actionID, approve, checker, rejectionReason)
+func (h *PasswordRuleHandler) ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, decision string, checker action.User, rejectionReason *string, department string) error {
+	err := h.PasswordRuleService.ApproveOrRejectPasswordRuleAction(ctx, actionID, decision, checker, rejectionReason, department)
 	if err != nil {
 		h.logger.Errorf("Failed to approve/reject password rule action: %v", err)
 		return err

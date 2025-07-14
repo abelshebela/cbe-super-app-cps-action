@@ -16,7 +16,3 @@ services:
         reservations:
           cpus: '0.25'
           memory: 75M
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://10.224.221.177:3100/loki/api/v1/push"

@@ -11,11 +11,6 @@ func InitMongo(mongo_uri string, logger utils.Logger) *mongo.Client {
 	if err != nil {
 		logger.Fatalf("failed to connect to mongo %v", err)
 	}
-	// defer func() {
-	// 	if err := mongoClient.Disconnect(context.Background()); err != nil {
-	// 		log.Fatalf("Failed to disconnect from MongoDB: %v", err)
-	// 	}
-	// }()
 
 	return mongoClient
 }

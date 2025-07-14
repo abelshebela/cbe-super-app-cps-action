@@ -23,7 +23,7 @@ func (m *AccountValidationRepository) UpdateAccountValidation(ctx context.Contex
 	return args.Error(0)
 }
 
-func (m *AccountValidationRepository) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.CPSAction, error) {
+func (m *AccountValidationRepository) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error) {
 	args := m.Called(ctx, uniqueID)
-	return args.Get(0).([]action.CPSAction), args.Error(1)
+	return args.Get(0).([]action.ActionResponse), args.Error(1)
 }

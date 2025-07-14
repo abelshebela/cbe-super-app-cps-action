@@ -2,8 +2,6 @@ package action
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UserType string
@@ -30,33 +28,43 @@ const (
 )
 
 type User struct {
-	UserID      string    `bson:"user_id,omitempty" json:"user_id,omitempty"`
-	UserCode    string    `bson:"user_code,omitempty" json:"user_code,omitempty"`
-	FullName    string    `bson:"full_name,omitempty" json:"full_name,omitempty"`
-	PhoneNumber string    `bson:"phone_number,omitempty" json:"phone_number,omitempty"`
-	Timestamp   time.Time `bson:"timestamp,omitempty" json:"timestamp,omitempty"`
+	UserID      string
+	UserCode    string
+	FullName    string
+	PhoneNumber string
+	Timestamp   time.Time
+	Department  string
 }
 
 type CurrentAction struct {
 	Id     []string
 	Action bool
 }
+type ActionResponse struct {
+	ID       string `json:"_id,omitempty"`
+	ActionId string `json:"action_id"`
+}
 type CPSAction struct {
-	ID              bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-	ActionCode      string        `bson:"action_code,omitempty" json:"action_code,omitempty"`
-	UniqueId        string        `bson:"unique_id,omitempty" json:"unique_id,omitempty"`
-	Maker           User          `bson:"maker,omitempty" json:"maker,omitempty"`
-	Checker         User          `bson:"checker,omitempty" json:"checker,omitempty"`
-	Department      string        `bson:"department,omitempty" json:"department,omitempty"`
-	RejectionReason *string       `bson:"rejection_reason,omitempty" json:"rejection_reason,omitempty"`
-	PreviosAction   interface{}   `bson:"previous_action,omitempty" json:"previous_action,omitempty"`
-	CurrentAction   interface{}   `bson:"current_action,omitempty" json:"current_action,omitempty"`
-	ActionStatus    ActionStatus  `bson:"action_status,omitempty" json:"action_status,omitempty"`
-	ActionType      ActionType    `bson:"action_type,omitempty" json:"action_type,omitempty"`
-	RequestAction   RequestAction `bson:"request_action,omitempty" json:"request_action,omitempty"`
-	CreatedAt       time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	LastModifiedAt  time.Time     `bson:"last_modified_at,omitempty" json:"last_modified_at,omitempty"`
-	IsDeleted       bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
+	ID                 string        `json:"id"`
+	ActionCode         string        `json:"action_code"`
+	UniqueId           string        `json:"unique_id"`
+	MakerID            string        `json:"maker_id"`
+	MakerName          string        `json:"maker_name"`
+	MakerPhoneNumber   string        `json:"maker_phone_number"`
+	CheckerID          string        `json:"checker_id"`
+	CheckerName        string        `json:"checker_name"`
+	CheckerPhoneNumber string        `json:"checker_phone_number"`
+	Department         string        `json:"department"`
+	RejectionReason    *string       `json:"rejection_reason"`
+	PreviosAction      interface{}   `json:"previos_action"`
+	CurrentAction      interface{}   `json:"current_action"`
+	ActionStatus       ActionStatus  `json:"action_status"`
+	ActionType         ActionType    `json:"action_type"`
+	RequestAction      RequestAction `json:"request_action"`
+	CreatedAt          time.Time     `json:"created_at"`
+	LastModifiedAt     time.Time     `json:"last_modified_at"`
+	MakerActionTime    time.Time     `json:"maker_action_time"`
+	CheckerActionTime  time.Time     `json:"checker_action_time"`
 }
 
 type RequestAction string
@@ -276,16 +284,16 @@ type CPSUser struct {
 	Region  string
 }
 type PasswordRule struct {
-	ID             string
-	PasswordID     string
-	Name           string
-	MinLength      int
-	MaxLength      int
-	Numbers        bool
-	CapitalLetters bool
-	SmallLetters   bool
-	Characters     bool
-	CreatedAt      time.Time
+	ID             string    `json:"id"`
+	PasswordID     string    `json:"password_id"`
+	Name           string    `json:"name"`
+	MinLength      int       `json:"min_length"`
+	MaxLength      int       `json:"max_length"`
+	Numbers        bool      `json:"numbers"`
+	CapitalLetters bool      `json:"capital_letters"`
+	SmallLetters   bool      `json:"small_letters"`
+	Characters     bool      `json:"characters"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 type Branch struct {
 	ID            string

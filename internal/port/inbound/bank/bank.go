@@ -12,4 +12,5 @@ type BankAdapter interface {
 	Reject(w http.ResponseWriter, r *http.Request)
 	Enable(w http.ResponseWriter, r *http.Request)
 	Disable(w http.ResponseWriter, r *http.Request)
+	UpdateLogo(w http.ResponseWriter, r *http.Request)
 }

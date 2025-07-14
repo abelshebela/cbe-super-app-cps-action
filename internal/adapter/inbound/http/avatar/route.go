@@ -8,7 +8,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-
 	"github.com/go-chi/chi/v5"
 )
 
@@ -17,7 +16,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: handler.CreateAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -26,7 +25,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 			},
 			{
 				Method:  http.MethodDelete,
-				Path:    "/delete/{id}",
+				Path:    "/{id}",
 				Handler: handler.DeleteAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -90,7 +89,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 
 			{
 				Method:  http.MethodPatch,
-				Path:    "/update/{id}",
+				Path:    "/{id}",
 				Handler: handler.UpdateAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

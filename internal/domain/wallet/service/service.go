@@ -1,15 +1,16 @@
+// Package service provides business logic for wallet operations in the CBE Super App.
 package service
 
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -26,12 +27,12 @@ type WalletDomain struct {
 type WalletService interface {
 	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
-	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
-	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
+	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.MinioClientInterface,
@@ -44,7 +45,7 @@ func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.
 	}
 }
 
-func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestCreateWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -54,10 +55,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	actionData, ok := req.ActionData.(dto.CreateWalletRequest)
 	if !ok {
 		w.logger.Errorf("failed to cast action data to wallet request")
-		return nil, fmt.Errorf("failed to create waalet bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
@@ -68,20 +66,14 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	exist, err := w.minioClient.BucketExist(ctx, w.bucketName)
 	if err != nil {
 		w.logger.Errorf("failed to check wallet bucket: %v", err)
-		return nil, fmt.Errorf("failed to check wallet bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	if !exist {
 		created, err := w.minioClient.MakeBucket(ctx, w.bucketName)
 		if !created || err != nil {
 			w.logger.Errorf("failed to create bank bucket: %v", err)
-			return nil, fmt.Errorf("failed to create bank bucket: %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 	}
 
@@ -89,10 +81,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	file, err := actionData.Avatar.Open()
 	if err != nil {
 		w.logger.Errorf("failed to open uploaded file: %v", err)
-		return nil, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -106,10 +95,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 
 	if err != nil {
 		w.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	cpsRes, err := w.walletRepo.CreateWallet(ctx, model.CreateCPSAction{
@@ -129,7 +115,7 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 	return cpsRes, nil
 }
 
-func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestUpdateWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -144,7 +130,7 @@ func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestDeleteWallet
 	err := w.walletRepo.CPSActionExists(ctx, req)
 	if err != nil {
@@ -176,7 +162,7 @@ func (w *WalletDomain) GetWallet(ctx context.Context, id string) (*entity.Wallet
 	return bank, nil
 }
 
-func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletRepo.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -185,7 +171,7 @@ func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSActi
 	return cpsAction, nil
 }
 
-func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	if err := req.Validate(); err != nil {
 		w.logger.Errorf("validation error", err)
 		return nil, err
@@ -199,7 +185,7 @@ func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*
 }
 
 func (w *WalletDomain) EnableOrDisableWallet(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsReq.RequestAction = requestAction
 	err := w.walletRepo.CPSActionExists(ctx, cpsReq)
 	if err != nil {

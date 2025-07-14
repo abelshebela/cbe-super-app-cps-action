@@ -27,62 +27,68 @@ func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts, logge
 }
 
 func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
-	routes := []route.Route{
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/enable_disable_service_maker",
-			Handler: handler.EnableDisableServicesMaker,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+	router.Route("/bulk-services", func(r chi.Router) {
+		routes := []route.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/actions/enable-disable/request",
+				Handler: handler.EnableDisableServicesMaker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/api/v1/cbesuperapp/cps_config/fetch_service",
-			Handler: handler.FetchServices,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodGet,
+				Path:    "/services",
+				Handler: handler.FetchServices,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{
+						role.Maker, role.IFBMaker, role.Checker, role.IFBChecker,
+					}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/enable_disable_service_maker",
-			Handler: handler.EnableDisableServicesChecker,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/actions/enable-disable/approve",
+				Handler: handler.EnableDisableServicesChecker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/api/v1/cbesuperapp/cps_config/cif_search",
-			Handler: handler.SearchAccountByCif,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/accounts/search",
+				Handler: handler.SearchAccountByCif,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{
+						role.Maker, role.IFBMaker, role.Checker, role.IFBChecker,
+					}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/cif_remove_maker",
-			Handler: handler.RemoveCifMaker,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/accounts/remove/request",
+				Handler: handler.RemoveCifMaker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
 			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/api/v1/cbesuperapp/cps_config/cif_remove_checker",
-			Handler: handler.RemoveCifChecker,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			{
+				Method:  http.MethodPost,
+				Path:    "/accounts/remove/approve",
+				Handler: handler.RemoveCifChecker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
 			},
-		},
-	}
+		}
 
-	route.RegisterRoutes(router, routes)
+		route.RegisterRoutes(r, routes)
+	})
 }

@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
@@ -22,7 +23,7 @@ import (
 type PermissionPersistence struct {
 	permissionGroupsDal   dal.MongoDal[entities.PermissionGroup, entities.PermissionGroup]
 	permissionCategoryDal dal.MongoDal[entities.PermissionCategory, entities.PermissionCategory]
-	cpsdal                dal.MongoDal[entities.CPSAction, entities.CPSAction]
+	cpsdal                dal.MongoDal[model.CPSAction, model.CPSAction]
 	timeout               time.Duration
 	logger                utils.Logger
 }
@@ -34,7 +35,7 @@ var _ repository.PermissionCategoryRepository = (*PermissionPersistence)(nil)
 func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
 	permissionGroupsDal := dal.NewMongoDal[entities.PermissionGroup, entities.PermissionGroup](client, dbName, "permission_groups")
 	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_categories")
-	cpsdal := dal.NewMongoDal[entities.CPSAction, entities.CPSAction](client, dbName, "cps_actions")
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
 		permissionCategoryDal: permissionCategoryDal,
@@ -44,7 +45,7 @@ func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, 
 	}
 }
 
-func (r *PermissionPersistence) CheckPendingRequest(userCode string, status entities.ActionStatus, action entities.RequestAction) error {
+func (r *PermissionPersistence) CheckPendingRequest(userCode string, status model.ActionStatus, action model.RequestAction) error {
 	ctx := context.Background()
 
 	filter := bson.M{
@@ -107,10 +108,6 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 		}
 	}
 
-	// if len(allowedPermissionCategories) == 0 {
-	//     return nil, fmt.Errorf("no valid permission categories found")
-	// }
-
 	var allowedStrings []string
 	for _, obj := range allowedPermissionCategories {
 		allowedStrings = append(allowedStrings, obj.Hex())
@@ -119,13 +116,15 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 
 }
 
-func (r *PermissionPersistence) CreatePermissionGroup(group entities.CPSAction) error {
+func (r *PermissionPersistence) CreatePermissionGroup(group model.CPSAction) (model.CPSAction, error) {
 	ctx := context.Background()
-	_, err := r.cpsdal.InsertOne(ctx, group)
-	return err
+	group.ID = bson.NewObjectID()
+
+	cps_action, err := r.cpsdal.InsertOne(ctx, group)
+	return cps_action, err
 }
 
-func (r *PermissionPersistence) ValidateActionRequest(actionCode, department string) (entities.CPSAction, error) {
+func (r *PermissionPersistence) ValidateActionRequest(actionCode, department string) (model.CPSAction, error) {
 	ctx := context.Background()
 
 	filter := bson.M{
@@ -136,26 +135,25 @@ func (r *PermissionPersistence) ValidateActionRequest(actionCode, department str
 	action, err := r.cpsdal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return entities.CPSAction{}, errors.New("no pending request found for this action")
+			return model.CPSAction{}, errors.New("no pending request found for this action")
 		}
-		return entities.CPSAction{}, err
+		return model.CPSAction{}, err
 	}
 
 	if action == nil {
-		return entities.CPSAction{}, errors.New("no pending request found for this action")
+		return model.CPSAction{}, errors.New("no pending request found for this action")
 	}
 
 	if action.Department != department {
-		return entities.CPSAction{}, errors.New("you are not allowed to approve this request")
+		return model.CPSAction{}, errors.New("you are not allowed to approve this request")
 	}
 
 	return *action, nil
 }
 
-func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.CPSAction) error {
+func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPSAction) error {
 	ctx := context.Background()
 
-	// Step 1: Normalize action.CurrentAction into map[string]interface{}
 	var actionData map[string]interface{}
 	bytes, err := json.Marshal(action.CurrentAction)
 	if err != nil {
@@ -165,7 +163,6 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.
 		return fmt.Errorf("failed to unmarshal CurrentAction: %v", err)
 	}
 
-	// Step 2: Extract fields
 	groupName, ok := actionData["group_name"].(string)
 	if !ok {
 		return errors.New("invalid group_name")
@@ -201,7 +198,6 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.
 		return errors.New("invalid realm")
 	}
 
-	// Step 3: Save to DB
 	newPermissionGroup := entities.PermissionGroup{
 		GroupName:          groupName,
 		PermissionCategory: permissionCategories,
@@ -219,7 +215,7 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action entities.
 	return nil
 }
 
-func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action entities.CPSAction) error {
+func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) error {
 	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{
@@ -236,7 +232,7 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action e
 	return nil
 }
 
-func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action entities.CPSAction) error {
+func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPSAction) error {
 	ctx := context.Background()
 
 	actionData, ok := action.CurrentAction.(map[string]interface{})

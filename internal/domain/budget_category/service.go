@@ -53,7 +53,9 @@ func (s *BudgetCategoryService) ApproveAction(ctx context.Context, approveReques
 		cpsAction.RejectionReason = &approveRequest.Reason
 	}
 
-	cpsAction.Checker = checker
+	cpsAction.CheckerID = checker.UserID
+	cpsAction.CheckerName = checker.FullName
+	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
 	cpsAction.LastModifiedAt = time.Now()
 
 	if _, updateErr := s.repository.UpdateAction(ctx, cpsAction.ID, checker, cpsAction.ActionStatus); updateErr != nil {

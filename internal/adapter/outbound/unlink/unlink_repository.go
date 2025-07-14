@@ -41,9 +41,9 @@ func NewUnlinkInfrastructure(client *mongo.Client, dbName string, collectionName
 }
 
 func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction) error {
-	u.logger.Infof("[UnlinkDevice] initiated for user: %s by %s", userCode, cpsAction.MakerID)
 	ctx := context.Background()
 	filter := bson.M{"user_code": userCode}
+	
 	user, err := u.user.FindOne(ctx, filter, bson.M{})
 
 	if err != nil {
@@ -56,9 +56,15 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 		return fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	if user.IsAccountBlocked {
+		u.logger.Warnf("[UnlinkDevice] user %s is blocked", userCode)
+		return fmt.Errorf(error_codes.AccountBlocked)
+	}
+
 	pendingFilter := bson.M{
-		"value":         userCode,
-		"action_status": "PENDING",
+		"action_code":    userCode,
+		"action_status":  "PENDING",
+		"request_action": string(entities.UnlinkDevice),
 	}
 
 	existingPendingAction, err := u.actionRepo.FindOne(ctx, pendingFilter, bson.M{})
@@ -149,7 +155,7 @@ func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason string, cpsActi
 		updateUser := bson.M{
 			"device.device_uuid":    "",
 			"device_status":         "UNLINKED",
-			"login_pin.pin":         "reset_pin_requested",
+			"login_pin.pin":         "",
 			"bps_reject_status":     "AUTHORIZED",
 			"login_pin.pin_history": user.LoginPIN.PIN,
 		}
@@ -174,11 +180,6 @@ func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason string, cpsActi
 		if _, err := u.actionRepo.UpdateOne(ctx, pendingFilter, updateAction); err != nil {
 			u.logger.Errorf("[ApproveOrDecline] failed to reject action: %v", err)
 			return fmt.Errorf(error_codes.ActionRejectionFailed)
-		}
-
-		if _, err = u.user.UpdateOne(ctx, filter, bson.M{"bps_reject_status": "DENIED"}); err != nil {
-			u.logger.Errorf("[ApproveOrDecline] failed to update user status: %v", err)
-			return fmt.Errorf(error_codes.UserStatusUpdateFailed)
 		}
 
 		u.logger.Infof("[ApproveOrDecline] unlink denied for user: %s", userCode)

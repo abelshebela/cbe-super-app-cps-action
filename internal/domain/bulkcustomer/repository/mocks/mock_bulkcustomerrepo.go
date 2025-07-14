@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulkcustomer/entities"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockBulkCustomerRepo is a mock of BulkCustomerRepo interface.

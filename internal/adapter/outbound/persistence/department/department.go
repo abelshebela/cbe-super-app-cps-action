@@ -4,7 +4,6 @@ package department
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -27,6 +26,11 @@ type DepartmentPersistence struct {
 	logger        utils.Logger
 }
 
+type CreateDepartmentRequest struct {
+	Department  string   `json:"department"`
+	PortalCards []string `json:"portal_cards"`
+}
+
 var _ repository.DepartmentRepository = (*DepartmentPersistence)(nil)
 var _ repository.CPSActionRepository = (*DepartmentPersistence)(nil)
 
@@ -40,21 +44,20 @@ func InitDepartment(client *mongo.Client, dbName string, timeout time.Duration, 
 		logger:        logger,
 	}
 }
-func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action entities.CPSAction) (bool, error) {
-	_, err := r.cpsdal.FindOne(ctx, bson.M{
+func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error) {
+	res, err := r.cpsdal.FindOne(ctx, bson.M{
 		"request_action": action.RequestAction,
 		"action_status":  action.ActionStatus,
 		"maker_id":       action.MakerID,
 	}, bson.M{})
 	if err == mongo.ErrNoDocuments {
-		return false, nil
+		return nil, nil
 	}
 
 	if err != nil {
-		return false, fmt.Errorf(error_codes.GeneralDBQueryFailed)
+		return nil, fmt.Errorf(error_codes.GeneralDBInsertFailed)
 	}
-	return true, nil
-
+	return res, nil
 }
 
 func (r *DepartmentPersistence) CheckDepartmentExists(ctx context.Context, dept string) (bool, error) {
@@ -110,23 +113,20 @@ func (r *DepartmentPersistence) ValidateActionRequest(ctx context.Context, actio
 	return action, nil
 }
 
-func (r *DepartmentPersistence) UpdateDepartment(ctx context.Context, code string, department string, portalCards []string) error {
+func (r *DepartmentPersistence) UpdateDepartment(ctx context.Context, code string, department string, portalCards []string) (*entities.Department, error) {
 
 	filter := bson.M{"department_code": code}
 	update := bson.M{
 		"department":   department,
 		"portal_cards": portalCards,
 	}
-	_, err := r.departmentdal.UpdateOne(ctx, filter, update)
+	data, err := r.departmentdal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
+		return nil, fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
-	return nil
+	return &data, nil
 }
-
 func (r *DepartmentPersistence) FindByActionCode(ctx context.Context, code string) (*entities.CPSAction, error) {
-
-	log.Println("Finding action by code:", code)
 	filter := bson.M{"action_code": code}
 	var action *entities.CPSAction
 
@@ -135,31 +135,86 @@ func (r *DepartmentPersistence) FindByActionCode(ctx context.Context, code strin
 		return nil, fmt.Errorf(error_codes.ActionNotFound)
 	}
 
-	log.Println("Found action:", action)
 	return action, nil
 }
 
-func (r *DepartmentPersistence) UpdateActionStatus(ctx context.Context, actionCode string, status string) error {
+func (r *DepartmentPersistence) UpdateActionStatus(ctx context.Context, actionCode string, status string) (*entities.CPSAction, error) {
 
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{"action_status": status, "last_modified_at": time.Now()}
 
+	data, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf(error_codes.GeneralDBUpdateFailed)
+	}
+	return &data, nil
+}
+
+func (r *DepartmentPersistence) ApproveActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{
+		"checker_name":         action.CheckerName,
+		"checker_id":           action.CheckerID,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        entities.ActionApproved,
+		"checker_action_time":  time.Now(),
+	}
+
 	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
+
 	if err != nil {
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
 
+	// Extract department data from CurrentAction map
+	// currentActionMap, ok := actionData.CurrentAction.(map[string]interface{})
+	// if !ok {
+	// 	return fmt.Errorf("invalid current action data format")
+	// }
+
+	// departmentName, ok := currentActionMap["department"].(string)
+	// if !ok {
+	// 	return fmt.Errorf("invalid department name in current action")
+	// }
+
+	// portalCardsInterface, ok := currentActionMap["portal_cards"].([]interface{})
+	// if !ok {
+	// 	return fmt.Errorf("invalid portal cards in current action")
+	// }
+
+	// // Convert portal cards to string slice
+	// var portalCards []string
+	// for _, card := range portalCardsInterface {
+	// 	if cardStr, ok := card.(string); ok {
+	// 		portalCards = append(portalCards, cardStr)
+	// 	}
+	// }
+
+	// data := entities.Department{
+	// 	Department:     departmentName,
+	// 	DepartmentCode: utils.RandomGenerator(20),
+	// 	PortalCards:    portalCards,
+	// 	Enabled:        false,
+	// 	CreatedAt:      time.Now().UTC(),
+	// }
+
+	// _, err = r.departmentdal.InsertOne(ctx, data)
+	// if err != nil {
+	// 	return err
+	// }
+
 	return nil
 }
 
-func (r *DepartmentPersistence) ApproveActionRequest(ctx context.Context, actionCode string, user entities.CPSAction) error {
+func (r *DepartmentPersistence) RejectActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
 
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{
-		"checker_name":         user.CheckerName,
-		"checker_id":           user.CheckerID,
-		"checker_phone_number": user.CheckerPhoneNumber,
-		"action_status":        entities.ActionApproved,
+		"checker_name":         action.CheckerName,
+		"checker_id":           action.CheckerID,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        entities.ActionRejected,
 		"checker_action_time":  time.Now(),
 	}
 
@@ -168,4 +223,155 @@ func (r *DepartmentPersistence) ApproveActionRequest(ctx context.Context, action
 		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
 	}
 	return nil
+}
+
+// CreateDepartmentUpdateCPSAction creates a CPS action for department updates
+func (r *DepartmentPersistence) CreateDepartmentUpdateCPSAction(ctx context.Context, req entities.CPSAction) (*entities.CPSAction, error) {
+	// Check for pending update action
+	filter := bson.M{
+		"maker_phone_number": req.MakerPhoneNumber,
+		"action_status":      entities.ActionPending,
+		"department":         req.Department,
+		"request_action":     entities.RequestDepartment,
+	}
+
+	projection := bson.M{}
+	existing, err := r.cpsdal.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		r.logger.Errorf("failed to get cps action: %v", err)
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("pending department update action present")
+	}
+
+	// Set up the CPS action for department update
+	req.ActionStatus = entities.ActionPending
+	req.RequestAction = entities.RequestDepartment
+	req.ActionType = entities.ActionUpdate
+	req.MakerActionTime = time.Now()
+	req.CreatedAt = time.Now()
+	req.LastModifiedAt = time.Now()
+
+	cpsAction, err := r.cpsdal.InsertOne(ctx, req)
+	if err != nil {
+		r.logger.Errorf("failed to create cps action: %v", err)
+		return nil, err
+	}
+	return &cpsAction, nil
+}
+
+// ApproveDepartmentUpdate approves a department update CPS action
+func (r *DepartmentPersistence) ApproveDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error {
+	filter := bson.M{
+		"action_code":   cpsAction.ActionCode,
+		"action_status": entities.ActionPending,
+	}
+	update := bson.M{
+		"action_status":        entities.ActionApproved,
+		"checker_id":           cpsAction.CheckerID,
+		"checker_name":         cpsAction.CheckerName,
+		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"checker_action_time":  time.Now(),
+		"last_modified_at":     time.Now(),
+	}
+	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("failed to approve cps action: %v", err)
+		return err
+	}
+
+	// Extract department data from current action and update the department
+	if deptData, ok := cpsAction.CurrentAction.(map[string]interface{}); ok {
+		departmentCode, ok := deptData["department_code"].(string)
+		if !ok {
+			return fmt.Errorf("invalid department_code in current action")
+		}
+
+		department, _ := deptData["department"].(string)
+		portalCardsInterface, _ := deptData["portal_cards"].([]interface{})
+
+		// Convert portal cards to string slice
+		var portalCards []string
+		for _, card := range portalCardsInterface {
+			if cardStr, ok := card.(string); ok {
+				portalCards = append(portalCards, cardStr)
+			}
+		}
+
+		// Handle different action types
+		switch cpsAction.ActionType {
+		case entities.ActionCreate:
+			// For create actions, insert a new department
+			data := entities.Department{
+				Department:     department,
+				DepartmentCode: utils.RandomGenerator(20),
+				PortalCards:    portalCards,
+				Enabled:        true,
+				CreatedAt:      time.Now().UTC(),
+				LastModified:   time.Now().UTC(),
+			}
+			_, err = r.departmentdal.InsertOne(ctx, data)
+			if err != nil {
+				r.logger.Errorf("failed to create department: %v", err)
+				return err
+			}
+		case entities.ActionUpdate:
+			// For update actions, update the existing department
+			_, err = r.UpdateDepartment(ctx, departmentCode, department, portalCards)
+			if err != nil {
+				r.logger.Errorf("failed to update department: %v", err)
+				return err
+			}
+		case entities.ActionDelete:
+			// For delete actions, mark the department as deleted
+			deleteFilter := bson.M{"department_code": departmentCode}
+			deleteUpdate := bson.M{
+				"enabled":       false,
+				"deleted_at":    time.Now().UTC(),
+				"last_modified": time.Now().UTC(),
+			}
+			_, err = r.departmentdal.UpdateOne(ctx, deleteFilter, deleteUpdate)
+			if err != nil {
+				r.logger.Errorf("failed to delete department: %v", err)
+				return err
+			}
+		default:
+			return fmt.Errorf("unsupported action type: %s", cpsAction.ActionType)
+		}
+	}
+
+	return nil
+}
+
+// RejectDepartmentUpdate rejects a department update CPS action
+func (r *DepartmentPersistence) RejectDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error {
+	filter := bson.M{
+		"action_code":   cpsAction.ActionCode,
+		"action_status": entities.ActionPending,
+	}
+	update := bson.M{
+		"action_status":        entities.ActionRejected,
+		"rejection_reason":     cpsAction.RejectionReason,
+		"checker_id":           cpsAction.CheckerID,
+		"checker_name":         cpsAction.CheckerName,
+		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"checker_action_time":  time.Now(),
+		"last_modified_at":     time.Now(),
+	}
+	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("failed to reject cps action: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
+	filter := bson.M{}
+	departments, err := r.departmentdal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	return departments, nil
 }

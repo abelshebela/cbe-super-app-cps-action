@@ -2,16 +2,18 @@ package ad
 
 import (
 	"encoding/json"
-	"fmt"
 
 	// "fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+
 	inboundAd "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -37,7 +39,7 @@ func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) inboundAd.ADAda
 }
 
 func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
-	var advertReq ad.CreateAdvertRequest
+	var advertReq dto.CreateAdvertRequest
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
@@ -46,15 +48,12 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	started_at := r.FormValue("started_at")
-	fmt.Println("==========================", r.FormValue("description"))
 	started_at_time, err := time.Parse(time.RFC3339, started_at)
 	if err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
-	fmt.Println("==========FormValue==============")
-	fmt.Println(r.FormValue("title"))
 
 	expired_at := r.FormValue("expired_at")
 	expired_at_time, err := time.Parse(time.RFC3339, expired_at)
@@ -63,11 +62,9 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
-
 	advertReq.Title = r.FormValue("title")
-	fmt.Printf("title %v", advertReq.Title)
 	advertReq.Description = r.FormValue("description")
-	advertReq.AdvertFor = ad.AdvertFor(r.FormValue("advert_for"))
+	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
 	advertReq.Date.StartedAt = started_at_time
 	advertReq.Date.ExpiredAt = expired_at_time
 
@@ -81,7 +78,7 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 
 	advertReq.BannerImage = fileHeader
 
-	var cpsReq ad.CreateCPSAction
+	var cpsReq model.CreateCPSAction
 
 	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -89,7 +86,8 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
 	cpsReq.ActionData = advertReq
-	cpsReq.MakerUser = ad.User{
+
+	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
@@ -107,52 +105,39 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	data, _ := util.StructToMap(cpsActionRes)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
-func (a ADAdapter) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
-	resp := struct {
-		Status int         `json:"status"`
-		Data   interface{} `json:"data"`
-	}{
-		Status: status,
-		Data:   data,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(resp)
-}
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var cpsReq ad.CreateCPSAction
+	var cpsReq model.CreateCPSAction
 
 	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsReq.ActionData.ID = id
-	cpsReq.MakerUser = ad.User{
+	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
 	ctx := r.Context()
-	if err := a.adHandler.DeleteOneAdvert(ctx, cpsReq); err != nil {
+
+	res, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
+	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	util.BaseResponseMaker(nil, w, def.Message, http.StatusAccepted)
+	data, _ := util.StructToMap(res)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
-
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-
 	page := constant.DefaultPage
 	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
 		page = pageInt
 	}
-
 	per_page := constant.DefaultPerPage
 	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
 		perPageInt <= 10 && perPageInt > 0 {
@@ -201,7 +186,7 @@ func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
 func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var req ad.UpdateAdvertRequest
+	var req dto.UpdateAdvertRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		a.logger.Errorf("failed to decode advert request", err)
@@ -214,24 +199,19 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	var cpsReq ad.CreateCPSAction
+	var cpsReq model.CreateCPSAction
 
-	cpsReq.MakerUser = ad.User{
+	cpsReq.MakerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
 	cpsReq.Department = department
-	cpsReq.ActionData = ad.CreateAdvertRequest{
-		ID:          id,
-		Title:       req.Title,
-		Description: req.Description,
-		AdvertFor:   req.AdvertFor,
-		Date:        req.Date,
-	}
+	req.ID = id
+	cpsReq.ActionData = req
 
 	ctx := r.Context()
-	cpsAction, err := a.adHandler.UpdateOneAdvert(ctx, cpsReq)
+	cpsAction, err := a.adHandler.UpdateOneAdvert(ctx, id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -245,21 +225,18 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	action_code := chi.URLParam(r, "action_code")
 
-	var cpsReq entity.CPSAction
+	var cpsReq model.AuthorizeCPSAction
 
 	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
 	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsReq.CheckerUser = entity.User{
+	cpsReq.CheckerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,
 	}
-	fmt.Println("===========================================================")
-	fmt.Println(cpsReq.CheckerUser)
-	fmt.Println("===========================================================")
 
 	cpsReq.Department = department
 	cpsReq.ActionCode = action_code
@@ -277,7 +254,7 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	var cpsReq entity.CPSAction
+	var cpsReq model.RejectCPSAction
 	action_code := chi.URLParam(r, "action_code")
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
@@ -291,7 +268,7 @@ func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
-	cpsReq.CheckerUser = entity.User{
+	cpsReq.CheckerUser = model.User{
 		UserCode:    user_code,
 		FullName:    full_name,
 		PhoneNumber: phone_number,

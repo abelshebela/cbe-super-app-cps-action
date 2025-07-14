@@ -2,18 +2,21 @@ package utils
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
+	"maps"
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type APIErrorResponse struct {
-	Message       string      `json:"message"`
-	Code          string      `json:"code,omitempty"`
-	AccountLocked bool        `json:"accountLocked,omitempty"`
-	Auth          bool        `json:"auth,omitempty"`
-	Errors        interface{} `json:"errors,omitempty"`
+	Message       string `json:"message"`
+	Code          string `json:"code,omitempty"`
+	AccountLocked bool   `json:"accountLocked,omitempty"`
+	Auth          bool   `json:"auth,omitempty"`
+	Errors        any    `json:"errors,omitempty"`
 }
 
 var errorKeyToStatus = map[string]int{
@@ -109,6 +112,17 @@ var errorKeyToStatus = map[string]int{
 	"FAILED_TO_FIND_CPS_ACTION":                                  500,
 	"FAILED_TO_UPDATE_SERVICE_FEE":                               500,
 	"FAILED_TO_REJECT_SERVICE_FEE_UPDATE":                        500,
+	"REQUIRED_FIELDS_MISSING":                                    400,
+	"TIERS_REQUIRED":                                             400,
+	"TIERS_FIRST_MIN_ZERO":                                       400,
+	"TIERS_MIN_MUST_EQUAL_PREV_MAX":                              400,
+	"TIERS_MAX_MUST_INCREASE":                                    400,
+	"TIERS_ABOVE_AMOUNT_MISMATCH":                                400,
+	"NOT_IMPLEMENTED":                                            501,
+	"INPUT_TOO_LONG":                                             400,
+	"INPUT_INVALID_CHARACTERS":                                   400,
+	"PAGE_NOT_FOUND":                                             404,
+	"MISSING_OR_INVALID_IMAGE":                                   400,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
@@ -159,6 +173,7 @@ var errorKeyToStatus = map[string]int{
 	"ACCOUNT_DETAIL_FAILED":         502,
 	"INVALID_CORE_RESPONSE":         502,
 	"ACCOUNT_ALREADY_LINKED":        409,
+	"ACCOUNT_BLOCKED":               403,
 
 	// OTP
 	"INVALID_OTP":            400,
@@ -177,12 +192,14 @@ var errorKeyToStatus = map[string]int{
 	"UPLOAD_FAILED":     500,
 
 	// Branch
-	"BRANCH_NOT_FOUND":         404,
-	"BRANCH_DISABLED":          400,
-	"FAILED_TO_FETCH_BRANCHES": 500,
-	"INVALID_BRANCH_ID":        400,
-	"INVALID_LOCATION_FILTER":  400,
-	"BRANCH_ID_REQUIRED":       400,
+	"BRANCH_NOT_FOUND":                           404,
+	"BRANCH_DISABLED":                            400,
+	"FAILED_TO_FETCH_BRANCHES":                   500,
+	"INVALID_BRANCH_ID":                          400,
+	"INVALID_LOCATION_FILTER":                    400,
+	"BRANCH_ID_REQUIRED":                         400,
+	"BRANCH_DISABLE_ACTION_ALREADY_EXISTS":       409,
+	"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": 409,
 
 	// Department
 	"DEPARTMENT_NOT_FOUND":      404,
@@ -195,14 +212,28 @@ var errorKeyToStatus = map[string]int{
 	"UNIDENTIFIED_KEY": 500,
 
 	// Banks
-	"BANKS_NOT_FOUND": 404,
+	"BANKS_NOT_FOUND":                   404,
+	"INVALID_BANK_NAME":                 400,
+	"MISSING_BANK_NAME":                 400,
+	"MISSING_BANK_CODE":                 400,
+	"MISSING_BANK_BIC":                  400,
+	"BANK_ALREADY_EXISTS":               409,
+	"BLOCKED_ACTION_USER_ALREADY_EXIST": 409,
+
+	// Action
+	"FAILED_TO_CREATE_ACTION":  500,
+	"FAILED_TO_UPDATE_ACTION":  500,
+	"FAILED_TO_FETCH_ACTION":   500,
+	"ACTION_NOT_PENDING":       400,
+	"FAILED_TO_UPDATE_SERVICE": 500,
+	"FAILED_TO_UPDATE_CAP_MIN": 500,
 }
 
 func getStatusForErrorKey(key string) int {
 	if status, ok := errorKeyToStatus[key]; ok {
 		return status
 	}
-	// Backward compatibility: check DefineError groups
+
 	for _, group := range []common.ErrorGroup{
 		common.DefineError.General,
 		common.DefineError.Auth,
@@ -212,18 +243,87 @@ func getStatusForErrorKey(key string) int {
 		common.DefineError.OTP,
 		common.DefineError.File,
 		common.DefineError.Branch,
+		common.DefineError.Bank,
+		common.DefineError.Department,
+		common.DefineError.Action,
+		common.DefineError.Wallet,
 	} {
 		if _, ok := group[key]; ok {
 			return http.StatusBadRequest
 		}
 	}
+
 	return http.StatusInternalServerError
 }
 
-func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, additionalData map[string]interface{}) {
-	var errorDef common.ErrorDefinition
-	found := false
+func formatValidationErrors(ve validation.Errors) map[string]string {
+	result := make(map[string]string)
+	for field, fieldErr := range ve {
+		def := lookupErrorDefinition(fieldErr.Error())
+		result[field] = def.Message
+	}
+	return result
+}
+func SendErrorResponse(w http.ResponseWriter, errorKey any, statusCode int, additionalData map[string]any) {
+	var (
+		code              string
+		message           string
+		errorKeyString    string
+		errors            any
+		isValidationError bool
+	)
 
+	switch v := errorKey.(type) {
+	case string:
+		def := lookupErrorDefinition(v)
+		code = def.Code
+		message = def.Message
+		errorKeyString = v
+
+	case error:
+		if ve, ok := v.(validation.Errors); ok {
+			code = "GEN_113"
+			message = "One or more required fields are invalid."
+			errors = formatValidationErrors(ve)
+			errorKeyString = "GEN_113"
+			isValidationError = true
+		} else {
+			def := lookupErrorDefinition(v.Error())
+			code = def.Code
+			message = def.Message
+			errorKeyString = def.Code
+		}
+
+	default:
+		code = "GEN_UNKNOWN"
+		message = fmt.Sprintf("%v", v)
+		errorKeyString = "GEN_UNKNOWN"
+	}
+
+	status := httpStatusOrDefault(statusCode, errorKeyString, isValidationError)
+	response := map[string]any{
+		"status":  status,
+		"message": message,
+		"data": map[string]any{
+			"code": code,
+		},
+	}
+
+	if errors != nil {
+		response["errors"] = errors
+	}
+
+	maps.Copy(response, additionalData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		fmt.Printf("Failed to write error response: %v\n", err)
+	}
+}
+
+func lookupErrorDefinition(key string) common.ErrorDefinition {
 	errorGroups := []common.ErrorGroup{
 		common.DefineError.General,
 		common.DefineError.Auth,
@@ -233,54 +333,32 @@ func SendErrorResponse(w http.ResponseWriter, errorKey string, statusCode int, a
 		common.DefineError.OTP,
 		common.DefineError.File,
 		common.DefineError.Branch,
+		common.DefineError.Bank,
+		common.DefineError.Department,
+		common.DefineError.Wallet,
+		common.DefineError.Action,
 	}
 
 	for _, group := range errorGroups {
-		if def, ok := group[errorKey]; ok {
-			errorDef = def
-			found = true
-			break
+		if def, ok := group[key]; ok {
+			return def
 		}
 	}
 
-	if !found {
-		errorDef = common.ErrorDefinition{
-			Code:    errorKey,
-			Message: errorKey,
-		}
+	return common.ErrorDefinition{
+		Code:    key,
+		Message: key,
 	}
+}
 
-	response := APIErrorResponse{
-		Message: errorDef.Message,
-		Code:    errorDef.Code,
+func httpStatusOrDefault(providedStatus int, errorCode string, isValidation bool) int {
+	if isValidation {
+		return http.StatusBadRequest
 	}
-
-	if additionalData != nil {
-		if accountLocked, ok := additionalData["accountLocked"].(bool); ok {
-			response.AccountLocked = accountLocked
-		}
-		if auth, ok := additionalData["auth"].(bool); ok {
-			response.Auth = auth
-		}
-		if errors, exists := additionalData["errors"]; exists {
-			response.Errors = errors
-		}
+	if providedStatus != 0 {
+		return providedStatus
 	}
-
-	status := statusCode
-	if status == 0 {
-		status = getStatusForErrorKey(errorKey)
-	}
-
-	returnData := make(map[string]interface{})
-	returnData["status"] = status
-	returnData["message"] = response.Message
-	returnData["data"] = map[string]interface{}{"code": response.Code}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	responseBytes, _ := json.Marshal(returnData)
-
-	w.Write(responseBytes)
+	return getStatusForErrorKey(errorCode)
 }
 
 func HandleServiceError(w http.ResponseWriter, err error) {
@@ -290,36 +368,3 @@ func HandleServiceError(w http.ResponseWriter, err error) {
 	}
 	SendErrorResponse(w, "GEN_004", http.StatusInternalServerError, nil)
 }
-
-// Department errors
-var (
-	ErrDepartmentAlreadyExists = errors.New("DEPARTMENT_ALREADY_EXISTS")
-	ErrDepartmentNotFound      = errors.New("DEPARTMENT_NOT_FOUND")
-	ErrDepartmentCodeRequired  = errors.New("DEPARTMENT_CODE_REQUIRED")
-	ErrDepartmentNameRequired  = errors.New("DEPARTMENT_NAME_REQUIRED")
-	ErrPortalCardsInvalid      = errors.New("PORTAL_CARDS_INVALID")
-)
-
-// Action errors
-var (
-	ErrActionNotFound       = errors.New("ACTION_NOT_FOUND")
-	ErrActionNotAllowed     = errors.New("ACTION_NOT_ALLOWED")
-	ErrPendingRequestExists = errors.New("PENDING_REQUEST_EXISTS")
-	ErrInvalidActionType    = errors.New("INVALID_ACTION_TYPE")
-)
-
-// Input and decoding errors
-var (
-	ErrInvalidInput       = errors.New("INVALID_INPUT")
-	ErrInvalidJSONPayload = errors.New("INVALID_JSON_PAYLOAD")
-)
-
-// General errors
-var (
-	ErrIncompleteUserInfo = errors.New("INCOMPLETE_USER_INFO")
-)
-
-// File
-var (
-	ErrInvalidForm = errors.New("INVALID_FORM")
-)

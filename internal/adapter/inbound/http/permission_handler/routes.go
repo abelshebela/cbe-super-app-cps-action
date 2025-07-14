@@ -12,11 +12,11 @@ import (
 )
 
 func InitPermissionRoutes(router chi.Router, permissionHandler inbound.PermissionPortHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/api/v1/cbesuperapp/cps_action/permission", func(r chi.Router) {
+	router.Route("/permissions", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
+				Path:    "/",
 				Handler: permissionHandler.CreatePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve/request/{action_code}",
+				Path:    "/{action_code}/approve",
 				Handler: permissionHandler.ApprovePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

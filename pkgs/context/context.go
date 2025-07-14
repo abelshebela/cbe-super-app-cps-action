@@ -2,6 +2,7 @@
 package contexts
 
 import (
+	"context"
 	"net/http"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -25,7 +26,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 		return val
 	}
 
-	branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
+	//branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
 
 	return UserContext{
 		UserCode:    get("user_code"),
@@ -34,11 +35,29 @@ func ExtractUserContext(r *http.Request) UserContext {
 		PhoneNumber: get("phone_number"),
 		Department:  get("department"),
 		UserRole:    get("user_role"),
-		BranchCode:  branchCode,
+		//BranchCode:  branchCode,
 	}
 }
 
+func ExtractContext(c context.Context) UserContext {
+	// This method extracts users data from the middleware context
+	get := func(key string) string {
+		val, _ := c.Value(constant.ContextKey(key)).(string)
+		return val
+	}
 
+	//branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
+
+	return UserContext{
+		UserCode:    get("user_code"),
+		UserID:      get("user_id"),
+		FullName:    get("full_name"),
+		PhoneNumber: get("phone_number"),
+		Department:  get("department"),
+		UserRole:    get("user_role"),
+		//BranchCode:  branchCode,
+	}
+}
 func (u UserContext) IsIncomplete() bool {
 	return u.UserID == "" || u.FullName == "" || u.PhoneNumber == "" || u.Department == ""
 }

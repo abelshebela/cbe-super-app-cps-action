@@ -3,6 +3,7 @@ package miniapp_application
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -11,8 +12,8 @@ import (
 )
 
 type ApplicationAbstracts interface {
-	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, makerId string) (string, *common.ErrorDefinition)
-	CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checkerId string) *common.ErrorDefinition
+	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (string, *common.ErrorDefinition)
+	CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User) *common.ErrorDefinition
 }
 type ApplicationStore struct {
 	service domain.MiniAppService

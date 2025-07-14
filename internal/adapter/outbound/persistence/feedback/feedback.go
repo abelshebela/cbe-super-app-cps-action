@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
@@ -80,19 +81,20 @@ func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.
 
 func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error) {
 	feedbackID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		c.logger.Errorf("invalid id provided: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
+	}
+
 	if feedbackID.IsZero() {
 		c.logger.Errorf("invalid id provided", err)
 
 		return nil, fmt.Errorf("INVALID_ID")
 	}
 
-	if err != nil {
-
-		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
-	}
-
 	filter := bson.M{"_id": feedbackID}
 	projection := bson.M{}
+	// fmt.Println(filter, projection,"dataaaaaaa")
 	feedback, err := c.mongoDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

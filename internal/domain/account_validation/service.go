@@ -4,27 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Service interface {
 	GetAccountValidation(ctx context.Context, id string) (ValidationRule, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error)
-	UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string, PhoneNumber string, FullName string) error
+	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string, Department string) (string, error)
+	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checkerID string, PhoneNumber string, FullName string, rejectedReason string) error
 }
 
 type ServiceStore struct {
-	repository Repository
-	actionRepo action.Repository
-	logger     utils.Logger
+	repository AccountValidationRepository
+	actionRepo action.ActionRepository
+	logger     sharedutils.Logger
 }
 
-func NewService(repo Repository, actionRepo action.Repository, logger utils.Logger) Service {
+func NewAccountValidationService(repo AccountValidationRepository, actionRepo action.ActionRepository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,
@@ -46,16 +47,35 @@ func (s *ServiceStore) GetAccountValidation(ctx context.Context, id string) (Val
 	return rule, nil
 }
 
-func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string) (string, error) {
+func (s *ServiceStore) UpdateAccountValidationRequest(
+	ctx context.Context,
+	id string,
+	update ValidationRule,
+	makerID, PhoneNumber, FullName, Department string,
+) (string, error) {
 	if id == "" {
 		s.logger.Errorf("ID is empty")
 		return "", fmt.Errorf("INVALID_ID")
 	}
+
 	originalRule, err := s.repository.GetAccountValidationByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("failed to fetch account validation: %v", err)
 		return "", fmt.Errorf("NOT_FOUND")
 	}
+
+	pendingActions, err := s.repository.FetchPendingActionsByUniqueID(ctx, id)
+	if err != nil {
+		s.logger.Errorf("failed to fetch pending actions: %v", err)
+		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		s.logger.Errorf("pending action already exists for validation rule: %s", id)
+		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	// Debug log to check update
+	fmt.Printf("update being marshaled: %+v\n", update)
 
 	previousActionJSON, err := json.Marshal(originalRule)
 	if err != nil {
@@ -63,63 +83,89 @@ func (s *ServiceStore) UpdateAccountValidationRequest(ctx context.Context, id st
 		return "", fmt.Errorf("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
 	}
 
+	// Ensure the update struct has the ID set
+	update.ID = id
+
 	type CurrentAction struct {
 		Rule ValidationRule `json:"rule"`
 	}
 	currentAction := CurrentAction{Rule: update}
-	currentActionJSON, err := json.Marshal(currentAction)
-	if err != nil {
-		s.logger.Errorf("failed to marshal current action: %v", err)
-		return "", fmt.Errorf("FAILED_TO_MARSHAL_CURRENT_ACTION")
-	}
 
-	s.logger.Infof("original rule: %+v", originalRule)
-	s.logger.Infof("new rule: %+v", update)
-
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode: actionID,
-		Maker: action.User{
-			UserID:      makerID,
-			FullName:    FullName,
-			PhoneNumber: PhoneNumber,
-			Timestamp:   time.Now(),
-		},
-		Checker:         action.User{},
-		Department:      update.ServiceID,
-		UniqueId:        id,
-		ActionType:      action.ActionUpdate,
-		RequestAction:   action.RequestUpdateAccountValidation,
-		ActionStatus:    action.ActionPending,
-		CurrentAction:   currentActionJSON,
-		PreviosAction:   previousActionJSON,
-		CreatedAt:       time.Now(),
-		LastModifiedAt:  time.Now(),
-		RejectionReason: nil,
+		ActionCode:         actionID,
+		MakerID:            makerID,
+		MakerName:          FullName,
+		MakerPhoneNumber:   PhoneNumber,
+		CheckerID:          "",
+		CheckerName:        "",
+		CheckerPhoneNumber: "",
+		Department:         Department,
+		UniqueId:           id,
+		ActionType:         action.ActionUpdate,
+		RequestAction:      action.RequestUpdateAccountValidation,
+		ActionStatus:       action.ActionPending,
+		CurrentAction:      currentAction, // assign struct directly
+		PreviosAction:      previousActionJSON,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
+		RejectionReason:    nil,
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
 	}
+
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
 		return "", fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
 
-	s.logger.Infof("successfully created CPS action", "action_code", createdAction.ActionCode)
 	return createdAction.ActionCode, nil
 }
 
-func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, approve bool, checkerID string, PhoneNumber string, FullName string) error {
-	if actionID == "" {
-		s.logger.Errorf("action ID is empty")
-		return fmt.Errorf("ACTION_ID_EMPTY")
+func toJSONBytes(val interface{}) ([]byte, error) {
+	switch v := val.(type) {
+	case nil:
+		return nil, fmt.Errorf("value is nil")
+	case json.RawMessage:
+		return v, nil
+	case []byte:
+		return v, nil
+	case string:
+		return []byte(v), nil
+	case map[string]interface{}, []interface{}:
+		return json.Marshal(v)
+	case bson.D:
+		// Convert bson.D to bson.M using bson.Marshal + bson.Unmarshal (recommended)
+		bsonBytes, err := bson.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		var m bson.M
+		if err := bson.Unmarshal(bsonBytes, &m); err != nil {
+			return nil, err
+		}
+		return json.Marshal(m)
+	default:
+		rv := reflect.ValueOf(v)
+		if rv.Kind() == reflect.Struct {
+			return json.Marshal(v)
+		}
+		return nil, fmt.Errorf("unsupported type: %T", v)
 	}
+}
 
-	if checkerID == "" {
-		s.logger.Errorf("checker ID is empty")
-		return fmt.Errorf("CHECKER_ID_EMPTY")
+func (s *ServiceStore) UpdateAccountValidation(
+	ctx context.Context,
+	actionID string,
+	decision utils.DecisonEnum,
+	checkerID, PhoneNumber, FullName, rejectedReason string,
+) error {
+	if actionID == "" || checkerID == "" {
+		s.logger.Errorf("action ID or checker ID is empty")
+		return fmt.Errorf("ACTION_ID_OR_CHECKER_ID_EMPTY")
 	}
-
-	s.logger.Infof("processing account validation update", "action_id", actionID, "approve", approve, "checker_id", checkerID)
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionID)
 	if err != nil {
@@ -128,66 +174,57 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 	}
 
 	if cpsAction.ActionStatus != action.ActionPending {
-		s.logger.Errorf("action is not pending", "action_id", actionID, "status", cpsAction.ActionStatus)
+		s.logger.Errorf("action is not pending")
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
-	cpsAction.Checker = action.User{
-		UserID:      checkerID,
-		FullName:    FullName,
-		PhoneNumber: PhoneNumber,
-		Timestamp:   time.Now(),
-	}
+
+	cpsAction.CheckerID = checkerID
+	cpsAction.CheckerName = FullName
+	cpsAction.CheckerPhoneNumber = PhoneNumber
+	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
-	if approve {
+	if decision == utils.DecisionApproved {
 		var currentAction struct {
 			Rule ValidationRule `json:"rule"`
 		}
 
-		var currentActionBytes []byte
-		switch v := cpsAction.CurrentAction.(type) {
-		case json.RawMessage:
-			currentActionBytes = v
-		case []byte:
-			currentActionBytes = v
-		case string:
-			currentActionBytes = []byte(v)
-		case nil:
-			s.logger.Errorf("current action is nil", "action_id", actionID)
-			return fmt.Errorf("CURRENT_ACTION_NIL")
-		default:
-
-			var err error
-			currentActionBytes, err = json.Marshal(v)
-			if err != nil {
-				s.logger.Errorf("failed to marshal current action: %v", err)
-				return fmt.Errorf("CURRENT_ACTION_INVALID_TYPE")
-			}
+		currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
+		if err != nil {
+			s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
+			return fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
 		}
-
+		fmt.Printf("CurrentAction raw JSON: %s\n", string(currentActionBytes))
 		if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
-			s.logger.Errorf("failed to unmarshal current action: %v", err)
+			s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
 			return fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
 		}
 
 		updatedRule := currentAction.Rule
 
-		if updatedRule.ID.String() == "" || updatedRule.ID.String() != cpsAction.ID.String() {
-			s.logger.Errorf("validation rule ID mismatch", "action_id", actionID, "rule_id", updatedRule.ID, "unique_id", cpsAction.ID)
-			return fmt.Errorf("VALIDATION_RULE_ID_MISMATCH")
+		fmt.Printf("Unmarshalled currentAction: %+v\n", currentAction)
+		if updatedRule.ID == "" {
+			s.logger.Errorf("invalid validation rule ID: empty")
+			return fmt.Errorf("VALIDATION_RULE_ID_EMPTY")
+
 		}
 
-		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID.String(), updatedRule); err != nil {
+		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID, updatedRule); err != nil {
 			s.logger.Errorf("failed to update validation rule: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_VALIDATION_RULE")
 		}
 
 		cpsAction.ActionStatus = action.ActionApproved
-		s.logger.Infof("validation rule approved successfully", "action_id", actionID)
-	} else {
+		s.logger.Infof("validation rule approved successfully")
+	} else if decision == utils.DecisionDenied {
 		cpsAction.ActionStatus = action.ActionRejected
-		cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
-		s.logger.Infof("validation rule update rejected", "action_id", actionID)
+		if rejectedReason != "" {
+			cpsAction.RejectionReason = &rejectedReason
+		} else {
+			cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+		}
+	} else {
+		return fmt.Errorf("INVALID_DECISION")
 	}
 
 	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {

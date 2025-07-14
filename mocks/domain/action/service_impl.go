@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	miniapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockMiniAppService is a mock of MiniAppService interface.

@@ -5,8 +5,9 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain_hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
@@ -19,10 +20,10 @@ type ApplicationAbstracts interface {
 
 type ApplicationStore struct {
 	service domain_hq.Service
-	logger  utils.Logger
+	logger  sharedutils.Logger
 }
 
-func NewApplication(service domain_hq.Service, logger utils.Logger) ApplicationAbstracts {
+func NewApplication(service domain_hq.Service, logger sharedutils.Logger) ApplicationAbstracts {
 	return &ApplicationStore{service: service, logger: logger}
 }
 
@@ -43,6 +44,7 @@ func (a *ApplicationStore) GetHQ(ctx context.Context, id string) (dto.HQ, error)
 
 func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName string) (string, error) {
 	return a.service.UpdateBlockTimeRequest(ctx, domain_hq.UpdateBlockTimeRequest{
+		ID:         request.ID,
 		BlockTime:  request.BlockTime,
 		MakerID:    makerID,
 		MakerName:  fullName,
@@ -52,6 +54,7 @@ func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request d
 
 func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName string) (string, error) {
 	return a.service.UpdateArchiveTimeRequest(ctx, domain_hq.UpdateArchiveTimeRequest{
+		ID:          request.ID,
 		ArchiveTime: request.ArchiveTime,
 		MakerID:     makerID,
 		MakerName:   fullName,
@@ -61,20 +64,32 @@ func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request
 
 func (a *ApplicationStore) UpdateBlockTime(ctx context.Context, request dto.ApproveRejectRequest, checkerID, phone, fullName string) error {
 	return a.service.UpdateBlockTime(ctx, domain_hq.ApproveRejectRequest{
-		ActionCode:   request.ActionID,
+		ActionCode:   request.ActionCode,
 		CheckerID:    checkerID,
 		CheckerName:  fullName,
 		CheckerPhone: phone,
-		Approved:     request.Approve,
+		Decision:     request.Decison,
+		RejectedReason: func() string {
+			if request.Decison == utils.DecisionDenied {
+				return request.RejectedReason
+			}
+			return ""
+		}(),
 	})
 }
 
 func (a *ApplicationStore) UpdateArchiveTime(ctx context.Context, request dto.ApproveRejectRequest, checkerID, phone, fullName string) error {
 	return a.service.UpdateArchiveTime(ctx, domain_hq.ApproveRejectRequest{
-		ActionCode:   request.ActionID,
+		ActionCode:   request.ActionCode,
 		CheckerID:    checkerID,
 		CheckerName:  fullName,
 		CheckerPhone: phone,
-		Approved:     request.Approve,
+		Decision:     request.Decison,
+		RejectedReason: func() string {
+			if request.Decison == utils.DecisionDenied {
+				return request.RejectedReason
+			}
+			return ""
+		}(),
 	})
 }

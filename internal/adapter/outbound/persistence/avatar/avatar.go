@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "net/http"
 	"time"
 
@@ -20,13 +21,13 @@ import (
 )
 
 type AvatarPersistence struct {
-	cpsActionDal dal.MongoDal[model.CpsAction, model.CpsAction]
+	cpsActionDal dal.MongoDal[model.CPSAction, model.CPSAction]
 	avatarDal    dal.MongoDal[dto.Avatar, dto.Avatar]
 	logger       utils.Logger
 }
 
 func InitAvatarPersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) avatar.AvatarOutbound {
-	cpsActionDal := dal.NewMongoDal[model.CpsAction, model.CpsAction](client, dbName, collections[0])
+	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[0])
 	avatarDal := dal.NewMongoDal[dto.Avatar, dto.Avatar](client, dbName, collections[1])
 	return &AvatarPersistence{
 		cpsActionDal: cpsActionDal,
@@ -61,31 +62,38 @@ func (a *AvatarPersistence) CPSActionExists(ctx context.Context, cpsReq model.Cr
 	return nil
 }
 
-func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
-	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:              bson.NewObjectID().Hex(),
-		ActionCode:      utils.RandomGenerator(20),
-		MakerUser:       cpsActionReq.MakerUser,
-		Department:      cpsActionReq.Department,
-		Status:          model.ActionPending,
-		RequestAction:   model.RequestCreateAvatar,
-		ActionType:      model.ActionCreate,
-		ActionData:      cpsActionReq.ActionData,
-		MakerActionTime: time.Now(),
+func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsActionReq.MakerUser.UserCode,
+		MakerName:        cpsActionReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
+		Department:       cpsActionReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestCreateAvatar),
+		ActionType:       string(model.ActionCreate),
+		CurrentAction:    cpsActionReq.ActionData,
+		MakerActionTime:  time.Now(),
 	})
 
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
 
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("invalid object id: %v", err)
+		return model.CPSAction{}, fmt.Errorf("INVALID_OBJECT_ID")
+	}
 	filter := bson.M{
-		"id":         id,
+		"_id":        objectID,
 		"is_deleted": false,
 	}
 
@@ -100,82 +108,80 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("avatar not found %v", err)
 
-			return model.CpsAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+			return model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
 		}
 		a.logger.Errorf("failed to get avatar", err)
 
-		return model.CpsAction{}, fmt.Errorf("NO_AVATER_DATA_FOUND")
+		return model.CPSAction{}, fmt.Errorf("NO_AVATER_DATA_FOUND")
 	}
 
-	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsActionReq.MakerUser,
-		Department:    cpsActionReq.Department,
-		Status:        model.ActionPending,
-		RequestAction: model.RequestDeleteAvatar,
-		ActionType:    model.ActionDelete,
-		ActionData:    cpsActionReq.ActionData,
-		PreviousData: map[string]any{
+	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsActionReq.MakerUser.UserCode,
+		MakerName:        cpsActionReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
+		Department:       cpsActionReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		RequestAction:    string(model.RequestDeleteAvatar),
+		ActionType:       string(model.ActionDelete),
+		CurrentAction:    cpsActionReq.ActionData,
+		PreviosAction: map[string]any{
 			"label":      avatar.Label,
 			"avatar":     avatar.Avatar,
 			"is_deleted": avatar.IsDeleted,
-		},
-		CurrentData: map[string]any{
-			"is_deleted": true,
 		},
 		MakerActionTime: time.Now(),
 	})
 
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error) {
 	var avatar dto.Avatar
 	var err error
 
 	filter := bson.M{
-		"action_code": req.ActionCode,
-		"department":  req.Department,
-		"status":      model.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"status":              model.ActionApproved,
-		"checker_action_time": time.Now(),
+
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_name":         req.CheckerUser.FullName,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("failed to update cps action", err)
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTIONN")
 	}
 
 	var actionData dto.Avatar
-	data, err := bson.Marshal(cpsAction.ActionData)
+	data, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		a.logger.Errorf("failed to marshal bson: %v", err)
 
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
 	if err := bson.Unmarshal(data, &actionData); err != nil {
 		a.logger.Errorf("failed to unmarshal into avatar: %v", err)
 
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
-	if cpsAction.ActionType == model.ActionCreate {
+	if cpsAction.ActionType == string(model.ActionCreate) {
 		req := dto.Avatar{
 			ID:        bson.NewObjectID().Hex(),
 			Avatar:    actionData.Avatar,
@@ -188,16 +194,16 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		if err != nil {
 			a.logger.Errorf("failed to create avatar", err)
 
-			return model.CpsAction{}, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
+			return model.CPSAction{}, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
 		}
 
-		cpsAction.ActionData = avatar
+		cpsAction.CurrentAction = avatar
 
 		return cpsAction, nil
 
 	}
 
-	if cpsAction.ActionType == model.ActionUpdate {
+	if cpsAction.ActionType == string(model.ActionUpdate) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -212,11 +218,11 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			update["avatar"] = actionData.Avatar
 		}
 
-		if cpsAction.RequestAction == model.RequestEnableAvatar {
+		if cpsAction.RequestAction == string(model.RequestEnableAvatar) {
 			update["enable"] = true
 		}
 
-		if cpsAction.RequestAction == model.RequestDisableAvatar {
+		if cpsAction.RequestAction == string(model.RequestDisableAvatar) {
 			update["enable"] = false
 		}
 
@@ -226,15 +232,15 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		if err != nil {
 			a.logger.Errorf("failed to update avatar", err)
 
-			return model.CpsAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
 		}
 
-		cpsAction.ActionData = avatar
+		cpsAction.CurrentAction = avatar
 
 		return cpsAction, nil
 	}
 
-	if cpsAction.ActionType == model.ActionDelete {
+	if cpsAction.ActionType == string(model.ActionDelete) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -249,9 +255,9 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		if err != nil {
 			a.logger.Errorf("failed to update avatar", err)
 
-			return model.CpsAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
 		}
-		cpsAction.ActionData = avatar
+		cpsAction.CurrentAction = avatar
 
 		return cpsAction, nil
 	}
@@ -259,36 +265,39 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	return cpsAction, nil
 }
 
-func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
 	filter := bson.M{
-		"action_code": req.ActionCode,
-		"department":  req.Department,
-		"status":      model.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_user": bson.M{
-			"full_name":    req.CheckerUser.FullName,
-			"phone_number": req.CheckerUser.PhoneNumber,
-			"user_code":    req.CheckerUser.UserCode,
-		},
-		"status":              model.ActionRejected,
-		"rejected_reason":     req.RejectedReason,
-		"checker_action_time": time.Now(),
+		"checker_id":           req.CheckerUser.UserCode,
+		"checker_name":         req.CheckerUser.FullName,
+		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"action_status":        model.ActionRejected,
+		"rejected_reason":      req.RejectedReason,
+		"checker_action_time":  time.Now(),
 	}
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("failed to update avatar status", err)
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
 	}
 	return cpsAction, nil
 }
 
 func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("invalid object id: %v", err)
+		return nil, fmt.Errorf("INVALID_OBJECT_ID")
+	}
 	avatarFilter := bson.M{
-		"id":         id,
+		"_id":        objectID,
 		"is_deleted": false,
 	}
 
@@ -302,24 +311,25 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	if err != nil {
 		a.logger.Errorf("failed to get avatar", err)
 
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
+		return nil, fmt.Errorf("FAILED_TO_GET_AVATAR")
 	}
 
-	cps, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsReq.MakerUser,
-		Department:    cpsReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsReq.ActionData,
-		RequestAction: requestAction,
-		PreviousData: map[string]any{
+	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsReq.MakerUser.UserCode,
+		MakerName:        cpsReq.MakerUser.UserCode,
+		MakerPhoneNumber: cpsReq.MakerUser.PhoneNumber,
+		Department:       cpsReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(requestAction),
+		PreviosAction: map[string]any{
 			"avatar": avatar.Avatar,
 			"label":  avatar.Label,
 			"enable": avatar.Enable,
 		},
-		CurrentData:     cpsReq.ActionData,
+		CurrentAction:   cpsReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
@@ -389,7 +399,7 @@ func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*dto.Avat
 	return avatar, nil
 }
 
-func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CpsAction, error) {
+func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
 	filter := bson.M{
 		"id":         id,
 		"is_deleted": false,
@@ -403,28 +413,29 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 	if err != nil {
 		a.logger.Errorf("failed to get avatar", err)
 
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
 	}
 
-	cps, err := a.cpsActionDal.InsertOne(ctx, model.CpsAction{
-		ID:            bson.NewObjectID().Hex(),
-		ActionCode:    utils.RandomGenerator(20),
-		MakerUser:     cpsActionReq.MakerUser,
-		Department:    cpsActionReq.Department,
-		Status:        model.ActionPending,
-		ActionType:    model.ActionUpdate,
-		ActionData:    cpsActionReq.ActionData,
-		RequestAction: model.RequestUpdateAvatar,
-		PreviousData: map[string]any{
+	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          cpsActionReq.MakerUser.UserCode,
+		MakerName:        cpsActionReq.MakerUser.FullName,
+		MakerPhoneNumber: cpsActionReq.MakerUser.PhoneNumber,
+		Department:       cpsActionReq.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionUpdate),
+		RequestAction:    string(model.RequestUpdateAvatar),
+		PreviosAction: map[string]any{
 			"avatar": avatar.Avatar,
 		},
-		CurrentData:     cpsActionReq.ActionData,
+		CurrentAction:   cpsActionReq.ActionData,
 		MakerActionTime: time.Now(),
 	})
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
 
-		return model.CpsAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
 	return cps, nil

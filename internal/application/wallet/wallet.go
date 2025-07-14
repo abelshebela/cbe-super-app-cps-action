@@ -11,16 +11,16 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type WalletHandlerService interface {
+type WalletHandlerAppllication interface {
 	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
-	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error)
-	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error)
+	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableWallet(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 type WalletHandler struct {
@@ -28,14 +28,14 @@ type WalletHandler struct {
 	logger       utils.Logger
 }
 
-func InitWalletHanlder(walletDomain service.WalletService, logger utils.Logger) WalletHandlerService {
+func InitWalletApplication(walletDomain service.WalletService, logger utils.Logger) WalletHandlerAppllication {
 	return &WalletHandler{
 		walletDomain: walletDomain,
 		logger:       logger,
 	}
 }
 
-func (w *WalletHandler) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletHandler) CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsRes, err := w.walletDomain.CreateWallet(ctx, req)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (w *WalletHandler) CreateWallet(ctx context.Context, req model.CreateCPSAct
 	return cpsRes, nil
 }
 
-func (w *WalletHandler) DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletHandler) DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletDomain.DeleteWallet(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (w *WalletHandler) GetWallet(ctx context.Context, id string) (*entity.Walle
 	return bank, nil
 }
 
-func (w *WalletHandler) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CpsAction, error) {
+func (w *WalletHandler) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletDomain.UpdateWallet(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (w *WalletHandler) UpdateWallet(ctx context.Context, id string, req model.C
 	return cpsAction, nil
 }
 
-func (w *WalletHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CpsAction, error) {
+func (w *WalletHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletDomain.Authorize(ctx, req)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (w *WalletHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAct
 	return cpsAction, nil
 }
 
-func (w *WalletHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CpsAction, error) {
+func (w *WalletHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletDomain.Reject(ctx, req)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (w *WalletHandler) Reject(ctx context.Context, req model.RejectCPSAction) (
 }
 
 func (w *WalletHandler) EnableOrDisableWallet(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CpsAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := w.walletDomain.EnableOrDisableWallet(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err
