@@ -81,7 +81,7 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 		}
 
 		return account_validation.ValidationRule{
-			ID:             rule.ID.Hex(),
+			ID:             rule.ID,
 			EntityType:     rule.EntityType,
 			ValidationFor:  rule.ValidationFor,
 			Identifier:     rule.Identifier,
@@ -119,7 +119,7 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 	}
 
 	return account_validation.ValidationRule{
-		ID:             rule.ID.Hex(),
+		ID:             rule.ID,
 		EntityType:     rule.EntityType,
 		ValidationFor:  rule.ValidationFor,
 		Identifier:     rule.Identifier,
@@ -203,12 +203,14 @@ func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Contex
 		if err.Error() == "mongo: no documents in result" {
 			return []actions.ActionResponse{}, nil
 		}
+
 		r.logger.Errorf("failed to fetch pending action for unique_id=%s: %v", uniqueID, err)
 		return nil, fmt.Errorf("FAILED_TO_FETCH: %w", err)
 	}
 
 	if doc == nil {
 		return []actions.ActionResponse{}, nil
+
 	}
 
 	response := actions.ActionResponse{

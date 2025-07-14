@@ -1,3 +1,4 @@
+
 package initiator
 
 import (
@@ -123,3 +124,4 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
 	}
 }
+

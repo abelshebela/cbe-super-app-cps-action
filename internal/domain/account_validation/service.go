@@ -201,13 +201,15 @@ func (s *ServiceStore) UpdateAccountValidation(
 		}
 
 		updatedRule := currentAction.Rule
+
 		fmt.Printf("Unmarshalled currentAction: %+v\n", currentAction)
 		if updatedRule.ID == "" {
 			s.logger.Errorf("invalid validation rule ID: empty")
 			return fmt.Errorf("VALIDATION_RULE_ID_EMPTY")
+
 		}
 
-		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID, updatedRule); err != nil {
+		if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID.String(), updatedRule); err != nil {
 			s.logger.Errorf("failed to update validation rule: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_VALIDATION_RULE")
 		}

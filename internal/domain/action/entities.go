@@ -1,6 +1,10 @@
 package action
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type UserType string
 
@@ -26,12 +30,14 @@ const (
 )
 
 type User struct {
+
 	UserID      string
 	UserCode    string
 	FullName    string
 	PhoneNumber string
 	Timestamp   time.Time
 	Department  string
+
 }
 
 type CurrentAction struct {
@@ -43,6 +49,7 @@ type ActionResponse struct {
 	ActionId string `json:"action_id"`
 }
 type CPSAction struct {
+
 	ID                 string        `json:"id"`
 	ActionCode         string        `json:"action_code"`
 	UniqueId           string        `json:"unique_id"`
@@ -63,6 +70,7 @@ type CPSAction struct {
 	LastModifiedAt     time.Time     `json:"last_modified_at"`
 	MakerActionTime    time.Time     `json:"maker_action_time"`
 	CheckerActionTime  time.Time     `json:"checker_action_time"`
+
 }
 
 type RequestAction string
@@ -102,6 +110,9 @@ const (
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
+	RequestBudgetUpdate             RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestBudgetCreate             RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestBudgetDelete             RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"

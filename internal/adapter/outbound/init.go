@@ -485,6 +485,7 @@ func bsonDToMap(i interface{}) interface{} {
 	}
 }
 
+
 func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 	var rejectionReason *string
 	if modelAction.RejectionReason != "" {
@@ -512,6 +513,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
 		CheckerActionTime:  modelAction.CheckerActionTime,
+
 	}
 }
 
@@ -567,7 +569,9 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 
+
 	return modelToDomainCPSAction(*data), nil
+
 }
 
 func (o *outboundStore) FetchAccountsByAccountNumber(ctx context.Context, accountNumber string) ([]domain.LinkedAccount, error) {
@@ -726,8 +730,10 @@ func (o *outboundStore) FetchLastCpsActionByMakerID(ctx context.Context, makerId
 	if err != nil {
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
+
 	if len(d) == 0 {
 		return domain.CPSAction{}, nil
+
 	}
 	return modelToDomainCPSAction(*d[len(d)-1]), nil
 }
@@ -1054,11 +1060,13 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSA
 		return nil, err
 	}
 
+
 	// Convert []*model.CPSAction to []model.CPSAction
 	result := make([]model.CPSAction, 0, len(data))
 	for _, d := range data {
 		if d != nil {
 			result = append(result, *d)
+
 		}
 	}
 
@@ -1516,6 +1524,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		rejectionReason = &data.RejectionReason
 	}
 	result := &action.CPSAction{
+
 		ID:                 data.ID.Hex(),
 		ActionCode:         data.ActionCode,
 		MakerID:            data.MakerID,
@@ -1533,6 +1542,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		RequestAction:      action.RequestAction(data.RequestAction),
 		CreatedAt:          data.CreatedAt,
 		LastModifiedAt:     data.LastModifiedAt,
+
 	}
 	return result, nil
 }
@@ -1558,6 +1568,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		rejectionReason = &data.RejectionReason
 	}
 	result := &action.CPSAction{
+
 		ID:                 data.ID.Hex(),
 		ActionCode:         data.ActionCode,
 		MakerID:            data.MakerID,
@@ -1575,6 +1586,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		RequestAction:      action.RequestAction(data.RequestAction),
 		CreatedAt:          data.CreatedAt,
 		LastModifiedAt:     data.LastModifiedAt,
+
 	}
 	return result, nil
 }

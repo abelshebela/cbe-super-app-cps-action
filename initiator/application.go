@@ -10,6 +10,7 @@ import (
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
+	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget_category"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
 	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
@@ -23,6 +24,7 @@ import (
 	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 
 	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -30,6 +32,7 @@ import (
 )
 
 type Application struct {
+
 	AvatarApplication        avatar_app.AvatarApplicationService
 	BankApplication          bank.BankHandlerService
 	AdApplication            ad.ADHandlers

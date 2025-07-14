@@ -70,10 +70,12 @@ func (s *ServiceStore) approveOrRejectAction(cpsAction *CPSAction, checker User,
 	cpsAction.LastModifiedAt = time.Now()
 }
 
+
 func extractCurrentAction(input any) (CurrentAction, error) {
 	var current CurrentAction
 
 	jsonBytes, err := json.Marshal(input)
+
 	if err != nil {
 		return current, fmt.Errorf("failed to marshal current action: %w", err)
 	}
@@ -174,10 +176,12 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, ids []string, actio
 		s.Logger.Errorf("RemoveCifRequest: pending CPS action already exists", "makerID", maker.UserID)
 		return "", fmt.Errorf(common_util.PendingCPSActionExists)
 	}
+
 	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
 		Id:     ids,
 		Action: action,
 	})
+
 }
 
 func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bool, checker User) error {

@@ -25,6 +25,7 @@ import (
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 )
 
 type Domain struct {
@@ -50,9 +51,10 @@ type Domain struct {
 	AmountBasedAuthDomain amount_based_auth_domain.Repository
 	ServiceDomain         service.ServiceInterface
 	ActionDomain          action.ServiceInterface
+
 }
 
-func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, logger utils.Logger) Domain {
+func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger) Domain {
 	return Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persitence.advertPersistence, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persitence.avatarPersitence, minioClient, "avatars", logger),
@@ -73,6 +75,7 @@ func InitDomain(minioClient config.MinioClientInterface, persitence Persitence, 
 		ActionDomain:          action.NewService(persitence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persitence.PortalCardPersistance, logger),
 		WalletDomain:          wallet_service.InitWalletDomain(persitence.WalletPersistance, minioClient, "wallets", logger),
+
 	}
 
 }

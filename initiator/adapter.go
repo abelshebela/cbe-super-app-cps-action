@@ -1,3 +1,4 @@
+
 // Package initiator provides adapters for initializing inbound HTTP handlers and services for the CBE Super App CPS Action module.
 package initiator
 
@@ -103,3 +104,5 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 	}
 }
+
+
