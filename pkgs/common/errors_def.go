@@ -823,6 +823,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_004",
 			Message: "Internal server error",
 		},
+		"BLOCK_DISTRICT_ALREADY_PROCESSED": {
+			Code:    "DST_001",
+			Message: "This district action has already been processed",
+		},
 		// Additional missing error from the other definition
 		"ACCOUNT_UPDATE_FAILED": {
 			Code:    "ACC_014",
