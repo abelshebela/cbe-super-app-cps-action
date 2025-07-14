@@ -36,7 +36,7 @@ func TestGetAccountValidation(t *testing.T) {
 
 	ctx := context.Background()
 	expectedRule := account_validation.ValidationRule{
-		ID:            bson.NewObjectID(),
+		ID:            bson.NewObjectID().Hex(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -49,7 +49,7 @@ func TestGetAccountValidation(t *testing.T) {
 	t.Run("successful get", func(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, expectedRule.ID).Return(expectedRule, nil).Once()
 
-		rule, err := service.GetAccountValidation(ctx, expectedRule.ID.String())
+		rule, err := service.GetAccountValidation(ctx, expectedRule.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedRule, rule)
 	})
@@ -78,7 +78,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 	ctx := context.Background()
 	originalRule := account_validation.ValidationRule{
-		ID:            bson.NewObjectID(),
+		ID:            bson.NewObjectID().Hex(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -169,7 +169,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 	checkerID := "checker-123"
 
 	validationRule := account_validation.ValidationRule{
-		ID:            bson.NewObjectID(),
+		ID:            bson.NewObjectID().Hex(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -211,7 +211,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
-		mockRepo.On("UpdateAccountValidation", ctx, validationRule.ID.String(), mock.Anything).Return(nil).Once()
+		mockRepo.On("UpdateAccountValidation", ctx, validationRule.ID, mock.Anything).Return(nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
 
 		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
