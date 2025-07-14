@@ -70,7 +70,6 @@ func (s *ServiceStore) approveOrRejectAction(cpsAction *CPSAction, checker User,
 	cpsAction.LastModifiedAt = time.Now()
 }
 
-
 func extractCurrentAction(input any) (CurrentAction, error) {
 	var current CurrentAction
 
@@ -231,7 +230,17 @@ func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (C
 		s.Logger.Errorf("CreateCpsAction: pending CPS action already exists", "makerID", action.MakerID)
 		return CPSAction{}, fmt.Errorf(common_util.PendingCPSActionExists)
 	}
-	createdAction, err := s.Repository.CreateCpsAction(ctx, action)
+	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
+	cpsAction := s.createCpsAction(
+		User{
+			UserID:      action.MakerID,
+			FullName:    action.MakerName,
+			PhoneNumber: action.MakerPhoneNumber,
+		},
+		actionID,
+		action.CurrentAction,
+	)
+	createdAction, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)
 		return CPSAction{}, err
