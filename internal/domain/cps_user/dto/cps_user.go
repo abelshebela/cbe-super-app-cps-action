@@ -30,6 +30,7 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
+	UserCode           string           `json:"user_code"`
 	UserName           *string          `json:"user_name"`
 	FullName           *string          `json:"full_name"`
 	Department         *bson.ObjectID   `json:"department"`

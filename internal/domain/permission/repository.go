@@ -18,6 +18,7 @@ type PermissionCategoryRepository interface {
 type CPSActionRepository interface {
 	CheckPendingRequest(makerId string, actionStatus model.ActionStatus, requestAction model.RequestAction) error
 	CreatePermissionGroup(action model.CPSAction) (model.CPSAction, error)
-	ApproveActionRequest(actionCode string, action model.CPSAction) error
+	ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error)
 	ValidateActionRequest(actionCode, department string) (model.CPSAction, error)
+	RejectActionRequest(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
 }

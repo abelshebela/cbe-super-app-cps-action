@@ -98,7 +98,6 @@ func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request,
 		cpsAction.ActionStatus = string(model.ActionRejected)
 		cpsAction.RejectionReason = *approved.Reason
 	}
-
 	return s.repo.ApproveUserAction(ctx, actionID, cpsAction)
 }
 
