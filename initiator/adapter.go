@@ -38,6 +38,7 @@ import (
 	inboundBulkServices "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
 	inboundDepartment "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	inboundFeedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
+	inboundMiniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 	inboundPermission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
 	inboundUnlink "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
@@ -47,6 +48,8 @@ import (
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
 )
 
 type Adapter struct {
@@ -73,6 +76,7 @@ type Adapter struct {
 	ServiceAdapter         inboudService.ServiceBound
 	HQAdapter              *hq.HQHTTPHandler
 	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
+	MiniAppAdapter         inboundMiniApp.MiniAppInbound
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -101,5 +105,6 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		ServiceAdapter:      serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
 		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
+		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
 	}
 }

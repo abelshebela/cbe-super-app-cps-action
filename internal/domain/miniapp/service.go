@@ -14,15 +14,15 @@ import (
 func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	previous_action := miniApp
-	action := domain.CPSAction{
+	action := model.CPSAction{
 		ActionCode:       actionId,
 		MakerID:          maker.UserCode,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
 		MakerActionTime:  time.Now(),
-		ActionType:       domain.ActionCreate,
-		RequestAction:    domain.RequestCreateMiniAppMerchant,
-		ActionStatus:     domain.ActionPending,
+		ActionType:       string(model.ActionCreate),
+		RequestAction:    string(domain.RequestCreateMiniAppMerchant),
+		ActionStatus:     string(domain.ActionPending),
 		PreviosAction:    previous_action,
 	}
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)
@@ -38,11 +38,11 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 		return err
 	}
 	if action {
-		act.ActionType = domain.ActionType(domain.ActionApproved)
-		act.ActionStatus = domain.ActionApproved
+		act.ActionType = string(model.ActionApproved)
+		act.ActionStatus = string(model.ActionApproved)
 	} else {
-		act.ActionType = domain.ActionType(domain.ActionRejected)
-		act.ActionStatus = domain.ActionRejected
+		act.ActionType = string(domain.ActionRejected)
+		act.ActionStatus = string(domain.ActionRejected)
 	}
 	act.CheckerID = checker.UserCode
 	act.CheckerName = checker.FullName
@@ -62,4 +62,52 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 		return err
 	}
 	return nil
+}
+
+func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User) (string, error) {
+	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_UPD_"})
+	previous_action := data
+	action := model.CPSAction{
+		ActionCode:       actionId,
+		MakerID:          maker.UserCode,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		MakerActionTime:  time.Now(),
+		ActionType:       string(domain.ActionUpdate),
+		RequestAction:    string(domain.RequestUpdateMiniAppMerchant),
+		ActionStatus:     string(domain.ActionPending),
+		PreviosAction:    previous_action,
+	}
+	a, err := s.Repository.CreateMiniAppAction(ctx, action)
+	if err != nil {
+		return "", err
+	}
+	return a.ActionCode, nil
+}
+
+func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker model.User) (string, error) {
+	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_DEL_"})
+	action := model.CPSAction{
+		ActionCode:       actionId,
+		MakerID:          maker.UserCode,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		MakerActionTime:  time.Now(),
+		ActionType:       string(domain.ActionDelete),
+		RequestAction:    string(domain.RequestDeleteMiniAppMerchant),
+		ActionStatus:     string(domain.ActionPending),
+	}
+	a, err := s.Repository.CreateMiniAppAction(ctx, action)
+	if err != nil {
+		return "", err
+	}
+	return a.ActionCode, nil
+}
+
+func (s *MiniAppStore) ListMiniApp(ctx context.Context) ([]*MiniApp, error) {
+	return s.Repository.ListMiniApp(ctx)
+}
+
+func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (MiniApp, error) {
+	return s.Repository.DetailMiniAppByID(ctx, id)
 }
