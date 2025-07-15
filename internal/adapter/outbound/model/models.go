@@ -418,6 +418,7 @@ type Cap struct {
 	SingleCap uint64   `bson:"single_cap"`
 	DailyCap  uint64   `bson:"daily_cap"`
 	MinAmount uint64   `bson:"min_amount"`
+	MaxAmount uint64   `bson:"max_amount"`
 }
 
 type ServiceDetails struct {

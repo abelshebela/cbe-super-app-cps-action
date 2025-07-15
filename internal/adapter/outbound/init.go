@@ -1378,15 +1378,12 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code
 		"action_status": "APPROVED",
 	}
 
-	fmt.Println("check create ((((((((((((((((Before))))))))))))))))")
-
 	projection := bson.M{}
 	cpsAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
 		err = fmt.Errorf("failed to find cps action")
 		return err
 	}
-	fmt.Println("check create ((((((((((((((((After))))))))))))))))")
 
 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1481,6 +1478,7 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 			SingleCap: safeUint64FromMap(capMap, "single_cap"),
 			DailyCap:  safeUint64FromMap(capMap, "daily_cap"),
 			MinAmount: safeUint64FromMap(capMap, "min_amount"),
+			MaxAmount: safeUint64FromMap(capMap, "max_amount"),
 		}
 	}
 	// Helper for ProductCodes
