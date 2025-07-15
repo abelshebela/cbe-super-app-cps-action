@@ -601,6 +601,18 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_137",
 			Message: "Permission group already exists with name",
 		},
+		"FAILED_TO_UPDATE_USER_DATA": {
+			Code:    "GEN_132",
+			Message: "failed to update user data",
+		},
+		"FAILED_TO_INSERT_CPS_ACTION": {
+			Code:    "GEN_133",
+			Message: "failed to insert cps action",
+		},
+		"ACCOUNT_ALREADY_DISABLED": {
+			Code:    "GEN_134",
+			Message: "Account is already disabled",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -611,10 +623,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_002",
 			Message: "User is not allowed to login, please contact your admin!",
 		},
-		"AUTH_INVALID_PASSWORD": {
-			Code:    "AUTH_003",
-			Message: "Invalid password.",
-		},
+
 		"AUTH_USER_HAS_NO_PASSWORD": {
 			Code:    "AUTH_004",
 			Message: "Please reset your password. to login",
@@ -719,7 +728,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_005",
 			Message: "This action is already approved.",
 		},
-	
 
 		"ACCOUNT_LOCKED": {
 			Code:    "AUTH_028",

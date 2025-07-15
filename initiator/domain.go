@@ -76,6 +76,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance, logger),
 		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger),
 		miniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
+		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 	}
 
 }

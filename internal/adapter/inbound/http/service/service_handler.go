@@ -43,7 +43,17 @@ func (s *serviceHandler) GetAllServiceFee(w http.ResponseWriter, r *http.Request
 }
 
 func (s *serviceHandler) GetServiceFeeById(w http.ResponseWriter, r *http.Request) {
-
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		common_util.SendErrorResponse(w, "Service ID is required", 400, nil)
+		return
+	}
+	service, err := s.appService.GetOneService(r.Context(), id)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 404, nil)
+		return
+	}
+	common_util.BaseResponseMaker(service, w, "Service fetched successfully", 200)
 }
 func (s *serviceHandler) AuthorizeServiceFee(w http.ResponseWriter, r *http.Request) {
 	action_code := chi.URLParam(r, "action_code")
@@ -185,8 +195,13 @@ func (s *serviceHandler) CreateServiceFee(w http.ResponseWriter, r *http.Request
 		MakerName:        userContext.FullName,
 		MakerPhoneNumber: userContext.PhoneNumber,
 		Department:       userContext.Department,
+		RequestAction:    action.RequestCreateServiceFee,
 	}
 	serviceFee, err := s.appService.CreateAction(r.Context(), cpsAction)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 500, nil)
+		return
+	}
 
 	data, err := common_util.StructToMap(serviceFee)
 	if err != nil {
