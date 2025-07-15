@@ -68,7 +68,7 @@ type Department struct {
 	ID                bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	DepartmentCode    string        `bson:"department_code" json:"department_code"`
 	Department        string        `bson:"department" json:"department"`
-	PermissionGroupID bson.ObjectID `bson:"permission_group_id" json:"permission_group_id"`
+	PermissionGroupID bson.ObjectID `bson:"permission_group_id" json:"-"`
 	PortalCards       []string      `bson:"portal_cards" json:"portal_cards"`
 	Enabled           bool          `bson:"enabled" json:"enabled"`
 	IsDeleted         bool          `bson:"is_deleted" json:"is_deleted"`
