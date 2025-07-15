@@ -54,6 +54,7 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		"_id":         1,
 	}
 
+	fmt.Println("check filter--------", filter)
 	faydaAccount, err := f.cpsDal.FindOne(ctx, filter, projection)
 
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -86,7 +87,6 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		"phone_number":       1,
 	}
 
-	fmt.Println("customerFilter----------", customerFilter)
 	customer, err := f.customerDal.FindOne(ctx, customerFilter, customerProjection)
 	if err != nil {
 		f.logger.Errorf("failed to get customer account", err)
@@ -95,6 +95,11 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 			Message: "internal server error",
 		})
 		return nil, err
+	}
+
+	if customer.IsAccountBlocked {
+		f.logger.Errorf("the user already disabled")
+		return nil, fmt.Errorf("ACCOUNT_ALREADY_DISABLED")
 	}
 
 	req.ActionStatus = entity.ActionPending
@@ -137,15 +142,14 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 		"checker_action_time":  time.Now(),
 	}
 
-	fmt.Println("xxxxxxxxxxxx", filter)
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		f.logger.Errorf("failed to update cps action", err)
-		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		return nil, fmt.Errorf("FAILED_TO_FIND_CPS_ACTION")
 	}
 
 	actionData := make(map[string]interface{})
-	byte, err := json.Marshal(req.CurrentAction)
+	byte, err := json.Marshal(cpsAction.PreviosAction)
 
 	if err != nil {
 		return nil, err

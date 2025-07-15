@@ -48,6 +48,7 @@ func (f FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter, 
 	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
 	department := r.Context().Value(constant.ContextKey("department")).(string)
 
+	fmt.Println("department--------", department)
 	cpsAction.MakerID = user_code
 	cpsAction.MakerName = full_name
 	cpsAction.MakerPhoneNumber = phone_number
