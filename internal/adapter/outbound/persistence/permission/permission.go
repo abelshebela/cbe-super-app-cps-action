@@ -94,39 +94,63 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
 	ctx := context.Background()
 
-	filter := bson.M{"_id": bson.M{"$in": ids}}
-	categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
+	var validObjectIDs []bson.ObjectID
+	var invalidIDs []string
 
-	if err != nil {
-		r.logger.Errorf("failed to fetch permission categories: ", err)
-		return nil, err
-	}
+	for _, id := range ids {
+		if id == "" {
+			invalidIDs = append(invalidIDs, "<empty>")
+			continue
+		}
 
-	if len(categories) != len(ids) {
-		return nil, fmt.Errorf("some permission categories not found")
-	}
+		if len(id) != 24 {
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (length %d)", id, len(id)))
+			continue
+		}
 
-	var allowedPermissionCategories []bson.ObjectID
-	for _, permissionID := range ids {
-		objID, err := bson.ObjectIDFromHex(permissionID)
+		objID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			return nil, fmt.Errorf("invalid permission category ID format: %s", permissionID)
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (invalid format)", id))
+			continue
 		}
+		validObjectIDs = append(validObjectIDs, objID)
+	}
 
-		for _, cat := range categories {
-			if cat.ID == objID {
-				allowedPermissionCategories = append(allowedPermissionCategories, objID)
-				break
-			}
+	if len(invalidIDs) > 0 {
+		return nil, fmt.Errorf("invalid permission category IDs: %v", invalidIDs)
+	}
+
+	categories, err := r.permissionCategoryDal.FindAll(ctx,
+		bson.M{"_id": bson.M{"$in": validObjectIDs}},
+		bson.M{"_id": 1},
+	)
+	if err != nil {
+		r.logger.Errorf("failed to fetch permission categories: %v", err)
+		return nil, fmt.Errorf("database error while validating permissions")
+	}
+
+	foundIDs := make(map[bson.ObjectID]bool)
+	for _, cat := range categories {
+		if !cat.ID.IsZero() {
+			foundIDs[cat.ID] = true
 		}
 	}
 
-	var allowedStrings []string
-	for _, obj := range allowedPermissionCategories {
-		allowedStrings = append(allowedStrings, obj.Hex())
+	var missingIDs []string
+	var validIDs []string
+	for _, objID := range validObjectIDs {
+		if foundIDs[objID] {
+			validIDs = append(validIDs, objID.Hex())
+		} else {
+			missingIDs = append(missingIDs, objID.Hex())
+		}
 	}
-	return allowedStrings, nil
 
+	if len(missingIDs) > 0 {
+		return nil, fmt.Errorf("permission categories not found: %v", missingIDs)
+	}
+
+	return validIDs, nil
 }
 
 func (r *PermissionPersistence) CreatePermissionGroup(group model.CPSAction) (model.CPSAction, error) {
