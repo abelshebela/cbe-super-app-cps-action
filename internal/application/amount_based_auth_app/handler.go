@@ -5,12 +5,14 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type ApplicationService interface {
 	UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error)
 	ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error)
-	RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error)
+	RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error)
+	GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*amount_based_auth_domain.AmountBasedAuthRespose, error)
 }
 
 type Handler struct {
@@ -23,6 +25,14 @@ func AmountBasedAuthHandler(service *amount_based_auth_domain.Service) Applicati
 	}
 }
 
+func (h Handler) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*amount_based_auth_domain.AmountBasedAuthRespose, error) {
+	authTiers, err := h.service.GetAllAmountBasedDetail(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return authTiers, nil
+}
 func (h Handler) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
 	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
 	cpsActionRes, err := h.service.UpdateAmountBasedAuth(ctx, request, cpsAction)
@@ -42,7 +52,7 @@ func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsActio
 	return request, nil
 }
 
-func (h *Handler) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
+func (h *Handler) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {
 	request, err := h.service.RejectAmountBasedAuth(ctx, id, cpsAction)
 	if err != nil {
 		return nil, err

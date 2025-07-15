@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -429,6 +430,8 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 }
 
 func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
+	checkerUser := contexts.ExtractContext(ctx)
+
 	filter := bson.M{
 		"action_code":   req.ActionCode,
 		"department":    req.Department,
@@ -436,9 +439,9 @@ func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (
 	}
 
 	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_id":           checkerUser.UserCode,
+		"checker_name":         checkerUser.FullName,
+		"checker_phone_number": checkerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
 		"rejection_reason":     req.RejectedReason,
 		"checker_action_time":  time.Now(),

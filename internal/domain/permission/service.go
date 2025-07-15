@@ -83,10 +83,6 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSActi
 	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
 	// CreatedAction.Department = action.Department
 
-	fmt.Println("domain-----------------------------------")
-	fmt.Println(action.CheckerName, "action type: ", action.ActionType)
-	fmt.Println("domain-----------------------------------")
-
 	switch CreatedAction.ActionType {
 	case "CREATE":
 		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(CreatedAction)

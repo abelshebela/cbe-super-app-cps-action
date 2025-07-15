@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -322,6 +323,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 }
 
 func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
+	checkerUser := contexts.ExtractContext(ctx)
 	filter := bson.M{
 		"action_code":   req.ActionCode,
 		"department":    req.Department,
@@ -329,9 +331,9 @@ func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CP
 	}
 
 	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_id":           checkerUser.UserCode,
+		"checker_name":         checkerUser.FullName,
+		"checker_phone_number": checkerUser.PhoneNumber,
 
 		"action_status":       model.ActionRejected,
 		"rejected_reason":     req.RejectedReason,
@@ -348,7 +350,7 @@ func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CP
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
-	b.logger.Infof("cps action rejected, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
+	b.logger.Infof("cps action rejected, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), checkerUser.UserCode)
 	return &cpsAction, nil
 }
 

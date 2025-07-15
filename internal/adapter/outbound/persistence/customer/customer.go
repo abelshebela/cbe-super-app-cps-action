@@ -83,6 +83,56 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 
+	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			c.logger.Errorf("no customers data found", err)
+
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
+		}
+		c.logger.Errorf("failed to get customers data", err)
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
+	}
+
+	total, err := c.mongoDal.TotalCount(ctx, bson.M{})
+	if err != nil {
+		c.logger.Errorf("failed to get total counts", err)
+
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
+	}
+
+	return &entity.CustomerRespose{
+		Page:      1,
+		Customers: customers,
+		Limit:     constant.DefaultPerPage,
+		Total:     total,
+	}, nil
+}
+
+func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+	filter := bson.M{
+		"is_deleted": false,
+		"is_blocked": true,
+	}
+	projection := bson.M{}
+
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				normalizePhone(filterParams.Search),
+				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"id": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	if filterParams.Filters != "" {
+		filter["account_status"] = filterParams.Filters
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+
 	fmt.Println("filter-------------", filter)
 	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	fmt.Println("filtered==========", err)
@@ -112,6 +162,55 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 	}, nil
 }
 
+func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+	filter := bson.M{
+		"is_deleted": false,
+		"kyc.level":  1,
+	}
+	projection := bson.M{}
+
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				normalizePhone(filterParams.Search),
+				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"id": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	if filterParams.Filters != "" {
+		filter["account_status"] = filterParams.Filters
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+
+	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			c.logger.Errorf("no customers data found", err)
+
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
+		}
+		c.logger.Errorf("failed to get customers data", err)
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
+	}
+
+	total, err := c.mongoDal.TotalCount(ctx, bson.M{})
+	if err != nil {
+		c.logger.Errorf("failed to get total counts", err)
+
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
+	}
+
+	return &entity.CustomerRespose{
+		Page:      1,
+		Customers: customers,
+		Limit:     constant.DefaultPerPage,
+		Total:     total,
+	}, nil
+}
 func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
 	userID, err := bson.ObjectIDFromHex(id)
 	if userID.IsZero() {
@@ -126,6 +225,34 @@ func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*m
 	}
 
 	filter := bson.M{"_id": userID}
+	projection := bson.M{}
+	member, err := c.mongoDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			c.logger.Errorf("customer not found", err)
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
+		}
+		c.logger.Errorf("failed to get customer", err)
+
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
+	}
+	return member, nil
+}
+
+func (c *CustomerDetailRepo) GetFaydaCustomerByID(ctx context.Context, id string) (*member.User, error) {
+	userID, err := bson.ObjectIDFromHex(id)
+	if userID.IsZero() {
+		c.logger.Errorf("invalid id provided", err)
+		return nil, fmt.Errorf("INVALID_ID")
+	}
+
+	if err != nil {
+		c.logger.Errorf("failed to convert id to object id", err)
+
+		return nil, fmt.Errorf("FAILED_TO_CONVERT_ID")
+	}
+
+	filter := bson.M{"_id": userID, "kyc.level": 1}
 	projection := bson.M{}
 	member, err := c.mongoDal.FindOne(ctx, filter, projection)
 	if err != nil {

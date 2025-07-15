@@ -126,7 +126,7 @@ func (s *serviceApp) AuthorizeAction(ctx context.Context, action_code string) er
 
 	err := s.serviceDomain.ApproveServiceFeeUpdate(ctx, action_code)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil

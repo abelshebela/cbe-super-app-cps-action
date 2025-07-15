@@ -1374,30 +1374,232 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code
 		"action_status": "PENDING",
 	}
 
+	update := bson.M{
+		"action_status": "APPROVED",
+	}
+
+	fmt.Println("check create ((((((((((((((((Before))))))))))))))))")
+
 	projection := bson.M{}
-	cpsActionPtr, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	cpsAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
-		err = fmt.Errorf("failed to find cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf("failed to find cps action")
 		return err
 	}
-	serviceFilter := bson.M{
-		"action_code": cpsActionPtr.ActionCode,
-	}
-	serviceUpdate := bson.M{
-		"$set": cpsActionPtr.CurrentAction,
-	}
-	_, err = o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+	fmt.Println("check create ((((((((((((((((After))))))))))))))))")
+
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
-		err = fmt.Errorf("failed to update service fee %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf("failed to find cps action")
 		return err
+	}
+
+	switch cpsAction.RequestAction {
+	case "CREATE_SERVICE_FEE":
+		// Convert CurrentAction to model.Service
+		serviceDataMap := cpsAction.CurrentAction
+
+		svc := make(map[string]interface{})
+		b, err := json.Marshal(serviceDataMap)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &svc); err != nil {
+			return fmt.Errorf("failed to unmarshal service data")
+		}
+		serviceData := o.serviceMapper(svc)
+
+		fmt.Println("Service Data", serviceData)
+
+		_, err = o.MongoDalServices.InsertOne(ctx, serviceData)
+
+		if err != nil {
+			return fmt.Errorf("failed to create service")
+		}
+	case "UPDATE_SERVICE_FEE":
+		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
+		if !ok {
+			return errors.New("invalid service data for update")
+		}
+		serviceCode, ok := serviceData["service_code"].(string)
+		if !ok {
+			return errors.New("invalid service_code in current action")
+		}
+		serviceFilter := bson.M{"service_code": serviceCode}
+		serviceUpdate := bson.M{"$set": serviceData}
+		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to update service fee: %w", err)
+		}
+	case "DELETE_SERVICE_FEE":
+		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
+		if !ok {
+			return errors.New("invalid service data for delete")
+		}
+		serviceCode, ok := serviceData["service_code"].(string)
+		if !ok {
+			return errors.New("invalid service_code in current action for delete")
+		}
+		serviceFilter := bson.M{"service_code": serviceCode}
+		serviceUpdate := bson.M{"is_deleted": true, "deleted_at": time.Now(), "last_modified_at": time.Now()}
+		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to delete service: %w", err)
+		}
+	default:
+		return errors.New("unsupported request action")
 	}
 	return nil
+}
+
+func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service {
+	// Helper for safe string from map
+	safeStringFromMap := func(m map[string]interface{}, key string) string {
+		if v, ok := m[key].(string); ok {
+			return v
+		}
+		return ""
+	}
+	// Helper for safe uint64 from map
+	safeUint64FromMap := func(m map[string]interface{}, key string) uint64 {
+		if v, ok := m[key].(float64); ok {
+			return uint64(v)
+		}
+		if v, ok := m[key].(uint64); ok {
+			return v
+		}
+		return 0
+	}
+	// Helper for Cap
+	parseCap := func(val interface{}) model.Cap {
+		capMap, ok := val.(map[string]interface{})
+		if !ok {
+			return model.Cap{}
+		}
+		return model.Cap{
+			KYCLevel:  model.KYCLevel(safeStringFromMap(capMap, "kyc_level")),
+			SingleCap: safeUint64FromMap(capMap, "single_cap"),
+			DailyCap:  safeUint64FromMap(capMap, "daily_cap"),
+			MinAmount: safeUint64FromMap(capMap, "min_amount"),
+		}
+	}
+	// Helper for ProductCodes
+	parseProductCodes := func(val interface{}) model.ProductCodes {
+		pcMap, ok := val.(map[string]interface{})
+		if !ok {
+			return model.ProductCodes{}
+		}
+		return model.ProductCodes{
+			PRD:    safeStringFromMap(pcMap, "prd"),
+			VATPRD: safeStringFromMap(pcMap, "vatprd"),
+			SFPRD:  safeStringFromMap(pcMap, "sfprd"),
+			TRXN:   safeStringFromMap(pcMap, "trxn"),
+		}
+	}
+	// Helper for GLEntry
+	parseGLEntry := func(val interface{}) model.GLEntry {
+		glMap, ok := val.(map[string]interface{})
+		if !ok {
+			return model.GLEntry{}
+		}
+		return model.GLEntry{
+			ProductAccount:    safeStringFromMap(glMap, "product_account"),
+			ProductBranchCode: safeStringFromMap(glMap, "product_branch_code"),
+			ServiceAccount:    safeStringFromMap(glMap, "service_account"),
+			ServiceBranchCode: safeStringFromMap(glMap, "service_branch_code"),
+			VatAccount:        safeStringFromMap(glMap, "vat_account"),
+			VatBranchCode:     safeStringFromMap(glMap, "vat_branch_code"),
+		}
+	}
+	// Helper for Tiers
+	parseTiers := func(val interface{}) []model.Tier {
+		arr, ok := val.([]interface{})
+		if !ok {
+			return nil
+		}
+		var tiers []model.Tier
+		for _, t := range arr {
+			tierMap, ok := t.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			tiers = append(tiers, model.Tier{
+				// ID:        safeObjectIDFromMap(tierMap, "id"), // omit ID
+				Min:       safeUint64FromMap(tierMap, "min"),
+				Max:       safeUint64FromMap(tierMap, "max"),
+				FeeAmount: safeUint64FromMap(tierMap, "fee_amount"),
+			})
+		}
+		return tiers
+	}
+	// Helper for safe string
+	safeString := func(key string) string {
+		if v, ok := data[key].(string); ok {
+			return v
+		}
+		return ""
+	}
+	// Helper for safe uint64
+	safeUint64 := func(key string) uint64 {
+		if v, ok := data[key].(float64); ok {
+			return uint64(v)
+		}
+		if v, ok := data[key].(uint64); ok {
+			return v
+		}
+		return 0
+	}
+	// Helper for safe bool
+	safeBool := func(key string) bool {
+		if v, ok := data[key].(bool); ok {
+			return v
+		}
+		return false
+	}
+	// Helper for safe time.Time
+	safeTime := func(key string) time.Time {
+		if v, ok := data[key].(string); ok {
+			t, _ := time.Parse(time.RFC3339, v)
+			return t
+		}
+		return time.Time{}
+	}
+
+	return model.Service{
+		ServiceCode:        safeString("service_code"),
+		ServiceName:        safeString("service_name"),
+		ServiceType:        safeString("service_type"),
+		Key:                safeString("key"),
+		Cap:                parseCap(data["cap"]),
+		CBEProductCodes:    parseProductCodes(data["cbe_product_codes"]),
+		CBEIFBProductCodes: parseProductCodes(data["cbe_ifb_product_codes"]),
+		AboveAmount:        safeUint64("above_amount"),
+		AboveServiceFee:    safeUint64("above_service_fee"),
+		PaymentType:        safeString("payment_type"),
+		Tiers:              parseTiers(data["tiers"]),
+		CBEGLEntry:         parseGLEntry(data["cbe_gl_entry"]),
+		CBEIFBGLEntry:      parseGLEntry(data["cbe_ifb_gl_entry"]),
+		Enabled:            safeBool("enabled"),
+		IsDeleted:          safeBool("is_deleted"),
+		CreatedAt:          safeTime("created_at"),
+		LastModifiedAt:     safeTime("last_modified_at"),
+		DeletedAt:          safeTime("deleted_at"),
+	}
+}
+
+func (o *outboundStore) jsonParser(data any) (map[string]interface{}, error) {
+
+	dataResult := make(map[string]interface{})
+	byteData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(byteData, &dataResult); err != nil {
+		return nil, err
+	}
+
+	return dataResult, nil
 }
 
 func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, action_code string, rejection_reason string) error {

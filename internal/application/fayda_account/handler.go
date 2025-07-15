@@ -89,7 +89,6 @@ func (f FaydaHandler) InitiateDisableFaydaAccount(ctx context.Context, req CPSAc
 }
 
 func (f FaydaHandler) AuthorizeFaydaAccountDisable(ctx context.Context, req CPSAction) (*CPSAction, error) {
-	// Unmarshal CurrentAction to ActionData
 	var actionData ActionData
 	jsonBytes, err := json.Marshal(req.CurrentAction)
 	if err != nil {

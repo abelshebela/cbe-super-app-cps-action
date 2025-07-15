@@ -74,13 +74,16 @@ func (r *PermissionPersistence) CheckPendingRequest(userCode string, status mode
 func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) bool {
 	ctx := context.Background()
 
-	filter := bson.M{"group_name": groupName, "is_deleted": false}
+	filter := bson.M{"group_name": groupName}
+	r.logger.Infof("here create PermissionPersistence", groupName)
 	result, err := r.permissionGroupsDal.FindOne(ctx, filter, bson.M{})
 
+	fmt.Println("check permission", result)
 	if err != nil {
 		r.logger.Errorf("CheckPermissionGroupExists failed:", err)
 		return false
 	}
+
 	if result == nil {
 		r.logger.Infof("no permission Group found ")
 		return false
