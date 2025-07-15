@@ -593,6 +593,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_132",
 			Message: "failed to get avatar",
 		},
+		"FAILED_TO_UPDATE_USER_DATA": {
+			Code:    "GEN_132",
+			Message: "failed to update user data",
+		},
+		"FAILED_TO_INSERT_CPS_ACTION": {
+			Code:    "GEN_133",
+			Message: "failed to insert cps action",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

@@ -98,7 +98,7 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestCreateServiceFee         RequestAction = "CREATE SERVICE FEE"
+	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
 	RequestUpdateServiceFee         RequestAction = "UPDATE SERVICE FEE"
 	RequestDeleteServiceFee         RequestAction = "DELETE SERVICE FEE"
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"

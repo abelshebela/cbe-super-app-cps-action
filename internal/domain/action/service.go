@@ -46,7 +46,6 @@ func (s *ServiceStore) createCpsAction(maker User, actionID string, currentActio
 		MakerName:         maker.FullName,
 		MakerPhoneNumber:  maker.PhoneNumber,
 		ActionType:        ActionCreate,
-		RequestAction:     RequestUpdateServiceRule,
 		ActionStatus:      ActionPending,
 		CurrentAction:     currentAction,
 		CreatedAt:         time.Now(),
@@ -240,6 +239,7 @@ func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (C
 		actionID,
 		action.CurrentAction,
 	)
+	cpsAction.RequestAction = action.RequestAction
 	createdAction, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)

@@ -37,18 +37,24 @@ type ActionData struct {
 }
 
 type CPSAction struct {
-	ID                string        `json:"id" bson:"id"`
-	ActionCode        string        `json:"action_code" bson:"action_code"`
-	CheckerUser       User          `json:"checker_user" bson:"checker_user"`
-	MakerUser         User          `json:"maker_user" bson:"maker_user"`
-	RejectedReason    string        `json:"rejected_reason" bson:"rejected_reason"`
-	Department        string        `json:"department" bson:"department"`
-	Status            ActionStatus  `json:"status" bson:"status"`
-	PreviousData      any           `json:"previous_action" bson:"previous_action"`
-	CurrentData       any           `json:"current_action" bson:"current_action"`
-	RequestAction     RequestAction `json:"request_action" bson:"request_action"`
-	ActionType        ActionType    `json:"action_type" bson:"action_type"`
-	ActionData        ActionData    `json:"action_data" bson:"action_data"`
-	MakerActionTime   time.Time     `json:"maker_action_time" bson:"maker_action_time"`
-	CheckerActionTime time.Time     `json:"checker_action_time" bson:"checker_action_time"`
+	ID                 string        `json:"id"`
+	ActionCode         string        `json:"action_code"`
+	UniqueId           string        `json:"unique_id"`
+	MakerID            string        `json:"maker_id"`
+	MakerName          string        `json:"maker_name"`
+	MakerPhoneNumber   string        `json:"maker_phone_number"`
+	CheckerID          string        `json:"checker_id"`
+	CheckerName        string        `json:"checker_name"`
+	CheckerPhoneNumber string        `json:"checker_phone_number"`
+	Department         string        `json:"department"`
+	RejectionReason    *string       `json:"rejection_reason"`
+	PreviosAction      interface{}   `json:"previos_action"`
+	CurrentAction      interface{}   `json:"current_action"`
+	ActionStatus       ActionStatus  `json:"action_status"`
+	ActionType         ActionType    `json:"action_type"`
+	RequestAction      RequestAction `json:"request_action"`
+	CreatedAt          time.Time     `json:"created_at"`
+	LastModifiedAt     time.Time     `json:"last_modified_at"`
+	MakerActionTime    time.Time     `json:"maker_action_time"`
+	CheckerActionTime  time.Time     `json:"checker_action_time"`
 }
