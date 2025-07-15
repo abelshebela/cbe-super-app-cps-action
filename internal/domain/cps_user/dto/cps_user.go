@@ -14,17 +14,18 @@ type ApproveUserActionRequest struct {
 }
 
 type CreateUserRequest struct {
-	UserCode           string   `json:"user_code"`
-	UserName           string   `json:"user_name"`
-	FullName           string   `json:"full_name"`
-	PhoneNumber        string   `json:"phone_number"`
-	UserRole           string   `json:"user_role"`
-	Department         string   `json:"department"`
-	PermissionCategory []string `json:"permission_category"`
-	PermissionGroups   []string `json:"permission_groups"`
+	UserCode           string          `json:"user_code"`
+	UserName           string          `json:"user_name"`
+	FullName           string          `json:"full_name"`
+	PhoneNumber        string          `json:"phone_number"`
+	UserRole           string          `json:"user_role"`
+	Department         bson.ObjectID   `json:"department"`
+	PermissionCategory []bson.ObjectID `json:"permission_category"`
+	PermissionGroups   []bson.ObjectID `json:"permission_groups"`
 }
 
 type UpdateUserRequest struct {
+	UserCode           string           `json:"user_code"`
 	UserName           *string          `json:"user_name"`
 	FullName           *string          `json:"full_name"`
 	PhoneNumber        *string          `json:"phone_number"`
@@ -89,30 +90,26 @@ func (r CreateUserRequest) Validate() error {
 }
 
 func (r UpdateUserRequest) Validate() error {
-	if r.UserName == nil && r.FullName == nil && r.PhoneNumber == nil &&
-		r.UserRole == nil && r.Department == nil &&
-		r.PermissionCategory == nil && r.PermissionGroups == nil {
-		return fmt.Errorf("at least one field must be provided for update")
+	if r.UserName == nil && r.FullName == nil && r.PhoneNumber == nil {
+		return validation.ValidateStruct(&r,
+			validation.Field(&r.UserCode, validation.Required.Error("user_code is required")),
+			validation.Field(&r.FullName,
+				validation.When(r.FullName != nil, validation.Length(1, 100).Error("full_name cannot be empty")),
+			),
+			validation.Field(&r.PhoneNumber,
+				validation.When(r.PhoneNumber != nil, validation.Length(1, 20).Error("phone_number cannot be empty")),
+			),
+			validation.Field(&r.UserRole,
+				validation.When(r.UserRole != nil, validation.Length(1, 50).Error("user_role cannot be empty")),
+			),
+			validation.Field(&r.Department,
+				validation.When(r.Department != nil, validation.Length(1, 50).Error("department cannot be empty")),
+			),
+			validation.Field(&r.PermissionCategory),
+			validation.Field(&r.PermissionGroups),
+		)
 	}
-
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserName,
-			validation.When(r.UserName != nil, validation.Length(1, 100).Error("user_name cannot be empty"))),
-		validation.Field(&r.FullName,
-			validation.When(r.FullName != nil, validation.Length(1, 100).Error("full_name cannot be empty")),
-		),
-		validation.Field(&r.PhoneNumber,
-			validation.When(r.PhoneNumber != nil, validation.Length(1, 20).Error("phone_number cannot be empty")),
-		),
-		validation.Field(&r.UserRole,
-			validation.When(r.UserRole != nil, validation.Length(1, 50).Error("user_role cannot be empty")),
-		),
-		validation.Field(&r.Department,
-			validation.When(r.Department != nil, validation.Length(1, 50).Error("department cannot be empty")),
-		),
-		validation.Field(&r.PermissionCategory),
-		validation.Field(&r.PermissionGroups),
-	)
+	return nil
 }
 
 func (r ApproveCPSAction) Validate() error {

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/repository"
+	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -34,6 +34,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	userPayload := ctx_util.ExtractUserContext(r)
 	actionCode := utils.RandomGenerator(24)
 	userData.UserCode = "CPS_USER_" + utils.RandomGenerator(15)
+
 	cpsAction := model.CPSAction{
 		ActionCode:       actionCode,
 		UniqueId:         userPayload.UserCode,
@@ -49,7 +50,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		MakerActionTime:  time.Now(),
 	}
 
-	fmt.Println("check this one ------------------")
 	return s.repo.CreateUserRequest(ctx, cpsAction)
 }
 
@@ -91,7 +91,6 @@ func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request,
 		cpsAction.ActionStatus = string(model.ActionRejected)
 		cpsAction.RejectionReason = *approved.Reason
 	}
-
 	return s.repo.ApproveUserAction(ctx, actionID, cpsAction)
 }
 

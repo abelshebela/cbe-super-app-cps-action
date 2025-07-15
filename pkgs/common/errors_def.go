@@ -590,8 +590,16 @@ var DefineError = ErrorDefinitions{
 			Message: "Page not found",
 		},
 		"FAILED_TO_GET_AVATAR": {
-			Code:    "GEN_132",
+			Code:    "GEN_135",
 			Message: "failed to get avatar",
+		},
+		"PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION": {
+			Code:    "GEN_136",
+			Message: "Permission group already exists with name",
+		},
+		"PERMISSION_GROUP_ALREADY_EXIXTS": {
+			Code:    "GEN_137",
+			Message: "Permission group already exists with name",
 		},
 		"FAILED_TO_UPDATE_USER_DATA": {
 			Code:    "GEN_132",
@@ -712,6 +720,15 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_027",
 			Message: "Failed to login. you entered wrong password",
 		},
+		"ACTION_NOT_FOUND_AFTER_UPDATE": {
+			Code:    "ACT_404_UPD",
+			Message: "action not found after update",
+		},
+		"ACTION_ALREADY_APPROVED": {
+			Code:    "GEN_005",
+			Message: "This action is already approved.",
+		},
+
 		"ACCOUNT_LOCKED": {
 			Code:    "AUTH_028",
 			Message: "account locked. please contact your addministrator",
@@ -831,6 +848,10 @@ var DefineError = ErrorDefinitions{
 		"UNHANDLED_SERVER_ERROR": {
 			Code:    "GEN_004",
 			Message: "Internal server error",
+		},
+		"BLOCK_DISTRICT_ALREADY_PROCESSED": {
+			Code:    "DST_001",
+			Message: "This district action has already been processed",
 		},
 		// Additional missing error from the other definition
 		"ACCOUNT_UPDATE_FAILED": {
