@@ -1,4 +1,3 @@
-
 package initiator
 
 import (
@@ -41,6 +40,10 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+
+	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
+	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
 
@@ -66,6 +69,7 @@ type Persitence struct {
 	ServicePersistance         service_repo.ServiceFeePersistence
 	PortalCardPersistance      portalCardRepo.PortaCardInterface
 	WalletPersistance          wallet.WalletPersistence
+	miniAppPersistance         miniApp_port.Outbound
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -122,6 +126,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, database_name, "portal_cards", logger),
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
+		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
 	}
 }
-

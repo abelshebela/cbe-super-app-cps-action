@@ -15,6 +15,7 @@ import (
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
+	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
@@ -43,6 +44,7 @@ type Domain struct {
 	PortalCardDomain   portalcard.PortaCardInterface
 	DepartmentDomain   department.Service
 	HQDomain           hq.Service
+	miniAppDomain      miniApp_domain.MiniAppService
 
 	AccountBlockDomain account_block.ApplicationServices
 
@@ -73,6 +75,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance, logger),
 		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger),
+		miniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
 	}
 
 }

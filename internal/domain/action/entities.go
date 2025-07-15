@@ -131,6 +131,7 @@ const (
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"

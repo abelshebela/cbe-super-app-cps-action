@@ -17,6 +17,7 @@ import (
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account"
 	feedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
+	miniApp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
@@ -52,6 +53,7 @@ type Application struct {
 	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
+	miniAppApplication         miniApp_application.ApplicationAbstracts
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -78,5 +80,6 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
+		miniAppApplication:         miniApp_application.NewApplicationService(domain.miniAppDomain, logger),
 	}
 }
