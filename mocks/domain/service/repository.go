@@ -110,12 +110,12 @@ func (mr *MockRepositoryMockRecorder) InitiateServiceFeeUpdate(ctx, cpsAction in
 }
 
 // RejectServiceFeeUpdate mocks base method.
-func (m *MockRepository) RejectServiceFeeUpdate(ctx context.Context, cpsAction service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+func (m *MockRepository) RejectServiceFeeUpdate(ctx context.Context, cpsAction string, action_code string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RejectServiceFeeUpdate", ctx, cpsAction)
-	ret0, _ := ret[0].(service.UpdateServiceDetailsResponse)
+	ret := m.ctrl.Call(m, "RejectServiceFeeUpdate", ctx, cpsAction, action_code)
+	// ret0, _ := ret[0].(service.UpdateServiceDetailsResponse)
 	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret1
 }
 
 // RejectServiceFeeUpdate indicates an expected call of RejectServiceFeeUpdate.
