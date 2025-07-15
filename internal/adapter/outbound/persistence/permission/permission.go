@@ -94,11 +94,16 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
 	ctx := context.Background()
 
-	filter := bson.M{}
+	filter := bson.M{"_id": bson.M{"$in": ids}}
 	categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
+
 	if err != nil {
 		r.logger.Errorf("failed to fetch permission categories: ", err)
 		return nil, err
+	}
+
+	if len(categories) != len(ids) {
+		return nil, fmt.Errorf("some permission categories not found")
 	}
 
 	var allowedPermissionCategories []bson.ObjectID
