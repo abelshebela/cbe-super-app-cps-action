@@ -42,7 +42,6 @@ func (h *Handler) CreateUserRequest(ctx context.Context, r *http.Request) (*mode
 		h.logger.Errorf("failed to bind user data: %v", err)
 		return nil, err
 	}
-	fmt.Println("check entry here")
 
 	req.Normalize()
 	if err := req.Validate(); err != nil {
