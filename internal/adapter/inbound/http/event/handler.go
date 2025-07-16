@@ -16,13 +16,13 @@ type HttpStore struct {
 	Application event_application.ApplicationAbstracts
 }
 
-func NewHttpBulkService(app event_application.ApplicationAbstracts) event_inbound.Inbound {
+func NewHTTPBulkService(app event_application.ApplicationAbstracts) event_inbound.EventHandler {
 	return &HttpStore{
 		Application: app,
 	}
 }
 
-func InitServiceHandlerMaker(router chi.Router, handler event_inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
+func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandler, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/events", func(r chi.Router) {
 		routes := []route.Route{
 			{

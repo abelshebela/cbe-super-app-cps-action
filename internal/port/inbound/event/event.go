@@ -2,7 +2,7 @@ package event_inbound
 
 import "net/http"
 
-type Inbound interface {
+type EventHandler interface {
 	MakerCreateEvent(w http.ResponseWriter, r *http.Request)
 	CheckerEvent(w http.ResponseWriter, r *http.Request)
 	FetchEventById(w http.ResponseWriter, r *http.Request)
