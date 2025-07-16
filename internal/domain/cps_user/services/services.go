@@ -140,8 +140,10 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
 	users, err := s.repo.GetAllCPSUsers(ctx)
-	if err != nil {
+	if len(users) == 0 {
+		return nil, fmt.Errorf("NO_USERS_FOUND")
+	} else if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return users, err
 }

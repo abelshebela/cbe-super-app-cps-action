@@ -107,9 +107,9 @@ func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*mo
 }
 
 func (h *Handler) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	// users, err := h.service.GetAllCPSUsers(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return []model.CPSUser{}, nil
+	users, err := h.service.GetAllCPSUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
