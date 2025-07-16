@@ -16,6 +16,7 @@ import (
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 	department_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
+	eventhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/event"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
 	hq_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
@@ -58,7 +59,10 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		service.InitServiceRoutes(sub, adapter.ServiceAdapter, authMiddleware)
 		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware)
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
+
 		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware)
+
+		eventhandler.InitServiceHandlerMaker(sub, adapter.EventAdapter, authMiddleware)
 
 	})
 }
