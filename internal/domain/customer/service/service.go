@@ -40,3 +40,28 @@ func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*membe
 
 	return customer, nil
 }
+
+func (c *CustomerDomain) GetFaydaCustomersDeatil(ctx context.Context, filerParams *constant.Filter) (*entity.CustomerRespose, error) {
+
+	customers, err := c.customerService.GetFaydaCustomersDeatil(ctx, filerParams)
+	if err != nil {
+		return nil, err
+	}
+	return customers, nil
+}
+func (c *CustomerDomain) GetFaydaCustomerByID(ctx context.Context, id string) (*member.User, error) {
+	customer, err := c.customerService.GetFaydaCustomerByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
+}
+
+func (c *CustomerDomain) GetBlockedCustomer(ctx context.Context, filerParams *constant.Filter) (*entity.CustomerRespose, error) {
+	customers, err := c.customerService.GetBlockedCustomer(ctx, filerParams)
+	if err != nil {
+		return nil, err
+	}
+	return customers, nil
+}

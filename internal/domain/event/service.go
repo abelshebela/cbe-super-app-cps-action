@@ -13,7 +13,7 @@ type Service struct {
 	Repository Repository
 }
 
-func NewSerice(repository Repository) (EventService, error) {
+func NewService(repository Repository) (EventService, error) {
 	return &Service{
 		Repository: repository,
 	}, nil

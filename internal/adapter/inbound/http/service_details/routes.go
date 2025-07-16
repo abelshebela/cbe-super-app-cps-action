@@ -42,8 +42,17 @@ func InitServiceDetailsRoutes(router chi.Router, handler inbound.ServiceDetailsI
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/checker/update",
+				Method:  http.MethodGet,
+				Path:    "/checker/approve/{action_code}",
+				Handler: handler.UpdateServiceDetailsChecker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{role.Checker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/checker/reject/{action_code}",
 				Handler: handler.UpdateServiceDetailsChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					middleware.AuthenticateToken,

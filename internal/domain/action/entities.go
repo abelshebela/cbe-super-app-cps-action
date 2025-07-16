@@ -37,8 +37,9 @@ type User struct {
 }
 
 type CurrentAction struct {
-	Id     []string
-	Action bool
+	Id            []string
+	Action        bool
+	RequestAction string
 }
 type ActionResponse struct {
 	ID       string `json:"_id,omitempty"`
@@ -137,6 +138,7 @@ const (
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
 	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestUpdateEevent        RequestAction = "UPDATE_EVENT"
 )
 
 type KYCLevel string

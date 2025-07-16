@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -24,6 +25,7 @@ type ServiceFeePersistence struct {
 }
 
 func NewServiceFeePersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) *ServiceFeePersistence {
+
 	return &ServiceFeePersistence{
 		client:        client,
 		cpsDal:        dal.NewMongoDal[service.CPSAction, service.CPSAction](client, dbName, collections[0]),
@@ -232,11 +234,12 @@ func (s *ServiceFeePersistence) ApproveServiceFeeUpdate(ctx context.Context, cps
 		"action_code":   cpsAction.ActionCode,
 		"action_status": service.ActionPending,
 	}
+	checkerData := contexts.ExtractContext(ctx)
 	update := bson.M{
 		"action_status":        service.ActionApproved,
-		"checker_id":           cpsAction.CheckerID,
-		"checker_name":         cpsAction.CheckerName,
-		"checker_phone_number": cpsAction.CheckerPhoneNumber,
+		"checker_id":           checkerData.UserID,
+		"checker_name":         checkerData.FullName,
+		"checker_phone_number": checkerData.PhoneNumber,
 		"checker_action_time":  time.Now(),
 		"last_modified_at":     time.Now(),
 	}
@@ -246,8 +249,9 @@ func (s *ServiceFeePersistence) ApproveServiceFeeUpdate(ctx context.Context, cps
 		return err
 	}
 
-	switch cpsAction.ActionType {
-	case service.ActionCreate:
+	switch cpsAction.RequestAction {
+	case service.RequestServiceFeeCreate:
+		fmt.Println("here is the checkup point-------------")
 		_, ok := cpsAction.CurrentAction.(map[string]interface{})
 		if !ok {
 			return errors.New("invalid service data for create")
@@ -259,7 +263,7 @@ func (s *ServiceFeePersistence) ApproveServiceFeeUpdate(ctx context.Context, cps
 			s.logger.Errorf("failed to create service: %v", err)
 			return err
 		}
-	case service.ActionUpdate:
+	case service.RequestServiceFeeUpdate:
 		serviceCode, ok := cpsAction.CurrentAction.(map[string]interface{})["service_code"].(string)
 		if !ok {
 			return errors.New("invalid service_code in current action")
@@ -271,7 +275,7 @@ func (s *ServiceFeePersistence) ApproveServiceFeeUpdate(ctx context.Context, cps
 			s.logger.Errorf("failed to update service fee: %v", err)
 			return err
 		}
-	case service.ActionDelete:
+	case service.RequestServiceFeeDelete:
 		serviceCode, ok := cpsAction.CurrentAction.(map[string]interface{})["service_code"].(string)
 		if !ok {
 			return errors.New("invalid service_code in current action for delete")

@@ -20,6 +20,7 @@ type CPSUserService interface {
 	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
 }
 
 type cpsUserService struct {
@@ -31,11 +32,30 @@ func NewCPSUserService(repo repository.CPSUserRepo) CPSUserService {
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
-	userPayload := ctx_util.ExtractUserContext(r)
+	// Create the CPS action
+	userPayload := ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
-	userData.UserCode = "CPS_USER_" + utils.RandomGenerator(15)
+
+	user := model.CPSUser{
+		ID:                 bson.NewObjectID(),
+		UserCode:           "CPS_USER_" + utils.RandomGenerator(15),
+		FullName:           userData.FullName,
+		Role:               userData.Role,
+		Department:         userData.Department,
+		Gender:             userData.Gender,
+		PhoneNumber:        userData.PhoneNumber,
+		Email:              userData.Email,
+		UserName:           userData.UserName,
+		Realm:              userData.Realm,
+		Enabled:            userData.Enabled,
+		Country:            userData.Country,
+		Region:             userData.Region,
+		PermissionCategory: userData.PermissionCategory,
+		PermissionGroup:    userData.PermissionGroups,
+	}
 
 	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
 		UniqueId:         userPayload.UserCode,
 		MakerID:          userPayload.UserID,
@@ -45,7 +65,8 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionCreate),
 		RequestAction:    string(model.RequestUser),
-		CurrentAction:    userData,
+		PreviosAction:    nil,
+		CurrentAction:    user,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
 	}
@@ -54,8 +75,9 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
-	userPayload := ctx_util.ExtractUserContext(r)
+	userPayload := ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
+	userData.UserCode = userCode
 
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
@@ -68,6 +90,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestUpdateUser),
+		PreviosAction:    nil,
 		CurrentAction:    userData,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
@@ -77,7 +100,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 }
 
 func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error) {
-	userPayload := ctx_util.ExtractUserContext(r)
+	userPayload := ctx_util.ExtractContext(ctx)
 	cpsAction := model.CPSAction{
 		CheckerID:          userPayload.UserID,
 		CheckerName:        userPayload.FullName,
@@ -91,6 +114,7 @@ func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request,
 		cpsAction.ActionStatus = string(model.ActionRejected)
 		cpsAction.RejectionReason = *approved.Reason
 	}
+
 	return s.repo.ApproveUserAction(ctx, actionID, cpsAction)
 }
 
@@ -100,7 +124,7 @@ func (s *cpsUserService) GetPendingUserActions(ctx context.Context) ([]model.CPS
 		return nil, err
 	}
 	if len(data) == 0 {
-		return nil, fmt.Errorf("no pending action found")
+		return nil, fmt.Errorf("NO_PENDING_ACTION_FOUND")
 	}
 
 	return data, nil
@@ -108,11 +132,18 @@ func (s *cpsUserService) GetPendingUserActions(ctx context.Context) ([]model.CPS
 
 func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
 	user, err := s.repo.FetchUserByUserCode(ctx, userCode)
-	if user == nil {
-		return nil, fmt.Errorf("user not found")
-	}
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *cpsUserService) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	users, err := s.repo.GetAllCPSUsers(ctx)
+	if len(users) == 0 {
+		return nil, fmt.Errorf("NO_USERS_FOUND")
+	} else if err != nil {
+		return nil, err
+	}
+	return users, err
 }

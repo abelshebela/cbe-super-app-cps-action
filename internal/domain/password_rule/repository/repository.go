@@ -8,7 +8,7 @@ import (
 
 type PasswordRuleRepository interface {
 	// ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, decision string, checker action.User, rejectionReason *string, department string) error
-
+	GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error)
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
 	GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error)
 	GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error)

@@ -22,6 +22,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
+	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -52,6 +53,8 @@ type Domain struct {
 	AmountBasedAuthDomain amount_based_auth_domain.Repository
 	ServiceDomain         service.ServiceInterface
 	ActionDomain          action.ServiceInterface
+
+	EventDomain event_domain.EventService
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger) Domain {
@@ -77,6 +80,10 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger),
 		miniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
+		EventDomain: func() event_domain.EventService {
+			domainService, _ := event_domain.NewService(persistence.EventPersistence)
+			return domainService
+		}(),
 	}
 
 }

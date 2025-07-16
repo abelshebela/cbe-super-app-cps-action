@@ -3,7 +3,6 @@ package wallet
 import (
 	"encoding/json"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -16,7 +15,6 @@ import (
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -30,16 +28,6 @@ func InitWalletRouter(walletHandler wallet.WalletHandlerAppllication, logger uti
 		walletHandler: walletHandler,
 		logger:        logger,
 	}
-}
-
-func getParam(w http.ResponseWriter, r *http.Request, key string, logger utils.Logger) string {
-	value := chi.URLParam(r, key)
-	if value == "" {
-		logger.Errorf("missing or invalid parameter '%s'", key)
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return ""
-	}
-	return value
 }
 
 func toModelUser(userContext ctx_util.UserContext) model.User {
@@ -75,27 +63,13 @@ func createCPSUserForAuthorize(r *http.Request, actionCode string) (*model.Autho
 	}, nil
 }
 
-func (wa *WalletAdapter) parseMultipartForm(w http.ResponseWriter, r *http.Request, key string, maxValue int64, logger utils.Logger) (multipart.File, *multipart.FileHeader, bool) {
-	if err := r.ParseMultipartForm(maxValue); err != nil {
-		logger.Errorf("failed to parse form data: %v", err)
-		common_util.SendErrorResponse(w, common_util.InvalidForm, 0, nil)
-		return nil, nil, false
-	}
-
-	file, fileHeader, err := r.FormFile(key)
-	if err != nil {
-		wa.logger.Errorf("%v error: %v", key, err)
-		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
-		return nil, nil, false
-	}
-	return file, fileHeader, true
-}
-
 func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	var walletRequest dto.CreateWalletRequest
 
-	file, fileHeader, valid := wa.parseMultipartForm(w, r, "avatar", 10<<20, wa.logger)
-	if !valid {
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "avatar", 10<<20)
+	if err != nil {
+		wa.logger.Errorf("error parsing file: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return
 	}
 	defer file.Close()
@@ -122,7 +96,12 @@ func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	id := getParam(w, r, "id", wa.logger)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var updateRequest dto.UpdateWalletRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
@@ -150,7 +129,12 @@ func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
-	id := getParam(w, r, "id", wa.logger)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForCreate(r, entity.Wallet{
 		ID: id,
@@ -209,7 +193,12 @@ func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
-	id := getParam(w, r, "id", wa.logger)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	ctx := r.Context()
 
@@ -224,7 +213,12 @@ func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode := getParam(w, r, "action_code", wa.logger)
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForAuthorize(r, actionCode)
 	if err != nil {
@@ -245,7 +239,12 @@ func (wa *WalletAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	actionCode := getParam(w, r, "action_code", wa.logger)
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.RejectCPSAction
 
@@ -277,7 +276,12 @@ func (wa *WalletAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	id := getParam(w, r, "id", wa.logger)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForCreate(r, entity.Wallet{
 		ID: id,
@@ -300,7 +304,12 @@ func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	id := getParam(w, r, "id", wa.logger)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		wa.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	cpsReq, err := createCPSUserForCreate(r, entity.Wallet{
 		ID: id,

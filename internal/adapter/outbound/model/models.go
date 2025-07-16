@@ -10,17 +10,26 @@ import (
 )
 
 type Service struct {
-	ID             bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Key            string        `json:"key" bson:"key"`
-	ServiceName    string        `json:"service_name" bson:"service_name"`
-	SingleCap      float32       `json:"single_cap" bson:"single_cap"`
-	MinAmount      float32       `json:"min_amount" bson:"min_amount"`
-	Flag           bool          `json:"flag" bson:"flag"`
-	DailyCap       float32       `json:"daily_cap" bson:"daily_cap"`
-	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
-	LastModifiedAt time.Time     `json:"last_modifed_at" bson:"last_modifed_at"`
+	ID                 bson.ObjectID `json:"id" bson:"id"`
+	ServiceCode        string        `json:"service_code" bson:"service_code"`
+	ServiceName        string        `json:"service_name" bson:"service_name"`
+	ServiceType        string        `json:"service_type" bson:"service_type"`
+	Key                string        `json:"key" bson:"key"`
+	Cap                Cap           `json:"cap" bson:"cap"`
+	CBEProductCodes    ProductCodes  `json:"cbe_product_codes" bson:"cbe_product_codes"`
+	CBEIFBProductCodes ProductCodes  `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
+	AboveAmount        uint64        `json:"above_amount" bson:"above_amount"`
+	AboveServiceFee    uint64        `json:"above_service_fee" bson:"above_service_fee"`
+	PaymentType        string        `json:"payment_type" bson:"payment_type"`
+	Tiers              []Tier        `json:"tiers" bson:"tiers"`
+	CBEGLEntry         GLEntry       `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
+	CBEIFBGLEntry      GLEntry       `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
+	Enabled            bool          `json:"enabled" bson:"enabled"`
+	IsDeleted          bool          `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt          time.Time     `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time     `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt          time.Time     `json:"deleted_at" bson:"deleted_at"`
 }
-
 type UserType string
 
 const (
@@ -35,6 +44,13 @@ const (
 	ActionApproved ActionStatus = "APPROVED"
 	ActionRejected ActionStatus = "REJECTED"
 )
+
+type AdvertResponse struct {
+	Page   int       `json:"page"`
+	Advert []*Advert `json:"advert"`
+	Limit  int       `json:"limit"`
+	Total  int64     `json:"total"`
+}
 
 type ActionType string
 
@@ -66,6 +82,26 @@ type Bank struct {
 	LastModifiedAt time.Time `json:"last_modified_at,omitzero" bson:"last_modified_at"`
 }
 
+type AdvertFor string
+
+type AdvertDate struct {
+	StartedAt time.Time `json:"started_at" bson:"started_at"`
+	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
+}
+
+type Advert struct {
+	ID            string     `json:"_id" bson:"_id"`
+	Title         string     `json:"title" bson:"title"`
+	Description   string     `json:"description" bson:"description"`
+	BannerImage   string     `json:"banner_image" bson:"banner_image"`
+	AdvertFor     AdvertFor  `json:"advert_for" bson:"advert_for"`
+	Date          AdvertDate `json:"advert_date" bson:"advert_date"`
+	Enabled       bool       `json:"enabled" bson:"enabled"`
+	IsDeleted     bool       `json:"is_deleted" bson:"is_deleted"`
+	DeletedAt     time.Time  `json:"deleted_at" bson:"deleted_at"`
+	CreatedAt     time.Time  `json:"created_at" bson:"created_at"`
+	LastUpdatedAt time.Time  `json:"last_updated_at" bson:"last_updated_at"`
+}
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -124,9 +160,9 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestCreateServiceFee         RequestAction = "CREATE SERVICE FEE"
-	RequestUpdateServiceFee         RequestAction = "UPDATE SERVICE FEE"
-	RequestDeleteServiceFee         RequestAction = "DELETE SERVICE FEE"
+	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
+	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
+	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
@@ -409,6 +445,7 @@ type Cap struct {
 	SingleCap uint64   `bson:"single_cap"`
 	DailyCap  uint64   `bson:"daily_cap"`
 	MinAmount uint64   `bson:"min_amount"`
+	MaxAmount uint64   `bson:"max_amount"`
 }
 
 type ServiceDetails struct {
@@ -453,6 +490,9 @@ type AuthorizeCPSAction struct {
 	CheckerActionTime time.Time `json:"checker_action_time,omitzero" bson:"checker_action_time"`
 }
 
+type RejectAuthTierCPSAction struct {
+	RejectedReason string `json:"rejected_reason,omitempty" bson:"rejected_reason"`
+}
 type RejectCPSAction struct {
 	CreateCPSAction
 	CheckerUser       User      `json:"checker_user" bson:"checker_user"`
@@ -461,6 +501,12 @@ type RejectCPSAction struct {
 }
 
 func (r RejectCPSAction) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.RejectedReason, validation.Required, validation.Length(30, 100)),
+	)
+}
+
+func (r RejectAuthTierCPSAction) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.RejectedReason, validation.Required, validation.Length(30, 100)),
 	)

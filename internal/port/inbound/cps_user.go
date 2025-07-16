@@ -8,4 +8,5 @@ type CPSUserMakerHandler interface {
 	ApproveUserAction(w http.ResponseWriter, r *http.Request)
 	GetPendingUserActions(w http.ResponseWriter, r *http.Request)
 	FetchUserByUserCode(w http.ResponseWriter, r *http.Request)
+	GetAllCPSUsers(w http.ResponseWriter, r *http.Request)
 }

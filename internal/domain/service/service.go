@@ -5,6 +5,9 @@ import (
 	"errors"
 	"time"
 
+	"encoding/json"
+	"fmt"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
@@ -152,9 +155,10 @@ func (s *ServiceStore) UpdateServiceDetails(ctx context.Context, actionID string
 	}
 
 	return s.handleActionApproval(ctx, &cpsAction, approve, checkerID, rejectionReason, func() error {
-		serviceData, ok := cpsAction.CurrentAction.(*Service)
-		if !ok {
-			return errors.New(common_util.InvalidActionData)
+
+		serviceData, err := ConvertToService(cpsAction.CurrentAction)
+		if err != nil {
+			return err
 		}
 		if err := s.repository.UpdateOneServiceDetailRequest(ctx, cpsAction.UniqueId, *serviceData); err != nil {
 			s.logger.Errorf("failed to update service details: %v", err)
@@ -193,4 +197,26 @@ func (s *ServiceStore) UpdateCapMinAmount(ctx context.Context, id string, minAmo
 
 func makeStringPointer(s string) *string {
 	return &s
+}
+
+// ConvertToService attempts to convert any interface{} to a *Service struct.
+func ConvertToService(data interface{}) (*Service, error) {
+	switch v := data.(type) {
+	case *Service:
+		return v, nil
+	case Service:
+		return &v, nil
+	case map[string]interface{}:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal current action: %w", err)
+		}
+		var svc Service
+		if err := json.Unmarshal(b, &svc); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal current action: %w", err)
+		}
+		return &svc, nil
+	default:
+		return nil, errors.New(common_util.InvalidActionData)
+	}
 }

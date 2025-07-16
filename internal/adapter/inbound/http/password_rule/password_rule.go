@@ -25,6 +25,21 @@ func NewPasswordRuleHTTPHandler(service services.PasswordRuleService) *PasswordR
 	}
 }
 
+func (h *PasswordRuleHTTPHandler) GetPasswordRule(w http.ResponseWriter, r *http.Request) {
+
+	passwordRules, err := h.service.GetAllPasswordRules(r.Context())
+
+	fmt.Printf("Password rule update request took \n")
+
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	data := map[string]interface{}{"password_rules": passwordRules}
+	utils.BaseResponseMaker(data, w, "Password Rules Successfuly Fetched", 200)
+
+}
 func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r *http.Request) {
 	var req passwordrule.RequestPasswordRuleUpdateDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

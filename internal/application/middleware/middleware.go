@@ -154,6 +154,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		// }
 
 		claims, ok := token.Claims.(jwt.MapClaims)
+		
 		if !ok {
 			a.logger.Errorf("failed to cast to map claims")
 			res := common.Response[constant.ErrorDefinition]{
@@ -222,6 +223,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, constant.ContextKey("user_code"), userPayload.UserCode)
 		ctx = context.WithValue(ctx, constant.ContextKey("full_name"), userPayload.FullName)
 		ctx = context.WithValue(ctx, constant.ContextKey("department"), userPayload.Department)
+		// fmt.Print(ctx)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

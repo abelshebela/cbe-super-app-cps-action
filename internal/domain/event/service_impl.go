@@ -19,7 +19,7 @@ func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ti
 		MakerName:        makerName,
 		MakerPhoneNumber: makerPhone,
 		ActionType:       action.ActionCreate,
-		RequestAction:    action.RequestUpdateServiceRule,
+		RequestAction:    action.RequestUpdateEevent,
 		ActionStatus:     action.ActionPending,
 		CurrentAction: struct {
 			Ticket Ticket
@@ -30,8 +30,12 @@ func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ti
 		},
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Time{},
 	}
+	// fmt.Println("a-create-event1: %v", a)
 	data, err := s.Repository.CreateCpsAction(ctx, a)
+	// fmt.Println("data-create-event2: %v", data)
 	if err != nil {
 		return "", err
 	}
@@ -56,10 +60,9 @@ func (s *Service) ApproveEventRequest(ctx context.Context, actionID string, acti
 	case Event:
 		e = v
 	case map[string]interface{}:
-
-		return fmt.Errorf("CurrentAction is a map, manual decoding required")
+		return fmt.Errorf("CURRENT_ACTION_TYPE_INVALID")
 	default:
-		return fmt.Errorf("failed to assert CurrentAction to Event type")
+		return fmt.Errorf("CURRENT_ACTION_TYPE_INVALID")
 	}
 
 	cpsAction.LastModifiedAt = time.Now()
@@ -71,7 +74,7 @@ func (s *Service) ApproveEventRequest(ctx context.Context, actionID string, acti
 	e.Enabled = true
 	_, err = s.Repository.CreateEvent(ctx, e)
 	if err != nil {
-		return fmt.Errorf("error: %v", err.Error())
+		return err
 	}
 	return nil
 }
@@ -86,7 +89,7 @@ func (s *Service) FetchEvent(ctx context.Context, limit, offset int) ([]Event, e
 func (s *Service) FetchEventById(ctx context.Context, event_id string) (Event, error) {
 	event, err := s.Repository.FetchEventById(ctx, event_id)
 	if err != nil {
-		return Event{}, nil
+		return Event{}, err
 	}
 	return event, nil
 }

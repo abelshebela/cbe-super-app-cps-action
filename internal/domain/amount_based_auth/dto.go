@@ -13,6 +13,13 @@ type AmountBasedAuthRequest struct {
 	Method    Method `json:"method"`
 }
 
+type AmountBasedAuthRespose struct {
+	Page            int         `json:"page"`
+	AmountBasedAuth []*AuthTier `json:"amount_based_auth"`
+	Limit           int         `json:"limit"`
+	Total           int64       `json:"total"`
+}
+
 type UpdateAmountBasedAuth struct {
 	Id        string `json:"id" bson:"id"`
 	MinAmount int    `json:"min_amount" bson:"min_amount"`

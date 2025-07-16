@@ -16,7 +16,7 @@ type HttpStore struct {
 	Application event_application.ApplicationAbstracts
 }
 
-func NewHttpBulkService(app event_application.ApplicationAbstracts) event_inbound.Inbound {
+func NewEventHTTPHandler(app event_application.ApplicationAbstracts) event_inbound.Inbound {
 	return &HttpStore{
 		Application: app,
 	}

@@ -61,7 +61,6 @@ func (r *DepartmentPersistence) CheckRequestExists(ctx context.Context, action e
 }
 
 func (r *DepartmentPersistence) CheckDepartmentExists(ctx context.Context, dept string) (bool, error) {
-
 	_, err := r.departmentdal.FindOne(ctx, bson.M{"department": dept}, bson.M{})
 	if err == mongo.ErrNoDocuments {
 		return false, nil

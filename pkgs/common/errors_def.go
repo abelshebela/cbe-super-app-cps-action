@@ -613,6 +613,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_134",
 			Message: "Account is already disabled",
 		},
+		"NO_PENDING_ACTION_FOUND": {
+			Code:    "GEN_135",
+			Message: "No pending action found",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -920,7 +924,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"MISSING_OR_INVALID_IMAGE": {
 			Code:    "FILE_006",
-			Message: "Missing or invalid image.",
+			Message: "Missing or invalid image. Could not parse form or file too large.",
 		},
 	},
 	Branch: ErrorGroup{

@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -230,6 +231,7 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, id string, cpsActio
 		RequestAction:    string(model.RequestDeleteAdvert),
 		ActionType:       string(model.ActionDelete),
 		CurrentAction:    cpsAction.ActionData,
+		UniqueId:         id,
 		PreviosAction: map[string]any{
 			"title":        ad.Title,
 			"description":  ad.Description,
@@ -337,20 +339,33 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 	}
 
 	var actionData entity.Advert
-	data, err := bson.Marshal(cpsRes.CurrentAction)
+	mapData := make(map[string]interface{})
+
+	if cpsRes.ActionType != string(model.ActionDelete) {
+
+		data, err := bson.Marshal(cpsRes.CurrentAction)
+		if err != nil {
+			a.logger.Errorf("failed to marshal bson: %v", err)
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		}
+
+		if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
+			a.logger.Errorf("failed to unmarshal into Bank: %v", err)
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		}
+		if err := bson.Unmarshal([]byte(data), &mapData); err != nil {
+			a.logger.Errorf("failed to unmarshal into Bank: %v", err)
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		}
+	} else {
+		mapData["id"] = cpsRes.UniqueId
+	}
+	objId, err := bson.ObjectIDFromHex(mapData["id"].(string))
 	if err != nil {
-		a.logger.Errorf("failed to marshal bson: %v", err)
-		return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		return nil, err
 	}
-
-	if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
-		a.logger.Errorf("failed to unmarshal into Bank: %v", err)
-		return nil, fmt.Errorf("INVALID_ACTION_DATA")
-	}
-
 	if cpsRes.ActionType == string(model.ActionCreate) {
 		req := entity.Advert{
-			ID:          bson.NewObjectID(),
 			Title:       actionData.Title,
 			Description: actionData.Description,
 			BannerImage: actionData.BannerImage,
@@ -370,8 +385,10 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 	}
 
+	fmt.Println("check here-----------1-", actionData.ID)
+
 	if cpsRes.ActionType == string(model.ActionUpdate) {
-		filter := bson.M{"_id": actionData.ID}
+		filter := bson.M{"_id": objId}
 		update := bson.M{}
 
 		if actionData.Title != "" {
@@ -392,6 +409,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 		update["last_updated_at"] = time.Now()
 
+		fmt.Println("check here------------", filter)
 		advert, err = a.adDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			a.logger.Errorf("failed to update advert", err)
@@ -405,7 +423,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 	if cpsRes.ActionType == string(model.ActionDelete) {
 		filter := bson.M{
-			"_id": actionData.ID,
+			"_id": objId,
 		}
 
 		update := bson.M{
@@ -429,6 +447,8 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 }
 
 func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
+	checkerUser := contexts.ExtractContext(ctx)
+
 	filter := bson.M{
 		"action_code":   req.ActionCode,
 		"department":    req.Department,
@@ -436,9 +456,9 @@ func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (
 	}
 
 	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_id":           checkerUser.UserCode,
+		"checker_name":         checkerUser.FullName,
+		"checker_phone_number": checkerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
 		"rejection_reason":     req.RejectedReason,
 		"checker_action_time":  time.Now(),

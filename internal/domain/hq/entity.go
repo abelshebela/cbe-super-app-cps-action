@@ -4,19 +4,26 @@ import (
 	"time"
 
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type HQ struct {
-	ID        string
-	Name      string
-	Enabled   bool
-	IsDeleted bool
+	ID            bson.ObjectID `json:"id" bson:"_id"`
+	Name          string        `json:"name" bson:"name"`
+	Enabled       bool          `json:"enabled" bson:"enabled"`
+	IsDeleted     bool          `json:"is_deleted" bson:"is_deleted"`
+	ArchiveExpiry uint          `json:"archive_expiry" bson:"archive_expiry"`
+	BlockTime     uint          `json:"block_time" bson:"block_time"`
+	ArchiveTime   uint          `json:"archive_time" bson:"archive_time"`
+	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
+	LastModified  time.Time     `json:"last_modified" bson:"last_modified"`
+}
 
-	ArchiveExpiry uint
-	BlockTime     uint
-	ArchiveTime   uint
-	CreatedAt     time.Time
-	LastModified  time.Time
+type HQRespose struct {
+	Page  int   `json:"page"`
+	HQ    []*HQ `json:"hq"`
+	Limit int   `json:"limit"`
+	Total int64 `json:"total"`
 }
 
 type UpdateBlockTimeRequest struct {
