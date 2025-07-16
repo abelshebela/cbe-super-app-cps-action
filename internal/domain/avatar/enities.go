@@ -3,7 +3,7 @@ package avatar
 import "time"
 
 type Avatar struct {
-	ID             string    `json:"id" bson:"id"`
+	ID             string    `json:"_id" bson:"_id"`
 	Avatar         string    `json:"avatar" bson:"avatar"`
 	Label          string    `json:"label" bson:"label"`
 	Enable         bool      `json:"enable" bson:"enable"`

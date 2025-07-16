@@ -17,8 +17,9 @@ import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	util_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	// util_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	// common_util ("github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils")
 )
 
 type AvatarHTTPHandler struct {
@@ -73,9 +74,7 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsRes)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, cpsRes, "Avatar Create Request Created successfully")
 
 }
 
@@ -104,9 +103,7 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, cpsAction, "Avatar Delete Request Created successfully")
 
 }
 
@@ -126,15 +123,13 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 	cpsReq.ActionCode = action_code
 
 	ctx := r.Context()
-	authAction, err := a.avatarHandler.Authorize(ctx, cpsReq)
+	approvedAction, err := a.avatarHandler.Authorize(ctx, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(authAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, approvedAction, "AD approved Sucessfully")
 }
 
 func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
@@ -166,9 +161,7 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(rejectAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, rejectAction, "Avatar Rejected sucessfully")
 }
 
 func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
@@ -196,9 +189,7 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, cpsAction, "Avatar Disabled Request Create sucessfully")
 }
 
 func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
@@ -225,9 +216,8 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, cpsAction, "Avatar Enable Request Create sucessfully")
+
 }
 
 func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request) {
@@ -263,9 +253,8 @@ func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(avatars)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, avatars, "Avatar list feached sucessfully")
+
 }
 
 func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
@@ -279,9 +268,8 @@ func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(avatar)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, avatar, "Avatar list feached sucessfully")
+
 }
 
 func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
@@ -325,9 +313,8 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	def, _ := util_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, cpsAction, "Avatar Update Request created sucessfully")
+
 }
 
 func (a *AvatarHTTPHandler) extractUserFromContext(r *http.Request) (model.User, string, error) {

@@ -75,6 +75,8 @@ func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model
 		ActionType:       string(model.ActionCreate),
 		CurrentAction:    cpsActionReq.ActionData,
 		MakerActionTime:  time.Now(),
+		LastModifiedAt:   time.Now(),
+		CreatedAt:        time.Now(),
 	})
 
 	if err != nil {
@@ -132,6 +134,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 			"is_deleted": avatar.IsDeleted,
 		},
 		MakerActionTime: time.Now(),
+		LastModifiedAt:  time.Now(),
 	})
 
 	if err != nil {
@@ -183,11 +186,13 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 	if cpsAction.ActionType == string(model.ActionCreate) {
 		req := dto.Avatar{
-			ID:        bson.NewObjectID().Hex(),
-			Avatar:    actionData.Avatar,
-			Label:     actionData.Label,
-			Enable:    true,
-			CreatedAt: time.Now(),
+			ID:             bson.NewObjectID().Hex(),
+			Avatar:         actionData.Avatar,
+			Label:          actionData.Label,
+			IsDeleted:      false,
+			Enable:         true,
+			CreatedAt:      time.Now(),
+			LastModifiedAt: time.Now(),
 		}
 
 		avatar, err = a.avatarDal.InsertOne(ctx, req)
@@ -277,7 +282,7 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 		"checker_name":         req.CheckerUser.FullName,
 		"checker_phone_number": req.CheckerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
-		"rejected_reason":      req.RejectedReason,
+		"rejection_reason":     req.RejectedReason,
 		"checker_action_time":  time.Now(),
 	}
 

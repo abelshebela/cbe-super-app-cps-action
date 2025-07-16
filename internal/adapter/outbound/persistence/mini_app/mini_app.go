@@ -6,6 +6,7 @@ import (
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -36,27 +37,22 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 
 	CpsAction := model.CPSAction{
 		ActionCode:         Action.ActionCode,
-		MakerID:            Action.ActionCode,
+		MakerID:            Action.MakerID,
 		MakerName:          Action.MakerName,
-		MakerPhoneNumber:   Action.CheckerPhoneNumber,
+		MakerPhoneNumber:   Action.MakerPhoneNumber,
 		CheckerID:          Action.CheckerID,
 		CheckerName:        Action.CheckerName,
 		CheckerPhoneNumber: Action.CheckerPhoneNumber,
 		Department:         Action.Department,
 		RejectionReason:    Action.RejectionReason,
-		PreviosAction: func() json.RawMessage {
-			b, _ := json.Marshal(Action.PreviosAction)
-			return b
-		}(),
-		CurrentAction: func() json.RawMessage {
-			b, _ := json.Marshal(Action.CurrentAction)
-			return b
-		}(),
-		ActionStatus:   string(model.ActionPending),
-		ActionType:     Action.ActionType,
-		RequestAction:  Action.RequestAction,
-		CreatedAt:      Action.CreatedAt,
-		LastModifiedAt: Action.LastModifiedAt,
+		MakerActionTime:    Action.MakerActionTime,
+		PreviosAction:      Action.PreviosAction,
+		CurrentAction:      Action.CurrentAction,
+		ActionStatus:       string(model.ActionPending),
+		ActionType:         Action.ActionType,
+		RequestAction:      Action.RequestAction,
+		CreatedAt:          time.Now(),
+		LastModifiedAt:     time.Now(),
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, CpsAction)
@@ -90,6 +86,8 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 			}
 			return v
 		}(),
+		// PreviosAction:     Action.PreviosAction,
+		// CurrentAction:     Action.CurrentAction,
 		ActionStatus:      data.ActionStatus,
 		ActionType:        data.ActionType,
 		RequestAction:     data.RequestAction,
@@ -99,6 +97,10 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 		CheckerActionTime: data.CheckerActionTime,
 	}
 	return result, nil
+}
+
+func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action model.CPSAction, id string) (model.CPSAction, error) {
+	return model.CPSAction{}, nil
 }
 
 func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp domain.MiniApp) error {
@@ -170,7 +172,7 @@ func (o *MiniAppPersistence) GetMiniAppActionId(ctx context.Context, action_id s
 	return result, nil
 }
 
-func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.CPSAction) error {
+func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.CPSAction) (model.CPSAction, error) {
 	filter := map[string]interface{}{"action_code": action.ActionCode}
 	update := map[string]interface{}{
 		"checker_id":           action.CheckerID,
@@ -192,12 +194,12 @@ func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.C
 		"last_modified_at":    time.Now(),
 		"checker_action_time": time.Now(),
 	}
-	_, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	return err
+	updatedAction, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	return updatedAction, err
 }
 
 func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*domain.MiniApp, error) {
-	filter := map[string]interface{}{"is_deleted": false}
+	filter := map[string]interface{}{"isdeleted": false}
 	miniApps, err := o.MongoDalMiniApp.FindAll(ctx, filter, nil)
 	if err != nil {
 		return nil, err
@@ -207,7 +209,12 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*domain.MiniApp
 }
 
 func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (domain.MiniApp, error) {
-	filter := map[string]interface{}{"_id": id}
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return domain.MiniApp{}, err
+	}
+	filter := bson.M{"_id": objectID}
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
 	if err != nil {
 		return domain.MiniApp{}, err

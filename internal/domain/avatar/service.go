@@ -8,6 +8,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -116,8 +117,11 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: Avatar{
-			Label:  actionData.Label,
-			Avatar: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			ID:             bson.NewObjectID().Hex(),
+			Label:          actionData.Label,
+			Avatar:         fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			CreatedAt:      time.Now(),
+			LastModifiedAt: time.Now(),
 		},
 	})
 	if err != nil {
