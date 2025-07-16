@@ -2,6 +2,7 @@ package permission
 
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 )
 
@@ -9,6 +10,9 @@ type PermissionGroupRepository interface {
 	CheckPermissionGroupExists(groupName string) bool
 	CreatePermissionGroupFromAction(action model.CPSAction) error
 	UpdatePermissionGroupFromAction(action model.CPSAction) error
+	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
+	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
+	GetPermissionGroups() ([]*entities.PermissionGroup, error)
 }
 
 type PermissionCategoryRepository interface {
@@ -22,4 +26,7 @@ type CPSActionRepository interface {
 	ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error)
 	ValidateActionRequest(actionCode, department string) (model.CPSAction, error)
 	RejectActionRequest(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
+	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
+	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
+	GetPermissionGroups() ([]*entities.PermissionGroup, error)
 }

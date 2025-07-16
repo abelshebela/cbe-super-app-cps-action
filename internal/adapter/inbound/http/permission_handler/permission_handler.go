@@ -64,7 +64,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		RequestAction:    string(entities.RequestPermissionGroup),
 	}
 
-	cpsAction, err := h.permissionService.CreatePermissionGroup(request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	cpsAction, err := h.permissionService.CreatePermissionGroup("", request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[CreatePermissionGroup] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -77,6 +77,70 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 
 }
 
+func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
+	permissionGroups, err := h.permissionService.GetPermissionGroups()
+	if err != nil {
+		h.logger.Errorf("[GetPermissionGroups] service error: %v", err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.WriteSuccessResponse(w, permissionGroups, "Permission groups fetched successfully")
+}
+
+func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
+	permissionGroup, err := h.permissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
+	if err != nil {
+		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.WriteSuccessResponse(w, permissionGroup, "Permission group fetched successfully")
+}
+
+func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http.Request) {
+	var request permission.CreatePermissionGroupRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		h.logger.Errorf("[CreatePermissionGroup] failed to decode request: %v", err)
+		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
+	if err := request.Validate(); err != nil {
+		h.logger.Warnf("[CreatePermissionGroup] validation failed: %v", err)
+		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+	oldGroupName := chi.URLParam(r, "group_name")
+	if oldGroupName == "" {
+		util.SendErrorResponse(w, "Group name is required", http.StatusNotFound, nil)
+		return
+	}
+
+	makerUser := contexts.ExtractUserContext(r)
+
+	cpsAction := model.CPSAction{
+		MakerID:          makerUser.UserID,
+		MakerName:        makerUser.FullName,
+		MakerPhoneNumber: makerUser.PhoneNumber,
+		Department:       makerUser.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(entities.ActionUpdate),
+		RequestAction:    string(entities.RequestPermissionGroup),
+	}
+
+	cpsAction, err := h.permissionService.CreatePermissionGroup(oldGroupName, request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	if err != nil {
+		h.logger.Errorf("[UpdatePermissionGroup] service error: %v", err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	h.logger.Infof("[UpdatePermissionGroup] request sent successfully by user: %s", makerUser.UserID)
+
+	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request updated successfully")
+}
 func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, "action_code")
 	checkerUser := contexts.ExtractUserContext(r)

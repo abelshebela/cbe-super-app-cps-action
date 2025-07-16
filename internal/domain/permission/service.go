@@ -6,15 +6,20 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type PermissionDomainService interface {
-	CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
+	CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
 	ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error)
 	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
+	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
+	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
+	GetPermissionGroups() ([]*entities.PermissionGroup, error)
 }
 
 type Service struct {
@@ -33,7 +38,7 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 	}
 }
 
-func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+func (s *Service) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
 		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
 		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION")
@@ -51,11 +56,21 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 	}
 
 	cpsAction.ActionCode = utils.RandomGenerator(20)
-	cpsAction.CurrentAction = map[string]interface{}{
-		"group_name":            groupName,
-		"permission_categories": validCategories,
-		"role":                  role,
-		"realm":                 "bank",
+	if cpsAction.ActionType == string(entities.ActionUpdate) {
+		cpsAction.CurrentAction = map[string]interface{}{
+			"group_name":            groupName,
+			"permission_categories": validCategories,
+			"role":                  role,
+			"realm":                 "bank",
+			"old_group":             oldGroupName,
+		}
+	} else {
+		cpsAction.CurrentAction = map[string]interface{}{
+			"group_name":            groupName,
+			"permission_categories": validCategories,
+			"role":                  role,
+			"realm":                 "bank",
+		}
 	}
 
 	cpsAction.MakerActionTime = time.Now()
@@ -117,4 +132,16 @@ func (s *Service) RejectPermissionGroup(actionCode string, action model.CPSActio
 		return model.CPSAction{}, err
 	}
 	return rejectedAction, nil
+}
+
+func (s *Service) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
+	return s.permissionGroupRepo.UpdatePermissionGroup(groupName, permissionCategoryLists)
+}
+
+func (s *Service) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
+	return s.permissionGroupRepo.GetPermissionGroup(groupName)
+}
+
+func (s *Service) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
+	return s.permissionGroupRepo.GetPermissionGroups()
 }
