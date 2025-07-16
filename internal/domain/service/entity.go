@@ -89,6 +89,7 @@ type RequestAction string
 const (
 	RequestServiceFeeUpdate RequestAction = "SERVICE_FEE_UPDATE"
 	RequestServiceFeeCreate RequestAction = "SERVICE_FEE_CREATE"
+	RequestServiceFeeDelete RequestAction = "SERVICE_FEE_DELETE"
 )
 
 type ActionStatus string

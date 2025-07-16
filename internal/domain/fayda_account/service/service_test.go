@@ -24,42 +24,38 @@ func (m *MockLogger) Sync() error                            { return nil }
 
 func sampleInitiateCPSAction() entity.CPSAction {
 	return entity.CPSAction{
-		ID:         "id1",
-		ActionCode: "code1",
-		MakerUser: entity.User{
-			UserCode:    "maker1",
-			FullName:    "Maker User",
-			PhoneNumber: "987654321",
-		},
-		RejectedReason:  "",
+		ID:               "id1",
+		ActionCode:       "code1",
+		MakerID:          "maker1",
+		MakerName:        "Maker User",
+		MakerPhoneNumber: "987654321",
+
+		RejectionReason: nil,
 		Department:      "IT",
-		Status:          entity.ActionPending,
+		ActionStatus:    entity.ActionPending,
 		RequestAction:   entity.RequestDisableFaydaAccount,
 		ActionType:      entity.ActionCreate,
-		ActionData:      entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
+		CurrentAction:   entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
 		MakerActionTime: time.Now(),
 	}
 }
 
 func sampleAuthorizeCPSAction() entity.CPSAction {
 	return entity.CPSAction{
-		ID:         "id1",
-		ActionCode: "code1",
-		CheckerUser: entity.User{
-			UserCode:    "checker1",
-			FullName:    "Checker User",
-			PhoneNumber: "123456789",
-		},
-		MakerUser: entity.User{
-			UserCode:    "maker1",
-			FullName:    "Maker User",
-			PhoneNumber: "987654321",
-		},
-		RejectedReason:    "",
+		ID:                 "id1",
+		ActionCode:         "code1",
+		CheckerID:          "checker1",
+		CheckerName:        "Checker User",
+		CheckerPhoneNumber: "123456789",
+
+		MakerID:           "maker1",
+		MakerName:         "Maker User",
+		MakerPhoneNumber:  "987654321",
+		RejectionReason:   nil,
 		Department:        "IT",
-		Status:            entity.ActionApproved,
+		ActionStatus:      entity.ActionApproved,
 		RequestAction:     entity.RequestDisableFaydaAccount,
-		ActionData:        entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
+		CurrentAction:     entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
 		MakerActionTime:   time.Now(),
 		CheckerActionTime: time.Now(),
 	}
@@ -67,25 +63,21 @@ func sampleAuthorizeCPSAction() entity.CPSAction {
 
 func sampleRejectCPSAction() entity.CPSAction {
 	return entity.CPSAction{
-		ID:         "id1",
-		ActionCode: "code1",
-		CheckerUser: entity.User{
-			UserCode:    "checker1",
-			FullName:    "Checker User",
-			PhoneNumber: "123456789",
-		},
-		MakerUser: entity.User{
-			UserCode:    "maker1",
-			FullName:    "Maker User",
-			PhoneNumber: "987654321",
-		},
-		RejectedReason:    "sucpicious account",
-		Department:        "IT",
-		Status:            entity.ActionRejected,
-		RequestAction:     entity.RequestDisableFaydaAccount,
-		ActionData:        entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
-		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Now(),
+		ID:                 "id1",
+		ActionCode:         "code1",
+		CheckerID:          "checker1",
+		CheckerName:        "Checker User",
+		CheckerPhoneNumber: "123456789",
+		MakerID:            "maker1",
+		MakerName:          "Maker User",
+		MakerPhoneNumber:   "987654321",
+		RejectionReason:    nil,
+		Department:         "IT",
+		ActionStatus:       entity.ActionRejected,
+		RequestAction:      entity.RequestDisableFaydaAccount,
+		CurrentAction:      entity.ActionData{UseCode: "maker1", FullName: "Maker User", PhoneNumber: "987654321"},
+		MakerActionTime:    time.Now(),
+		CheckerActionTime:  time.Now(),
 	}
 }
 

@@ -16,6 +16,7 @@ type PermissionCategoryRepository interface {
 }
 
 type CPSActionRepository interface {
+	CheckPermissionGroupExists(groupName string) bool
 	CheckPendingRequest(makerId string, actionStatus model.ActionStatus, requestAction model.RequestAction) error
 	CreatePermissionGroup(action model.CPSAction) (model.CPSAction, error)
 	ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error)

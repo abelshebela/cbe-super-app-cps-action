@@ -601,25 +601,17 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_137",
 			Message: "Permission group already exists with name",
 		},
-		"PENDING_ACTION_ALREADY_EXISTS": {
-			Code:    "GEN_138",
-			Message: "a pending action already exists for this user",
+		"FAILED_TO_UPDATE_USER_DATA": {
+			Code:    "GEN_132",
+			Message: "failed to update user data",
 		},
-		"NO_DOCUMENT_FOUND": {
-			Code:    "GEN_139",
-			Message: "mongo: no documents in result",
+		"FAILED_TO_INSERT_CPS_ACTION": {
+			Code:    "GEN_133",
+			Message: "failed to insert cps action",
 		},
-		"ACTION_HAS_ALREADY_APPROVED": {
-			Code:    "GEN_140",
-			Message: "Action has already been approved",
-		},
-		"ACTION_HAS_ALREADY_REJECTED": {
-			Code:    "GEN_141",
-			Message: "Action has already been rejected",
-		},
-		"NO_PENDING_ACTION_FOUND": {
-			Code:    "GEN_142",
-			Message: "No pending action found",
+		"ACCOUNT_ALREADY_DISABLED": {
+			Code:    "GEN_134",
+			Message: "Account is already disabled",
 		},
 	},
 	Auth: ErrorGroup{
@@ -631,10 +623,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_002",
 			Message: "User is not allowed to login, please contact your admin!",
 		},
-		"AUTH_INVALID_PASSWORD": {
-			Code:    "AUTH_003",
-			Message: "Invalid password.",
-		},
+
 		"AUTH_USER_HAS_NO_PASSWORD": {
 			Code:    "AUTH_004",
 			Message: "Please reset your password. to login",

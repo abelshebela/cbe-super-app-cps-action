@@ -61,8 +61,6 @@ type ApproveRejectRequest struct {
 // Validate checks that Decison is valid and if DENIED, RejectedReason is required
 func (r ApproveRejectRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.ActionCode, validation.Required.Error("action_code is required")),
-		validation.Field(&r.Decison, validation.Required.Error("decison is required"), validation.In(utils.DecisionApproved, utils.DecisionDenied).Error("decison must be either APPROVED or DENIED")),
 		validation.Field(&r.RejectedReason, validation.By(func(value interface{}) error {
 			if r.Decison == utils.DecisionDenied {
 				if str, ok := value.(string); !ok || str == "" {

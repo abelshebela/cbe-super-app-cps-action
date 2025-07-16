@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -34,6 +35,15 @@ func (service *Service) UpdateAmountBasedAuth(ctx context.Context, request Updat
 	return cpsActionRes, nil
 }
 
+func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams *constant.Filter) (*AmountBasedAuthRespose, error) {
+
+	authTiers, err := service.repo.GetAllAmountBasedDetail(ctx, filerParams)
+	if err != nil {
+		return nil, err
+	}
+	return authTiers, nil
+}
+
 func (service *Service) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
 	auth, err := service.repo.ApproveAmountBasedAuth(ctx, id, cpsAction)
 	if err != nil {
@@ -43,7 +53,7 @@ func (service *Service) ApproveAmountBasedAuth(ctx context.Context, id string, c
 	return auth, nil
 }
 
-func (service *Service) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
+func (service *Service) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {
 	if err := cpsAction.Validate(); err != nil {
 		service.logger.Errorf("validation error: %v", err)
 		return nil, err

@@ -8,12 +8,16 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service interface {
 	GetHQ(ctx context.Context, id string) (HQ, error)
+	GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*HQRespose, error)
 	UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (string, error)
 	UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (string, error)
 	UpdateBlockTime(ctx context.Context, request ApproveRejectRequest) error
@@ -34,6 +38,13 @@ func NewService(repo Repository, actionRepo action.ActionRepository, logger shar
 	}
 }
 
+func (s *ServiceStore) GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*HQRespose, error) {
+	hqData, err := s.repository.GetAllHQ(ctx, filerParams)
+	if err != nil {
+		return nil, err
+	}
+	return hqData, nil
+}
 func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 	if id == "" {
 		s.logger.Errorf("HQ ID is empty")
@@ -142,6 +153,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		return "", fmt.Errorf("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
 	}
 
+	makerUser := contexts.ExtractContext(ctx)
 	updatedHQ := originalHQ
 	updatedHQ.ArchiveTime = request.ArchiveTime
 	// Use struct wrapper for current action, matching account validation
@@ -159,7 +171,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		CheckerID:          "",
 		CheckerName:        "",
 		CheckerPhoneNumber: "",
-		Department:         originalHQ.ID,
+		Department:         makerUser.Department,
 		ActionType:         action.ActionUpdate,
 		RequestAction:      action.RequestUpdateHQArchiveTime,
 		ActionStatus:       action.ActionPending,
@@ -250,9 +262,9 @@ func (s *ServiceStore) UpdateBlockTime(ctx context.Context, request ApproveRejec
 			return fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
 		}
 		updatedHQ := currentAction.HQ
-		fmt.Println("updated hq  ", updatedHQ)
+		fmt.Println("updated hq  ", updatedHQ.ID)
 
-		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID, updatedHQ); err != nil {
+		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID.Hex(), updatedHQ); err != nil {
 			s.logger.Errorf("failed to update HQ: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_HQ")
 		}
@@ -322,7 +334,7 @@ func (s *ServiceStore) UpdateArchiveTime(ctx context.Context, request ApproveRej
 			return fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
 		}
 		updatedHQ := currentAction.HQ
-		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID, updatedHQ); err != nil {
+		if err := s.repository.UpdateHQ(ctx, updatedHQ.ID.Hex(), updatedHQ); err != nil {
 			s.logger.Errorf("failed to update HQ: %v", err)
 			return fmt.Errorf("FAILED_TO_UPDATE_HQ")
 		}

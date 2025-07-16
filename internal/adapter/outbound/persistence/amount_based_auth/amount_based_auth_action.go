@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/lib"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/rs/zerolog/log"
@@ -38,6 +41,76 @@ func InitAmountBasedAuth(client *mongo.Client, database string, collection []str
 		timeOut:      5 * time.Second,
 		logger:       logger,
 	}
+}
+
+func normalizePhone(search string) bson.M {
+	re := regexp.MustCompile(`^\+?251[79]\d{8}$`)
+
+	trimmedSearch := strings.TrimSpace(search)
+
+	if re.MatchString(trimmedSearch) {
+		return bson.M{
+			"phone_number": bson.M{
+				"$regex":   trimmedSearch,
+				"$options": "i",
+			},
+		}
+	}
+
+	return bson.M{
+		"phone_number.number": bson.M{
+			"$regex":   "^$",
+			"$options": "i",
+		},
+	}
+}
+func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*amount_based_auth_domain.AmountBasedAuthRespose, error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	projection := bson.M{}
+
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"min_amount": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"max_amount": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"enabled": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"is_deleted": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	if filterParams.Filters != "" {
+		filter["account_status"] = filterParams.Filters
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+
+	amountBased, err := a.authTier.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("no auth tier data found", err)
+
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
+		}
+		a.logger.Errorf("failed to get auth tier data", err)
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
+	}
+
+	total, err := a.authTier.TotalCount(ctx, bson.M{})
+	if err != nil {
+		a.logger.Errorf("failed to get total counts", err)
+
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
+	}
+
+	return &amount_based_auth_domain.AmountBasedAuthRespose{
+		Page:            1,
+		AmountBasedAuth: amountBased,
+		Limit:           constant.DefaultPerPage,
+		Total:           total,
+	}, nil
 }
 
 func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsAction model.CreateCPSAction) error {
@@ -291,20 +364,17 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 }
 
 func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-	objectId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+
+	cpsUser := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"_id":           objectId,
-		"department":    cpsAction.Department,
+		"action_code":   id,
 		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_name":         cpsAction.CheckerUser.FullName,
-		"checker_id":           cpsAction.CheckerUser.UserCode,
-		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"checker_name":         cpsUser.FullName,
+		"checker_id":           cpsUser.UserCode,
+		"checker_phone_number": cpsUser.PhoneNumber,
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
@@ -351,7 +421,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 
 	// Update the document in the DB
 	if actionData.Method == amount_based_auth_domain.OPEN {
-		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		objectId, err := bson.ObjectIDFromHex(actionData.Id)
 		var maxAmount, minAmount uint64
 		openFilter := bson.M{
 			"_id": objectId,
@@ -383,7 +453,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 
 	if actionData.Method == amount_based_auth_domain.PIN {
 
-		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		objectId, err := bson.ObjectIDFromHex(actionData.Id)
 		pinFilter := bson.M{
 			"_id": objectId,
 		}
@@ -417,7 +487,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	}
 
 	if actionData.Method == amount_based_auth_domain.OTPANDPIN {
-		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		objectId, err := bson.ObjectIDFromHex(actionData.Id)
 		filter := bson.M{
 			"_id": objectId,
 		}
@@ -452,21 +522,19 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	return lib.MapCPSAction(savedAction), nil
 }
 
-func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
-	objectId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {
+
+	checkerUser := contexts.ExtractContext(ctx)
+
 	filter := bson.M{
-		"_id":           objectId,
-		"department":    cpsAction.Department,
+		"action_code":   id,
 		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_name":         cpsAction.CheckerUser.FullName,
-		"checker_id":           cpsAction.CheckerUser.UserCode,
-		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"checker_name":         checkerUser.FullName,
+		"checker_id":           checkerUser.UserCode,
+		"checker_phone_number": checkerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
 		"rejected_reason":      cpsAction.RejectedReason,
 		"checker_action_time":  time.Now(),
@@ -475,10 +543,10 @@ func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id strin
 	savedAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("No action found for ID: %s", id)
+			a.logger.Errorf("No action found ")
 			err = fmt.Errorf("%w", constant.ErrorDefinition{
 				Code:    http.StatusNotFound,
-				Message: "No action found for the provided ID",
+				Message: "No action found for the provided action code",
 			})
 			return nil, err
 		}

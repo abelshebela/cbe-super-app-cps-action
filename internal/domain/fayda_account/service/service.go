@@ -24,7 +24,9 @@ func InitFaydaAccountDomain(faydaRepository repository.Repository, logger utils.
 }
 
 func (f *FaydaAccountDomain) InitiateDisableFaydaAccount(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
+
 	cpsAction, err := f.FaydaAccountRepo.InitiateDisableFaydaAccount(ctx, req)
+
 	if err != nil {
 		return nil, err
 	}

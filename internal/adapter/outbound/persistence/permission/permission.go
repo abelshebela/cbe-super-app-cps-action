@@ -74,12 +74,16 @@ func (r *PermissionPersistence) CheckPendingRequest(userCode string, status mode
 func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) bool {
 	ctx := context.Background()
 
-	filter := bson.M{"group_name": groupName, "is_deleted": false}
+	filter := bson.M{"group_name": groupName}
+	r.logger.Infof("here create PermissionPersistence", groupName)
 	result, err := r.permissionGroupsDal.FindOne(ctx, filter, bson.M{})
+
+	fmt.Println("check permission", result)
 	if err != nil {
 		r.logger.Errorf("CheckPermissionGroupExists failed:", err)
 		return false
 	}
+
 	if result == nil {
 		r.logger.Infof("no permission Group found ")
 		return false
@@ -90,34 +94,63 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
 	ctx := context.Background()
 
-	filter := bson.M{}
-	categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
-	if err != nil {
-		r.logger.Errorf("failed to fetch permission categories: ", err)
-		return nil, err
-	}
+	var validObjectIDs []bson.ObjectID
+	var invalidIDs []string
 
-	var allowedPermissionCategories []bson.ObjectID
-	for _, permissionID := range ids {
-		objID, err := bson.ObjectIDFromHex(permissionID)
+	for _, id := range ids {
+		if id == "" {
+			invalidIDs = append(invalidIDs, "<empty>")
+			continue
+		}
+
+		if len(id) != 24 {
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (length %d)", id, len(id)))
+			continue
+		}
+
+		objID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			return nil, fmt.Errorf("invalid permission category ID format: %s", permissionID)
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (invalid format)", id))
+			continue
 		}
+		validObjectIDs = append(validObjectIDs, objID)
+	}
 
-		for _, cat := range categories {
-			if cat.ID == objID {
-				allowedPermissionCategories = append(allowedPermissionCategories, objID)
-				break
-			}
+	if len(invalidIDs) > 0 {
+		return nil, fmt.Errorf("invalid permission category IDs: %v", invalidIDs)
+	}
+
+	categories, err := r.permissionCategoryDal.FindAll(ctx,
+		bson.M{"_id": bson.M{"$in": validObjectIDs}},
+		bson.M{"_id": 1},
+	)
+	if err != nil {
+		r.logger.Errorf("failed to fetch permission categories: %v", err)
+		return nil, fmt.Errorf("database error while validating permissions")
+	}
+
+	foundIDs := make(map[bson.ObjectID]bool)
+	for _, cat := range categories {
+		if !cat.ID.IsZero() {
+			foundIDs[cat.ID] = true
 		}
 	}
 
-	var allowedStrings []string
-	for _, obj := range allowedPermissionCategories {
-		allowedStrings = append(allowedStrings, obj.Hex())
+	var missingIDs []string
+	var validIDs []string
+	for _, objID := range validObjectIDs {
+		if foundIDs[objID] {
+			validIDs = append(validIDs, objID.Hex())
+		} else {
+			missingIDs = append(missingIDs, objID.Hex())
+		}
 	}
-	return allowedStrings, nil
 
+	if len(missingIDs) > 0 {
+		return nil, fmt.Errorf("permission categories not found: %v", missingIDs)
+	}
+
+	return validIDs, nil
 }
 
 func (r *PermissionPersistence) CreatePermissionGroup(group model.CPSAction) (model.CPSAction, error) {
@@ -222,9 +255,6 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPS
 func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error) {
 	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
-	fmt.Println("persistance =========================================")
-	fmt.Println(action.CheckerID)
-	fmt.Println("=========================================")
 
 	update := bson.M{
 		"checker_name":         action.CheckerName,
@@ -233,9 +263,6 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action m
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
-	fmt.Println("persistance 0000000000000000000000000000000000000")
-	fmt.Println("approve", update)
-	fmt.Println("persistance 0000000000000000000000000000000000000")
 
 	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {

@@ -1,10 +1,10 @@
-
 package initiator
 
 import (
 	"time"
 
 	advert "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
+	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/fayda_account"
 
 	outboundStore "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
@@ -41,6 +41,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
+
+	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
+	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
 
@@ -66,6 +71,8 @@ type Persitence struct {
 	ServicePersistance         service_repo.ServiceFeePersistence
 	PortalCardPersistance      portalCardRepo.PortaCardInterface
 	WalletPersistance          wallet.WalletPersistence
+	FaydaPersistence           fayda_account_repo.FaydaRepository
+	miniAppPersistance         miniApp_port.Outbound
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -116,12 +123,13 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"cps_actions", "service"}, logger),
+		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"service", "cps_actions"}, logger),
 		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, database_name, "portal_cards", logger),
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
+		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, database_name, []string{"cps_actions", "user"}, logger),
+		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
 	}
 }
-

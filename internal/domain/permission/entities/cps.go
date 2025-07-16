@@ -1,8 +1,9 @@
 package entities
 
 import (
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UserType string
@@ -78,15 +79,15 @@ type Department struct {
 
 type PermissionGroup struct {
 	ID                 bson.ObjectID        `bson:"_id,omitempty" json:"_id,omitempty"`
-	GroupName          string               `bson:"groupName" json:"groupName"`
+	GroupName          string               `bson:"group_name" json:"group_name"`
 	Permissions        []Permission         `bson:"permissions,omitempty" json:"permissions,omitempty"`
-	PermissionCategory []PermissionCategory `bson:"permissionCategory" json:"permissionCategory"`
+	PermissionCategory []PermissionCategory `bson:"permission_category" json:"permission_category"`
 	Role               string               `bson:"role,omitempty" json:"role,omitempty"`
 	Realm              string               `bson:"realm,omitempty" json:"realm,omitempty"`
 	Enabled            bool                 `bson:"enabled,omitempty" json:"enabled,omitempty"`
-	IsDeleted          bool                 `bson:"isDeleted,omitempty" json:"isDeleted,omitempty"`
-	CreatedAt          time.Time            `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
-	LastModified       time.Time            `bson:"lastModified,omitempty" json:"lastModified,omitempty"`
+	IsDeleted          bool                 `bson:"is_deleted,omitempty" json:"isDeleted,omitempty"`
+	CreatedAt          time.Time            `bson:"created_at,omitempty" json:"createdAt,omitempty"`
+	LastModified       time.Time            `bson:"last_modified,omitempty" json:"lastModified,omitempty"`
 }
 
 type Permission struct {
@@ -94,13 +95,13 @@ type Permission struct {
 }
 type PermissionCategory struct {
 	ID           bson.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
-	CategoryName string          `bson:"categoryName" json:"categoryName"`
+	CategoryName string          `bson:"categoryName" json:"category_name"`
 	Access       string          `bson:"access" json:"access"`
 	Permissions  []bson.ObjectID `bson:"permissions" json:"permissions"`
 	Enabled      bool            `bson:"enabled,omitempty" json:"enabled,omitempty"`
-	IsDeleted    bool            `bson:"isDeleted,omitempty" json:"isDeleted,omitempty"`
-	CreatedAt    time.Time       `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
-	UpdatedAt    time.Time       `bson:"updatedAt,omitempty" json:"updatedAt,omitempty"`
+	IsDeleted    bool            `bson:"isDeleted,omitempty" json:"is_deleted,omitempty"`
+	CreatedAt    time.Time       `bson:"createdAt,omitempty" json:"created_at,omitempty"`
+	UpdatedAt    time.Time       `bson:"updatedAt,omitempty" json:"updated_at,omitempty"`
 }
 
 const (

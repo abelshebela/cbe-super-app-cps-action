@@ -3,6 +3,7 @@ package amount_based_auth_handler
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
@@ -35,6 +36,43 @@ func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService,
 	}
 }
 
+func (a AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	page := constant.DefaultPage
+	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
+		page = pageInt
+	}
+
+	per_page := constant.DefaultPerPage
+	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
+		perPageInt <= 10 && perPageInt > 0 {
+		per_page = perPageInt
+	}
+
+	search := query.Get("search")
+	filter := query.Get("filter")
+
+	filterParams := &constant.Filter{
+		Page:    page,
+		PerPage: per_page,
+		Search:  search,
+		Filters: filter,
+	}
+
+	ctx := r.Context()
+	customers, err := a.amountBasedAuthService.GetAllAmountBasedDetail(ctx, filterParams)
+	if err != nil {
+
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+
+		return
+	}
+
+	data, _ := common_util.StructToMap(customers)
+	common_util.BaseResponseMaker(data, w, "Successfuly fetched", http.StatusAccepted)
+
+}
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -103,7 +141,7 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 
 	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(ctx, id, cpsReq)
 	if err != nil {
-		middleware.ErrorHandler(w, err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
@@ -119,7 +157,7 @@ func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var cpsReq model.RejectCPSAction
+	var cpsReq model.RejectAuthTierCPSAction
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		a.logger.Errorf("failed to decode amount based auth request", err)
@@ -130,18 +168,6 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		middleware.ErrorHandler(w, err)
 		return
 	}
-
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
-	}
-	cpsReq.Department = department
 
 	ctx := r.Context()
 	rejectAction, err := a.amountBasedAuthService.RejectAmountBasedAuth(ctx, id, cpsReq)

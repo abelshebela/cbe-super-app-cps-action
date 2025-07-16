@@ -11,6 +11,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -266,6 +267,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 }
 
 func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
+	checkerUser := contexts.ExtractContext(ctx)
 	filter := bson.M{
 		"action_code":   req.ActionCode,
 		"department":    req.Department,
@@ -273,9 +275,9 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 	}
 
 	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_id":           checkerUser.UserCode,
+		"checker_name":         checkerUser.FullName,
+		"checker_phone_number": checkerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
 		"rejected_reason":      req.RejectedReason,
 		"checker_action_time":  time.Now(),

@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -143,6 +144,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsActio
 	}
 
 	cps, err := a.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsAction.MakerUser.UserCode,
 		MakerName:        cpsAction.MakerUser.FullName,
@@ -219,6 +221,7 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, id string, cpsActio
 	}
 
 	cpsRes, err := a.cpsDal.InsertOne(ctx, model.CPSAction{
+		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsAction.MakerUser.UserCode,
 		MakerName:        cpsAction.MakerUser.FullName,
@@ -234,7 +237,7 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, id string, cpsActio
 			"banner_image": ad.BannerImage,
 			"advert_for":   ad.AdvertFor,
 			"date":         ad.Date,
-			"is_deleted":   ad.IsDeleted,
+			"is_deleted":   true,
 			"deleted_at":   ad.DeletedAt,
 		},
 		MakerActionTime: time.Now(),
@@ -317,7 +320,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 	filter := bson.M{
 		"action_code":   cpsAction.ActionCode,
 		"department":    cpsAction.Department,
-		"action_status": entity.ActionApproved,
+		"action_status": entity.ActionPending,
 	}
 
 	update := bson.M{
@@ -348,6 +351,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 	if cpsRes.ActionType == string(model.ActionCreate) {
 		req := entity.Advert{
+			ID:          bson.NewObjectID(),
 			Title:       actionData.Title,
 			Description: actionData.Description,
 			BannerImage: actionData.BannerImage,
@@ -426,6 +430,8 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 }
 
 func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
+	checkerUser := contexts.ExtractContext(ctx)
+
 	filter := bson.M{
 		"action_code":   req.ActionCode,
 		"department":    req.Department,
@@ -433,9 +439,9 @@ func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (
 	}
 
 	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
+		"checker_id":           checkerUser.UserCode,
+		"checker_name":         checkerUser.FullName,
+		"checker_phone_number": checkerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
 		"rejection_reason":     req.RejectedReason,
 		"checker_action_time":  time.Now(),

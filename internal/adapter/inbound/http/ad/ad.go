@@ -24,6 +24,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	local_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type ADAdapter struct {
@@ -95,16 +96,15 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = department
 
 	ctx := r.Context()
-	cpsActionRes, err := a.adHandler.CreateOneAdvert(ctx, cpsReq)
+	cpsActionResponse, err := a.adHandler.CreateOneAdvert(ctx, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsActionRes)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	common_util.WriteSuccessResponse(w, cpsActionResponse, "AD Create Request Created successfully")
 }
+
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -123,14 +123,13 @@ func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = department
 	ctx := r.Context()
 
-	res, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
+	response, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(res)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	common_util.WriteSuccessResponse(w, response, "AD Delete Request Created successfully")
+
 }
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -162,9 +161,8 @@ func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(adverts)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	common_util.WriteSuccessResponse(w, adverts, "AD featch successfully")
+
 }
 
 func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
@@ -211,15 +209,14 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	cpsReq.ActionData = req
 
 	ctx := r.Context()
-	cpsAction, err := a.adHandler.UpdateOneAdvert(ctx, id, cpsReq)
+	cpsActionResponse, err := a.adHandler.UpdateOneAdvert(ctx, id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(cpsAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	common_util.WriteSuccessResponse(w, cpsActionResponse, "AD Update Request Created successfully")
+
 }
 
 func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
@@ -242,15 +239,14 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	cpsReq.ActionCode = action_code
 
 	ctx := r.Context()
-	authAction, err := a.adHandler.Authorize(ctx, cpsReq)
+	AuthorizeAction, err := a.adHandler.Authorize(ctx, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(authAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	common_util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
+
 }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
@@ -277,13 +273,12 @@ func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	cpsReq.ActionCode = action_code
 
 	ctx := r.Context()
-	rejectAction, err := a.adHandler.Reject(ctx, cpsReq)
+	rejectedAction, err := a.adHandler.Reject(ctx, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(rejectAction)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	common_util.WriteSuccessResponse(w, rejectedAction, "AD REJECTED")
+
 }

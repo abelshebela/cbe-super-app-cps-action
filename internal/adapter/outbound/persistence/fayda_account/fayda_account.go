@@ -2,6 +2,7 @@ package faydaaccount
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -31,6 +32,7 @@ func InitFaydaAccountPersistence(client *mongo.Client, database string,
 	cpsCollection []string, logger utils.Logger) *FaydaAccountRepo {
 	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, cpsCollection[0])
 	customerDal := dal.NewMongoDal[member.User, member.User](client, database, cpsCollection[1])
+
 	return &FaydaAccountRepo{
 		client:      client,
 		logger:      logger,
@@ -40,10 +42,11 @@ func InitFaydaAccountPersistence(client *mongo.Client, database string,
 }
 
 func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
+
 	filter := bson.M{
-		"maker_user.phone_number": req.MakerUser.PhoneNumber,
-		"status":                  entity.ActionPending,
-		"department":              req.Department,
+		"maker_phone_number": req.MakerPhoneNumber,
+		"action_status":      entity.ActionPending,
+		"department":         req.Department,
 	}
 
 	projection := bson.M{
@@ -51,27 +54,30 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		"_id":         1,
 	}
 
+	fmt.Println("check filter--------", filter)
 	faydaAccount, err := f.cpsDal.FindOne(ctx, filter, projection)
+
 	if err != nil && err != mongo.ErrNoDocuments {
 		f.logger.Errorf("failed to get fayda account", err)
-		err = fmt.Errorf("failed to get fayda account %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("internal server error")
 	}
 
 	if faydaAccount != nil {
-		f.logger.Infof("pending cps action present", req.MakerUser.FullName, req.MakerUser.UserCode, req.Department)
-		err = fmt.Errorf("failed to get fayda account %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "pending cps action present",
-		})
-		return nil, err
+		f.logger.Infof("pending cps action present", req.MakerName, req.MakerID, req.Department)
+		return nil, fmt.Errorf("pending cps action present")
 	}
 
+	actionData := make(map[string]interface{})
+	byte, err := json.Marshal(req.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(byte, &actionData); err != nil {
+		return nil, err
+	}
 	customerFilter := bson.M{
-		"phone_number": req.ActionData.PhoneNumber,
+		"phone_number": actionData["phone_number"],
 	}
 
 	customerProjection := bson.M{
@@ -91,16 +97,21 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		return nil, err
 	}
 
-	req.Status = entity.ActionPending
+	if customer.IsAccountBlocked {
+		f.logger.Errorf("the user already disabled")
+		return nil, fmt.Errorf("ACCOUNT_ALREADY_DISABLED")
+	}
+
+	req.ActionStatus = entity.ActionPending
 	req.RequestAction = entity.RequestDisableFaydaAccount
 	req.ActionType = entity.ActionCreate
-	req.PreviousData = map[string]any{
+	req.PreviosAction = map[string]any{
 		"user_code":          customer.UserCode,
 		"full_name":          customer.FullName,
 		"phone_number":       customer.PhoneNumber,
 		"is_account_blocked": customer.IsAccountBlocked,
 	}
-	req.CurrentData = map[string]any{
+	req.CurrentAction = map[string]any{
 		"is_account_blocked": true,
 	}
 
@@ -108,42 +119,48 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 	cpsAction, err := f.cpsDal.InsertOne(ctx, req)
 	if err != nil {
 		f.logger.Errorf("failed to create cps action", err)
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("FAILED_TO_INSERT_CPS_ACTION")
 	}
 
 	return &cpsAction, nil
 }
 
 func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
+
 	filter := bson.M{
-		"action_data.phone_number": req.ActionData.PhoneNumber,
-		"department":               req.Department,
-		"status":                   entity.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": entity.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
-		"status":               entity.ActionApproved,
+		"checker_name":         req.CheckerName,
+		"checker_id":           req.CheckerID,
+		"checker_phone_number": req.CheckerPhoneNumber,
+		"action_status":        entity.ActionApproved,
 		"checker_action_time":  time.Now(),
 	}
+
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		f.logger.Errorf("failed to update cps action", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf("FAILED_TO_FIND_CPS_ACTION")
+	}
+
+	actionData := make(map[string]interface{})
+	byte, err := json.Marshal(cpsAction.PreviosAction)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(byte, &actionData); err != nil {
 		return nil, err
 	}
 
 	customerFilter := bson.M{
-		"phone_number": req.ActionData.PhoneNumber,
+		"phone_number": actionData["phone_number"],
 		"kyc.level":    1,
 	}
 	customerUpdate := bson.M{
@@ -153,40 +170,42 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	_, err = f.customerDal.UpdateOne(ctx, customerFilter, customerUpdate)
 	if err != nil {
 		f.logger.Errorf("failed to update  action", err)
-		err = fmt.Errorf("failed to update cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_USER_DATA")
 	}
 
 	return &cpsAction, nil
 }
 
 func (f *FaydaAccountRepo) RejectFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
+	actionData := make(map[string]interface{})
+	byte, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(byte, &actionData); err != nil {
+		return nil, err
+	}
 	filter := bson.M{
-		"action_data.phone_number": req.ActionData.PhoneNumber,
-		"department":               req.Department,
-		"status":                   entity.ActionPending,
+		"action_code":   req.ActionCode,
+		"department":    req.Department,
+		"action_status": entity.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_name":           req.CheckerUser.FullName,
-		"checker_id":             req.CheckerUser.UserCode,
-		"checker_phone_number":   req.CheckerUser.PhoneNumber,
-		"status":                 entity.ActionRejected,
-		"rejected_action_reason": req.RejectedReason,
+		"checker_name":           req.CheckerName,
+		"checker_id":             req.CheckerID,
+		"checker_phone_number":   req.CheckerPhoneNumber,
+		"action_status":          entity.ActionRejected,
+		"rejected_action_reason": req.RejectionReason,
 		"checker_action_time":    time.Now(),
 	}
 
 	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		f.logger.Errorf("failed to update fayda customer status", err)
-		err = fmt.Errorf("failed to update fayda customer status %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_USER_DATA")
 	}
 	return &cpsAction, nil
 }
