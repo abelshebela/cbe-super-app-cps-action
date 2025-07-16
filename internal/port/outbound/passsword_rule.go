@@ -7,6 +7,7 @@ import (
 )
 
 type OutboundPasswordRuleInfra interface {
+	GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error)
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
 	GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error)
 	GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error)
