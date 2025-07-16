@@ -103,13 +103,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 
 	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
 
-	data, err := common_util.StructToMap(createdAction)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	common_util.BaseResponseMaker(data, w, RequestSentSuccesfully, 200)
+	common_util.BaseResponseMaker(createdAction, w, RequestSentSuccesfully, 200)
 }
 
 func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request) {
@@ -205,12 +199,7 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 
 	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
 
-	data, err := common_util.StructToMap(createdAction)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	common_util.BaseResponseMaker(data, w, RequestSentSuccesfully, 200)
+	common_util.BaseResponseMaker(createdAction, w, RequestSentSuccesfully, 200)
 }
 
 func (h *DepartmentHandler) RejectDepartmentRequest(w http.ResponseWriter, r *http.Request) {
@@ -288,10 +277,5 @@ func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
-	data, err := common_util.StructToMap(departments)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-		return
-	}
-	common_util.BaseResponseMaker(data, w, "Departments fetched successfully", http.StatusOK)
+	common_util.BaseResponseMaker(departments, w, "Departments fetched successfully", http.StatusOK)
 }
