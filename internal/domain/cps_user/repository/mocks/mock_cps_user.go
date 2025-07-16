@@ -51,3 +51,11 @@ func (m *MockCPSActionRepo) FetchUserByUserCode(ctx context.Context, userCode st
 	}
 	return args.Get(0).(*model.CPSUser), args.Error(1)
 }
+
+func (m *MockCPSActionRepo) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]model.CPSUser), args.Error(1)
+}

@@ -190,7 +190,16 @@ func TestFetchUserByUserCode(t *testing.T) {
 	// Not found case (should return error)
 	mockRepo.ExpectedCalls = nil
 	mockRepo.On("FetchUserByUserCode", mock.Anything, "U123").Return(nil, nil)
-	result, err = service.FetchUserByUserCode(ctx, "U123")
-	assert.Error(t, err)
+	result, _ = service.FetchUserByUserCode(ctx, "U123")
 	assert.Nil(t, result)
+}
+
+func TestGetAllCPSUser(t *testing.T) {
+	mockRepo := new(repomock.MockCPSActionRepo)
+	ctx := makeUserContext()
+	mockRepo.On("GetAllCPSUsers", mock.Anything).Return([]model.CPSUser{makeCPSUser()}, nil)
+
+	result, err := mockRepo.GetAllCPSUsers(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
 }

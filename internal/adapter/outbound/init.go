@@ -1733,19 +1733,25 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 	return o.UpdateCpsAction(ctx, action)
 }
 
-func (o *outboundStore) GetAllPasswordRules(ctx context.Context, actionID string) ([]*model.PasswordRule, error) {
+func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
 
 	filter := bson.M{
 		"is_deleted": false,
 	}
 	projection := bson.M{}
 
-	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	_, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
 	if err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	// raw := make(map[string]interface{})
+	// var dataList []*action.Password
+	// for _,v := range data{
+	// 	// dataList = append(dataList, v)
+	// }
+
+	return nil, nil
 }
 
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
