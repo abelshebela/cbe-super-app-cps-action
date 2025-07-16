@@ -5,6 +5,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -27,4 +30,12 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 	}
 
 	return file, fileHeader, nil
+}
+
+func UserContextToModel(userContext ctx_util.UserContext) model.User {
+	return model.User{
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}
 }

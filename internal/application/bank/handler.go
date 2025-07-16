@@ -8,8 +8,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -119,19 +119,7 @@ func (b *BankHandler) EnableOrDisableBank(ctx context.Context, id string, reques
 }
 
 func (b *BankHandler) CheckExstingBank(ctx context.Context, name string) (bool, error) {
-
-	bank, err := b.bankDomain.CheckExistingBank(ctx, name)
-
-	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
-			return false, nil
-		}
-		return false, err
-	}
-	if bank {
-		return true, nil
-	}
-	return false, nil
+	return b.bankDomain.CheckExistingBank(ctx, name)
 }
 
 func (b *BankHandler) UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
