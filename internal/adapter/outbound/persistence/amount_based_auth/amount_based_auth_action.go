@@ -347,6 +347,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		PreviosAction:    authTier,
 		CurrentAction:    request,
 		MakerActionTime:  time.Now(),
+		CreatedAt:        time.Now(),
 	})
 	if err != nil {
 		a.logger.Errorf("Failed to insert cps action: %v", err)
@@ -377,6 +378,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 		"checker_phone_number": cpsUser.PhoneNumber,
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
+		"last_modified":        time.Now(),
 	}
 
 	// Fetch the action document
@@ -538,6 +540,7 @@ func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id strin
 		"action_status":        model.ActionRejected,
 		"rejected_reason":      cpsAction.RejectedReason,
 		"checker_action_time":  time.Now(),
+		"last_modified":        time.Now(),
 	}
 
 	savedAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)

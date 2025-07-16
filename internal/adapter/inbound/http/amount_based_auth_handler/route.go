@@ -25,7 +25,7 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/fetch-all",
+				Path:    "/",
 				Handler: handler.GetAllAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

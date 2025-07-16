@@ -63,9 +63,7 @@ func (a AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *
 	ctx := r.Context()
 	customers, err := a.amountBasedAuthService.GetAllAmountBasedDetail(ctx, filterParams)
 	if err != nil {
-
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-
 		return
 	}
 
