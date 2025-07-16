@@ -270,7 +270,8 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 	if err != nil {
 		return domain.ServiceDetails{}, err
 	}
-	filter := map[string]interface{}{"_id": objID}
+	filter := bson.M{"_id": objID}
+	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
 		return domain.ServiceDetails{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
@@ -761,11 +762,8 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 
 	var result []domain.LinkedAccount
 	for _, i := range id {
-		objID, err := bson.ObjectIDFromHex(i)
-		if err != nil {
-			return nil, err
-		}
-		filter := map[string]interface{}{"_id": objID}
+
+		filter := bson.M{"customer_number": i}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
@@ -1711,6 +1709,22 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 
 	return o.UpdateCpsAction(ctx, action)
 }
+
+func (o *outboundStore) GetAllPasswordRules(ctx context.Context, actionID string) ([]*model.PasswordRule, error) {
+
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	projection := bson.M{}
+
+	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	filter := map[string]interface{}{"action_code": actionID}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)

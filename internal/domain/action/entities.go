@@ -37,8 +37,9 @@ type User struct {
 }
 
 type CurrentAction struct {
-	Id     []string
-	Action bool
+	Id            []string
+	Action        bool
+	RequestAction string
 }
 type ActionResponse struct {
 	ID       string `json:"_id,omitempty"`

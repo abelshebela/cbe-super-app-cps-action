@@ -14,11 +14,12 @@ type CifSearchResposnse struct {
 }
 
 type CifRemoveMakerResponse struct {
-	UserID    string `json:"user_id"`
-	ActionID  string `json:"action_id"`
+	UserID   string `json:"user_id"`
+	ActionID string `json:"action_id"`
 }
 
 type CifRemoveCheckerRequest struct {
-	ActionID     string `json:"action_id"`
+	ActionID      string `json:"action_id"`
 	ServiceAction bool   `json:"service_action"`
+	RejectReason  string `json:"rejection_reason"`
 }

@@ -13,12 +13,12 @@ func NewUnlinkService(repo Repository) *Service {
 	}
 }
 
-func (s *Service) UnlinkDevice(userCode string, cpsAction entities.CPSAction) error {
-	err := s.repository.UnlinkDevice(userCode, cpsAction)
+func (s *Service) UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error) {
+	action_code, err := s.repository.UnlinkDevice(userCode, cpsAction)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return action_code, nil
 }
 
 func (s *Service) ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error {

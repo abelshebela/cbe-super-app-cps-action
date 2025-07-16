@@ -40,25 +40,25 @@ func NewUnlinkInfrastructure(client *mongo.Client, dbName string, collectionName
 	}
 }
 
-func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction) error {
+func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error) {
 	ctx := context.Background()
 	filter := bson.M{"user_code": userCode}
-	
+
 	user, err := u.user.FindOne(ctx, filter, bson.M{})
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			u.logger.Warnf("[UnlinkDevice] user not found for userCode=%s", userCode)
-			return fmt.Errorf(error_codes.AuthUserNotFound)
+			return "", fmt.Errorf(error_codes.AuthUserNotFound)
 		}
 
 		u.logger.Warnf("[UnlinkDevice] query failed for userCode=%s: %v", userCode, err)
-		return fmt.Errorf(error_codes.UnhandledServerError)
+		return "", fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
 	if user.IsAccountBlocked {
 		u.logger.Warnf("[UnlinkDevice] user %s is blocked", userCode)
-		return fmt.Errorf(error_codes.AccountBlocked)
+		return "", fmt.Errorf(error_codes.AccountBlocked)
 	}
 
 	pendingFilter := bson.M{
@@ -70,13 +70,13 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 	existingPendingAction, err := u.actionRepo.FindOne(ctx, pendingFilter, bson.M{})
 	if err != nil && err != mongo.ErrNoDocuments {
 		u.logger.Errorf("[UnlinkDevice] failed to check existing pending actions: %v", err)
-		return fmt.Errorf(error_codes.PendingActionCheckFailed)
+		return "", fmt.Errorf(error_codes.PendingActionCheckFailed)
 	}
 
 	if existingPendingAction != nil {
 		if existingPendingAction.Department == cpsAction.Department {
 			u.logger.Warnf("[UnlinkDevice] pending request already exists in same department: %s", userCode)
-			return fmt.Errorf(error_codes.PendingRequestExists)
+			return "", fmt.Errorf(error_codes.PendingRequestExists)
 		}
 
 		updateFilter := bson.M{
@@ -89,7 +89,7 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 		_, err := u.actionRepo.UpdateOne(ctx, updateFilter, update)
 		if err != nil {
 			u.logger.Errorf("[UnlinkDevice] failed to reject old pending action for user %s: %v", userCode, err)
-			return fmt.Errorf(error_codes.PendingActionRejectionFailed)
+			return "", fmt.Errorf(error_codes.PendingActionRejectionFailed)
 		}
 	}
 
@@ -104,12 +104,13 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 		"full_name":   user.FullName,
 	}
 
-	if _, err := u.actionRepo.InsertOne(ctx, cpsAction); err != nil {
+	cpsData, err := u.actionRepo.InsertOne(ctx, cpsAction)
+	if err != nil {
 		u.logger.Errorf("[UnlinkDevice] failed to insert unlink action for userCode=%s: %v", userCode, err)
-		return fmt.Errorf(error_codes.UnlinkActionFailed)
+		return "", fmt.Errorf(error_codes.UnlinkActionFailed)
 	}
 
-	return nil
+	return cpsData.ActionCode, nil
 }
 
 func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error {

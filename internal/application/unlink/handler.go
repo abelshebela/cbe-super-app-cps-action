@@ -8,7 +8,7 @@ import (
 )
 
 type ApplicationService interface {
-	UnlinkDevice(userCode string, cpsAction entities.CPSAction) error
+	UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error)
 	ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error
 }
 
@@ -20,15 +20,15 @@ func NewUnlinkHandler(service *domain.Service) ApplicationService {
 	return &UnlinkHandler{service: service}
 }
 
-func (h *UnlinkHandler) UnlinkDevice(userCode string, cpsAction entities.CPSAction) error {
+func (h *UnlinkHandler) UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error) {
 	cpsAction.ActionCode = utils.RandomGenerator(20)
-	err := h.service.UnlinkDevice(userCode, cpsAction)
+	action_code, err := h.service.UnlinkDevice(userCode, cpsAction)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return action_code, nil
 }
 
 func (h *UnlinkHandler) ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error {
