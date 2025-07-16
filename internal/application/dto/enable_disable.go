@@ -12,4 +12,5 @@ type EnableDisableServiceMakerDtoResponse struct {
 type EnableDisableServiceCheckerDtoRequest struct {
 	Action_Id     string `json:"action_code"`
 	ServiceAction bool   `json:"action"`
+	RejectReason  string `json:"rejected_reason"`
 }

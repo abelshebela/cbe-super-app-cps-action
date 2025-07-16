@@ -45,6 +45,13 @@ const (
 	ActionRejected ActionStatus = "REJECTED"
 )
 
+type AdvertResponse struct {
+	Page   int       `json:"page"`
+	Advert []*Advert `json:"advert"`
+	Limit  int       `json:"limit"`
+	Total  int64     `json:"total"`
+}
+
 type ActionType string
 
 const (
@@ -75,6 +82,26 @@ type Bank struct {
 	LastModifiedAt time.Time `json:"last_modified_at,omitzero" bson:"last_modified_at"`
 }
 
+type AdvertFor string
+
+type AdvertDate struct {
+	StartedAt time.Time `json:"started_at" bson:"started_at"`
+	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
+}
+
+type Advert struct {
+	ID            string     `json:"_id" bson:"_id"`
+	Title         string     `json:"title" bson:"title"`
+	Description   string     `json:"description" bson:"description"`
+	BannerImage   string     `json:"banner_image" bson:"banner_image"`
+	AdvertFor     AdvertFor  `json:"advert_for" bson:"advert_for"`
+	Date          AdvertDate `json:"advert_date" bson:"advert_date"`
+	Enabled       bool       `json:"enabled" bson:"enabled"`
+	IsDeleted     bool       `json:"is_deleted" bson:"is_deleted"`
+	DeletedAt     time.Time  `json:"deleted_at" bson:"deleted_at"`
+	CreatedAt     time.Time  `json:"created_at" bson:"created_at"`
+	LastUpdatedAt time.Time  `json:"last_updated_at" bson:"last_updated_at"`
+}
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -418,6 +445,7 @@ type Cap struct {
 	SingleCap uint64   `bson:"single_cap"`
 	DailyCap  uint64   `bson:"daily_cap"`
 	MinAmount uint64   `bson:"min_amount"`
+	MaxAmount uint64   `bson:"max_amount"`
 }
 
 type ServiceDetails struct {

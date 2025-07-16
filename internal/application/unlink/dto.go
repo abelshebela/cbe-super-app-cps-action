@@ -24,7 +24,7 @@ func (r UnlinkDeviceRequest) Validate() error {
 type ApproveUnlinkDeviceRequest struct {
 	UserCode string `json:"userCode"`
 	Decision string `json:"decision"`
-	Reason   string `json:"reason"`
+	Reason   string `json:"rejected_reason"`
 }
 
 func (r ApproveUnlinkDeviceRequest) Validate() error {

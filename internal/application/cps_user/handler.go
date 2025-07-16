@@ -21,6 +21,7 @@ type ApplicationService interface {
 	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
 }
 
 type Handler struct {
@@ -103,4 +104,12 @@ func (h *Handler) GetPendingUserActions(ctx context.Context) ([]model.CPSAction,
 func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error) {
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	return h.service.FetchUserByUserCode(ctx, userCode)
+}
+
+func (h *Handler) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	users, err := h.service.GetAllCPSUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

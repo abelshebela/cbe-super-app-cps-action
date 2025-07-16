@@ -105,3 +105,14 @@ func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.
 	}
 	local_util.BaseResponseMaker(data, w, "CPS user fetched successfully", 200)
 }
+
+func (h CPSUserMakerHandler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
+	user, err := h.Service.GetAllCPSUsers(r.Context())
+	if err != nil {
+		h.logger.Errorf("GetAllCPSUser request failed: %v", err)
+		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	local_util.BaseResponseMaker(user, w, "CPS users fetched successfully", 200)
+}

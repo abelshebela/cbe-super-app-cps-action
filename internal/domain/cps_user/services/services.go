@@ -20,6 +20,7 @@ type CPSUserService interface {
 	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
 }
 
 type cpsUserService struct {
@@ -133,4 +134,12 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *cpsUserService) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	users, err := s.repo.GetAllCPSUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

@@ -270,7 +270,8 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 	if err != nil {
 		return domain.ServiceDetails{}, err
 	}
-	filter := map[string]interface{}{"_id": objID}
+	filter := bson.M{"_id": objID}
+	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
 		return domain.ServiceDetails{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
@@ -761,11 +762,8 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 
 	var result []domain.LinkedAccount
 	for _, i := range id {
-		objID, err := bson.ObjectIDFromHex(i)
-		if err != nil {
-			return nil, err
-		}
-		filter := map[string]interface{}{"_id": objID}
+
+		filter := bson.M{"customer_number": i}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
@@ -826,7 +824,6 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 func stringToPointer(s string) *string {
 	return &s
 }
-
 
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
@@ -1108,6 +1105,26 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 }
 
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	filter := bson.M{}
+	projection := bson.M{}
+
+	data, err := o.MongoDalCPSUser.FindAll(ctx, filter, projection)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.CPSUser, 0, len(data))
+	for _, d := range data {
+		if d != nil {
+			result = append(result, *d)
+
+		}
+	}
+
+	return result, nil
+}
+
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {
@@ -1382,15 +1399,12 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code
 		"action_status": "APPROVED",
 	}
 
-	fmt.Println("check create ((((((((((((((((Before))))))))))))))))")
-
 	projection := bson.M{}
 	cpsAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
 		err = fmt.Errorf("failed to find cps action")
 		return err
 	}
-	fmt.Println("check create ((((((((((((((((After))))))))))))))))")
 
 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1485,6 +1499,7 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 			SingleCap: safeUint64FromMap(capMap, "single_cap"),
 			DailyCap:  safeUint64FromMap(capMap, "daily_cap"),
 			MinAmount: safeUint64FromMap(capMap, "min_amount"),
+			MaxAmount: safeUint64FromMap(capMap, "max_amount"),
 		}
 	}
 	// Helper for ProductCodes
@@ -1717,6 +1732,22 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 
 	return o.UpdateCpsAction(ctx, action)
 }
+
+func (o *outboundStore) GetAllPasswordRules(ctx context.Context, actionID string) ([]*model.PasswordRule, error) {
+
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	projection := bson.M{}
+
+	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	filter := map[string]interface{}{"action_code": actionID}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)

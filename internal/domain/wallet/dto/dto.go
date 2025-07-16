@@ -7,8 +7,6 @@ import (
 
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 type CreateWalletRequest struct {
@@ -44,7 +42,7 @@ var IsValidImage = func(fileHeader *multipart.FileHeader) bool {
 
 func (c CreateWalletRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Name, validation.Required.Error("name is required"), validation.Length(3, 10), is.Alpha),
+		validation.Field(&c.Name, validation.Required.Error("name is required"), validation.Length(3, 10)),
 		validation.Field(&c.Code, validation.Required.Error("code is required")),
 		validation.Field(&c.Avatar, validation.By(func(value any) error {
 			file, ok := value.(*multipart.FileHeader)

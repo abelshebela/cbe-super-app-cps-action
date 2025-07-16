@@ -88,6 +88,7 @@ func extractCurrentAction(input any) (CurrentAction, error) {
 
 func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction) (string, error) {
 	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
+
 	cpsAction := s.createCpsAction(maker, actionID, current)
 	data, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
@@ -176,8 +177,9 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, ids []string, actio
 	}
 
 	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
-		Id:     ids,
-		Action: action,
+		Id:            ids,
+		Action:        action,
+		RequestAction: "CIF_REMOVE",
 	})
 
 }
@@ -196,6 +198,9 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bo
 		return err
 	}
 
+	if cpsAction.RequestAction == "CIF_REMOVE" {
+		return nil
+	}
 	currentAction, err := extractCurrentAction(cpsAction.CurrentAction)
 	if err != nil {
 		s.Logger.Errorf("RemoveCif: failed to extract current action", "actionID", actionID, "error", err)
