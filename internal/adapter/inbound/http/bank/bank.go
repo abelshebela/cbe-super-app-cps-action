@@ -4,7 +4,6 @@ package bank
 import (
 	"encoding/json"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -17,7 +16,6 @@ import (
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -79,43 +77,21 @@ func toModelUser(userContext ctx_util.UserContext) model.User {
 	}
 }
 
-func getParam(r *http.Request, key string) (string, error) {
-	value := chi.URLParam(r, key)
-	if value == "" {
-		return "", fmt.Errorf(common_util.InvalidInputParameters)
-	}
-	return value, nil
-}
-
-func (b *BankAdapter) parseMultipartForm(w http.ResponseWriter, r *http.Request, logger utils.Logger) (multipart.File, *multipart.FileHeader, bool) {
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		logger.Errorf("failed to parse form data: %v", err)
-		common_util.SendErrorResponse(w, common_util.InvalidForm, 0, nil)
-		return nil, nil, false
-	}
-
-	file, fileHeader, err := r.FormFile("logo")
-	if err != nil {
-		b.logger.Errorf("logo error: %v", err)
-		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
-		return nil, nil, false
-	}
-	return file, fileHeader, true
-}
-
 func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	var bankRequest dto.CreateBankRequest
 
-	file, fileHeader, ok := b.parseMultipartForm(w, r, b.logger)
-	if !ok {
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "logo", 10<<20)
+	if err != nil {
+		b.logger.Errorf("error parsing file: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return
 	}
+	defer file.Close()
 
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
 
-	defer file.Close()
 	bankRequest.Logo = fileHeader
 
 	cpsRequest, err := createCPSUserForCreate(r)
@@ -137,10 +113,10 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
-	id, err := getParam(r, "id")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'id': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -170,10 +146,10 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
-	id, err := getParam(r, "id")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'id': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -228,10 +204,10 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
-	id, err := getParam(r, "id")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'id': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -246,10 +222,10 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode, err := getParam(r, "action_code")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'action_code': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -271,10 +247,10 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	actionCode, err := getParam(r, "action_code")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'action_code': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -305,10 +281,10 @@ func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	id, err := getParam(r, "id")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'id': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -330,10 +306,10 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	id, err := getParam(r, "id")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'id': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -355,16 +331,18 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
-	id, err := getParam(r, "id")
-	if err != nil {
-		b.logger.Errorf("failed to get parameter 'id': %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 	var updateLogo dto.UpdateLogo
 
-	file, fileHeader, ok := b.parseMultipartForm(w, r, b.logger)
-	if !ok {
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "logo", 10<<20)
+	if err != nil {
+		b.logger.Errorf("error parsing file: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return
 	}
 	defer file.Close()

@@ -1,18 +1,30 @@
 package utils
 
 import (
+	"fmt"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func GetParam(w http.ResponseWriter, r *http.Request, key string, logger utils.Logger) string {
+func GetParam(r *http.Request, key string) (string, bool) {
 	value := chi.URLParam(r, key)
 	if value == "" {
-		logger.Errorf("missing or invalid parameter '%s'", key)
-		SendErrorResponse(w, InvalidInputParameters, 0, nil)
-		return ""
+		return "", false
 	}
-	return value
+	return value, true
+}
+
+func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
+	}
+
+	file, fileHeader, err := r.FormFile(key)
+	if err != nil {
+		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
+	}
+
+	return file, fileHeader, nil
 }

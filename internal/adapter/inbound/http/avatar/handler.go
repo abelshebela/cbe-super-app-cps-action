@@ -36,23 +36,15 @@ func InitAvatarHTTPHandler(avatarHandler avatarAPP.AvatarApplicationService, log
 func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateAvatar
 
-	if err := r.ParseMultipartForm(2 << 20); err != nil {
-		a.logger.Errorf("failed to parse form data: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		return
-	}
-
-	req.Label = r.FormValue("label")
-
-	file, fileHeader, err := r.FormFile("avatar")
+	file, fileHeader, err := util.ParseMultipartFormFile(r, "avatar", 2<<20)
 	if err != nil {
-		a.logger.Errorf("avatar error: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-
+		a.logger.Errorf("error parsing file: %v", err)
+		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
 		return
 	}
 	defer file.Close()
 
+	req.Label = r.FormValue("label")
 	req.Avatar = fileHeader
 	var cpsRequest model.CreateCPSAction
 	userData, department, err := a.extractUserFromContext(r)
@@ -289,17 +281,10 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 
 	var req dto.UpdateAvatar
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		a.logger.Errorf("failed to parse form data: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		return
-	}
-
-	file, fileHeader, err := r.FormFile("avatar")
+	file, fileHeader, err := util.ParseMultipartFormFile(r, "avatar", 10<<20)
 	if err != nil {
-		a.logger.Errorf("avatar error: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-
+		a.logger.Errorf("error parsing file: %v", err)
+		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
 		return
 	}
 	defer file.Close()
