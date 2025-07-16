@@ -13,6 +13,7 @@ import (
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
+	budget_category_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 	department_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
@@ -59,6 +60,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware)
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
 		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware)
+		budget_category_handler.InitBudgetCategoryRoute(sub, adapter.BudgetCategory, authMiddleware)
 
 	})
 }

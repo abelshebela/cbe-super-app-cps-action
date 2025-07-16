@@ -37,6 +37,7 @@ import (
 
 	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
+	budget_category_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
@@ -44,6 +45,7 @@ import (
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
+	budget_category_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/budget_category"
 	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
@@ -73,6 +75,7 @@ type Persitence struct {
 	WalletPersistance          wallet.WalletPersistence
 	FaydaPersistence           fayda_account_repo.FaydaRepository
 	miniAppPersistance         miniApp_port.Outbound
+	BudgetCategoryPersistence  budget_category_port.BudgetCategoryOutbound
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -131,5 +134,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, database_name, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
+		BudgetCategoryPersistence:  budget_category_persistence.NewBudgetCategoryRepo(client, database_name, logger),
 	}
 }

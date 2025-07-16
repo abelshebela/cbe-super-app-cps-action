@@ -1740,18 +1740,28 @@ func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.Pass
 	}
 	projection := bson.M{}
 
-	_, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
 	if err != nil {
 		return nil, err
 	}
 
-	// raw := make(map[string]interface{})
-	// var dataList []*action.Password
-	// for _,v := range data{
-	// 	// dataList = append(dataList, v)
-	// }
+	var dataList []*action.PasswordRule
+	for _, v := range data {
+		dataList = append(dataList, &action.PasswordRule{
+			ID:             v.ID.Hex(),
+			MinLength:      v.MinLength,
+			MaxLength:      v.MaxLength,
+			CapitalLetters: v.CapitalLetters,
+			SmallLetters:   v.SmallLetters,
+			Numbers:        v.Numbers,
+			Name:           v.Name,
+			Characters:     v.Characters,
+			CreatedAt:      v.CreatedAt,
+		})
+	}
 
-	return nil, nil
+	return dataList, nil
+
 }
 
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {

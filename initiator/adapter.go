@@ -23,6 +23,7 @@ import (
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	avatar_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
+	budget_category_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
@@ -35,6 +36,7 @@ import (
 	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
 	inboundBudget "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
+	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBulkServices "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
 	inboundDepartment "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	inboundFeedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
@@ -47,6 +49,7 @@ import (
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
@@ -77,9 +80,10 @@ type Adapter struct {
 	HQAdapter              *hq.HQHTTPHandler
 	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
+	BudgetCategory         inboundBudgetCategory.BudgetCategoryInbound
 }
 
-func InitAdapter(application Application, logger utils.Logger) Adapter {
+func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
 	return Adapter{
 		AvatarAdapter: avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
 		BankAdapter:   bank.InitBankAdapter(application.BankApplication, logger),
@@ -106,5 +110,6 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
+		BudgetCategory:      budget_category_adapter.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
 	}
 }
