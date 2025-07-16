@@ -148,10 +148,12 @@ var errorKeyToStatus = map[string]int{
 	"INVALID_BEARER":                    401,
 	"USE_RIGHT_AUTH":                    401,
 	"INVALID_CLAIM":                     401,
-	"INVALID_TOKEN_DATA":                401,
+	"INVALID_TOKEN_DATAu":               401,
 	"UNABLE_TO_DYCRYPT_TOKEN":           401,
 	"FAILED_LOGIN":                      401,
 	"ACCOUNT_LOCKED":                    403,
+	"PENDING_ACTION_ALREADY_EXISTS":     409,
+	"NO_DOCUMENT_FOUND":                 404,
 
 	// Transaction
 	"TRANSACTION_NOT_FOUND": 404,
@@ -227,6 +229,12 @@ var errorKeyToStatus = map[string]int{
 	"ACTION_NOT_PENDING":       400,
 	"FAILED_TO_UPDATE_SERVICE": 500,
 	"FAILED_TO_UPDATE_CAP_MIN": 500,
+
+	// CPS
+	"CPS_USER_NOT_FOUND":          404,
+	"ACTION_HAS_ALREADY_APPROVED": 409,
+	"ACTION_HAS_ALREADY_REJECTED": 409,
+	"NO_PENDING_ACTION_FOUND":     404,
 }
 
 func getStatusForErrorKey(key string) int {

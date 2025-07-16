@@ -79,19 +79,14 @@ func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Re
 }
 
 func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *http.Request) {
-	userActions, err := h.Service.GetPendingUserActions(r.Context())
+	pendingUserAction, err := h.Service.GetPendingUserActions(r.Context())
 	if err != nil {
 		h.logger.Errorf("GetPendingUserAction failed: %v", err)
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	data, err := local_util.StructToMap(userActions)
-	if err != nil {
-		local_util.SendErrorResponse(w, "UNHANDLER_SERVER_ERROR", 500, nil)
-		return
-	}
-	local_util.BaseResponseMaker(data, w, "Pending users fetched successfully", 200)
+	local_util.BaseResponseMaker(pendingUserAction, w, "Pending users fetched successfully", 200)
 }
 
 func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {

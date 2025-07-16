@@ -3,8 +3,6 @@ package cpsuser
 import (
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -54,48 +52,4 @@ type Password struct {
 	CurrentPassword  string    `json:"current_password" bson:"current_password"`
 	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
 	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
-}
-
-func MapToCPSUser(userData userDTO.CreateUserRequest) (model.CPSUser, error) {
-	return model.CPSUser{
-		FullName:           userData.FullName,
-		Role:               userData.Role,
-		Department:         userData.Department,
-		Gender:             userData.Gender,
-		PhoneNumber:        userData.PhoneNumber,
-		Email:              userData.Email,
-		UserName:           userData.UserName,
-		Realm:              userData.Realm,
-		PermissionCategory: userData.PermissionCategory,
-		PermissionGroup:    userData.PermissionGroups,
-
-		Password: model.Password{
-			Salt:             "",
-			CurrentPassword:  "",
-			OldPassword:      [4]string{},
-			PasswordChangeAt: time.Time{},
-		},
-
-		PasswordDisable:          false,
-		SyncDisabled:             false,
-		LoginAttemptCount:        0,
-		LastLoginAttempt:         time.Time{},
-		NextLoginAttempt:         time.Time{},
-		LastOnlineDate:           time.Time{},
-		LastLogin:                time.Time{},
-		LoginPassword:            "",
-		AccountAuthorizationCode: "",
-		UnlockAccountRequested:   false,
-		PasswordChangedAt:        nil,
-		OTPStatus:                "",
-		OTPLastTriedAt:           nil,
-		OPTLastVerifiedAt:        nil,
-		OTPVerifyCount:           0,
-		Enabled:                  true,
-		IsDeleted:                false,
-		DateJoined:               nil,
-		LastModified:             nil,
-		Country:                  "",
-		Region:                   "",
-	}, nil
 }
