@@ -133,6 +133,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, database_name, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
-		EventPersistence:           event_persistence.InitEventPersistence(client, database_name, logger),
+		EventPersistence:           event_persistence.InitEventPersistence(client, database_name, []string{"events", "cps_actions"}, logger),
 	}
 }
