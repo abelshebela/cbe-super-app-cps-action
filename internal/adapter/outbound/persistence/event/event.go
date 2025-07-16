@@ -23,10 +23,10 @@ type EventPersistence struct {
 	logger   utils.Logger
 }
 
-func InitEventPersistence(client *mongo.Client, dbName string, logger utils.Logger) *EventPersistence {
+func InitEventPersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) *EventPersistence {
 	return &EventPersistence{
-		eventDal: dal.NewMongoDal[EventDocument, EventDocument](client, dbName, "events"),
-		cpsDal:   dal.NewMongoDal[CPSActionDocument, CPSActionDocument](client, dbName, "cps_actions"),
+		eventDal: dal.NewMongoDal[EventDocument, EventDocument](client, dbName, collections[0]),
+		cpsDal:   dal.NewMongoDal[CPSActionDocument, CPSActionDocument](client, dbName, collections[1]),
 		logger:   logger,
 	}
 }
