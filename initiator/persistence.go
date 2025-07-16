@@ -43,6 +43,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
+	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
 	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
@@ -73,6 +74,7 @@ type Persitence struct {
 	WalletPersistance          wallet.WalletPersistence
 	FaydaPersistence           fayda_account_repo.FaydaRepository
 	miniAppPersistance         miniApp_port.Outbound
+	EventPersistence           *event_persistence.EventPersistence
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -123,7 +125,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"service", "cps_actions"}, logger),
+		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
@@ -131,5 +133,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, database_name, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
+		EventPersistence:           event_persistence.InitEventPersistence(client, database_name, logger),
 	}
 }

@@ -44,8 +44,10 @@ import (
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 
 	amountBasedAuth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	eventhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/event"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
+	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -76,7 +78,11 @@ type Adapter struct {
 	ServiceAdapter         inboudService.ServiceBound
 	HQAdapter              *hq.HQHTTPHandler
 	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
+
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
+
+	EventAdapter           event_inbound.Inbound
+
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
@@ -105,6 +111,11 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		ServiceAdapter:      serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
 		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
+
 		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
+
+
+		EventAdapter: eventhandler.NewEventHTTPHandler(application.EventApplication),
+
 	}
 }
