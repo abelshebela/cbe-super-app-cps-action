@@ -8,8 +8,8 @@ import (
 )
 
 type ApplicationAbstracts interface {
-	MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, makerId, makerName, makerPhone string) (string, error)
-	CheckerCreateEvent(ctx context.Context, actionId string, action bool, checkerId, checkerName, checkerPhone string) error
+	MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, maker domain.Maker) (string, error)
+	CheckerCreateEvent(ctx context.Context, actionID string, action bool, checkerID, checkerName, checkerPhone string) error
 	FetchAllEvents(ctx context.Context, limit, offset int) ([]dto.EventResponse, error)
 	FetchEvent(ctx context.Context, event_id string) (dto.EventDTO, error)
 }
@@ -23,15 +23,17 @@ func NewEventApplication(service domain.EventService) ApplicationAbstracts {
 	}
 }
 
-func (a *ApplicationStore) MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, makerId, makerName, makerPhone string) (string, error) {
-	ticket_req := domain.Ticket{}
-	event_req := domain.Event{}
+func (a *ApplicationStore) MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, maker domain.Maker) (string, error) {
+	ticketReq := domain.Ticket{}
+	eventReq := domain.Event{}
 
-	request_id, err := a.service.CreateEventRequest(ctx, event_req, ticket_req, makerId, makerName, makerPhone)
+	// merchant ID
+
+	requestID, err := a.service.CreateEventRequest(ctx, eventReq, ticketReq, maker)
 	if err != nil {
 		return "", err
 	}
-	return request_id, nil
+	return requestID, nil
 }
 func (a *ApplicationStore) CheckerCreateEvent(ctx context.Context, actionId string, action bool, checkerId, checkerName, checkerPhone string) error {
 	return a.service.ApproveEventRequest(ctx, actionId, action, checkerId, checkerName, checkerPhone)

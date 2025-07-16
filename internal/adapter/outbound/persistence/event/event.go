@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -52,14 +53,21 @@ func (e *EventPersistence) CreateCpsAction(ctx context.Context, action action.CP
 }
 
 func (e *EventPersistence) UpdateCpsAction(ctx context.Context, action action.CPSAction) error {
-	filter := bson.M{"action_code": action.ActionCode}
-	actionDoc, err := ToCpsActionDocument(action)
-	if err != nil {
-		e.logger.Errorf("failed to convert CPS action to document for update", "action_code", action.ActionCode, "error", err)
-		return err
+	// filter := bson.M{"action_code": action.ActionCode}
+	filter := bson.M{
+		"action_code":   action.ActionCode,
+		"department":    action.Department,
+		"action_status": entities.ActionPending,
 	}
-	update := bson.M{"$set": actionDoc}
-	_, err = e.cpsDal.UpdateOne(ctx, filter, update)
+	update := bson.M{
+		"checker_id":           action.CheckerID,
+		"checker_name":         action.CheckerName,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        entities.ActionApproved,
+		"checker_action_time":  time.Now(),
+	}
+
+	_, err := e.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		e.logger.Errorf("failed to update CPS action", "action_code", action.ActionCode, "error", err)
 		return fmt.Errorf(common_utils.GeneralDBUpdateFailed)
@@ -68,18 +76,18 @@ func (e *EventPersistence) UpdateCpsAction(ctx context.Context, action action.CP
 	return nil
 }
 
-func (e *EventPersistence) FetchCpsActionByID(ctx context.Context, action_ID string) (*action.CPSAction, error) {
-	filter := bson.M{"action_code": action_ID}
+func (e *EventPersistence) FetchCpsActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
+	filter := bson.M{"action_code": actionID}
 	res, err := e.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			e.logger.Errorf("CPS action not found", "action_code", action_ID)
+			e.logger.Errorf("CPS action not found", "action_code", actionID)
 			return nil, fmt.Errorf(common_utils.ActionNotFound)
 		}
-		e.logger.Errorf("failed to fetch CPS action", "action_code", action_ID, "error", err)
+		e.logger.Errorf("failed to fetch CPS action", "action_code", actionID, "error", err)
 		return nil, fmt.Errorf(common_utils.GeneralDBQueryFailed)
 	}
-	e.logger.Infof("CPS action fetched successfully", "action_code", action_ID)
+	e.logger.Infof("CPS action fetched successfully", "action_code", actionID)
 	resDomain := res.toModel()
 	return &resDomain, nil
 }
@@ -102,7 +110,7 @@ func (e *EventPersistence) CreateEvent(ctx context.Context, event event.Event) (
 	return &eventDomain, nil
 }
 
-func (e *EventPersistence) FetchEventById(ctx context.Context, event_id string) (*event.Event, error) {
+func (e *EventPersistence) FetchEventByID(ctx context.Context, event_id string) (*event.Event, error) {
 	objID, err := common_utils.ParsePrimitiveObjectID(event_id)
 	if err != nil {
 		e.logger.Errorf("failed to parse event ID", "event_id", event_id, "error", err)
@@ -140,4 +148,25 @@ func (e *EventPersistence) FetchEvent(ctx context.Context, limit, offset int) ([
 	}
 	e.logger.Infof("events fetched successfully", "limit", limit, "offset", offset, "count", len(events))
 	return events, nil
+}
+
+func (e *EventPersistence) CPSActionExists(ctx context.Context, cpsReq action.CreateCPSAction) error {
+	filter := bson.M{
+		"maker_phone_number": cpsReq.MakerUser.PhoneNumber,
+		"action_status":      action.ActionPending,
+		"department":         cpsReq.Department,
+		"request_action":     cpsReq.RequestAction,
+	}
+
+	existingAction, err := e.cpsDal.FindOne(ctx, filter, bson.M{"action_code": 1})
+	if err != nil && err != mongo.ErrNoDocuments {
+		e.logger.Errorf("failed to fetch the action %v", err.Error())
+		return fmt.Errorf(common_utils.UnhandledServerError)
+	}
+	if existingAction != nil {
+		e.logger.Infof("pending cps action present for user: %s, code: %s, dept: %s",
+			cpsReq.MakerUser.FullName, cpsReq.MakerUser.UserCode, cpsReq.Department)
+		return fmt.Errorf(common_utils.PendingCPSActionExists)
+	}
+	return nil
 }

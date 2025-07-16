@@ -1,16 +1,18 @@
-package eventhandler
+package event
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	// "fmt"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	c "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 const (
@@ -19,78 +21,95 @@ const (
 	MaxPageSize     = 100
 )
 
-func (h *HttpStore) MakerCreateEvent(w http.ResponseWriter, r *http.Request) {
+type EventHTTPStore struct {
+	Application event_application.ApplicationAbstracts
+	logger      c.Logger
+}
+
+func NewEventHTTPHandler(app event_application.ApplicationAbstracts, logger c.Logger) event_inbound.EventHandler {
+	return &EventHTTPStore{
+		Application: app,
+		logger:      logger,
+	}
+}
+
+func (h *EventHTTPStore) MakerCreateEvent(w http.ResponseWriter, r *http.Request) {
 	var req dto.EventCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, "INVALID_REQUEST_PAYLOAD", http.StatusBadRequest, nil)
+		utils.SendErrorResponse(w, utils.InvalidJSONPayload, 0, nil)
 		return
 	}
 	defer r.Body.Close()
 
 	if err := req.Validate(); err != nil {
-		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
+		utils.SendErrorResponse(w, utils.InvalidInput, http.StatusBadRequest, nil)
 		return
 	}
 
-	UserID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	FullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	PhoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	Department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if UserID == "" || FullName == "" || PhoneNumber == "" || Department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
-	fmt.Println(UserID, FullName, PhoneNumber, Department, "nodjghdjkfgheidgjfdk")
-	request_id, err := h.Application.MakerCreateEvent(r.Context(), req, UserID, FullName, PhoneNumber)
+
+	maker := entities.Maker{
+		ID:          userContext.UserID,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+		Department:  userContext.Department,
+	}
+	requestID, err := h.Application.MakerCreateEvent(r.Context(), req, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
-	data := map[string]interface{}{"request_id": request_id}
+	data := map[string]any{"request_id": requestID}
 	utils.BaseResponseMaker(data, w, "Event creation request submitted successfully", http.StatusOK)
 }
 
-func (h *HttpStore) CheckerEvent(w http.ResponseWriter, r *http.Request) {
+func (h *EventHTTPStore) CheckerEvent(w http.ResponseWriter, r *http.Request) {
 	var req dto.EventCheckerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, "INVALID_REQUEST_PAYLOAD", http.StatusBadRequest, nil)
+		h.logger.Errorf("failed to decode JSON payload", "error", err)
+		utils.SendErrorResponse(w, utils.InvalidJSONPayload, 0, nil)
 		return
 	}
 	defer r.Body.Close()
 
 	if err := req.Validate(); err != nil {
-		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
+		h.logger.Errorf("invalid input in event checker request", "request_id", req.RequestID, "action", req.Action, "error", err)
+		utils.SendErrorResponse(w, utils.InvalidInput, http.StatusBadRequest, nil)
 		return
 	}
 
-	UserID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	FullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	PhoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	Department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if UserID == "" || FullName == "" || PhoneNumber == "" || Department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		h.logger.Errorf("incomplete user context", "request_id", req.RequestID, "action", req.Action)
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
 
-	err := h.Application.CheckerCreateEvent(r.Context(), req.Request_Id, req.Action, UserID, FullName, PhoneNumber)
+	err := h.Application.CheckerCreateEvent(r.Context(), req.RequestID, req.Action, userContext.UserID, userContext.FullName, userContext.PhoneNumber)
 	if err != nil {
+		h.logger.Errorf("failed to create checker event", "request_id", req.RequestID, "action", req.Action, "user_id", userContext.UserID, "error", err)
 		utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
-	utils.BaseResponseMaker(map[string]interface{}{"status": "success"}, w, "Event request reviewed successfully", http.StatusOK)
+	h.logger.Infof("event reviewed successfully", "request_id", req.RequestID, "action", req.Action, "user_id", userContext.UserID)
+	utils.BaseResponseMaker(map[string]any{"status": "success"}, w, "Event request reviewed successfully", http.StatusOK)
 }
 
-func (h *HttpStore) FetchEventById(w http.ResponseWriter, r *http.Request) {
+func (h *EventHTTPStore) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 	var req dto.EventFetchRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, "INVALID_REQUEST_PAYLOAD", http.StatusBadRequest, nil)
+		utils.SendErrorResponse(w, utils.InvalidJSONPayload, 0, nil)
 		return
 	}
 	if err := req.Validate(); err != nil {
-		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
+		utils.SendErrorResponse(w, utils.InvalidInput, http.StatusBadRequest, nil)
 		return
 	}
-	resp, err := h.Application.FetchEvent(r.Context(), req.RequestId)
+	resp, err := h.Application.FetchEvent(r.Context(), req.RequestID)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
@@ -103,7 +122,7 @@ func (h *HttpStore) FetchEventById(w http.ResponseWriter, r *http.Request) {
 	utils.BaseResponseMaker(data, w, "Event successfully retrieved", http.StatusOK)
 }
 
-func (h *HttpStore) FetchEvent(w http.ResponseWriter, r *http.Request) {
+func (h *EventHTTPStore) FetchEvents(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	page, _ := strconv.Atoi(q.Get("page"))
 	if page < 1 {

@@ -9,11 +9,11 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	event "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type CPSActionDocument struct {
-	ID                 primitive.ObjectID     `json:"id" bson:"_id,omitempty"`
+	ID                 bson.ObjectID          `json:"id" bson:"_id,omitempty"`
 	ActionCode         string                 `json:"action_code" bson:"action_code"`
 	UniqueId           string                 `json:"unique_id" bson:"unique_id"`
 	MakerID            string                 `json:"maker_id" bson:"maker_id"`
@@ -24,8 +24,8 @@ type CPSActionDocument struct {
 	CheckerPhoneNumber string                 `json:"checker_phone_number" bson:"checker_phone_number"`
 	Department         string                 `json:"department" bson:"department"`
 	RejectionReason    *string                `json:"rejection_reason" bson:"rejection_reason,omitempty"`
-	PreviosAction      interface{}            `json:"previos_action" bson:"previos_action"`
-	CurrentAction      interface{}            `json:"current_action" bson:"current_action"`
+	PreviosAction      any                    `json:"previos_action" bson:"previos_action"`
+	CurrentAction      any                    `json:"current_action" bson:"current_action"`
 	ActionStatus       entities.ActionStatus  `json:"action_status" bson:"action_status"`
 	ActionType         entities.ActionType    `json:"action_type" bson:"action_type"`
 	RequestAction      entities.RequestAction `json:"request_action" bson:"request_action"`
@@ -36,6 +36,19 @@ type CPSActionDocument struct {
 }
 
 func (action *CPSActionDocument) toModel() entities.CPSAction {
+	var currentAction any
+	if action.CurrentAction != nil {
+		if bsonD, ok := action.CurrentAction.(bson.D); ok {
+			m := make(map[string]any, len(bsonD))
+			for _, elem := range bsonD {
+				m[elem.Key] = elem.Value
+			}
+			currentAction = m
+		} else {
+			currentAction = action.CurrentAction
+		}
+	}
+
 	return entities.CPSAction{
 		ID:                 action.ID.Hex(),
 		ActionCode:         action.ActionCode,
@@ -49,7 +62,7 @@ func (action *CPSActionDocument) toModel() entities.CPSAction {
 		Department:         action.Department,
 		RejectionReason:    action.RejectionReason,
 		PreviosAction:      action.PreviosAction,
-		CurrentAction:      action.CurrentAction,
+		CurrentAction:      currentAction,
 		ActionStatus:       action.ActionStatus,
 		ActionType:         action.ActionType,
 		RequestAction:      action.RequestAction,
@@ -61,12 +74,12 @@ func (action *CPSActionDocument) toModel() entities.CPSAction {
 }
 
 func ToCpsActionDocument(cpsAction entities.CPSAction) (*CPSActionDocument, error) {
-	var objectID primitive.ObjectID
+	var objectID bson.ObjectID
 
 	if cpsAction.ID == "" {
-		objectID = primitive.NewObjectID()
+		objectID = bson.NewObjectID()
 	} else {
-		id, err := primitive.ObjectIDFromHex(cpsAction.ID)
+		id, err := bson.ObjectIDFromHex(cpsAction.ID)
 		if err != nil {
 			return nil, fmt.Errorf(error_codes.InvalidID)
 		}
@@ -99,7 +112,7 @@ func ToCpsActionDocument(cpsAction entities.CPSAction) (*CPSActionDocument, erro
 }
 
 type EventDocument struct {
-	ID                  primitive.ObjectID
+	ID                  bson.ObjectID
 	Code                string
 	Name                string
 	Address             event.Address
@@ -149,12 +162,12 @@ func (e *EventDocument) toModel() event.Event {
 }
 
 func ToEventDocument(event event.Event) (*EventDocument, error) {
-	var objectID primitive.ObjectID
+	var objectID bson.ObjectID
 
 	if event.ID == "" {
-		objectID = primitive.NewObjectID()
+		objectID = bson.NewObjectID()
 	} else {
-		id, err := primitive.ObjectIDFromHex(event.ID)
+		id, err := bson.ObjectIDFromHex(event.ID)
 		if err != nil {
 			return nil, fmt.Errorf(error_codes.InvalidID)
 		}

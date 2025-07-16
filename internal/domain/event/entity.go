@@ -94,3 +94,10 @@ type Event struct {
 	DeletedAt           time.Time
 	LastModifiedAt      time.Time
 }
+
+type Maker struct {
+	ID          string
+	FullName    string
+	PhoneNumber string
+	Department  string
+}
