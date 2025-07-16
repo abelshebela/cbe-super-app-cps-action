@@ -613,6 +613,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_134",
 			Message: "Account is already disabled",
 		},
+		"NO_PENDING_ACTION_FOUND": {
+			Code:    "GEN_135",
+			Message: "No pending action found",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

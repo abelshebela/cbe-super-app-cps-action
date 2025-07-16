@@ -827,7 +827,6 @@ func stringToPointer(s string) *string {
 	return &s
 }
 
-
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"unique_id":     cpsAction.UniqueId,
@@ -1106,6 +1105,26 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	}
 	return modelUser, nil
 
+}
+
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	filter := bson.M{}
+	projection := bson.M{}
+
+	data, err := o.MongoDalCPSUser.FindAll(ctx, filter, projection)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.CPSUser, 0, len(data))
+	for _, d := range data {
+		if d != nil {
+			result = append(result, *d)
+
+		}
+	}
+
+	return result, nil
 }
 
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
