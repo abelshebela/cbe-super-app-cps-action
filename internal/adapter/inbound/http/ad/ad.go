@@ -13,12 +13,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
 
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	inboundAd "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
-	"github.com/go-chi/chi/v5"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -99,7 +98,12 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.CreateCPSAction
 
@@ -159,7 +163,12 @@ func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	ctx := r.Context()
 
@@ -169,13 +178,18 @@ func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
+	def, _ := local_commen.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(advert)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusOK)
 }
 
 func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var req dto.UpdateAdvertRequest
 
@@ -214,7 +228,12 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode := chi.URLParam(r, "action_code")
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.AuthorizeCPSAction
 
@@ -233,8 +252,7 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = userContext.Department
 	cpsReq.ActionCode = actionCode
 
-	ctx := r.Context()
-	AuthorizeAction, err := a.adHandler.Authorize(ctx, cpsReq)
+	AuthorizeAction, err := a.adHandler.Authorize(r.Context(), cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -245,8 +263,13 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var cpsReq model.RejectCPSAction
-	actionCode := chi.URLParam(r, "action_code")
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		a.logger.Errorf("failed to decode advert request", err)

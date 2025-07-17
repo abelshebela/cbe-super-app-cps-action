@@ -37,6 +37,33 @@ func InitAD(client *mongo.Client, database string, collections []string, logger 
 	}
 }
 
+func (a *ADPersistence) CheckCPSActionExists(ctx context.Context, cpsAction model.CreateCPSAction) (bool, error) {
+	filter := bson.M{
+		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
+		"action_status":      model.ActionPending,
+		"department":         cpsAction.Department,
+		"request_action":     cpsAction.RequestAction,
+	}
+
+	projection := bson.M{
+		"action_code": 1,
+		"_id":         1,
+	}
+
+	existingAd, err := a.cpsDal.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		a.logger.Errorf("failed to get ad", err)
+		return false, fmt.Errorf("FAILED_TO_GET_AD")
+	}
+	if existingAd != nil {
+		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
+			cpsAction.MakerUser.UserCode, cpsAction.Department)
+		return true, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
+	}
+
+	return false, nil
+}
+
 func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
@@ -56,7 +83,6 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 		return nil, fmt.Errorf("FAILED_TO_GET_AD")
 
 	} else if existingAd != nil {
-
 		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
 			cpsAction.MakerUser.UserCode, cpsAction.Department)
 		return nil, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
@@ -76,6 +102,7 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 		CurrentAction:    cpsAction.ActionData,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	})
 
 	if err != nil {
@@ -87,30 +114,11 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 }
 
 func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
-	filter := bson.M{
-		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
-		"action_status":      model.ActionPending,
-		"department":         cpsAction.Department,
-		"request_action":     cpsAction.RequestAction,
-	}
 
-	projection := bson.M{
-		"action_code": 1,
-		"_id":         1,
-	}
-
-	existingAd, err := a.cpsDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		a.logger.Errorf("failed to get ad", err)
-
-		return nil, fmt.Errorf("FAILED_TO_GET_AD")
-	} else if existingAd != nil {
-
-		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
-			cpsAction.MakerUser.UserCode, cpsAction.Department)
-
-		return nil, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
-
+	_, err := a.CheckCPSActionExists(ctx, cpsAction)
+	if err != nil {
+		a.logger.Errorf("failed to check existing cps action", err)
+		return nil, err
 	}
 
 	objectID, err := bson.ObjectIDFromHex(id)
@@ -330,10 +338,12 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 		"checker_name":         cpsAction.CheckerUser.FullName,
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
+		"last_updated_at":      time.Now(),
 	}
 
 	cpsRes, err := a.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		// if errors.Is(err,mongo.ErrNoDocuments)
 		a.logger.Errorf("failed to update cps action", err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
@@ -350,29 +360,34 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 		}
 
 		if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
-			a.logger.Errorf("failed to unmarshal into Bank: %v", err)
+			a.logger.Errorf("failed to unmarshal into Avatar: %v", err)
 			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 		if err := bson.Unmarshal([]byte(data), &mapData); err != nil {
-			a.logger.Errorf("failed to unmarshal into Bank: %v", err)
+			a.logger.Errorf("failed to unmarshal into Avatar: %v", err)
 			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 	} else {
-		mapData["id"] = cpsRes.UniqueId
+		mapData["_id"] = cpsRes.UniqueId
 	}
-	objId, err := bson.ObjectIDFromHex(mapData["id"].(string))
-	if err != nil {
-		return nil, err
+	objId, ok := mapData["_id"].(bson.ObjectID)
+	if !ok {
+		a.logger.Errorf("interface not type of objcetID")
+		return nil, fmt.Errorf("INVALID_ID_TYPE")
 	}
+
 	if cpsRes.ActionType == string(model.ActionCreate) {
 		req := entity.Advert{
-			Title:       actionData.Title,
-			Description: actionData.Description,
-			BannerImage: actionData.BannerImage,
-			AdvertFor:   actionData.AdvertFor,
-			Date:        actionData.Date,
-			CreatedAt:   time.Now(),
+			ID:            objId,
+			Title:         actionData.Title,
+			Description:   actionData.Description,
+			BannerImage:   actionData.BannerImage,
+			AdvertFor:     actionData.AdvertFor,
+			Date:          actionData.Date,
+			CreatedAt:     time.Now(),
+			LastUpdatedAt: time.Now(),
 		}
+
 		advert, err = a.adDal.InsertOne(ctx, req)
 		if err != nil {
 			a.logger.Errorf("failed to create cps action", err)
@@ -384,8 +399,6 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 		return &cpsRes, nil
 
 	}
-
-	fmt.Println("check here-----------1-", actionData.ID)
 
 	if cpsRes.ActionType == string(model.ActionUpdate) {
 		filter := bson.M{"_id": objId}
@@ -409,7 +422,6 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 		update["last_updated_at"] = time.Now()
 
-		fmt.Println("check here------------", filter)
 		advert, err = a.adDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			a.logger.Errorf("failed to update advert", err)

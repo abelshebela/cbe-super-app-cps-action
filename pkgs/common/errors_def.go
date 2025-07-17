@@ -21,6 +21,7 @@ type ErrorDefinitions struct {
 	Bank        ErrorGroup
 	Action      ErrorGroup
 	Wallet      ErrorGroup
+	AD          ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -649,6 +650,22 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_143",
 			Message: "Failed to retrieve authentication tier.",
 		},
+		"REQUIRED_TITLE": {
+			Code:    "GEN_144",
+			Message: "title is required",
+		},
+		"REQUIRED_DESCRIPTION": {
+			Code:    "GEN_145",
+			Message: "description is required",
+		},
+		"TITLE_TOO_LONG": {
+			Code:    "GEN_146",
+			Message: "title length is between 3 and 10 characters",
+		},
+		"DESCRIPTION_TOO_LONG": {
+			Code:    "GEN_147",
+			Message: "description length is between 3 and 100 characters",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1153,6 +1170,28 @@ var DefineError = ErrorDefinitions{
 		"WALLET_TRANSACTION_ALREADY_EXISTS": {
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
+		},
+	},
+	AD: ErrorGroup{
+		"AD_NOT_FOUND": {
+			Code:    "AD_001",
+			Message: "Advert not found.",
+		},
+		"AD_CREATION_FAILED": {
+			Code:    "AD_002",
+			Message: "Failed to create advert.",
+		},
+		"AD_UPDATE_FAILED": {
+			Code:    "AD_003",
+			Message: "Failed to update advert.",
+		},
+		"AD_ALREADY_EXISTS": {
+			Code:    "AD_004",
+			Message: "Advert with this ID already exists.",
+		},
+		"AD_DELETION_FAILED": {
+			Code:    "AD_005",
+			Message: "Failed to delete advert.",
 		},
 	},
 }
