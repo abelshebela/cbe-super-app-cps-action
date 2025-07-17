@@ -21,7 +21,7 @@ type AdvertDate struct {
 }
 
 type Advert struct {
-	ID            bson.ObjectID `json:"_id" bson:"_id"`
+	ID            bson.ObjectID `json:"id" bson:"_id"`
 	Title         string        `json:"title" bson:"title"`
 	Description   string        `json:"description" bson:"description"`
 	BannerImage   string        `json:"banner_image" bson:"banner_image"`

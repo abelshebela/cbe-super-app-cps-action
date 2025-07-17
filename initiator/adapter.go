@@ -7,9 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
@@ -21,7 +19,6 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	serviceHandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	avatar_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
@@ -78,24 +75,19 @@ type Adapter struct {
 	ServiceAdapter         inboudService.ServiceBound
 	HQAdapter              *hq.HQHTTPHandler
 	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
-
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
-
-	EventAdapter           event_inbound.Inbound
-
+	EventAdapter           event_inbound.EventHandler
 }
 
 func InitAdapter(application Application, logger utils.Logger) Adapter {
 	return Adapter{
-		AvatarAdapter: avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
-		BankAdapter:   bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:     ad.InitADAdapter(application.AdApplication, logger),
-
-		WalletAdapter:   wallet.InitWalletRouter(application.WalletApplication, logger),
-		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
-		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
-		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
-
+		AvatarAdapter:        avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
+		BankAdapter:          bank.InitBankAdapter(application.BankApplication, logger),
+		AdAdapter:            ad.InitADAdapter(application.AdApplication, logger),
+		WalletAdapter:        wallet.InitWalletRouter(application.WalletApplication, logger),
+		FaydaAdapter:         faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
+		CustomerAdapter:      customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
+		FeedbackAdapter:      feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
 		UnlinkAdapter:        unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
 		BudgetAdapter:        budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
 		AccountAdapter:       accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
@@ -104,18 +96,13 @@ func InitAdapter(application Application, logger utils.Logger) Adapter {
 		PasswordRuleAdapter:  passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
 		PortalCardAdapter:    portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
 		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
-
-		DepartmentAdapter:   department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
-		PermissionAdapter:   permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
-		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
-		ServiceAdapter:      serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
-		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
-		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
-
-		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
-
-
-		EventAdapter: eventhandler.NewEventHTTPHandler(application.EventApplication),
-
+		DepartmentAdapter:    department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		PermissionAdapter:    permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
+		AccountBlockAdapter:  accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
+		ServiceAdapter:       serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
+		HQAdapter:            hq.NewHQHTTPHandler(application.HQApplication),
+		AmountBasedAuth:      amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
+		MiniAppAdapter:       miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
+		EventAdapter:         eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
 	}
 }

@@ -2,99 +2,171 @@ package event
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	common_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type EventPersistence struct {
-	eventDal dal.MongoDal[event.Event, event.Event]
-	cpsDal   dal.MongoDal[action.CPSAction, action.CPSAction]
+	eventDal dal.MongoDal[EventDocument, EventDocument]
+	cpsDal   dal.MongoDal[CPSActionDocument, CPSActionDocument]
 	logger   utils.Logger
 }
 
-func InitEventPersistence(client *mongo.Client, dbName string, logger utils.Logger) *EventPersistence {
+func InitEventPersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) *EventPersistence {
 	return &EventPersistence{
-		eventDal: dal.NewMongoDal[event.Event, event.Event](client, dbName, "events"),
-		cpsDal:   dal.NewMongoDal[action.CPSAction, action.CPSAction](client, dbName, "cps_actions"),
+		eventDal: dal.NewMongoDal[EventDocument, EventDocument](client, dbName, collections[0]),
+		cpsDal:   dal.NewMongoDal[CPSActionDocument, CPSActionDocument](client, dbName, collections[1]),
 		logger:   logger,
 	}
 }
 
-var _ event.Repository = (*EventPersistence)(nil)
+var _ event.EventRepository = (*EventPersistence)(nil)
 
-func (e *EventPersistence) CreateCpsAction(ctx context.Context, Action action.CPSAction) (action.CPSAction, error) {
-	Action.CreatedAt = time.Now()
-	Action.LastModifiedAt = time.Now()
-	res, err := e.cpsDal.InsertOne(ctx, Action)
+func (e *EventPersistence) CreateCpsAction(ctx context.Context, action action.CPSAction) (*action.CPSAction, error) {
+	action.CreatedAt = time.Now()
+	action.LastModifiedAt = time.Now()
+	actionDoc, err := ToCpsActionDocument(action)
 	if err != nil {
-		return action.CPSAction{}, fmt.Errorf("FAILED_TO_INSERT_CPS_ACTION")
+		e.logger.Errorf("failed to convert CPS action to document", "action_code", action.ActionCode, "error", err)
+		return nil, err
 	}
-	return res, nil
+	res, err := e.cpsDal.InsertOne(ctx, *actionDoc)
+	if err != nil {
+		e.logger.Errorf("failed to insert CPS action", "action_code", action.ActionCode, "error", err)
+		return nil, fmt.Errorf(common_utils.GeneralDBInsertFailed)
+	}
+	e.logger.Infof("CPS action created successfully", "action_code", res.toModel().ActionCode)
+	actionDomin := res.toModel()
+	return &actionDomin, nil
 }
 
-func (e *EventPersistence) UpdateCpsAction(ctx context.Context, Action action.CPSAction) error {
-	filter := bson.M{"action_code": Action.ActionCode}
-	update := bson.M{"$set": Action}
+func (e *EventPersistence) UpdateCpsAction(ctx context.Context, action action.CPSAction) error {
+	// filter := bson.M{"action_code": action.ActionCode}
+	filter := bson.M{
+		"action_code":   action.ActionCode,
+		"department":    action.Department,
+		"action_status": entities.ActionPending,
+	}
+	update := bson.M{
+		"checker_id":           action.CheckerID,
+		"checker_name":         action.CheckerName,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        entities.ActionApproved,
+		"checker_action_time":  time.Now(),
+	}
+
 	_, err := e.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		e.logger.Errorf("failed to update CPS action", "action_code", action.ActionCode, "error", err)
+		return fmt.Errorf(common_utils.GeneralDBUpdateFailed)
 	}
+	e.logger.Infof("CPS action updated successfully", "action_code", action.ActionCode)
 	return nil
 }
 
-func (e *EventPersistence) FetchCpsActionById(ctx context.Context, Action_Id string) (action.CPSAction, error) {
-	filter := bson.M{"action_code": Action_Id}
+func (e *EventPersistence) FetchCpsActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
+	filter := bson.M{"action_code": actionID}
 	res, err := e.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return action.CPSAction{}, fmt.Errorf("FAILED_TO_FETCH_CPS_ACTION")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			e.logger.Errorf("CPS action not found", "action_code", actionID)
+			return nil, fmt.Errorf(common_utils.ActionNotFound)
+		}
+		e.logger.Errorf("failed to fetch CPS action", "action_code", actionID, "error", err)
+		return nil, fmt.Errorf(common_utils.GeneralDBQueryFailed)
 	}
-	if res == nil {
-		return action.CPSAction{}, fmt.Errorf("CPS_ACTION_NOT_FOUND")
-	}
-	return *res, nil
+	e.logger.Infof("CPS action fetched successfully", "action_code", actionID)
+	resDomain := res.toModel()
+	return &resDomain, nil
 }
 
-func (e *EventPersistence) CreateEvent(ctx context.Context, ev event.Event) (event.Event, error) {
-	ev.CreatedAt = time.Now()
-	ev.LastModifiedAt = time.Now()
-	res, err := e.eventDal.InsertOne(ctx, ev)
+func (e *EventPersistence) CreateEvent(ctx context.Context, event event.Event) (*event.Event, error) {
+	event.CreatedAt = time.Now()
+	event.LastModifiedAt = time.Now()
+	eventDoc, err := ToEventDocument(event)
 	if err != nil {
-		return event.Event{}, fmt.Errorf("FAILED_TO_INSERT_EVENT")
+		e.logger.Errorf("failed to convert event to document", "error", err)
+		return nil, err
 	}
-	return res, nil
+	res, err := e.eventDal.InsertOne(ctx, *eventDoc)
+	if err != nil {
+		e.logger.Errorf("failed to insert event", "error", err)
+		return nil, fmt.Errorf(common_utils.GeneralDBInsertFailed)
+	}
+	e.logger.Infof("event created successfully", "event_id", res.toModel().ID)
+	eventDomain := res.toModel()
+	return &eventDomain, nil
 }
 
-func (e *EventPersistence) FetchEventById(ctx context.Context, event_id string) (event.Event, error) {
-	filter := bson.M{"_id": event_id}
+func (e *EventPersistence) FetchEventByID(ctx context.Context, event_id string) (*event.Event, error) {
+	objID, err := common_utils.ParsePrimitiveObjectID(event_id)
+	if err != nil {
+		e.logger.Errorf("failed to parse event ID", "event_id", event_id, "error", err)
+		return nil, err
+	}
+	filter := bson.M{"_id": objID}
 	res, err := e.eventDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return event.Event{}, fmt.Errorf("FAILED_TO_FETCH_EVENT")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			e.logger.Errorf("event not found", "event_id", event_id)
+			return nil, fmt.Errorf(common_utils.NotFound)
+		}
+		e.logger.Errorf("failed to fetch event", "event_id", event_id, "error", err)
+		return nil, fmt.Errorf(common_utils.GeneralDBQueryFailed)
 	}
-	if res == nil {
-		return event.Event{}, fmt.Errorf("EVENT_NOT_FOUND")
-	}
-	return *res, nil
+	e.logger.Infof("event fetched successfully", "event_id", event_id)
+	eventDomain := res.toModel()
+	return &eventDomain, nil
 }
 
-func (e *EventPersistence) FetchEvent(ctx context.Context, limit, offset int) ([]event.Event, error) {
+func (e *EventPersistence) FetchEvent(ctx context.Context, limit, offset int) ([]*event.Event, error) {
 	skip := int64(offset)
 	lim := int64(limit)
 	res, err := e.eventDal.FindAllWithPagination(ctx, nil, nil, skip, lim)
 	if err != nil {
-		return nil, fmt.Errorf("FAILED_TO_FETCH_EVENT")
+		e.logger.Errorf("failed to fetch events with pagination", "limit", limit, "offset", offset, "error", err)
+		return nil, fmt.Errorf(common_utils.GeneralDBQueryFailed)
 	}
-	var events []event.Event
+	var events []*event.Event
 	for _, ptr := range res {
 		if ptr != nil {
-			events = append(events, *ptr)
+			eventDomain := ptr.toModel()
+			events = append(events, &eventDomain)
 		}
 	}
+	e.logger.Infof("events fetched successfully", "limit", limit, "offset", offset, "count", len(events))
 	return events, nil
+}
+
+func (e *EventPersistence) CPSActionExists(ctx context.Context, cpsReq action.CreateCPSAction) error {
+	filter := bson.M{
+		"maker_phone_number": cpsReq.MakerUser.PhoneNumber,
+		"action_status":      action.ActionPending,
+		"department":         cpsReq.Department,
+		"request_action":     cpsReq.RequestAction,
+	}
+
+	existingAction, err := e.cpsDal.FindOne(ctx, filter, bson.M{"action_code": 1})
+	if err != nil && err != mongo.ErrNoDocuments {
+		e.logger.Errorf("failed to fetch the action %v", err.Error())
+		return fmt.Errorf(common_utils.UnhandledServerError)
+	}
+	if existingAction != nil {
+		e.logger.Infof("pending cps action present for user: %s, code: %s, dept: %s",
+			cpsReq.MakerUser.FullName, cpsReq.MakerUser.UserCode, cpsReq.Department)
+		return fmt.Errorf(common_utils.PendingCPSActionExists)
+	}
+	return nil
 }

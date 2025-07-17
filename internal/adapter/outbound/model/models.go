@@ -103,17 +103,17 @@ type Advert struct {
 	LastUpdatedAt time.Time  `json:"last_updated_at" bson:"last_updated_at"`
 }
 type CPSAction struct {
-	ID                 bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
-	UniqueId           string        `bson:"unique_id" json:"unique_id"`
+	UniqueId           string        `bson:"unique_id" json:"unique_id,omitempty"`
 	MakerID            string        `bson:"maker_id" json:"maker_id"`
 	MakerName          string        `bson:"maker_name" json:"maker_name"`
 	MakerPhoneNumber   string        `bson:"maker_phone_number" json:"maker_phone_number"`
-	CheckerID          string        `bson:"checker_id" json:"checker_id"`
-	CheckerName        string        `bson:"checker_name" json:"checker_name"`
-	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number"`
+	CheckerID          string        `bson:"checker_id" json:"checker_id,omitempty"`
+	CheckerName        string        `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string        `bson:"department" json:"department"`
-	RejectionReason    string        `bson:"rejection_reason" json:"rejection_reason"`
+	RejectionReason    string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
 	PreviosAction      interface{}   `bson:"previous_action" json:"previous_action"`
 	CurrentAction      interface{}   `bson:"current_action" json:"current_action"`
 	ActionStatus       string        `bson:"action_status" json:"action_status"`
@@ -122,7 +122,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `bson:"created_at" json:"created_at"`
 	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at"`
 	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time"`
-	CheckerActionTime  time.Time     `bson:"checker_action_time" json:"checker_action_time"`
+	CheckerActionTime  time.Time     `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
@@ -294,17 +294,17 @@ type AppType struct {
 }
 
 type CpsActionNormalized struct {
-	ID                 string      `bson:"_id,omitempty" json:"_id,omitempty"`
-	ActionCode         string      `bson:"action_code" json:"action_code"`
-	UniqueId           string      `bson:"unique_id" json:"unique_id"`
+	ID                 string      `bson:"_id,omitempty" json:"id,omitempty"`
+	ActionCode         string      `bson:"action_code" json:"action_code,omitempty"`
+	UniqueId           string      `bson:"unique_id" json:"unique_id,omitempty"`
 	MakerID            string      `bson:"maker_id" json:"maker_id"`
 	MakerName          string      `bson:"maker_name" json:"maker_name"`
 	MakerPhoneNumber   string      `bson:"maker_phone_number" json:"maker_phone_number"`
-	CheckerID          string      `bson:"checker_id" json:"checker_id"`
-	CheckerName        string      `bson:"checker_name" json:"checker_name"`
-	CheckerPhoneNumber string      `bson:"checker_phone_number" json:"checker_phone_number"`
+	CheckerID          string      `bson:"checker_id" json:"checker_id,omitempty"`
+	CheckerName        string      `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string      `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string      `bson:"department" json:"department"`
-	RejectionReason    string      `bson:"rejection_reason" json:"rejection_reason"`
+	RejectionReason    string      `bson:"rejection_reason" json:"rejection_reason,omitempty"`
 	PreviosAction      interface{} `bson:"previous_action" json:"previous_action"`
 	CurrentAction      interface{} `bson:"current_action" json:"current_action"`
 	ActionStatus       string      `bson:"action_status" json:"action_status"`
@@ -491,7 +491,7 @@ type AuthorizeCPSAction struct {
 }
 
 type RejectAuthTierCPSAction struct {
-	RejectedReason string `json:"rejected_reason,omitempty" bson:"rejected_reason"`
+	RejectionReason string `json:"rejection_reason,omitempty" bson:"rejection_reason"`
 }
 type RejectCPSAction struct {
 	CreateCPSAction
@@ -508,7 +508,7 @@ func (r RejectCPSAction) Validate() error {
 
 func (r RejectAuthTierCPSAction) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.RejectedReason, validation.Required, validation.Length(30, 100)),
+		validation.Field(&r.RejectionReason, validation.Required, validation.Length(30, 100)),
 	)
 }
 

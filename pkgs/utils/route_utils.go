@@ -8,6 +8,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -38,4 +40,13 @@ func UserContextToModel(userContext ctx_util.UserContext) model.User {
 		FullName:    userContext.FullName,
 		PhoneNumber: userContext.PhoneNumber,
 	}
+}
+
+func ParsePrimitiveObjectID(ID string) (primitive.ObjectID, error) {
+	objectID, err := primitive.ObjectIDFromHex(ID)
+
+	if err != nil {
+		return primitive.ObjectID{}, fmt.Errorf(InvalidID)
+	}
+	return objectID, nil
 }

@@ -92,22 +92,22 @@ type TicketSaleDTO struct {
 }
 
 type EventCheckerRequest struct {
-	Request_Id string `json:"request_id"`
+	RequestID string `json:"request_id"`
 	Action     bool   `json:"action"`
 }
 
 func (e EventCheckerRequest) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Request_Id, validation.Required.Error("request_id is required")),
+		validation.Field(&e.RequestID, validation.Required.Error("request_id is required")),
 	)
 }
 
 type EventFetchRequest struct {
-	RequestId string `json:"request_id"`
+	RequestID string `json:"request_id"`
 }
 
 func (e EventFetchRequest) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.RequestId, validation.Required.Error("request_id is required")),
+		validation.Field(&e.RequestID, validation.Required.Error("request_id is required")),
 	)
 }

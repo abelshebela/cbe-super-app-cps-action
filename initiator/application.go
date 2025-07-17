@@ -32,34 +32,29 @@ import (
 )
 
 type Application struct {
-	AvatarApplication        avatar_app.AvatarApplicationService
-	BankApplication          bank.BankHandlerService
-	AdApplication            ad.ADHandlers
-	WalletApplication        wallet.WalletHandlerAppllication
-	FaydaApplication         faydaaccount.ApplicationService
-	CustomerApplication      customer.ApplicationService
-	FeedbackApplication      feedback.FeedbackService
-	UnlinkApplication        unlink.ApplicationService
-	BudgetApplication        budget.BudgetService
-	AccountApplication       accountvalidation_app.ApplicationAbstracts
-	BulkServicesApplication  bulkservices_application.ApplicationAbstracts
-	CPSUserApplication       cpsusermaker.ApplicationService
-	PasswordRuleApplication  *passwordrule.PasswordRuleHandler
-	PortalCardApplication    portalcard.PortalCardApplication
-	ServiceDetailApplication service_details_app.ApplicationAbstracts
-	DepartmentApplication    department.DepartmentService
-	AccountBlockApplication  account_block.ApplicationService
-	HQApplication            hq.ApplicationAbstracts
-
+	AvatarApplication          avatar_app.AvatarApplicationService
+	BankApplication            bank.BankHandlerService
+	AdApplication              ad.ADHandlers
+	WalletApplication          wallet.WalletHandlerAppllication
+	FaydaApplication           faydaaccount.ApplicationService
+	CustomerApplication        customer.ApplicationService
+	FeedbackApplication        feedback.FeedbackService
+	UnlinkApplication          unlink.ApplicationService
+	BudgetApplication          budget.BudgetService
+	AccountApplication         accountvalidation_app.ApplicationAbstracts
+	BulkServicesApplication    bulkservices_application.ApplicationAbstracts
+	CPSUserApplication         cpsusermaker.ApplicationService
+	PasswordRuleApplication    *passwordrule.PasswordRuleHandler
+	PortalCardApplication      portalcard.PortalCardApplication
+	ServiceDetailApplication   service_details_app.ApplicationAbstracts
+	DepartmentApplication      department.DepartmentService
+	AccountBlockApplication    account_block.ApplicationService
+	HQApplication              hq.ApplicationAbstracts
 	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
-
 	miniAppApplication         miniApp_application.ApplicationAbstracts
-
-
-	EventApplication event_application.ApplicationAbstracts
-
+	EventApplication           event_application.ApplicationAbstracts
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -87,7 +82,6 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 		miniAppApplication:         miniApp_application.NewApplicationService(domain.miniAppDomain, logger),
-
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 	}
 }

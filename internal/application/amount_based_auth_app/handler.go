@@ -35,21 +35,11 @@ func (h Handler) GetAllAmountBasedDetail(ctx context.Context, filterParams *cons
 }
 func (h Handler) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
 	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
-	cpsActionRes, err := h.service.UpdateAmountBasedAuth(ctx, request, cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsActionRes, nil
+	return h.service.UpdateAmountBasedAuth(ctx, request, cpsAction)
 }
 
 func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-	request, err := h.service.ApproveAmountBasedAuth(ctx, id, cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	return request, nil
+	return h.service.ApproveAmountBasedAuth(ctx, id, cpsAction)
 }
 
 func (h *Handler) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {

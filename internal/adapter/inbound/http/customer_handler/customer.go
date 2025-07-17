@@ -63,7 +63,7 @@ func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customers)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
@@ -78,7 +78,7 @@ func (c CustomerHTTPHandler) GetCustomerByID(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customer)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
@@ -115,7 +115,7 @@ func (c CustomerHTTPHandler) GetFaydaCustomer(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customers)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
@@ -130,7 +130,7 @@ func (c CustomerHTTPHandler) GetFaydaCustomerByID(w http.ResponseWriter, r *http
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customer)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 }
@@ -167,7 +167,7 @@ func (c CustomerHTTPHandler) GetBlockedCustomer(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByCode("SUCCESS")
+	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customers)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
