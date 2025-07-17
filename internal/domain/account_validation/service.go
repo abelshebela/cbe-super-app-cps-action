@@ -15,8 +15,8 @@ import (
 
 type Service interface {
 	GetAccountValidation(ctx context.Context, id string) (ValidationRule, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, makerID string, PhoneNumber string, FullName string, Department string) (string, error)
-	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checkerID string, PhoneNumber string, FullName string, rejectedReason string) error
+	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, maker User) (string, error)
+	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error
 }
 
 type ServiceStore struct {
@@ -51,7 +51,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 	ctx context.Context,
 	id string,
 	update ValidationRule,
-	makerID, PhoneNumber, FullName, Department string,
+	maker User,
 ) (string, error) {
 	if id == "" {
 		s.logger.Errorf("ID is empty")
@@ -94,25 +94,22 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode:         actionID,
-		MakerID:            makerID,
-		MakerName:          FullName,
-		MakerPhoneNumber:   PhoneNumber,
-		CheckerID:          "",
-		CheckerName:        "",
-		CheckerPhoneNumber: "",
-		Department:         Department,
-		UniqueId:           id,
-		ActionType:         action.ActionUpdate,
-		RequestAction:      action.RequestUpdateAccountValidation,
-		ActionStatus:       action.ActionPending,
-		CurrentAction:      currentAction, // assign struct directly
-		PreviosAction:      previousActionJSON,
-		CreatedAt:          time.Now(),
-		LastModifiedAt:     time.Now(),
-		RejectionReason:    nil,
-		MakerActionTime:    time.Now(),
-		CheckerActionTime:  time.Time{},
+		ActionCode:        actionID,
+		MakerID:           maker.ID,
+		MakerName:         maker.FullName,
+		MakerPhoneNumber:  maker.PhoneNumber,
+		Department:        maker.Department,
+		UniqueId:          id,
+		ActionType:        action.ActionUpdate,
+		RequestAction:     action.RequestUpdateAccountValidation,
+		ActionStatus:      action.ActionPending,
+		CurrentAction:     currentAction, // assign struct directly
+		PreviosAction:     previousActionJSON,
+		CreatedAt:         time.Now(),
+		LastModifiedAt:    time.Now(),
+		RejectionReason:   nil,
+		MakerActionTime:   time.Now(),
+		CheckerActionTime: time.Time{},
 	}
 
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
@@ -160,9 +157,10 @@ func (s *ServiceStore) UpdateAccountValidation(
 	ctx context.Context,
 	actionID string,
 	decision utils.DecisonEnum,
-	checkerID, PhoneNumber, FullName, rejectedReason string,
+	checker User,
+	rejectedReason string,
 ) error {
-	if actionID == "" || checkerID == "" {
+	if actionID == "" || checker.ID == "" {
 		s.logger.Errorf("action ID or checker ID is empty")
 		return fmt.Errorf("ACTION_ID_OR_CHECKER_ID_EMPTY")
 	}
@@ -178,9 +176,9 @@ func (s *ServiceStore) UpdateAccountValidation(
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
 
-	cpsAction.CheckerID = checkerID
-	cpsAction.CheckerName = FullName
-	cpsAction.CheckerPhoneNumber = PhoneNumber
+	cpsAction.CheckerID = checker.ID
+	cpsAction.CheckerName = checker.FullName
+	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
 	cpsAction.CheckerActionTime = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
@@ -194,7 +192,6 @@ func (s *ServiceStore) UpdateAccountValidation(
 			s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
 			return fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
 		}
-		fmt.Printf("CurrentAction raw JSON: %s\n", string(currentActionBytes))
 		if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
 			s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
 			return fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
@@ -202,7 +199,6 @@ func (s *ServiceStore) UpdateAccountValidation(
 
 		updatedRule := currentAction.Rule
 
-		fmt.Printf("Unmarshalled currentAction: %+v\n", currentAction)
 		if updatedRule.ID == "" {
 			s.logger.Errorf("invalid validation rule ID: empty")
 			return fmt.Errorf("VALIDATION_RULE_ID_EMPTY")

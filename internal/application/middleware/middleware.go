@@ -139,22 +139,36 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			return jwtSecret, nil
 		})
 
+		if token == nil {
+			a.logger.Errorf("token is nil")
+			res := common.Response[constant.ErrorDefinition]{
+				ResponseWriter: w,
+				Status:         http.StatusUnauthorized,
+				Data: constant.ErrorDefinition{
+					Code:    http.StatusUnauthorized,
+					Message: "invalid token",
+				},
+			}
+			res.SendJSON()
+			return
+		}
+
 		// if err != nil || !token.Valid {
-		//     a.logger.Errorf("invalid or expired token: %v", err)
-		//     res := common.Response[constant.ErrorDefinition]{
-		//         ResponseWriter: w,
-		//         Status:         http.StatusUnauthorized,
-		//         Data: constant.ErrorDefinition{
-		//             Code:    http.StatusUnauthorized,
-		//             Message: "invalid or expired token",
-		//         },
-		//     }
-		//     res.SendJSON()
-		//     return
+		// 	a.logger.Errorf("invalid or expired token: %v", err)
+		// 	res := common.Response[constant.ErrorDefinition]{
+		// 		ResponseWriter: w,
+		// 		Status:         http.StatusUnauthorized,
+		// 		Data: constant.ErrorDefinition{
+		// 			Code:    http.StatusUnauthorized,
+		// 			Message: "invalid or expired token",
+		// 		},
+		// 	}
+		// 	res.SendJSON()
+		// 	return
 		// }
 
 		claims, ok := token.Claims.(jwt.MapClaims)
-		
+
 		if !ok {
 			a.logger.Errorf("failed to cast to map claims")
 			res := common.Response[constant.ErrorDefinition]{
