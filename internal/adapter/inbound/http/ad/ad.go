@@ -2,6 +2,7 @@ package ad
 
 import (
 	"encoding/json"
+	"fmt"
 
 	// "fmt"
 	"net/http"
@@ -12,19 +13,14 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	inboundAd "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-	"github.com/go-chi/chi/v5"
-
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
-	local_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type ADAdapter struct {
@@ -42,22 +38,24 @@ func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) inboundAd.ADAda
 func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	var advertReq dto.CreateAdvertRequest
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		a.logger.Errorf("failed to parse form data: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+	file, fileHeader, err := util.ParseMultipartFormFile(r, "banner_image", 10<<20)
+	if err != nil {
+		a.logger.Errorf("error parsing file: %v", err)
+		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
 		return
 	}
+	defer file.Close()
 
-	started_at := r.FormValue("started_at")
-	started_at_time, err := time.Parse(time.RFC3339, started_at)
+	startedAt := r.FormValue("started_at")
+	startedAtTime, err := time.Parse(time.RFC3339, startedAt)
 	if err != nil {
 		a.logger.Errorf("failed to parse form data: %v", err)
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	expired_at := r.FormValue("expired_at")
-	expired_at_time, err := time.Parse(time.RFC3339, expired_at)
+	expiredAt := r.FormValue("expired_at")
+	expiredAtTime, err := time.Parse(time.RFC3339, expiredAt)
 	if err != nil {
 		a.logger.Errorf("failed to parse time", err)
 		util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
@@ -66,34 +64,27 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	advertReq.Title = r.FormValue("title")
 	advertReq.Description = r.FormValue("description")
 	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
-	advertReq.Date.StartedAt = started_at_time
-	advertReq.Date.ExpiredAt = expired_at_time
-
-	file, fileHeader, err := r.FormFile("banner_image")
-	if err != nil {
-		a.logger.Errorf("banner image error: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		return
-	}
-	defer file.Close()
+	advertReq.Date.StartedAt = startedAtTime
+	advertReq.Date.ExpiredAt = expiredAtTime
 
 	advertReq.BannerImage = fileHeader
 
 	var cpsReq model.CreateCPSAction
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	cpsReq.ActionData = advertReq
 
 	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
 	}
-	cpsReq.Department = department
+	cpsReq.Department = userContext.Department
 
 	ctx := r.Context()
 	cpsActionResponse, err := a.adHandler.CreateOneAdvert(ctx, cpsReq)
@@ -102,25 +93,30 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsActionResponse, "AD Create Request Created successfully")
+	util.WriteSuccessResponse(w, cpsActionResponse, "AD Create Request Created successfully")
 }
 
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.CreateCPSAction
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+		return
 	}
-	cpsReq.Department = department
+	cpsReq.MakerUser = model.User{
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}
+	cpsReq.Department = userContext.Department
 	ctx := r.Context()
 
 	response, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
@@ -128,7 +124,7 @@ func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, response, "AD Delete Request Created successfully")
+	util.WriteSuccessResponse(w, response, "AD Delete Request Created successfully")
 
 }
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
@@ -137,10 +133,10 @@ func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
 		page = pageInt
 	}
-	per_page := constant.DefaultPerPage
+	perPage := constant.DefaultPerPage
 	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
 		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
+		perPage = perPageInt
 	}
 
 	search := query.Get("search")
@@ -148,7 +144,7 @@ func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 
 	filterParams := &constant.Filter{
 		Page:    page,
-		PerPage: per_page,
+		PerPage: perPage,
 		Search:  search,
 		Filters: filter,
 	}
@@ -161,12 +157,17 @@ func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, adverts, "AD featch successfully")
+	util.WriteSuccessResponse(w, adverts, "AD featch successfully")
 
 }
 
 func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	ctx := r.Context()
 
@@ -176,13 +177,17 @@ func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(advert)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, advert, "AD featch successfully")
+
 }
 
 func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var req dto.UpdateAdvertRequest
 
@@ -192,19 +197,20 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	var cpsReq model.CreateCPSAction
 
 	cpsReq.MakerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
 	}
-	cpsReq.Department = department
+	cpsReq.Department = userContext.Department
 	req.ID = id
 	cpsReq.ActionData = req
 
@@ -215,43 +221,54 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsActionResponse, "AD Update Request Created successfully")
+	util.WriteSuccessResponse(w, cpsActionResponse, "AD Update Request Created successfully")
 
 }
 
 func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.AuthorizeCPSAction
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
-
-	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+		return
 	}
 
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+	cpsReq.CheckerUser = model.User{
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}
 
-	ctx := r.Context()
-	AuthorizeAction, err := a.adHandler.Authorize(ctx, cpsReq)
+	cpsReq.Department = userContext.Department
+	cpsReq.ActionCode = actionCode
+
+	AuthorizeAction, err := a.adHandler.Authorize(r.Context(), cpsReq)
 	if err != nil {
+		fmt.Printf("error from Authorize Action %v:", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
+	util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
 
 }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var cpsReq model.RejectCPSAction
-	action_code := chi.URLParam(r, "action_code")
 
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		a.logger.Errorf("failed to decode advert request", err)
@@ -259,18 +276,19 @@ func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	cpsReq.CheckerUser = model.User{
-		UserCode:    user_code,
-		FullName:    full_name,
-		PhoneNumber: phone_number,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
 	}
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+	cpsReq.Department = userContext.Department
+	cpsReq.ActionCode = actionCode
 
 	ctx := r.Context()
 	rejectedAction, err := a.adHandler.Reject(ctx, cpsReq)
@@ -279,6 +297,6 @@ func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, rejectedAction, "AD REJECTED")
+	util.WriteSuccessResponse(w, rejectedAction, "AD REJECTED")
 
 }

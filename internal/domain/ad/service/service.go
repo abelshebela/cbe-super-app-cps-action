@@ -18,7 +18,7 @@ import (
 )
 
 type ADDomain struct {
-	ADRepo      repository.Repository
+	ADRepo      repository.AdRepository
 	bucketName  string
 	minioClient config.MinioClientInterface
 	logger      utils.Logger
@@ -51,7 +51,7 @@ func stripFieldPrefix(err error) string {
 	return errStr
 }
 
-func InitADDomian(bucketName string, minioClient config.MinioClientInterface, adRepo repository.Repository, logger utils.Logger) AdvertService {
+func InitADDomian(bucketName string, minioClient config.MinioClientInterface, adRepo repository.AdRepository, logger utils.Logger) AdvertService {
 	return &ADDomain{
 		ADRepo:      adRepo,
 		bucketName:  bucketName,
@@ -81,7 +81,6 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 	}
 
 	if !exist {
-
 		created, err := a.minioClient.MakeBucket(ctx, a.bucketName)
 		if !created || err != nil {
 			a.logger.Errorf("failed to create ad bucket: %v", err)
@@ -114,13 +113,15 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 		MakerUser:  cpsAction.MakerUser,
 		Department: cpsAction.Department,
 		ActionData: entity.Advert{
-			Title:       actionData.Title,
-			Description: actionData.Description,
-			BannerImage: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
-			AdvertFor:   entity.AdvertFor(actionData.AdvertFor),
-			Date:        entity.AdvertDate(actionData.Date),
+			ID:            constant.GenerateID(),
+			Title:         actionData.Title,
+			Description:   actionData.Description,
+			BannerImage:   fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			AdvertFor:     entity.AdvertFor(actionData.AdvertFor),
+			Date:          entity.AdvertDate(actionData.Date),
+			CreatedAt:     time.Now(),
+			LastUpdatedAt: time.Now(),
 		},
-		// Map other fields from cpsAction as needed
 	})
 	if err != nil {
 		return nil, err

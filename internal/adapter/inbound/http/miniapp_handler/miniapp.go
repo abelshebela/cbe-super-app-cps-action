@@ -7,8 +7,11 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/go-chi/chi/v5"
+
 	// miniAppApplication "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
 	// miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	// util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -47,19 +50,28 @@ func (h *HttpStore) createUser(w http.ResponseWriter, r *http.Request) (*model.U
 func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	var req dto.MiniAppCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Println("handelr decode")
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
 
-	maker, UserErr := h.createUser(w, r)
-	if UserErr != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
+	// maker, UserErr := h.createUser(w, r)
 
-	// Process the request using application logic
-	response, err := h.Application.MakerCreateMiniApp(r.Context(), req, *maker)
+	// if UserErr != nil {
+	// 	http.Error(w, "unauthorized", http.StatusUnauthorized)
+	// 	return
+	// }
+	makerUser := contexts.ExtractUserContext(r)
+
+	var maker model.User
+
+	maker.FullName = makerUser.FullName
+	maker.UserCode = makerUser.UserCode
+	maker.PhoneNumber = makerUser.PhoneNumber
+	Department := makerUser.Department
+
+	response, err := h.Application.MakerCreateMiniApp(r.Context(), req, maker, Department)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to create mini app")
 		return
@@ -75,19 +87,26 @@ func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	checker, UserErr := h.createUser(w, r)
-	if UserErr != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
+	CheckerUser := contexts.ExtractUserContext(r)
 
-	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, *checker)
+	var Checker model.User
+
+	Checker.FullName = CheckerUser.FullName
+	Checker.UserCode = CheckerUser.UserCode
+	Checker.PhoneNumber = CheckerUser.PhoneNumber
+	Department := CheckerUser.Department
+
+	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "")
+		fmt.Println("====================")
+		fmt.Println(err)
+		fmt.Println("====================")
+
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "")
 		return
 	}
 	utils.WriteSuccessResponse(w, nil, "successful")
-	return
+
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -113,20 +132,15 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
-	// var req dto.MiniAppDeleteRequest
-	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-	// 	utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
-	// 	return
-	// }
-	// defer r.Body.Close()
 
+	id := chi.URLParam(r, "id")
 	maker, UserErr := h.createUser(w, r)
 	if UserErr != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	ActionCode, err := h.Application.MakerDeleteMiniApp(r.Context(), maker)
+	ActionCode, err := h.Application.MakerDeleteMiniApp(r.Context(), maker, id)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to delete mini app")
 		return
@@ -144,7 +158,8 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	// id := r.URL.Query().Get("id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Missing mini app ID")
 		return

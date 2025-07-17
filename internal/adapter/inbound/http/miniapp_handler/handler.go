@@ -39,7 +39,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/approve",
+				Path:    "/approve_or_reject",
 				Handler: handler.CheckerMiniApp,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -47,7 +47,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/update",
 				Handler: handler.MakerUpdateMiniApp,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -56,8 +56,8 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/delete",
+				Method:  http.MethodPatch,
+				Path:    "/delete/{id}",
 				Handler: handler.MakerDeleteMiniApp,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -65,21 +65,21 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/list",
 				Handler: handler.ListMiniApp,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/detail/{id}",
 				Handler: handler.DetailMiniAppByID,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 		}

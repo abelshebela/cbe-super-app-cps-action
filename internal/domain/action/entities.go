@@ -138,6 +138,7 @@ const (
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
 	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
 )
 
 type KYCLevel string
@@ -344,4 +345,10 @@ type City struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Enabled      bool
+}
+
+type CreateCPSAction struct {
+	Department    string        `json:"department,omitempty" bson:"department"`
+	RequestAction RequestAction `json:"request_action,omitempty" bson:"request_action"`
+	MakerUser     User          `json:"maker_user" bson:"maker_user"`
 }

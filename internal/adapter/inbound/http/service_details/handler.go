@@ -77,7 +77,7 @@ func (h *HttpStore) handleError(w http.ResponseWriter, err error) {
 		statusCode = http.StatusConflict
 		message = err.Error()
 	}
-
+	// utils.BaseResponseMaker()
 	utils.WriteErrorResponse(w, statusCode, message)
 }
 

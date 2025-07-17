@@ -21,6 +21,7 @@ type ErrorDefinitions struct {
 	Bank        ErrorGroup
 	Action      ErrorGroup
 	Wallet      ErrorGroup
+	AD          ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -617,6 +618,54 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_135",
 			Message: "No pending action found",
 		},
+		"OpenMinGEOpenMax": {
+			Code:    "GEN_136",
+			Message: "Open min amount cannot be greater than or equal to open max amount.",
+		},
+		"OpenMaxGEPinMax": {
+			Code:    "GEN_137",
+			Message: "Open max amount cannot be greater than or equal to pin max amount.",
+		},
+		"PinMinGEPinMax": {
+			Code:    "GEN_138",
+			Message: "Pin min amount cannot be greater than or equal to pin max amount.",
+		},
+		"PinMinLEOpenMin": {
+			Code:    "GEN_139",
+			Message: "Pin min amount cannot be less than or equal to open min amount.",
+		},
+		"PinMaxLEPinMin": {
+			Code:    "GEN_140",
+			Message: "Pin max amount must be greater than pin min amount.",
+		},
+		"OTPMinGEPinMin": {
+			Code:    "GEN_141",
+			Message: "OTP min amount cannot be greater than or equal to pin min amount.",
+		},
+		"TierAuthNotFound": {
+			Code:    "GEN_142",
+			Message: "Authentication tier not found.",
+		},
+		"FailedToGetAuthTier": {
+			Code:    "GEN_143",
+			Message: "Failed to retrieve authentication tier.",
+		},
+		"REQUIRED_TITLE": {
+			Code:    "GEN_144",
+			Message: "title is required",
+		},
+		"REQUIRED_DESCRIPTION": {
+			Code:    "GEN_145",
+			Message: "description is required",
+		},
+		"TITLE_TOO_LONG": {
+			Code:    "GEN_146",
+			Message: "title length is between 3 and 10 characters",
+		},
+		"DESCRIPTION_TOO_LONG": {
+			Code:    "GEN_147",
+			Message: "description length is between 3 and 100 characters",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -736,6 +785,10 @@ var DefineError = ErrorDefinitions{
 		"ACCOUNT_LOCKED": {
 			Code:    "AUTH_028",
 			Message: "account locked. please contact your addministrator",
+		},
+		"ACCESS_TOKEN_REQUIRED": {
+			Code:    "AUTH_030",
+			Message: "access token required",
 		},
 	},
 	Transaction: ErrorGroup{
@@ -924,7 +977,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"MISSING_OR_INVALID_IMAGE": {
 			Code:    "FILE_006",
-			Message: "Missing or invalid image.",
+			Message: "Missing or invalid image. Could not parse form or file too large.",
 		},
 	},
 	Branch: ErrorGroup{
@@ -1121,6 +1174,28 @@ var DefineError = ErrorDefinitions{
 		"WALLET_TRANSACTION_ALREADY_EXISTS": {
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
+		},
+	},
+	AD: ErrorGroup{
+		"AD_NOT_FOUND": {
+			Code:    "AD_001",
+			Message: "Advert not found.",
+		},
+		"AD_CREATION_FAILED": {
+			Code:    "AD_002",
+			Message: "Failed to create advert.",
+		},
+		"AD_UPDATE_FAILED": {
+			Code:    "AD_003",
+			Message: "Failed to update advert.",
+		},
+		"AD_ALREADY_EXISTS": {
+			Code:    "AD_004",
+			Message: "Advert with this ID already exists.",
+		},
+		"AD_DELETION_FAILED": {
+			Code:    "AD_005",
+			Message: "Failed to delete advert.",
 		},
 	},
 }

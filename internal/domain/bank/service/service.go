@@ -65,12 +65,12 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 		return nil, err
 	}
 
-	BankExists, err := b.bankRepo.CheckExistingBank(ctx, actionData.Name)
+	bankExists, err := b.bankRepo.CheckExistingBank(ctx, actionData.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	if BankExists {
+	if bankExists {
 		return nil, fmt.Errorf(error_codes.BankAlreadyExists)
 	}
 
@@ -113,6 +113,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: entity.Bank{
+			ID:   constant.GenerateID().Hex(),
 			Name: actionData.Name,
 			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
 			Code: actionData.Code,
@@ -212,16 +213,7 @@ func (b *BankDomain) EnableOrDisableBank(ctx context.Context, id string,
 }
 
 func (b *BankDomain) CheckExistingBank(ctx context.Context, name string) (bool, error) {
-	bank, err := b.bankRepo.CheckExistingBank(ctx, name)
-	if err != nil {
-		return false, err
-	}
-
-	if bank {
-		return true, nil
-	}
-
-	return false, nil
+	return b.bankRepo.CheckExistingBank(ctx, name)
 }
 
 func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {

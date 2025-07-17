@@ -18,3 +18,10 @@ type ValidationRule struct {
 	LastModifiedAt time.Time `json:"last_modified_at"`
 	ServiceID      string    `json:"service_id"`
 }
+
+type User struct {
+	ID          string
+	FullName    string
+	PhoneNumber string
+	Department  string
+}

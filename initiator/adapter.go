@@ -7,9 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/branch_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
@@ -21,9 +19,7 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	serviceHandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	avatar_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
-	budget_category_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
@@ -36,7 +32,6 @@ import (
 	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
 	inboundBudget "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
-	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBulkServices "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
 	inboundDepartment "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	inboundFeedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
@@ -46,8 +41,10 @@ import (
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 
 	amountBasedAuth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	eventhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/event"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
+	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -80,20 +77,18 @@ type Adapter struct {
 	HQAdapter              *hq.HQHTTPHandler
 	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
-	BudgetCategory         inboundBudgetCategory.BudgetCategoryInbound
+	EventAdapter           event_inbound.EventHandler
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
 	return Adapter{
-		AvatarAdapter: avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
-		BankAdapter:   bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:     ad.InitADAdapter(application.AdApplication, logger),
-
-		WalletAdapter:   wallet.InitWalletRouter(application.WalletApplication, logger),
-		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
-		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
-		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
-
+		AvatarAdapter:        avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
+		BankAdapter:          bank.InitBankAdapter(application.BankApplication, logger),
+		AdAdapter:            ad.InitADAdapter(application.AdApplication, logger),
+		WalletAdapter:        wallet.InitWalletRouter(application.WalletApplication, logger),
+		FaydaAdapter:         faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
+		CustomerAdapter:      customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
+		FeedbackAdapter:      feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
 		UnlinkAdapter:        unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
 		BudgetAdapter:        budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
 		AccountAdapter:       accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
@@ -102,14 +97,13 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		PasswordRuleAdapter:  passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
 		PortalCardAdapter:    portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
 		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),
-
-		DepartmentAdapter:   department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
-		PermissionAdapter:   permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
-		AccountBlockAdapter: accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
-		ServiceAdapter:      serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
-		HQAdapter:           hq.NewHQHTTPHandler(application.HQApplication),
-		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
-		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
-		BudgetCategory:      budget_category_adapter.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
+		DepartmentAdapter:    department_handler.NewDepartmentHTTPHandler(application.DepartmentApplication, logger),
+		PermissionAdapter:    permission_handler.NewPermissionHTTPHandler(application.PermissionApplication, logger),
+		AccountBlockAdapter:  accountblock_handler.NewAccountBlockHandler(application.AccountBlockApplication, logger),
+		ServiceAdapter:       serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
+		HQAdapter:            hq.NewHQHTTPHandler(application.HQApplication),
+		AmountBasedAuth:      amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
+		MiniAppAdapter:       miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
+		EventAdapter:         eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
 	}
 }

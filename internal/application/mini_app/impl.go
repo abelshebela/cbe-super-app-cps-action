@@ -12,7 +12,7 @@ import (
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
-func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (string, *common.ErrorDefinition) {
+func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User, Department string) (string, *common.ErrorDefinition) {
 	data := domain.MiniApp{
 		AppName:           miniApp.AppName,
 		AppIcon:           miniApp.AppIcon,
@@ -57,7 +57,7 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 		LastModifiedAt: time.Now(),
 		DeletedAt:      time.Time{},
 	}
-	action_id, err := a.service.CreateMiniAppAction(ctx, data, maker)
+	action_id, err := a.service.CreateMiniAppAction(ctx, data, maker, Department)
 	if err != nil {
 		err_def := common.ErrorDefinition{
 			Code:    "",
@@ -70,8 +70,8 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 	return action_id, nil
 }
 
-func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User) *common.ErrorDefinition {
-	err := a.service.CheckMiniApp(ctx, actionId, action, checker)
+func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) error {
+	err := a.service.CheckMiniApp(ctx, actionId, action, checker, department)
 	if err != nil {
 		err_def := common.ErrorDefinition{
 			Code:    "",
@@ -79,7 +79,7 @@ func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId st
 		}
 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err.Error())
 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
-		return &err_def
+		return err
 	}
 	return nil
 }
@@ -135,8 +135,8 @@ func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniA
 	return updateID, nil
 }
 
-func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.User) (string, error) {
-	deleteID, err := a.service.DeleteMiniAppAction(ctx, *maker)
+func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error) {
+	deleteID, err := a.service.DeleteMiniAppAction(ctx, *maker, id)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.MakerDeleteMiniApp] %v", err)
 		return "", err

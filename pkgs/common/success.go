@@ -63,18 +63,17 @@ var DefineSuccess = SuccessDefinitions{
 	},
 }
 
-func GetSuccessResponseByCode(code string) (SuccessDefinition, bool) {
+func GetSuccessResponseByKey(key string) (SuccessDefinition, bool) {
 	for _, group := range []SuccessGroup{
 		DefineSuccess.General,
 		DefineSuccess.Auth,
 		DefineSuccess.User,
 		DefineSuccess.Transaction,
 	} {
-		for _, def := range group {
-			if def.Code == code {
-				return def, true
-			}
+		if def, ok := group[key]; ok {
+			return def, true
 		}
 	}
 	return SuccessDefinition{}, false
 }
+

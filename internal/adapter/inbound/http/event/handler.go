@@ -1,28 +1,19 @@
-package eventhandler
+// Package event provides HTTP handlers and routing for event-related endpoints.
+package event
 
 import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
-	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
-	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 )
 
-type HttpStore struct {
-	Application event_application.ApplicationAbstracts
-}
-
-func NewHttpBulkService(app event_application.ApplicationAbstracts) event_inbound.Inbound {
-	return &HttpStore{
-		Application: app,
-	}
-}
-
-func InitServiceHandlerMaker(router chi.Router, handler event_inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
+func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandler, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/events", func(r chi.Router) {
 		routes := []route.Route{
 			{

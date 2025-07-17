@@ -12,8 +12,8 @@ import (
 
 type ApplicationAbstracts interface {
 	GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error)
-	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string, Department string) (dto.UpdateAccountValidationResponse, error)
-	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checkerID string, PhoneNumber string, FullName string, rejectedReason string) error
+	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, maker account_validation.User) (dto.UpdateAccountValidationResponse, error)
+	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker account_validation.User, rejectedReason string) error
 }
 
 type ApplicationStore struct {
@@ -30,17 +30,17 @@ func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) 
 	if err != nil {
 		return dto.GetAccountValidationResponse{}, err
 	}
-	return dto.GetAccountValidationResponse{dto.ToValidationRuleDTO(rule)}, nil
+	return dto.GetAccountValidationResponse{Validation: dto.ToValidationRuleDTO(rule)}, nil
 }
 
-func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, makerID string, PhoneNumber string, FullName string, Department string) (dto.UpdateAccountValidationResponse, error) {
-	actionID, err := a.service.UpdateAccountValidationRequest(ctx, id, update, makerID, PhoneNumber, FullName, Department)
+func (a *ApplicationStore) UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, maker account_validation.User) (dto.UpdateAccountValidationResponse, error) {
+	actionID, err := a.service.UpdateAccountValidationRequest(ctx, id, update, maker)
 	if err != nil {
 		return dto.UpdateAccountValidationResponse{}, err
 	}
 	return dto.UpdateAccountValidationResponse{ActionID: actionID}, nil
 }
 
-func (a *ApplicationStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checkerID string, PhoneNumber string, FullName string, rejectedReason string) error {
-	return a.service.UpdateAccountValidation(ctx, actionID, decision, checkerID, PhoneNumber, FullName, rejectedReason)
+func (a *ApplicationStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker account_validation.User, rejectedReason string) error {
+	return a.service.UpdateAccountValidation(ctx, actionID, decision, checker, rejectedReason)
 }

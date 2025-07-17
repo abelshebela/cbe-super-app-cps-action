@@ -2,19 +2,21 @@ package amount_based_auth_domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Service struct {
-	repo   Repository
+	repo   AmountBasedAuthRepository
 	logger utils.Logger
 }
 
-func NewAmountBasedAuthService(repo Repository, logger utils.Logger) *Service {
+func NewAmountBasedAuthService(repo AmountBasedAuthRepository, logger utils.Logger) *Service {
 	return &Service{
 		repo:   repo,
 		logger: logger,
@@ -24,15 +26,10 @@ func NewAmountBasedAuthService(repo Repository, logger utils.Logger) *Service {
 func (service *Service) UpdateAmountBasedAuth(ctx context.Context, request UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
 	if err := request.Valiadate(); err != nil {
 		service.logger.Errorf("validation error: %v", err)
-		return nil, err
+		return nil, fmt.Errorf(common_util.InvalidInput)
 	}
 
-	cpsActionRes, err := service.repo.UpdateAmountBasedAuth(ctx, request, cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsActionRes, nil
+	return service.repo.UpdateAmountBasedAuth(ctx, request, cpsAction)
 }
 
 func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams *constant.Filter) (*AmountBasedAuthRespose, error) {
@@ -45,12 +42,7 @@ func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams
 }
 
 func (service *Service) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-	auth, err := service.repo.ApproveAmountBasedAuth(ctx, id, cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	return auth, nil
+	return service.repo.ApproveAmountBasedAuth(ctx, id, cpsAction)
 }
 
 func (service *Service) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {

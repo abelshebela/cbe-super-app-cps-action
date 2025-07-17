@@ -65,6 +65,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionCreate),
 		RequestAction:    string(model.RequestUser),
+		PreviosAction:    nil,
 		CurrentAction:    user,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
@@ -89,6 +90,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestUpdateUser),
+		PreviosAction:    nil,
 		CurrentAction:    userData,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
@@ -138,8 +140,10 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
 	users, err := s.repo.GetAllCPSUsers(ctx)
-	if err != nil {
+	if len(users) == 0 {
+		return nil, fmt.Errorf("NO_USERS_FOUND")
+	} else if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return users, err
 }

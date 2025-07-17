@@ -16,6 +16,7 @@ type MongoDalInterface[T any, K any] interface {
 	InsertOne(ctx context.Context, req T) (T, error)
 	UpdateOne(ctx context.Context, filter, update bson.M) (T, error)
 	DeleteOne(ctx context.Context, filter bson.M) error
+	FindRecentDocument(ctx context.Context, filter, projection bson.M) (*K, error)
 }
 
 var _ MongoDalInterface[any, any] = (*MongoDal[any, any])(nil)
@@ -105,4 +106,13 @@ func (m *MongoDal[T, K]) DeleteOne(ctx context.Context, filter bson.M) error {
 		},
 	)
 	return err
+}
+
+func (m *MongoDal[T, K]) FindRecentDocument(ctx context.Context, filter, projection bson.M) (*K, error) {
+	opts := options.FindOne().SetSort(bson.M{"created_at": -1}).SetProjection(projection)
+	var result K
+	if err := m.collection.FindOne(ctx, filter, opts).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }

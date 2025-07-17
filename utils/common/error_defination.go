@@ -123,6 +123,34 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_020",
 			Message: "Resource not found.",
 		},
+		"FAILED_TO_INSERT_CPS_ACTION": {
+			Code:    "GEN_030",
+			Message: "Failed to insert CPS action.",
+		},
+		"FAILED_TO_UPDATE_CPS_ACTION": {
+			Code:    "GEN_031",
+			Message: "Failed to update CPS action.",
+		},
+		"FAILED_TO_FETCH_CPS_ACTION": {
+			Code:    "GEN_032",
+			Message: "Failed to fetch CPS action.",
+		},
+		"CPS_ACTION_NOT_FOUND": {
+			Code:    "GEN_033",
+			Message: "CPS action not found.",
+		},
+		"FAILED_TO_INSERT_EVENT": {
+			Code:    "GEN_034",
+			Message: "Failed to insert event.",
+		},
+		"FAILED_TO_FETCH_EVENT": {
+			Code:    "GEN_035",
+			Message: "Failed to fetch event.",
+		},
+		"EVENT_NOT_FOUND": {
+			Code:    "GEN_036",
+			Message: "Event not found.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

@@ -37,15 +37,14 @@ import (
 
 	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
-	budget_category_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
+	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
-	budget_category_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/budget_category"
 	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
@@ -75,7 +74,7 @@ type Persitence struct {
 	WalletPersistance          wallet.WalletPersistence
 	FaydaPersistence           fayda_account_repo.FaydaRepository
 	miniAppPersistance         miniApp_port.Outbound
-	BudgetCategoryPersistence  budget_category_port.BudgetCategoryOutbound
+	EventPersistence           *event_persistence.EventPersistence
 }
 
 func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
@@ -126,7 +125,7 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"service", "cps_actions"}, logger),
+		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
@@ -134,6 +133,6 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, database_name, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
-		BudgetCategoryPersistence:  budget_category_persistence.NewBudgetCategoryRepo(client, database_name, logger),
+		EventPersistence:           event_persistence.InitEventPersistence(client, database_name, []string{"events", "cps_actions"}, logger),
 	}
 }

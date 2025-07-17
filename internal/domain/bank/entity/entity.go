@@ -7,7 +7,7 @@ import (
 )
 
 type Bank struct {
-	ID             string    `json:"_id,omitempty" bson:"_id,omitempty"`
+	ID             string    `json:"id,omitempty" bson:"_id,omitempty"`
 	Name           string    `json:"name" bson:"name"`
 	Logo           string    `json:"logo" bson:"logo"`
 	Code           string    `json:"code" bson:"code"`

@@ -8,7 +8,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-type Repository interface {
+type AdRepository interface {
 	CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error)

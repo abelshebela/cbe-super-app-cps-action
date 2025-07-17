@@ -846,7 +846,16 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 		if existing.ActionStatus == "PENDING" {
 			return nil, fmt.Errorf("PENDING_ACTION_ALREADY_EXISTS")
 		}
-		cpsAction.PreviosAction = existing.CurrentAction
+	}
+
+	prevFilter := bson.M{
+		"unique_id":  cpsAction.UniqueId,
+		"maker_id":   cpsAction.MakerID,
+		"maker_name": cpsAction.MakerName,
+	}
+	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
+	if err == nil && previosCPSAction != nil {
+		cpsAction.PreviosAction = previosCPSAction.CurrentAction
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -890,6 +899,16 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		if existingCPSAction.ActionStatus == "PENDING" {
 			return nil, fmt.Errorf("PENDING_ACTION_ALREADY_EXISTS")
 		}
+	}
+
+	prevFilter := bson.M{
+		"unique_id":  cpsAction.UniqueId,
+		"maker_id":   cpsAction.MakerID,
+		"maker_name": cpsAction.MakerName,
+	}
+	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
+	if err == nil && previosCPSAction != nil {
+		cpsAction.PreviosAction = previosCPSAction.CurrentAction
 	}
 
 	// Create CPS action

@@ -51,7 +51,7 @@ var errorKeyToStatus = map[string]int{
 	"COULD_NOT_UNLINK_DEVICE":                        500,
 	"INCOMPLETE_USER_INFO":                           400,
 	"INVALID_ACTION_TYPE":                            400,
-	"ACTION_NOT_FOUND":                               400,
+	"ACTION_NOT_FOUND":                               404,
 	"PENDING_REQUEST_EXISTS":                         409,
 	"MISSING_REQUIRED_HEADERS":                       400,
 	"DEVICE_LOOKUP_FAILED":                           500,
@@ -123,6 +123,18 @@ var errorKeyToStatus = map[string]int{
 	"INPUT_INVALID_CHARACTERS":                                   400,
 	"PAGE_NOT_FOUND":                                             404,
 	"MISSING_OR_INVALID_IMAGE":                                   400,
+	"OPEN_MIN_GE_OPEN_MAX":                                       http.StatusBadRequest,
+	"OPEN_MAX_GE_PIN_MAX":                                        http.StatusBadRequest,
+	"PIN_MIN_GE_PIN_MAX":                                         http.StatusBadRequest,
+	"PIN_MIN_LE_OPEN_MIN":                                        http.StatusBadRequest,
+	"PIN_MAX_LE_PIN_MIN":                                         http.StatusBadRequest,
+	"OTP_MIN_GE_PIN_MIN":                                         http.StatusBadRequest,
+	"TIER_AUTH_NOT_FOUND":                                        http.StatusNotFound,
+	"FAILED_TO_GET_AUTH_TIER":                                    http.StatusInternalServerError,
+	"REQUIRED_TITLE":                                             http.StatusBadRequest,
+	"REQUIRED_DESCRIPTION":                                       http.StatusBadRequest,
+	"TITLE_TOO_LONG":                                             http.StatusBadRequest,
+	"DESCRIPTION_TOO_LONG":                                       http.StatusBadRequest,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
@@ -154,6 +166,7 @@ var errorKeyToStatus = map[string]int{
 	"ACCOUNT_LOCKED":                    403,
 	"PENDING_ACTION_ALREADY_EXISTS":     409,
 	"NO_DOCUMENT_FOUND":                 404,
+	"ACCESS_TOKEN_REQUIRED":             401,
 
 	// Transaction
 	"TRANSACTION_NOT_FOUND": 404,
@@ -235,6 +248,13 @@ var errorKeyToStatus = map[string]int{
 	"ACTION_HAS_ALREADY_APPROVED": 409,
 	"ACTION_HAS_ALREADY_REJECTED": 409,
 	"NO_PENDING_ACTION_FOUND":     404,
+
+	// AD
+	"AD_NOT_FOUND":       404,
+	"AD_ALREADY_EXISTS":  409,
+	"AD_CREATION_FAILED": 500,
+	"AD_UPDATE_FAILED":   500,
+	"AD_DELETION_FAILED": 500,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -255,6 +275,7 @@ func getStatusForErrorKey(key string) int {
 		common.DefineError.Department,
 		common.DefineError.Action,
 		common.DefineError.Wallet,
+		common.DefineError.AD,
 	} {
 		if _, ok := group[key]; ok {
 			return http.StatusBadRequest
@@ -345,6 +366,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Department,
 		common.DefineError.Wallet,
 		common.DefineError.Action,
+		common.DefineError.AD,
 	}
 
 	for _, group := range errorGroups {
