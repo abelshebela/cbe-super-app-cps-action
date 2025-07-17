@@ -110,12 +110,10 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("avatar not found %v", err)
-
-			return model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+			return model.CPSAction{}, fmt.Errorf("NOT_FOUND")
 		}
 		a.logger.Errorf("failed to get avatar", err)
-
-		return model.CPSAction{}, fmt.Errorf("NO_AVATER_DATA_FOUND")
+		return model.CPSAction{}, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
@@ -167,6 +165,10 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("cps action not found", err)
+			return model.CPSAction{}, fmt.Errorf("ACTION_NOT_FOUND")
+		}
 		a.logger.Errorf("failed to update cps action", err)
 		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTIONN")
 	}
@@ -237,8 +239,12 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		avatar, err = a.avatarDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			a.logger.Errorf("failed to update avatar", err)
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				a.logger.Errorf("avatar not found", err)
+				return model.CPSAction{}, fmt.Errorf("NOT_FOUND")
+			}
 
-			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
 		}
 
 		cpsAction.CurrentAction = avatar
@@ -259,9 +265,13 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 		avatar, err = a.avatarDal.UpdateOne(ctx, filter, update)
 		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				a.logger.Errorf("avatar not found", err)
+				return model.CPSAction{}, fmt.Errorf("NOT_FOUND")
+			}
 			a.logger.Errorf("failed to update avatar", err)
 
-			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 		}
 		cpsAction.CurrentAction = avatar
 
@@ -290,8 +300,12 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("cps action not found", err)
+			return model.CPSAction{}, fmt.Errorf("ACTION_NOT_FOUND")
+		}
 		a.logger.Errorf("failed to update avatar status", err)
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 	return cpsAction, nil
 }
@@ -317,8 +331,11 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	avatar, err := a.avatarDal.FindOne(ctx, avatarFilter, avatarProjection)
 	if err != nil {
 		a.logger.Errorf("failed to get avatar", err)
-
-		return nil, fmt.Errorf("FAILED_TO_GET_AVATAR")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found", err)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
@@ -360,13 +377,7 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 
 	avatar, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("avatar not found")
-
-			return dto.AvatarResponse{}, fmt.Errorf("NO_AVATER_DATA_FOUND")
-		}
 		a.logger.Errorf("failed to get avatar", err)
-
 		return dto.AvatarResponse{}, fmt.Errorf("FAILED_TO_GET_AVATER")
 	}
 
@@ -396,8 +407,7 @@ func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*dto.Avat
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("avatar not found")
-
-			return nil, fmt.Errorf("NO_AVATER_DATA_FOUND")
+			return nil, fmt.Errorf("NOT_FOUND")
 		}
 		a.logger.Errorf("failed to get avatar", err)
 
@@ -418,9 +428,13 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 
 	avatar, err := a.avatarDal.FindOne(ctx, filter, projection)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found", err)
+			return model.CPSAction{}, fmt.Errorf("NOT_FOUND")
+		}
 		a.logger.Errorf("failed to get avatar", err)
 
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+		return model.CPSAction{}, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{

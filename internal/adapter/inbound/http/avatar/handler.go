@@ -8,18 +8,15 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"github.com/go-chi/chi/v5"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// util_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	// common_util ("github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils")
 )
 
 type AvatarHTTPHandler struct {
@@ -100,7 +97,12 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	action_code, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.AuthorizeCPSAction
 
@@ -125,7 +127,12 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	action_code, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.RejectCPSAction
 

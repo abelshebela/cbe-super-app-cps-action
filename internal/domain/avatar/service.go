@@ -3,11 +3,12 @@ package avatar
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -52,13 +53,9 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	}
 
 	actionData, ok := req.ActionData.(CreateAvatar)
-
 	if !ok {
 		a.logger.Errorf("failed to cast action data to avatar request")
-		return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
@@ -69,20 +66,14 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
 		a.logger.Errorf("failed to check avatar bucket: %v", err)
-		return model.CPSAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	if !exist {
 		created, err := a.minioClient.MakeBucket(ctx, a.bucketName)
 		if !created || err != nil {
 			a.logger.Errorf("failed to create avatar bucket: %v", err)
-			return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 		}
 	}
 
@@ -90,10 +81,7 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 	file, err := actionData.Avatar.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open uploaded file: %v", err)
-		return model.CPSAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -107,10 +95,7 @@ func (a *AvatarDomain) CreateAvatar(ctx context.Context, req model.CreateCPSActi
 
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return model.CPSAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	cpsRes, err := a.avatarRepo.CreateAvatar(ctx, model.CreateCPSAction{
@@ -200,10 +185,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 	actionData, ok := req.ActionData.(UpdateAvatar)
 	if !ok {
 		a.logger.Errorf("failed to cast action data to avatar request")
-		return model.CPSAction{}, fmt.Errorf("failed to create avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid action data",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
@@ -214,18 +196,12 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 	exist, err := a.minioClient.BucketExist(ctx, a.bucketName)
 	if err != nil {
 		a.logger.Errorf("failed to check avatar bucket %v", err)
-		return model.CPSAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	if !exist {
 		a.logger.Errorf("avatar bucket not found")
-		return model.CPSAction{}, fmt.Errorf("failed to check avatar bucket: %w", constant.ErrorDefinition{
-			Code:    http.StatusNotFound,
-			Message: "bucket not exist",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.NotFound)
 	}
 
 	avatar, err := a.avatarRepo.GetAvatar(ctx, id)
@@ -237,10 +213,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 	file, err := actionData.Avatar.Open()
 	if err != nil {
 		a.logger.Errorf("failed to open uploaded file: %v", err)
-		return model.CPSAction{}, fmt.Errorf("failed to open uploaded file: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -254,10 +227,7 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req model.Cr
 
 	if err != nil {
 		a.logger.Errorf("failed to save object to MinIO: %v", err)
-		return model.CPSAction{}, fmt.Errorf("upload to MinIO failed: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return model.CPSAction{}, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	req.ActionData = Avatar{
