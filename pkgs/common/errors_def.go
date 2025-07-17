@@ -617,6 +617,38 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_135",
 			Message: "No pending action found",
 		},
+		"OpenMinGEOpenMax": {
+			Code:    "GEN_136",
+			Message: "Open min amount cannot be greater than or equal to open max amount.",
+		},
+		"OpenMaxGEPinMax": {
+			Code:    "GEN_137",
+			Message: "Open max amount cannot be greater than or equal to pin max amount.",
+		},
+		"PinMinGEPinMax": {
+			Code:    "GEN_138",
+			Message: "Pin min amount cannot be greater than or equal to pin max amount.",
+		},
+		"PinMinLEOpenMin": {
+			Code:    "GEN_139",
+			Message: "Pin min amount cannot be less than or equal to open min amount.",
+		},
+		"PinMaxLEPinMin": {
+			Code:    "GEN_140",
+			Message: "Pin max amount must be greater than pin min amount.",
+		},
+		"OTPMinGEPinMin": {
+			Code:    "GEN_141",
+			Message: "OTP min amount cannot be greater than or equal to pin min amount.",
+		},
+		"TierAuthNotFound": {
+			Code:    "GEN_142",
+			Message: "Authentication tier not found.",
+		},
+		"FailedToGetAuthTier": {
+			Code:    "GEN_143",
+			Message: "Failed to retrieve authentication tier.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

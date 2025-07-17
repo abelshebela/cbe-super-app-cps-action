@@ -48,7 +48,7 @@ type Domain struct {
 	miniAppDomain         miniApp_domain.MiniAppService
 	AccountBlockDomain    account_block.ApplicationServices
 	PermissionDomain      permission.Service
-	AmountBasedAuthDomain amount_based_auth_domain.Repository
+	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthRepository
 	ServiceDomain         service.ServiceInterface
 	ActionDomain          action.ServiceInterface
 	EventDomain           event_domain.EventService

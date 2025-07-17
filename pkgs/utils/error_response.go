@@ -123,6 +123,14 @@ var errorKeyToStatus = map[string]int{
 	"INPUT_INVALID_CHARACTERS":                                   400,
 	"PAGE_NOT_FOUND":                                             404,
 	"MISSING_OR_INVALID_IMAGE":                                   400,
+	"OPEN_MIN_GE_OPEN_MAX":                                       http.StatusBadRequest,
+	"OPEN_MAX_GE_PIN_MAX":                                        http.StatusBadRequest,
+	"PIN_MIN_GE_PIN_MAX":                                         http.StatusBadRequest,
+	"PIN_MIN_LE_OPEN_MIN":                                        http.StatusBadRequest,
+	"PIN_MAX_LE_PIN_MIN":                                         http.StatusBadRequest,
+	"OTP_MIN_GE_PIN_MIN":                                         http.StatusBadRequest,
+	"TIER_AUTH_NOT_FOUND":                                        http.StatusNotFound,
+	"FAILED_TO_GET_AUTH_TIER":                                    http.StatusInternalServerError,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
