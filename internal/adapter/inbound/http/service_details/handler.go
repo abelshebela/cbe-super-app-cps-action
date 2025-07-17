@@ -77,7 +77,7 @@ func (h *HttpStore) handleError(w http.ResponseWriter, err error) {
 		statusCode = http.StatusConflict
 		message = err.Error()
 	}
-
+	// utils.BaseResponseMaker()
 	utils.WriteErrorResponse(w, statusCode, message)
 }
 
@@ -165,17 +165,16 @@ func (h *HttpStore) ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.R
 
 	update, err := h.Application.GetServiceDetailsByID(r.Context(), req.ServiceId)
 	if err != nil {
-		h.logger.Errorf("[ServiceDetailsDailyCapMaker] failed to get service by id: %v", err.Error())
 		h.handleError(w, err)
 		return
 	}
 	update.Cap.DailyCap = req.DailyCap
-	curUser, curErr := h.buildUserContext(r)
-	if curErr != nil {
-		common_util.SendErrorResponse(w, utils.Unauthorized, 0, nil)
+	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
+	if !ok {
+		h.handleError(w, fmt.Errorf("unauthorized"))
 		return
 	}
-	res, err := h.Application.UpdateServiceDetailsRequest(r.Context(), curUser.UserCode, &dto.UpdateServiceDetailsRequest{
+	res, err := h.Application.UpdateServiceDetailsRequest(r.Context(), claims.UserID, &dto.UpdateServiceDetailsRequest{
 		ID:                 update.ID,
 		ServiceID:          update.ServiceID,
 		ServiceCode:        update.ServiceCode,
@@ -190,12 +189,12 @@ func (h *HttpStore) ServiceDetailsDailyCapMaker(w http.ResponseWriter, r *http.R
 		PaymentType:        update.PaymentType,
 	})
 	if err != nil {
-		h.logger.Errorf("[ServiceDetailsDailyCapMaker] failed to get update: %v", err.Error())
 		utils.WriteErrorResponse(w, http.StatusNoContent, "")
 		return
 	}
 	response := res.ActionID
 	utils.WriteSuccessResponse(w, response, "success")
+	//&update.MakerID = claims.UserID
 }
 
 func (h *HttpStore) ServiceDetailsSingleCapMaker(w http.ResponseWriter, r *http.Request) {

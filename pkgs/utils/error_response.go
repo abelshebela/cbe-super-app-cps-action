@@ -166,6 +166,7 @@ var errorKeyToStatus = map[string]int{
 	"ACCOUNT_LOCKED":                    403,
 	"PENDING_ACTION_ALREADY_EXISTS":     409,
 	"NO_DOCUMENT_FOUND":                 404,
+	"ACCESS_TOKEN_REQUIRED":             401,
 
 	// Transaction
 	"TRANSACTION_NOT_FOUND": 404,

@@ -27,12 +27,12 @@ type BudgetCategoryAdapter struct {
 func InitBudgetCategoryAdapter(
 	budgetCategoryHandler budget_category.BudgetCategoryApplictionService,
 	logger utils.Logger,
-	fileService file.FileService,
+	// fileService file.FileService,
 ) inbound.BudgetCategoryInbound {
 	return BudgetCategoryAdapter{
 		BudgetCategoryHandler: budgetCategoryHandler,
 		logger:                logger,
-		fileService:           fileService,
+		// fileService:           fileService,
 	}
 }
 

@@ -40,7 +40,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/services",
+				Path:    "/",
 				Handler: handler.FetchServices,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

@@ -8,18 +8,15 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-	"github.com/go-chi/chi/v5"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// util_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	// common_util ("github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils")
 )
 
 type AvatarHTTPHandler struct {
@@ -59,8 +56,7 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 	cpsRequest.Department = department
 	cpsRequest.ActionData = req
 
-	ctx := r.Context()
-	cpsRes, err := a.avatarHandler.CreateAvatar(ctx, cpsRequest)
+	cpsRes, err := a.avatarHandler.CreateAvatar(r.Context(), cpsRequest)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -71,7 +67,12 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.CreateCPSAction
 
@@ -88,8 +89,7 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 	cpsReq.MakerUser = userData
 	cpsReq.Department = department
 
-	ctx := r.Context()
-	cpsAction, err := a.avatarHandler.DeleteAvatar(ctx, id, cpsReq)
+	cpsAction, err := a.avatarHandler.DeleteAvatar(r.Context(), id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -100,7 +100,12 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	action_code, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.AuthorizeCPSAction
 
@@ -114,8 +119,7 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = department
 	cpsReq.ActionCode = action_code
 
-	ctx := r.Context()
-	approvedAction, err := a.avatarHandler.Authorize(ctx, cpsReq)
+	approvedAction, err := a.avatarHandler.Authorize(r.Context(), cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -125,7 +129,12 @@ func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
+	action_code, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var cpsReq model.RejectCPSAction
 
@@ -145,8 +154,7 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = department
 	cpsReq.ActionCode = action_code
 
-	ctx := r.Context()
-	rejectAction, err := a.avatarHandler.Reject(ctx, cpsReq)
+	rejectAction, err := a.avatarHandler.Reject(r.Context(), cpsReq)
 	if err != nil {
 		a.logger.Errorf("failed to decode avatar request", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -157,8 +165,12 @@ func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -174,8 +186,7 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		ID: id,
 	}
 
-	ctx := r.Context()
-	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(ctx, id, model.RequestDisableAvatar, cpsReq)
+	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestDisableAvatar, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -185,7 +196,12 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
@@ -201,8 +217,7 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		ID: id,
 	}
 
-	ctx := r.Context()
-	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(ctx, id, model.RequestEnableAvatar, cpsReq)
+	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestEnableAvatar, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -236,9 +251,7 @@ func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request)
 		Filters: filter,
 	}
 
-	ctx := r.Context()
-
-	avatars, err := a.avatarHandler.GetAllAvatar(ctx, filterParams)
+	avatars, err := a.avatarHandler.GetAllAvatar(r.Context(), filterParams)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 
@@ -250,11 +263,14 @@ func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
-	ctx := r.Context()
-
-	avatar, err := a.avatarHandler.GetAvatar(ctx, id)
+	avatar, err := a.avatarHandler.GetAvatar(r.Context(), id)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -265,7 +281,13 @@ func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	fmt.Println(id, ok, "id and ok")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var req dto.UpdateAvatar
 
@@ -281,7 +303,6 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 	userData, department, err := a.extractUserFromContext(r)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
-
 		return
 	}
 
@@ -291,8 +312,7 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 	updateRequest.Department = department
 	updateRequest.ActionData = req
 
-	ctx := r.Context()
-	cpsAction, err := a.avatarHandler.UpdateAvatar(ctx, id, updateRequest)
+	cpsAction, err := a.avatarHandler.UpdateAvatar(r.Context(), id, updateRequest)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -303,45 +323,15 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 }
 
 func (a *AvatarHTTPHandler) extractUserFromContext(r *http.Request) (model.User, string, error) {
-	userCode, ok := r.Context().Value(constant.ContextKey("user_code")).(string)
-	if !ok {
-		a.logger.Errorf("failed to get user code from context")
-		return model.User{}, "", fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "bad request",
-		})
-	}
+	userContext := ctx_util.ExtractUserContext(r)
 
-	fullName, ok := r.Context().Value(constant.ContextKey("full_name")).(string)
-	if !ok {
-		a.logger.Errorf("failed to get full name from context")
-		return model.User{}, "", fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "bad request",
-		})
-	}
-
-	phoneNumber, ok := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	if !ok {
-		a.logger.Errorf("failed to get phone number from context")
-		return model.User{}, "", fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "bad request",
-		})
-	}
-
-	department, ok := r.Context().Value(constant.ContextKey("department")).(string)
-	if !ok {
-		a.logger.Errorf("failed to get department from context")
-		return model.User{}, "", fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "bad request",
-		})
+	if userContext.IsIncomplete() {
+		return model.User{}, "", fmt.Errorf(common_util.IncompleteUserInfo)
 	}
 
 	return model.User{
-		UserCode:    userCode,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-	}, department, nil
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+	}, userContext.Department, nil
 }

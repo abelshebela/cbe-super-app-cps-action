@@ -113,6 +113,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: entity.Bank{
+			ID:   constant.GenerateID().Hex(),
 			Name: actionData.Name,
 			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
 			Code: actionData.Code,

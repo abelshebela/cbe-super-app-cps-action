@@ -46,6 +46,7 @@ import (
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
@@ -79,7 +80,7 @@ type Adapter struct {
 	EventAdapter           event_inbound.EventHandler
 }
 
-func InitAdapter(application Application, logger utils.Logger) Adapter {
+func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
 	return Adapter{
 		AvatarAdapter:        avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
 		BankAdapter:          bank.InitBankAdapter(application.BankApplication, logger),

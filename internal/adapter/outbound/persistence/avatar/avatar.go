@@ -23,13 +23,13 @@ import (
 
 type AvatarPersistence struct {
 	cpsActionDal dal.MongoDal[model.CPSAction, model.CPSAction]
-	avatarDal    dal.MongoDal[dto.Avatar, dto.Avatar]
+	avatarDal    dal.MongoDal[AvatarDocument, AvatarDocument]
 	logger       utils.Logger
 }
 
 func InitAvatarPersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) avatar.AvatarOutbound {
 	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[0])
-	avatarDal := dal.NewMongoDal[dto.Avatar, dto.Avatar](client, dbName, collections[1])
+	avatarDal := dal.NewMongoDal[AvatarDocument, AvatarDocument](client, dbName, collections[1])
 	return &AvatarPersistence{
 		cpsActionDal: cpsActionDal,
 		avatarDal:    avatarDal,
@@ -63,7 +63,7 @@ func (a *AvatarPersistence) CPSActionExists(ctx context.Context, cpsReq model.Cr
 	return nil
 }
 
-func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (*dto.CPSAction, error) {
 	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
@@ -83,17 +83,17 @@ func (a *AvatarPersistence) CreateAvatar(ctx context.Context, cpsActionReq model
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
 
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
-	return cpsAction, nil
+	return ToCPSAction(&cpsAction), nil
 }
 
-func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*dto.CPSAction, error) {
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		a.logger.Errorf("invalid object id: %v", err)
-		return model.CPSAction{}, fmt.Errorf("INVALID_OBJECT_ID")
+		return nil, fmt.Errorf("INVALID_OBJECT_ID")
 	}
 	filter := bson.M{
 		"_id":        objectID,
@@ -110,12 +110,10 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("avatar not found %v", err)
-
-			return model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+			return nil, fmt.Errorf("NOT_FOUND")
 		}
 		a.logger.Errorf("failed to get avatar", err)
-
-		return model.CPSAction{}, fmt.Errorf("NO_AVATER_DATA_FOUND")
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cpsAction, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
@@ -140,14 +138,14 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
-	return cpsAction, nil
+	return ToCPSAction(&cpsAction), nil
 }
 
-func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error) {
-	var avatar dto.Avatar
+func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*dto.CPSAction, error) {
+
 	var err error
 
 	filter := bson.M{
@@ -157,7 +155,6 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	}
 
 	update := bson.M{
-
 		"checker_id":           req.CheckerUser.UserCode,
 		"checker_phone_number": req.CheckerUser.PhoneNumber,
 		"checker_name":         req.CheckerUser.FullName,
@@ -167,8 +164,12 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("cps action not found", err)
+			return nil, fmt.Errorf("ACTION_NOT_FOUND")
+		}
 		a.logger.Errorf("failed to update cps action", err)
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTIONN")
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTIONN")
 	}
 
 	var actionData dto.Avatar
@@ -176,17 +177,17 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 	if err != nil {
 		a.logger.Errorf("failed to marshal bson: %v", err)
 
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
 	if err := bson.Unmarshal(data, &actionData); err != nil {
 		a.logger.Errorf("failed to unmarshal into avatar: %v", err)
 
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
 	if cpsAction.ActionType == string(model.ActionCreate) {
-		req := dto.Avatar{
+		req, err := ToAvatarDocument(dto.Avatar{
 			ID:             bson.NewObjectID().Hex(),
 			Avatar:         actionData.Avatar,
 			Label:          actionData.Label,
@@ -194,18 +195,23 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			Enable:         true,
 			CreatedAt:      time.Now(),
 			LastModifiedAt: time.Now(),
+		})
+
+		if err != nil {
+			a.logger.Errorf("failed to convert avatar to document", err)
+			return nil, fmt.Errorf("FAILED_TO_CONVERT_AVATAR_TO_DOCUMENT")
 		}
 
-		avatar, err = a.avatarDal.InsertOne(ctx, req)
+		avatarDoc, err := a.avatarDal.InsertOne(ctx, *req)
 		if err != nil {
 			a.logger.Errorf("failed to create avatar", err)
 
-			return model.CPSAction{}, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
+			return nil, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
 		}
 
-		cpsAction.CurrentAction = avatar
+		cpsAction.CurrentAction = avatarDoc.toModel()
 
-		return cpsAction, nil
+		return ToCPSAction(&cpsAction), nil
 
 	}
 
@@ -234,16 +240,20 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 		update["last_modified_at"] = time.Now()
 
-		avatar, err = a.avatarDal.UpdateOne(ctx, filter, update)
+		avatarDoc, err := a.avatarDal.UpdateOne(ctx, filter, update)
 		if err != nil {
 			a.logger.Errorf("failed to update avatar", err)
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				a.logger.Errorf("avatar not found", err)
+				return nil, fmt.Errorf("NOT_FOUND")
+			}
 
-			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
 		}
 
-		cpsAction.CurrentAction = avatar
+		cpsAction.CurrentAction = avatarDoc.toModel()
 
-		return cpsAction, nil
+		return ToCPSAction(&cpsAction), nil
 	}
 
 	if cpsAction.ActionType == string(model.ActionDelete) {
@@ -257,21 +267,25 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			"deleted_at": time.Now(),
 		}
 
-		avatar, err = a.avatarDal.UpdateOne(ctx, filter, update)
+		avatarDoc, err := a.avatarDal.UpdateOne(ctx, filter, update)
 		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				a.logger.Errorf("avatar not found", err)
+				return nil, fmt.Errorf("NOT_FOUND")
+			}
 			a.logger.Errorf("failed to update avatar", err)
 
-			return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 		}
-		cpsAction.CurrentAction = avatar
+		cpsAction.CurrentAction = avatarDoc
 
-		return cpsAction, nil
+		return ToCPSAction(&cpsAction), nil
 	}
 
-	return cpsAction, nil
+	return ToCPSAction(&cpsAction), nil
 }
 
-func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
+func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*dto.CPSAction, error) {
 	checkerUser := contexts.ExtractContext(ctx)
 	filter := bson.M{
 		"action_code":   req.ActionCode,
@@ -290,14 +304,17 @@ func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSActio
 
 	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("cps action not found", err)
+			return nil, fmt.Errorf("ACTION_NOT_FOUND")
+		}
 		a.logger.Errorf("failed to update avatar status", err)
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_UPDATE_ADVERT")
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
-	return cpsAction, nil
+	return ToCPSAction(&cpsAction), nil
 }
 
-func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*dto.CPSAction, error) {
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		a.logger.Errorf("invalid object id: %v", err)
@@ -317,8 +334,11 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	avatar, err := a.avatarDal.FindOne(ctx, avatarFilter, avatarProjection)
 	if err != nil {
 		a.logger.Errorf("failed to get avatar", err)
-
-		return nil, fmt.Errorf("FAILED_TO_GET_AVATAR")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found", err)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
@@ -345,10 +365,10 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 		return nil, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
-	return &cps, nil
+	return ToCPSAction(&cps), nil
 }
 
-func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (dto.AvatarResponse, error) {
+func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*dto.AvatarResponse, error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
@@ -358,25 +378,25 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 
-	avatar, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("avatar not found")
-
-			return dto.AvatarResponse{}, fmt.Errorf("NO_AVATER_DATA_FOUND")
-		}
 		a.logger.Errorf("failed to get avatar", err)
-
-		return dto.AvatarResponse{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+		return nil, fmt.Errorf("FAILED_TO_GET_AVATER")
 	}
 
 	total, err := a.avatarDal.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("failed to get avatar total counts", err)
-		return dto.AvatarResponse{}, fmt.Errorf("FAILED_TO_GET_COUNT")
+		return nil, fmt.Errorf("FAILED_TO_GET_COUNT")
 	}
 
-	return dto.AvatarResponse{
+	var avatar []*dto.Avatar
+	for _, doc := range avatarDocs {
+		n := doc.toModel()
+		avatar = append(avatar, &n)
+	}
+
+	return &dto.AvatarResponse{
 		Page:    filterParams.Page,
 		Avatars: avatar,
 		Limit:   constant.DefaultPerPage,
@@ -385,30 +405,40 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 }
 
 func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*dto.Avatar, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("invalid object id: %v", err)
+		return nil, fmt.Errorf("INVALID_ID")
+	}
 	filter := bson.M{
-		"id":         id,
+		"_id":        objID,
 		"is_deleted": false,
 	}
 
 	projection := bson.M{}
 
-	avatar, err := a.avatarDal.FindOne(ctx, filter, projection)
+	avatarDoc, err := a.avatarDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("avatar not found")
-
-			return nil, fmt.Errorf("NO_AVATER_DATA_FOUND")
+			return nil, fmt.Errorf("NOT_FOUND")
 		}
 		a.logger.Errorf("failed to get avatar", err)
 
 		return nil, fmt.Errorf("FAILED_TO_GET_AVATER")
 	}
-	return avatar, nil
+	avatar := avatarDoc.toModel()
+	return &avatar, nil
 }
 
-func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*dto.CPSAction, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("invalid object id: %v", err)
+		return nil, fmt.Errorf("INVALID_ID")
+	}
 	filter := bson.M{
-		"id":         id,
+		"_id":        objID,
 		"is_deleted": false,
 	}
 
@@ -418,9 +448,13 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 
 	avatar, err := a.avatarDal.FindOne(ctx, filter, projection)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("avatar not found", err)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		a.logger.Errorf("failed to get avatar", err)
 
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_AVATER")
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cps, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
@@ -442,8 +476,8 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
 
-		return model.CPSAction{}, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_CRATE_CPS_ACTION")
 	}
 
-	return cps, nil
+	return ToCPSAction(&cps), nil
 }

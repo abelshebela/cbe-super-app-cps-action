@@ -44,7 +44,7 @@ func Initiator() {
 	logger.Infof("Application services initialized")
 
 	logger.Infof("Initializing adapter services...")
-	adapter := InitAdapter(application, logger)
+	adapter := InitAdapter(application, minioClient, logger)
 	logger.Infof("Adapter services initialized")
 
 	logger.Infof("Initializing Chi router.....")

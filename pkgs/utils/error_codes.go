@@ -90,6 +90,7 @@ const (
 	UnableToDecryptToken          = "UNABLE_TO_DYCRYPT_TOKEN"
 	FailedLogin                   = "FAILED_LOGIN"
 	AccountLocked                 = "ACCOUNT_LOCKED"
+	AccessTokenRequired           = "ACCESS_TOKEN_REQUIRED"
 
 	// Transaction
 	TransactionNotFound = "TRANSACTION_NOT_FOUND"

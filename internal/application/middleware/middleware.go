@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -102,15 +103,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if !strings.HasPrefix(authHeader, bearer) {
 			a.logger.Warnf("bearer token is not present")
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "unauthorized",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.Unauthorized, 0, nil)
 			return
 		}
 
@@ -119,15 +112,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if tokenString == "" {
 			a.logger.Warnf("empty token string provided")
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "access token required",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.AccessTokenRequired, 0, nil)
 			return
 		}
 
@@ -141,15 +126,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if token == nil {
 			a.logger.Errorf("token is nil")
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid token",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.Unauthorized, 0, nil)
 			return
 		}
 
@@ -171,45 +148,21 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if !ok {
 			a.logger.Errorf("failed to cast to map claims")
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid token",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.InvalidToken, 0, nil)
 			return
 		}
 
 		data, ok := claims["data"].(string)
 		if !ok || data == "" {
 			a.logger.Errorf("invalid token or data not present")
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid token",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.InvalidToken, 0, nil)
 			return
 		}
 
 		decryptedUser, err := a.decryptUserData(data)
 		if err != nil {
 			a.logger.Errorf("failed to decrypt user data: %v", err)
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid token",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.InvalidToken, 0, nil)
 			return
 		}
 
@@ -217,15 +170,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		err = json.Unmarshal([]byte(decryptedUser), &userPayload)
 		if err != nil {
 			a.logger.Errorf("failed to unmarshal user payload: %v", err)
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid token payload",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.InvalidToken, 0, nil)
 			return
 		}
 

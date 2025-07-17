@@ -1,3 +1,0 @@
-package initiator
-
-func InitLogger() {}
