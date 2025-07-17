@@ -41,11 +41,29 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
 		"action_status":      model.ActionPending,
+	}
+
+	projection := bson.M{
+		"action_code": 1,
+	}
+
+	existingAction, err := a.cpsDal.FindOne(ctx, filter, projection)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		a.logger.Errorf("failed to get cpsAction: %v", err)
+		return &model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_CPS_ACTION")
+	} else if existingAction != nil {
+		a.logger.Infof("pending cps action present for user_code: %s, department: %s", existingAction.MakerID)
+		return &model.CPSAction{}, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
+	}
+
+	filter = bson.M{
+		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
+		"action_status":      model.ActionPending,
 		"department":         cpsAction.Department,
 		"request_action":     cpsAction.RequestAction,
 	}
 
-	projection := bson.M{
+	projection = bson.M{
 		"action_code": 1,
 		"_id":         1,
 	}
@@ -76,6 +94,7 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 		CurrentAction:    cpsAction.ActionData,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	})
 
 	if err != nil {
@@ -163,6 +182,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsActio
 		},
 		MakerActionTime: time.Now(),
 		CreatedAt:       time.Now(),
+		LastModifiedAt:  time.Now(),
 	})
 	if err != nil {
 		a.logger.Errorf("failed to create cps action", err)
@@ -330,10 +350,12 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 		"checker_name":         cpsAction.CheckerUser.FullName,
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
+		"last_updated_at":      time.Now(),
 	}
 
 	cpsRes, err := a.cpsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		// if errors.Is(err,mongo.ErrNoDocuments)
 		a.logger.Errorf("failed to update cps action", err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
@@ -350,29 +372,35 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 		}
 
 		if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
-			a.logger.Errorf("failed to unmarshal into Bank: %v", err)
+			a.logger.Errorf("failed to unmarshal into Avatar: %v", err)
 			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 		if err := bson.Unmarshal([]byte(data), &mapData); err != nil {
-			a.logger.Errorf("failed to unmarshal into Bank: %v", err)
+			a.logger.Errorf("failed to unmarshal into Avatar: %v", err)
 			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 	} else {
-		mapData["id"] = cpsRes.UniqueId
+		mapData["_id"] = cpsRes.UniqueId
 	}
-	objId, err := bson.ObjectIDFromHex(mapData["id"].(string))
-	if err != nil {
-		return nil, err
+	fmt.Printf("Type of _id:%T", mapData["_id"])
+	objId, ok := mapData["_id"].(bson.ObjectID)
+	if !ok {
+		a.logger.Errorf("interface not type of objcetID")
+		return nil, fmt.Errorf("INVALID_ID_TYPE")
 	}
+
 	if cpsRes.ActionType == string(model.ActionCreate) {
 		req := entity.Advert{
-			Title:       actionData.Title,
-			Description: actionData.Description,
-			BannerImage: actionData.BannerImage,
-			AdvertFor:   actionData.AdvertFor,
-			Date:        actionData.Date,
-			CreatedAt:   time.Now(),
+			ID:            objId,
+			Title:         actionData.Title,
+			Description:   actionData.Description,
+			BannerImage:   actionData.BannerImage,
+			AdvertFor:     actionData.AdvertFor,
+			Date:          actionData.Date,
+			CreatedAt:     time.Now(),
+			LastUpdatedAt: time.Now(),
 		}
+
 		advert, err = a.adDal.InsertOne(ctx, req)
 		if err != nil {
 			a.logger.Errorf("failed to create cps action", err)
@@ -462,6 +490,7 @@ func (a *ADPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (
 		"action_status":        model.ActionRejected,
 		"rejection_reason":     req.RejectedReason,
 		"checker_action_time":  time.Now(),
+		"last_updated_at":      time.Now(),
 	}
 
 	cpsAction, err := a.cpsDal.UpdateOne(ctx, filter, update)

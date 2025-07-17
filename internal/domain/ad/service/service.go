@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/repository"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
 	// "github.com/mitchellh/mapstructure"
@@ -114,13 +115,15 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 		MakerUser:  cpsAction.MakerUser,
 		Department: cpsAction.Department,
 		ActionData: entity.Advert{
-			Title:       actionData.Title,
-			Description: actionData.Description,
-			BannerImage: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
-			AdvertFor:   entity.AdvertFor(actionData.AdvertFor),
-			Date:        entity.AdvertDate(actionData.Date),
+			ID:            bson.NewObjectID(),
+			Title:         actionData.Title,
+			Description:   actionData.Description,
+			BannerImage:   fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			AdvertFor:     entity.AdvertFor(actionData.AdvertFor),
+			Date:          entity.AdvertDate(actionData.Date),
+			CreatedAt:     time.Now(),
+			LastUpdatedAt: time.Now(),
 		},
-		// Map other fields from cpsAction as needed
 	})
 	if err != nil {
 		return nil, err

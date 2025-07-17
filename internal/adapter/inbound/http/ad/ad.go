@@ -2,6 +2,7 @@ package ad
 
 import (
 	"encoding/json"
+	"fmt"
 
 	// "fmt"
 	"net/http"
@@ -19,10 +20,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/go-chi/chi/v5"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
-	local_commen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 )
 
 type ADAdapter struct {
@@ -169,9 +167,7 @@ func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	def, _ := local_commen.GetSuccessResponseByCode("SUCCESS")
-	data, _ := util.StructToMap(advert)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.WriteSuccessResponse(w, advert, "AD featch successfully")
 }
 
 func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
@@ -236,6 +232,7 @@ func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	AuthorizeAction, err := a.adHandler.Authorize(ctx, cpsReq)
 	if err != nil {
+		fmt.Printf("error from Authorize Action %v:", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
