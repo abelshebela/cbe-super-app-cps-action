@@ -479,7 +479,7 @@ func TestAvatarDomain_GetAvatar(t *testing.T) {
 			IsDeleted:      false,
 			CreatedAt:      time.Now(),
 			LastModifiedAt: time.Now(),
-			DeletedAt:      time.Time{},
+			DeletedAt:      &time.Time{},
 		}
 
 		mockRepo.EXPECT().GetAvatar(gomock.Any(), avatarID).Return(expectedAvatar, nil)
@@ -528,7 +528,7 @@ func TestAvatarDomain_GetAllAvatar(t *testing.T) {
 				IsDeleted:      false,
 				CreatedAt:      time.Now(),
 				LastModifiedAt: time.Now(),
-				DeletedAt:      time.Time{},
+				DeletedAt:      &time.Time{},
 			},
 			{
 				ID:             "AVATAR002",
@@ -538,7 +538,7 @@ func TestAvatarDomain_GetAllAvatar(t *testing.T) {
 				IsDeleted:      false,
 				CreatedAt:      time.Now(),
 				LastModifiedAt: time.Now(),
-				DeletedAt:      time.Time{},
+				DeletedAt:      &time.Time{},
 			},
 		}
 

@@ -786,6 +786,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_028",
 			Message: "account locked. please contact your addministrator",
 		},
+		"ACCESS_TOKEN_REQUIRED": {
+			Code:    "AUTH_030",
+			Message: "access token required",
+		},
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {

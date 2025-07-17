@@ -51,7 +51,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/disable/{id}",
 				Handler: handler.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -60,7 +60,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/enable/{id}",
 				Handler: handler.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
