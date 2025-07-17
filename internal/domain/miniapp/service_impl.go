@@ -18,8 +18,8 @@ type MiniAppService interface {
 		data MiniApp, maker model.User) (string, error)
 
 	DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (string, error)
-	ListMiniApp(ctx context.Context) ([]*MiniApp, error)
-	DetailMiniAppByID(ctx context.Context, id string) (MiniApp, error)
+	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
 
 func NewService(repository Repository, logger utils.Logger) MiniAppService {

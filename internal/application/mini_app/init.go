@@ -17,8 +17,8 @@ type ApplicationAbstracts interface {
 	CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) error
 	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error)
 	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error)
-	ListMiniApp(ctx context.Context) ([]*domain.MiniApp, error)
-	DetailMiniAppByID(ctx context.Context, id string) (domain.MiniApp, error)
+	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
 type ApplicationStore struct {
 	service domain.MiniAppService

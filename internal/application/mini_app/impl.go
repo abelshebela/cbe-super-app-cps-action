@@ -144,7 +144,7 @@ func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.
 	return deleteID, nil
 }
 
-func (a *ApplicationStore) ListMiniApp(ctx context.Context) ([]*domain.MiniApp, error) {
+func (a *ApplicationStore) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
 	list, err := a.service.ListMiniApp(ctx)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.ListMiniApp] %v", err)
@@ -153,11 +153,11 @@ func (a *ApplicationStore) ListMiniApp(ctx context.Context) ([]*domain.MiniApp, 
 	return list, nil
 }
 
-func (a *ApplicationStore) DetailMiniAppByID(ctx context.Context, id string) (domain.MiniApp, error) {
+func (a *ApplicationStore) DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error) {
 	detail, err := a.service.DetailMiniAppByID(ctx, id)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.DetailMiniAppByID] %v", err)
-		return domain.MiniApp{}, err
+		return model.MiniApp{}, err
 	}
 	return detail, nil
 }

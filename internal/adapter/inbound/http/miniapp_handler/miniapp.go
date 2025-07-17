@@ -98,10 +98,6 @@ func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
 	if err != nil {
-		fmt.Println("====================")
-		fmt.Println(err)
-		fmt.Println("====================")
-
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "")
 		return
 	}

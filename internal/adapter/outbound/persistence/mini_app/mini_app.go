@@ -19,14 +19,14 @@ import (
 )
 
 type MiniAppPersistence struct {
-	MongoDalMiniApp   dal.MongoDal[domain.MiniApp, domain.MiniApp]
+	MongoDalMiniApp   dal.MongoDal[model.MiniApp, model.MiniApp]
 	MongoDalCPSAction dal.MongoDal[model.CPSAction, model.CPSAction]
 	logger            utils.Logger
 }
 
 func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.Outbound {
 	return &MiniAppPersistence{
-		MongoDalMiniApp:   dal.NewMongoDal[domain.MiniApp, domain.MiniApp](client, DB_name, collections[0]),
+		MongoDalMiniApp:   dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
 		MongoDalCPSAction: dal.NewMongoDal[model.CPSAction, model.CPSAction](client, DB_name, collections[1]),
 	}
 }
@@ -103,7 +103,7 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action mod
 	return model.CPSAction{}, nil
 }
 
-func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp domain.MiniApp) error {
+func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp model.MiniApp) error {
 	var credential []domain.CredentialInformation
 	var product_code []domain.ProductCode
 	for _, creds := range miniapp.Credential {
@@ -123,27 +123,29 @@ func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp domain.M
 			ProductCode: pc.ProductCode,
 		})
 	}
-	_, err := o.MongoDalMiniApp.InsertOne(ctx, domain.MiniApp{
-		AppName:           miniapp.AppName,
-		AppIcon:           miniapp.AppIcon,
-		CommisonGLAccount: miniapp.CommisonGLAccount,
-		AppType: domain.AppType{
-			UAT:        miniapp.AppType.UAT,
-			Production: miniapp.AppType.Production,
-			Test:       miniapp.AppType.Test,
-			Dev:        miniapp.AppType.Dev,
-		},
-		MerchantID:     miniapp.MerchantID,
-		ProductCode:    product_code,
-		Credential:     credential,
-		IsEventMiniApp: miniapp.IsEventMiniApp,
-		IsThreeClick:   miniapp.IsThreeClick,
-		Enabled:        miniapp.Enabled,
-		IsDeleted:      miniapp.IsDeleted,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-		DeletedAt:      time.Time{},
-	})
+	_, err := o.MongoDalMiniApp.InsertOne(ctx, miniapp)
+
+	// 	model.MiniApp{
+	// 	AppName:           miniapp.AppName,
+	// 	AppIcon:           miniapp.AppIcon,
+	// 	CommisonGLAccount: miniapp.CommisonGLAccount,
+	// 	AppType: domain.AppType{
+	// 		UAT:        miniapp.AppType.UAT,
+	// 		Production: miniapp.AppType.Production,
+	// 		Test:       miniapp.AppType.Test,
+	// 		Dev:        miniapp.AppType.Dev,
+	// 	},
+	// 	MerchantID:     miniapp.MerchantID,
+	// 	ProductCode:    product_code,
+	// 	Credential:     credential,
+	// 	IsEventMiniApp: miniapp.IsEventMiniApp,
+	// 	IsThreeClick:   miniapp.IsThreeClick,
+	// 	Enabled:        miniapp.Enabled,
+	// 	IsDeleted:      miniapp.IsDeleted,
+	// 	CreatedAt:      time.Now(),
+	// 	LastModifiedAt: time.Now(),
+	// 	DeletedAt:      time.Time{},
+	// })
 	if err != nil {
 		return err
 	}
@@ -198,7 +200,7 @@ func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.C
 	return updatedAction, err
 }
 
-func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*domain.MiniApp, error) {
+func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
 	filter := map[string]interface{}{"isdeleted": false}
 	miniApps, err := o.MongoDalMiniApp.FindAll(ctx, filter, nil)
 	if err != nil {
@@ -208,16 +210,16 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*domain.MiniApp
 	return miniApps, nil
 }
 
-func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (domain.MiniApp, error) {
+func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error) {
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return domain.MiniApp{}, err
+		return model.MiniApp{}, err
 	}
 	filter := bson.M{"_id": objectID}
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
 	if err != nil {
-		return domain.MiniApp{}, err
+		return model.MiniApp{}, err
 	}
 	return *miniApp, nil
 }
