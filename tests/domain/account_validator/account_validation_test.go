@@ -28,6 +28,24 @@ func (l *NoOpLogger) Fatalf(format string, args ...interface{}) {}
 func (l *NoOpLogger) Warnf(format string, args ...interface{})  {}
 func (l *NoOpLogger) Sync() error                               { return nil }
 
+func getMaker() account_validation.User {
+	return account_validation.User{
+		ID:          "maker-123",
+		FullName:    "Test Maker",
+		PhoneNumber: "1234567890",
+		Department:  "test-department",
+	}
+}
+
+func getChecker(ID string) account_validation.User {
+	return account_validation.User{
+		ID:          ID,
+		FullName:    "Test Checker",
+		PhoneNumber: "1234567890",
+		Department:  "test-department",
+	}
+}
+
 func TestGetAccountValidation(t *testing.T) {
 	mockRepo := new(mocks.AccountValidationRepository)
 	mockActionRepo := new(mocks.ActionRepository)
@@ -36,7 +54,7 @@ func TestGetAccountValidation(t *testing.T) {
 
 	ctx := context.Background()
 	expectedRule := account_validation.ValidationRule{
-		ID:            bson.NewObjectID(),
+		ID:            bson.NewObjectID().Hex(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -49,7 +67,7 @@ func TestGetAccountValidation(t *testing.T) {
 	t.Run("successful get", func(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, expectedRule.ID).Return(expectedRule, nil).Once()
 
-		rule, err := service.GetAccountValidation(ctx, expectedRule.ID.String())
+		rule, err := service.GetAccountValidation(ctx, expectedRule.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedRule, rule)
 	})
@@ -78,7 +96,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 	ctx := context.Background()
 	originalRule := account_validation.ValidationRule{
-		ID:            bson.NewObjectID(),
+		ID:            bson.NewObjectID().Hex(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -95,7 +113,6 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(originalRule, nil).Once()
 		mockRepo.On("FetchPendingActionsByUniqueID", ctx, "test-id").Return([]action.ActionResponse{}, nil).Once()
-
 
 		expectedAction := action.CPSAction{
 			ActionCode:         "CPS_123",
@@ -115,9 +132,9 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 		}
 
 		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(expectedAction, nil).Once()
+		maker := getMaker()
 
-
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "1234567890", "Test Maker", "test-department")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, maker)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, actionID)
@@ -126,9 +143,9 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 
 	t.Run("validation rule not found", func(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, originalRule.ID).Return(account_validation.ValidationRule{}, assert.AnError).Once()
+		maker := getMaker()
 
-
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "1234567890", "Test Maker", "test-department")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, maker)
 
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
@@ -136,7 +153,8 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 	})
 
 	t.Run("empty id", func(t *testing.T) {
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "", updatedRule, "maker-123", "1234567890", "Test Maker", "test-department")
+		maker := getMaker()
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "", updatedRule, maker)
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "INVALID_ID", err.Error())
@@ -145,8 +163,8 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 	t.Run("pending action exists", func(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(originalRule, nil).Once()
 		mockRepo.On("FetchPendingActionsByUniqueID", ctx, "test-id").Return([]action.ActionResponse{{ID: "1", ActionId: "CPS_456"}}, nil).Once()
-
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "1234567890", "Test Maker", "test-department")
+		maker := getMaker()
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, maker)
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "PENDING_ACTION_EXISTS", err.Error())
@@ -156,7 +174,7 @@ func TestUpdateAccountValidationRequest(t *testing.T) {
 		mockRepo.On("GetAccountValidationByID", ctx, "test-id").Return(originalRule, nil).Once()
 		mockRepo.On("FetchPendingActionsByUniqueID", ctx, "test-id").Return([]action.ActionResponse{}, assert.AnError).Once()
 
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, "maker-123", "1234567890", "Test Maker", "test-department")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", updatedRule, getMaker())
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "FAILED_TO_FETCH_PENDING_ACTIONS", err.Error())
@@ -169,7 +187,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 	checkerID := "checker-123"
 
 	validationRule := account_validation.ValidationRule{
-		ID:            bson.NewObjectID(),
+		ID:            bson.NewObjectID().Hex(),
 		EntityType:    "account",
 		ValidationFor: "phone",
 		Identifier:    "phone_number",
@@ -211,10 +229,11 @@ func TestUpdateAccountValidation(t *testing.T) {
 		}
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
-		mockRepo.On("UpdateAccountValidation", ctx, validationRule.ID.String(), mock.Anything).Return(nil).Once()
+		mockRepo.On("UpdateAccountValidation", ctx, validationRule.ID, mock.Anything).Return(nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		cheker := getChecker(checkerID)
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, cheker, "")
 		assert.NoError(t, err)
 	})
 
@@ -244,8 +263,9 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(nil).Once()
+		cheker := getChecker(checkerID)
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionDenied, checkerID, "0987654321", "Test Checker", "Rejection reason")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionDenied, cheker, "Rejection reason")
 		assert.NoError(t, err)
 	})
 
@@ -254,12 +274,13 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockActionRepo := new(mocks.ActionRepository)
 		logger := &NoOpLogger{}
 		service := account_validation.NewAccountValidationService(mockRepo, mockActionRepo, logger)
+		cheker := getChecker(checkerID)
 
-		err := service.UpdateAccountValidation(ctx, "", utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, "", utils.DecisionApproved, cheker, "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_ID_OR_CHECKER_ID_EMPTY", err.Error())
 
-		err = service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, "", "0987654321", "Test Checker", "")
+		err = service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, cheker, "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_ID_OR_CHECKER_ID_EMPTY", err.Error())
 	})
@@ -272,7 +293,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(action.CPSAction{}, assert.AnError).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, getChecker(checkerID), "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_NOT_FOUND", err.Error())
 	})
@@ -303,7 +324,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, getChecker(checkerID), "")
 		assert.Error(t, err)
 		assert.Equal(t, "ACTION_NOT_PENDING", err.Error())
 	})
@@ -332,7 +353,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo.On("FetchPendingActionsByUniqueID", ctx, "test-id").Return([]action.ActionResponse{}, nil).Once()
 		mockActionRepo.On("CreateCpsAction", ctx, mock.Anything).Return(action.CPSAction{}, assert.AnError).Once()
 
-		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", testUpdatedRule, "maker-123", "1234567890", "Test Maker", "test-department")
+		actionID, err := service.UpdateAccountValidationRequest(ctx, "test-id", testUpdatedRule, getMaker())
 		assert.Error(t, err)
 		assert.Empty(t, actionID)
 		assert.Equal(t, "FAILED_TO_CREATE_CPS_ACTION", err.Error())
@@ -367,7 +388,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockRepo.On("UpdateAccountValidation", ctx, "test-id", mock.Anything).Return(nil).Once()
 		mockActionRepo.On("UpdateCpsAction", ctx, mock.Anything).Return(assert.AnError).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, getChecker(checkerID), "")
 		assert.Error(t, err)
 		assert.Equal(t, "FAILED_TO_UPDATE_CPS_ACTION", err.Error())
 	})
@@ -400,7 +421,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 		mockRepo.On("UpdateAccountValidation", ctx, "test-id", mock.Anything).Return(assert.AnError).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, getChecker(checkerID), "")
 		assert.Error(t, err)
 		assert.Equal(t, "FAILED_TO_UPDATE_VALIDATION_RULE", err.Error())
 	})
@@ -437,7 +458,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, actionID, utils.DecisionApproved, getChecker(checkerID), "")
 		assert.Error(t, err)
 		assert.Equal(t, "VALIDATION_RULE_ID_EMPTY", err.Error())
 	})
@@ -468,7 +489,7 @@ func TestUpdateAccountValidation(t *testing.T) {
 
 		mockActionRepo.On("FetchCpsActionById", ctx, actionID).Return(expectedAction, nil).Once()
 
-		err := service.UpdateAccountValidation(ctx, actionID, "INVALID", checkerID, "0987654321", "Test Checker", "")
+		err := service.UpdateAccountValidation(ctx, actionID, "INVALID", getChecker(checkerID), "")
 		assert.Error(t, err)
 		assert.Equal(t, "INVALID_DECISION", err.Error())
 	})

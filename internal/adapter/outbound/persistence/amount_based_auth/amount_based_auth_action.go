@@ -10,6 +10,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/lib"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/rs/zerolog/log"
@@ -40,6 +42,53 @@ func InitAmountBasedAuth(client *mongo.Client, database string, collection []str
 	}
 }
 
+func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*amount_based_auth_domain.AmountBasedAuthRespose, error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	projection := bson.M{}
+
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"min_amount": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"max_amount": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"enabled": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"is_deleted": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	if filterParams.Filters != "" {
+		filter["account_status"] = filterParams.Filters
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+
+	amountBased, err := a.authTier.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("no auth tier data found", err)
+			return nil, fmt.Errorf("NO_CUSTOMER_DATA_FOUND")
+		}
+		a.logger.Errorf("failed to get auth tier data", err)
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
+	}
+
+	total, err := a.authTier.TotalCount(ctx, bson.M{})
+	if err != nil {
+		a.logger.Errorf("failed to get total counts", err)
+		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
+	}
+
+	return &amount_based_auth_domain.AmountBasedAuthRespose{
+		Page:            1,
+		AmountBasedAuth: amountBased,
+		Limit:           constant.DefaultPerPage,
+		Total:           total,
+	}, nil
+}
+
 func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsAction model.CreateCPSAction) error {
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
@@ -55,16 +104,10 @@ func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsActio
 	existingAuthTier, err := a.cpsActionDal.FindOne(ctx, filter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		a.logger.Errorf("failed to get cps action", err)
-		err = fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf(common_util.UnhandledServerError)
 		return err
 	} else if existingAuthTier != nil {
-		err = fmt.Errorf("pending cps already present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "already pending cps action present",
-		})
+		err = fmt.Errorf(common_util.PendingCPSActionExists)
 		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
 			cpsAction.MakerUser.UserCode, cpsAction.Department)
 		return err
@@ -78,10 +121,7 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 	if request.Method == amount_based_auth_domain.OPEN {
 		if authTier.MinAmount >= uint64(request.MaxAmount) {
 			a.logger.Errorf("min amount cannot be greater than or equal to max amount min: %s, max: %s", authTier.MinAmount, request.MaxAmount)
-			err := fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusBadRequest,
-				Message: "open min amount cannot be greater than or equal to open max amount",
-			})
+			err := fmt.Errorf(common_util.OpenMinGEOpenMax)
 			return err
 		}
 		filter := bson.M{
@@ -96,25 +136,16 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				a.logger.Errorf("pin authier not found", err)
-				err = fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusNotFound,
-					Message: "authier not found",
-				})
+				err = fmt.Errorf(common_util.PinAuthorNotFound)
 				return err
 			}
 			a.logger.Errorf("failed to get pin authier", err)
-			err = fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			err = fmt.Errorf(common_util.UnhandledServerError)
 		}
 
 		if pinTier.MaxAmount <= uint64(request.MaxAmount) {
 			a.logger.Warnf("open tier max amount can not be greater than max amount of pin tier", pinTier.MaxAmount, request.MaxAmount)
-			err = fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusBadRequest,
-				Message: "open tier max amount can not be greater than pin max amount",
-			})
+			err = fmt.Errorf(common_util.OpenMaxGEPinMax)
 			return err
 		}
 	} else if request.Method == amount_based_auth_domain.PIN {
@@ -122,10 +153,7 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 		if request.MinAmount > 0 {
 			if authTier.MaxAmount <= uint64(request.MinAmount) {
 				a.logger.Errorf("min amount cannot be greater than or equal to max amount min: %s, max: %s", authTier.MinAmount, request.MaxAmount)
-				err := fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusBadRequest,
-					Message: "min amount cannot be greater than or equal to max amount",
-				})
+				err := fmt.Errorf(common_util.PinMinGEPinMax)
 				return err
 			}
 
@@ -141,25 +169,16 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
 					a.logger.Errorf("open authier not found", err)
-					err = fmt.Errorf("%w", constant.ErrorDefinition{
-						Code:    http.StatusNotFound,
-						Message: "authier not found",
-					})
+					err = fmt.Errorf(common_util.TierAuthNotFound)
 					return err
 				}
 				a.logger.Errorf("failed to get open authier", err)
-				err = fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				})
+				err = fmt.Errorf(common_util.FailedToGetAuthTier)
 			}
 
 			if openTier.MinAmount >= uint64(request.MinAmount) {
 				a.logger.Errorf("pin min amount can not be less than open min amount")
-				err = fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusBadRequest,
-					Message: "pin min amount cannot be less than or equal to open min amount",
-				})
+				err = fmt.Errorf(common_util.PinMinLEOpenMin)
 				return err
 			}
 		}
@@ -167,10 +186,7 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 		if request.MaxAmount > 0 {
 			if authTier.MinAmount >= uint64(request.MaxAmount) {
 				a.logger.Errorf("max pin amount should be greater than pin min amount")
-				err := fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusBadRequest,
-					Message: "max pin amount should be greater than pin min amount",
-				})
+				err := fmt.Errorf(common_util.PinMaxLEPinMin)
 				return err
 			}
 		}
@@ -188,25 +204,16 @@ func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
 					a.logger.Errorf("pin authier not found", err)
-					err = fmt.Errorf("%w", constant.ErrorDefinition{
-						Code:    http.StatusNotFound,
-						Message: "authier not found",
-					})
+					err = fmt.Errorf(common_util.PinAuthorNotFound)
 					return err
 				}
 				a.logger.Errorf("failed to get open authier", err)
-				err = fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				})
+				err = fmt.Errorf(common_util.FailedToGetAuthTier)
 			}
 
 			if pinTier.MinAmount >= uint64(request.MinAmount) {
 				a.logger.Errorf("min amount cannot be greater than or equal to pin min amount min: %s, max: %s", pinTier.MinAmount, request.MinAmount)
-				err = fmt.Errorf("%w", constant.ErrorDefinition{
-					Code:    http.StatusBadRequest,
-					Message: "min amount cannot be greater than or equal to pin min amount",
-				})
+				err = fmt.Errorf(common_util.OTPMinGEPinMin)
 				return err
 			}
 		}
@@ -225,11 +232,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 	objectID, err := bson.ObjectIDFromHex(request.Id)
 	if err != nil {
 		a.logger.Errorf("Failed to parse object id: %v", err)
-		err = fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "invalid object ID format",
-		})
-		return nil, err
+		return nil, fmt.Errorf(common_util.InvalidInput)
 	}
 
 	filter := bson.M{
@@ -243,23 +246,18 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("no auth tier found for ID: %s", request.Id, err)
-			err = fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "no auth tier found for the provided ID",
-			})
-			return nil, err
+			return nil, fmt.Errorf(common_util.NotFound)
 		}
 		a.logger.Errorf("failed to fetch auth tier: %v", err)
-		err = fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	if err := a.validateAuthTier(ctx, authTier, request); err != nil {
 		return nil, err
 	}
+
+	authTier.CreatedAt = time.Now()
+	authTier.LastModified = time.Now()
 
 	actionInsert, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:               bson.NewObjectID(),
@@ -274,14 +272,12 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		PreviosAction:    authTier,
 		CurrentAction:    request,
 		MakerActionTime:  time.Now(),
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	})
 	if err != nil {
 		a.logger.Errorf("Failed to insert cps action: %v", err)
-		err = fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	log.Printf("actionInsert %v", actionInsert)
@@ -291,22 +287,20 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 }
 
 func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-	objectId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+
+	cpsUser := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"_id":           objectId,
-		"department":    cpsAction.Department,
+		"action_code":   id,
 		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_name":         cpsAction.CheckerUser.FullName,
-		"checker_id":           cpsAction.CheckerUser.UserCode,
-		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"checker_name":         cpsUser.FullName,
+		"checker_id":           cpsUser.UserCode,
+		"checker_phone_number": cpsUser.PhoneNumber,
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
+		"last_modified":        time.Now(),
 	}
 
 	// Fetch the action document
@@ -314,18 +308,11 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			a.logger.Errorf("No action found for ID: %s", id)
-			err = fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "No action found for the provided ID",
-			})
-			return nil, err
+			return nil, fmt.Errorf(common_util.AccountNotFound)
 		}
 		a.logger.Errorf("Failed to fetch action: %v", err)
-		err = fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal server error",
-		})
-		return nil, err
+
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	var actionData amount_based_auth_domain.UpdateAmountBasedAuth
@@ -334,24 +321,18 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	rawDoc, err := bson.Marshal(savedAction.CurrentAction)
 	if err != nil {
 		a.logger.Errorf("failed to marshal current action", err)
-		return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	err = bson.Unmarshal(rawDoc, &actionData)
 	if err != nil {
 		a.logger.Errorf("failed to unmarshal current action", err)
-		return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	// Update the document in the DB
 	if actionData.Method == amount_based_auth_domain.OPEN {
-		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		objectId, err := bson.ObjectIDFromHex(actionData.Id)
 		var maxAmount, minAmount uint64
 		openFilter := bson.M{
 			"_id": objectId,
@@ -363,27 +344,26 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 			minAmount = uint64(actionData.MinAmount)
 		}
 		updateOpenFilter := bson.M{
-			"max_amount": maxAmount,
-			"min_amount": minAmount,
+			"max_amount":       maxAmount,
+			"min_amount":       minAmount,
+			"last_modified_at": time.Now(),
 		}
 
-		fmt.Println("Filter----------", openFilter)
 		actionData, err := a.authTier.UpdateOne(ctx, openFilter, updateOpenFilter)
 		if err != nil {
 			a.logger.Errorf("Failed to update open auth tier: %v", err)
-			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			return nil, fmt.Errorf(common_util.UnhandledServerError)
 		}
-
+		actionData.LastModified = time.Now()
+		actionData.CreatedAt = time.Now()
 		savedAction.CurrentAction = actionData
+
 		return lib.MapCPSAction(savedAction), nil
 	}
 
 	if actionData.Method == amount_based_auth_domain.PIN {
 
-		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		objectId, err := bson.ObjectIDFromHex(actionData.Id)
 		pinFilter := bson.M{
 			"_id": objectId,
 		}
@@ -417,7 +397,7 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	}
 
 	if actionData.Method == amount_based_auth_domain.OTPANDPIN {
-		objectId, err = bson.ObjectIDFromHex(actionData.Id)
+		objectId, err := bson.ObjectIDFromHex(actionData.Id)
 		filter := bson.M{
 			"_id": objectId,
 		}
@@ -452,42 +432,33 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 	return lib.MapCPSAction(savedAction), nil
 }
 
-func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectCPSAction) (*model.CpsActionNormalized, error) {
-	objectId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {
+
+	checkerUser := contexts.ExtractContext(ctx)
+
 	filter := bson.M{
-		"_id":           objectId,
-		"department":    cpsAction.Department,
+		"action_code":   id,
 		"action_status": model.ActionPending,
 	}
 
 	update := bson.M{
-		"checker_name":         cpsAction.CheckerUser.FullName,
-		"checker_id":           cpsAction.CheckerUser.UserCode,
-		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
+		"checker_name":         checkerUser.FullName,
+		"checker_id":           checkerUser.UserCode,
+		"checker_phone_number": checkerUser.PhoneNumber,
 		"action_status":        model.ActionRejected,
-		"rejected_reason":      cpsAction.RejectedReason,
+		"rejection_reason":     cpsAction.RejectionReason,
 		"checker_action_time":  time.Now(),
+		"last_modified":        time.Now(),
 	}
 
 	savedAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("No action found for ID: %s", id)
-			err = fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusNotFound,
-				Message: "No action found for the provided ID",
-			})
-			return nil, err
+			a.logger.Errorf("No action found ")
+			return nil, fmt.Errorf(common_util.ActionNotFound)
 		}
 		a.logger.Errorf("Failed to fetch action: %v", err)
-		err = fmt.Errorf("%w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal server error",
-		})
-		return nil, err
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	return lib.MapCPSAction(savedAction), nil

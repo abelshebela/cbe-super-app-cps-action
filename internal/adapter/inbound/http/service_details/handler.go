@@ -17,6 +17,7 @@ import (
 	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
@@ -76,7 +77,7 @@ func (h *HttpStore) handleError(w http.ResponseWriter, err error) {
 		statusCode = http.StatusConflict
 		message = err.Error()
 	}
-
+	// utils.BaseResponseMaker()
 	utils.WriteErrorResponse(w, statusCode, message)
 }
 
@@ -113,13 +114,8 @@ func (h *HttpStore) UpdateServiceDetailsMaker(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		h.handleError(w, fmt.Errorf("unauthorized"))
-		return
-	}
-
-	update.MakerID = claims.UserID
+	makerUser := contexts.ExtractUserContext(r)
+	update.MakerID = makerUser.UserID
 	response, err := h.Application.UpdateServiceDetailsRequest(r.Context(), update.ID, &update)
 	if err != nil {
 		h.handleError(w, err)
@@ -131,18 +127,20 @@ func (h *HttpStore) UpdateServiceDetailsMaker(w http.ResponseWriter, r *http.Req
 
 func (h *HttpStore) UpdateServiceDetailsChecker(w http.ResponseWriter, r *http.Request) {
 	var request dto.ApproveServiceDetailsRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		h.handleError(w, fmt.Errorf("invalid request body"))
-		return
-	}
+	action_code := chi.URLParam(r, "action_code")
 
-	claims, ok := r.Context().Value("claims").(middleware.UserPayload)
-	if !ok {
-		h.handleError(w, fmt.Errorf("unauthorized"))
-		return
+	request.ActionID = action_code
+	if r.Method == "GET" {
+		request.Approve = true
+	} else {
+		request.Approve = false
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			h.handleError(w, fmt.Errorf("invalid request body"))
+			return
+		}
 	}
-
-	request.CheckerID = claims.UserID
+	checkerUser := contexts.ExtractUserContext(r)
+	request.CheckerID = checkerUser.UserID
 	err := h.Application.UpdateServiceDetails(r.Context(), &request)
 	if err != nil {
 		h.handleError(w, err)

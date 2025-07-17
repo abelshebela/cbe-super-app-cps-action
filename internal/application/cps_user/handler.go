@@ -10,8 +10,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
+	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -21,6 +21,7 @@ type ApplicationService interface {
 	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
 }
 
 type Handler struct {
@@ -42,7 +43,6 @@ func (h *Handler) CreateUserRequest(ctx context.Context, r *http.Request) (*mode
 		h.logger.Errorf("failed to bind user data: %v", err)
 		return nil, err
 	}
-	fmt.Println("check entry here")
 
 	req.Normalize()
 	if err := req.Validate(); err != nil {
@@ -104,4 +104,12 @@ func (h *Handler) GetPendingUserActions(ctx context.Context) ([]model.CPSAction,
 func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error) {
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	return h.service.FetchUserByUserCode(ctx, userCode)
+}
+
+func (h *Handler) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	users, err := h.service.GetAllCPSUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

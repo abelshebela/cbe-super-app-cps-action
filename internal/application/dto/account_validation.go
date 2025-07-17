@@ -52,6 +52,12 @@ type UpdateAccountValidationResponse struct {
 	ActionID string `json:"action_id"`
 }
 
+type Request struct {
+	ActionCode     string `json:"action_code"`
+	Decison        bool   `json:"decison"`
+	RejectedReason string `json:"rejected_reason"`
+}
+
 type ApproveRejectRequest struct {
 	ActionCode     string            `json:"action_code"`
 	Decison        utils.DecisonEnum `json:"decison"`
@@ -61,10 +67,21 @@ type ApproveRejectRequest struct {
 // Validate checks that Decison is valid and if DENIED, RejectedReason is required
 func (r ApproveRejectRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.ActionCode, validation.Required.Error("action_code is required")),
-		validation.Field(&r.Decison, validation.Required.Error("decison is required"), validation.In(utils.DecisionApproved, utils.DecisionDenied).Error("decison must be either APPROVED or DENIED")),
 		validation.Field(&r.RejectedReason, validation.By(func(value interface{}) error {
 			if r.Decison == utils.DecisionDenied {
+				if str, ok := value.(string); !ok || str == "" {
+					return validation.NewError("validation_rejected_reason", "rejected_reason is required when decison is DENIED")
+				}
+			}
+			return nil
+		})),
+	)
+}
+
+func (r Request) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.RejectedReason, validation.By(func(value interface{}) error {
+			if !r.Decison {
 				if str, ok := value.(string); !ok || str == "" {
 					return validation.NewError("validation_rejected_reason", "rejected_reason is required when decison is DENIED")
 				}

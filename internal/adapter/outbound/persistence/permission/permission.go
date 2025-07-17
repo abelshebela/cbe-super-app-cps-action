@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -34,7 +35,9 @@ var _ repository.PermissionCategoryRepository = (*PermissionPersistence)(nil)
 
 func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
 	permissionGroupsDal := dal.NewMongoDal[entities.PermissionGroup, entities.PermissionGroup](client, dbName, "permission_groups")
-	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_categories")
+
+	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_category")
+
 	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
@@ -72,10 +75,18 @@ func (r *PermissionPersistence) CheckPendingRequest(userCode string, status mode
 func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) bool {
 	ctx := context.Background()
 
-	filter := bson.M{"group_name": groupName, "is_deleted": false}
+	filter := bson.M{"group_name": groupName}
+	r.logger.Infof("here create PermissionPersistence", groupName)
 	result, err := r.permissionGroupsDal.FindOne(ctx, filter, bson.M{})
-	if err != nil || result == nil {
+
+	fmt.Println("check permission", result)
+	if err != nil {
 		r.logger.Errorf("CheckPermissionGroupExists failed:", err)
+		return false
+	}
+
+	if result == nil {
+		r.logger.Infof("no permission Group found ")
 		return false
 	}
 	return true
@@ -84,36 +95,63 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
 	ctx := context.Background()
 
-	filter := bson.M{}
-	categories, err := r.permissionCategoryDal.FindAll(ctx, filter, bson.M{})
-	if err != nil {
-		r.logger.Errorf("failed to fetch permission categories: ", err)
-		return nil, fmt.Errorf("failed to fetch permission categories")
-	}
+	var validObjectIDs []bson.ObjectID
+	var invalidIDs []string
 
-	var allowedPermissionCategories []bson.ObjectID
-
-	for _, permissionID := range ids {
-		objID, err := bson.ObjectIDFromHex(permissionID)
-		if err != nil {
-			r.logger.Errorf("invalid permission category ID format: ", err)
+	for _, id := range ids {
+		if id == "" {
+			invalidIDs = append(invalidIDs, "<empty>")
 			continue
 		}
 
-		for _, cat := range categories {
-			if cat.ID == objID {
-				allowedPermissionCategories = append(allowedPermissionCategories, objID)
-				break
-			}
+		if len(id) != 24 {
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (length %d)", id, len(id)))
+			continue
+		}
+
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (invalid format)", id))
+			continue
+		}
+		validObjectIDs = append(validObjectIDs, objID)
+	}
+
+	if len(invalidIDs) > 0 {
+		return nil, fmt.Errorf("invalid permission category IDs: %v", invalidIDs)
+	}
+
+	categories, err := r.permissionCategoryDal.FindAll(ctx,
+		bson.M{"_id": bson.M{"$in": validObjectIDs}},
+		bson.M{"_id": 1},
+	)
+	if err != nil {
+		r.logger.Errorf("failed to fetch permission categories: %v", err)
+		return nil, fmt.Errorf("database error while validating permissions")
+	}
+
+	foundIDs := make(map[bson.ObjectID]bool)
+	for _, cat := range categories {
+		if !cat.ID.IsZero() {
+			foundIDs[cat.ID] = true
 		}
 	}
 
-	var allowedStrings []string
-	for _, obj := range allowedPermissionCategories {
-		allowedStrings = append(allowedStrings, obj.Hex())
+	var missingIDs []string
+	var validIDs []string
+	for _, objID := range validObjectIDs {
+		if foundIDs[objID] {
+			validIDs = append(validIDs, objID.Hex())
+		} else {
+			missingIDs = append(missingIDs, objID.Hex())
+		}
 	}
-	return allowedStrings, nil
 
+	if len(missingIDs) > 0 {
+		return nil, fmt.Errorf("permission categories not found: %v", missingIDs)
+	}
+
+	return validIDs, nil
 }
 
 func (r *PermissionPersistence) CreatePermissionGroup(group model.CPSAction) (model.CPSAction, error) {
@@ -215,78 +253,171 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPS
 	return nil
 }
 
-func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) error {
+func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error) {
+	ctx := context.Background()
+	filter := bson.M{"action_code": actionCode}
+
+	update := bson.M{
+		"checker_name":         action.CheckerName,
+		"checker_id":           action.CheckerID,
+		"checker_phone_number": action.CheckerPhoneNumber,
+		"action_status":        model.ActionApproved,
+		"checker_action_time":  time.Now(),
+	}
+
+	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return model.CPSAction{}, err
+	}
+	return ApprovedAction, nil
+}
+
+func (r *PermissionPersistence) RejectActionRequest(actionCode string, action model.CPSAction, rejectedReason string) (model.CPSAction, error) {
 	ctx := context.Background()
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{
 		"checker_name":         action.CheckerName,
 		"checker_id":           action.CheckerID,
+		"rejection_reason":     rejectedReason,
 		"checker_phone_number": action.CheckerPhoneNumber,
-		"action_status":        entities.ActionApproved,
+		"action_status":        model.ActionRejected,
 		"checker_action_time":  time.Now(),
 	}
-	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	rejectedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
-	return nil
+	return rejectedAction, nil
 }
 
 func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPSAction) error {
 	ctx := context.Background()
 
-	actionData, ok := action.CurrentAction.(map[string]interface{})
-	if !ok {
+	// 1. Handle different possible input types
+	var actionData map[string]interface{}
+
+	switch v := action.CurrentAction.(type) {
+	case map[string]interface{}:
+		actionData = v
+	case bson.D:
+		actionData = make(map[string]interface{})
+		// Convert bson.D to map
+		for _, elem := range v {
+			actionData[elem.Key] = elem.Value
+		}
+	case bson.M:
+		actionData = v
+	case string:
+		// Try to unmarshal JSON string
+		if err := json.Unmarshal([]byte(v), &actionData); err != nil {
+			r.logger.Errorf("failed to unmarshal action data: %v", err)
+			return errors.New("invalid action data format")
+		}
+	default:
+		r.logger.Errorf("unexpected action data type: %T", action.CurrentAction)
 		return errors.New("invalid action data format")
 	}
 
-	groupID, ok := actionData["permission_group_id"].(string)
-	if !ok {
-		return errors.New("invalid permission_group_id")
-	}
-
-	objectID, err := bson.ObjectIDFromHex(groupID)
-	if err != nil {
-		return errors.New("invalid objectID format")
-	}
-
 	groupName, ok := actionData["group_name"].(string)
-	if !ok {
-		return errors.New("invalid group_name")
+	if !ok || groupName == "" {
+		r.logger.Errorf("missing or invalid group_name")
+		return errors.New("group_name is required and must be a string")
 	}
 
-	permissionCategoriesIface, ok := actionData["permission_categories"].([]interface{})
-	if !ok {
-		return errors.New("invalid permission_categories")
-	}
-	permissionCategories := make([]string, len(permissionCategoriesIface))
-	for i, v := range permissionCategoriesIface {
-		permissionCategories[i], ok = v.(string)
-		if !ok {
-			return errors.New("permission_categories contains non-string value")
+	// 3. Handle permission categories more robustly
+	var permissionCategories []string
+	if pc, ok := actionData["permission_categories"]; ok && pc != nil {
+		switch v := pc.(type) {
+		case []interface{}:
+			permissionCategories = make([]string, 0, len(v))
+			for i, item := range v {
+				if s, ok := item.(string); ok {
+					permissionCategories = append(permissionCategories, s)
+				} else {
+					r.logger.Errorf("permission_categories[%d] is not a string", i)
+					return fmt.Errorf("permission_categories must contain only strings")
+				}
+			}
+		case []string:
+			permissionCategories = v
+		case string:
+			permissionCategories = strings.Split(v, ",")
+			for i := range permissionCategories {
+				permissionCategories[i] = strings.TrimSpace(permissionCategories[i])
+			}
+		case bson.A:
+			permissionCategories = make([]string, 0, len(v))
+			for i, val := range v {
+				switch strVal := val.(type) {
+				case string:
+					permissionCategories = append(permissionCategories, strVal)
+				default:
+					r.logger.Errorf("permission_categories[%d] is not a string, got: %T", i, val)
+					return fmt.Errorf("permission_categories must contain only strings")
+				}
+			}
+		default:
+			r.logger.Errorf("unexpected permission_categories type: %T", pc)
+			return errors.New("invalid permission_categories format")
 		}
+
 	}
 
-	role, ok := actionData["role"].(string)
-	if !ok {
-		return errors.New("invalid role")
-	}
-
+	oldGroup := actionData["old_group"].(string)
+	// 4. Prepare update document
 	update := bson.M{
-		"$set": bson.M{
-			"groupName":          groupName,
-			"permissionCategory": permissionCategories,
-			"role":               role,
-			"updatedAt":          time.Now(),
-		},
+		"group_name":          groupName,
+		"permission_category": permissionCategories,
+		"updated_at":          time.Now(),
 	}
 
-	filter := bson.M{"_id": objectID}
-	_, err = r.permissionGroupsDal.UpdateOne(ctx, filter, update)
+	// Include role if provided
+	if role, ok := actionData["role"].(string); ok && role != "" {
+		update["role"] = role
+	}
+
+	// 5. Execute update
+	filter := bson.M{"group_name": oldGroup}
+	_, err := r.permissionGroupsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		r.logger.Errorf("Error updating permission group from action: %v", err)
-		return err
+		r.logger.Errorf("error updating permission group: %v", err)
+		return fmt.Errorf("failed to update permission group")
 	}
 
 	return nil
+}
+
+func (r *PermissionPersistence) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
+	ctx := context.Background()
+
+	filter := bson.M{"group_name": groupName}
+	update := bson.M{
+		"permission_category": permissionCategoryLists,
+		"updated_at":          time.Now(),
+	}
+	_, err := r.permissionGroupsDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("Error updating permission group: %v", err)
+		return entities.PermissionGroup{}, err
+	}
+	return entities.PermissionGroup{}, nil
+}
+
+func (r *PermissionPersistence) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
+	filter := bson.M{"group_name": groupName}
+	result, err := r.permissionGroupsDal.FindOne(context.Background(), filter, bson.M{})
+	if err != nil {
+		return entities.PermissionGroup{}, err
+	}
+	r.logger.Infof("Permission group found: %v", result)
+	return *result, nil
+}
+
+func (r *PermissionPersistence) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
+	filter := bson.M{}
+	result, err := r.permissionGroupsDal.FindAll(context.Background(), filter, bson.M{"sort": bson.M{"created_at": -1}})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

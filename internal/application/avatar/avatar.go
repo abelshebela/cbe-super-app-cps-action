@@ -16,15 +16,15 @@ type AvatarApplication struct {
 }
 
 type AvatarApplicationService interface {
-	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CPSAction, error)
-	DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error)
+	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error)
+	DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error)
+	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error)
+	Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*avatar.Avatar, error)
-	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (avatar.AvatarResponse, error)
-	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error)
+	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*avatar.AvatarResponse, error)
+	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error)
 }
 
 func InitAvatarAPP(avatar_domain avatar.AvatarDomainService, logger utils.Logger) AvatarApplicationService {
@@ -34,43 +34,43 @@ func InitAvatarAPP(avatar_domain avatar.AvatarDomainService, logger utils.Logger
 	}
 }
 
-func (a *AvatarApplication) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CPSAction, error) {
+func (a *AvatarApplication) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error) {
 	cpsRes, err := a.avatarDomain.CreateAvatar(ctx, req)
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
 
 	return cpsRes, nil
 }
 
-func (a *AvatarApplication) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error) {
+func (a *AvatarApplication) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error) {
 	cpsAction, err := a.avatarDomain.DeleteAvatar(ctx, id, req)
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarApplication) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error) {
+func (a *AvatarApplication) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error) {
 	cpsAction, err := a.avatarDomain.Authorize(ctx, req)
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
 
 	return cpsAction, nil
 }
 
-func (a *AvatarApplication) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
+func (a *AvatarApplication) Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error) {
 	cpsAction, err := a.avatarDomain.Reject(ctx, req)
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
 	return cpsAction, nil
 }
 
 func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error) {
 	cpsAction, err := a.avatarDomain.EnableOrDisableAvatar(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err
@@ -79,10 +79,10 @@ func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string
 	return cpsAction, nil
 }
 
-func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (avatar.AvatarResponse, error) {
+func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*avatar.AvatarResponse, error) {
 	avatars, err := a.avatarDomain.GetAllAvatar(ctx, filterParams)
 	if err != nil {
-		return avatar.AvatarResponse{}, err
+		return nil, err
 	}
 
 	return avatars, nil
@@ -97,10 +97,10 @@ func (a *AvatarApplication) GetAvatar(ctx context.Context, id string) (*avatar.A
 	return avatar, nil
 }
 
-func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error) {
+func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error) {
 	cpsAction, err := a.avatarDomain.UpdateAvatar(ctx, id, req)
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
 
 	return cpsAction, nil

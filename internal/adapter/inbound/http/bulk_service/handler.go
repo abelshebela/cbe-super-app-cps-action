@@ -40,7 +40,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/services",
+				Path:    "/",
 				Handler: handler.FetchServices,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -50,8 +50,17 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/actions/enable-disable/approve",
+				Method:  http.MethodGet,
+				Path:    "/actions/enable-disable/approve/{action_code}",
+				Handler: handler.EnableDisableServicesChecker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/actions/enable-disable/reject/{action_code}",
 				Handler: handler.EnableDisableServicesChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -79,8 +88,17 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/accounts/remove/approve",
+				Method:  http.MethodGet,
+				Path:    "/accounts/remove/approve/{action_code}",
+				Handler: handler.RemoveCifChecker,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/accounts/remove/reject/{action_code}",
 				Handler: handler.RemoveCifChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

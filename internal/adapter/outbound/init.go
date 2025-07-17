@@ -59,7 +59,7 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[2])
 	mongoDalAccountValidation := infra_mongo.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collectionNames[3])
-	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collectionNames[4])
+	mongoDalServiceDetails := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, "service")
 	mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, collectionNames[5])
 
 	return &outboundStore{
@@ -270,7 +270,8 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 	if err != nil {
 		return domain.ServiceDetails{}, err
 	}
-	filter := map[string]interface{}{"_id": objID}
+	filter := bson.M{"_id": objID}
+	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
 		return domain.ServiceDetails{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
@@ -485,7 +486,6 @@ func bsonDToMap(i interface{}) interface{} {
 	}
 }
 
-
 func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 	var rejectionReason *string
 	if modelAction.RejectionReason != "" {
@@ -513,7 +513,6 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
 		CheckerActionTime:  modelAction.CheckerActionTime,
-
 	}
 }
 
@@ -568,7 +567,6 @@ func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string
 		}
 		return domain.CPSAction{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
-
 
 	return modelToDomainCPSAction(*data), nil
 
@@ -764,11 +762,8 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 
 	var result []domain.LinkedAccount
 	for _, i := range id {
-		objID, err := bson.ObjectIDFromHex(i)
-		if err != nil {
-			return nil, err
-		}
-		filter := map[string]interface{}{"_id": objID}
+
+		filter := bson.M{"customer_number": i}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
@@ -846,11 +841,21 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 		}
 		existing = nil
 	}
+
 	if err == nil && existing != nil {
 		if existing.ActionStatus == "PENDING" {
-			return nil, fmt.Errorf("a pending action already exists for this user")
+			return nil, fmt.Errorf("PENDING_ACTION_ALREADY_EXISTS")
 		}
-		cpsAction.PreviosAction = existing.CurrentAction
+	}
+
+	prevFilter := bson.M{
+		"unique_id":  cpsAction.UniqueId,
+		"maker_id":   cpsAction.MakerID,
+		"maker_name": cpsAction.MakerName,
+	}
+	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
+	if err == nil && previosCPSAction != nil {
+		cpsAction.PreviosAction = previosCPSAction.CurrentAction
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -878,7 +883,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	// Check if the user does exist
 	user, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil && user == nil {
-		return nil, err
+		return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 	}
 
 	// If the user exists, check for pending cps action
@@ -892,8 +897,18 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 
 	if err == nil && existingCPSAction != nil {
 		if existingCPSAction.ActionStatus == "PENDING" {
-			return nil, fmt.Errorf("a pending action already exists for this user")
+			return nil, fmt.Errorf("PENDING_ACTION_ALREADY_EXISTS")
 		}
+	}
+
+	prevFilter := bson.M{
+		"unique_id":  cpsAction.UniqueId,
+		"maker_id":   cpsAction.MakerID,
+		"maker_name": cpsAction.MakerName,
+	}
+	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
+	if err == nil && previosCPSAction != nil {
+		cpsAction.PreviosAction = previosCPSAction.CurrentAction
 	}
 
 	// Create CPS action
@@ -918,9 +933,9 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	}
 
 	if cps_action.ActionStatus == string(model.ActionApproved) {
-		return nil, fmt.Errorf("action has already been approved")
+		return nil, fmt.Errorf("ACTION_HAS_ALREADY_APPROVED")
 	} else if cps_action.ActionStatus == string(model.ActionRejected) {
-		return nil, fmt.Errorf("action has already been rejected")
+		return nil, fmt.Errorf("ACTION_HAS_ALREADY_REJECTED")
 	}
 
 	// Update it
@@ -966,21 +981,33 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		return nil, err
 	}
 
-	userCode, _ := dataMap["usercode"].(string)
+	userCode, _ := dataMap["user_code"].(string)
 	userName, _ := dataMap["username"].(string)
-	fullName, _ := dataMap["fullname"].(string)
-	phoneNumber, _ := dataMap["phonenumber"].(string)
-	role, _ := dataMap["userrole"].(string)
-	department, _ := bson.ObjectIDFromHex(dataMap["department"].(string))
+	fullName, _ := dataMap["full_name"].(string)
+	phoneNumber, _ := dataMap["phone_number"].(string)
+	role, _ := dataMap["role"].(string)
+	gender, _ := dataMap["gender"].(string)
+	email, _ := dataMap["email"].(string)
+	realm, _ := dataMap["realm"].(string)
+	country, _ := dataMap["country"].(string)
+	region, _ := dataMap["region"].(string)
+	deptStr, ok := dataMap["department"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid or missing department")
+	}
+	department, err := bson.ObjectIDFromHex(deptStr)
+	if err != nil {
+		return nil, err
+	}
 
 	// Convert string slices to []bson.ObjectID
 	var permissionCategory []bson.ObjectID
-	if raw, ok := dataMap["permissioncategory"]; ok {
+	if raw, ok := dataMap["permission_category"]; ok {
 		if arr, ok := raw.([]interface{}); ok {
 			for _, v := range arr {
 				str, ok := v.(string)
 				if !ok {
-					return nil, fmt.Errorf("permissioncategory element is not a string")
+					return nil, fmt.Errorf("permission_category element is not a string")
 				}
 				id, err := bson.ObjectIDFromHex(str)
 				if err != nil {
@@ -1008,38 +1035,53 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		}
 	}
 
-	userData := model.CPSUser{
-		UserCode:           userCode,
-		UserName:           userName,
-		FullName:           fullName,
-		PhoneNumber:        phoneNumber,
-		Role:               role,
-		Department:         department,
-		PermissionCategory: permissionCategory,
-		PermissionGroup:    permissionGroups,
-	}
+	// Creating a new user
+	now := time.Now()
+
+	newUser := model.CPSUser{}
+	newUser.ID = bson.NewObjectID()
+	newUser.UserCode = userCode
+	newUser.UserName = userName
+	newUser.FullName = fullName
+	newUser.Gender = gender
+	newUser.Email = email
+	newUser.Realm = realm
+	newUser.PhoneNumber = phoneNumber
+	newUser.Role = role
+	newUser.Department = department
+	newUser.Country = country
+	newUser.Region = region
+	newUser.PermissionCategory = permissionCategory
+	newUser.PermissionGroup = permissionGroups
+	newUser.PasswordDisable = false
+	newUser.SyncDisabled = false
+	newUser.LoginAttemptCount = 0
+	newUser.LastLoginAttempt = time.Now()
+	newUser.NextLoginAttempt = time.Now()
+	newUser.LastOnlineDate = time.Now()
+	newUser.LastLogin = time.Now()
+	newUser.LoginPassword = ""
+	newUser.AccountAuthorizationCode = ""
+	newUser.UnlockAccountRequested = false
+	newUser.PasswordChangedAt = nil
+	newUser.OTPStatus = ""
+	newUser.OTPLastTriedAt = nil
+	newUser.OTPVerifyCount = 0
+	newUser.Enabled = true
+	newUser.IsDeleted = false
+	newUser.DateJoined = &now
 
 	filterUser := bson.M{"user_code": userCode}
 
 	// If the action type is "CREATE", create a new user, else if it is "UPDATE" update the exsting user
 	if updatedCPSAction.ActionType == string(model.ActionCreate) {
-		_, err := o.MongoDalCPSUser.InsertOne(ctx, userData)
+		_, err := o.MongoDalCPSUser.InsertOne(ctx, newUser)
 		if err != nil {
 			return nil, err
 		}
 
 	} else if updatedCPSAction.ActionType == string(model.ActionUpdate) {
-		update := bson.M{
-			"username":            userData.UserName,
-			"full_name":           userData.FullName,
-			"phone_number":        userData.PhoneNumber,
-			"role":                userData.Role,
-			"department":          userData.Department,
-			"permission_category": userData.PermissionCategory,
-			"permission_group":    userData.PermissionCategory,
-			"last_modified":       time.Now(),
-		}
-		_, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, update)
+		_, err := o.MongoDalCPSUser.UpdateOne(ctx, filterUser, dataMap)
 		if err != nil {
 			return nil, err
 		}
@@ -1060,7 +1102,6 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSA
 		return nil, err
 	}
 
-
 	// Convert []*model.CPSAction to []model.CPSAction
 	result := make([]model.CPSAction, 0, len(data))
 	for _, d := range data {
@@ -1076,36 +1117,31 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSA
 func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
 	filter := bson.M{"user_code": userCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	if err != nil && modelUser == nil {
+		return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
+	}
+	return modelUser, nil
+
+}
+
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
+	filter := bson.M{}
+	projection := bson.M{}
+
+	data, err := o.MongoDalCPSUser.FindAll(ctx, filter, projection)
 	if err != nil {
 		return nil, err
 	}
 
-	// var department string
-	// if len(modelUser.Department) > 0 {
-	// 	department = modelUser.Department.Hex()
-	// }
+	result := make([]model.CPSUser, 0, len(data))
+	for _, d := range data {
+		if d != nil {
+			result = append(result, *d)
 
-	// var permissionCategory []string
-	// for _, oid := range modelUser.PermissionCategory {
-	// 	permissionCategory = append(permissionCategory, oid.Hex())
-	// }
-	// var permissionGroup []string
-	// for _, oid := range modelUser.PermissionGroup {
-	// 	permissionGroup = append(permissionGroup, oid.Hex())
-	// }
+		}
+	}
 
-	// user := &domain.CPSUser{
-	// 	UserCode:           modelUser.UserCode,
-	// 	UserName:           modelUser.UserName,
-	// 	FullName:           modelUser.FullName,
-	// 	PhoneNumber:        modelUser.PhoneNumber,
-	// 	Role:               modelUser.Role,
-	// 	Department:         department,
-	// 	PermissionCategory: permissionCategory,
-	// 	PermissionGroup:    permissionGroup,
-	// }
-	return modelUser, nil
-
+	return result, nil
 }
 
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
@@ -1150,8 +1186,10 @@ func (o *outboundStore) GetOneServiceDetail(ctx context.Context, id string) (ser
 		return serviceDomain.Service{}, err
 	}
 
-	filter := map[string]interface{}{"_id": objID}
+	filter := bson.M{"_id": objID}
+
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
+
 	if err != nil {
 		return serviceDomain.Service{}, err
 	}
@@ -1376,30 +1414,230 @@ func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code
 		"action_status": "PENDING",
 	}
 
+	update := bson.M{
+		"action_status": "APPROVED",
+	}
+
 	projection := bson.M{}
-	cpsActionPtr, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+	cpsAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
-		err = fmt.Errorf("failed to find cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf("failed to find cps action")
 		return err
 	}
-	serviceFilter := bson.M{
-		"action_code": cpsActionPtr.ActionCode,
-	}
-	serviceUpdate := bson.M{
-		"$set": cpsActionPtr.CurrentAction,
-	}
-	_, err = o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
-		err = fmt.Errorf("failed to update service fee %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf("failed to find cps action")
 		return err
+	}
+
+	switch cpsAction.RequestAction {
+	case "CREATE_SERVICE_FEE":
+		// Convert CurrentAction to model.Service
+		serviceDataMap := cpsAction.CurrentAction
+
+		svc := make(map[string]interface{})
+		b, err := json.Marshal(serviceDataMap)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &svc); err != nil {
+			return fmt.Errorf("failed to unmarshal service data")
+		}
+		serviceData := o.serviceMapper(svc)
+
+		fmt.Println("Service Data", serviceData)
+
+		_, err = o.MongoDalServices.InsertOne(ctx, serviceData)
+
+		if err != nil {
+			return fmt.Errorf("failed to create service")
+		}
+	case "UPDATE_SERVICE_FEE":
+		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
+		if !ok {
+			return errors.New("invalid service data for update")
+		}
+		serviceCode, ok := serviceData["service_code"].(string)
+		if !ok {
+			return errors.New("invalid service_code in current action")
+		}
+		serviceFilter := bson.M{"service_code": serviceCode}
+		serviceUpdate := bson.M{"$set": serviceData}
+		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to update service fee: %w", err)
+		}
+	case "DELETE_SERVICE_FEE":
+		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
+		if !ok {
+			return errors.New("invalid service data for delete")
+		}
+		serviceCode, ok := serviceData["service_code"].(string)
+		if !ok {
+			return errors.New("invalid service_code in current action for delete")
+		}
+		serviceFilter := bson.M{"service_code": serviceCode}
+		serviceUpdate := bson.M{"is_deleted": true, "deleted_at": time.Now(), "last_modified_at": time.Now()}
+		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to delete service: %w", err)
+		}
+	default:
+		return errors.New("unsupported request action")
 	}
 	return nil
+}
+
+func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service {
+	// Helper for safe string from map
+	safeStringFromMap := func(m map[string]interface{}, key string) string {
+		if v, ok := m[key].(string); ok {
+			return v
+		}
+		return ""
+	}
+	// Helper for safe uint64 from map
+	safeUint64FromMap := func(m map[string]interface{}, key string) uint64 {
+		if v, ok := m[key].(float64); ok {
+			return uint64(v)
+		}
+		if v, ok := m[key].(uint64); ok {
+			return v
+		}
+		return 0
+	}
+	// Helper for Cap
+	parseCap := func(val interface{}) model.Cap {
+		capMap, ok := val.(map[string]interface{})
+		if !ok {
+			return model.Cap{}
+		}
+		return model.Cap{
+			KYCLevel:  model.KYCLevel(safeStringFromMap(capMap, "kyc_level")),
+			SingleCap: safeUint64FromMap(capMap, "single_cap"),
+			DailyCap:  safeUint64FromMap(capMap, "daily_cap"),
+			MinAmount: safeUint64FromMap(capMap, "min_amount"),
+			MaxAmount: safeUint64FromMap(capMap, "max_amount"),
+		}
+	}
+	// Helper for ProductCodes
+	parseProductCodes := func(val interface{}) model.ProductCodes {
+		pcMap, ok := val.(map[string]interface{})
+		if !ok {
+			return model.ProductCodes{}
+		}
+		return model.ProductCodes{
+			PRD:    safeStringFromMap(pcMap, "prd"),
+			VATPRD: safeStringFromMap(pcMap, "vatprd"),
+			SFPRD:  safeStringFromMap(pcMap, "sfprd"),
+			TRXN:   safeStringFromMap(pcMap, "trxn"),
+		}
+	}
+	// Helper for GLEntry
+	parseGLEntry := func(val interface{}) model.GLEntry {
+		glMap, ok := val.(map[string]interface{})
+		if !ok {
+			return model.GLEntry{}
+		}
+		return model.GLEntry{
+			ProductAccount:    safeStringFromMap(glMap, "product_account"),
+			ProductBranchCode: safeStringFromMap(glMap, "product_branch_code"),
+			ServiceAccount:    safeStringFromMap(glMap, "service_account"),
+			ServiceBranchCode: safeStringFromMap(glMap, "service_branch_code"),
+			VatAccount:        safeStringFromMap(glMap, "vat_account"),
+			VatBranchCode:     safeStringFromMap(glMap, "vat_branch_code"),
+		}
+	}
+	// Helper for Tiers
+	parseTiers := func(val interface{}) []model.Tier {
+		arr, ok := val.([]interface{})
+		if !ok {
+			return nil
+		}
+		var tiers []model.Tier
+		for _, t := range arr {
+			tierMap, ok := t.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			tiers = append(tiers, model.Tier{
+				// ID:        safeObjectIDFromMap(tierMap, "id"), // omit ID
+				Min:       safeUint64FromMap(tierMap, "min"),
+				Max:       safeUint64FromMap(tierMap, "max"),
+				FeeAmount: safeUint64FromMap(tierMap, "fee_amount"),
+			})
+		}
+		return tiers
+	}
+	// Helper for safe string
+	safeString := func(key string) string {
+		if v, ok := data[key].(string); ok {
+			return v
+		}
+		return ""
+	}
+	// Helper for safe uint64
+	safeUint64 := func(key string) uint64 {
+		if v, ok := data[key].(float64); ok {
+			return uint64(v)
+		}
+		if v, ok := data[key].(uint64); ok {
+			return v
+		}
+		return 0
+	}
+	// Helper for safe bool
+	safeBool := func(key string) bool {
+		if v, ok := data[key].(bool); ok {
+			return v
+		}
+		return false
+	}
+	// Helper for safe time.Time
+	safeTime := func(key string) time.Time {
+		if v, ok := data[key].(string); ok {
+			t, _ := time.Parse(time.RFC3339, v)
+			return t
+		}
+		return time.Time{}
+	}
+
+	return model.Service{
+		ServiceCode:        safeString("service_code"),
+		ServiceName:        safeString("service_name"),
+		ServiceType:        safeString("service_type"),
+		Key:                safeString("key"),
+		Cap:                parseCap(data["cap"]),
+		CBEProductCodes:    parseProductCodes(data["cbe_product_codes"]),
+		CBEIFBProductCodes: parseProductCodes(data["cbe_ifb_product_codes"]),
+		AboveAmount:        safeUint64("above_amount"),
+		AboveServiceFee:    safeUint64("above_service_fee"),
+		PaymentType:        safeString("payment_type"),
+		Tiers:              parseTiers(data["tiers"]),
+		CBEGLEntry:         parseGLEntry(data["cbe_gl_entry"]),
+		CBEIFBGLEntry:      parseGLEntry(data["cbe_ifb_gl_entry"]),
+		Enabled:            safeBool("enabled"),
+		IsDeleted:          safeBool("is_deleted"),
+		CreatedAt:          safeTime("created_at"),
+		LastModifiedAt:     safeTime("last_modified_at"),
+		DeletedAt:          safeTime("deleted_at"),
+	}
+}
+
+func (o *outboundStore) jsonParser(data any) (map[string]interface{}, error) {
+
+	dataResult := make(map[string]interface{})
+	byteData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(byteData, &dataResult); err != nil {
+		return nil, err
+	}
+
+	return dataResult, nil
 }
 
 func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, action_code string, rejection_reason string) error {
@@ -1513,6 +1751,38 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 
 	return o.UpdateCpsAction(ctx, action)
 }
+
+func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
+
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	projection := bson.M{}
+
+	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	if err != nil {
+		return nil, err
+	}
+
+	var dataList []*action.PasswordRule
+	for _, v := range data {
+		dataList = append(dataList, &action.PasswordRule{
+			ID:             v.ID.Hex(),
+			MinLength:      v.MinLength,
+			MaxLength:      v.MaxLength,
+			CapitalLetters: v.CapitalLetters,
+			SmallLetters:   v.SmallLetters,
+			Numbers:        v.Numbers,
+			Name:           v.Name,
+			Characters:     v.Characters,
+			CreatedAt:      v.CreatedAt,
+		})
+	}
+
+	return dataList, nil
+
+}
+
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	filter := map[string]interface{}{"action_code": actionID}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
@@ -1542,7 +1812,6 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		RequestAction:      action.RequestAction(data.RequestAction),
 		CreatedAt:          data.CreatedAt,
 		LastModifiedAt:     data.LastModifiedAt,
-
 	}
 	return result, nil
 }
@@ -1586,7 +1855,6 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		RequestAction:      action.RequestAction(data.RequestAction),
 		CreatedAt:          data.CreatedAt,
 		LastModifiedAt:     data.LastModifiedAt,
-
 	}
 	return result, nil
 }

@@ -50,6 +50,15 @@ const (
 	InputTooLong                 = "INPUT_TOO_LONG"
 	InputInvalidCharacters       = "INPUT_INVALID_CHARACTERS"
 	PageNotFound                 = "PAGE_NOT_FOUND"
+	OpenMinGEOpenMax             = "OPEN_MIN_GE_OPEN_MAX"
+	OpenMaxGEPinMax              = "OPEN_MAX_GE_PIN_MAX"
+	PinMinGEPinMax               = "PIN_MIN_GE_PIN_MAX"
+	PinMinLEOpenMin              = "PIN_MIN_LE_OPEN_MIN"
+	PinMaxLEPinMin               = "PIN_MAX_LE_PIN_MIN"
+	OTPMinGEPinMin               = "OTP_MIN_GE_PIN_MIN"
+	TierAuthNotFound             = "TIER_AUTH_NOT_FOUND"
+	FailedToGetAuthTier          = "FAILED_TO_GET_AUTH_TIER"
+	PinAuthorNotFound            = "PIN_AUTHIER_NOT_FOUND"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
@@ -81,6 +90,7 @@ const (
 	UnableToDecryptToken          = "UNABLE_TO_DYCRYPT_TOKEN"
 	FailedLogin                   = "FAILED_LOGIN"
 	AccountLocked                 = "ACCOUNT_LOCKED"
+	AccessTokenRequired           = "ACCESS_TOKEN_REQUIRED"
 
 	// Transaction
 	TransactionNotFound = "TRANSACTION_NOT_FOUND"
@@ -113,11 +123,11 @@ const (
 	UserKycLevelWrong   = "USER_KYC_LEVEL_WRONG"
 
 	// File
-	InvalidForm          = "INVALID_FORM"
-	NoFile               = "NO_FILE"
-	FileTooLarge         = "FILE_TOO_LARGE"
-	InvalidFileType      = "INVALID_FILE_TYPE"
-	UploadFailed         = "UPLOAD_FAILED"
+	InvalidForm           = "INVALID_FORM"
+	NoFile                = "NO_FILE"
+	FileTooLarge          = "FILE_TOO_LARGE"
+	InvalidFileType       = "INVALID_FILE_TYPE"
+	UploadFailed          = "UPLOAD_FAILED"
 	MissingOrInvalidImage = "MISSING_OR_INVALID_IMAGE"
 
 	// Branch

@@ -8,7 +8,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user"
+	cpsuser "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/entity"
 	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -126,7 +126,7 @@ func (s *serviceApp) AuthorizeAction(ctx context.Context, action_code string) er
 
 	err := s.serviceDomain.ApproveServiceFeeUpdate(ctx, action_code)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil

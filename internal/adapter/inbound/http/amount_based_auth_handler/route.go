@@ -25,6 +25,15 @@ func InitAmountBasedAuthHandler(router chi.Router, handler inbound.AmountBasedAu
 			},
 			{
 				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: handler.GetAllAmountBasedAuth,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
 				Path:    "/approve/{id}",
 				Handler: handler.ApproveAmountBasedAuth,
 				Middlewares: []func(next http.Handler) http.Handler{

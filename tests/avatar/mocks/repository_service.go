@@ -44,10 +44,10 @@ func (m *MockAvatarRepository) EXPECT() *MockAvatarRepositoryMockRecorder {
 }
 
 // Authorize mocks base method.
-func (m *MockAvatarRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (model.CPSAction, error) {
+func (m *MockAvatarRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authorize", ctx, req)
-	ret0, _ := ret[0].(model.CPSAction)
+	ret0, _ := ret[0].(*avatar.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -73,10 +73,10 @@ func (mr *MockAvatarRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *go
 }
 
 // CreateAvatar mocks base method.
-func (m *MockAvatarRepository) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (model.CPSAction, error) {
+func (m *MockAvatarRepository) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAvatar", ctx, req)
-	ret0, _ := ret[0].(model.CPSAction)
+	ret0, _ := ret[0].(*avatar.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,10 +88,10 @@ func (mr *MockAvatarRepositoryMockRecorder) CreateAvatar(ctx, req any) *gomock.C
 }
 
 // DeleteAvatar mocks base method.
-func (m *MockAvatarRepository) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (model.CPSAction, error) {
+func (m *MockAvatarRepository) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*avatar.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAvatar", ctx, id, cpsActionReq)
-	ret0, _ := ret[0].(model.CPSAction)
+	ret0, _ := ret[0].(*avatar.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -103,10 +103,10 @@ func (mr *MockAvatarRepositoryMockRecorder) DeleteAvatar(ctx, id, cpsActionReq a
 }
 
 // EnableOrDisableAvatar mocks base method.
-func (m *MockAvatarRepository) EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (m *MockAvatarRepository) EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnableOrDisableAvatar", ctx, id, requestAction, cpsReq)
-	ret0, _ := ret[0].(*model.CPSAction)
+	ret0, _ := ret[0].(*avatar.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -118,10 +118,10 @@ func (mr *MockAvatarRepositoryMockRecorder) EnableOrDisableAvatar(ctx, id, reque
 }
 
 // GetAllAvatar mocks base method.
-func (m *MockAvatarRepository) GetAllAvatar(ctx context.Context, filterParams utils.Filter) (avatar.AvatarResponse, error) {
+func (m *MockAvatarRepository) GetAllAvatar(ctx context.Context, filterParams utils.Filter) (*avatar.AvatarResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllAvatar", ctx, filterParams)
-	ret0, _ := ret[0].(avatar.AvatarResponse)
+	ret0, _ := ret[0].(*avatar.AvatarResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -148,10 +148,10 @@ func (mr *MockAvatarRepositoryMockRecorder) GetAvatar(ctx, id any) *gomock.Call 
 }
 
 // Reject mocks base method.
-func (m *MockAvatarRepository) Reject(ctx context.Context, req model.RejectCPSAction) (model.CPSAction, error) {
+func (m *MockAvatarRepository) Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Reject", ctx, req)
-	ret0, _ := ret[0].(model.CPSAction)
+	ret0, _ := ret[0].(*avatar.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,10 +163,10 @@ func (mr *MockAvatarRepositoryMockRecorder) Reject(ctx, req any) *gomock.Call {
 }
 
 // UpdateAvatar mocks base method.
-func (m *MockAvatarRepository) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (model.CPSAction, error) {
+func (m *MockAvatarRepository) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAvatar", ctx, id, req)
-	ret0, _ := ret[0].(model.CPSAction)
+	ret0, _ := ret[0].(*avatar.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -9,18 +9,20 @@ import (
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	budget_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user_maker/services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
+	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
+	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -28,28 +30,28 @@ import (
 )
 
 type Domain struct {
-	AdDomain           ad_service.AdvertService
-	AvatarDomian       avatar_domain.AvatarDomainService
-	BankDomain         bank_service.BankService
-	WalletDomain       wallet_service.WalletService
-	FaydaDomain        *fayda_service.FaydaAccountDomain
-	CustomerDomain     *customer_service.CustomerDomain
-	FeedbackDomain     *feedback_service.FeedbackDomain
-	UnlinkDomain       *unlink_service.Service
-	BudgetDomain       *budget_service.BudgetService
-	AccountDomain      account_validation.Service
-	CPSUserDomain      services.CPSUserService
-	PasswordRuleDomain password_service.PasswordRuleService
-	PortalCardDomain   portalcard.PortaCardInterface
-	DepartmentDomain   department.Service
-	HQDomain           hq.Service
-
-	AccountBlockDomain account_block.ApplicationServices
-
+	AdDomain              ad_service.AdvertService
+	AvatarDomian          avatar_domain.AvatarDomainService
+	BankDomain            bank_service.BankService
+	WalletDomain          wallet_service.WalletService
+	FaydaDomain           *fayda_service.FaydaAccountDomain
+	CustomerDomain        *customer_service.CustomerDomain
+	FeedbackDomain        *feedback_service.FeedbackDomain
+	UnlinkDomain          *unlink_service.Service
+	BudgetDomain          *budget_service.BudgetService
+	AccountDomain         account_validation.Service
+	CPSUserDomain         services.CPSUserService
+	PasswordRuleDomain    password_service.PasswordRuleService
+	PortalCardDomain      portalcard.PortaCardInterface
+	DepartmentDomain      department.Service
+	HQDomain              hq.Service
+	miniAppDomain         miniApp_domain.MiniAppService
+	AccountBlockDomain    account_block.ApplicationServices
 	PermissionDomain      permission.Service
-	AmountBasedAuthDomain amount_based_auth_domain.Repository
+	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthRepository
 	ServiceDomain         service.ServiceInterface
 	ActionDomain          action.ServiceInterface
+	EventDomain           event_domain.EventService
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger) Domain {
@@ -73,6 +75,8 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance, logger),
 		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger),
+		miniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
+		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
+		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),
 	}
-
 }

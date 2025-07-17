@@ -77,6 +77,7 @@ func (w *Wallet) UpdateWallet(ctx context.Context, id string, cpsReq model.Creat
 		string(model.ActionUpdate),
 		string(model.RequestUpdateWallet),
 		bson.M{
+			"id":   wallet.ID,
 			"name": wallet.Name,
 			"code": wallet.Code,
 		},
@@ -177,7 +178,6 @@ func (w *Wallet) GetWallet(ctx context.Context, id string) (*entity.Wallet, erro
 func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"action_code":   req.ActionCode,
-		"department":    req.Department,
 		"action_status": model.ActionPending,
 	}
 
@@ -240,8 +240,12 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 			update["enabled"] = false
 		}
 
+		objId, err := bson.ObjectIDFromHex(actionData.ID)
+		if err != nil {
+			return nil, err
+		}
 		wallet, err := w.walletDal.UpdateOne(ctx, bson.M{
-			"id":         actionData.ID,
+			"_id":        objId,
 			"is_deleted": false,
 		}, update)
 		if err != nil {
@@ -275,7 +279,6 @@ func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*
 func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	filter := bson.M{
 		"action_code":   req.ActionCode,
-		"department":    req.Department,
 		"action_status": model.ActionPending,
 	}
 

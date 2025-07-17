@@ -18,7 +18,7 @@ import (
 )
 
 type ADDomain struct {
-	ADRepo      repository.Repository
+	ADRepo      repository.AdRepository
 	bucketName  string
 	minioClient config.MinioClientInterface
 	logger      utils.Logger
@@ -51,7 +51,7 @@ func stripFieldPrefix(err error) string {
 	return errStr
 }
 
-func InitADDomian(bucketName string, minioClient config.MinioClientInterface, adRepo repository.Repository, logger utils.Logger) AdvertService {
+func InitADDomian(bucketName string, minioClient config.MinioClientInterface, adRepo repository.AdRepository, logger utils.Logger) AdvertService {
 	return &ADDomain{
 		ADRepo:      adRepo,
 		bucketName:  bucketName,
@@ -61,45 +61,13 @@ func InitADDomian(bucketName string, minioClient config.MinioClientInterface, ad
 }
 
 func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
-	fmt.Println("+++++++++========================")
-	fmt.Println(cpsAction.ActionData)
-	fmt.Println("++++++++++++========================")
 
 	actionData, ok := cpsAction.ActionData.(dto.CreateAdvertRequest)
 
-	fmt.Println("+++++++++========================")
-	fmt.Println(actionData)
-	fmt.Println("++++++++++++========================")
 	if !ok {
 		a.logger.Errorf("failed to cast action data to ad request")
 		return nil, fmt.Errorf("FAILED_TO_CAST_ACTION_DATA")
 	}
-
-	// var actionData dto.CreateAdvertRequest
-	// fmt.Println("----------+++++++++++++++++++++++")
-	// fmt.Println(cpsAction.ActionData)
-	// fmt.Println("----------+++++++++++++++++++++++")
-	// err := mapstructure.Decode(cpsAction.ActionData, &actionData)
-	// if err != nil {
-	// 	a.logger.Errorf("Failed to decode:", err)
-	// }
-	// fmt.Println("+++++++++++++++++++++++")
-	// fmt.Println(actionData)
-	// fmt.Println("+++++++++++++++++++++++")
-
-	// var actionData dto.CreateAdvertRequest
-
-	// bytes, err := json.Marshal(cpsAction.ActionData)
-	// if err != nil {
-	// 	a.logger.Errorf("Failed to marshal ActionData: %v", err)
-	// }
-
-	// err = json.Unmarshal(bytes, &actionData)
-	// if err != nil {
-	// 	a.logger.Errorf("Failed to unmarshal into dto.CreateAdvertRequest: %v", err)
-	// }
-
-	// fmt.Println("Decoded actionData:", actionData)
 
 	if err := actionData.Validate(); err != nil {
 		a.logger.Errorf("validation error", err)
@@ -113,7 +81,6 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 	}
 
 	if !exist {
-		fmt.Println("bucket name=====================", a.bucketName)
 		created, err := a.minioClient.MakeBucket(ctx, a.bucketName)
 		if !created || err != nil {
 			a.logger.Errorf("failed to create ad bucket: %v", err)
@@ -146,13 +113,15 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 		MakerUser:  cpsAction.MakerUser,
 		Department: cpsAction.Department,
 		ActionData: entity.Advert{
-			Title:       actionData.Title,
-			Description: actionData.Description,
-			BannerImage: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
-			AdvertFor:   entity.AdvertFor(actionData.AdvertFor),
-			Date:        entity.AdvertDate(actionData.Date),
+			ID:            constant.GenerateID(),
+			Title:         actionData.Title,
+			Description:   actionData.Description,
+			BannerImage:   fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			AdvertFor:     entity.AdvertFor(actionData.AdvertFor),
+			Date:          entity.AdvertDate(actionData.Date),
+			CreatedAt:     time.Now(),
+			LastUpdatedAt: time.Now(),
 		},
-		// Map other fields from cpsAction as needed
 	})
 	if err != nil {
 		return nil, err

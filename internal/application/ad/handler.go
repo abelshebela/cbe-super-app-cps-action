@@ -39,12 +39,7 @@ func InitADHandler(adDomain service.AdvertService, minioClinet config.MinioClien
 }
 
 func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*model.CPSAction, error) {
-	cpsAction, err := a.adDomain.CreateOneAdvert(ctx, adCpsReq)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsAction, nil
+	return a.adDomain.CreateOneAdvert(ctx, adCpsReq)
 }
 
 func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error) {
@@ -79,12 +74,8 @@ func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 }
 
 func (a ADHandler) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
-	cpsActionRes, err := a.adDomain.Authorize(ctx, cpsAction)
-	if err != nil {
-		return nil, err
-	}
 
-	return cpsActionRes, nil
+	return a.adDomain.Authorize(ctx, cpsAction)
 }
 
 func (a ADHandler) Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {

@@ -33,7 +33,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/approve/{action_code}",
 				Handler: handler.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -42,7 +42,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/reject/{action_code}",
 				Handler: handler.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -51,7 +51,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/disable/{id}",
 				Handler: handler.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -60,7 +60,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/enable/{id}",
 				Handler: handler.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{

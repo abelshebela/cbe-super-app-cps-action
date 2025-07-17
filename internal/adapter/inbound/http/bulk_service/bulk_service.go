@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/go-chi/chi/v5"
 )
 
 func (h *HttpStore) extractUserIDFromContext(r *http.Request) (domain.User, error) {
@@ -73,10 +74,18 @@ func (h *HttpStore) EnableDisableServicesMaker(w http.ResponseWriter, r *http.Re
 
 func (h *HttpStore) EnableDisableServicesChecker(w http.ResponseWriter, r *http.Request) {
 	var req dto.EnableDisableServiceCheckerDtoRequest
+	action_code := chi.URLParam(r, "action_code")
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
-		return
+	req.Action_Id = action_code
+	if r.Method == "GET" {
+		req.ServiceAction = true
+	} else {
+		req.ServiceAction = false
+		r.WithContext(r.Context()).SetPathValue("rejection_reason", req.RejectReason)
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
+			return
+		}
 	}
 
 	checkerID, err := h.extractUserIDFromContext(r)

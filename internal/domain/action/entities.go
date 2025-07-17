@@ -37,8 +37,9 @@ type User struct {
 }
 
 type CurrentAction struct {
-	Id     []string
-	Action bool
+	Id            []string
+	Action        bool
+	RequestAction string
 }
 type ActionResponse struct {
 	ID       string `json:"_id,omitempty"`
@@ -98,7 +99,7 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestCreateServiceFee         RequestAction = "CREATE SERVICE FEE"
+	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
 	RequestUpdateServiceFee         RequestAction = "UPDATE SERVICE FEE"
 	RequestDeleteServiceFee         RequestAction = "DELETE SERVICE FEE"
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
@@ -131,11 +132,13 @@ const (
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
 	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
 )
 
 type KYCLevel string
@@ -342,4 +345,10 @@ type City struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Enabled      bool
+}
+
+type CreateCPSAction struct {
+	Department    string        `json:"department,omitempty" bson:"department"`
+	RequestAction RequestAction `json:"request_action,omitempty" bson:"request_action"`
+	MakerUser     User          `json:"maker_user" bson:"maker_user"`
 }

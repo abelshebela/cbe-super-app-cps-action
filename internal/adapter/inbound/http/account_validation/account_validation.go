@@ -7,17 +7,34 @@ import (
 	"net/http"
 
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	"github.com/go-chi/chi/v5"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_validation"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	accountvalidation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type HttpStore struct {
+	Application accountvalidation.ApplicationAbstracts
+	logger      common_utils.Logger
+}
+
+func NewHttpAccountValidation(app accountvalidation.ApplicationAbstracts, logger common_utils.Logger) inbound.Inbound {
+	return &HttpStore{
+		Application: app,
+		logger:      logger,
+	}
+}
+
 func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		utils.SendErrorResponse(w, "INVALID_ID", 0, nil)
+	id, ok := utils.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		utils.SendErrorResponse(w, utils.InvalidInputParameters, 0, nil)
 		return
 	}
 
@@ -31,12 +48,17 @@ func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 500, nil)
 	}
-	message := "Account fetched successfully"
-	utils.BaseResponseMaker(data, w, message, 200)
+	utils.BaseResponseMaker(data, w, "Account fetched successfully", 200)
 }
 
 func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := utils.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		utils.SendErrorResponse(w, utils.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	var req accountvalidation_app.ValidationRuleDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
@@ -44,34 +66,29 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 	}
 
 	if err := req.Validate(); err != nil {
-
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	UserID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	FullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	PhoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-
-	Department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if UserID == "" || FullName == "" || PhoneNumber == "" || Department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
-	// fmt.Println(UserID, FullName, PhoneNumber, "nodjghdjkfgheidgjfdk")
 
-	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), id, accountvalidation_app.ToDomainValidationRule(req), UserID, FullName, PhoneNumber, Department)
+	maker := domain.User{
+		ID:          userContext.UserID,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+		Department:  userContext.Department,
+	}
+
+	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), id, accountvalidation_app.ToDomainValidationRule(req), maker)
 
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
-	h.sendSuccessResponse(w, http.StatusOK, map[string]interface{}{
-		"status":  "success",
-		"message": "Update request submitted for approval",
-		"data":    resp,
-	})
 
 	data, err := utils.StructToMap(resp)
 	if err != nil {
@@ -82,35 +99,45 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 }
 
 func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *http.Request) {
-	var req accountvalidation_app.ApproveRejectRequest
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+	var req accountvalidation_app.Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
 
+	req.ActionCode = actionCode
 	if err := req.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	UserID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	FullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	PhoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	Department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if UserID == "" || FullName == "" || PhoneNumber == "" || Department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
 
+	checker := domain.User{
+		ID:          userContext.UserID,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+		Department:  userContext.Department,
+	}
+
+	decison := common_util.Decison(req.Decison)
 	err := h.Application.UpdateAccountValidation(
 		r.Context(),
 		req.ActionCode,
-		req.Decison,
-		UserID,
-		PhoneNumber,
-		FullName,
+		decison,
+		checker,
 		func() string {
-			if req.Decison == utils.DecisionDenied {
+			if !req.Decison {
 				return req.RejectedReason
 			}
 			return ""
@@ -123,21 +150,16 @@ func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *htt
 	}
 
 	action := "approved"
-	if req.Decison == utils.DecisionDenied {
+	if !req.Decison {
 		action = "rejected"
 	}
-
-	data, err := utils.StructToMap(action)
+	data, err := utils.StructToMap(map[string]interface{}{
+		"action": action,
+	})
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 500, nil)
+		return
 	}
 	message := "update request " + action + " successfully Approved"
 	utils.BaseResponseMaker(data, w, message, 200)
-}
-
-func (h *HttpStore) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }

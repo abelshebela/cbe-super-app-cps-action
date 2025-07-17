@@ -104,21 +104,26 @@ func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData,
 func (h *DepartmentHandler) CreateCPSAction(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	// Check request exists
 	if existing, err := h.service.CheckRequestExists(ctx, cpsAction); err != nil {
+		h.logger.Errorf("failed to check request exists: %v", err)
 		return nil, err
 	} else if existing != nil {
+		h.logger.Errorf("pending request exists for action code: %s", existing.ActionCode)
 		return nil, fmt.Errorf(err_msg.PendingRequestExists)
 	}
 
 	// check department exist
 	if exists, err := h.service.CheckDepartmentExists(ctx, department); err != nil {
+		h.logger.Errorf("failed to check department exists: %v", err)
 		return nil, err
 	} else if exists {
+		h.logger.Errorf("department already exists for action code: %s", department)
 		return nil, fmt.Errorf(err_msg.DepartmentAlreadyExists)
 	}
 
 	// creating dep
 	createdAction, err := h.service.CreateCPSAction(ctx, department, portalCards, cpsAction)
 	if err != nil {
+		h.logger.Errorf("failed to create CPS action: %v", err)
 		return nil, err
 	}
 	return createdAction, nil
@@ -238,16 +243,42 @@ func (h *DepartmentHandler) ApproveActionByType(ctx context.Context, cpsAction e
 func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context, req entities.CPSAction) (*entities.CPSAction, error) {
 	// Check for pending update action
 	if existing, err := h.service.CheckRequestExists(ctx, req); err != nil {
+		h.logger.Errorf("failed to check request exists: %v", err)
 		return nil, err
 	} else if existing != nil {
+		h.logger.Errorf("pending request exists for action code: %s", existing.ActionCode)
 		return nil, fmt.Errorf(err_msg.PendingRequestExists)
 	}
 
-	// Check if department exists
-	if exists, err := h.service.CheckDepartmentExists(ctx, req.Department); err != nil {
-		return nil, err
-	} else if !exists {
-		return nil, fmt.Errorf(err_msg.DepartmentNotFound)
+	// Option 1: Proper type assertion with error checking
+	_, ok := req.CurrentAction.(CreateDepartmentRequest)
+	if !ok {
+		// Try to parse from map if type assertion fails
+		if m, ok := req.CurrentAction.(map[string]interface{}); ok {
+			// Convert map to CreateDepartmentRequest
+			jsonData, err := json.Marshal(m)
+			if err != nil {
+				h.logger.Errorf("failed to marshal department request: %v", err)
+				return nil, fmt.Errorf("invalid department request format")
+			}
+
+			var createReq CreateDepartmentRequest
+			if err := json.Unmarshal(jsonData, &createReq); err != nil {
+				h.logger.Errorf("failed to unmarshal department request: %v", err)
+				return nil, fmt.Errorf("invalid department request format")
+			}
+
+			// Now use createReq
+			if exists, err := h.service.CheckDepartmentExists(ctx, createReq.Department); err != nil {
+				h.logger.Errorf("failed to check department exists: %v", err)
+				return nil, err
+			} else if !exists {
+				h.logger.Errorf("department not found for action code: %s", createReq.Department)
+				return nil, fmt.Errorf(err_msg.DepartmentNotFound)
+			}
+		} else {
+			return nil, fmt.Errorf("invalid request type for current action")
+		}
 	}
 
 	cpsAction, err := h.service.CreateDepartmentUpdateCPSAction(ctx, req)

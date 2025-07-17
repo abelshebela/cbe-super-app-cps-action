@@ -12,7 +12,7 @@ import (
 )
 
 func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerHandler, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/cps_user", func(r chi.Router) {
+	router.Route("/cps_users", func(r chi.Router) {
 		routes := []sharedhttp.Route{
 			{
 				Method:  http.MethodPost,
@@ -54,6 +54,15 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 				Method:  http.MethodGet,
 				Path:    "/{user_code}",
 				Handler: handler.FetchUserByUserCode,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: handler.GetAllCPSUsers,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),

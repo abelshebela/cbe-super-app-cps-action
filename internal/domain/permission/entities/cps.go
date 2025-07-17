@@ -1,8 +1,9 @@
 package entities
 
 import (
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UserType string
@@ -77,16 +78,16 @@ type Department struct {
 }
 
 type PermissionGroup struct {
-	ID                 bson.ObjectID        `bson:"_id,omitempty" json:"_id,omitempty"`
-	GroupName          string               `bson:"groupName" json:"groupName"`
-	Permissions        []Permission         `bson:"permissions,omitempty" json:"permissions,omitempty"`
-	PermissionCategory []PermissionCategory `bson:"permissionCategory" json:"permissionCategory"`
-	Role               string               `bson:"role,omitempty" json:"role,omitempty"`
-	Realm              string               `bson:"realm,omitempty" json:"realm,omitempty"`
-	Enabled            bool                 `bson:"enabled,omitempty" json:"enabled,omitempty"`
-	IsDeleted          bool                 `bson:"isDeleted,omitempty" json:"isDeleted,omitempty"`
-	CreatedAt          time.Time            `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
-	LastModified       time.Time            `bson:"lastModified,omitempty" json:"lastModified,omitempty"`
+	ID                 bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	GroupName          string        `bson:"group_name,omitempty" json:"group_name,omitempty"`
+	Permissions        interface{}   `bson:"permissions,omitempty" json:"permissions,omitempty"`
+	PermissionCategory interface{}   `bson:"permission_category,omitempty" json:"permission_category,omitempty"`
+	Role               string        `bson:"role,omitempty" json:"role,omitempty"`
+	Realm              string        `bson:"realm,omitempty" json:"realm,omitempty"`
+	Enabled            bool          `bson:"enabled,omitempty" json:"enabled,omitempty"`
+	IsDeleted          bool          `bson:"is_deleted,omitempty" json:"is_deleted,omitempty"`
+	CreatedAt          time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	LastModified       time.Time     `bson:"last_modified,omitempty" json:"last_modified,omitempty"`
 }
 
 type Permission struct {
@@ -94,13 +95,13 @@ type Permission struct {
 }
 type PermissionCategory struct {
 	ID           bson.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
-	CategoryName string          `bson:"categoryName" json:"categoryName"`
+	CategoryName string          `bson:"category_name,omitempty" json:"category_name,omitempty"`
 	Access       string          `bson:"access" json:"access"`
 	Permissions  []bson.ObjectID `bson:"permissions" json:"permissions"`
 	Enabled      bool            `bson:"enabled,omitempty" json:"enabled,omitempty"`
-	IsDeleted    bool            `bson:"isDeleted,omitempty" json:"isDeleted,omitempty"`
-	CreatedAt    time.Time       `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
-	UpdatedAt    time.Time       `bson:"updatedAt,omitempty" json:"updatedAt,omitempty"`
+	IsDeleted    bool            `bson:"isDeleted,omitempty" json:"is_deleted,omitempty"`
+	CreatedAt    time.Time       `bson:"createdAt,omitempty" json:"created_at,omitempty"`
+	UpdatedAt    time.Time       `bson:"updatedAt,omitempty" json:"updated_at,omitempty"`
 }
 
 const (

@@ -29,16 +29,11 @@ func NewBudgetHTTPHandler(budgetService budget.BudgetService, logger utils.Logge
 }
 
 func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		h.logger.Errorf("failed to parse form data: %v", err)
-		common_util.SendErrorResponse(w, "Failed to parse multipart form", http.StatusBadRequest, nil)
-		return
-	}
 
-	file, fileHeader, err := r.FormFile("icons_image")
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "icons_image", 10<<20)
 	if err != nil {
-		h.logger.Errorf("failed to read icons image: %c", err)
-		common_util.SendErrorResponse(w, "Missing or invalid icons image", http.StatusBadRequest, nil)
+		h.logger.Errorf("error parsing file: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return
 	}
 	defer file.Close()
@@ -89,16 +84,10 @@ func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request)
 
 func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		// h.logger.Errorf("failed to parse form data: %v", err)
-		// common_util.SendErrorResponse(w, "Failed to parse multipart form", http.StatusBadRequest, nil)
-		return
-	}
-
-	file, fileHeader, err := r.FormFile("icons_image")
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "icons_image", 10<<20)
 	if err != nil {
-		h.logger.Errorf("icons_image error: %v", err)
-		common_util.SendErrorResponse(w, "Missing or invalid icons image", http.StatusBadRequest, nil)
+		h.logger.Errorf("error parsing file: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return
 	}
 	defer file.Close()

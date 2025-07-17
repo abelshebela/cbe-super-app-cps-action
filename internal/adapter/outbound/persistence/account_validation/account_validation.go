@@ -30,15 +30,6 @@ type AccountValidationRepo struct {
 	logger        utils.Logger
 }
 
-//	type CPSActionRepo struct {
-//		client   *mongo.Client
-//		mongoDal dal.MongoDal[model.ValidationRule, model.ValidationRule,model.CPSAction]
-//		timeout  time.Duration
-//		logger   utils.Logger
-//	}
-// var _ outbound.OutboundInfra = (*AccountValidationRepo)(nil)
-// var _ account_validation.Repository = (*AccountValidationRepo)(nil)
-
 func InitAccountValidationPersistence(client *mongo.Client, database string, timeout time.Duration, logger utils.Logger) *AccountValidationRepo {
 	validationDal := dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, database, "validation_rule")
 	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, "cps_actions")
@@ -52,9 +43,6 @@ func InitAccountValidationPersistence(client *mongo.Client, database string, tim
 }
 
 func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id string) (account_validation.ValidationRule, error) {
-	ctx, cancel := context.WithTimeout(ctx, r.timeout)
-	defer cancel()
-
 	if id == "" {
 		r.logger.Errorf("invalid validation rule ID: empty")
 		return account_validation.ValidationRule{}, errors.New("validation rule ID cannot be empty")
@@ -134,9 +122,6 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 }
 
 func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id string, rule account_validation.ValidationRule) error {
-	ctx, cancel := context.WithTimeout(ctx, r.timeout)
-	defer cancel()
-
 	if id == "" {
 		r.logger.Errorf("invalid validation rule ID: empty")
 		return errors.New("validation rule ID cannot be empty")
@@ -148,7 +133,6 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 		return errors.New("validation rule ID cannot be empty")
 	}
 	update := bson.M{
-
 		"entity_type":      rule.EntityType,
 		"validation_for":   rule.ValidationFor,
 		"identifier":       rule.Identifier,
@@ -176,9 +160,6 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 }
 
 func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]actions.ActionResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, r.timeout)
-	defer cancel()
-
 	if uniqueID == "" {
 		r.logger.Errorf("invalid unique ID: empty")
 		return nil, fmt.Errorf("invalid unique ID provided %w", local_utils.ErrorDefinition{
@@ -220,9 +201,6 @@ func (r *AccountValidationRepo) FetchPendingActionsByUniqueID(ctx context.Contex
 }
 
 func (r *AccountValidationRepo) FetchAllActionsByUniqueID(ctx context.Context, uniqueID string) ([]actions.ActionResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, r.timeout)
-	defer cancel()
-
 	if uniqueID == "" {
 		r.logger.Errorf("invalid unique ID: empty")
 		return nil, fmt.Errorf("invalid unique ID provided %w", local_utils.ErrorDefinition{
@@ -254,10 +232,4 @@ func (r *AccountValidationRepo) FetchAllActionsByUniqueID(ctx context.Context, u
 		})
 	}
 	return responses, nil
-}
-func getStringValue(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }

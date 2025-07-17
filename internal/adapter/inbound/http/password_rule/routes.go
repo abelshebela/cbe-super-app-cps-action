@@ -14,6 +14,15 @@ import (
 func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInbound, authMiddleware middleware.AuthMiddleware) {
 	routes := []sharedhttp.Route{
 		{
+			Method:  http.MethodGet,
+			Path:    "/password_rule/fetch-all",
+			Handler: handler.GetPasswordRule,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			},
+		},
+		{
 			Method:  http.MethodPost,
 			Path:    "/password_rule/update_request",
 			Handler: handler.RequestPasswordRuleUpdate,

@@ -38,11 +38,11 @@ type Tier struct {
 }
 
 type Cap struct {
-	KYCLevel  KYCLevel
-	SingleCap uint64
-	DailyCap  uint64
-	MinAmount uint64
-	MaxAmount uint64
+	KYCLevel  KYCLevel `json:"kyc_level" bson:"kyc_level"`
+	SingleCap uint64   `json:"single_cap" bson:"single_cap"`
+	DailyCap  uint64   `json:"daily_cap" bson:"daily_cap"`
+	MinAmount uint64   `json:"min_amount" bson:"min_amount"`
+	MaxAmount uint64   `json:"max_amount" bson:"max_amount"`
 }
 
 type Service struct {
@@ -89,6 +89,7 @@ type RequestAction string
 const (
 	RequestServiceFeeUpdate RequestAction = "SERVICE_FEE_UPDATE"
 	RequestServiceFeeCreate RequestAction = "SERVICE_FEE_CREATE"
+	RequestServiceFeeDelete RequestAction = "SERVICE_FEE_DELETE"
 )
 
 type ActionStatus string

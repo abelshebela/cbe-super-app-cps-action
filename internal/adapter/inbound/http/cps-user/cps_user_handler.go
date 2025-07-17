@@ -3,7 +3,7 @@ package cpsmakerhandler
 import (
 	"net/http"
 
-	cpsapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
+	cpsapp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
@@ -79,19 +79,14 @@ func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Re
 }
 
 func (h CPSUserMakerHandler) GetPendingUserActions(w http.ResponseWriter, r *http.Request) {
-	userActions, err := h.Service.GetPendingUserActions(r.Context())
+	pendingUserAction, err := h.Service.GetPendingUserActions(r.Context())
 	if err != nil {
 		h.logger.Errorf("GetPendingUserAction failed: %v", err)
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	data, err := local_util.StructToMap(userActions)
-	if err != nil {
-		local_util.SendErrorResponse(w, "UNHANDLER_SERVER_ERROR", 500, nil)
-		return
-	}
-	local_util.BaseResponseMaker(data, w, "Pending users fetched successfully", 200)
+	local_util.BaseResponseMaker(pendingUserAction, w, "Pending users fetched successfully", 200)
 }
 
 func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
@@ -109,4 +104,15 @@ func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.
 		return
 	}
 	local_util.BaseResponseMaker(data, w, "CPS user fetched successfully", 200)
+}
+
+func (h CPSUserMakerHandler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
+	user, err := h.Service.GetAllCPSUsers(r.Context())
+	if err != nil {
+		h.logger.Errorf("GetAllCPSUser request failed: %v", err)
+		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	local_util.BaseResponseMaker(user, w, "CPS users fetched successfully", 200)
 }

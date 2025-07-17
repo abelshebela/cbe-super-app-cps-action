@@ -24,8 +24,17 @@ func RegisterHTTPUnlinkRoutes(router chi.Router, handler inbound.UnlinkPortHandl
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/review",
+				Method:  http.MethodGet,
+				Path:    "/approve/{action_code}",
+				Handler: handler.ApproveUnlinkDevice,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/reject/{action_code}",
 				Handler: handler.ApproveUnlinkDevice,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

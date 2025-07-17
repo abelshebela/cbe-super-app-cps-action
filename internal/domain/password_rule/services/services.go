@@ -12,6 +12,7 @@ import (
 )
 
 type PasswordRuleService interface {
+	GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error)
 	RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error)
 	ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, decision string, checker action.User, rejectionReason *string, department string) error
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
@@ -118,6 +119,9 @@ func (s *passwordRuleService) ApproveOrRejectPasswordRuleAction(ctx context.Cont
 	return s.repo.UpdateCpsAction(ctx, *cpsAction)
 }
 
+func (s *passwordRuleService) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
+	return s.repo.GetAllPasswordRules(ctx)
+}
 func (s *passwordRuleService) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	return s.repo.GetPasswordRuleUpdateActionByID(ctx, actionID)
 }

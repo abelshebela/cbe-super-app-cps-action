@@ -2,13 +2,25 @@ package permission
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
+
+type PermissionDomainService interface {
+	CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
+	ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error)
+	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
+	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
+	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
+	GetPermissionGroups() ([]*entities.PermissionGroup, error)
+}
 
 type Service struct {
 	cpsActionRepo          CPSActionRepository
@@ -26,15 +38,15 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 	}
 }
 
-func (s *Service) CreatePermissionGroup(groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+func (s *Service) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
 		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
-		return model.CPSAction{}, errors.New("you have pending request for this action")
+		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION")
 	}
 
 	if exists := s.permissionGroupRepo.CheckPermissionGroupExists(groupName); exists {
 		s.logger.Warnf("Permission group already exists with name: %s", groupName)
-		return model.CPSAction{}, errors.New("permission group already exists")
+		return model.CPSAction{}, fmt.Errorf("PERMISSION_GROUP_ALREADY_EXIXTS")
 	}
 
 	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(permissionCategoryLists)
@@ -44,11 +56,21 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 	}
 
 	cpsAction.ActionCode = utils.RandomGenerator(20)
-	cpsAction.CurrentAction = map[string]interface{}{
-		"group_name":            groupName,
-		"permission_categories": validCategories,
-		"role":                  role,
-		"realm":                 "bank",
+	if cpsAction.ActionType == string(entities.ActionUpdate) {
+		cpsAction.CurrentAction = map[string]interface{}{
+			"group_name":            groupName,
+			"permission_categories": validCategories,
+			"role":                  role,
+			"realm":                 "bank",
+			"old_group":             oldGroupName,
+		}
+	} else {
+		cpsAction.CurrentAction = map[string]interface{}{
+			"group_name":            groupName,
+			"permission_categories": validCategories,
+			"role":                  role,
+			"realm":                 "bank",
+		}
 	}
 
 	cpsAction.MakerActionTime = time.Now()
@@ -63,27 +85,63 @@ func (s *Service) CreatePermissionGroup(groupName, role string, permissionCatego
 	return cpsAction, nil
 }
 
-func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) error {
-	action, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
+func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
+
+	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
 
-	switch action.ActionType {
+	// Set checker fields from input action to CreatedAction
+	CreatedAction.CheckerID = action.CheckerID
+	CreatedAction.CheckerName = action.CheckerName
+	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
+	// CreatedAction.Department = action.Department
+
+	switch CreatedAction.ActionType {
 	case "CREATE":
-		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(CreatedAction)
 	case "UPDATE":
-		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(action)
+		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(CreatedAction)
 	default:
-		return errors.New("invalid action type")
+		return model.CPSAction{}, errors.New("invalid action type")
 	}
 
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
 
-	if err := s.cpsActionRepo.ApproveActionRequest(actionCode, action); err != nil {
-		return err
+	approvedAction, err := s.cpsActionRepo.ApproveActionRequest(actionCode, CreatedAction)
+	if err != nil {
+		return model.CPSAction{}, err
 	}
-	return nil
+	return approvedAction, nil
+}
+
+func (s *Service) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
+	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
+	if err != nil {
+		return model.CPSAction{}, err
+	}
+	CreatedAction.CheckerID = action.CheckerID
+	CreatedAction.CheckerName = action.CheckerName
+	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
+
+	rejectedAction, err := s.cpsActionRepo.RejectActionRequest(actionCode, CreatedAction, reason)
+	if err != nil {
+		return model.CPSAction{}, err
+	}
+	return rejectedAction, nil
+}
+
+func (s *Service) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
+	return s.permissionGroupRepo.UpdatePermissionGroup(groupName, permissionCategoryLists)
+}
+
+func (s *Service) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
+	return s.permissionGroupRepo.GetPermissionGroup(groupName)
+}
+
+func (s *Service) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
+	return s.permissionGroupRepo.GetPermissionGroups()
 }

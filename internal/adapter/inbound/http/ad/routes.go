@@ -61,7 +61,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 			},
 
 			{
-				Method:  http.MethodGet,
+				Method:  http.MethodPatch,
 				Path:    "/approve/{action_code}",
 				Handler: ad.Authorize,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -71,7 +71,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 			},
 
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/reject/{action_code}",
 				Handler: ad.Reject,
 				Middlewares: []func(next http.Handler) http.Handler{

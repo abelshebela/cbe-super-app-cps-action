@@ -46,7 +46,6 @@ func (s *ServiceStore) createCpsAction(maker User, actionID string, currentActio
 		MakerName:         maker.FullName,
 		MakerPhoneNumber:  maker.PhoneNumber,
 		ActionType:        ActionCreate,
-		RequestAction:     RequestUpdateServiceRule,
 		ActionStatus:      ActionPending,
 		CurrentAction:     currentAction,
 		CreatedAt:         time.Now(),
@@ -70,7 +69,6 @@ func (s *ServiceStore) approveOrRejectAction(cpsAction *CPSAction, checker User,
 	cpsAction.LastModifiedAt = time.Now()
 }
 
-
 func extractCurrentAction(input any) (CurrentAction, error) {
 	var current CurrentAction
 
@@ -90,6 +88,7 @@ func extractCurrentAction(input any) (CurrentAction, error) {
 
 func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction) (string, error) {
 	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
+
 	cpsAction := s.createCpsAction(maker, actionID, current)
 	data, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
@@ -178,8 +177,9 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, ids []string, actio
 	}
 
 	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
-		Id:     ids,
-		Action: action,
+		Id:            ids,
+		Action:        action,
+		RequestAction: "CIF_REMOVE",
 	})
 
 }
@@ -198,6 +198,9 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bo
 		return err
 	}
 
+	if cpsAction.RequestAction == "CIF_REMOVE" {
+		return nil
+	}
 	currentAction, err := extractCurrentAction(cpsAction.CurrentAction)
 	if err != nil {
 		s.Logger.Errorf("RemoveCif: failed to extract current action", "actionID", actionID, "error", err)
@@ -231,7 +234,18 @@ func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (C
 		s.Logger.Errorf("CreateCpsAction: pending CPS action already exists", "makerID", action.MakerID)
 		return CPSAction{}, fmt.Errorf(common_util.PendingCPSActionExists)
 	}
-	createdAction, err := s.Repository.CreateCpsAction(ctx, action)
+	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
+	cpsAction := s.createCpsAction(
+		User{
+			UserID:      action.MakerID,
+			FullName:    action.MakerName,
+			PhoneNumber: action.MakerPhoneNumber,
+		},
+		actionID,
+		action.CurrentAction,
+	)
+	cpsAction.RequestAction = action.RequestAction
+	createdAction, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)
 		return CPSAction{}, err

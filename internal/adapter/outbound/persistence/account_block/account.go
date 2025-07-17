@@ -351,7 +351,7 @@ func (o *outboundAccountBlockStore) ApproveBulkBranchesDisable(ctx context.Conte
 		"unique_id":      bson.M{"$in": uniqueIDs},
 		"action_status":  statusCheck,
 		"action_type":    "DELETE",
-		"request_action": "DISABLE_MULTI_BRANCHES",
+		"request_action": "REQUEST_DISABLE_MULTI_BRANCHES",
 	}
 	alreadyProcessed, _ := o.MongoDalCPSAction.FindOne(ctx, dupFilter, bson.M{})
 	if alreadyProcessed != nil {

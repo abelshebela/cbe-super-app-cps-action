@@ -14,6 +14,9 @@ import (
 
 type ApplicationService interface {
 	GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
+	GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
+	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
+	GetFaydaCustomerByID(ctx context.Context, id string) (*member.User, error)
 	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
 }
 
@@ -44,4 +47,30 @@ func (c CustomerHandler) GetCustomerByID(ctx context.Context, id string) (*membe
 		return nil, err
 	}
 	return customer, nil
+}
+
+func (c CustomerHandler) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+	customers, err := c.domain.GetFaydaCustomersDeatil(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return customers, nil
+}
+
+func (c CustomerHandler) GetFaydaCustomerByID(ctx context.Context, id string) (*member.User, error) {
+	customer, err := c.domain.GetFaydaCustomerByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return customer, nil
+}
+
+func (c CustomerHandler) GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+	customers, err := c.domain.GetBlockedCustomer(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return customers, nil
 }

@@ -124,6 +124,14 @@ func (s *BudgetCategoryService) GetAllBudgetCategory(ctx context.Context, getAll
 	return s.repository.GetAllBudgetCategory(ctx, getAllBudgetCategory)
 }
 
+func (s *BudgetCategoryService) FindActionById(ctx context.Context, actionId string) (*action.CPSAction, error) {
+	return s.repository.FindActionById(ctx, actionId)
+}
+
+func (s *BudgetCategoryService) UpdateAction(ctx context.Context, actionId string, checker action.User, status action.ActionStatus) (action.CPSAction, error) {
+	return s.repository.UpdateAction(ctx, actionId, checker, status)
+}
+
 func bindAction(source interface{}, target interface{}) error {
 	bytes, err := json.Marshal(source)
 	if err != nil {

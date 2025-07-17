@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const numberic string = "0123456789"
@@ -180,4 +181,8 @@ func ValidateInputNoSpecialChars(input string) error {
 	}
 
 	return nil
+}
+
+func GenerateID() bson.ObjectID {
+	return bson.NewObjectID()
 }

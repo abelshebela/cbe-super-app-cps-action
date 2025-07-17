@@ -6,6 +6,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/go-chi/chi/v5"
 )
 
 func (h *HttpStore) SearchAccountByCif(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +28,7 @@ func (h *HttpStore) RemoveCifMaker(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
 		return
 	}
-	
+
 	maker, err := h.extractUserIDFromContext(r)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), http.StatusUnauthorized, nil)
@@ -47,10 +48,18 @@ func (h *HttpStore) RemoveCifMaker(w http.ResponseWriter, r *http.Request) {
 }
 func (h *HttpStore) RemoveCifChecker(w http.ResponseWriter, r *http.Request) {
 	var req dto.CifRemoveCheckerRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
+	action_code := chi.URLParam(r, "action_code")
 
-		return
+	req.ActionID = action_code
+	if r.Method == "GET" {
+		req.ServiceAction = true
+	} else {
+		req.ServiceAction = false
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			utils.SendErrorResponse(w, utils.InvalidInput, 0, nil)
+
+			return
+		}
 	}
 	checker, err := h.extractUserIDFromContext(r)
 	if err != nil {
@@ -62,5 +71,5 @@ func (h *HttpStore) RemoveCifChecker(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, nil, "action successfully completed")
+	utils.BaseResponseMaker(nil, w, "action successfully completed", 200)
 }

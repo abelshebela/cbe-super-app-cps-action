@@ -25,11 +25,45 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/{action_code}/approve",
+				Path:    "/approve/{action_code}",
 				Handler: permissionHandler.ApprovePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/reject/{action_code}",
+				Handler: permissionHandler.RejectPermissionGroup,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: permissionHandler.GetPermissionGroups,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/{group_name}",
+				Handler: permissionHandler.GetPermissionGroup,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/{group_name}",
+				Handler: permissionHandler.UpdatePermissionGroup,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
 		}

@@ -6,12 +6,14 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain_hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
 	GetHQ(ctx context.Context, id string) (dto.HQ, error)
+	GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*domain_hq.HQRespose, error)
 	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName string) (string, error)
 	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName string) (string, error)
 	UpdateBlockTime(ctx context.Context, request dto.ApproveRejectRequest, checkerID, phone, fullName string) error
@@ -27,13 +29,21 @@ func NewApplication(service domain_hq.Service, logger sharedutils.Logger) Applic
 	return &ApplicationStore{service: service, logger: logger}
 }
 
+func (a *ApplicationStore) GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*domain_hq.HQRespose, error) {
+	hqData, err := a.service.GetAllHQ(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return hqData, nil
+}
 func (a *ApplicationStore) GetHQ(ctx context.Context, id string) (dto.HQ, error) {
 	hq, err := a.service.GetHQ(ctx, id)
 	if err != nil {
 		return dto.HQ{}, err
 	}
 	return dto.HQ{
-		ID:             hq.ID,
+		ID:             hq.ID.Hex(),
 		Name:           hq.Name,
 		BlockTime:      hq.BlockTime,
 		ArchiveTime:    hq.ArchiveTime,

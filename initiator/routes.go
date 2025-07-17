@@ -1,4 +1,3 @@
-
 package initiator
 
 import (
@@ -14,12 +13,14 @@ import (
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
-	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-maker_handler"
+	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
 	customerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/customer_handler"
 	department_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/department_handler"
+	eventhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/event"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/fayda_account"
 	feedbackhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/feedback_handler"
 	hq_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
+	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	permission_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
@@ -58,6 +59,8 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		service.InitServiceRoutes(sub, adapter.ServiceAdapter, authMiddleware)
 		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware)
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
+		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware)
+		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware)
 
 	})
 }

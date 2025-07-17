@@ -6,7 +6,6 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 type AdvertFor string
@@ -93,7 +92,7 @@ type AdvertResponse struct {
 type CreateAdvertRequest struct {
 	ID          string                `json:"id"`
 	Title       string                `form:"title" json:"title"`
-	Description string                `form:"description" json:"descritption"`
+	Description string                `form:"description" json:"description"`
 	BannerImage *multipart.FileHeader `form:"banner_image" json:"banner_image"`
 	AdvertFor   AdvertFor             `form:"advert_for" json:"advert_for"`
 	Date        AdvertDate            `form:"date" json:"date"`
@@ -102,7 +101,7 @@ type CreateAdvertRequest struct {
 func (c CreateAdvertRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
-			validation.Required.Error("title is required"), validation.Length(3, 10).Error("title length is between 3 and 10"), is.Alpha),
+			validation.Required.Error("title is required"), validation.Length(3, 10).Error("title length is between 3 and 10")),
 		validation.Field(&c.Description, validation.Length(30, 100).Error("description length is between 30 and 100")),
 		validation.Field(&c.AdvertFor, validation.In(
 			Both,

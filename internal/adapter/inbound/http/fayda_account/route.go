@@ -24,8 +24,8 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/approve",
+				Method:  http.MethodGet,
+				Path:    "/approve/{action_code}",
 				Handler: faydaHandler.AuthorizeFaydaAccountDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -33,8 +33,8 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/reject",
+				Method:  http.MethodPatch,
+				Path:    "/reject/{action_code}",
 				Handler: faydaHandler.RejectFaydaAccountDisable,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

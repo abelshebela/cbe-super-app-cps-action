@@ -11,12 +11,13 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
-	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user_maker"
+	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
 	faydaaccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/fayda_account"
 	feedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/feedback"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
+	miniApp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
@@ -25,33 +26,35 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
 	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Application struct {
-	AvatarApplication        avatar_app.AvatarApplicationService
-	BankApplication          bank.BankHandlerService
-	AdApplication            ad.ADHandlers
-	WalletApplication        wallet.WalletHandlerAppllication
-	FaydaApplication         faydaaccount.ApplicationService
-	CustomerApplication      customer.ApplicationService
-	FeedbackApplication      feedback.FeedbackService
-	UnlinkApplication        unlink.ApplicationService
-	BudgetApplication        budget.BudgetService
-	AccountApplication       accountvalidation_app.ApplicationAbstracts
-	BulkServicesApplication  bulkservices_application.ApplicationAbstracts
-	CPSUserApplication       cpsusermaker.ApplicationService
-	PasswordRuleApplication  *passwordrule.PasswordRuleHandler
-	PortalCardApplication    portalcard.PortalCardApplication
-	ServiceDetailApplication service_details_app.ApplicationAbstracts
-	DepartmentApplication    department.DepartmentService
-	AccountBlockApplication  account_block.ApplicationService
-	HQApplication            hq.ApplicationAbstracts
-
+	AvatarApplication          avatar_app.AvatarApplicationService
+	BankApplication            bank.BankHandlerService
+	AdApplication              ad.ADHandlers
+	WalletApplication          wallet.WalletHandlerAppllication
+	FaydaApplication           faydaaccount.ApplicationService
+	CustomerApplication        customer.ApplicationService
+	FeedbackApplication        feedback.FeedbackService
+	UnlinkApplication          unlink.ApplicationService
+	BudgetApplication          budget.BudgetService
+	AccountApplication         accountvalidation_app.ApplicationAbstracts
+	BulkServicesApplication    bulkservices_application.ApplicationAbstracts
+	CPSUserApplication         cpsusermaker.ApplicationService
+	PasswordRuleApplication    *passwordrule.PasswordRuleHandler
+	PortalCardApplication      portalcard.PortalCardApplication
+	ServiceDetailApplication   service_details_app.ApplicationAbstracts
+	DepartmentApplication      department.DepartmentService
+	AccountBlockApplication    account_block.ApplicationService
+	HQApplication              hq.ApplicationAbstracts
 	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
+	miniAppApplication         miniApp_application.ApplicationAbstracts
+	EventApplication           event_application.ApplicationAbstracts
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -78,5 +81,7 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
+		miniAppApplication:         miniApp_application.NewApplicationService(domain.miniAppDomain, logger),
+		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 	}
 }
