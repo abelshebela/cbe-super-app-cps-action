@@ -79,7 +79,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/{id}/enable",
 				Handler: bank.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -88,7 +88,7 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/{id}/disable",
 				Handler: bank.Disable,
 				Middlewares: []func(next http.Handler) http.Handler{

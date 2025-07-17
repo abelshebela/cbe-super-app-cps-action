@@ -93,7 +93,7 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	cpsRequest.ActionData = bankRequest
 	cpsRes, err := b.bankHandler.CreateOneBank(r.Context(), *cpsRequest)
 	if err != nil {
-		common_util.SendErrorResponse(w, err, 0, nil)
+		common_util.SendErrorResponse(w, err, 409, nil)
 		return
 	}
 
@@ -221,7 +221,6 @@ func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cpsReq.ActionCode = actionCode
-
 	authAction, err := b.bankHandler.Authorize(r.Context(), *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)

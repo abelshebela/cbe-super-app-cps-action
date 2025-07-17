@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -141,15 +142,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if token == nil {
 			a.logger.Errorf("token is nil")
-			res := common.Response[constant.ErrorDefinition]{
-				ResponseWriter: w,
-				Status:         http.StatusUnauthorized,
-				Data: constant.ErrorDefinition{
-					Code:    http.StatusUnauthorized,
-					Message: "invalid token",
-				},
-			}
-			res.SendJSON()
+			common_util.SendErrorResponse(w, common_util.Unauthorized, 0, nil)
 			return
 		}
 
