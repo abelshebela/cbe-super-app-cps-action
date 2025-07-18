@@ -42,7 +42,7 @@ func InitAmountBasedAuth(client *mongo.Client, database string, collection []str
 	}
 }
 
-func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*amount_based_auth_domain.AmountBasedAuthRespose, error) {
+func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*amount_based_auth_domain.AuthTier], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -63,7 +63,9 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 		filter["account_status"] = filterParams.Filters
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
 	amountBased, err := a.authTier.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
@@ -81,11 +83,11 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
-	return &amount_based_auth_domain.AmountBasedAuthRespose{
-		Page:            1,
-		AmountBasedAuth: amountBased,
-		Limit:           constant.DefaultPerPage,
-		Total:           total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+
+	return &common_util.PaginatedResponse[[]*amount_based_auth_domain.AuthTier]{
+		Data: amountBased,
+		Meta: meta,
 	}, nil
 }
 
