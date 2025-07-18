@@ -14,8 +14,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 
 	// ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
