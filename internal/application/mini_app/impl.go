@@ -77,7 +77,7 @@ func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId st
 			Code:    "",
 			Message: "",
 		}
-		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err.Error())
+		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] %v", err.Error())
 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
 		return model.CPSAction{}, err
 	}

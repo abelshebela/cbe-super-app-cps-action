@@ -70,7 +70,11 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to create mini app")
 		return
 	}
-	utils.WriteSuccessResponse(w, response, "mini App request successfully created")
+	type ActionResponse struct {
+		ActionCode string `json:"action_code"`
+	}
+	response_actoinData := ActionResponse{ActionCode: response}
+	utils.WriteSuccessResponse(w, response_actoinData, "mini App request successfully created")
 }
 
 func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {

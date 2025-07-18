@@ -14,6 +14,7 @@ import (
 
 func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User, department string) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
+	miniApp.ID = bson.NewObjectID()
 	// currentMiniApp := miniApp
 	// currentMiniApp.IsDeleted = true
 	action := model.CPSAction{
@@ -31,6 +32,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
 	}
+
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)
 	if err != nil {
 		return "", err
@@ -93,7 +95,7 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 	// }
 
 	req := model.MiniApp{
-		// ID:                bson.NewObjectID().Hex(),
+		ID:                bson.NewObjectID(),
 		AppName:           actionData.AppName,
 		AppIcon:           actionData.AppIcon,
 		CommisonGLAccount: actionData.CommisonGLAccount,
@@ -144,6 +146,7 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 
 	_, err = s.Repository.CreateMiniApp(ctx, req)
 	if err != nil {
+		fmt.Printf("error form domain chekmiiapp to crate mini app : %v", err)
 		return model.CPSAction{}, err
 	}
 	return updatedAction, nil
