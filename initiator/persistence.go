@@ -32,6 +32,7 @@ import (
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	portal_card_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -77,14 +78,14 @@ type Persitence struct {
 	EventPersistence           *event_persistence.EventPersistence
 }
 
-func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger) Persitence {
+func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
 	collectionNames := []string{
 		"bps_user",
 		"cps_actions",
 		"cps_users",
 		"service",
 		"member",
-		"linked_accounts",
+		"linked_account",
 		"mini_app",
 		"portal_card",
 	}
@@ -97,7 +98,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, databaseName, []string{"user", "otp", "cps_actions"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
-		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger),
+		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),
 		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",

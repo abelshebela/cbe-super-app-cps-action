@@ -666,6 +666,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_147",
 			Message: "description length is between 3 and 100 characters",
 		},
+		"MISSING_CONFIG_KEY": {
+			Code:    "GEN_148",
+			Message: "Configuration key is missing.",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

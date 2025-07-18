@@ -16,6 +16,7 @@ import (
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -71,7 +72,7 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 		MongoDalPortalCard:        mongoDalPortalCard,
 	}
 }
-func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger) outbound.OutboundInfra {
+func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger, cfg *config.VaultConfig) outbound.OutboundInfra {
 
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
@@ -89,7 +90,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalServices:       mongoDalService,
 		MongoDalMember:         mongoDalMember,
 		MongoDalAccounts:       mongoDalAccounts,
-		BpsCalls:               bpscalls.NewBpsCalls(),
+		BpsCalls:               bpscalls.NewBpsCalls(cfg, logger),
 		MongoDalMiniApp:        mongoDalMiniApp,
 		MongoDalCPSUser:        mongoDalCPSUser,
 		MongoDalServiceDetails: mongoDalServiceDetail,
@@ -274,6 +275,9 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.ServiceDetails{}, fmt.Errorf("NOT_FOUND")
+		}
 		return domain.ServiceDetails{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	return domain.ServiceDetails{
@@ -557,9 +561,8 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 
 	return nil
 }
-func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string) (domain.CPSAction, error) {
-	// fmt.Println("holnvfnkednvg", Action_Id)
-	filter := bson.M{"action_code": Action_Id}
+func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_code string) (domain.CPSAction, error) {
+	filter := bson.M{"action_code": Action_code}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -576,6 +579,9 @@ func (o *outboundStore) FetchAccountsByAccountNumber(ctx context.Context, accoun
 	v, err := o.BpsCalls.FetchLinkedAccount(accountNumber)
 	if err != nil {
 		return nil, err
+	}
+	if v == nil {
+		return nil, fmt.Errorf(error_codes.AccountNotFound)
 	}
 	filter := map[string]interface{}{"customer_number": v.CustomerNumber}
 	data, err := o.MongoDalAccounts.FindAll(ctx, filter, nil)
@@ -673,6 +679,9 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 
 		_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, fmt.Errorf(error_codes.AccountNotFound)
+			}
 			return nil, err
 		}
 		updatedAccounts = append(updatedAccounts, acc)
@@ -681,7 +690,11 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 }
 
 func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error) {
-	filter := map[string]interface{}{"_id": linkedAccount.ID}
+	objID, err := bson.ObjectIDFromHex(*linkedAccount.ID)
+	if err != nil {
+		return domain.LinkedAccount{}, fmt.Errorf(error_codes.AccountNotFound)
+	}
+	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
 
 		"user_id":             linkedAccount.UserID,
@@ -714,8 +727,11 @@ func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.
 		"updated_at": linkedAccount.UpdatedAt,
 	}
 
-	_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
+	_, err = o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.LinkedAccount{}, fmt.Errorf(error_codes.AccountNotFound)
+		}
 		return domain.LinkedAccount{}, err
 	}
 	return linkedAccount, nil
@@ -758,10 +774,9 @@ func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDoma
 
 }
 
-func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error) {
-
+func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, ids []string) ([]domain.LinkedAccount, error) {
 	var result []domain.LinkedAccount
-	for _, i := range id {
+	for _, i := range ids {
 
 		filter := bson.M{"customer_number": i}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
@@ -769,7 +784,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				return nil, fmt.Errorf(error_codes.AccountNotFound)
 			}
-			return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
+			return nil, fmt.Errorf(err.Error())
 		}
 		result = append(result, domain.LinkedAccount{
 			ID:                stringToPointer(item.ID.Hex()),
