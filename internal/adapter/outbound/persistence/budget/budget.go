@@ -52,7 +52,7 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	return &cps, nil
 }
 
-func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
+func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -87,9 +87,9 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 	}
 	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
 
-	return &entities.FetchIconResponse{
-		Icons: icons,
-		Meta:  meta,
+	return &common_util.PaginatedResponse[[]*entities.Icon]{
+		Data: icons,
+		Meta: meta,
 	}, nil
 }
 
@@ -146,7 +146,7 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	return &createdAction, nil
 }
 
-func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *constant.Filter) (*entities.FetchColorsResponse, error) {
+func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Color], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -159,9 +159,10 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 	}
 
 	if filterParams.Filters != "" {
-		if filterParams.Filters == "enabled" {
+		switch filterParams.Filters {
+		case "enabled":
 			filter["enabled"] = true
-		} else if filterParams.Filters == "disabled" {
+		case "disabled":
 			filter["enabled"] = false
 		}
 	}
@@ -181,9 +182,9 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 	}
 	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
-	return &entities.FetchColorsResponse{
-		Colors: colors,
-		Meta:   meta,
+	return &common_util.PaginatedResponse[[]*entities.Color]{
+		Data: colors,
+		Meta: meta,
 	}, nil
 }
 

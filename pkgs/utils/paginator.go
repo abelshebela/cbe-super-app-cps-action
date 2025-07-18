@@ -16,6 +16,10 @@ type PaginationMeta struct {
 	PrevPage      *int  `json:"prevPage,omitempty"`
 	NextPage      *int  `json:"nextPage,omitempty"`
 }
+type PaginatedResponse[T any] struct {
+	Data T              `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
 
 // ExtractPaginator extracts page and limit from the request
 func ExtractPaginator(r *http.Request) (limit, offset int64, err error) {

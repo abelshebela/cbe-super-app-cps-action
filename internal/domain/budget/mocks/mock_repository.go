@@ -14,7 +14,8 @@ import (
 	reflect "reflect"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
-	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	utils0 "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -118,10 +119,10 @@ func (mr *MockRepositoryMockRecorder) CreateIconAction(ctx, action any) *gomock.
 }
 
 // FetchIcons mocks base method.
-func (m *MockRepository) FetchIcons(ctx context.Context, filterParams *utils.Filter) (*entities.FetchIconResponse, error) {
+func (m *MockRepository) FetchIcons(ctx context.Context, filterParams *utils0.Filter) (*utils.PaginatedResponse[[]*entities.Icon], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchIcons", ctx, filterParams)
-	ret0, _ := ret[0].(*entities.FetchIconResponse)
+	ret0, _ := ret[0].(*utils.PaginatedResponse[[]*entities.Icon])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -148,10 +149,10 @@ func (mr *MockRepositoryMockRecorder) GetByIDColor(ctx, id any) *gomock.Call {
 }
 
 // ListAllColor mocks base method.
-func (m *MockRepository) ListAllColor(ctx context.Context, filterParams *utils.Filter) (*entities.FetchColorsResponse, error) {
+func (m *MockRepository) ListAllColor(ctx context.Context, filterParams *utils0.Filter) (*utils.PaginatedResponse[[]*entities.Color], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAllColor", ctx, filterParams)
-	ret0, _ := ret[0].(*entities.FetchColorsResponse)
+	ret0, _ := ret[0].(*utils.PaginatedResponse[[]*entities.Color])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

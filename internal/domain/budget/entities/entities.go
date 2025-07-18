@@ -3,7 +3,6 @@ package entities
 import (
 	"time"
 
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -94,15 +93,6 @@ type Icon struct {
 	IsDeleted    bool          `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt    time.Time     `bson:"created_at" json:"created_at"`
 	LastModified time.Time     `bson:"last_modified" json:"last_modified"`
-}
-
-type FetchIconResponse struct {
-	Icons []*Icon                    `json:"icons"`
-	Meta  common_util.PaginationMeta `json:"meta"`
-}
-type FetchColorsResponse struct {
-	Colors []*Color                   `json:"colors"`
-	Meta   common_util.PaginationMeta `json:"meta"`
 }
 
 const (

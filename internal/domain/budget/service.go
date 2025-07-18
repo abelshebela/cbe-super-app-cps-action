@@ -6,6 +6,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -29,7 +30,7 @@ func (s *BudgetService) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	return action, nil
 }
 
-func (s *BudgetService) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
+func (s *BudgetService) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
 	icons, err := s.repo.FetchIcons(ctx, filterParams)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func (s *BudgetService) CreateColor(ctx context.Context, hexCode string, cpsActi
 	return action, nil
 }
 
-func (s *BudgetService) FetchColors(ctx context.Context, filterParams *constant.Filter) (*entities.FetchColorsResponse, error) {
+func (s *BudgetService) FetchColors(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Color], error) {
 	colors, err := s.repo.ListAllColor(ctx, filterParams)
 	if err != nil {
 		return nil, err
