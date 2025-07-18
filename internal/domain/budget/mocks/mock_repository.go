@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -117,18 +118,18 @@ func (mr *MockRepositoryMockRecorder) CreateIconAction(ctx, action any) *gomock.
 }
 
 // FetchIcons mocks base method.
-func (m *MockRepository) FetchIcons(ctx context.Context, offset, limit int) ([]*entities.Icon, error) {
+func (m *MockRepository) FetchIcons(ctx context.Context, filterParams *utils.Filter) (*entities.FetchIconResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchIcons", ctx, offset, limit)
-	ret0, _ := ret[0].([]*entities.Icon)
+	ret := m.ctrl.Call(m, "FetchIcons", ctx, filterParams)
+	ret0, _ := ret[0].(*entities.FetchIconResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchIcons indicates an expected call of FetchIcons.
-func (mr *MockRepositoryMockRecorder) FetchIcons(ctx, offset, limit any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) FetchIcons(ctx, filterParams any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchIcons", reflect.TypeOf((*MockRepository)(nil).FetchIcons), ctx, offset, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchIcons", reflect.TypeOf((*MockRepository)(nil).FetchIcons), ctx, filterParams)
 }
 
 // GetByIDColor mocks base method.
@@ -147,18 +148,18 @@ func (mr *MockRepositoryMockRecorder) GetByIDColor(ctx, id any) *gomock.Call {
 }
 
 // ListAllColor mocks base method.
-func (m *MockRepository) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
+func (m *MockRepository) ListAllColor(ctx context.Context, filterParams *utils.Filter) (*entities.FetchColorsResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAllColor", ctx)
-	ret0, _ := ret[0].([]*entities.Color)
+	ret := m.ctrl.Call(m, "ListAllColor", ctx, filterParams)
+	ret0, _ := ret[0].(*entities.FetchColorsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListAllColor indicates an expected call of ListAllColor.
-func (mr *MockRepositoryMockRecorder) ListAllColor(ctx any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ListAllColor(ctx, filterParams any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllColor", reflect.TypeOf((*MockRepository)(nil).ListAllColor), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllColor", reflect.TypeOf((*MockRepository)(nil).ListAllColor), ctx, filterParams)
 }
 
 // UpdateColor mocks base method.

@@ -148,13 +148,49 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	return &createdAction, nil
 }
 
-func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := b.colorDal.FindAll(ctx, bson.M{}, bson.M{})
+func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *constant.Filter) (*entities.FetchColorsResponse, error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	// Search by color name
+	if filterParams.Search != "" {
+		filter["color"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	// Optional: filter by enabled/disabled
+	if filterParams.Filters != "" {
+		if filterParams.Filters == "enabled" {
+			filter["enabled"] = true
+		} else if filterParams.Filters == "disabled" {
+			filter["enabled"] = false
+		}
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	// Fetch paginated data
+	colors, err := b.colorDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return colors, nil
+	// Count total matching documents
+	total, err := b.colorDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.FetchColorsResponse{
+		Colors: colors,
+		Page:   filterParams.Page,
+		Limit:  filterParams.PerPage,
+		Total:  total,
+	}, nil
 }
 
 func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entities.Color, error) {

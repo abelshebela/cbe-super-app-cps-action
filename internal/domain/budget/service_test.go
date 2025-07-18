@@ -62,15 +62,15 @@ func TestBudgetService_FetchIcons(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		icons := []*entities.Icon{{Icon: "icon1"}, {Icon: "icon2"}}
-		repo.EXPECT().FetchIcons(gomock.Any()).Return(icons, nil)
-		result, err := service.FetchIcons(context.Background())
+		repo.EXPECT().FetchIcons(gomock.Any(), gomock.Any()).Return(icons, nil)
+		result, err := service.FetchIcons(context.Background(), nil)
 		assert.NoError(t, err)
 		assert.Equal(t, icons, result)
 	})
 
 	t.Run("error", func(t *testing.T) {
-		repo.EXPECT().FetchIcons(gomock.Any()).Return(nil, errors.New("fetch error"))
-		result, err := service.FetchIcons(context.Background())
+		repo.EXPECT().FetchIcons(gomock.Any(), gomock.Any()).Return(nil, errors.New("fetch error"))
+		result, err := service.FetchIcons(context.Background(), nil)
 		assert.Error(t, err)
 		assert.Nil(t, result)
 	})

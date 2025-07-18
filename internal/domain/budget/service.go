@@ -5,9 +5,8 @@ import (
 	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type BudgetService struct {
@@ -30,7 +29,7 @@ func (s *BudgetService) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	return action, nil
 }
 
-func (s *BudgetService) FetchIcons(ctx context.Context,filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
+func (s *BudgetService) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
 	icons, err := s.repo.FetchIcons(ctx, filterParams)
 	if err != nil {
 		return nil, err
@@ -66,8 +65,8 @@ func (s *BudgetService) CreateColor(ctx context.Context, hexCode string, cpsActi
 	return action, nil
 }
 
-func (s *BudgetService) FetchColors(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := s.repo.ListAllColor(ctx)
+func (s *BudgetService) FetchColors(ctx context.Context, filterParams *constant.Filter) (*entities.FetchColorsResponse, error) {
+	colors, err := s.repo.ListAllColor(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}

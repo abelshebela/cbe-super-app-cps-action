@@ -102,6 +102,13 @@ type FetchIconResponse struct {
 	Total int64  `json:"total"`
 }
 
+type FetchColorsResponse struct {
+	Colors []*Color `json:"colors"`
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
+	Total  int64  `json:"total"`
+}
+
 const (
 	RequestUser                     RequestAction = "USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
