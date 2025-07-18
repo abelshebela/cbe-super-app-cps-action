@@ -84,7 +84,6 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 	}
 
 	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), id, accountvalidation_app.ToDomainValidationRule(req), maker)
-
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return

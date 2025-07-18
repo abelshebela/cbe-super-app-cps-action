@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -43,7 +44,7 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	cps, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		return nil, fmt.Errorf("failed to create CPS action")
+		return nil, fmt.Errorf(error_codes.FailedToCreateAction)
 	}
 
 	return &cps, nil
