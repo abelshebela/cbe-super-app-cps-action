@@ -97,6 +97,13 @@ const (
 	RequestDeleteAdvert  RequestAction = "DELETE_ADVERT"
 )
 
+type AdvertResponse struct {
+	Page   int       `json:"page"`
+	Advert []*Advert `json:"advert"`
+	Limit  int       `json:"limit"`
+	Total  int64     `json:"total"`
+}
+
 type CPSActionResponse struct {
 	ID                string        `json:"id,omitempty"`
 	ActionCode        string        `json:"action_code,omitempty"`
