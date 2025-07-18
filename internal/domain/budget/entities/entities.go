@@ -47,11 +47,11 @@ type CPSAction struct {
 	MakerID            string        `bson:"maker_id" json:"maker_id"`
 	MakerName          string        `bson:"maker_name" json:"maker_name"`
 	MakerPhoneNumber   string        `bson:"maker_phone_number" json:"maker_phone_number"`
-	CheckerID          string        `bson:"checker_id" json:"checker_id"`
-	CheckerName        string        `bson:"checker_name" json:"checker_name"`
-	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number"`
+	CheckerID          string        `bson:"checker_id" json:"checker_id,omitempty"`
+	CheckerName        string        `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string        `bson:"department" json:"department"`
-	RejectionReason    *string       `bson:"rejection_reason" json:"rejection_reason"`
+	RejectionReason    *string       `bson:"rejection_reason" json:"rejection_reason,omitempty"`
 	PreviousAction     interface{}   `bson:"previous_action" json:"previous_action"`
 	CurrentAction      interface{}   `bson:"current_action" json:"current_action"`
 	ActionStatus       ActionStatus  `bson:"action_status" json:"action_status"`
@@ -78,7 +78,7 @@ type Department struct {
 }
 
 type Color struct {
-	ID        bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Color     string        `bson:"color" json:"color"`
 	Enabled   bool          `bson:"enabled" json:"enabled"`
 	IsDeleted bool          `bson:"is_deleted" json:"is_deleted"`
@@ -87,7 +87,7 @@ type Color struct {
 }
 
 type Icon struct {
-	ID           bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	ID           bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Icon         string        `bson:"icon" json:"icon"`
 	Enabled      bool          `bson:"enabled" json:"enabled"`
 	IsDeleted    bool          `bson:"is_deleted" json:"is_deleted"`

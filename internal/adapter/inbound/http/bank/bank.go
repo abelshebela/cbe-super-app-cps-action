@@ -44,7 +44,6 @@ func createCPSUserForAuthorize(r *http.Request) (*model.AuthorizeCPSAction, erro
 
 func createCPSUserForReject(r *http.Request) (*model.RejectCPSAction, error) {
 	userContext := ctx_util.ExtractUserContext(r)
-
 	if userContext.IsIncomplete() {
 		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
 	}

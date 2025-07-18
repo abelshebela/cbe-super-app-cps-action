@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
@@ -13,7 +12,6 @@ import (
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type BudgetHandler struct {
@@ -38,16 +36,18 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		h.logger.Errorf("Incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:          user_code,
-		MakerName:        full_name,
-		MakerPhoneNumber: phone_number,
-		Department:       department,
+		MakerID:          userContext.UserCode,
+		MakerName:        userContext.FullName,
+		MakerPhoneNumber: userContext.PhoneNumber,
+		Department:       userContext.Department,
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"icon_url": fileHeader},
@@ -83,7 +83,13 @@ func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "icons_image", 10<<20)
 	if err != nil {
 		h.logger.Errorf("error parsing file: %v", err)
@@ -92,16 +98,18 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		h.logger.Errorf("Incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:          user_code,
-		MakerName:        full_name,
-		MakerPhoneNumber: phone_number,
-		Department:       department,
+		MakerID:          userContext.UserCode,
+		MakerName:        userContext.FullName,
+		MakerPhoneNumber: userContext.PhoneNumber,
+		Department:       userContext.Department,
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"icon_url": fileHeader},
@@ -139,6 +147,11 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx := ctx_util.ExtractUserContext(r)
+	if ctx.IsIncomplete() {
+		h.logger.Errorf("Incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	cpsAction := entities.CPSAction{
 		MakerID:          ctx.UserID,
@@ -179,7 +192,12 @@ func (h *BudgetHandler) BudgetFetchColors(w http.ResponseWriter, r *http.Request
 }
 
 func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	var req budget.UpdateColorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -192,21 +210,25 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user_code := r.Context().Value(constant.ContextKey("user_code")).(string)
-	full_name := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phone_number := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department := r.Context().Value(constant.ContextKey("department")).(string)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		h.logger.Errorf("Incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	cpsAction := entities.CPSAction{
-		MakerID:          user_code,
-		MakerName:        full_name,
-		MakerPhoneNumber: phone_number,
-		Department:       department,
+		MakerID:          userContext.UserCode,
+		MakerName:        userContext.FullName,
+		MakerPhoneNumber: userContext.PhoneNumber,
+		Department:       userContext.Department,
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"color": req.Color},
 		RequestAction:    entities.RequestBudgetColor,
 		MakerActionTime:  time.Now(),
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
 
 	action, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
@@ -225,12 +247,23 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 }
 
 func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Request) {
-	code := chi.URLParam(r, "action_code")
+	action_code, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'action_code'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
 	ctx := ctx_util.ExtractUserContext(r)
 
+	if ctx.IsIncomplete() {
+		h.logger.Errorf("Incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
+
 	cpsAction := entities.CPSAction{
-		ActionCode:         code,
+		ActionCode:         action_code,
 		CheckerID:          ctx.UserID,
 		CheckerName:        ctx.FullName,
 		CheckerPhoneNumber: ctx.PhoneNumber,

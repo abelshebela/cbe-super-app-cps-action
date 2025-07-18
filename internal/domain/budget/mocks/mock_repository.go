@@ -56,6 +56,21 @@ func (mr *MockRepositoryMockRecorder) ApproveAction(ctx, action any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveAction", reflect.TypeOf((*MockRepository)(nil).ApproveAction), ctx, action)
 }
 
+// CheckColorExist mocks base method.
+func (m *MockRepository) CheckColorExist(ctx context.Context, color string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckColorExist", ctx, color)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckColorExist indicates an expected call of CheckColorExist.
+func (mr *MockRepositoryMockRecorder) CheckColorExist(ctx, color any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckColorExist", reflect.TypeOf((*MockRepository)(nil).CheckColorExist), ctx, color)
+}
+
 // CreateAction mocks base method.
 func (m *MockRepository) CreateAction(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error) {
 	m.ctrl.T.Helper()
