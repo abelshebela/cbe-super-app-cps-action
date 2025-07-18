@@ -13,9 +13,8 @@ type MiniAppStore struct {
 }
 type MiniAppService interface {
 	CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User, departmen string) (string, error)
-	CheckMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) error
-	UpdateMiniAppAction(ctx context.Context,
-		data MiniApp, maker model.User) (string, error)
+	CheckMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (model.CPSAction, error)
+	UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User) (string, error)
 
 	DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (string, error)
 	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)

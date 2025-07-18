@@ -70,8 +70,8 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 	return action_id, nil
 }
 
-func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) error {
-	err := a.service.CheckMiniApp(ctx, actionId, action, checker, department)
+func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (model.CPSAction, error) {
+	CreatedAction, err := a.service.CheckMiniApp(ctx, actionId, action, checker, department)
 	if err != nil {
 		err_def := common.ErrorDefinition{
 			Code:    "",
@@ -79,9 +79,9 @@ func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId st
 		}
 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err.Error())
 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
-		return err
+		return model.CPSAction{}, err
 	}
-	return nil
+	return CreatedAction, nil
 }
 
 func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error) {

@@ -327,7 +327,7 @@ type CredentialInformation struct {
 }
 
 type MiniApp struct {
-	ID                string                  `bson:"id"`
+	ID                bson.ObjectID           `bson:"_id"`
 	AppName           string                  `bson:"app_name"`
 	AppIcon           string                  `bson:"app_icon"`
 	CommisonGLAccount string                  `bson:"commison_gl_account"`

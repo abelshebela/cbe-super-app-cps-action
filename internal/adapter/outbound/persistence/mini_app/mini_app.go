@@ -3,6 +3,7 @@ package miniapp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -13,7 +14,7 @@ import (
 
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	// domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 
 	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 )
@@ -34,6 +35,10 @@ func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []
 var _ miniApp.Outbound = (*MiniAppPersistence)(nil)
 
 func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action model.CPSAction) (model.CPSAction, error) {
+
+	fmt.Println("perstance===========================")
+	fmt.Printf("current action to store in DB:%v", Action.CurrentAction)
+	fmt.Println("perstance===========================")
 
 	CpsAction := model.CPSAction{
 		ActionCode:         Action.ActionCode,
@@ -103,26 +108,27 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action mod
 	return model.CPSAction{}, nil
 }
 
-func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp model.MiniApp) error {
-	var credential []domain.CredentialInformation
-	var product_code []domain.ProductCode
-	for _, creds := range miniapp.Credential {
-		credential = append(credential, domain.CredentialInformation{
-			Environment:   domain.EnvironmentType(creds.Environment),
-			MerchantAppID: creds.MerchantAppID,
-			FabricAppID:   creds.FabricAppID,
-			ShortCode:     creds.ShortCode,
-			AppSecret:     creds.AppSecret,
-			PrivateKey:    creds.PrivateKey,
-			PublicKey:     creds.PublicKey,
-		})
-	}
-	for _, pc := range miniapp.ProductCode {
-		product_code = append(product_code, domain.ProductCode{
-			BranchType:  domain.BranchType(pc.BranchType),
-			ProductCode: pc.ProductCode,
-		})
-	}
+func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp model.MiniApp) (model.CPSAction, error) {
+	// var credential []domain.CredentialInformation
+	// var product_code []domain.ProductCode
+	// for _, creds := range miniapp.Credential {
+	// 	credential = append(credential, domain.CredentialInformation{
+	// 		Environment:   domain.EnvironmentType(creds.Environment),
+	// 		MerchantAppID: creds.MerchantAppID,
+	// 		FabricAppID:   creds.FabricAppID,
+	// 		ShortCode:     creds.ShortCode,
+	// 		AppSecret:     creds.AppSecret,
+	// 		PrivateKey:    creds.PrivateKey,
+	// 		PublicKey:     creds.PublicKey,
+	// 	})
+	// }
+	// for _, pc := range miniapp.ProductCode {
+	// 	product_code = append(product_code, domain.ProductCode{
+	// 		BranchType:  domain.BranchType(pc.BranchType),
+	// 		ProductCode: pc.ProductCode,
+	// 	})
+	// // }
+
 	_, err := o.MongoDalMiniApp.InsertOne(ctx, miniapp)
 
 	// 	model.MiniApp{
@@ -147,9 +153,9 @@ func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp model.Mi
 	// 	DeletedAt:      time.Time{},
 	// })
 	if err != nil {
-		return err
+		return model.CPSAction{}, err
 	}
-	return nil
+	return model.CPSAction{}, nil
 }
 
 func (o *MiniAppPersistence) GetMiniAppActionId(ctx context.Context, action_id string) (model.CPSAction, error) {
@@ -182,14 +188,11 @@ func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.C
 		"checker_phone_number": action.CheckerPhoneNumber,
 		"department":           action.Department,
 		"rejection_reason":     action.RejectionReason,
-		"previos_action": func() json.RawMessage {
-			b, _ := json.Marshal(action.PreviosAction)
-			return b
-		}(),
-		"current_action": func() json.RawMessage {
-			b, _ := json.Marshal(action.CurrentAction)
-			return b
-		}(),
+		// "previos_action": func() json.RawMessage {
+		// 	b, _ := json.Marshal(action.PreviosAction)
+		// 	return b
+		// }(),
+		// "current_action":      action.CurrentAction,
 		"action_status":       action.ActionStatus,
 		"action_type":         action.ActionType,
 		"request_action":      action.RequestAction,
@@ -201,11 +204,14 @@ func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.C
 }
 
 func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
-	filter := map[string]interface{}{"isdeleted": false}
+	filter := map[string]interface{}{"is_deleted": false}
 	miniApps, err := o.MongoDalMiniApp.FindAll(ctx, filter, nil)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+	fmt.Printf("List of mini Apps %v", miniApps)
+	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 	return miniApps, nil
 }

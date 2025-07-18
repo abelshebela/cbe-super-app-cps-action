@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
-
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
