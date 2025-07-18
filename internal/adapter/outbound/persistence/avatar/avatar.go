@@ -12,6 +12,7 @@ import (
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -368,7 +369,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	return ToCPSAction(&cps), nil
 }
 
-func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*dto.AvatarResponse, error) {
+func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*dto.Avatar], error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
@@ -376,6 +377,8 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 		filter["enable"] = filterParams.Filters
 	}
 
+	page := filterParams.Page
+	limit := filterParams.PerPage
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 
 	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
@@ -390,17 +393,16 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 		return nil, fmt.Errorf("FAILED_TO_GET_COUNT")
 	}
 
-	var avatar []*dto.Avatar
+	var avatars []*dto.Avatar
 	for _, doc := range avatarDocs {
 		n := doc.toModel()
-		avatar = append(avatar, &n)
+		avatars = append(avatars, &n)
 	}
 
-	return &dto.AvatarResponse{
-		Page:    filterParams.Page,
-		Avatars: avatar,
-		Limit:   constant.DefaultPerPage,
-		Total:   total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+	return &common_util.PaginatedResponse[[]*dto.Avatar]{
+		Data: avatars,
+		Meta: meta,
 	}, nil
 }
 

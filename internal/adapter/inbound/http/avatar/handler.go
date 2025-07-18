@@ -228,14 +228,14 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 
-	avatars, err := a.avatarHandler.GetAllAvatar(r.Context(), *filterParams)
+	data, err := a.avatarHandler.GetAllAvatar(r.Context(), *filterParams)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 
 		return
 	}
 
-	util.WriteSuccessResponse(w, avatars, "Avatar list feached sucessfully")
+	util.WriteSuccessResponse(w, data, "Avatar list feached sucessfully")
 
 }
 

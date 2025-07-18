@@ -81,10 +81,3 @@ func (u UpdateAvatar) Validate() error {
 		})),
 	)
 }
-
-type AvatarResponse struct {
-	Page    int       `json:"page"`
-	Avatars []*Avatar `json:"avatars"`
-	Limit   int       `json:"limit"`
-	Total   int64     `json:"total"`
-}

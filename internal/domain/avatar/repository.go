@@ -5,6 +5,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 )
 
 type AvatarRepository interface {
@@ -16,6 +18,6 @@ type AvatarRepository interface {
 	EnableOrDisableAvatar(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*Avatar, error)
-	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*AvatarResponse, error)
+	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*Avatar], error)
 	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*CPSAction, error)
 }
