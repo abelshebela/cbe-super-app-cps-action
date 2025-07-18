@@ -84,7 +84,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		"cps_users",
 		"service",
 		"member",
-		"linked_accounts",
+		"linked_account",
 		"mini_app",
 		"portal_card",
 	}

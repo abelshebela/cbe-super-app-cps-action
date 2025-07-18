@@ -14,7 +14,7 @@ type ApplicationAbstracts interface {
 	EnableDisableServicesChecker(ctx context.Context, ActionID string, action bool, checker domain.User) error
 	FetchCifs(ctx context.Context, cif string) ([]domain.LinkedAccount, error)
 	RemoveCifMaker(ctx context.Context, id []string, maker domain.User) (string, error)
-	RemoveCifChecker(ctx context.Context, ActionID string, action bool, checker domain.User) error
+	RemoveCifChecker(ctx context.Context, ActionID string, action bool, rejectionReason string, checker domain.User) (*domain.CPSAction, error)
 }
 type ApplicationStore struct {
 	service domain.ServiceInterface
@@ -71,11 +71,11 @@ func (a *ApplicationStore) RemoveCifMaker(ctx context.Context, ids []string, mak
 	}
 	return data, nil
 }
-func (a *ApplicationStore) RemoveCifChecker(ctx context.Context, Action_id string, action bool, checker domain.User) error {
-	err := a.service.RemoveCif(ctx, Action_id, action, checker)
+func (a *ApplicationStore) RemoveCifChecker(ctx context.Context, Action_id string, action bool, rejectionReason string, checker domain.User) (*domain.CPSAction, error) {
+	cpsAction, err := a.service.RemoveCif(ctx, Action_id, action, rejectionReason, checker)
 	if err != nil {
 		a.Logger.Errorf("[Application.RemoveCifChecker] ", err.Error())
-		return err
+		return nil, err
 	}
-	return nil
+	return cpsAction, nil
 }
