@@ -3,6 +3,7 @@ package entities
 import (
 	"time"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -96,17 +97,12 @@ type Icon struct {
 }
 
 type FetchIconResponse struct {
-	Icons []*Icon `json:"icons"`
-	Page  int    `json:"page"`
-	Limit int    `json:"limit"`
-	Total int64  `json:"total"`
+	Icons []*Icon                    `json:"icons"`
+	Meta  common_util.PaginationMeta `json:"meta"`
 }
-
 type FetchColorsResponse struct {
-	Colors []*Color `json:"colors"`
-	Page   int    `json:"page"`
-	Limit  int    `json:"limit"`
-	Total  int64  `json:"total"`
+	Colors []*Color                   `json:"colors"`
+	Meta   common_util.PaginationMeta `json:"meta"`
 }
 
 const (

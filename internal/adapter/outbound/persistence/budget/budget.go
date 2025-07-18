@@ -13,6 +13,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -56,7 +57,6 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 		"is_deleted": false,
 	}
 
-	// Only search by icon name, since it's the only string field
 	if filterParams.Search != "" {
 		filter["icon"] = bson.M{
 			"$regex":   filterParams.Search,
@@ -64,7 +64,6 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 		}
 	}
 
-	// Optional: Add filtering by "enabled" if needed
 	if filterParams.Filters != "" {
 		switch filterParams.Filters {
 		case "enabled":
@@ -86,12 +85,11 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 	if err != nil {
 		return nil, err
 	}
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
 
 	return &entities.FetchIconResponse{
 		Icons: icons,
-		Page:  filterParams.Page,
-		Limit: filterParams.PerPage,
-		Total: total,
+		Meta:  meta,
 	}, nil
 }
 
@@ -153,7 +151,6 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 		"is_deleted": false,
 	}
 
-	// Search by color name
 	if filterParams.Search != "" {
 		filter["color"] = bson.M{
 			"$regex":   filterParams.Search,
@@ -161,7 +158,6 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 		}
 	}
 
-	// Optional: filter by enabled/disabled
 	if filterParams.Filters != "" {
 		if filterParams.Filters == "enabled" {
 			filter["enabled"] = true
@@ -170,26 +166,24 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 		}
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	page := filterParams.Page
 	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
-	// Fetch paginated data
 	colors, err := b.colorDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	// Count total matching documents
-	total, err := b.colorDal.TotalCount(ctx, filter)
+	totalDocs, err := b.colorDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
 	return &entities.FetchColorsResponse{
 		Colors: colors,
-		Page:   filterParams.Page,
-		Limit:  filterParams.PerPage,
-		Total:  total,
+		Meta:   meta,
 	}, nil
 }
 
