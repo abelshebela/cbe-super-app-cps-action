@@ -10,13 +10,13 @@ import (
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
-func (h *HttpStore) SearchAccountByCif(w http.ResponseWriter, r *http.Request) {
-	cif, ok := common_util.GetParam(r, "cif")
+func (h *HttpStore) SearchAccountByAccountNumber(w http.ResponseWriter, r *http.Request) {
+	accountNumber, ok := common_util.GetParam(r, "account_number")
 	if !ok {
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
-	account, err := h.Application.FetchCifs(r.Context(), cif)
+	account, err := h.Application.FetchAccounts(r.Context(), accountNumber)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return

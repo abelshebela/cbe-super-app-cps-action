@@ -69,8 +69,8 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/accounts/search/{cif}",
-				Handler: handler.SearchAccountByCif,
+				Path:    "/accounts/search/{account_number}",
+				Handler: handler.SearchAccountByAccountNumber,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{

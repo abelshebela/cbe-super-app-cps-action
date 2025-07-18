@@ -12,7 +12,7 @@ type ApplicationAbstracts interface {
 	FetchServices(ctx context.Context, offset, limit int) ([]domain.ServiceDetails, error)
 	EnableDisableServicesMaker(ctx context.Context, ServiceID string, action bool, maker domain.User) (string, error)
 	EnableDisableServicesChecker(ctx context.Context, ActionID string, action bool, checker domain.User) error
-	FetchCifs(ctx context.Context, cif string) ([]domain.LinkedAccount, error)
+	FetchAccounts(ctx context.Context, cif string) ([]domain.LinkedAccount, error)
 	RemoveCifMaker(ctx context.Context, id []string, maker domain.User) (string, error)
 	RemoveCifChecker(ctx context.Context, ActionID string, action bool, rejectionReason string, checker domain.User) (*domain.CPSAction, error)
 }
@@ -55,7 +55,7 @@ func (a *ApplicationStore) EnableDisableServicesChecker(ctx context.Context, Act
 	return nil
 }
 
-func (a *ApplicationStore) FetchCifs(ctx context.Context, cif string) ([]domain.LinkedAccount, error) {
+func (a *ApplicationStore) FetchAccounts(ctx context.Context, cif string) ([]domain.LinkedAccount, error) {
 	data, err := a.service.GetAccountByAccount(ctx, cif)
 	if err != nil {
 		a.Logger.Errorf("[Application.FetchCifs] ", err.Error())

@@ -16,6 +16,7 @@ import (
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -71,7 +72,7 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 		MongoDalPortalCard:        mongoDalPortalCard,
 	}
 }
-func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger) outbound.OutboundInfra {
+func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger, cfg *config.VaultConfig) outbound.OutboundInfra {
 
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
@@ -89,7 +90,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalServices:       mongoDalService,
 		MongoDalMember:         mongoDalMember,
 		MongoDalAccounts:       mongoDalAccounts,
-		BpsCalls:               bpscalls.NewBpsCalls(),
+		BpsCalls:               bpscalls.NewBpsCalls(cfg, logger),
 		MongoDalMiniApp:        mongoDalMiniApp,
 		MongoDalCPSUser:        mongoDalCPSUser,
 		MongoDalServiceDetails: mongoDalServiceDetail,
@@ -691,7 +692,7 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error) {
 	objID, err := bson.ObjectIDFromHex(*linkedAccount.ID)
 	if err != nil {
-		return domain.LinkedAccount{},fmt.Errorf(error_codes.AccountNotFound)
+		return domain.LinkedAccount{}, fmt.Errorf(error_codes.AccountNotFound)
 	}
 	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
