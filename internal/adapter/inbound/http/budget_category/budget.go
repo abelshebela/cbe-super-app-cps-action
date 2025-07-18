@@ -10,10 +10,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils/common"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
-	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -93,11 +94,12 @@ func (b BudgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *ht
 	action, err := b.BudgetCategoryHandler.CreateAction(r.Context(), req, user)
 	if err != nil {
 		b.logger.Errorf("create action error: %v", err)
-		common.ErrorResponse(w, http.StatusInternalServerError, "UNHANDLED_SERVER_ERROR", map[string]interface{}{"error": err.Error()})
+		common.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
 		return
 	}
 
-	common.SuccessResponse(w, http.StatusCreated, "SUCCESS", map[string]interface{}{"action": action})
+	common_util.WriteSuccessResponse(w, action, "Budget category created successfully")
+
 }
 
 func (b BudgetCategoryAdapter) ApproveBudgetCategoryActionHTTP(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +107,12 @@ func (b BudgetCategoryAdapter) ApproveBudgetCategoryActionHTTP(w http.ResponseWr
 }
 
 func (b BudgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *http.Request) {
-
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	file, fileHeader, err := util.ParseMultipartFormFile(r, "icon", 2<<20)
 	if err != nil {
 		b.logger.Errorf("error parsing file: %v", err)
@@ -115,7 +122,7 @@ func (b BudgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *ht
 	defer file.Close()
 
 	var req dto.UpdateBudgetCategoryRequest
-	req.ID = chi.URLParam(r, "budget_category_id")
+	req.ID = id
 	req.Name = r.FormValue("name")
 	req.Description = r.FormValue("description")
 
@@ -168,8 +175,14 @@ func (b BudgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *ht
 }
 
 func (b BudgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var req dto.DeleteBudgetCategoryRequest
-	req.ID = chi.URLParam(r, "budget_category_id")
+	req.ID = id
 
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("delete validation failed: %v", err)
@@ -209,8 +222,14 @@ func (b BudgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *ht
 }
 
 func (b BudgetCategoryAdapter) GetBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		b.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var req dto.GetBudgetCategoryRequest
-	req.ID = chi.URLParam(r, "budget_category_id")
+	req.ID = id
 
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("get validation failed: %v", err)

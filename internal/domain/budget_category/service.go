@@ -11,11 +11,11 @@ import (
 )
 
 type BudgetCategoryService struct {
-	repository Repository
+	repository BudgetCategoryRepository
 	logger     utils.Logger
 }
 
-func NewBudgetCategoryService(repository Repository, logger utils.Logger) *BudgetCategoryService {
+func NewBudgetCategoryService(repository BudgetCategoryRepository, logger utils.Logger) *BudgetCategoryService {
 	return &BudgetCategoryService{
 		repository: repository,
 		logger:     logger,

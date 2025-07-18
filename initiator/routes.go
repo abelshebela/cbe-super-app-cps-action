@@ -61,6 +61,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
 		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware)
 		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware)
+		// budget_category_handler.InitBudgetCategoryAdapter(sub, adapter.BudgetCategoryAdapter, authMiddleware)
 
 	})
 }
