@@ -117,18 +117,18 @@ func (mr *MockRepositoryMockRecorder) CreateIconAction(ctx, action any) *gomock.
 }
 
 // FetchIcons mocks base method.
-func (m *MockRepository) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
+func (m *MockRepository) FetchIcons(ctx context.Context, offset, limit int) ([]*entities.Icon, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FetchIcons", ctx)
+	ret := m.ctrl.Call(m, "FetchIcons", ctx, offset, limit)
 	ret0, _ := ret[0].([]*entities.Icon)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FetchIcons indicates an expected call of FetchIcons.
-func (mr *MockRepositoryMockRecorder) FetchIcons(ctx any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) FetchIcons(ctx, offset, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchIcons", reflect.TypeOf((*MockRepository)(nil).FetchIcons), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchIcons", reflect.TypeOf((*MockRepository)(nil).FetchIcons), ctx, offset, limit)
 }
 
 // GetByIDColor mocks base method.

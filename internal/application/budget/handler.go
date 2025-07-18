@@ -12,14 +12,14 @@ import (
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type BudgetService interface {
 	CreateIcon(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error)
-	FetchIcons(ctx context.Context) ([]*entities.Icon, error)
+	FetchIcons(ctx context.Context,filterParams *constant.Filter) (*entities.FetchIconResponse, error)
 	UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error)
 	CreateColor(ctx context.Context, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error)
 	FetchColors(ctx context.Context) ([]*entities.Color, error)
@@ -118,8 +118,8 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	return code, nil
 }
 
-func (b *BudgetHandler) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := b.service.FetchIcons(ctx)
+func (b *BudgetHandler) FetchIcons(ctx context.Context,filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
+	icons, err := b.service.FetchIcons(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}

@@ -71,14 +71,16 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
-	icons, err := h.budgetService.FetchIcons(r.Context())
+
+	filterParams := common_util.ExtractFilterParams(r)
+	icons, err := h.budgetService.FetchIcons(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("failed to fetch budget icons: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
+	data, _ := common_util.StructToMap(icons)
 
-	data := map[string]interface{}{"icons": icons}
 	common_util.BaseResponseMaker(data, w, "Icons fetched successfully", 200)
 }
 

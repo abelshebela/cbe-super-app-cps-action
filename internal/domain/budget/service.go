@@ -6,6 +6,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 )
 
 type BudgetService struct {
@@ -28,8 +30,8 @@ func (s *BudgetService) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	return action, nil
 }
 
-func (s *BudgetService) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := s.repo.FetchIcons(ctx)
+func (s *BudgetService) FetchIcons(ctx context.Context,filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
+	icons, err := s.repo.FetchIcons(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}

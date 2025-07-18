@@ -11,6 +11,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -50,13 +51,48 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	return &cps, nil
 }
 
-func (b *BudgetPersistence) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := b.iconDal.FindAll(ctx, bson.M{"is_deleted": false}, bson.M{})
+func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*entities.FetchIconResponse, error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	// Only search by icon name, since it's the only string field
+	if filterParams.Search != "" {
+		filter["icon"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	// Optional: Add filtering by "enabled" if needed
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	icons, err := b.iconDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return icons, nil
+	total, err := b.iconDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.FetchIconResponse{
+		Icons: icons,
+		Page:  filterParams.Page,
+		Limit: filterParams.PerPage,
+		Total: total,
+	}, nil
 }
 
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {

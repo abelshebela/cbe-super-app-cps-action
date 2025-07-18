@@ -95,6 +95,13 @@ type Icon struct {
 	LastModified time.Time     `bson:"last_modified" json:"last_modified"`
 }
 
+type FetchIconResponse struct {
+	Icons []*Icon `json:"icons"`
+	Page  int    `json:"page"`
+	Limit int    `json:"limit"`
+	Total int64  `json:"total"`
+}
+
 const (
 	RequestUser                     RequestAction = "USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
