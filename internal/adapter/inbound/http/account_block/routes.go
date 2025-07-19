@@ -19,7 +19,7 @@ func RegisterAccountBlockRoutes(
 	router.Route("/account_block", func(r chi.Router) {
 		routes := []sharedhttp.Route{
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/branch/filter_single",
 				Handler: handler.FilterSingleBranches,
 				Middlewares: []func(http.Handler) http.Handler{
@@ -46,7 +46,7 @@ func RegisterAccountBlockRoutes(
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/branch/filter_multiple",
 				Handler: handler.FilterMultipleBranches,
 				Middlewares: []func(http.Handler) http.Handler{

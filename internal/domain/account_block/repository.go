@@ -3,17 +3,19 @@ package account_block
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type AccountBlockRepo interface {
-	FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
+	FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error)
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
-	FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
+	FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
