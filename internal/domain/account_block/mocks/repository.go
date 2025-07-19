@@ -8,7 +8,10 @@ import (
 	context "context"
 	reflect "reflect"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "github.com/golang/mock/gomock"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
@@ -211,7 +214,7 @@ func (mr *MockAccountBlockRepoMockRecorder) DisableSingleBranch(ctx, branch, mak
 }
 
 // FilterMultipleBranches mocks base method.
-func (m *MockAccountBlockRepo) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (m *MockAccountBlockRepo) FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FilterMultipleBranches", ctx, region, district)
 	ret0, _ := ret[0].([]action.Branch)
@@ -226,7 +229,7 @@ func (mr *MockAccountBlockRepoMockRecorder) FilterMultipleBranches(ctx, region, 
 }
 
 // FilterSingleBranches mocks base method.
-func (m *MockAccountBlockRepo) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (m *MockAccountBlockRepo) FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FilterSingleBranches", ctx, region, district)
 	ret0, _ := ret[0].([]action.Branch)
