@@ -24,7 +24,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/approve/{action_code}",
 				Handler: permissionHandler.ApprovePermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -33,7 +33,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/reject/{action_code}",
 				Handler: permissionHandler.RejectPermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{

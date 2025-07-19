@@ -72,9 +72,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", makerUser.UserID)
-
 	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request  created successfully")
-
 }
 
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +82,6 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
 	common_util.WriteSuccessResponse(w, permissionGroups, "Permission groups fetched successfully")
 }
 
@@ -112,6 +109,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
+
 	oldGroupName := chi.URLParam(r, "group_name")
 	if oldGroupName == "" {
 		util.SendErrorResponse(w, "Group name is required", http.StatusNotFound, nil)

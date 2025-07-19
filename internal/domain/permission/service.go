@@ -73,6 +73,8 @@ func (s *Service) CreatePermissionGroup(oldGroupName, groupName, role string, pe
 	}
 
 	cpsAction.MakerActionTime = time.Now()
+	cpsAction.CreatedAt = time.Now()
+	cpsAction.LastModifiedAt = time.Now()
 
 	cpsAction, err = s.cpsActionRepo.CreatePermissionGroup(cpsAction)
 	if err != nil {
