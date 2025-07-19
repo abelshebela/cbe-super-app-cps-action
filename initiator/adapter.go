@@ -109,7 +109,7 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		ServiceAdapter:        serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
 		HQAdapter:             hq.NewHQHTTPHandler(application.HQApplication),
 		AmountBasedAuth:       amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
-		MiniAppAdapter:        miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
+		MiniAppAdapter:        miniapp_handler.NewMiniAppAdapter(application.MiniAppApplication, logger),
 		EventAdapter:          eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
 		BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BankCategoryApplication, logger),
 		CPSActionAdapter:      cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),

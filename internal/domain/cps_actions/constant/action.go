@@ -56,8 +56,12 @@ const (
 	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
 	RequestCreateBank               RequestAction = "CREATE_BANK"
 	RequestUpdateBank               RequestAction = "UPDATE_BANK"
+	RequestDeleteBank               RequestAction = "DELETE_BANK"
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
+	RequestCreateWallet             RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet             RequestAction = "DELETE_WALLET"
 	RequestEnableWallet             RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet            RequestAction = "DISABLE_WALLET"
 	RequestUpdatePasswordExpiry     RequestAction = "UPDATE_PASSWORD_EXPIRY"
@@ -66,14 +70,11 @@ const (
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
 	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
-	RequestUpdateServiceFee         RequestAction = "UPDATE SERVICE FEE"
-	RequestDeleteServiceFee         RequestAction = "DELETE SERVICE FEE"
+	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
+	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
-	RequestBudgetUpdate             RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestBudgetCreate             RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestBudgetDelete             RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
@@ -98,14 +99,22 @@ const (
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
-	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
-	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
-	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
-	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
-	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
+	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar             RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
+	RequestBlockRegion              RequestAction = "BLOCK_REGION"
+	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
+	RequestBlockCity                RequestAction = "BLOCK_CITY"
+	RequestBlockUser                RequestAction = "BLOCK_USER"
+	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 )
+
 
 var validRequestActions = map[RequestAction]struct{}{
 	RequestUser:                     {},
@@ -142,9 +151,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateDailyLimit:         {},
 	RequestUpdateDailyLimit:         {},
 	RequestDeleteDailyLimit:         {},
-	RequestBudgetUpdate:             {},
-	RequestBudgetCreate:             {},
-	RequestBudgetDelete:             {},
 	RequestBudgetColor:              {},
 	RequestBudgetIcon:               {},
 	RequestUpdateProduct:            {},
@@ -169,12 +175,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableEvent:             {},
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
-	RequestDeleteMiniAppMerchant:    {},
+	// RequestDeleteMiniAppMerchant:    {},
 	RequestUpdateBlockTime:          {},
-	RequestUpdateAccountValidation:  {},
-	RequestUpdateServiceDetails:     {},
-	RequestUpdateHQBlockTime:        {},
-	RequestUpdateHQArchiveTime:      {},
+	// RequestUpdateAccountValidation:  {},
+	// RequestUpdateServiceDetails:     {},
+	// RequestUpdateHQBlockTime:        {},
+	// RequestUpdateHQArchiveTime:      {},
 }
 
 func IsValidRequestAction(requestAction string) bool {

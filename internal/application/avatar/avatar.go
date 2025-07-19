@@ -19,7 +19,7 @@ type AvatarApplication struct {
 type AvatarApplicationService interface {
 	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error)
 	DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error)
+	// Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error)
@@ -53,14 +53,14 @@ func (a *AvatarApplication) DeleteAvatar(ctx context.Context, id string, req mod
 	return cpsAction, nil
 }
 
-func (a *AvatarApplication) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error) {
-	cpsAction, err := a.avatarDomain.Authorize(ctx, req)
-	if err != nil {
-		return nil, err
-	}
+// func (a *AvatarApplication) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error) {
+// 	cpsAction, err := a.avatarDomain.Authorize(ctx, req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return cpsAction, nil
-}
+// 	return cpsAction, nil
+// }
 
 func (a *AvatarApplication) Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error) {
 	cpsAction, err := a.avatarDomain.Reject(ctx, req)

@@ -20,7 +20,7 @@ type BankHandlerService interface {
 	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	// Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -92,14 +92,14 @@ func (b *BankHandler) UpdateOneBank(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (b *BankHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-	cpsAction, err := b.bankDomain.Authorize(ctx, req)
-	if err != nil {
-		return nil, err
-	}
+// func (b *BankHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
+// 	cpsAction, err := b.bankDomain.Authorize(ctx, req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return cpsAction, nil
-}
+// 	return cpsAction, nil
+// }
 
 func (b *BankHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	cpsAction, err := b.bankDomain.Reject(ctx, req)

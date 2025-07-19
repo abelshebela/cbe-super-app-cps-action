@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
@@ -56,14 +57,16 @@ type Application struct {
 	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
-	miniAppApplication         miniApp_application.ApplicationAbstracts
+	MiniAppApplication         miniApp_application.ApplicationAbstracts
 	EventApplication           event_application.ApplicationAbstracts
 	BankCategoryApplication    budget_category.BudgetCategoryApplictionService
 	CPSActionApplication       cps_actions_application.CPSActionApplication
+	DispatcherApplication      cps_actions_application.Dispatcher
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
-func InitApplication(domain Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
+func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
+	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
 		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
@@ -86,9 +89,10 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		miniAppApplication:         miniApp_application.NewApplicationService(domain.miniAppDomain, logger),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 		BankCategoryApplication:    budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
-		CPSActionApplication: cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain),
+		DispatcherApplication:      *dispatcher,
+		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
 	}
 }

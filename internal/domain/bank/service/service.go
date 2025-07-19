@@ -11,6 +11,8 @@ import (
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -29,7 +31,7 @@ type BankService interface {
 	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (bool, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
@@ -173,14 +175,8 @@ func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-
-	cpsAction, err := b.bankRepo.Authorize(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsAction, nil
+func (b *BankDomain) Authorize(ctx context.Context, action *entities.CPSAction) (bool, error) {
+	return b.bankRepo.Authorize(ctx, action)
 }
 
 func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {

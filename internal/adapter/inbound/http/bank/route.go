@@ -60,15 +60,15 @@ func InitBankRoutes(router chi.Router, bank bankRoutes.BankAdapter, authMiddlewa
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/{action_code}/approve",
-				Handler: bank.Authorize,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/{action_code}/approve",
+			// 	Handler: bank.Authorize,
+			// 	Middlewares: []func(next http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			// 	},
+			// },
 			{
 				Method:  http.MethodPost,
 				Path:    "/{action_code}/reject",

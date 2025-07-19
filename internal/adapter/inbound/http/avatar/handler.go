@@ -97,34 +97,34 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
+// func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
+// 	action_code, ok := common_util.GetParam(r, "action_code")
+// 	if !ok {
+// 		a.logger.Errorf("missing or invalid parameter 'action_code'")
+// 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+// 		return
+// 	}
 
-	var cpsReq model.AuthorizeCPSAction
+// 	var cpsReq model.AuthorizeCPSAction
 
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	userData, department, err := a.extractUserFromContext(r)
+// 	if err != nil {
+// 		util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	cpsReq.CheckerUser = userData
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+// 	cpsReq.CheckerUser = userData
+// 	cpsReq.Department = department
+// 	cpsReq.ActionCode = action_code
 
-	approvedAction, err := a.avatarHandler.Authorize(r.Context(), cpsReq)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	approvedAction, err := a.avatarHandler.Authorize(r.Context(), cpsReq)
+// 	if err != nil {
+// 		util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	util.WriteSuccessResponse(w, approvedAction, "AD approved Sucessfully")
-}
+// 	util.WriteSuccessResponse(w, approvedAction, "AD approved Sucessfully")
+// }
 
 func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	action_code, ok := common_util.GetParam(r, "action_code")

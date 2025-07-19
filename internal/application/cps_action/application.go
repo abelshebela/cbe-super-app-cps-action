@@ -2,7 +2,9 @@ package cpsaction
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 
@@ -19,12 +21,16 @@ type CPSActionApplication interface {
 }
 
 type cpsActionApplication struct {
-	service service.CPSActionService
+	service    service.CPSActionService
+	services   application.Domain
+	dispatcher Dispatcher
 }
 
-func NewCPSActionApplication(service service.CPSActionService) CPSActionApplication {
+func NewCPSActionApplication(service service.CPSActionService, services application.Domain, dispatcher Dispatcher) CPSActionApplication {
 	return &cpsActionApplication{
-		service: service,
+		service:    service,
+		services:   services,
+		dispatcher: dispatcher,
 	}
 }
 
@@ -33,7 +39,20 @@ func (a *cpsActionApplication) CPSActionExists(ctx context.Context, uniqueID str
 }
 
 func (a *cpsActionApplication) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
-	return a.service.ApproveCPSAction(ctx, action)
+	cpsAction, err := a.service.ApproveCPSAction(ctx, action)
+	if err != nil {
+		return nil, err
+	}
+
+	ok, err := a.dispatcher.Authorize(ctx, cpsAction)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, fmt.Errorf("")
+	}
+	return cpsAction, nil
 }
 
 func (a *cpsActionApplication) RejectCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {

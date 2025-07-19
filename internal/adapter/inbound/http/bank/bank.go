@@ -183,28 +183,28 @@ func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 	common_util.WriteSuccessResponse(w, bank, "Bank retrieved successfully")
 }
 
-func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		b.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
+// func (b *BankAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
+// 	actionCode, ok := common_util.GetParam(r, "action_code")
+// 	if !ok {
+// 		b.logger.Errorf("missing or invalid parameter 'action_code'")
+// 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+// 		return
+// 	}
 
-	cpsReq, err := createCPSUserForAuthorize(r)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	cpsReq.ActionCode = actionCode
-	authAction, err := b.bankHandler.Authorize(r.Context(), *cpsReq)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	cpsReq, err := createCPSUserForAuthorize(r)
+// 	if err != nil {
+// 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
+// 	cpsReq.ActionCode = actionCode
+// 	authAction, err := b.bankHandler.Authorize(r.Context(), *cpsReq)
+// 	if err != nil {
+// 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	common_util.WriteSuccessResponse(w, authAction, "Bank authorized successfully")
-}
+// 	common_util.WriteSuccessResponse(w, authAction, "Bank authorized successfully")
+// }
 
 func (b *BankAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	actionCode, ok := common_util.GetParam(r, "action_code")
