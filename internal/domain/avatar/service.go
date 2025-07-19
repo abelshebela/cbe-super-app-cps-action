@@ -26,7 +26,7 @@ type AvatarDomain struct {
 type AvatarDomainService interface {
 	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*CPSAction, error)
 	DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*CPSAction, error)
-	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bool, error)
+	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*Avatar, error)
@@ -130,7 +130,7 @@ func (a *AvatarDomain) DeleteAvatar(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (a *AvatarDomain) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bool, error) {
+func (a *AvatarDomain) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	return a.avatarRepo.Authorize(ctx, cpsAction)
 }
 

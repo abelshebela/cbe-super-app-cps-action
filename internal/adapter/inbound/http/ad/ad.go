@@ -2,7 +2,6 @@ package ad
 
 import (
 	"encoding/json"
-	"fmt"
 
 	// "fmt"
 	"net/http"
@@ -204,41 +203,41 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
+// func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
+// 	actionCode, ok := common_util.GetParam(r, "action_code")
+// 	if !ok {
+// 		a.logger.Errorf("missing or invalid parameter 'action_code'")
+// 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+// 		return
+// 	}
 
-	var cpsReq model.AuthorizeCPSAction
+// 	var cpsReq model.AuthorizeCPSAction
 
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
-		return
-	}
+// 	userContext := ctx_util.ExtractUserContext(r)
+// 	if userContext.IsIncomplete() {
+// 		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+// 		return
+// 	}
 
-	cpsReq.CheckerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-	}
+// 	cpsReq.CheckerUser = model.User{
+// 		UserCode:    userContext.UserCode,
+// 		FullName:    userContext.FullName,
+// 		PhoneNumber: userContext.PhoneNumber,
+// 	}
 
-	cpsReq.Department = userContext.Department
-	cpsReq.ActionCode = actionCode
+// 	cpsReq.Department = userContext.Department
+// 	cpsReq.ActionCode = actionCode
 
-	AuthorizeAction, err := a.adHandler.Authorize(r.Context(), cpsReq)
-	if err != nil {
-		fmt.Printf("error from Authorize Action %v:", err)
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	AuthorizeAction, err := a.adHandler.Authorize(r.Context(), cpsReq)
+// 	if err != nil {
+// 		fmt.Printf("error from Authorize Action %v:", err)
+// 		util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
+// 	util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
 
-}
+// }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	actionCode, ok := common_util.GetParam(r, "action_code")

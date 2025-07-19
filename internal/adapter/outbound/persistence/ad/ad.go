@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -133,36 +134,16 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 	return &cpsRes, nil
 }
 
-func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+func (a *ADPersistence) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	var advert entity.Advert
 	var err error
 
-	filter := bson.M{
-		"action_code":   cpsAction.ActionCode,
-		"department":    cpsAction.Department,
-		"action_status": entity.ActionPending,
-	}
-
-	update := bson.M{
-		"checker_id":           cpsAction.CheckerUser.UserCode,
-		"checker_phone_number": cpsAction.CheckerUser.PhoneNumber,
-		"checker_name":         cpsAction.CheckerUser.FullName,
-		"action_status":        model.ActionApproved,
-		"checker_action_time":  time.Now(),
-		"last_updated_at":      time.Now(),
-	}
-
-	cpsRes, err := a.cpsDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		// if errors.Is(err,mongo.ErrNoDocuments)
-		a.logger.Errorf("failed to update cps action", err)
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
-	}
+	cpsRes := cpsAction
 
 	var actionData entity.Advert
 	mapData := make(map[string]interface{})
 
-	if cpsRes.ActionType != string(model.ActionDelete) {
+	if string(cpsRes.ActionType) != string(model.ActionDelete) {
 
 		data, err := bson.Marshal(cpsRes.CurrentAction)
 		if err != nil {
@@ -179,16 +160,15 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 	} else {
-		mapData["_id"] = cpsRes.UniqueId
+		mapData["_id"] = cpsRes.UniqueID
 	}
-	fmt.Printf("Type of _id:%T", mapData["_id"])
 	objId, ok := mapData["_id"].(bson.ObjectID)
 	if !ok {
 		a.logger.Errorf("interface not type of objcetID")
 		return nil, fmt.Errorf("INVALID_ID_TYPE")
 	}
 
-	if cpsRes.ActionType == string(model.ActionCreate) {
+	if string(cpsRes.ActionType) == string(model.ActionCreate) {
 		req := entity.Advert{
 			ID:            objId,
 			Title:         actionData.Title,
@@ -208,13 +188,13 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 		cpsRes.CurrentAction = advert
 
-		return &cpsRes, nil
+		return cpsRes, nil
 
 	}
 
 	fmt.Println("check here-----------1-", actionData.ID)
 
-	if cpsRes.ActionType == string(model.ActionUpdate) {
+	if string(cpsRes.ActionType) == string(model.ActionUpdate) {
 		filter := bson.M{"_id": objId}
 		update := bson.M{}
 
@@ -245,10 +225,10 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 
 		cpsRes.CurrentAction = advert
 
-		return &cpsRes, nil
+		return cpsRes, nil
 	}
 
-	if cpsRes.ActionType == string(model.ActionDelete) {
+	if string(cpsRes.ActionType) == string(model.ActionDelete) {
 		filter := bson.M{
 			"_id": objId,
 		}
@@ -267,10 +247,10 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction model.Authorize
 		}
 		cpsRes.CurrentAction = advert
 
-		return &cpsRes, nil
+		return cpsRes, nil
 	}
 
-	return &cpsRes, nil
+	return cpsRes, nil
 }
 
 func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {

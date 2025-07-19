@@ -9,9 +9,9 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/repository"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-		common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
 	// "github.com/mitchellh/mapstructure"
@@ -32,7 +32,7 @@ type AdvertService interface {
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	DeleteOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error)
 }
 
@@ -178,7 +178,7 @@ func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 	return advertAction, nil
 }
 
-func (a *ADDomain) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+func (a *ADDomain) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	cpsActionRes, err := a.ADRepo.Authorize(ctx, cpsAction)
 	if err != nil {
 		return nil, err

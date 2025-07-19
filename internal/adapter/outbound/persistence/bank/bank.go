@@ -232,13 +232,13 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &result, nil
 }
 
-func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bool, error) {
+func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var actionData entity.BankDocument
 	raw, _ := bson.Marshal(cpsAction.CurrentAction)
 	if err := bson.Unmarshal(raw, &actionData); err != nil {
 		b.logger.Errorf("failed to unmarshal action data for authorization, action_code: %s", shortActionCode(cpsAction.ActionCode))
-		return false, fmt.Errorf(error_codes.InvalidActionData)
+		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	// handle based on action
@@ -247,12 +247,12 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bo
 		doc, err := b.toDocument(&actionData)
 		if err != nil {
 			b.logger.Errorf("failed to convert action data to document for bank creation, action_code: %s", shortActionCode(cpsAction.ActionCode))
-			return false, fmt.Errorf(error_codes.InvalidActionData)
+			return nil, fmt.Errorf(error_codes.InvalidActionData)
 		}
 		bank, err := b.bankDal.InsertOne(ctx, *doc)
 		if err != nil {
 			b.logger.Errorf("failed to insert bank after authorization, action_code: %s", shortActionCode(cpsAction.ActionCode))
-			return false, fmt.Errorf(error_codes.UnhandledServerError)
+			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 		cpsAction.CurrentAction = bank
 		b.logger.Infof("bank created after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
@@ -270,7 +270,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bo
 		}
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		cpsAction.CurrentAction = bank
 		b.logger.Infof("bank updated after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
@@ -279,7 +279,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bo
 		update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		cpsAction.CurrentAction = bank
 		b.logger.Infof("bank deleted after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
@@ -287,21 +287,21 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bo
 	case string(model.RequestEnableBank):
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": true})
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		cpsAction.CurrentAction = bank
 		b.logger.Infof("bank enabled after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestDisableBank):
-		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": false})
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": nil})
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		cpsAction.CurrentAction = bank
 		b.logger.Infof("bank disabled after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 	}
 
-	return true, nil
+	return cpsAction, nil
 }
 
 func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {

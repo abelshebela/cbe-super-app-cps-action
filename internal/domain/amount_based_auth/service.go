@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -41,8 +42,8 @@ func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams
 	return authTiers, nil
 }
 
-func (service *Service) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-	return service.repo.ApproveAmountBasedAuth(ctx, id, cpsAction)
+func (service *Service) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	return service.repo.Authorize(ctx, cpsAction)
 }
 
 func (service *Service) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {

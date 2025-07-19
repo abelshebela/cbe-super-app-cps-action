@@ -10,7 +10,7 @@ import (
 )
 
 type CPSActionModule interface {
-	Authorize(ctx context.Context, action *entities.CPSAction) (bool, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
 type Dispatcher struct {
@@ -23,7 +23,7 @@ func NewDispatcher(app application.Domain) *Dispatcher {
 	}
 }
 
-func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bool, error) {
+func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateBank),
 		string(constants.RequestUpdateBank),
@@ -35,8 +35,16 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		string(constants.RequestEnableAvatar),
 		string(constants.RequestDisableAvatar):
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
+	case string(constants.RequestAuthTier):
+		return d.app.AmountBasedAuthDomain.Authorize(ctx, cpsAction)
+	case string(constants.RequestCreateAdvert),
+		string(constants.RequestUpdateAdvert),
+		string(constants.RequestEnableAdvert),
+		string(constants.RequestDisableAdvert),
+		string(constants.RequestDeleteAdvert):
+		return d.app.AdDomain.Authorize(ctx, cpsAction)
 
 	default:
-		return false, fmt.Errorf("unsupported request action: %s", cpsAction.RequestAction)
+		return nil, fmt.Errorf("unsupported request action: %s", cpsAction.RequestAction)
 	}
 }

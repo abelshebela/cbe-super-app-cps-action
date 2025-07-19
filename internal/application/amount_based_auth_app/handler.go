@@ -11,7 +11,7 @@ import (
 
 type ApplicationService interface {
 	UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error)
-	ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error)
+	// ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error)
 	RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error)
 	GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*amount_based_auth_domain.AuthTier], error)
 }
@@ -39,9 +39,9 @@ func (h Handler) UpdateAmountBasedAuth(ctx context.Context, request amount_based
 	return h.service.UpdateAmountBasedAuth(ctx, request, cpsAction)
 }
 
-func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-	return h.service.ApproveAmountBasedAuth(ctx, id, cpsAction)
-}
+// func (h Handler) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
+// 	return h.service.ApproveAmountBasedAuth(ctx, id, cpsAction)
+// }
 
 func (h *Handler) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {
 	request, err := h.service.RejectAmountBasedAuth(ctx, id, cpsAction)

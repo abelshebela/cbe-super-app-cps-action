@@ -2,7 +2,6 @@ package cpsaction
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -44,15 +43,12 @@ func (a *cpsActionApplication) ApproveCPSAction(ctx context.Context, action *ent
 		return nil, err
 	}
 
-	ok, err := a.dispatcher.Authorize(ctx, cpsAction)
+	cpsRes, err := a.dispatcher.Authorize(ctx, cpsAction)
 	if err != nil {
 		return nil, err
 	}
 
-	if !ok {
-		return nil, fmt.Errorf("")
-	}
-	return cpsAction, nil
+	return cpsRes, nil
 }
 
 func (a *cpsActionApplication) RejectCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {

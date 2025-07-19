@@ -91,43 +91,43 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 }
 
-func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
+// func (a *AmountBasedAuthHandler) ApproveAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+// 	id, ok := common_util.GetParam(r, "id")
+// 	if !ok {
+// 		a.logger.Errorf("missing or invalid parameter 'id'")
+// 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+// 		return
+// 	}
 
-	var cpsReq model.AuthorizeCPSAction
+// 	var cpsReq model.AuthorizeCPSAction
 
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		a.logger.Errorf("incomplete user context: %v", userContext)
-		common_util.SendErrorResponse(w, common_util.InvalidToken, 0, nil)
-		return
-	}
+// 	userContext := ctx_util.ExtractUserContext(r)
+// 	if userContext.IsIncomplete() {
+// 		a.logger.Errorf("incomplete user context: %v", userContext)
+// 		common_util.SendErrorResponse(w, common_util.InvalidToken, 0, nil)
+// 		return
+// 	}
 
-	cpsReq.CheckerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-	}
-	cpsReq.Department = userContext.Department
+// 	cpsReq.CheckerUser = model.User{
+// 		UserCode:    userContext.UserCode,
+// 		FullName:    userContext.FullName,
+// 		PhoneNumber: userContext.PhoneNumber,
+// 	}
+// 	cpsReq.Department = userContext.Department
 
-	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(r.Context(), id, cpsReq)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	amountBasedAuth, err := a.amountBasedAuthService.ApproveAmountBasedAuth(r.Context(), id, cpsReq)
+// 	if err != nil {
+// 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	data, err := common_util.StructToMap(amountBasedAuth)
-	if err != nil {
-		common_util.SendErrorResponse(w, err, 500, nil)
-		return
-	}
-	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
-}
+// 	data, err := common_util.StructToMap(amountBasedAuth)
+// 	if err != nil {
+// 		common_util.SendErrorResponse(w, err, 500, nil)
+// 		return
+// 	}
+// 	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+// }
 
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")

@@ -19,7 +19,7 @@ type ADHandlers interface {
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
+	// Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
 	Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error)
 }
 
@@ -74,10 +74,10 @@ func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 	return advertCpsAction, nil
 }
 
-func (a ADHandler) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+// func (a ADHandler) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
 
-	return a.adDomain.Authorize(ctx, cpsAction)
-}
+// 	return a.adDomain.Authorize(ctx, cpsAction)
+// }
 
 func (a ADHandler) Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
 	cpsActionRes, err := a.adDomain.Reject(ctx, cpsAction)

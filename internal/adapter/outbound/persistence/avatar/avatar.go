@@ -146,7 +146,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 	return ToCPSAction(&cpsAction), nil
 }
 
-func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bool, error) {
+func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var err error
 
@@ -155,13 +155,13 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.C
 	if err != nil {
 		a.logger.Errorf("failed to marshal bson: %v", err)
 
-		return false, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
 	if err := bson.Unmarshal(data, &actionData); err != nil {
 		a.logger.Errorf("failed to unmarshal into avatar: %v", err)
 
-		return false, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
 	if string(cpsAction.ActionType) == string(model.ActionCreate) {
@@ -177,19 +177,19 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.C
 
 		if err != nil {
 			a.logger.Errorf("failed to convert avatar to document", err)
-			return false, fmt.Errorf("FAILED_TO_CONVERT_AVATAR_TO_DOCUMENT")
+			return nil, fmt.Errorf("FAILED_TO_CONVERT_AVATAR_TO_DOCUMENT")
 		}
 
 		avatarDoc, err := a.avatarDal.InsertOne(ctx, *req)
 		if err != nil {
 			a.logger.Errorf("failed to create avatar", err)
 
-			return false, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
+			return nil, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
 		}
 
 		cpsAction.CurrentAction = avatarDoc.toModel()
 
-		return true, nil
+		return cpsAction, nil
 
 	}
 
@@ -223,15 +223,15 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.C
 			a.logger.Errorf("failed to update avatar", err)
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				a.logger.Errorf("avatar not found", err)
-				return false, fmt.Errorf("NOT_FOUND")
+				return nil, fmt.Errorf("NOT_FOUND")
 			}
 
-			return false, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
 		}
 
 		cpsAction.CurrentAction = avatarDoc.toModel()
 
-		return true, nil
+		return cpsAction, nil
 	}
 
 	if string(cpsAction.ActionType) == string(model.ActionDelete) {
@@ -249,18 +249,18 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.C
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				a.logger.Errorf("avatar not found", err)
-				return false, fmt.Errorf("NOT_FOUND")
+				return nil, fmt.Errorf("NOT_FOUND")
 			}
 			a.logger.Errorf("failed to update avatar", err)
 
-			return false, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 		}
 		cpsAction.CurrentAction = avatarDoc
 
-		return true, nil
+		return cpsAction, nil
 	}
 
-	return true, nil
+	return cpsAction, nil
 }
 
 func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*dto.CPSAction, error) {

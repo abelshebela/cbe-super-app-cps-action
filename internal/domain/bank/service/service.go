@@ -31,7 +31,7 @@ type BankService interface {
 	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, action *entities.CPSAction) (bool, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
@@ -175,7 +175,7 @@ func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Authorize(ctx context.Context, action *entities.CPSAction) (bool, error) {
+func (b *BankDomain) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 	return b.bankRepo.Authorize(ctx, action)
 }
 

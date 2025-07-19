@@ -15,7 +15,7 @@ type AvatarOutbound interface {
 	CreateAvatar(ctx context.Context, cpsActionReq model.CreateCPSAction) (*dto.CPSAction, error)
 	CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error
 	DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*dto.CPSAction, error)
-	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (bool, error)
+	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*dto.CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*dto.CPSAction, error)
