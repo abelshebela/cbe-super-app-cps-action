@@ -3,17 +3,20 @@ package account_block
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type ApplicationService interface {
-	FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
+	FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error)
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
-	FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
+	FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
@@ -47,8 +50,8 @@ func NewApplicationHandler(service account_block.ApplicationServices) Applicatio
 	}
 }
 
-func (h *Handler) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
-	return h.service.FilterSingleBranches(ctx, region, district)
+func (h *Handler) FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
+	return h.service.FilterSingleBranches(ctx, region, district, filterParams)
 }
 func (h *Handler) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
 	return h.service.DisableSingleBranch(ctx, branch, maker)
@@ -58,8 +61,8 @@ func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID strin
 	return h.service.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
 }
 
-func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
-	return h.service.FilterMultipleBranches(ctx, region, district)
+func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
+	return h.service.FilterMultipleBranches(ctx, region, district, filterParams)
 }
 
 func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
@@ -111,13 +114,13 @@ func (h *Handler) ApproveBlockCity(ctx context.Context, actionID string, approve
 }
 
 func (h *Handler) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
-    return h.service.BlockUser(ctx, userID, maker)
+	return h.service.BlockUser(ctx, userID, maker)
 }
 
 func (h *Handler) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
-    return h.service.GetUserByPhone(ctx, phoneNumber, maker)
+	return h.service.GetUserByPhone(ctx, phoneNumber, maker)
 }
 
 func (h *Handler) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
-    return h.service.ApproveBlockUser(ctx, actionID, approve, reason, checker)
+	return h.service.ApproveBlockUser(ctx, actionID, approve, reason, checker)
 }
