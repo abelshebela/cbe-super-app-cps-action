@@ -28,3 +28,17 @@ type CPSAction struct {
 	MakerActionTime    time.Time              `json:"maker_action_time"`
 	CheckerActionTime  time.Time              `json:"checker_action_time"`
 }
+
+type User struct {
+	UserCode    string
+	FullName    string
+	PhoneNumber string
+}
+
+type AuthorizeCPSAction struct {
+	ActionCode        string    `json:"action_code"`
+	Department        string    `json:"department,omitempty"`
+	RejectionReason   string    `json:"rejection_reason"`
+	CheckerUser       User      `json:"checker_user"`
+	CheckerActionTime time.Time `json:"checker_action_time,omitzero"`
+}

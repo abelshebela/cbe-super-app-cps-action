@@ -50,8 +50,10 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	budget_category_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
+	cps_actions_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
+	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
 )
 
 type Adapter struct {
@@ -81,6 +83,7 @@ type Adapter struct {
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
 	EventAdapter           event_inbound.EventHandler
 	BudgetCategoryAdapter  budget_category.BudgetCategoryInbound
+	CPSActionAdapter       cps_actions.CPSActionAdapter
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -109,5 +112,6 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		MiniAppAdapter:        miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
 		EventAdapter:          eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
 		BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BankCategoryApplication, logger),
+		CPSActionAdapter:      cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
 	}
 }

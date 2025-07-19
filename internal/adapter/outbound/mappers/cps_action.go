@@ -111,7 +111,7 @@ func BSONToMap(i any) any {
 }
 
 // ModelToDomainCPSAction converts a model CPSAction to a domain CPSAction.
-func ModelToDomainCPSAction(modelAction model.CPSAction) (*domain.CPSAction, error) {
+func ModelToDomainCPSAction(modelAction model.CPSAction) *domain.CPSAction {
 
 	return &domain.CPSAction{
 		ID:                 modelAction.ID.Hex(),
@@ -134,5 +134,36 @@ func ModelToDomainCPSAction(modelAction model.CPSAction) (*domain.CPSAction, err
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
 		CheckerActionTime:  modelAction.CheckerActionTime,
-	}, nil
+	}
+}
+
+func ObjectIDFromHex(id string) (bson.ObjectID, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+
+	if err != nil {
+		return bson.ObjectID{}, fmt.Errorf(common_util.InvalidID)
+	}
+
+	return objID, nil
+}
+
+func BuildCPSActionUpdate(modelAction *model.CPSAction) bson.M {
+	return bson.M{
+		"maker_id":             modelAction.MakerID,
+		"maker_name":           modelAction.MakerName,
+		"maker_phone_number":   modelAction.MakerPhoneNumber,
+		"checker_id":           modelAction.CheckerID,
+		"checker_name":         modelAction.CheckerName,
+		"checker_phone_number": modelAction.CheckerPhoneNumber,
+		"unique_id":            modelAction.UniqueId,
+		"department":           modelAction.Department,
+		"rejection_reason":     modelAction.RejectionReason,
+		"previous_action":      modelAction.PreviousAction,
+		"current_action":       modelAction.CurrentAction,
+		"action_status":        modelAction.ActionStatus,
+		"action_type":          modelAction.ActionType,
+		"request_action":       modelAction.RequestAction,
+		"created_at":           modelAction.CreatedAt,
+		"last_modified_at":     modelAction.LastModifiedAt,
+	}
 }

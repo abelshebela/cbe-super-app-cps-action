@@ -25,8 +25,6 @@ import (
 
 	portalCardRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
-
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
@@ -49,7 +47,10 @@ import (
 	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
 	budget_category_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
+	cps_Actions_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/cps_action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
+	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
 
@@ -65,7 +66,6 @@ type Persitence struct {
 	BankPersistance            bank.BankPersistence
 	DepartmentPersistence      *dept_repo.DepartmentPersistence
 	PermissionPersistence      *perm_repo.PermissionPersistence
-	CPSActionPersistance       department.CPSActionRepository
 	advertPersistence          ad.ADRepo
 	avatarPersitence           avatar.AvatarOutbound
 	AccountBlockPersistance    account_block.AccountBlockOutboundPort
@@ -79,6 +79,7 @@ type Persitence struct {
 	miniAppPersistance         miniApp_port.Outbound
 	EventPersistence           *event_persistence.EventPersistence
 	BudgetCategoryPersistence  budget_category.BudgetCategoryRepository
+	CPSActionsPersistance      cps_actions.CPSActionRepository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -139,5 +140,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
 		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, []string{"events", "cps_actions"}, logger),
 		BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
+		CPSActionsPersistance:      cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
 	}
 }
