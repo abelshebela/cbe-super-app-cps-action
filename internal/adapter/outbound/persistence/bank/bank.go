@@ -11,6 +11,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -136,7 +137,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &cpsRes, nil
 }
 
-func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error) {
+func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
@@ -144,7 +145,9 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 		filter["status"] = filterParams.Filters
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
 	banksDocs, err := b.bankDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
@@ -165,11 +168,11 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 	}
 
 	b.logger.Infof("retrieved banks, page: %d, count: %d, total: %d", filterParams.Page, len(banks), total)
-	return &entity.BankResponse{
-		Page:  filterParams.Page,
-		Banks: banks,
-		Limit: constant.DefaultPerPage,
-		Total: total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+
+	return &common_util.PaginatedResponse[[]*entity.Bank]{
+		Data: banks,
+		Meta: meta,
 	}, nil
 }
 

@@ -26,6 +26,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
 	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget_category"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -55,6 +56,7 @@ type Application struct {
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 	miniAppApplication         miniApp_application.ApplicationAbstracts
 	EventApplication           event_application.ApplicationAbstracts
+	BankCategoryApplication    budget_category.BudgetCategoryApplictionService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -83,5 +85,6 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 		miniAppApplication:         miniApp_application.NewApplicationService(domain.miniAppDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
+		BankCategoryApplication:    budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 	}
 }

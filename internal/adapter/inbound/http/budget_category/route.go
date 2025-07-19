@@ -6,64 +6,65 @@ import (
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
+	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
 )
 
-func InitBudgetCategoryRoute(router chi.Router, budgetCategoryHandler inbound.BudgetCategoryInbound, authMiddleware middleware.AuthMiddleware) {
+func InitBudgetCategoryRoute(router chi.Router, handler inbound.BudgetCategoryInbound, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/budget_category", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
-				Handler: budgetCategoryHandler.CreateBudgetCategory,
+				Path:    "/",
+				Handler: handler.CreateBudgetCategory,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
 				Method:  http.MethodPut,
-				Path:    "/update/{budget_category_id}",
-				Handler: budgetCategoryHandler.UpdateBudgetCategory,
+				Path:    "/{id}",
+				Handler: handler.UpdateBudgetCategory,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
 				Method:  http.MethodDelete,
-				Path:    "/delete/{budget_category_id}",
-				Handler: budgetCategoryHandler.DeleteBudgetCategory,
+				Path:    "/{id}",
+				Handler: handler.DeleteBudgetCategory,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/{budget_category_id}",
-				Handler: budgetCategoryHandler.GetBudgetCategory,
+				Path:    "/{id}",
+				Handler: handler.GetBudgetCategory,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					// authMiddleware.AccessControl([]string{"MAKER", "IFB-MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/budget_categories",
-				Handler: budgetCategoryHandler.GetAllBudgetCategory,
+				Path:    "/",
+				Handler: handler.GetAllBudgetCategory,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					// authMiddleware.AccessControl([]string{"MAKER"}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
 			{
 				Method:  http.MethodPost,
 				Path:    "/approve",
-				Handler: budgetCategoryHandler.ApproveBudgetCategoryActionHTTP,
+				Handler: handler.ApproveBudgetCategoryActionHTTP,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"CHECKER", "IFB-CHECKER"}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 		}

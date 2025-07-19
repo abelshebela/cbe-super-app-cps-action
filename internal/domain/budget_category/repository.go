@@ -7,7 +7,7 @@ import (
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
-type Repository interface {
+type BudgetCategoryRepository interface {
 	CreateAction(ctx context.Context, data interface{}, maker action.User) (action.CPSAction, error)
 	UpdateAction(ctx context.Context, actionId string, checker action.User, status action.ActionStatus) (action.CPSAction, error)
 	FindActionById(ctx context.Context, actionId string) (*action.CPSAction, error)

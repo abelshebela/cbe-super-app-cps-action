@@ -6,6 +6,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -23,7 +24,7 @@ type AvatarApplicationService interface {
 	EnableOrDisableAvatar(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*avatar.Avatar, error)
-	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*avatar.AvatarResponse, error)
+	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*avatar.Avatar], error)
 	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error)
 }
 
@@ -79,7 +80,7 @@ func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string
 	return cpsAction, nil
 }
 
-func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*avatar.AvatarResponse, error) {
+func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*avatar.Avatar], error) {
 	avatars, err := a.avatarDomain.GetAllAvatar(ctx, filterParams)
 	if err != nil {
 		return nil, err

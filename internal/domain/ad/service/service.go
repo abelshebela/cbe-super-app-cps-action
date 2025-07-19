@@ -10,6 +10,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/repository"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+		common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
 	// "github.com/mitchellh/mapstructure"
@@ -27,7 +29,7 @@ type ADDomain struct {
 type AdvertService interface {
 	CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
-	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error)
+	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	DeleteOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
@@ -138,7 +140,7 @@ func (a *ADDomain) DeleteOneAdvert(ctx context.Context, id string, cpsAction mod
 	return cpsRes, nil
 }
 
-func (a *ADDomain) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error) {
+func (a *ADDomain) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error) {
 	advertRes, err := a.ADRepo.GetAllAdvert(ctx, filterParams)
 	if err != nil {
 		return nil, err

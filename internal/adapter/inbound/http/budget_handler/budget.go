@@ -71,14 +71,16 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
-	icons, err := h.budgetService.FetchIcons(r.Context())
+
+	filterParams := common_util.ExtractFilterParams(r)
+	icons, err := h.budgetService.FetchIcons(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("failed to fetch budget icons: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
+	data, _ := common_util.StructToMap(icons)
 
-	data := map[string]interface{}{"icons": icons}
 	common_util.BaseResponseMaker(data, w, "Icons fetched successfully", 200)
 }
 
@@ -181,13 +183,16 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 }
 
 func (h *BudgetHandler) BudgetFetchColors(w http.ResponseWriter, r *http.Request) {
-	colors, err := h.budgetService.FetchColors(r.Context())
+	filterParams := common_util.ExtractFilterParams(r)
+
+	colors, err := h.budgetService.FetchColors(r.Context(), filterParams)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	data := map[string]interface{}{"colors": colors}
+	data, _ := common_util.StructToMap(colors)
+
 	common_util.BaseResponseMaker(data, w, "Colors fetched successfully", 200)
 }
 

@@ -32,7 +32,7 @@ func (service *Service) UpdateAmountBasedAuth(ctx context.Context, request Updat
 	return service.repo.UpdateAmountBasedAuth(ctx, request, cpsAction)
 }
 
-func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams *constant.Filter) (*AmountBasedAuthRespose, error) {
+func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*AuthTier], error) {
 
 	authTiers, err := service.repo.GetAllAmountBasedDetail(ctx, filerParams)
 	if err != nil {

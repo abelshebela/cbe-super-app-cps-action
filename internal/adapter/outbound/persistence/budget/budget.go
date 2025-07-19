@@ -11,7 +11,9 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -50,13 +52,45 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	return &cps, nil
 }
 
-func (b *BudgetPersistence) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := b.iconDal.FindAll(ctx, bson.M{"is_deleted": false}, bson.M{})
+func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["icon"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	icons, err := b.iconDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return icons, nil
+	total, err := b.iconDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*entities.Icon]{
+		Data: icons,
+		Meta: meta,
+	}, nil
 }
 
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
@@ -112,13 +146,46 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	return &createdAction, nil
 }
 
-func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := b.colorDal.FindAll(ctx, bson.M{}, bson.M{})
+func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Color], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["color"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	colors, err := b.colorDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return colors, nil
+	totalDocs, err := b.colorDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+
+	return &common_util.PaginatedResponse[[]*entities.Color]{
+		Data: colors,
+		Meta: meta,
+	}, nil
 }
 
 func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entities.Color, error) {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
@@ -14,7 +13,6 @@ import (
 	inboundBank "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bank"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -157,28 +155,7 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	perPage := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil && perPageInt <= 10 && perPageInt > 0 {
-		perPage = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: perPage,
-		Search:  search,
-		Filters: filter,
-	}
-
+	filterParams := common_util.ExtractFilterParams(r)
 	ctx := r.Context()
 	banks, err := b.bankHandler.GetAllBank(ctx, filterParams)
 	if err != nil {
@@ -334,7 +311,7 @@ func (b *BankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	
+
 	cpsRequest.ActionData = updateLogo
 	cpsRes, err := b.bankHandler.UpdateLogo(r.Context(), id, *cpsRequest)
 	if err != nil {
