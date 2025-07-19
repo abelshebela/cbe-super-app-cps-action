@@ -7,6 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+		common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -14,7 +15,7 @@ import (
 
 type ADHandlers interface {
 	CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
-	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error)
+	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
@@ -46,7 +47,7 @@ func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq mode
 	return a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
 }
 
-func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error) {
+func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error) {
 	adverts, err := a.adDomain.GetAllAdvert(ctx, filterParams)
 	if err != nil {
 		return nil, err

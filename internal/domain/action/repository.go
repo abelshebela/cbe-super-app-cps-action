@@ -10,7 +10,7 @@ type ActionRepository interface {
 
 	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
 	UpdateCpsAction(ctx context.Context, Action CPSAction) error
-	FetchCpsActionById(ctx context.Context, ActionID string) (CPSAction, error)
+	FetchCpsActionById(ctx context.Context, actionCode string) (CPSAction, error)
 	FetchLastCpsActionByMakerID(ctx context.Context, makerID string) (CPSAction, error)
 
 	FetchAccountsByAccountNumber(ctx context.Context, accountNumber string) ([]LinkedAccount, error)

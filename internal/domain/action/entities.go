@@ -139,6 +139,8 @@ const (
 	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
+	RequestCIFRemove                RequestAction = "CIF_REMOVE"
+	RequestServiceFlagUpdate                RequestAction = "SERVICE_FLAG_UPDATE"
 )
 
 type KYCLevel string

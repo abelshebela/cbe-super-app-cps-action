@@ -59,9 +59,8 @@ func (f FeedbackHTTPHandler) GetFeedbacks(w http.ResponseWriter, r *http.Request
 
 		return
 	}
-	message := "successfully fetched the feedback"
-	data, _ := util.StructToMap(feedbacks)
-	util.BaseResponseMaker(data, w, message, http.StatusAccepted)
+
+	util.WriteSuccessResponse(w, feedbacks, "successfully fetched the feedback")
 
 }
 
@@ -73,8 +72,6 @@ func (f FeedbackHTTPHandler) GetFeedbackByID(w http.ResponseWriter, r *http.Requ
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	message := "successfully fetched the feed back"
-	
-	data, _ := util.StructToMap(feedback)
-	util.BaseResponseMaker(data, w, message, http.StatusAccepted)
+
+	util.WriteSuccessResponse(w, feedback, "successfully fetched the feedback")
 }

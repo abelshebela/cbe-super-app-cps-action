@@ -23,6 +23,7 @@ import (
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -52,6 +53,7 @@ type Domain struct {
 	ServiceDomain         service.ServiceInterface
 	ActionDomain          action.ServiceInterface
 	EventDomain           event_domain.EventService
+	BudgetCategoryDomain  budget_category.BudgetCategoryService
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger) Domain {
@@ -78,5 +80,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		miniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),
+		BudgetCategoryDomain:  *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence,  logger),
 	}
 }

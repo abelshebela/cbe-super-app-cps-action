@@ -7,7 +7,6 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
-
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -74,6 +73,8 @@ func (s *Service) CreatePermissionGroup(oldGroupName, groupName, role string, pe
 	}
 
 	cpsAction.MakerActionTime = time.Now()
+	cpsAction.CreatedAt = time.Now()
+	cpsAction.LastModifiedAt = time.Now()
 
 	cpsAction, err = s.cpsActionRepo.CreatePermissionGroup(cpsAction)
 	if err != nil {

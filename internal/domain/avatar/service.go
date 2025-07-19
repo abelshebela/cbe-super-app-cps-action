@@ -29,7 +29,7 @@ type AvatarDomainService interface {
 	Reject(ctx context.Context, req model.RejectCPSAction) (*CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*Avatar, error)
-	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*AvatarResponse, error)
+	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*Avatar], error)
 	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*CPSAction, error)
 }
 
@@ -166,7 +166,7 @@ func (a *AvatarDomain) EnableOrDisableAvatar(ctx context.Context, id string,
 	return cpsAction, nil
 }
 
-func (a *AvatarDomain) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*AvatarResponse, error) {
+func (a *AvatarDomain) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*Avatar], error) {
 	return a.avatarRepo.GetAllAvatar(ctx, filterParams)
 }
 

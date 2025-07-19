@@ -14,8 +14,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 
 	// ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
@@ -72,9 +72,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", makerUser.UserID)
-
 	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request  created successfully")
-
 }
 
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +82,6 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
 	common_util.WriteSuccessResponse(w, permissionGroups, "Permission groups fetched successfully")
 }
 
@@ -112,6 +109,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
+
 	oldGroupName := chi.URLParam(r, "group_name")
 	if oldGroupName == "" {
 		util.SendErrorResponse(w, "Group name is required", http.StatusNotFound, nil)

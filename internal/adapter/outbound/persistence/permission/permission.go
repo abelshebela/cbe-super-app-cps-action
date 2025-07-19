@@ -12,7 +12,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
@@ -263,6 +263,7 @@ func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action m
 		"checker_phone_number": action.CheckerPhoneNumber,
 		"action_status":        model.ActionApproved,
 		"checker_action_time":  time.Now(),
+		"last_modified_at":     time.Now(),
 	}
 
 	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
@@ -282,6 +283,7 @@ func (r *PermissionPersistence) RejectActionRequest(actionCode string, action mo
 		"checker_phone_number": action.CheckerPhoneNumber,
 		"action_status":        model.ActionRejected,
 		"checker_action_time":  time.Now(),
+		"last_modified_at":     time.Now(),
 	}
 	rejectedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
 	if err != nil {

@@ -2,8 +2,11 @@ package budget
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -27,8 +30,8 @@ func (s *BudgetService) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	return action, nil
 }
 
-func (s *BudgetService) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := s.repo.FetchIcons(ctx)
+func (s *BudgetService) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
+	icons, err := s.repo.FetchIcons(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +49,15 @@ func (s *BudgetService) UpdateIcon(ctx context.Context, id string, cpsAction ent
 }
 
 func (s *BudgetService) CreateColor(ctx context.Context, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	exist, err := s.repo.CheckColorExist(ctx, hexCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if exist {
+		s.logger.Errorf("Color %s already exists", hexCode)
+		return nil, fmt.Errorf("CONFLICT_KEY")
+	}
 	action, err := s.repo.CreateColor(ctx, hexCode, cpsAction)
 	if err != nil {
 		return nil, err
@@ -54,8 +66,8 @@ func (s *BudgetService) CreateColor(ctx context.Context, hexCode string, cpsActi
 	return action, nil
 }
 
-func (s *BudgetService) FetchColors(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := s.repo.ListAllColor(ctx)
+func (s *BudgetService) FetchColors(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Color], error) {
+	colors, err := s.repo.ListAllColor(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}

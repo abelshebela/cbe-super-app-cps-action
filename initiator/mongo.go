@@ -6,8 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitMongo(mongo_uri string, logger utils.Logger) *mongo.Client {
-	mongoClient, err := config.ConnectToMongoDB(mongo_uri)
+func InitMongo(mongoUri string, logger utils.Logger) *mongo.Client {
+	mongoClient, err := config.ConnectToMongoDB(mongoUri)
 	if err != nil {
 		logger.Fatalf("failed to connect to mongo %v", err)
 	}

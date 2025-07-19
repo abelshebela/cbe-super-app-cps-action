@@ -2,8 +2,8 @@ package budget
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -11,12 +11,13 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type BudgetPersistence struct {
@@ -41,6 +42,9 @@ func InitBudget(client *mongo.Client, dbName string, collections []string, logge
 
 func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.MakerActionTime = time.Now()
+	cpsAction.CreatedAt = time.Now()
+	objID := bson.NewObjectID()
+	cpsAction.ID = objID
 	cps, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
@@ -50,17 +54,51 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	return &cps, nil
 }
 
-func (b *BudgetPersistence) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := b.iconDal.FindAll(ctx, bson.M{"is_deleted": false}, bson.M{})
+func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["icon"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	icons, err := b.iconDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return icons, nil
+	total, err := b.iconDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*entities.Icon]{
+		Data: icons,
+		Meta: meta,
+	}, nil
 }
 
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.MakerActionTime = time.Now()
+	cpsAction.ID = bson.NewObjectID()
+	cpsAction.LastModifiedAt = time.Now()
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -73,8 +111,12 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 	}
 	existingIcon, err := b.iconDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("icon not found: %s", id)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		b.logger.Errorf("icon not found or db error: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cpsAction.PreviousAction = map[string]interface{}{
@@ -85,10 +127,7 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		err = fmt.Errorf("failed to queue icon update: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf("UNHANDLED_SERVER_ERROR")
 		return nil, err
 	}
 
@@ -96,22 +135,59 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 }
 
 func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	cpsAction.CreatedAt = time.Now()
+	cpsAction.MakerActionTime = time.Now()
+	cpsAction.ID = bson.NewObjectID()
+	cpsAction.LastModifiedAt = time.Now()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		return nil, fmt.Errorf("failed to queue color creation")
+		return nil, fmt.Errorf("GENERAL_DB_INSERT_FAILED")
 	}
 
 	return &createdAction, nil
 }
 
-func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := b.colorDal.FindAll(ctx, bson.M{}, bson.M{})
+func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Color], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["color"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	colors, err := b.colorDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return colors, nil
+	totalDocs, err := b.colorDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+
+	return &common_util.PaginatedResponse[[]*entities.Color]{
+		Data: colors,
+		Meta: meta,
+	}, nil
 }
 
 func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entities.Color, error) {
@@ -122,13 +198,33 @@ func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entit
 
 	colors, err := b.colorDal.FindOne(ctx, bson.M{"_id": objectId}, bson.M{})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("color not found: %s", id)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		b.logger.Errorf("color not found or db error: %v", err)
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	return colors, nil
 }
 
+func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (bool, error) {
+	colors, err := b.colorDal.FindOne(ctx, bson.M{"color": color}, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		b.logger.Errorf("failed to check color existence: %v", err)
+		return false, fmt.Errorf("failed to check color existence: %w", err)
+	}
+
+	return colors != nil, nil
+}
+
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
+
+	fmt.Println("I hab")
 	update, err := bson.Marshal(color)
 	if err != nil {
 		return nil, err
@@ -137,11 +233,21 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 	if err := bson.Unmarshal(update, &updateMap); err != nil {
 		return nil, err
 	}
+
 	action, err := b.cpsDal.UpdateOne(ctx, bson.M{"_id": color.ID}, bson.M{"$set": updateMap})
-	return &action, err
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("action not found: %s", color.ID.Hex())
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		b.logger.Errorf("failed to update CPSAction: %v", err)
+		return nil, fmt.Errorf("GENERAL_DB_UPDATE_FAILED")
+	}
+	return &action, nil
 }
 
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	cpsAction.ID = bson.NewObjectID()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
@@ -153,9 +259,13 @@ func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities
 
 func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	action, err := b.cpsDal.FindOne(ctx, bson.M{"action_code": cpsAction.ActionCode}, bson.M{})
-	if err != nil || action == nil {
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("action not found: %s", cpsAction.ActionCode)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		b.logger.Errorf("action not found: %s, error: %v", cpsAction.ActionCode, err)
-		return nil, err
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	if action.ActionStatus != "PENDING" {

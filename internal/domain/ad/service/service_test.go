@@ -100,7 +100,7 @@ func TestADDomain_CreateOneAdvert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockRepository(ctrl)
+	mockRepo := mocks.NewMockAdRepository(ctrl)
 	mockLogger := &MockLogger{}
 	mockMinioClient := &MockMinioClient{}
 	service := InitADDomian("ad", mockMinioClient, mockRepo, mockLogger)

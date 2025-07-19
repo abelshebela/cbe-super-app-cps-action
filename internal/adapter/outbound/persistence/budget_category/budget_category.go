@@ -9,6 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	action_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	budget_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -22,22 +23,7 @@ type BudgetCategoryRepo struct {
 	dal    dal.MongoDal[budget_entity.BudgetCategory, budget_entity.BudgetCategory]
 }
 
-type BudgetCategoryRepoInterface interface {
-	CreateAction(ctx context.Context, data interface{}, maker action_entity.User) (action_entity.CPSAction, error)
-	UpdateAction(ctx context.Context, actionId bson.ObjectID, checker action_entity.User, status action_entity.ActionStatus) (action_entity.CPSAction, error)
-	FindActionById(ctx context.Context, actionId string) (*action_entity.CPSAction, error)
-	ApproveAction(ctx context.Context, approveRequest dto.ApproveBudgetCategoryRequest, checker action_entity.User) (action_entity.CPSAction, error)
-
-	CreateBudgetCategory(ctx context.Context, req dto.CreateBudgetCategoryRequest) (budget_entity.BudgetCategory, error)
-	FindBudgetCategoryById(ctx context.Context, id string) (*budget_entity.BudgetCategory, error)
-	UpdateBudgetCategory(ctx context.Context, req dto.UpdateBudgetCategoryRequest) (budget_entity.BudgetCategory, error)
-	DeleteBudgetCategory(ctx context.Context, req dto.DeleteBudgetCategoryRequest) error
-
-	GetBudgetCategory(ctx context.Context, req dto.GetBudgetCategoryRequest) (*budget_entity.BudgetCategory, error)
-	GetAllBudgetCategory(ctx context.Context, req dto.GetAllBudgetCategoryRequest) ([]*budget_entity.BudgetCategory, error)
-}
-
-func NewBudgetCategoryRepo(client *mongo.Client, dbName string, logger utils.Logger) BudgetCategoryRepoInterface {
+func NewBudgetCategoryRepo(client *mongo.Client, dbName string, logger utils.Logger) domain.BudgetCategoryRepository {
 	dalBudget := dal.NewMongoDal[budget_entity.BudgetCategory, budget_entity.BudgetCategory](client, dbName, "budget_categories")
 	dalCPS := dal.NewMongoDal[action_entity.CPSAction, action_entity.CPSAction](client, dbName, "cps_actions")
 	return &BudgetCategoryRepo{
@@ -82,7 +68,7 @@ func (b *BudgetCategoryRepo) CreateAction(
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
 	cpsAction := action_entity.CPSAction{
 		ActionCode:       actionId,
-		MakerID:          maker.UserID, 
+		MakerID:          maker.UserID,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
 		ActionType:       actionType,
@@ -101,13 +87,18 @@ func (b *BudgetCategoryRepo) CreateAction(
 	return result, nil
 }
 
-func (b *BudgetCategoryRepo) UpdateAction(ctx context.Context, actionId bson.ObjectID, checker action_entity.User, status action_entity.ActionStatus) (action_entity.CPSAction, error) {
+func (b *BudgetCategoryRepo) UpdateAction(ctx context.Context, actionId string, checker action_entity.User, status action_entity.ActionStatus) (action_entity.CPSAction, error) {
 	update := bson.M{
 		"action_status":    status,
 		"checker":          checker,
 		"last_modified_at": time.Now(),
 	}
-	return b.cpsDal.UpdateOne(ctx, bson.M{"_id": actionId}, update)
+	objID, err := bson.ObjectIDFromHex(actionId)
+	if err != nil {
+		b.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
+		return action_entity.CPSAction{}, fmt.Errorf("INVALID_ID")
+	}
+	return b.cpsDal.UpdateOne(ctx, bson.M{"_id": objID}, update)
 }
 
 func (b *BudgetCategoryRepo) FindActionById(ctx context.Context, actionId string) (*action_entity.CPSAction, error) {

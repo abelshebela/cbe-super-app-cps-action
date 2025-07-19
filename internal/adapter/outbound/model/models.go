@@ -213,6 +213,38 @@ const (
 	RegistrationTypeLinked RegistrationType = "LINKED"
 )
 
+type LinkedAccountExternal struct {
+	ID                 string `json:"id"`
+	AccountBranchType  string `json:"account_branchtype"`
+	AccountBranchCode  string `json:"account_branchcode"`
+	AccountNumber      string `json:"account_number"`
+	CustomerNumber     string `json:"customer_number"`
+	CustomerName       string `json:"customer_name"`
+	AccountDescription string `json:"account_description"`
+	PhoneNumber        string `json:"phone_number"`
+	CustomerAddress    string `json:"customer_address"`
+	DebitAllowed       bool   `json:"debit_allowed"`
+	CreditAllowed      bool   `json:"credit_allowed"`
+	AccountType        string `json:"account_type"`
+	AccountFrozen      bool   `json:"account_frozen"`
+	AccountDormant     bool   `json:"account_dormant"`
+	ActiveAccount      bool   `json:"active_account"`
+	AccountCurrency    string `json:"account_currency"`
+}
+
+func (ext *LinkedAccountExternal) MapFromExternal() LinkedAccount {
+	return LinkedAccount{
+		AccountNumber:     ext.AccountNumber,
+		AccountType:       ext.AccountType,
+		AccountHolderName: ext.CustomerName,
+		CustomerNumber:    ext.CustomerNumber,
+		BranchCode:        ext.AccountBranchCode,
+		AccountBranchCode: ext.AccountBranchCode,
+		CurrencyCode:      ext.AccountCurrency,
+		IsAccountActive:   ext.ActiveAccount,
+	}
+}
+
 type LinkedAccount struct {
 	ID                bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
 	UserID            bson.ObjectID    `json:"user_id" bson:"user_id"`
@@ -327,7 +359,7 @@ type CredentialInformation struct {
 }
 
 type MiniApp struct {
-	ID                string                  `bson:"id"`
+	ID                bson.ObjectID           `bson:"_id"`
 	AppName           string                  `bson:"app_name"`
 	AppIcon           string                  `bson:"app_icon"`
 	CommisonGLAccount string                  `bson:"commison_gl_account"`

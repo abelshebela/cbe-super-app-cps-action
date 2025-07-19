@@ -13,7 +13,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 func Initiator() {
@@ -32,7 +31,7 @@ func Initiator() {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("Initializing persistence...")
-	persitence := InitPersistence(mongoClient, cfg.MongoDBDatabase, logger)
+	persitence := InitPersistence(mongoClient, cfg.MongoDBDatabase, logger, cfg)
 	logger.Infof("Persistence initialized")
 
 	logger.Infof("Initializing domain services...")
@@ -44,7 +43,7 @@ func Initiator() {
 	logger.Infof("Application services initialized")
 
 	logger.Infof("Initializing adapter services...")
-	adapter := InitAdapter(application, logger)
+	adapter := InitAdapter(application, minioClient, logger)
 	logger.Infof("Adapter services initialized")
 
 	logger.Infof("Initializing Chi router.....")

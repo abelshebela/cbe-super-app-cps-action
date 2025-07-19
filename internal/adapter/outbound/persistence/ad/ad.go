@@ -10,13 +10,15 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
-
+	
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-
+	
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 )
 
 type ADPersistence struct {
@@ -446,7 +448,7 @@ func (a *ADPersistence) GetOneAdvert(ctx context.Context, id string) (*entity.Ad
 	return advert, nil
 }
 
-func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error) {
+func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
@@ -454,7 +456,9 @@ func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant
 		filter["action_status"] = filterParams.Filters
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
 	ad, err := a.adDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
@@ -474,11 +478,11 @@ func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant
 
 	}
 
-	return &entity.AdvertResponse{
-		Page:   filterParams.Page,
-		Advert: ad,
-		Limit:  constant.DefaultPerPage,
-		Total:  total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+
+	return &common_util.PaginatedResponse[[]*entity.Advert]{
+		Data: ad,
+		Meta: meta,
 	}, nil
 }
 

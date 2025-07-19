@@ -32,6 +32,7 @@ import (
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	portal_card_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -47,6 +48,8 @@ import (
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
 	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
+	budget_category_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
 
@@ -75,30 +78,31 @@ type Persitence struct {
 	FaydaPersistence           fayda_account_repo.FaydaRepository
 	miniAppPersistance         miniApp_port.Outbound
 	EventPersistence           *event_persistence.EventPersistence
+	BudgetCategoryPersistence  budget_category.BudgetCategoryRepository
 }
 
-func InitPersistence(client *mongo.Client, database_name string, logger utils.Logger) Persitence {
+func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
 	collectionNames := []string{
 		"bps_user",
 		"cps_actions",
 		"cps_users",
 		"service",
 		"member",
-		"linked_accounts",
+		"linked_account",
 		"mini_app",
 		"portal_card",
 	}
 	return Persitence{
-		advertPersistence: advert.InitAD(client, database_name, []string{"adverts", "cps_actions"}, logger),
-		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, database_name, []string{"cps_actions", "avatars"}, logger),
+		advertPersistence: advert.InitAD(client, databaseName, []string{"adverts", "cps_actions"}, logger),
+		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, []string{"cps_actions", "avatars"}, logger),
 
-		CustomerPersistence:     customer_repo.InitCustomerDetail(client, database_name, "user", logger),
-		FeedBackPersistence:     feedback_repo.InitFeedback(client, database_name, "feedbacks", logger),
-		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, database_name, []string{"user", "otp", "cps_actions"}, logger),
-		BudgetPersistence:       budget_repo.InitBudget(client, database_name, []string{"icons", "colors", "cps_actions"}, logger),
-		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, database_name, 5*time.Second, logger),
-		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, database_name, collectionNames, logger),
-		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, database_name, []string{
+		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
+		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
+		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, databaseName, []string{"user", "otp", "cps_actions"}, logger),
+		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
+		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
+		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),
+		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",
 			"BPSUsers",
@@ -106,17 +110,17 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"portal_cards",
 			"validation_rules",
 		}),
-		PasswordRulesPersistence: outboundStore.NewOutboundPasswordRuleInfra(client, database_name, []string{
+		PasswordRulesPersistence: outboundStore.NewOutboundPasswordRuleInfra(client, databaseName, []string{
 			"password_rules",
 			"cps_actions",
 		}),
 
-		BankPersistance:       bank_repo.InitBank(client, database_name, []string{"banks", "cps_actions"}, logger),
-		DepartmentPersistence: dept_repo.InitDepartment(client, database_name, 5*time.Second, logger),
-		PermissionPersistence: perm_repo.InitPermission(client, database_name, 5*time.Second, logger),
+		BankPersistance:       bank_repo.InitBank(client, databaseName, []string{"banks", "cps_actions"}, logger),
+		DepartmentPersistence: dept_repo.InitDepartment(client, databaseName, 5*time.Second, logger),
+		PermissionPersistence: perm_repo.InitPermission(client, databaseName, 5*time.Second, logger),
 		AccountBlockPersistance: account_block_repo.NewOutboundAccountBlockStore(
 			client,
-			database_name,
+			databaseName,
 			"branches",
 			"regions",
 			"cps_actions",
@@ -125,14 +129,15 @@ func InitPersistence(client *mongo.Client, database_name string, logger utils.Lo
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, database_name, []string{"cps_actions", "service"}, logger),
-		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, database_name, []string{"cps_actions", "service"}, logger),
-		HQPersistence:              hq_persistence.NewHQPersistence(client, database_name, 5*time.Second, logger),
-		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, database_name, []string{"auth_tier", "cps_actions"}, logger),
-		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, database_name, "portal_cards", logger),
-		WalletPersistance:          wallet_repo.InitWalletPersistence(client, database_name, []string{"wallets", "cps_actions"}, logger),
-		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, database_name, []string{"cps_actions", "user"}, logger),
-		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, database_name, []string{"mini_app", "cps_actions"}, logger),
-		EventPersistence:           event_persistence.InitEventPersistence(client, database_name, []string{"events", "cps_actions"}, logger),
+		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, databaseName, []string{"cps_actions", "service"}, logger),
+		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, databaseName, []string{"cps_actions", "service"}, logger),
+		HQPersistence:              hq_persistence.NewHQPersistence(client, databaseName, 5*time.Second, logger),
+		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
+		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
+		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, []string{"wallets", "cps_actions"}, logger),
+		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
+		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
+		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, []string{"events", "cps_actions"}, logger),
+		BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 	}
 }

@@ -56,12 +56,6 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	// maker, UserErr := h.createUser(w, r)
-
-	// if UserErr != nil {
-	// 	http.Error(w, "unauthorized", http.StatusUnauthorized)
-	// 	return
-	// }
 	makerUser := contexts.ExtractUserContext(r)
 
 	var maker model.User
@@ -76,7 +70,11 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to create mini app")
 		return
 	}
-	utils.WriteSuccessResponse(w, response, "successful")
+	type ActionResponse struct {
+		ActionCode string `json:"action_code"`
+	}
+	response_actoinData := ActionResponse{ActionCode: response}
+	utils.WriteSuccessResponse(w, response_actoinData, "mini App request successfully created")
 }
 
 func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -96,16 +94,12 @@ func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
 	Checker.PhoneNumber = CheckerUser.PhoneNumber
 	Department := CheckerUser.Department
 
-	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
+	ApprovedAction, err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
 	if err != nil {
-		fmt.Println("====================")
-		fmt.Println(err)
-		fmt.Println("====================")
-
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "")
 		return
 	}
-	utils.WriteSuccessResponse(w, nil, "successful")
+	utils.WriteSuccessResponse(w, ApprovedAction, "successful")
 
 }
 
@@ -166,8 +160,8 @@ func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 	}
 	detail, err := h.Application.DetailMiniAppByID(r.Context(), id)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to get mini app detail")
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get mini app detail")
 		return
 	}
-	utils.WriteSuccessResponse(w, detail, "successful")
+	utils.WriteSuccessResponse(w, detail, "successful feached miniapp by ID")
 }
