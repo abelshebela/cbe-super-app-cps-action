@@ -57,7 +57,7 @@ type CPSAction struct {
 	CheckerPhoneNumber string        `json:"checker_phone_number"`
 	Department         string        `json:"department"`
 	RejectionReason    *string       `json:"rejection_reason"`
-	PreviosAction      interface{}   `json:"previos_action"`
+	PreviousAction     interface{}   `json:"previos_action"`
 	CurrentAction      interface{}   `json:"current_action"`
 	ActionStatus       ActionStatus  `json:"action_status"`
 	ActionType         ActionType    `json:"action_type"`
@@ -140,7 +140,7 @@ const (
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove                RequestAction = "CIF_REMOVE"
-	RequestServiceFlagUpdate                RequestAction = "SERVICE_FLAG_UPDATE"
+	RequestServiceFlagUpdate        RequestAction = "SERVICE_FLAG_UPDATE"
 )
 
 type KYCLevel string

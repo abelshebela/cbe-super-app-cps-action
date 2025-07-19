@@ -104,7 +104,7 @@ func (b *Bank) buildCPSAction(cpsReq model.CreateCPSAction, requestAction model.
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(requestAction),
 		CurrentAction:    cpsReq.ActionData,
-		PreviosAction:    prevAction,
+		PreviousAction:   prevAction,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
 	}

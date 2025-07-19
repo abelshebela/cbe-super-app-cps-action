@@ -271,7 +271,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestAuthTier),
-		PreviosAction:    authTier,
+		PreviousAction:    authTier,
 		CurrentAction:    request,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),

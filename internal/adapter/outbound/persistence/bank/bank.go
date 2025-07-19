@@ -118,7 +118,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 		RequestAction:    string(model.RequestDeleteBank),
 		ActionType:       string(model.ActionDelete),
 		CurrentAction:    cpsReq.ActionData,
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"name":       bank.Name,
 			"code":       bank.Code,
 			"bic":        bank.BIC,

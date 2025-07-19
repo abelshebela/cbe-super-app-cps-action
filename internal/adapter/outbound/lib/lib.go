@@ -17,7 +17,7 @@ func MapCPSAction(src model.CPSAction) *model.CpsActionNormalized {
 		CheckerPhoneNumber: src.CheckerPhoneNumber,
 		Department:         src.Department,
 		RejectionReason:    src.RejectionReason,
-		PreviosAction:      src.PreviosAction,
+		PreviousAction:     src.PreviousAction,
 		CurrentAction:      src.CurrentAction,
 		ActionStatus:       src.ActionStatus,
 		ActionType:         src.ActionType,

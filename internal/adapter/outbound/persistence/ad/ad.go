@@ -10,15 +10,14 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-	
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	
-	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type ADPersistence struct {
@@ -323,7 +322,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsActio
 		ActionType:       string(model.ActionUpdate),
 		CurrentAction:    cpsAction.ActionData,
 		RequestAction:    string(model.RequestUpdateAdvert),
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"title":        ad.Title,
 			"description":  ad.Description,
 			"banner_image": ad.BannerImage,
@@ -402,7 +401,7 @@ func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, id string, cpsActio
 		ActionType:       string(model.ActionDelete),
 		CurrentAction:    cpsAction.ActionData,
 		UniqueId:         id,
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"title":        ad.Title,
 			"description":  ad.Description,
 			"banner_image": ad.BannerImage,

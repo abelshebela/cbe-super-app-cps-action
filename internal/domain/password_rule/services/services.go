@@ -62,7 +62,7 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 		ActionStatus:     action.ActionPending,
 		ActionType:       action.ActionUpdate,
 		RequestAction:    action.RequestUpdatePasswordRule,
-		PreviosAction:    prevAction,
+		PreviousAction:   prevAction,
 		CurrentAction:    rule,
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),

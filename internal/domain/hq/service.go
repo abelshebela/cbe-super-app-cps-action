@@ -109,7 +109,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		RequestAction:      action.RequestUpdateHQBlockTime,
 		ActionStatus:       action.ActionPending,
 		CurrentAction:      currentAction, // pass struct, not marshaled JSON
-		PreviosAction:      previousActionJSON,
+		PreviousAction:     previousActionJSON,
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 		RejectionReason:    nil,
@@ -176,7 +176,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		RequestAction:      action.RequestUpdateHQArchiveTime,
 		ActionStatus:       action.ActionPending,
 		CurrentAction:      currentAction, // pass struct, not marshaled JSON
-		PreviosAction:      previousActionJSON,
+		PreviousAction:     previousActionJSON,
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 		RejectionReason:    nil,

@@ -115,7 +115,7 @@ func (s *ServiceFeePersistence) DeleteService(ctx context.Context, id string, re
 		RequestAction:    service.RequestAction(model.RequestDeleteServiceFee),
 		ActionType:       service.ActionType(service.ActionDelete),
 		CurrentAction:    req.CurrentAction,
-		PreviosAction:    serviceObj,
+		PreviousAction:   serviceObj,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),

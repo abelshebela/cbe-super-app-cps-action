@@ -139,7 +139,7 @@ func (f FaydaHandler) AuthorizeFaydaAccountDisable(ctx context.Context, req CPSA
 			PhoneNumber: resultActionData.PhoneNumber,
 		},
 		RequestAction:     RequestAction(res.RequestAction),
-		PreviosAction:     res.PreviosAction,
+		PreviousAction:    res.PreviousAction,
 		MakerActionTime:   res.MakerActionTime,
 		CheckerActionTime: res.CheckerActionTime,
 	}, nil

@@ -53,7 +53,7 @@ func (r *ActionRepo) UpdateCpsAction(ctx context.Context, Action action_entity.C
 		"request_action":       Action.RequestAction,
 		"action_status":        Action.ActionStatus,
 		"current_action":       Action.CurrentAction,
-		"previos_action":       Action.PreviosAction,
+		"previos_action":       Action.PreviousAction,
 		"rejection_reason":     Action.RejectionReason,
 		"last_modified_at":     Action.LastModifiedAt,
 	}

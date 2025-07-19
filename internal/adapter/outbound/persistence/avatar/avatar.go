@@ -128,7 +128,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 		RequestAction:    string(model.RequestDeleteAvatar),
 		ActionType:       string(model.ActionDelete),
 		CurrentAction:    cpsActionReq.ActionData,
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"label":      avatar.Label,
 			"avatar":     avatar.Avatar,
 			"is_deleted": avatar.IsDeleted,
@@ -352,7 +352,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(requestAction),
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"avatar": avatar.Avatar,
 			"label":  avatar.Label,
 			"enable": avatar.Enable,
@@ -469,7 +469,7 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestUpdateAvatar),
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"avatar": avatar.Avatar,
 		},
 		CurrentAction:   cpsActionReq.ActionData,

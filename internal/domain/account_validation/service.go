@@ -104,7 +104,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 		RequestAction:     action.RequestUpdateAccountValidation,
 		ActionStatus:      action.ActionPending,
 		CurrentAction:     currentAction, // assign struct directly
-		PreviosAction:     previousActionJSON,
+		PreviousAction:    previousActionJSON,
 		CreatedAt:         time.Now(),
 		LastModifiedAt:    time.Now(),
 		RejectionReason:   nil,

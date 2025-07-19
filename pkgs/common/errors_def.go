@@ -670,6 +670,18 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_148",
 			Message: "Configuration key is missing.",
 		},
+		"ACTION_CODE_REQUIRED": {
+			Code:    "GEN_149",
+			Message: "ActionCode is required",
+		},
+		"INVALID_ACTION_STATUS":{
+			Code:    "GEN_150",
+			Message: "invalid Action Status",
+		},
+		"INVALID_REQUEST_ACTION":{
+			Code:    "GEN_151",
+			Message: "invalid RequestAction",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

@@ -51,7 +51,7 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 		Department:         Action.Department,
 		RejectionReason:    Action.RejectionReason,
 		MakerActionTime:    Action.MakerActionTime,
-		PreviosAction:      Action.PreviosAction,
+		PreviousAction:     Action.PreviousAction,
 		CurrentAction:      Action.CurrentAction,
 		ActionStatus:       string(model.ActionPending),
 		ActionType:         Action.ActionType,
@@ -77,9 +77,9 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    data.RejectionReason,
-		PreviosAction: func() interface{} {
+		PreviousAction: func() interface{} {
 			var v interface{}
-			if b, ok := data.PreviosAction.(json.RawMessage); ok {
+			if b, ok := data.PreviousAction.(json.RawMessage); ok {
 				_ = json.Unmarshal(b, &v)
 			}
 			return v
@@ -91,7 +91,7 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 			}
 			return v
 		}(),
-		// PreviosAction:     Action.PreviosAction,
+		// PreviousAction:     Action.PreviousAction,
 		// CurrentAction:     Action.CurrentAction,
 		ActionStatus:      data.ActionStatus,
 		ActionType:        data.ActionType,
@@ -169,7 +169,7 @@ func (o *MiniAppPersistence) GetMiniAppActionId(ctx context.Context, action_id s
 		ActionCode:      data.ActionCode,
 		Department:      data.Department,
 		RejectionReason: data.RejectionReason,
-		PreviosAction:   data.PreviosAction,
+		PreviousAction:  data.PreviousAction,
 		CurrentAction:   data.CurrentAction,
 		ActionStatus:    data.ActionStatus,
 		ActionType:      data.ActionType,
@@ -189,7 +189,7 @@ func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.C
 		"department":           action.Department,
 		"rejection_reason":     action.RejectionReason,
 		// "previos_action": func() json.RawMessage {
-		// 	b, _ := json.Marshal(action.PreviosAction)
+		// 	b, _ := json.Marshal(action.PreviousAction)
 		// 	return b
 		// }(),
 		// "current_action":      action.CurrentAction,

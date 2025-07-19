@@ -105,7 +105,7 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 	req.ActionStatus = entity.ActionPending
 	req.RequestAction = entity.RequestDisableFaydaAccount
 	req.ActionType = entity.ActionCreate
-	req.PreviosAction = map[string]any{
+	req.PreviousAction = map[string]any{
 		"user_code":          customer.UserCode,
 		"full_name":          customer.FullName,
 		"phone_number":       customer.PhoneNumber,
@@ -149,7 +149,7 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	}
 
 	actionData := make(map[string]interface{})
-	byte, err := json.Marshal(cpsAction.PreviosAction)
+	byte, err := json.Marshal(cpsAction.PreviousAction)
 
 	if err != nil {
 		return nil, err

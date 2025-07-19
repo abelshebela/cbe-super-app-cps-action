@@ -459,7 +459,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 			}
 			return ""
 		}(),
-		PreviosAction:     domainAction.PreviosAction,
+		PreviousAction:    domainAction.PreviousAction,
 		CurrentAction:     currentAction,
 		ActionStatus:      string(domainAction.ActionStatus),
 		ActionType:        string(domainAction.ActionType),
@@ -508,7 +508,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CheckerPhoneNumber: modelAction.CheckerPhoneNumber,
 		Department:         modelAction.Department,
 		RejectionReason:    rejectionReason,
-		PreviosAction:      modelAction.PreviosAction,
+		PreviousAction:     modelAction.PreviousAction,
 		CurrentAction:      bsonDToMap(modelAction.CurrentAction), // always map/slice, never bson.D
 		ActionStatus:       domain.ActionStatus(modelAction.ActionStatus),
 		ActionType:         domain.ActionType(modelAction.ActionType),
@@ -544,7 +544,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		"unique_id":            modelAction.UniqueId,
 		"department":           modelAction.Department,
 		"rejection_reason":     modelAction.RejectionReason,
-		"previous_action":      modelAction.PreviosAction,
+		"previous_action":      modelAction.PreviousAction,
 		"current_action":       modelAction.CurrentAction,
 		"action_status":        modelAction.ActionStatus,
 		"action_type":          modelAction.ActionType,
@@ -870,7 +870,7 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 	}
 	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
 	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviosAction = previosCPSAction.CurrentAction
+		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -923,7 +923,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	}
 	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
 	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviosAction = previosCPSAction.CurrentAction
+		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
 	// Create CPS action
@@ -1405,7 +1405,7 @@ func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req servic
 		ActionStatus:       "PENDING",
 		ActionType:         "UPDATE_SERVICE_FEE",
 		RequestAction:      "UPDATE",
-		PreviosAction:      req.PreviosAction,
+		PreviousAction:     req.PreviousAction,
 		CurrentAction:      req.CurrentAction,
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
@@ -1820,7 +1820,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviosAction:      data.PreviosAction,
+		PreviousAction:     data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
@@ -1863,7 +1863,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviosAction:      data.PreviosAction,
+		PreviousAction:     data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),

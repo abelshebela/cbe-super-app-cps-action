@@ -4,8 +4,9 @@ import (
 	"context"
 	// "encoding/json"
 	"fmt"
-	bson "go.mongodb.org/mongo-driver/v2/bson"
 	"time"
+
+	bson "go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
@@ -28,7 +29,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 		RequestAction:    string(domain.RequestCreateMiniAppMerchant),
 		ActionStatus:     string(domain.ActionPending),
 		CurrentAction:    miniApp,
-		// PreviosAction:    miniApp,
+		// PreviousAction:    miniApp,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
 	}
@@ -164,7 +165,7 @@ func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, data MiniApp, ma
 		ActionType:       string(domain.ActionUpdate),
 		RequestAction:    string(domain.RequestUpdateMiniAppMerchant),
 		ActionStatus:     string(domain.ActionPending),
-		PreviosAction:    previous_action,
+		PreviousAction:   previous_action,
 	}
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)
 	if err != nil {
@@ -195,7 +196,7 @@ func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker model.User
 		ActionType:       string(domain.ActionDelete),
 		RequestAction:    string(domain.RequestDeleteMiniAppMerchant),
 		ActionStatus:     string(domain.ActionPending),
-		PreviosAction:    miniApp,
+		PreviousAction:   miniApp,
 		CurrentAction:    currentAction,
 	}
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)

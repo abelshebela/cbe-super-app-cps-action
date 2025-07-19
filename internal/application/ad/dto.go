@@ -167,7 +167,7 @@ type CPSAction struct {
 	CheckerPhoneNumber string        `json:"checker_phone_number"`
 	Department         string        `json:"department"`
 	RejectionReason    *string       `json:"rejection_reason"`
-	PreviosAction      interface{}   `json:"previos_action"`
+	PreviousAction     interface{}   `json:"previos_action"`
 	CurrentAction      interface{}   `json:"current_action"`
 	ActionStatus       ActionStatus  `json:"action_status"`
 	ActionType         ActionType    `json:"action_type"`

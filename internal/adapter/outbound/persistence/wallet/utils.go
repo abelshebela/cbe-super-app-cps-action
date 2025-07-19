@@ -67,7 +67,7 @@ func (w *Wallet) createCPSAction(cpsReq model.CreateCPSAction, actionType, reque
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       actionType,
 		RequestAction:    requestAction,
-		PreviosAction:    previous,
+		PreviousAction:   previous,
 		CurrentAction:    current,
 		MakerActionTime:  time.Now(),
 	}

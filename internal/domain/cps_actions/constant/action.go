@@ -8,6 +8,15 @@ const (
 	ActionRejected ActionStatus = "REJECTED"
 )
 
+func IsValidActionStatus(status string) bool {
+	switch ActionStatus(status) {
+	case ActionPending, ActionApproved, ActionRejected:
+		return true
+	default:
+		return false
+	}
+}
+
 type ActionType string
 
 const (
@@ -15,6 +24,15 @@ const (
 	ActionUpdate ActionType = "UPDATE"
 	ActionDelete ActionType = "DELETE"
 )
+
+func IsValidActionType(actionType string) bool {
+	switch ActionType(actionType) {
+	case ActionCreate, ActionUpdate, ActionDelete:
+		return true
+	default:
+		return false
+	}
+}
 
 type RequestAction string
 
@@ -88,3 +106,78 @@ const (
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
 )
+
+var validRequestActions = map[RequestAction]struct{}{
+	RequestUser:                     {},
+	RequestPermissionGroup:          {},
+	RequestDepartment:               {},
+	RequestEnableUser:               {},
+	RequestDisableUser:              {},
+	RequestBPSUser:                  {},
+	RequestDisableBPSUser:           {},
+	RequestEnableBPSUser:            {},
+	RequestUpdateUser:               {},
+	RequestTotalDailyLimit:          {},
+	RequestUpdateVAT:                {},
+	RequestAuthTier:                 {},
+	RequestCreateAdvert:             {},
+	RequestUpdateAdvert:             {},
+	RequestEnableAdvert:             {},
+	RequestDisableAdvert:            {},
+	RequestDeleteAdvert:             {},
+	RequestCreateBank:               {},
+	RequestUpdateBank:               {},
+	RequestEnableBank:               {},
+	RequestDisableBank:              {},
+	RequestEnableWallet:             {},
+	RequestDisableWallet:            {},
+	RequestUpdatePasswordExpiry:     {},
+	RequestCreateValidation:         {},
+	RequestUpdateValidation:         {},
+	RequestDeleteValidation:         {},
+	RequestUpdateArchiveExpiry:      {},
+	RequestCreateServiceFee:         {},
+	RequestUpdateServiceFee:         {},
+	RequestDeleteServiceFee:         {},
+	RequestCreateDailyLimit:         {},
+	RequestUpdateDailyLimit:         {},
+	RequestDeleteDailyLimit:         {},
+	RequestBudgetUpdate:             {},
+	RequestBudgetCreate:             {},
+	RequestBudgetDelete:             {},
+	RequestBudgetColor:              {},
+	RequestBudgetIcon:               {},
+	RequestUpdateProduct:            {},
+	RequestCreatePublicNotification: {},
+	RequestArchiveUser:              {},
+	RequestCreatePasswordRule:       {},
+	RequestUpdatePasswordRule:       {},
+	RequestUpdateMinimumService:     {},
+	RequestUpdateServiceRule:        {},
+	RequestUpdateTotal:              {},
+	RequestUpdateAccessConfig:       {},
+	RequestEnableSingleBranch:       {},
+	RequestDisableSingleBranch:      {},
+	RequestEnableMultiUsers:         {},
+	RequestDisableMultiUsers:        {},
+	RequestCreateBusiness:           {},
+	RequestUpdateBusiness:           {},
+	RequestCreateEvent:              {},
+	RequestUpdateEvent:              {},
+	RequestCreateEventCategory:      {},
+	RequestUpdateEventCategory:      {},
+	RequestDisableEvent:             {},
+	RequestCreateMiniAppMerchant:    {},
+	RequestUpdateMiniAppMerchant:    {},
+	RequestDeleteMiniAppMerchant:    {},
+	RequestUpdateBlockTime:          {},
+	RequestUpdateAccountValidation:  {},
+	RequestUpdateServiceDetails:     {},
+	RequestUpdateHQBlockTime:        {},
+	RequestUpdateHQArchiveTime:      {},
+}
+
+func IsValidRequestAction(requestAction string) bool {
+	_, ok := validRequestActions[RequestAction(requestAction)]
+	return ok
+}
