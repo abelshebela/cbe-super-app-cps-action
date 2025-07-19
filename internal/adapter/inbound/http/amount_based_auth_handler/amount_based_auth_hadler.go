@@ -2,16 +2,15 @@ package amount_based_auth_handler
 
 import (
 	"encoding/json"
-	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"net/http"
+
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -22,10 +21,6 @@ type AmountBasedAuthHandler struct {
 	logger                 utils.Logger
 }
 
-type Resp struct {
-	message string
-}
-
 func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService, logger utils.Logger) inbound.AmountBasedAuthHandler {
 	return &AmountBasedAuthHandler{
 		amountBasedAuthService: service,
@@ -34,31 +29,9 @@ func NewAmountBasedAuthHandler(service amount_based_auth_app.ApplicationService,
 }
 
 func (a AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
+	filterParams := common_util.ExtractFilterParams(r)
 
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
-
-	ctx := r.Context()
-	customers, err := a.amountBasedAuthService.GetAllAmountBasedDetail(ctx, filterParams)
+	customers, err := a.amountBasedAuthService.GetAllAmountBasedDetail(r.Context(), filterParams)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
