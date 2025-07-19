@@ -16,6 +16,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"time"
@@ -415,11 +417,55 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (entities.P
 	return *result, nil
 }
 
-func (r *PermissionPersistence) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
-	filter := bson.M{}
-	result, err := r.permissionGroupsDal.FindAll(context.Background(), filter, bson.M{"sort": bson.M{"created_at": -1}})
+func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error) {
+	filter := bson.M{
+		// "is_deleted": false,
+	}
+	projection := bson.M{}
+
+	if filterParams.Search != "" {
+		filter["icon"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	// if filterParams.Filters != "" {
+	// 	switch filterParams.Filters {
+	// 	case "enabled":
+	// 		filter["enabled"] = true
+	// 	case "disabled":
+	// 		filter["enabled"] = false
+	// 	}
+	// }
+	fmt.Println("---------------------------------------------")
+	fmt.Printf("group name rom filter: %v", filter)
+	fmt.Println("---------------------------------------------")
+
+	if filterParams.Filters != "" {
+		filter["group_name"] = filterParams.Filters
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	permissionGroups, err := r.permissionGroupsDal.FindAllWithPagination(context.Background(), filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	fmt.Println("__________________________________________________________")
+	fmt.Printf("permission groups: %v", permissionGroups)
+	fmt.Println("__________________________________________________________")
+
+	total, err := r.permissionGroupsDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*entities.PermissionGroup]{
+		Data: permissionGroups,
+		Meta: meta,
+	}, nil
 }

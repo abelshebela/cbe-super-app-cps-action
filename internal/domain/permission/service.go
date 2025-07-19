@@ -1,6 +1,7 @@
 package permission
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -9,6 +10,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -18,7 +21,7 @@ type PermissionDomainService interface {
 	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
-	GetPermissionGroups() ([]*entities.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
 }
 
 type Service struct {
@@ -143,6 +146,6 @@ func (s *Service) GetPermissionGroup(groupName string) (entities.PermissionGroup
 	return s.permissionGroupRepo.GetPermissionGroup(groupName)
 }
 
-func (s *Service) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
-	return s.permissionGroupRepo.GetPermissionGroups()
+func (s *Service) GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error) {
+	return s.permissionGroupRepo.GetPermissionGroups(ctx, filterParams)
 }

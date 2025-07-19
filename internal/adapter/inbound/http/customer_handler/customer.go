@@ -16,6 +16,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	common "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
@@ -32,28 +33,7 @@ func NewCustomerHTTPHandler(applicationService customer.ApplicationService, logg
 }
 
 func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
+	filterParams := common_util.ExtractFilterParams(r)
 
 	ctx := r.Context()
 	customers, err := c.applicationService.GetCustomersDeatil(ctx, filterParams)
@@ -63,7 +43,7 @@ func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByKey("SUCCESS")
+	def, _ := common.GetSuccessResponseByKey("SUCCESS Fetched User")
 	data, _ := util.StructToMap(customers)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 

@@ -76,7 +76,9 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 }
 
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
-	permissionGroups, err := h.permissionService.GetPermissionGroups()
+
+	filterparams := common_util.ExtractFilterParams(r)
+	permissionGroups, err := h.permissionService.GetPermissionGroups(r.Context(), filterparams)
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroups] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -86,6 +88,7 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 }
 
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
+
 	permissionGroup, err := h.permissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)

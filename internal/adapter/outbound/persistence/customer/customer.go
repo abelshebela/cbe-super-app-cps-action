@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	// common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type CustomerDetailRepo struct {
@@ -82,8 +83,9 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 	}
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
 
-	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no customers data found", err)
@@ -101,12 +103,15 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
+	// meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
 	return &entity.CustomerRespose{
 		Page:      1,
 		Customers: customers,
 		Limit:     constant.DefaultPerPage,
 		Total:     total,
 	}, nil
+
 }
 
 func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
@@ -165,8 +170,9 @@ func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParam
 func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
 	filter := bson.M{
 		"is_deleted": false,
-		"kyc.level":  1,
 	}
+	filter["kyc.level"] = int32(1)
+
 	projection := bson.M{}
 
 	if filterParams.Search != "" {
@@ -186,7 +192,14 @@ func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filter
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	fmt.Printf("filtered by kyc 1: %v", filter)
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
 	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	fmt.Println("---------------------------------------------------")
+	fmt.Printf("fayda customer: %v ", customers)
+	fmt.Println("----------------------------------------------------")
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no customers data found", err)
