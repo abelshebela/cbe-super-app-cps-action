@@ -111,7 +111,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
-
+	
 	if len(userData.PermissionCategory) > 0 {
 		categoryIDs := make([]string, len(userData.PermissionCategory))
 		for i, id := range userData.PermissionCategory {
@@ -122,7 +122,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 			return nil, fmt.Errorf("invalid permission categories: %w", err)
 		}
 	}
-
+	
 	if len(userData.PermissionGroups) > 0 {
 		groupIDs := make([]string, len(userData.PermissionGroups))
 		for i, id := range userData.PermissionGroups {
