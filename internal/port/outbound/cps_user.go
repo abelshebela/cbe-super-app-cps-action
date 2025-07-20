@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type OutboundInfra interface {
@@ -12,7 +15,8 @@ type OutboundInfra interface {
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, actionCode string, checker model.CPSAction) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
-	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
+	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
 	// UpdateOneServiceDetailRequest(ctx context.Context, id string, update service.Service) error
 	// UpdateOneSeviceDeatil(ctx context.Context, pd service.Service) error
 }

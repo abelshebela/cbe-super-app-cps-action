@@ -17,6 +17,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
@@ -49,43 +50,41 @@ func NewOutboundAccountBlockStore(
 		Logger:            logger,
 	}
 }
-func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	if region == "" || district == "" {
 		return nil, common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]
 
 	}
 
 	filter := bson.M{"branch_region": region, "district_name": district}
-	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
+
+	// Pagination
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+	projection := bson.M{}
+
+	// data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
+	branches, err := o.MongoDalBranch.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		o.Logger.Errorf("failed to fetch branches: %v", err)
 		return nil, common.DefineError.Branch["FAILED_TO_FETCH_BRANCHES"]
 	}
 
-	var result []action.Branch
-	for _, b := range data {
-		if b == nil {
-			o.Logger.Warnf("Skipping nil branch document")
-			continue
-		}
-		ab := action.Branch{
-			ID:            b.ID.Hex(),
-			BranchCode:    b.BranchCode,
-			BranchName:    b.BranchName,
-			BranchAddress: b.BranchAddress,
-			DistrictCode:  b.DistrictCode,
-			DistrictName:  b.DistrictName,
-			BranchRegion:  b.BranchRegion,
-			RecordStat:    b.RecordStat,
-			CreatedAt:     b.CreatedAt,
-			UpdatedAt:     b.UpdatedAt,
-			Version:       b.Version,
-			Enabled:       b.Enabled,
-		}
-		result = append(result, ab)
+	if len(branches) == 0 {
+		o.Logger.Warnf("No branches found for region: %s, district: %s", region, district)
+		return nil, common.DefineError.Branch["BRANCH_NOT_FOUND"]
 	}
 
-	return result, nil
+	total, err := o.MongoDalBranch.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &constant_utils.PaginatedResponse[[]*model.Branch]{
+		Data: branches,
+		Meta: meta,
+	}, nil
 }
 func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
 	department, _ := ctx.Value(constant.ContextKey("department")).(string)
@@ -220,7 +219,7 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
 
 	return nil
 }
-func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	if region == "" {
 		return nil, common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]
 	}
@@ -230,41 +229,34 @@ func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, 
 		filter["district_name"] = district
 	}
 
-	data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
+	// Pagination
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+	projection := bson.M{}
+
+	branches, err := o.MongoDalBranch.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		o.Logger.Errorf("failed to fetch branches: %v", err)
 		return nil, common.DefineError.Branch["FAILED_TO_FETCH_BRANCHES"]
 	}
 
-	var result []action.Branch
-	for _, b := range data {
-		if b == nil {
-			o.Logger.Warnf("Skipping nil branch document")
-			continue
-		}
-		ab := action.Branch{
-			ID:            b.ID.Hex(),
-			BranchCode:    b.BranchCode,
-			BranchName:    b.BranchName,
-			BranchAddress: b.BranchAddress,
-			DistrictCode:  b.DistrictCode,
-			DistrictName:  b.DistrictName,
-			BranchRegion:  b.BranchRegion,
-			RecordStat:    b.RecordStat,
-			CreatedAt:     b.CreatedAt,
-			UpdatedAt:     b.UpdatedAt,
-			Version:       b.Version,
-			Enabled:       b.Enabled,
-		}
-		result = append(result, ab)
-	}
-
-	if len(result) == 0 {
+	if len(branches) == 0 {
+		o.Logger.Warnf("No branches found for region: %s, district: %s", region, district)
 		return nil, common.DefineError.Branch["BRANCH_NOT_FOUND"]
 	}
 
-	return result, nil
+	total, err := o.MongoDalBranch.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &constant_utils.PaginatedResponse[[]*model.Branch]{
+		Data: branches,
+		Meta: meta,
+	}, nil
 }
+
 func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	department, _ := ctx.Value(constant.ContextKey("department")).(string)
 	if strings.TrimSpace(department) == "" {

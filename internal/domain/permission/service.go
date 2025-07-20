@@ -1,14 +1,18 @@
 package permission
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -18,7 +22,9 @@ type PermissionDomainService interface {
 	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
-	GetPermissionGroups() ([]*entities.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
+	ValidatePermissionCategories(ids []string) ([]string, error)
+	ValidatePermissionGroups(ids []string) ([]string, error)
 }
 
 type Service struct {
@@ -28,8 +34,8 @@ type Service struct {
 	logger                 utils.Logger
 }
 
-func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo PermissionGroupRepository, permissionCategoryRepo PermissionCategoryRepository, logger utils.Logger) *Service {
-	return &Service{
+func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo PermissionGroupRepository, permissionCategoryRepo PermissionCategoryRepository, logger utils.Logger) Service {
+	return Service{
 		cpsActionRepo:          cpsActionRepo,
 		permissionGroupRepo:    permissionGroupRepo,
 		permissionCategoryRepo: permissionCategoryRepo,
@@ -37,7 +43,7 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 	}
 }
 
-func (s *Service) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+func (s Service) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
 		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
 		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION")
@@ -86,7 +92,7 @@ func (s *Service) CreatePermissionGroup(oldGroupName, groupName, role string, pe
 	return cpsAction, nil
 }
 
-func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
+func (s Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
 
 	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
@@ -119,7 +125,7 @@ func (s *Service) ApprovePermissionGroup(actionCode string, action model.CPSActi
 	return approvedAction, nil
 }
 
-func (s *Service) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
+func (s Service) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
 	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
 	if err != nil {
 		return model.CPSAction{}, err
@@ -135,14 +141,27 @@ func (s *Service) RejectPermissionGroup(actionCode string, action model.CPSActio
 	return rejectedAction, nil
 }
 
-func (s *Service) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
+func (s Service) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
 	return s.permissionGroupRepo.UpdatePermissionGroup(groupName, permissionCategoryLists)
 }
 
-func (s *Service) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
+func (s Service) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
 	return s.permissionGroupRepo.GetPermissionGroup(groupName)
 }
 
-func (s *Service) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
-	return s.permissionGroupRepo.GetPermissionGroups()
+func (s Service) GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error) {
+	return s.permissionGroupRepo.GetPermissionGroups(ctx, filterParams)
+}
+
+func (s Service) ValidatePermissionCategories(ids []string) ([]string, error) {
+	return s.permissionCategoryRepo.ValidatePermissionCategories(ids)
+}
+
+func (s Service) ValidatePermissionGroups(ids []string) ([]string, error) {
+	if repo, ok := s.permissionGroupRepo.(interface {
+		ValidatePermissionGroups(ids []string) ([]string, error)
+	}); ok {
+		return repo.ValidatePermissionGroups(ids)
+	}
+	return nil, fmt.Errorf("permission group repository does not support ValidatePermissionGroups")
 }

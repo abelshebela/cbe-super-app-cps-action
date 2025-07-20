@@ -12,6 +12,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -21,7 +23,7 @@ type ApplicationService interface {
 	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
-	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
 }
 
 type Handler struct {
@@ -106,8 +108,8 @@ func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*mo
 	return h.service.FetchUserByUserCode(ctx, userCode)
 }
 
-func (h *Handler) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	users, err := h.service.GetAllCPSUsers(ctx)
+func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+	users, err := h.service.GetAllCPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}

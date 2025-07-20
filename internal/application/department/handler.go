@@ -11,7 +11,9 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -35,7 +37,7 @@ type DepartmentService interface {
 	ApproveDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error
 	RejectDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error
 	RejectActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error
-	GetAllDepartments(ctx context.Context) ([]*entities.Department, error)
+	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
 }
 
 type DepartmentHandler struct {
@@ -317,6 +319,6 @@ func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode 
 	return h.service.RejectActionRequest(ctx, actionCode, action)
 }
 
-func (h *DepartmentHandler) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
-	return h.service.GetAllDepartments(ctx)
+func (h *DepartmentHandler) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
+	return h.service.GetAllDepartments(ctx, filterParams)
 }

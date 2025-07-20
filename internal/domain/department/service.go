@@ -11,7 +11,9 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -157,6 +159,10 @@ func (s *Service) RejectDepartmentUpdate(ctx context.Context, cpsAction entities
 	return nil
 }
 
-func (s *Service) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
-	return s.departmentRepo.GetAllDepartments(ctx)
+func (s *Service) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
+	departments, err := s.departmentRepo.GetAllDepartments(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+	return departments, nil
 }

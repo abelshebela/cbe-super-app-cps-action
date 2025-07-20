@@ -4,6 +4,9 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+	"context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type PermissionGroupRepository interface {
@@ -12,7 +15,7 @@ type PermissionGroupRepository interface {
 	UpdatePermissionGroupFromAction(action model.CPSAction) error
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
-	GetPermissionGroups() ([]*entities.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
 }
 
 type PermissionCategoryRepository interface {
@@ -28,5 +31,5 @@ type CPSActionRepository interface {
 	RejectActionRequest(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
-	GetPermissionGroups() ([]*entities.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
 }

@@ -32,7 +32,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/",
 				Handler: departmentHandler.UpdateDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{

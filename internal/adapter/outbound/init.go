@@ -31,6 +31,7 @@ import (
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -272,7 +273,7 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 		return domain.ServiceDetails{}, err
 	}
 	filter := bson.M{"_id": objID}
-	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
+	// fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -459,7 +460,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 			}
 			return ""
 		}(),
-		PreviousAction:    domainAction.PreviousAction,
+		PreviousAction:     domainAction.PreviousAction,
 		CurrentAction:     currentAction,
 		ActionStatus:      string(domainAction.ActionStatus),
 		ActionType:        string(domainAction.ActionType),
@@ -508,7 +509,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CheckerPhoneNumber: modelAction.CheckerPhoneNumber,
 		Department:         modelAction.Department,
 		RejectionReason:    rejectionReason,
-		PreviousAction:     modelAction.PreviousAction,
+		PreviousAction:      modelAction.PreviousAction,
 		CurrentAction:      bsonDToMap(modelAction.CurrentAction), // always map/slice, never bson.D
 		ActionStatus:       domain.ActionStatus(modelAction.ActionStatus),
 		ActionType:         domain.ActionType(modelAction.ActionType),
@@ -952,7 +953,8 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	} else if cps_action.ActionStatus == string(model.ActionRejected) {
 		return nil, fmt.Errorf("ACTION_HAS_ALREADY_REJECTED")
 	}
-	now := time.Now()
+
+	now:= time.Now()
 
 	// Update it
 	cps_action.CheckerID = cpsAction.CheckerID
@@ -1140,24 +1142,51 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 }
 
-func (o *outboundStore) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	filter := bson.M{}
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
 	projection := bson.M{}
 
-	data, err := o.MongoDalCPSUser.FindAll(ctx, filter, projection)
+	// Add search functionality
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"phone_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"email": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"role": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	// Add filter functionality
+	if filterParams.Filters != "" {
+		filter["role"] = filterParams.Filters
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]model.CPSUser, 0, len(data))
-	for _, d := range data {
-		if d != nil {
-			result = append(result, *d)
-
-		}
+	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
-	return result, nil
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+
+	return &common_util.PaginatedResponse[[]*model.CPSUser]{
+		Data: users,
+		Meta: meta,
+	}, nil
 }
 
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
@@ -1406,7 +1435,7 @@ func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req servic
 		ActionStatus:       "PENDING",
 		ActionType:         "UPDATE_SERVICE_FEE",
 		RequestAction:      "UPDATE",
-		PreviousAction:     req.PreviousAction,
+		PreviousAction:      req.PreviousAction,
 		CurrentAction:      req.CurrentAction,
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
@@ -1821,7 +1850,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviousAction:     data.PreviousAction,
+		PreviousAction:      data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
@@ -1864,7 +1893,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviousAction:     data.PreviousAction,
+		PreviousAction:      data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
