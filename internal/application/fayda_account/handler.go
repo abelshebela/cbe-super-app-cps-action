@@ -6,7 +6,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -14,6 +17,7 @@ type ApplicationService interface {
 	InitiateDisableFaydaAccount(ctx context.Context, req CPSAction) (*CPSAction, error)
 	AuthorizeFaydaAccountDisable(ctx context.Context, req CPSAction) (*CPSAction, error)
 	RejectFaydaAccountDisable(ctx context.Context, req CPSAction) (*CPSAction, error)
+	GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error)
 }
 
 type FaydaHandler struct {
@@ -194,4 +198,8 @@ func (f FaydaHandler) RejectFaydaAccountDisable(ctx context.Context, req CPSActi
 		MakerActionTime:   res.MakerActionTime,
 		CheckerActionTime: res.CheckerActionTime,
 	}, nil
+}
+
+func (f FaydaHandler) GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
+	return f.FaydaDomain.GetAllFaydaAccounts(ctx, filterParams)
 }

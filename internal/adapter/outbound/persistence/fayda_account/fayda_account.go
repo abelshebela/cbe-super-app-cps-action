@@ -9,7 +9,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -208,4 +208,58 @@ func (f *FaydaAccountRepo) RejectFaydaAccountDisable(ctx context.Context, req en
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_USER_DATA")
 	}
 	return &cpsAction, nil
+}
+
+func (f *FaydaAccountRepo) GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	filter["kyc.level"] = int32(1) // Only KYC level 1 users (Fayda accounts)
+
+	projection := bson.M{}
+
+	// Apply search if provided
+	if filterParams.Search != "" {
+		filter["$or"] = []bson.M{
+			{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"phone_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"fayda.id_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+		}
+	}
+
+	// Apply filters if provided
+	if filterParams.Filters != "" {
+		filter["account_status"] = filterParams.Filters
+	}
+
+	// Calculate pagination
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	// Get total count
+	totalDocs, err := f.customerDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total count: %w", err)
+	}
+
+	// Get paginated data
+	users, err := f.customerDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return &common_util.PaginatedResponse[[]*member.User]{
+				Data: []*member.User{},
+				Meta: common_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
+		}
+		return nil, fmt.Errorf("failed to get fayda accounts: %w", err)
+	}
+
+	// Build pagination metadata using utility function
+	meta := common_util.BuildPaginationMeta(totalDocs, filterParams.Page, filterParams.PerPage)
+
+	return &common_util.PaginatedResponse[[]*member.User]{
+		Data: users,
+		Meta: meta,
+	}, nil
 }
