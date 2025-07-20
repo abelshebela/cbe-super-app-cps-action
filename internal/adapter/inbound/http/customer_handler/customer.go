@@ -43,9 +43,11 @@ func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByKey("SUCCESS Fetched User")
-	data, _ := util.StructToMap(customers)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	// def, _ := common.GetSuccessResponseByKey("SUCCESS Fetched User")
+	// data, _ := util.StructToMap(customers)
+	// util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+
+	util.WriteSuccessResponse(w, customers, "customer fetched successfully")
 
 }
 
@@ -64,28 +66,7 @@ func (c CustomerHTTPHandler) GetCustomerByID(w http.ResponseWriter, r *http.Requ
 }
 
 func (c CustomerHTTPHandler) GetFaydaCustomer(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
+	filterParams := common_util.ExtractFilterParams(r)
 
 	ctx := r.Context()
 	customers, err := c.applicationService.GetFaydaCustomersDeatil(ctx, filterParams)
@@ -95,9 +76,11 @@ func (c CustomerHTTPHandler) GetFaydaCustomer(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByKey("SUCCESS")
-	data, _ := util.StructToMap(customers)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	// def, _ := common.GetSuccessResponseByKey("SUCCESS")
+	// data, _ := util.StructToMap(customers)
+	// util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+
+	util.WriteSuccessResponse(w, customers, "level 1 customer fetched successfully")
 
 }
 

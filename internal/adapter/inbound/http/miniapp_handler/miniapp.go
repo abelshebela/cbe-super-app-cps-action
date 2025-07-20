@@ -14,6 +14,7 @@ import (
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	// util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	// inboundMiniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 	// miniApp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
@@ -143,7 +144,9 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
-	list, err := h.Application.ListMiniApp(r.Context())
+	filterParam := common_util.ExtractFilterParams(r)
+
+	list, err := h.Application.ListMiniApp(r.Context(), filterParam)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to list mini apps")
 		return

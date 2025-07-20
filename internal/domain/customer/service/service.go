@@ -10,6 +10,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type CustomerDomain struct {
@@ -24,7 +26,7 @@ func IntiCustomerDomain(customerRepo repository.CustomerRepository, logger utils
 	}
 }
 
-func (c *CustomerDomain) GetCustomersDetail(ctx context.Context, filerParams *constant.Filter) (*entity.CustomerRespose, error) {
+func (c *CustomerDomain) GetCustomersDetail(ctx context.Context, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 	customers, err := c.customerService.GetCustomersDetail(ctx, filerParams)
 	if err != nil {
 		return nil, err
@@ -41,7 +43,7 @@ func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*membe
 	return customer, nil
 }
 
-func (c *CustomerDomain) GetFaydaCustomersDeatil(ctx context.Context, filerParams *constant.Filter) (*entity.CustomerRespose, error) {
+func (c *CustomerDomain) GetFaydaCustomersDeatil(ctx context.Context, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 
 	customers, err := c.customerService.GetFaydaCustomersDeatil(ctx, filerParams)
 	if err != nil {

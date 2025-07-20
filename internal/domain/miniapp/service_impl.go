@@ -5,6 +5,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type MiniAppStore struct {
@@ -17,7 +19,7 @@ type MiniAppService interface {
 	UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User) (string, error)
 
 	DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (string, error)
-	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
 

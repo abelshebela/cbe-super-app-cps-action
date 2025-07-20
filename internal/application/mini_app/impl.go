@@ -10,6 +10,9 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User, Department string) (string, *common.ErrorDefinition) {
@@ -144,8 +147,8 @@ func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.
 	return deleteID, nil
 }
 
-func (a *ApplicationStore) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
-	list, err := a.service.ListMiniApp(ctx)
+func (a *ApplicationStore) ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error) {
+	list, err := a.service.ListMiniApp(ctx, filterParam)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.ListMiniApp] %v", err)
 		return nil, err

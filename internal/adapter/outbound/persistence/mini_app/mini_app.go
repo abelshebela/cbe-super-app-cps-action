@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -17,6 +18,11 @@ import (
 	// domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 
 	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
+
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	// member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type MiniAppPersistence struct {
@@ -203,17 +209,30 @@ func (o *MiniAppPersistence) UpdateCpsAction(ctx context.Context, action model.C
 	return updatedAction, err
 }
 
-func (o *MiniAppPersistence) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
+func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error) {
 	filter := map[string]interface{}{"is_deleted": false}
-	miniApps, err := o.MongoDalMiniApp.FindAll(ctx, filter, nil)
+
+	if filterParams.Filters != "" {
+		blocked, err := strconv.ParseBool(filterParams.Filters)
+		if err == nil {
+			filter["is_blocked"] = blocked
+		}
+	}
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+	miniApps, err := o.MongoDalMiniApp.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++")
-	fmt.Printf("List of mini Apps %v", miniApps)
-	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-	return miniApps, nil
+	total, err := o.MongoDalMiniApp.TotalCount(ctx, bson.M{})
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*model.MiniApp]{
+		Data: miniApps,
+		Meta: meta,
+	}, nil
+
 }
 
 func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error) {

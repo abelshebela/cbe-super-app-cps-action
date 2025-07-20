@@ -10,6 +10,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type ApplicationAbstracts interface {
@@ -17,7 +19,7 @@ type ApplicationAbstracts interface {
 	CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (model.CPSAction, error)
 	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error)
 	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error)
-	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
 
