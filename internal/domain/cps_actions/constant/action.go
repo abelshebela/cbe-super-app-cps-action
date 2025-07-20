@@ -113,8 +113,8 @@ const (
 	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
 	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
 	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+	RequestDisableFaydaAccount      RequestAction = "DISABLE_FAYDA_ACCOUNT"
 )
-
 
 var validRequestActions = map[RequestAction]struct{}{
 	RequestUser:                     {},
@@ -176,7 +176,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
 	// RequestDeleteMiniAppMerchant:    {},
-	RequestUpdateBlockTime:          {},
+	RequestUpdateBlockTime: {},
 	// RequestUpdateAccountValidation:  {},
 	// RequestUpdateServiceDetails:     {},
 	// RequestUpdateHQBlockTime:        {},
@@ -186,4 +186,159 @@ var validRequestActions = map[RequestAction]struct{}{
 func IsValidRequestAction(requestAction string) bool {
 	_, ok := validRequestActions[RequestAction(requestAction)]
 	return ok
+}
+
+var RequestActionGroups = map[string][]RequestAction{
+	"User": {
+		RequestUser,
+		RequestEnableUser,
+		RequestDisableUser,
+		RequestUpdateUser,
+		RequestArchiveUser,
+	},
+	"BPSUser": {
+		RequestBPSUser,
+		RequestEnableBPSUser,
+		RequestDisableBPSUser,
+	},
+	"PermissionGroup": {
+		RequestPermissionGroup,
+	},
+	"Department": {
+		RequestDepartment,
+	},
+	"Advert": {
+		RequestCreateAdvert,
+		RequestUpdateAdvert,
+		RequestEnableAdvert,
+		RequestDisableAdvert,
+		RequestDeleteAdvert,
+	},
+	"Bank": {
+		RequestCreateBank,
+		RequestUpdateBank,
+		RequestDeleteBank,
+		RequestEnableBank,
+		RequestDisableBank,
+	},
+	"Wallet": {
+		RequestCreateWallet,
+		RequestUpdateWallet,
+		RequestDeleteWallet,
+		RequestEnableWallet,
+		RequestDisableWallet,
+	},
+	"Validation": {
+		RequestCreateValidation,
+		RequestUpdateValidation,
+		RequestDeleteValidation,
+	},
+	"ServiceFee": {
+		RequestCreateServiceFee,
+		RequestUpdateServiceFee,
+		RequestDeleteServiceFee,
+	},
+	"DailyLimit": {
+		RequestCreateDailyLimit,
+		RequestUpdateDailyLimit,
+		RequestDeleteDailyLimit,
+		RequestTotalDailyLimit,
+	},
+	"VAT": {
+		RequestUpdateVAT,
+	},
+	"AuthTier": {
+		RequestAuthTier,
+	},
+	"Password": {
+		RequestUpdatePasswordExpiry,
+		RequestCreatePasswordRule,
+		RequestUpdatePasswordRule,
+	},
+	"Archive": {
+		RequestUpdateArchiveExpiry,
+	},
+	"MinimumService": {
+		RequestUpdateMinimumService,
+	},
+	"ServiceRule": {
+		RequestUpdateServiceRule,
+	},
+	"Total": {
+		RequestUpdateTotal,
+	},
+	"AccessConfig": {
+		RequestUpdateAccessConfig,
+	},
+	"Branch": {
+		RequestEnableSingleBranch,
+		RequestEnableMultiUsers,
+		RequestDisableMultiUsers,
+		RequestEnableSingleBranches,
+		RequestEnableMultiBranches,
+	},
+	"Business": {
+		RequestCreateBusiness,
+		RequestUpdateBusiness,
+	},
+	"Event": {
+		RequestCreateEvent,
+		RequestUpdateEvent,
+		RequestDisableEvent,
+	},
+	"EventCategory": {
+		RequestCreateEventCategory,
+		RequestUpdateEventCategory,
+	},
+	"MiniAppMerchant": {
+		RequestCreateMiniAppMerchant,
+		RequestUpdateMiniAppMerchant,
+	},
+	"BlockTime": {
+		RequestUpdateBlockTime,
+	},
+	"Avatar": {
+		RequestCreateAvatar,
+		RequestUpdateAvatar,
+		RequestEnableAvatar,
+		RequestDisableAvatar,
+		RequestDeleteAvatar,
+	},
+	"Budget": {
+		RequestBudgetColor,
+		RequestBudgetIcon,
+	},
+	"Product": {
+		RequestUpdateProduct,
+	},
+	"PublicNotification": {
+		RequestCreatePublicNotification,
+	},
+	"Block": {
+		RequestBlockUser,
+		RequestDisableSingleBranch,
+		RequestDisableMultiBranches,
+		RequestBlockRegion,
+		RequestBlockDistrict,
+		RequestBlockCity,
+	},
+	"BudgetCategory": {
+		RequestAction("CREATE_BUDGET_CATEGORY"),
+		RequestAction("UPDATE_BUDGET_CATEGORY"),
+		RequestAction("DELETE_BUDGET_CATEGORY"),
+	},
+}
+
+func IsActionInGroup(action RequestAction, group string) bool {
+	actions, exists := RequestActionGroups[group]
+	if !exists {
+		return false
+	}
+
+	for _, a := range actions {
+		if a == action {
+			return true
+		}
+	}
+	return false
 }
