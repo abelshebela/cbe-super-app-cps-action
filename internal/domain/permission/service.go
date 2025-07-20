@@ -9,7 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -18,8 +18,7 @@ import (
 
 type PermissionDomainService interface {
 	CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
-	ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error)
-	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
+	Authorize(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
@@ -92,53 +91,17 @@ func (s Service) CreatePermissionGroup(oldGroupName, groupName, role string, per
 	return cpsAction, nil
 }
 
-func (s Service) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
+func (s Service) Authorize(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 
-	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
-	if err != nil {
-		return model.CPSAction{}, err
-	}
-
-	// Set checker fields from input action to CreatedAction
-	CreatedAction.CheckerID = action.CheckerID
-	CreatedAction.CheckerName = action.CheckerName
-	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
-	// CreatedAction.Department = action.Department
-
-	switch CreatedAction.ActionType {
+	switch action.ActionType {
 	case "CREATE":
-		err = s.permissionGroupRepo.CreatePermissionGroupFromAction(CreatedAction)
+		return s.permissionGroupRepo.CreatePermissionGroupFromAction(ctx, action)
 	case "UPDATE":
-		err = s.permissionGroupRepo.UpdatePermissionGroupFromAction(CreatedAction)
+		return s.permissionGroupRepo.UpdatePermissionGroupFromAction(ctx, action)
 	default:
-		return model.CPSAction{}, errors.New("invalid action type")
+		return nil, errors.New("invalid action type")
 	}
 
-	if err != nil {
-		return model.CPSAction{}, err
-	}
-
-	approvedAction, err := s.cpsActionRepo.ApproveActionRequest(actionCode, CreatedAction)
-	if err != nil {
-		return model.CPSAction{}, err
-	}
-	return approvedAction, nil
-}
-
-func (s Service) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
-	CreatedAction, err := s.cpsActionRepo.ValidateActionRequest(actionCode, action.Department)
-	if err != nil {
-		return model.CPSAction{}, err
-	}
-	CreatedAction.CheckerID = action.CheckerID
-	CreatedAction.CheckerName = action.CheckerName
-	CreatedAction.CheckerPhoneNumber = action.CheckerPhoneNumber
-
-	rejectedAction, err := s.cpsActionRepo.RejectActionRequest(actionCode, CreatedAction, reason)
-	if err != nil {
-		return model.CPSAction{}, err
-	}
-	return rejectedAction, nil
 }
 
 func (s Service) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {

@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
@@ -96,7 +97,6 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 
 // InvalidIDsError is a structured error for reporting missing IDs in validation
 // Field is the type of entity (e.g., "permission categories"), IDs is the list of missing IDs
-//
 type InvalidIDsError struct {
 	Field string
 	IDs   []string
@@ -265,37 +265,36 @@ func (r *PermissionPersistence) ValidateActionRequest(actionCode, department str
 	return *action, nil
 }
 
-func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPSAction) error {
-	ctx := context.Background()
+func (r *PermissionPersistence) CreatePermissionGroupFromAction(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 
 	var actionData map[string]interface{}
 	bytes, err := json.Marshal(action.CurrentAction)
 	if err != nil {
-		return fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
 	}
 	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return fmt.Errorf("failed to unmarshal CurrentAction: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal CurrentAction: %v", err)
 	}
 
 	groupName, ok := actionData["group_name"].(string)
 	if !ok {
-		return errors.New("invalid group_name")
+		return nil, errors.New("invalid group_name")
 	}
 
 	permissionCategoriesIface, ok := actionData["permission_categories"].([]interface{})
 	if !ok {
-		return errors.New("invalid permission_categories")
+		return nil, errors.New("invalid permission_categories")
 	}
 
 	permissionCategories := make([]entities.PermissionCategory, len(permissionCategoriesIface))
 	for i, v := range permissionCategoriesIface {
 		idStr, ok := v.(string)
 		if !ok {
-			return errors.New("permission_categories contains non-string value")
+			return nil, errors.New("permission_categories contains non-string value")
 		}
 		objID, err := bson.ObjectIDFromHex(idStr)
 		if err != nil {
-			return fmt.Errorf("invalid permission category id: %s", idStr)
+			return nil, fmt.Errorf("invalid permission category id: %s", idStr)
 		}
 		permissionCategories[i] = entities.PermissionCategory{
 			ID: objID,
@@ -304,12 +303,12 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPS
 
 	role, ok := actionData["role"].(string)
 	if !ok {
-		return errors.New("invalid role")
+		return nil, errors.New("invalid role")
 	}
 
 	realm, ok := actionData["realm"].(string)
 	if !ok {
-		return errors.New("invalid realm")
+		return nil, errors.New("invalid realm")
 	}
 
 	newPermissionGroup := entities.PermissionGroup{
@@ -318,35 +317,16 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(action model.CPS
 		Role:               role,
 		Realm:              realm,
 		CreatedAt:          time.Now(),
+		LastModified:       time.Now(),
 	}
 
 	_, err = r.permissionGroupsDal.InsertOne(ctx, newPermissionGroup)
 	if err != nil {
 		r.logger.Errorf("Error creating permission group from action: %v", err)
-		return err
+		return nil, err
 	}
 
-	return nil
-}
-
-func (r *PermissionPersistence) ApproveActionRequest(actionCode string, action model.CPSAction) (model.CPSAction, error) {
-	ctx := context.Background()
-	filter := bson.M{"action_code": actionCode}
-
-	update := bson.M{
-		"checker_name":         action.CheckerName,
-		"checker_id":           action.CheckerID,
-		"checker_phone_number": action.CheckerPhoneNumber,
-		"action_status":        model.ActionApproved,
-		"checker_action_time":  time.Now(),
-		"last_modified_at":     time.Now(),
-	}
-
-	ApprovedAction, err := r.cpsdal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return model.CPSAction{}, err
-	}
-	return ApprovedAction, nil
+	return action, nil
 }
 
 func (r *PermissionPersistence) RejectActionRequest(actionCode string, action model.CPSAction, rejectedReason string) (model.CPSAction, error) {
@@ -368,8 +348,7 @@ func (r *PermissionPersistence) RejectActionRequest(actionCode string, action mo
 	return rejectedAction, nil
 }
 
-func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPSAction) error {
-	ctx := context.Background()
+func (r *PermissionPersistence) UpdatePermissionGroupFromAction(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 
 	// 1. Handle different possible input types
 	var actionData map[string]interface{}
@@ -389,17 +368,17 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPS
 		// Try to unmarshal JSON string
 		if err := json.Unmarshal([]byte(v), &actionData); err != nil {
 			r.logger.Errorf("failed to unmarshal action data: %v", err)
-			return errors.New("invalid action data format")
+			return nil, errors.New("invalid action data format")
 		}
 	default:
 		r.logger.Errorf("unexpected action data type: %T", action.CurrentAction)
-		return errors.New("invalid action data format")
+		return nil, errors.New("invalid action data format")
 	}
 
 	groupName, ok := actionData["group_name"].(string)
 	if !ok || groupName == "" {
 		r.logger.Errorf("missing or invalid group_name")
-		return errors.New("group_name is required and must be a string")
+		return nil, errors.New("group_name is required and must be a string")
 	}
 
 	// 3. Handle permission categories more robustly
@@ -413,7 +392,7 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPS
 					permissionCategories = append(permissionCategories, s)
 				} else {
 					r.logger.Errorf("permission_categories[%d] is not a string", i)
-					return fmt.Errorf("permission_categories must contain only strings")
+					return nil, fmt.Errorf("permission_categories must contain only strings")
 				}
 			}
 		case []string:
@@ -431,12 +410,12 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPS
 					permissionCategories = append(permissionCategories, strVal)
 				default:
 					r.logger.Errorf("permission_categories[%d] is not a string, got: %T", i, val)
-					return fmt.Errorf("permission_categories must contain only strings")
+					return nil, fmt.Errorf("permission_categories must contain only strings")
 				}
 			}
 		default:
 			r.logger.Errorf("unexpected permission_categories type: %T", pc)
-			return errors.New("invalid permission_categories format")
+			return nil, errors.New("invalid permission_categories format")
 		}
 
 	}
@@ -447,6 +426,7 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPS
 		"group_name":          groupName,
 		"permission_category": permissionCategories,
 		"updated_at":          time.Now(),
+		"last_modified":       time.Now(),
 	}
 
 	// Include role if provided
@@ -459,10 +439,10 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(action model.CPS
 	_, err := r.permissionGroupsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("error updating permission group: %v", err)
-		return fmt.Errorf("failed to update permission group")
+		return nil, fmt.Errorf("failed to update permission group")
 	}
 
-	return nil
+	return action, nil
 }
 
 func (r *PermissionPersistence) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
@@ -504,18 +484,6 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 		}
 	}
 
-	// if filterParams.Filters != "" {
-	// 	switch filterParams.Filters {
-	// 	case "enabled":
-	// 		filter["enabled"] = true
-	// 	case "disabled":
-	// 		filter["enabled"] = false
-	// 	}
-	// }
-	fmt.Println("---------------------------------------------")
-	fmt.Printf("group name rom filter: %v", filter)
-	fmt.Println("---------------------------------------------")
-
 	if filterParams.Filters != "" {
 		filter["group_name"] = filterParams.Filters
 	}
@@ -528,9 +496,6 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("__________________________________________________________")
-	fmt.Printf("permission groups: %v", permissionGroups)
-	fmt.Println("__________________________________________________________")
 
 	total, err := r.permissionGroupsDal.TotalCount(ctx, filter)
 	if err != nil {
