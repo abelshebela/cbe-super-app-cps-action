@@ -86,3 +86,4 @@ func (m *MockPermissionDomainService) GetPermissionGroups(ctx context.Context, f
 	}
 	return args.Get(0).(*common_util.PaginatedResponse[[]*entities.PermissionGroup]), args.Error(1)
 }
+ 
