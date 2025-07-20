@@ -153,20 +153,20 @@ func (r *DepartmentPersistence) UpdateActionStatus(ctx context.Context, actionCo
 
 func (r *DepartmentPersistence) ApproveActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
 
-	filter := bson.M{"action_code": actionCode}
-	update := bson.M{
-		"checker_name":         action.CheckerName,
-		"checker_id":           action.CheckerID,
-		"checker_phone_number": action.CheckerPhoneNumber,
-		"action_status":        entities.ActionApproved,
-		"checker_action_time":  time.Now(),
-	}
+	// filter := bson.M{"action_code": actionCode}
+	// update := bson.M{
+	// 	"checker_name":         action.CheckerName,
+	// 	"checker_id":           action.CheckerID,
+	// 	"checker_phone_number": action.CheckerPhoneNumber,
+	// 	"action_status":        entities.ActionApproved,
+	// 	"checker_action_time":  time.Now(),
+	// }
 
-	_, err := r.cpsdal.UpdateOne(ctx, filter, update)
+	// _, err := r.cpsdal.UpdateOne(ctx, filter, update)
 
-	if err != nil {
-		return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
-	}
+	// if err != nil {
+	// 	return fmt.Errorf(error_codes.GeneralDBUpdateFailed)
+	// }
 
 	// Extract department data from CurrentAction map
 	// currentActionMap, ok := actionData.CurrentAction.(map[string]interface{})
