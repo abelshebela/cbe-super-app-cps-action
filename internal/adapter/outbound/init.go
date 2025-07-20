@@ -1927,7 +1927,7 @@ func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.Pas
 	return rule, nil
 }
 
-// Add this method to outboundStore:
+// Add this method to outboundStore: 
 func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.PasswordRule) error {
 	if strings.TrimSpace(rule.ID) == "" {
 		return errors.New("password rule ID is required")

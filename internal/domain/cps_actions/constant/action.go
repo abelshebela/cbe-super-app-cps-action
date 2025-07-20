@@ -80,7 +80,6 @@ const (
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
 	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
 	RequestArchiveUser              RequestAction = "ARCHIVE_USER"
-	RequestCreatePasswordRule       RequestAction = "CREATE_PASSWORD_RULE"
 	RequestUpdatePasswordRule       RequestAction = "UPDATE_PASSWORD_RULE"
 	RequestUpdateMinimumService     RequestAction = "UPDATE_MINIMUM_SERVICE"
 	RequestUpdateServiceRule        RequestAction = "UPDATE_SERVICE_RULE"
@@ -164,7 +163,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateProduct:            {},
 	RequestCreatePublicNotification: {},
 	RequestArchiveUser:              {},
-	RequestCreatePasswordRule:       {},
 	RequestUpdatePasswordRule:       {},
 	RequestUpdateMinimumService:     {},
 	RequestUpdateServiceRule:        {},
@@ -289,7 +287,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateMinimumService,
 	},
 	"Password": {
-		RequestCreatePasswordRule,
 		RequestUpdatePasswordExpiry,
 		RequestUpdatePasswordRule,
 	},

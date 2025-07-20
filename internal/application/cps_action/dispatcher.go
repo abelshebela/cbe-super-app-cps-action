@@ -106,8 +106,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	// case constants.IsActionInGroup(action, "Region"):
 	// 	return d.app.RegionDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "District"):
-	// 	return d.app.DistrictDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Password"):
+		return d.app.PasswordRuleDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Permission"):
 		return d.app.PermissionDomain.Authorize(ctx, cpsAction)
