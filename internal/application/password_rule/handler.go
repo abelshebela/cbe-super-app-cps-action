@@ -31,14 +31,6 @@ func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rul
 	return actionID, nil
 }
 
-func (h *PasswordRuleHandler) ApproveOrRejectPasswordRuleAction(ctx context.Context, actionID string, decision string, checker action.User, rejectionReason *string, department string) error {
-	err := h.PasswordRuleService.ApproveOrRejectPasswordRuleAction(ctx, actionID, decision, checker, rejectionReason, department)
-	if err != nil {
-		h.logger.Errorf("Failed to approve/reject password rule action: %v", err)
-		return err
-	}
-	return nil
-}
 
 func (h *PasswordRuleHandler) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	action, err := h.PasswordRuleService.GetPasswordRuleUpdateActionByID(ctx, actionID)

@@ -60,10 +60,12 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 		act.ActionType = string(model.ActionUpdate)
 		act.ActionStatus = string(model.ActionRejected)
 	}
+
+	now := time.Now()
 	act.CheckerID = checker.UserCode
 	act.CheckerName = checker.FullName
 	act.CheckerPhoneNumber = checker.PhoneNumber
-	act.CheckerActionTime = time.Now()
+	act.CheckerActionTime = &now
 	act.LastModifiedAt = time.Now()
 	updatedAction, err := s.Repository.UpdateCpsAction(ctx, act)
 	fmt.Printf("befor marthal============================")

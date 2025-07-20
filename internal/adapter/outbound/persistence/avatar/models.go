@@ -83,6 +83,6 @@ func ToCPSAction(cpsAction *model.CPSAction) *avatar.CPSAction {
 		CreatedAt:          cpsAction.CreatedAt,
 		LastModifiedAt:     cpsAction.LastModifiedAt,
 		MakerActionTime:    cpsAction.MakerActionTime,
-		CheckerActionTime:  cpsAction.CheckerActionTime,
+		CheckerActionTime:  *cpsAction.CheckerActionTime,
 	}
 }

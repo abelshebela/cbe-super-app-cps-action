@@ -20,7 +20,6 @@ type Service interface {
 	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, maker User) (string, error)
 	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error
 	Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
-	Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 }
 
 type ServiceStore struct {
@@ -160,9 +159,10 @@ func toJSONBytes(val interface{}) ([]byte, error) {
 func (s *ServiceStore) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 	return s.UpdateAccountValidate(ctx, cpsAction)
 }
-func (s *ServiceStore) Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
-	return s.UpdateAccountValidate(ctx, cpsAction)
-}
+
+//	func (s *ServiceStore) Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+//		return s.UpdateAccountValidate(ctx, cpsAction)
+//	}
 func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error {
 	// if actionID == "" || checker.ID == "" {
 	// 	s.logger.Errorf("action ID or checker ID is empty")

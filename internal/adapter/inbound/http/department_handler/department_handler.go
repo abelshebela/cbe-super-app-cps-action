@@ -271,7 +271,8 @@ func (h *DepartmentHandler) RejectDepartmentRequest(w http.ResponseWriter, r *ht
 }
 
 func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
-	departments, err := h.departmentService.GetAllDepartments(r.Context())
+	filterParams := common_util.ExtractFilterParams(r)
+	departments, err := h.departmentService.GetAllDepartments(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("[GetAllDepartments] failed: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)

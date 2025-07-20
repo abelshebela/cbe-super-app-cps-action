@@ -1,8 +1,14 @@
 package unlink
 
-import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
+import (
+	"context"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
+)
 
 type UnlinkRepository interface {
-	UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error)
-	ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error
+	UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error)
+	Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 }

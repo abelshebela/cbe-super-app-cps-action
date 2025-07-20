@@ -11,6 +11,7 @@ import (
 
 type CPSActionModule interface {
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+	Reject(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
 type Dispatcher struct {
@@ -27,6 +28,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	action := cpsAction.RequestAction
 
 	switch {
+	// case constants.IsActionInGroup(action, "Block"):
+	// 	return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Bank"):
 		return d.app.BankDomain.Authorize(ctx, cpsAction)
 
@@ -55,32 +58,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "AdDomain"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "AmountBasedAuth"):
-		return d.app.AmountBasedAuthDomain.Authorize(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "BudgetCategory"):
-		return d.app.BudgetCategoryDomain.Authorize(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Budget"):
-		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
-
-	// case constants.IsActionInGroup(action, "Bank"):
-	// 	return d.app.AmountBasedAuthDomain.Authorize(ctx, cpsAction)
-
-	// case constants.IsActionInGroup(action, "Bank"):
-	// 	return d.app.AccountBlockDomain.ApproveBlockCity(ctx, cpsAction)
-
-	// case constants.IsActionInGroup(action, "User"):
-	// 	return d.app.UserDomain.Authorize(ctx, cpsAction)
-
 	// case constants.IsActionInGroup(action, "BPSUser"):
 	// 	return d.app.BPSUserDomain.Authorize(ctx, cpsAction)
-
-	// case constants.IsActionInGroup(action, "Advert"):
-	// 	return d.app.AdDomain.Authorize(ctx, cpsAction)
-
-	// case constants.IsActionInGroup(action, "Avatar"):
-	// 	return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
 	// case constants.IsActionInGroup(action, "Wallet"):
 	// 	return d.app.WalletDomain.Authorize(ctx, cpsAction)
@@ -148,20 +127,29 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	// case constants.IsActionInGroup(action, "Region"):
 	// 	return d.app.RegionDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "District"):
-	// 	return d.app.DistrictDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Password"):
+		return d.app.PasswordRuleDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "City"):
-	// 	return d.app.CityDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Permission"):
+		return d.app.PermissionDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "PermissionGroup"):
-	// 	return d.app.PermissionGroupDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "UnlinkDevice"):
+		return d.app.UnlinkDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "Department"):
-	// 	return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
-	// case constants.IsActionInGroup(action, "Block"):
-	// 	return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Wallet"):
+		return d.app.WalletDomain.Authorize(ctx, cpsAction)
 
+	case constants.IsActionInGroup(action, "Wallet"):
+		return d.app.WalletDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "AmountBasedAuth"):
+		return d.app.AmountBasedAuthDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "BudgetCategory"):
+		return d.app.BudgetCategoryDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Budget"):
+		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("unsupported request action: %s", action)
 	}

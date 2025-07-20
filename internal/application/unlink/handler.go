@@ -2,14 +2,16 @@
 package unlink
 
 import (
+	"context"
+
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationService interface {
-	UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error)
-	ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error
+	UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error)
+	// ApproveOrDecline(ctx context.Context, userCode, decision, reason string, cpsAction entities.CPSAction) error
 }
 
 type UnlinkHandler struct {
@@ -20,22 +22,13 @@ func NewUnlinkHandler(service *domain.Service) ApplicationService {
 	return &UnlinkHandler{service: service}
 }
 
-func (h *UnlinkHandler) UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error) {
+func (h *UnlinkHandler) UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error) {
 	cpsAction.ActionCode = utils.RandomGenerator(20)
-	action_code, err := h.service.UnlinkDevice(userCode, cpsAction)
+	action_code, err := h.service.UnlinkDevice(ctx, userCode, cpsAction)
 
 	if err != nil {
 		return "", err
 	}
 
 	return action_code, nil
-}
-
-func (h *UnlinkHandler) ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error {
-	err := h.service.ApproveOrDecline(userCode, decision, reason, cpsAction)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

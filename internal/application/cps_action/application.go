@@ -2,6 +2,8 @@ package cpsaction
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -37,11 +39,24 @@ func (a *cpsActionApplication) CPSActionExists(ctx context.Context, uniqueID str
 	return a.service.CPSActionExists(ctx, uniqueID)
 }
 
+func PrettyPrintJSON(data interface{}) error {
+	prettyJSON, err := json.MarshalIndent(data, "", "  ") // 2 spaces indent
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(prettyJSON))
+	return nil
+}
+
 func (a *cpsActionApplication) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
-	cpsAction, err := a.service.ApproveCPSAction(ctx, action) 
+cpsAction, err := a.service.ApproveCPSAction(ctx, action)
 	if err != nil {
 		return nil, err
 	}
+	
+
+	PrettyPrintJSON(cpsAction)
 
 	cpsRes, err := a.dispatcher.Authorize(ctx, cpsAction)
 	if err != nil {

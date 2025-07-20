@@ -18,13 +18,13 @@ import (
 )
 
 type BudgetCategoryAdapter struct {
-	BudgetCategoryHandler budget_category.BudgetCategoryApplictionService
+	BudgetCategoryHandler budget_category.BudgetCategoryApplicationService
 	logger                utils.Logger
 	fileService           file.FileService
 }
 
 func InitBudgetCategoryAdapter(
-	budgetCategoryHandler budget_category.BudgetCategoryApplictionService,
+	budgetCategoryHandler budget_category.BudgetCategoryApplicationService,
 	logger utils.Logger,
 	fileService file.FileService,
 ) inbound.BudgetCategoryInbound {

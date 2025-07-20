@@ -31,15 +31,15 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/password_rule/update_approve",
-			Handler: handler.ApproveOrRejectPasswordRuleAction,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-			},
-		},
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/password_rule/update_approve",
+		// 	Handler: handler.ApproveOrRejectPasswordRuleAction,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+		// 	},
+		// },
 		{
 			Method:  http.MethodGet,
 			Path:    "/password_rule/action_by_id",

@@ -8,7 +8,7 @@ import (
 )
 
 type Wallet struct {
-	ID             string    `json:"id" bson:"id"`
+	ID             string    `json:"id,omitempty" bson:"id"`
 	Name           string    `json:"name" bson:"name"`
 	Code           string    `json:"code" bson:"code"`
 	Avatar         string    `json:"avatar" bson:"avatar"`
@@ -16,7 +16,7 @@ type Wallet struct {
 	IsDeleted      bool      `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastModifiedAt time.Time `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt      time.Time `json:"deletd_at" bson:"deleted_at"`
+	DeletedAt      *time.Time `json:"deletd_at,omitempty" bson:"deleted_at"`
 }
 
 type WalletDocument struct {

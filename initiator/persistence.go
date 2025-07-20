@@ -48,7 +48,6 @@ import (
 
 	budget_category_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
 	cps_Actions_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/cps_action"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
@@ -78,8 +77,8 @@ type Persitence struct {
 	FaydaPersistence           fayda_account_repo.FaydaRepository
 	miniAppPersistance         miniApp_port.Outbound
 	EventPersistence           *event_persistence.EventPersistence
-	BudgetCategoryPersistence  budget_category.BudgetCategoryRepository
 	CPSActionsPersistance      cps_actions.CPSActionRepository
+	BudgetCategoryPersistence  budget_category_repo.BudgetCategoryRepoInterface
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -139,7 +138,8 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
 		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, []string{"events", "cps_actions"}, logger),
-		BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
-		CPSActionsPersistance:      cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
+		// BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
+		CPSActionsPersistance:     cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
+		BudgetCategoryPersistence: budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 	}
 }

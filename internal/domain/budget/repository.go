@@ -21,5 +21,4 @@ type Repository interface {
 	UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error)
 	ApproveAction(ctx context.Context, action entities.CPSAction) (*entities.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
-	Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 }

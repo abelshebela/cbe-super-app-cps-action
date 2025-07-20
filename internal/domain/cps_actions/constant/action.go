@@ -83,7 +83,6 @@ const (
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
 	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
 	RequestArchiveUser              RequestAction = "ARCHIVE_USER"
-	RequestCreatePasswordRule       RequestAction = "CREATE_PASSWORD_RULE"
 	RequestUpdatePasswordRule       RequestAction = "UPDATE_PASSWORD_RULE"
 	RequestUpdateMinimumService     RequestAction = "UPDATE_MINIMUM_SERVICE"
 	RequestUpdateServiceRule        RequestAction = "UPDATE_SERVICE_RULE"
@@ -118,6 +117,13 @@ const (
 	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 	RequestDisableFaydaAccount      RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestAccountUpdate            RequestAction = "REQUEST_ACCOUNT_UPDATE"
+	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup    RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestCreateBudgetCategory     RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory     RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory     RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestUnlinkDevice             RequestAction = "UNLINK_DEVICE"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -164,7 +170,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateProduct:            {},
 	RequestCreatePublicNotification: {},
 	RequestArchiveUser:              {},
-	RequestCreatePasswordRule:       {},
 	RequestUpdatePasswordRule:       {},
 	RequestUpdateMinimumService:     {},
 	RequestUpdateServiceRule:        {},
@@ -211,21 +216,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"BudgetCategory": {
-		RequestUser,
-		RequestEnableUser,
-		RequestDisableUser,
-		RequestUpdateUser,
-		RequestArchiveUser,
-	},
-	"Budget": {
-		RequestUser,
-		RequestEnableUser,
-		RequestDisableUser,
-		RequestUpdateUser,
-		RequestArchiveUser,
-	},
-	//**********************************************
 	"AmountBasedAuth": {
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
@@ -249,32 +239,6 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Department": {
 		RequestDepartment,
 	},
-	"Advert": {
-		RequestCreateAdvert,
-		RequestUpdateAdvert,
-		RequestEnableAdvert,
-		RequestDisableAdvert,
-		RequestDeleteAdvert,
-	},
-	"Bank": {
-		RequestCreateBank,
-		RequestUpdateBank,
-		RequestDeleteBank,
-		RequestEnableBank,
-		RequestDisableBank,
-	},
-	"Wallet": {
-		RequestCreateWallet,
-		RequestUpdateWallet,
-		RequestDeleteWallet,
-		RequestEnableWallet,
-		RequestDisableWallet,
-	},
-	"Validation": {
-		RequestCreateValidation,
-		RequestUpdateValidation,
-		RequestDeleteValidation,
-	},
 	"ServiceFee": {
 		RequestCreateServiceFee,
 		RequestUpdateServiceFee,
@@ -291,11 +255,6 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"AuthTier": {
 		RequestAuthTier,
-	},
-	"Password": {
-		RequestUpdatePasswordExpiry,
-		RequestCreatePasswordRule,
-		RequestUpdatePasswordRule,
 	},
 	"Archive": {
 		RequestUpdateArchiveExpiry,
@@ -339,6 +298,15 @@ var RequestActionGroups = map[string][]RequestAction{
 	"BlockTime": {
 		RequestUpdateBlockTime,
 	},
+	"Password": {
+		RequestUpdatePasswordExpiry,
+		RequestUpdatePasswordRule,
+	},
+	"Permission": {
+		RequestCreatePermissionGroup,
+		RequestDeletePermissionGroup,
+		RequestUpdatePermissionGroup,
+	},
 	"Avatar": {
 		RequestCreateAvatar,
 		RequestUpdateAvatar,
@@ -350,11 +318,32 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestBudgetColor,
 		RequestBudgetIcon,
 	},
-	"Product": {
-		RequestUpdateProduct,
+
+	"Advert": {
+		RequestCreateAdvert,
+		RequestUpdateAdvert,
+		RequestEnableAdvert,
+		RequestDisableAdvert,
+		RequestDeleteAdvert,
 	},
-	"PublicNotification": {
-		RequestCreatePublicNotification,
+	"Bank": {
+		RequestCreateBank,
+		RequestUpdateBank,
+		RequestDeleteBank,
+		RequestEnableBank,
+		RequestDisableBank,
+	},
+	"Wallet": {
+		RequestCreateWallet,
+		RequestUpdateWallet,
+		RequestDeleteWallet,
+		RequestEnableWallet,
+		RequestDisableWallet,
+	},
+	"Validation": {
+		RequestCreateValidation,
+		RequestUpdateValidation,
+		RequestDeleteValidation,
 	},
 	"Block": {
 		RequestBlockUser,
@@ -368,6 +357,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestAction("CREATE_BUDGET_CATEGORY"),
 		RequestAction("UPDATE_BUDGET_CATEGORY"),
 		RequestAction("DELETE_BUDGET_CATEGORY"),
+	},
+	"UnlinkDevice": {
+		RequestUnlinkDevice,
 	},
 }
 

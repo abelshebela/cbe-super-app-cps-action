@@ -23,29 +23,22 @@ func NewAccountBlockHandler(service account_block.ApplicationService, logger uti
 	return &AccountBlockHandler{service: service, logger: logger}
 }
 func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Region   string `json:"region"`
-		District string `json:"district"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		constant_utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 400, nil)
-		return
-	}
+	region := strings.TrimSpace(r.URL.Query().Get("region"))
+	district := strings.TrimSpace(r.URL.Query().Get("district"))
 
-	req.Region = strings.TrimSpace(req.Region)
-	req.District = strings.TrimSpace(req.District)
+	filterParams := constant_utils.ExtractFilterParams(r)
 
-	if req.Region == "" || req.District == "" {
+	if region == "" || district == "" {
 		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
 		return
 	}
 
-	if len(req.Region) < 3 || len(req.District) < 3 {
+	if len(region) < 3 || len(district) < 3 {
 		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
 		return
 	}
 
-	branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
+	branches, err := h.service.FilterSingleBranches(r.Context(), region, district, filterParams)
 	if err != nil {
 		h.logger.Errorf("FilterSingleBranches failed: %v", err)
 		switch err {
@@ -53,18 +46,15 @@ func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *htt
 			constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
 		case common.DefineError.Branch["FAILED_TO_FETCH_BRANCHES"]:
 			constant_utils.SendErrorResponse(w, "FAILED_TO_FETCH_BRANCHES", 500, nil)
+		case common.DefineError.Branch["BRANCH_NOT_FOUND"]:
+			constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND", 404, nil)
 		default:
 			constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 500, nil)
 		}
 		return
 	}
 
-	if len(branches) == 0 {
-		constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND", 404, nil)
-		return
-	}
-
-	data, err := constant_utils.StructToMap(map[string]any{"branches": branches})
+	data, err := constant_utils.StructToMap(branches)
 	if err != nil {
 		constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 500, nil)
 		return
@@ -164,25 +154,20 @@ func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, 
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
 func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Region   string `json:"region"`
-		District string `json:"district"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		constant_utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 400, nil)
-		return
-	}
-	req.Region = strings.TrimSpace(req.Region)
-	req.District = strings.TrimSpace(req.District)
-	if req.Region == "" || req.District == "" {
+	region := strings.TrimSpace(r.URL.Query().Get("region"))
+	district := strings.TrimSpace(r.URL.Query().Get("district"))
+
+	filterParams := constant_utils.ExtractFilterParams(r)
+
+	if region == "" || district == "" {
 		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
 		return
 	}
-	if len(req.Region) < 3 || len(req.District) < 3 {
+	if len(region) < 3 || len(district) < 3 {
 		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
 		return
 	}
-	branches, err := h.service.FilterMultipleBranches(r.Context(), req.Region, req.District)
+	branches, err := h.service.FilterMultipleBranches(r.Context(), region, district, filterParams)
 	if err != nil {
 		h.logger.Errorf("FilterMultipleBranches failed: %v", err)
 		switch err {
@@ -198,7 +183,7 @@ func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *h
 		return
 	}
 
-	data, err := constant_utils.StructToMap(map[string]any{"branches": branches})
+	data, err := constant_utils.StructToMap(branches)
 	if err != nil {
 		constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 500, nil)
 		return

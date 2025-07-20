@@ -11,12 +11,14 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	"encoding/json"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
@@ -409,4 +411,174 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 	}
 
 	return &res, nil
+}
+
+func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	if cpsAction == nil {
+		return nil, errors.New("cpsAction is required")
+	}
+
+	switch cpsAction.RequestAction {
+	case "CREATE_ICON":
+		// For icon creation, mark the icon as enabled (or perform any other necessary business logic)
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		iconID, ok := actionData["icon_id"].(string)
+		if !ok || iconID == "" {
+			return nil, fmt.Errorf("missing icon_id in action data")
+		}
+		filter := bson.M{"_id": iconID, "is_deleted": false}
+		update := bson.M{
+			"enabled":       true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.iconDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize icon creation: %v", err)
+			return nil, fmt.Errorf("failed to authorize icon creation: %w", err)
+		}
+
+	case "UPDATE_ICON":
+		// For icon update, update the icon fields as needed
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		iconID, ok := actionData["icon_id"].(string)
+		if !ok || iconID == "" {
+			return nil, fmt.Errorf("missing icon_id in action data")
+		}
+		updateFields, ok := actionData["update_fields"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("missing update_fields in action data")
+		}
+		updateFields["last_modified"] = time.Now()
+		filter := bson.M{"_id": iconID, "is_deleted": false}
+		_, err := b.iconDal.UpdateOne(ctx, filter, bson.M(updateFields))
+		if err != nil {
+			b.logger.Errorf("failed to authorize icon update: %v", err)
+			return nil, fmt.Errorf("failed to authorize icon update: %w", err)
+		}
+
+	case "DELETE_ICON":
+		// For icon deletion, mark the icon as deleted
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		iconID, ok := actionData["icon_id"].(string)
+		if !ok || iconID == "" {
+			return nil, fmt.Errorf("missing icon_id in action data")
+		}
+		filter := bson.M{"_id": iconID, "is_deleted": false}
+		update := bson.M{
+			"is_deleted":    true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.iconDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize icon deletion: %v", err)
+			return nil, fmt.Errorf("failed to authorize icon deletion: %w", err)
+		}
+
+	case "CREATE_COLOR":
+		// For color creation, mark the color as enabled (or perform any other necessary business logic)
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		colorID, ok := actionData["color_id"].(string)
+		if !ok || colorID == "" {
+			return nil, fmt.Errorf("missing color_id in action data")
+		}
+		filter := bson.M{"_id": colorID, "is_deleted": false}
+		update := bson.M{
+			"enabled":       true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.colorDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize color creation: %v", err)
+			return nil, fmt.Errorf("failed to authorize color creation: %w", err)
+		}
+
+	case "UPDATE_COLOR":
+		// For color update, update the color fields as needed
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		colorID, ok := actionData["color_id"].(string)
+		if !ok || colorID == "" {
+			return nil, fmt.Errorf("missing color_id in action data")
+		}
+		updateFields, ok := actionData["update_fields"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("missing update_fields in action data")
+		}
+		updateFields["last_modified"] = time.Now()
+		filter := bson.M{"_id": colorID, "is_deleted": false}
+		_, err := b.colorDal.UpdateOne(ctx, filter, bson.M(updateFields))
+		if err != nil {
+			b.logger.Errorf("failed to authorize color update: %v", err)
+			return nil, fmt.Errorf("failed to authorize color update: %w", err)
+		}
+
+	case "DELETE_COLOR":
+		// For color deletion, mark the color as deleted
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		colorID, ok := actionData["color_id"].(string)
+		if !ok || colorID == "" {
+			return nil, fmt.Errorf("missing color_id in action data")
+		}
+		filter := bson.M{"_id": colorID, "is_deleted": false}
+		update := bson.M{
+			"is_deleted":    true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.colorDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize color deletion: %v", err)
+			return nil, fmt.Errorf("failed to authorize color deletion: %w", err)
+		}
+
+	// Add more cases for other budget-related actions as needed
+
+	default:
+		// No budget operation required for this action
+	}
+
+	return cpsAction, nil
+}
+
+// UnmarshalMap converts a map[string]interface{} to a struct.
+func UnmarshalMap(input interface{}, output interface{}) error {
+	bytes, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, output)
 }

@@ -19,6 +19,7 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -55,17 +56,14 @@ func NewOutboundAccountBlockStore(
 func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	if region == "" || district == "" {
 		return nil, common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]
-
 	}
 
 	filter := bson.M{"branch_region": region, "district_name": district}
-
-	// Pagination
-	skip := (filterParams.Page - 1) * filterParams.PerPage
-	limit := filterParams.PerPage
 	projection := bson.M{}
 
-	// data, err := o.MongoDalBranch.FindAll(ctx, filter, nil)
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
 	branches, err := o.MongoDalBranch.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		o.Logger.Errorf("failed to fetch branches: %v", err)
@@ -139,7 +137,89 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 	return actionCode, nil
 }
 
-func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
+	if strings.TrimSpace(actionID) == "" {
+		return common.DefineError.General["ACTION_ID_IS_REQUIRED"]
+	}
+
+	filter := bson.M{"action_code": actionID}
+	actionDoc, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil || actionDoc == nil {
+		return common.DefineError.General["ACTION_NOT_FOUND"]
+	}
+
+	uniqueID := actionDoc.UniqueId
+	dupCheck := bson.M{
+		"unique_id":      uniqueID,
+		"action_status":  "APPROVED",
+		"action_type":    "DELETE",
+		"request_action": "DISABLE_SINGLE_BRANCH",
+	}
+	alreadyApproved, err := o.MongoDalCPSAction.FindOne(ctx, dupCheck, bson.M{})
+	if approve && err == nil && alreadyApproved != nil {
+		return common.DefineError.Branch["BRANCH_DISABLE_ACTION_ALREADY_EXISTS"]
+	}
+
+	update := bson.M{
+		"last_modified_at": time.Now(),
+	}
+	if approve {
+		update["action_status"] = "APPROVED"
+	} else {
+		update["action_status"] = "REJECTED"
+		if reason != nil {
+			update["rejection_reason"] = *reason
+		}
+	}
+
+	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if approve {
+		var branch action.Branch
+		switch v := actionDoc.CurrentAction.(type) {
+		case []byte:
+			if err := json.Unmarshal(v, &branch); err != nil {
+				return fmt.Errorf("failed to unmarshal branch ([]byte): %w", err)
+			}
+		case string:
+			if err := json.Unmarshal([]byte(v), &branch); err != nil {
+				return fmt.Errorf("failed to unmarshal branch (string): %w", err)
+			}
+		case bson.Binary:
+			if err := json.Unmarshal(v.Data, &branch); err != nil {
+				return fmt.Errorf("failed to unmarshal branch (bson.Binary): %w", err)
+			}
+		case map[string]interface{}:
+			b, err := json.Marshal(v)
+			if err != nil {
+				return fmt.Errorf("failed to marshal branch (map): %w", err)
+			}
+			if err := json.Unmarshal(b, &branch); err != nil {
+				return fmt.Errorf("failed to unmarshal branch (map): %w", err)
+			}
+		default:
+			return fmt.Errorf("CurrentAction is not a supported type, got %T", v)
+		}
+
+		if branch.BranchCode == "" {
+			return common.DefineError.Branch["BRANCH_ID_REQUIRED"]
+		}
+		branchUpdate := bson.M{
+			"enabled":    false,
+			"updated_at": time.Now(),
+		}
+		_, err = o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, branchUpdate)
+		if err != nil {
+			return fmt.Errorf("failed to update branch: %w", err)
+		}
+	}
+
+	return nil
+}
+func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	if region == "" {
 		return nil, common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]
 	}
@@ -149,7 +229,6 @@ func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, 
 		filter["district_name"] = district
 	}
 
-	// Pagination
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 	limit := filterParams.PerPage
 	projection := bson.M{}

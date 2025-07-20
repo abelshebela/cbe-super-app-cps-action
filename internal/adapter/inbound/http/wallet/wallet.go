@@ -212,69 +212,6 @@ func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 	common_util.WriteSuccessResponse(w, wallet, "Wallet retrieved successfully")
 }
 
-func (wa *WalletAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		wa.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	cpsReq, err := createCPSUserForAuthorize(r, actionCode)
-	if err != nil {
-		wa.logger.Errorf("failed to create CPS user for create wallet", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	ctx := r.Context()
-	authAction, err := wa.walletHandler.Authorize(ctx, *cpsReq)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		wa.logger.Errorf("failed to delete wallet", err)
-		return
-	}
-
-	common_util.WriteSuccessResponse(w, authAction, "Wallet authorized successfully")
-}
-
-func (wa *WalletAdapter) Reject(w http.ResponseWriter, r *http.Request) {
-	actionCode, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		wa.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	var cpsReq model.RejectCPSAction
-
-	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
-		wa.logger.Errorf("failed to decode wallet request %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	userContext := ctx_util.ExtractUserContext(r)
-
-	cpsReq.CheckerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-	}
-	cpsReq.Department = userContext.Department
-	cpsReq.ActionCode = actionCode
-
-	ctx := r.Context()
-	rejectAction, err := wa.walletHandler.Reject(ctx, cpsReq)
-	if err != nil {
-		wa.logger.Errorf("failed to reject wallet %v", err)
-		common_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	common_util.WriteSuccessResponse(w, rejectAction, "Wallet rejected successfully")
-}
-
 func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {

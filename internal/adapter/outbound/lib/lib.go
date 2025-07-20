@@ -25,6 +25,6 @@ func MapCPSAction(src model.CPSAction) *model.CpsActionNormalized {
 		CreatedAt:          src.CreatedAt,
 		LastModifiedAt:     src.LastModifiedAt,
 		MakerActionTime:    src.MakerActionTime,
-		CheckerActionTime:  src.CheckerActionTime,
+		CheckerActionTime:  *src.CheckerActionTime,
 	}
 }

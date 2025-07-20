@@ -79,7 +79,9 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 }
 
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
-	permissionGroups, err := h.permissionService.GetPermissionGroups()
+
+	filterparams := common_util.ExtractFilterParams(r)
+	permissionGroups, err := h.permissionService.GetPermissionGroups(r.Context(), filterparams)
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroups] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -89,6 +91,7 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 }
 
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
+
 	permissionGroup, err := h.permissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)
@@ -146,94 +149,3 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 
 	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request updated successfully")
 }
-
-// func (h *PermissionHandler) ApprovePermissionGroup(w http.ResponseWriter, r *http.Request) {
-// 	actionCode := chi.URLParam(r, "action_code")
-// 	checkerUser := contexts.ExtractUserContext(r)
-
-// 	h.logger.Infof("[ApprovePermissionGroup] approving action %s", actionCode)
-
-// 	checker := model.CPSAction{
-// 		CheckerID:          checkerUser.UserID,
-// 		CheckerName:        checkerUser.FullName,
-// 		CheckerPhoneNumber: checkerUser.PhoneNumber,
-// 		Department:         checkerUser.Department,
-// 	}
-
-// 	approvedAction, err := h.permissionService.ApprovePermissionGroup(actionCode, checker)
-// 	if err != nil {
-// 		h.logger.Errorf("[ApprovePermissionGroup] service error: %v", err)
-// 		util.SendErrorResponse(w, err.Error(), 0, nil)
-// 		return
-// 	}
-// 	common_util.WriteSuccessResponse(w, approvedAction, "Action Approved")
-// }
-
-// func (h *PermissionHandler) RejectPermissionGroup(w http.ResponseWriter, r *http.Request) {
-// 	actionCode := chi.URLParam(r, "action_code")
-// 	checker_ID, full_name, phone_number, department, ok := extractUserContextClaims(r, w)
-// 	if !ok {
-// 		return
-// 	}
-
-// 	var payload struct {
-// 		Reason string `json:"rejection_reason"`
-// 	}
-
-// 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-// 		h.logger.Errorf("[RejectPermissionGroup] failed to decode request: %v", err)
-// 		util.SendErrorResponse(w, "Invalid request payload", http.StatusBadRequest, nil)
-// 		return
-// 	}
-// 	if payload.Reason == "" {
-// 		util.SendErrorResponse(w, "Rejection reason is required", http.StatusBadRequest, nil)
-// 		return
-// 	}
-
-// 	h.logger.Infof("[RejectPermissionGroup] rejecting action %s by user %s", actionCode, checker_ID)
-
-// 	checker := model.CPSAction{
-// 		CheckerID:          checker_ID,
-// 		CheckerName:        full_name,
-// 		CheckerPhoneNumber: phone_number,
-// 		Department:         department,
-// 	}
-
-// 	rejectedAction, err := h.permissionService.RejectPermissionGroup(actionCode, checker, payload.Reason)
-// 	if err != nil {
-// 		h.logger.Errorf("[RejectPermissionGroup] service error: %v", err)
-// 		util.SendErrorResponse(w, err.Error(), 0, nil)
-// 		return
-// 	}
-// 	common_util.WriteSuccessResponse(w, rejectedAction, "Action Rejected")
-// }
-
-// // Extracts and validates user context claims, returns user info and ok flag
-// func extractUserContextClaims(r *http.Request, w http.ResponseWriter) (userID, fullName, phoneNumber, department string, ok bool) {
-// 	userID, ok1 := r.Context().Value(constant.ContextKey("user_code")).(string)
-// 	fullName, ok2 := r.Context().Value(constant.ContextKey("full_name")).(string)
-// 	phoneNumber, ok3 := r.Context().Value(constant.ContextKey("phone_number")).(string)
-// 	department, ok4 := r.Context().Value(constant.ContextKey("department")).(string)
-
-// 	if !ok1 || userID == "" {
-// 		fmt.Println("[extractUserContextClaims] missing or invalid user_code in context")
-// 		util.SendErrorResponse(w, "missing or invalid user_code in context", http.StatusBadRequest, nil)
-// 		return
-// 	}
-// 	if !ok2 || fullName == "" {
-// 		fmt.Println("[extractUserContextClaims] missing or invalid full_name in context")
-// 		util.SendErrorResponse(w, "missing or invalid full_name in context", http.StatusBadRequest, nil)
-// 		return
-// 	}
-// 	if !ok3 || phoneNumber == "" {
-// 		fmt.Println("[extractUserContextClaims] missing or invalid phone_number in context")
-// 		util.SendErrorResponse(w, "missing or invalid phone_number in context", http.StatusBadRequest, nil)
-// 		return
-// 	}
-// 	if !ok4 || department == "" {
-// 		fmt.Println("[extractUserContextClaims] missing or invalid department in context")
-// 		util.SendErrorResponse(w, "missing or invalid department in context", http.StatusBadRequest, nil)
-// 		return
-// 	}
-// 	return userID, fullName, phoneNumber, department, true
-// }

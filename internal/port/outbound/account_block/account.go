@@ -3,18 +3,21 @@ package account_block
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type AccountBlockOutboundPort interface {
-	FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
+	FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error)
 	AuthorizeSingleBranchDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 
-	FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error)
+	FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
 	AuthorizeBulkBranchesDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 

@@ -11,7 +11,6 @@ import (
 type AccountValidationRepository interface {
 	GetAccountValidationByID(ctx context.Context, id string) (ValidationRule, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
-	Reject(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	UpdateAccountValidation(ctx context.Context, id string, update ValidationRule) error
 	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
 }

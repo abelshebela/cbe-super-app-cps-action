@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
+	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
@@ -19,11 +22,11 @@ func NewAccountService(repo AccountBlockRepo) ApplicationServices {
 	return &AccountService{repo: repo}
 }
 
-func (s *AccountService) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (s *AccountService) FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	if region == "" || district == "" {
 		return nil, fmt.Errorf("region and district are required")
 	}
-	return s.repo.FilterSingleBranches(ctx, region, district)
+	return s.repo.FilterSingleBranches(ctx, region, district, filterParams)
 }
 
 func (s *AccountService) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
@@ -39,11 +42,11 @@ func (s *AccountService) AuthorizeSingleBranchDisable(ctx context.Context, cpsAc
 	return s.repo.AuthorizeSingleBranchDisable(ctx, cpsAction)
 }
 
-func (s *AccountService) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
+func (s *AccountService) FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	if region == "" {
 		return nil, fmt.Errorf("region is required")
 	}
-	return s.repo.FilterMultipleBranches(ctx, region, district)
+	return s.repo.FilterMultipleBranches(ctx, region, district, filterParams)
 }
 func (s *AccountService) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	if len(branches) == 0 {
@@ -144,6 +147,10 @@ func (s *AccountService) GetUserByPhone(ctx context.Context, phoneNumber string,
 		return member.User{}, fmt.Errorf("phoneNumber is required")
 	}
 	return s.repo.GetUserByPhone(ctx, phoneNumber, maker)
+	if strings.TrimSpace(phoneNumber) == "" {
+		return member.User{}, fmt.Errorf("phoneNumber is required")
+	}
+	return s.repo.GetUserByPhone(ctx, phoneNumber, maker)
 }
 
 func (s *AccountService) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
@@ -151,7 +158,18 @@ func (s *AccountService) BlockUser(ctx context.Context, userID string, maker act
 		return "", fmt.Errorf("userID is required")
 	}
 	return s.repo.BlockUser(ctx, userID, maker)
+	if strings.TrimSpace(userID) == "" {
+		return "", fmt.Errorf("userID is required")
+	}
+	return s.repo.BlockUser(ctx, userID, maker)
 }
+
+// func (s *AccountService) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
+// 	if strings.TrimSpace(actionID) == "" {
+// 		return fmt.Errorf("actionID is required")
+// 	}
+// 	return s.repo.ApproveBlockUser(ctx, actionID, approve, reason, checker)
+// }
 
 func (s *AccountService) AuthorizeBlockUser(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	if cpsAction == nil {

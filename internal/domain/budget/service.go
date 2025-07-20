@@ -107,11 +107,11 @@ func (s *BudgetService) Authorize(ctx context.Context, cpsAction *cps_entities.C
 	return cpsAction, nil
 }
 
-func (s *BudgetService) Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
-	_, err := s.repo.Reject(ctx, cpsAction)
-	if err != nil {
-		return nil, err
-	}
+// func (s *BudgetService) Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+// 	_, err := s.repo.Reject(ctx, cpsAction)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return cpsAction, nil
-}
+// 	return cpsAction, nil
+// }

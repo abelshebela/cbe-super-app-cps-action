@@ -1,20 +1,22 @@
 package permission
 
 import (
+	"context"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type PermissionService interface {
 	CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryIDs []string, cpsAction model.CPSAction) (model.CPSAction, error)
-	ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error)
-	RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error)
-	GetPermissionGroups() ([]*entities.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryIDs []string) (entities.PermissionGroup, error)
 }
@@ -44,27 +46,8 @@ func (h *PermissionHandler) CreatePermissionGroup(oldGroupName, groupName, role 
 	return cpsAction, nil
 }
 
-func (h *PermissionHandler) ApprovePermissionGroup(actionCode string, action model.CPSAction) (model.CPSAction, error) {
-
-	approvedAction, err := h.service.ApprovePermissionGroup(actionCode, action)
-	if err != nil {
-		h.logger.Errorf("Failed to approve permission group: %v", err)
-		return model.CPSAction{}, err
-	}
-	return approvedAction, nil
-}
-
-func (h *PermissionHandler) RejectPermissionGroup(actionCode string, action model.CPSAction, reason string) (model.CPSAction, error) {
-	rejectedAction, err := h.service.RejectPermissionGroup(actionCode, action, reason)
-	if err != nil {
-		h.logger.Errorf("Failed to reject permission group: %v", err)
-		return model.CPSAction{}, err
-	}
-	return rejectedAction, nil
-}
-
-func (h *PermissionHandler) GetPermissionGroups() ([]*entities.PermissionGroup, error) {
-	return h.service.GetPermissionGroups()
+func (h *PermissionHandler) GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error) {
+	return h.service.GetPermissionGroups(ctx, filterParams)
 }
 
 func (h *PermissionHandler) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
