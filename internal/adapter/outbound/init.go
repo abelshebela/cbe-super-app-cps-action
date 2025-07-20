@@ -467,7 +467,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		CreatedAt:         domainAction.CreatedAt,
 		LastModifiedAt:    domainAction.LastModifiedAt,
 		MakerActionTime:   domainAction.MakerActionTime,
-		CheckerActionTime: domainAction.CheckerActionTime,
+		CheckerActionTime: &domainAction.CheckerActionTime,
 	}
 }
 
@@ -516,7 +516,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CreatedAt:          modelAction.CreatedAt,
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
-		CheckerActionTime:  modelAction.CheckerActionTime,
+		CheckerActionTime:  *modelAction.CheckerActionTime,
 	}
 }
 
@@ -952,6 +952,7 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	} else if cps_action.ActionStatus == string(model.ActionRejected) {
 		return nil, fmt.Errorf("ACTION_HAS_ALREADY_REJECTED")
 	}
+	now := time.Now()
 
 	// Update it
 	cps_action.CheckerID = cpsAction.CheckerID
@@ -961,7 +962,7 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	cps_action.ActionStatus = cpsAction.ActionStatus
 	cps_action.RejectionReason = cpsAction.RejectionReason
 	cps_action.LastModifiedAt = time.Now()
-	cps_action.CheckerActionTime = time.Now()
+	cps_action.CheckerActionTime = &now
 
 	// Conver the struct to bson.M
 	updateBytes, err := bson.Marshal(cps_action)
@@ -1051,7 +1052,7 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	}
 
 	// Creating a new user
-	now := time.Now()
+	now = time.Now()
 
 	newUser := model.CPSUser{}
 	newUser.ID = bson.NewObjectID()

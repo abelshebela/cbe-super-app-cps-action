@@ -19,32 +19,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockRepository is a mock of Repository interface.
-type MockRepository struct {
+// MockWalletRepository is a mock of WalletRepository interface.
+type MockWalletRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockRepositoryMockRecorder
+	recorder *MockWalletRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockRepositoryMockRecorder is the mock recorder for MockRepository.
-type MockRepositoryMockRecorder struct {
-	mock *MockRepository
+// MockWalletRepositoryMockRecorder is the mock recorder for MockWalletRepository.
+type MockWalletRepositoryMockRecorder struct {
+	mock *MockWalletRepository
 }
 
-// NewMockRepository creates a new mock instance.
-func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
-	mock := &MockRepository{ctrl: ctrl}
-	mock.recorder = &MockRepositoryMockRecorder{mock}
+// NewMockWalletRepository creates a new mock instance.
+func NewMockWalletRepository(ctrl *gomock.Controller) *MockWalletRepository {
+	mock := &MockWalletRepository{ctrl: ctrl}
+	mock.recorder = &MockWalletRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
+func (m *MockWalletRepository) EXPECT() *MockWalletRepositoryMockRecorder {
 	return m.recorder
 }
 
 // Authorize mocks base method.
-func (m *MockRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
+func (m *MockWalletRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authorize", ctx, req)
 	ret0, _ := ret[0].(*model.CPSAction)
@@ -53,13 +53,13 @@ func (m *MockRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAc
 }
 
 // Authorize indicates an expected call of Authorize.
-func (mr *MockRepositoryMockRecorder) Authorize(ctx, req any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) Authorize(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockRepository)(nil).Authorize), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockWalletRepository)(nil).Authorize), ctx, req)
 }
 
 // CPSActionExists mocks base method.
-func (m *MockRepository) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
+func (m *MockWalletRepository) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CPSActionExists", ctx, cpsReq)
 	ret0, _ := ret[0].(error)
@@ -67,13 +67,13 @@ func (m *MockRepository) CPSActionExists(ctx context.Context, cpsReq model.Creat
 }
 
 // CPSActionExists indicates an expected call of CPSActionExists.
-func (mr *MockRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CPSActionExists", reflect.TypeOf((*MockRepository)(nil).CPSActionExists), ctx, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CPSActionExists", reflect.TypeOf((*MockWalletRepository)(nil).CPSActionExists), ctx, cpsReq)
 }
 
 // CreateWallet mocks base method.
-func (m *MockRepository) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (m *MockWalletRepository) CreateWallet(ctx context.Context, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateWallet", ctx, cpsReq)
 	ret0, _ := ret[0].(*model.CPSAction)
@@ -82,13 +82,13 @@ func (m *MockRepository) CreateWallet(ctx context.Context, cpsReq model.CreateCP
 }
 
 // CreateWallet indicates an expected call of CreateWallet.
-func (mr *MockRepositoryMockRecorder) CreateWallet(ctx, cpsReq any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) CreateWallet(ctx, cpsReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockRepository)(nil).CreateWallet), ctx, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockWalletRepository)(nil).CreateWallet), ctx, cpsReq)
 }
 
 // DeleteWallet mocks base method.
-func (m *MockRepository) DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (m *MockWalletRepository) DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteWallet", ctx, id, cpsReq)
 	ret0, _ := ret[0].(*model.CPSAction)
@@ -97,13 +97,13 @@ func (m *MockRepository) DeleteWallet(ctx context.Context, id string, cpsReq mod
 }
 
 // DeleteWallet indicates an expected call of DeleteWallet.
-func (mr *MockRepositoryMockRecorder) DeleteWallet(ctx, id, cpsReq any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) DeleteWallet(ctx, id, cpsReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWallet", reflect.TypeOf((*MockRepository)(nil).DeleteWallet), ctx, id, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWallet", reflect.TypeOf((*MockWalletRepository)(nil).DeleteWallet), ctx, id, cpsReq)
 }
 
 // EnableOrDisableWallet mocks base method.
-func (m *MockRepository) EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (m *MockWalletRepository) EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnableOrDisableWallet", ctx, id, requestAction, cpsReq)
 	ret0, _ := ret[0].(*model.CPSAction)
@@ -112,13 +112,13 @@ func (m *MockRepository) EnableOrDisableWallet(ctx context.Context, id string, r
 }
 
 // EnableOrDisableWallet indicates an expected call of EnableOrDisableWallet.
-func (mr *MockRepositoryMockRecorder) EnableOrDisableWallet(ctx, id, requestAction, cpsReq any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) EnableOrDisableWallet(ctx, id, requestAction, cpsReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOrDisableWallet", reflect.TypeOf((*MockRepository)(nil).EnableOrDisableWallet), ctx, id, requestAction, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOrDisableWallet", reflect.TypeOf((*MockWalletRepository)(nil).EnableOrDisableWallet), ctx, id, requestAction, cpsReq)
 }
 
 // GetAllWallet mocks base method.
-func (m *MockRepository) GetAllWallet(ctx context.Context, filterParams *utils.Filter) (*entity.WalletResponse, error) {
+func (m *MockWalletRepository) GetAllWallet(ctx context.Context, filterParams *utils.Filter) (*entity.WalletResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllWallet", ctx, filterParams)
 	ret0, _ := ret[0].(*entity.WalletResponse)
@@ -127,13 +127,13 @@ func (m *MockRepository) GetAllWallet(ctx context.Context, filterParams *utils.F
 }
 
 // GetAllWallet indicates an expected call of GetAllWallet.
-func (mr *MockRepositoryMockRecorder) GetAllWallet(ctx, filterParams any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) GetAllWallet(ctx, filterParams any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllWallet", reflect.TypeOf((*MockRepository)(nil).GetAllWallet), ctx, filterParams)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllWallet", reflect.TypeOf((*MockWalletRepository)(nil).GetAllWallet), ctx, filterParams)
 }
 
 // GetWallet mocks base method.
-func (m *MockRepository) GetWallet(ctx context.Context, id string) (*entity.Wallet, error) {
+func (m *MockWalletRepository) GetWallet(ctx context.Context, id string) (*entity.Wallet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWallet", ctx, id)
 	ret0, _ := ret[0].(*entity.Wallet)
@@ -142,13 +142,13 @@ func (m *MockRepository) GetWallet(ctx context.Context, id string) (*entity.Wall
 }
 
 // GetWallet indicates an expected call of GetWallet.
-func (mr *MockRepositoryMockRecorder) GetWallet(ctx, id any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) GetWallet(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockRepository)(nil).GetWallet), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockWalletRepository)(nil).GetWallet), ctx, id)
 }
 
 // Reject mocks base method.
-func (m *MockRepository) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
+func (m *MockWalletRepository) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Reject", ctx, req)
 	ret0, _ := ret[0].(*model.CPSAction)
@@ -157,13 +157,13 @@ func (m *MockRepository) Reject(ctx context.Context, req model.RejectCPSAction) 
 }
 
 // Reject indicates an expected call of Reject.
-func (mr *MockRepositoryMockRecorder) Reject(ctx, req any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) Reject(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reject", reflect.TypeOf((*MockRepository)(nil).Reject), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reject", reflect.TypeOf((*MockWalletRepository)(nil).Reject), ctx, req)
 }
 
 // UpdateWallet mocks base method.
-func (m *MockRepository) UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (m *MockWalletRepository) UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWallet", ctx, id, cpsReq)
 	ret0, _ := ret[0].(*model.CPSAction)
@@ -172,7 +172,7 @@ func (m *MockRepository) UpdateWallet(ctx context.Context, id string, cpsReq mod
 }
 
 // UpdateWallet indicates an expected call of UpdateWallet.
-func (mr *MockRepositoryMockRecorder) UpdateWallet(ctx, id, cpsReq any) *gomock.Call {
+func (mr *MockWalletRepositoryMockRecorder) UpdateWallet(ctx, id, cpsReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWallet", reflect.TypeOf((*MockRepository)(nil).UpdateWallet), ctx, id, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWallet", reflect.TypeOf((*MockWalletRepository)(nil).UpdateWallet), ctx, id, cpsReq)
 }

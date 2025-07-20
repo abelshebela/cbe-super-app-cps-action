@@ -17,8 +17,6 @@ type WalletHandlerAppllication interface {
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableWallet(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
@@ -77,23 +75,6 @@ func (w *WalletHandler) UpdateWallet(ctx context.Context, id string, req model.C
 		return nil, err
 	}
 
-	return cpsAction, nil
-}
-
-func (w *WalletHandler) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-	cpsAction, err := w.walletDomain.Authorize(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsAction, nil
-}
-
-func (w *WalletHandler) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
-	cpsAction, err := w.walletDomain.Reject(ctx, req)
-	if err != nil {
-		return nil, err
-	}
 	return cpsAction, nil
 }
 

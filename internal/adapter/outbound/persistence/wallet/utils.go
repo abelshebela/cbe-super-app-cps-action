@@ -37,7 +37,7 @@ func (w *Wallet) toDomain(wallet entity.WalletDocument) *entity.Wallet {
 		IsDeleted:      wallet.IsDeleted,
 		CreatedAt:      wallet.CreatedAt,
 		LastModifiedAt: wallet.LastModifiedAt,
-		DeletedAt:      wallet.DeletedAt,
+		DeletedAt:      &wallet.DeletedAt,
 	}
 }
 
@@ -51,7 +51,7 @@ func (w *Wallet) toDocument(wallet *entity.Wallet) *entity.WalletDocument {
 		IsDeleted:      wallet.IsDeleted,
 		CreatedAt:      wallet.CreatedAt,
 		LastModifiedAt: wallet.LastModifiedAt,
-		DeletedAt:      wallet.DeletedAt,
+		DeletedAt:      *wallet.DeletedAt,
 	}
 }
 
@@ -70,6 +70,8 @@ func (w *Wallet) createCPSAction(cpsReq model.CreateCPSAction, actionType, reque
 		PreviousAction:   previous,
 		CurrentAction:    current,
 		MakerActionTime:  time.Now(),
+		LastModifiedAt:   time.Now(),
+		CreatedAt:        time.Now(),
 	}
 }
 

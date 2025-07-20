@@ -122,7 +122,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `bson:"created_at" json:"created_at"`
 	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at"`
 	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time"`
-	CheckerActionTime  time.Time     `bson:"checker_action_time" json:"checker_action_time,omitempty"`
+	CheckerActionTime  *time.Time     `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string

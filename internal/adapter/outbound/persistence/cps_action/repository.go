@@ -110,19 +110,24 @@ func (o *cpsActionStore) RejectCPSAction(ctx context.Context, action *entity.Aut
 
 func (o *cpsActionStore) updateCPSActionStatus(ctx context.Context, action *entity.AuthorizeCPSAction, newStatus string) (*entity.CPSAction, error) {
 	o.logger.Infof("Updating status for CPSAction: %s to %s", action.ActionCode, newStatus)
+
 	filter := bson.M{
 		"action_code":   action.ActionCode,
 		"department":    action.Department,
 		"action_status": model.ActionPending,
 	}
+
+	now := time.Now()
 	update := bson.M{
 		"checker_id":           action.CheckerUser.UserCode,
 		"checker_name":         action.CheckerUser.FullName,
 		"checker_phone_number": action.CheckerUser.PhoneNumber,
 		"action_status":        newStatus,
-		"checker_action_time":  time.Now(),
+		"checker_action_time":  now,
 		"rejection_reason":     action.RejectionReason,
+		"last_modified_at":     now,
 	}
+
 	cpsAction, err := o.MongoCPSAction.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -132,6 +137,7 @@ func (o *cpsActionStore) updateCPSActionStatus(ctx context.Context, action *enti
 		o.logger.Errorf("failed to update cps action, action_code: %s, error: %v", action.ActionCode, err)
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
+
 	o.logger.Infof("CPSAction status updated successfully: %s", action.ActionCode)
 	return mappers.ModelToDomainCPSAction(cpsAction), nil
 }

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
@@ -30,8 +32,7 @@ type WalletService interface {
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 }
 
@@ -102,9 +103,11 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: entity.Wallet{
-			Name:   actionData.Name,
-			Avatar: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
-			Code:   actionData.Code,
+			Name:           actionData.Name,
+			Avatar:         fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			Code:           actionData.Code,
+			CreatedAt:      time.Now(),
+			LastModifiedAt: time.Now(),
 		},
 	})
 
@@ -162,30 +165,31 @@ func (w *WalletDomain) GetWallet(ctx context.Context, id string) (*entity.Wallet
 	return bank, nil
 }
 
-func (w *WalletDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-	cpsAction, err := w.walletRepo.Authorize(ctx, req)
+func (w *WalletDomain) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	actionData, prevData, err := w.walletRepo.ExtractActionData(action)
 	if err != nil {
 		return nil, err
 	}
 
-	return cpsAction, nil
+	action.MakerActionTime = time.Now()
+	action.LastModifiedAt = action.MakerActionTime
+
+	switch action.ActionType {
+	case actions.ActionCreate:
+		return w.walletRepo.AuthorizeCreate(ctx, action, actionData)
+
+	case actions.ActionUpdate:
+		return w.walletRepo.AuthorizeUpdate(ctx, action, actionData, prevData)
+
+	case actions.ActionDelete:
+		return w.walletRepo.AuthorizeDelete(ctx, action, prevData)
+
+	default:
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
 }
 
-func (w *WalletDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
-	if err := req.Validate(); err != nil {
-		w.logger.Errorf("validation error", err)
-		return nil, err
-	}
-	cpsAction, err := w.walletRepo.Reject(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsAction, nil
-}
-
-func (w *WalletDomain) EnableOrDisableWallet(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
+func (w *WalletDomain) EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	cpsReq.RequestAction = requestAction
 	err := w.walletRepo.CPSActionExists(ctx, cpsReq)
 	if err != nil {

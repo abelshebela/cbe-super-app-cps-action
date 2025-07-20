@@ -78,7 +78,7 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 		CreatedAt:          domainAction.CreatedAt,
 		LastModifiedAt:     domainAction.LastModifiedAt,
 		MakerActionTime:    domainAction.MakerActionTime,
-		CheckerActionTime:  domainAction.CheckerActionTime,
+		CheckerActionTime:  &domainAction.CheckerActionTime,
 	}, nil
 }
 
@@ -133,7 +133,7 @@ func ModelToDomainCPSAction(modelAction model.CPSAction) *domain.CPSAction {
 		CreatedAt:          modelAction.CreatedAt,
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
-		CheckerActionTime:  modelAction.CheckerActionTime,
+		CheckerActionTime:  *modelAction.CheckerActionTime,
 	}
 }
 
