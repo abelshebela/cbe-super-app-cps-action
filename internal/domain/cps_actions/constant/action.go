@@ -121,6 +121,8 @@ const (
 	RequestDeleteBudgetCategory     RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestUpdateBudgetCategory     RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestUnlinkDevice             RequestAction = "UNLINK_DEVICE"
+	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -339,6 +341,10 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"UnlinkDevice": {
 		RequestUnlinkDevice,
+	},
+	"HQ": {
+		RequestUpdateHQBlockTime,
+		RequestUpdateHQArchiveTime,
 	},
 }
 

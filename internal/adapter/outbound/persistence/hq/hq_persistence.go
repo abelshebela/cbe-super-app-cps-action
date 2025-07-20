@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
-	"strings"
 	"time"
 
-	models "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -65,38 +62,6 @@ func (p *HQPersistence) GetHQByID(ctx context.Context, id string) (hq.HQ, error)
 	return *result, nil
 }
 
-func modelToDomainHQ(m models.HQ) hq.HQ {
-	return hq.HQ{
-		ID:           m.ID,
-		Name:         m.Name,
-		BlockTime:    m.BlockTime,
-		ArchiveTime:  m.ArchiveTime,
-		CreatedAt:    m.CreatedAt,
-		LastModified: m.LastModifiedAt,
-	}
-}
-
-func normalizePhone(search string) bson.M {
-	re := regexp.MustCompile(`^\+?251[79]\d{8}$`)
-
-	trimmedSearch := strings.TrimSpace(search)
-
-	if re.MatchString(trimmedSearch) {
-		return bson.M{
-			"phone_number": bson.M{
-				"$regex":   trimmedSearch,
-				"$options": "i",
-			},
-		}
-	}
-
-	return bson.M{
-		"phone_number.number": bson.M{
-			"$regex":   "^$",
-			"$options": "i",
-		},
-	}
-}
 func (h *HQPersistence) GetAllHQ(ctx context.Context, filterParams *constant.Filter) (*hq.HQRespose, error) {
 	filter := bson.M{
 		"is_deleted": false,
@@ -154,15 +119,12 @@ func (h *HQPersistence) GetAllHQ(ctx context.Context, filterParams *constant.Fil
 	}, nil
 }
 func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) error {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
 
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		p.logger.Errorf("invalid HQ ObjectID: %v", err)
 		return err
 	}
-	// fmt.Println("update", update)
 	updateDoc := bson.M{
 		"block_time":       update.BlockTime,
 		"archive_time":     update.ArchiveTime,

@@ -94,22 +94,21 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode:        actionID,
-		MakerID:           maker.ID,
-		MakerName:         maker.FullName,
-		MakerPhoneNumber:  maker.PhoneNumber,
-		Department:        maker.Department,
-		UniqueId:          id,
-		ActionType:        action.ActionUpdate,
-		RequestAction:     action.RequestUpdateAccountValidation,
-		ActionStatus:      action.ActionPending,
-		CurrentAction:     currentAction, // assign struct directly
-		PreviousAction:    previousActionJSON,
-		CreatedAt:         time.Now(),
-		LastModifiedAt:    time.Now(),
-		RejectionReason:   nil,
-		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Time{},
+		ActionCode:       actionID,
+		MakerID:          maker.ID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+		UniqueId:         id,
+		ActionType:       action.ActionUpdate,
+		RequestAction:    action.RequestUpdateAccountValidation,
+		ActionStatus:     action.ActionPending,
+		CurrentAction:    currentAction, // assign struct directly
+		PreviousAction:   previousActionJSON,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		RejectionReason:  nil,
+		MakerActionTime:  time.Now(),
 	}
 
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
@@ -176,10 +175,12 @@ func (s *ServiceStore) UpdateAccountValidation(
 		return fmt.Errorf("ACTION_NOT_PENDING")
 	}
 
+	now := time.Now()
+
 	cpsAction.CheckerID = checker.ID
 	cpsAction.CheckerName = checker.FullName
 	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
-	cpsAction.CheckerActionTime = time.Now()
+	cpsAction.CheckerActionTime = &now
 	cpsAction.LastModifiedAt = time.Now()
 
 	if decision == utils.DecisionApproved {

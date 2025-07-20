@@ -69,7 +69,7 @@ func (action *CPSActionDocument) toModel() entities.CPSAction {
 		CreatedAt:          action.CreatedAt,
 		LastModifiedAt:     action.LastModifiedAt,
 		MakerActionTime:    action.MakerActionTime,
-		CheckerActionTime:  action.CheckerActionTime,
+		CheckerActionTime:  &action.CheckerActionTime,
 	}
 }
 
@@ -107,7 +107,7 @@ func ToCpsActionDocument(cpsAction entities.CPSAction) (*CPSActionDocument, erro
 		CreatedAt:          cpsAction.CreatedAt,
 		LastModifiedAt:     cpsAction.LastModifiedAt,
 		MakerActionTime:    cpsAction.MakerActionTime,
-		CheckerActionTime:  cpsAction.CheckerActionTime,
+		CheckerActionTime:  *cpsAction.CheckerActionTime,
 	}, nil
 }
 

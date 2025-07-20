@@ -431,6 +431,8 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		if err != nil {
 			objID = bson.NilObjectID
 		}
+	} else {
+		objID = bson.NewObjectID()
 	}
 
 	// Convert CurrentAction to map[string]interface{} if needed
@@ -468,7 +470,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		CreatedAt:         domainAction.CreatedAt,
 		LastModifiedAt:    domainAction.LastModifiedAt,
 		MakerActionTime:   domainAction.MakerActionTime,
-		CheckerActionTime: &domainAction.CheckerActionTime,
+		CheckerActionTime: domainAction.CheckerActionTime,
 	}
 }
 
@@ -517,12 +519,13 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CreatedAt:          modelAction.CreatedAt,
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
-		CheckerActionTime:  *modelAction.CheckerActionTime,
+		CheckerActionTime:  modelAction.CheckerActionTime,
 	}
 }
 
 func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error) {
 	Action.ActionCode = utils.RandomGenerator(20)
+	
 	modelAction := domainToModelCPSAction(Action)
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, modelAction)
 	if err != nil {
@@ -1766,9 +1769,9 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 	if action.ActionStatus != domain.ActionPending {
 		return errors.New("action is not in pending status")
 	}
-
+	now := time.Now()
 	action.CheckerID = checkerID
-	action.CheckerActionTime = time.Now()
+	action.CheckerActionTime = &now
 	action.LastModifiedAt = time.Now()
 
 	if approve {

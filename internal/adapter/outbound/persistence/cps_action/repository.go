@@ -109,7 +109,6 @@ func (o *cpsActionStore) RejectCPSAction(ctx context.Context, action *entity.Aut
 }
 
 func (o *cpsActionStore) updateCPSActionStatus(ctx context.Context, action *entity.AuthorizeCPSAction, newStatus string) (*entity.CPSAction, error) {
-	o.logger.Infof("Updating status for CPSAction: %s to %s", action.ActionCode, newStatus)
 
 	filter := bson.M{
 		"action_code":   action.ActionCode,
