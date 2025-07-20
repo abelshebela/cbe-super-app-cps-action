@@ -53,7 +53,6 @@ func (s *ServiceStore) createCpsAction(maker User, actionID string, currentActio
 		CreatedAt:         time.Now(),
 		LastModifiedAt:    time.Now(),
 		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Time{},
 	}
 
 }
@@ -64,10 +63,11 @@ func (s *ServiceStore) approveOrRejectAction(cpsAction *CPSAction, checker User,
 	} else {
 		cpsAction.ActionStatus = ActionRejected
 	}
+	now := time.Now()
 	cpsAction.CheckerID = checker.UserID
 	cpsAction.CheckerName = checker.FullName
 	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
-	cpsAction.CheckerActionTime = time.Now()
+	cpsAction.CheckerActionTime = &now
 	cpsAction.LastModifiedAt = time.Now()
 }
 

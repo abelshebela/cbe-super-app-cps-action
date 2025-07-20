@@ -27,6 +27,7 @@ func NewDispatcher(app application.Domain) *Dispatcher {
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	action := cpsAction.RequestAction
 
+	fmt.Println(action, "action")
 	switch {
 	// case constants.IsActionInGroup(action, "Block"):
 	// 	return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
@@ -121,11 +122,11 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	// case constants.IsActionInGroup(action, "Product"):
 	// 	return d.app.ProductDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "PublicNotification"):
-	// 	return d.app.PublicNotificationDomain.Authorize(ctx, cpsAction)
+	// case constants.IsActionInGroup(action, "Department"):
+	// 	return d.app.Department.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "Region"):
-	// 	return d.app.RegionDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "HQ"):
+		return d.app.HQDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Password"):
 		return d.app.PasswordRuleDomain.Authorize(ctx, cpsAction)

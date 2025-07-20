@@ -5,7 +5,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/repository"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -50,4 +53,8 @@ func (f *FaydaAccountDomain) RejectFaydaAccountDisable(ctx context.Context, req 
 	}
 
 	return cpsAction, nil
+}
+
+func (f *FaydaAccountDomain) GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
+	return f.FaydaAccountRepo.GetAllFaydaAccounts(ctx, filterParams)
 }

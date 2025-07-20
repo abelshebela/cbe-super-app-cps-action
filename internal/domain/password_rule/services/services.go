@@ -6,15 +6,18 @@ import (
 	"time"
 
 	"encoding/json"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type PasswordRuleService interface {
-	GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error)
+	GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error)
 	RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
@@ -28,10 +31,6 @@ type passwordRuleService struct {
 
 func NewPasswordRuleService(repo repository.PasswordRuleRepository) PasswordRuleService {
 	return &passwordRuleService{repo: repo}
-}
-
-func generateActionCode() string {
-	return fmt.Sprintf("CPS_%d", time.Now().UnixNano())
 }
 
 func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error) {
@@ -80,6 +79,9 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 	}
 	return created.ActionCode, nil
 }
+func generateActionCode() string {
+	return fmt.Sprintf("ACT-%d", time.Now().UnixNano())
+}
 
 func (s *passwordRuleService) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	// Unmarshal the domain PasswordRule from CurrentAction
@@ -94,12 +96,12 @@ func (s *passwordRuleService) Authorize(ctx context.Context, cpsAction *entities
 	if err := s.repo.UpdatePasswordRule(ctx, rule); err != nil {
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_PASSWORD_RULE: %w", err)
 	}
-	cpsAction.ActionStatus = constant.ActionApproved
+	cpsAction.ActionStatus = "APPROVED"
 	return cpsAction, nil
 }
 
-func (s *passwordRuleService) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
-	return s.repo.GetAllPasswordRules(ctx)
+func (s *passwordRuleService) GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error) {
+	return s.repo.GetAllPasswordRules(ctx, filterParams)
 }
 func (s *passwordRuleService) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	return s.repo.GetPasswordRuleUpdateActionByID(ctx, actionID)

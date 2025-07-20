@@ -38,19 +38,19 @@ type Domain struct {
 	BankDomain            bank_service.BankService
 	BudgetCategoryDomain  budget_category.BudgetCategoryService
 	BudgetDomain          *budget_service.BudgetService
-	CPSActionDomain       cps_action_service.CPSActionService
-	CPSUserDomain         services.CPSUserService
-	CustomerDomain        *customer_service.CustomerDomain
-	DepartmentDomain      department.Service
-	EventDomain           event_domain.EventService
-	FaydaDomain           *fayda_service.FaydaAccountDomain
+	CPSActionDomain       cps_action_service.CPSActionService 
+	CPSUserDomain         services.CPSUserService 
+	CustomerDomain        *customer_service.CustomerDomain 
+	DepartmentDomain      department.Service // starting here
+	EventDomain           event_domain.EventService // fully not ready
+	FaydaDomain           *fayda_service.FaydaAccountDomain // to here aren't done 
 	FeedbackDomain        *feedback_service.FeedbackDomain
-	HQDomain              hq.Service
-	MiniAppDomain         miniApp_domain.MiniAppService
+	HQDomain              hq.Service 
+	MiniAppDomain         miniApp_domain.MiniAppService // not done
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service
 	PortalCardDomain      portalcard.PortaCardInterface
-	ServiceDomain         service.ServiceInterface
+	ServiceDomain         service.ServiceInterface // not done
 	UnlinkDomain          *unlink_service.Service
 	WalletDomain          wallet_service.WalletService
 }

@@ -97,22 +97,21 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode:        actionID,
-		MakerID:           maker.ID,
-		MakerName:         maker.FullName,
-		MakerPhoneNumber:  maker.PhoneNumber,
-		Department:        maker.Department,
-		UniqueId:          id,
-		ActionType:        action.ActionUpdate,
-		RequestAction:     action.RequestUpdateAccountValidation,
-		ActionStatus:      action.ActionPending,
-		CurrentAction:     currentAction, // assign struct directly
-		PreviousAction:    previousActionJSON,
-		CreatedAt:         time.Now(),
-		LastModifiedAt:    time.Now(),
-		RejectionReason:   nil,
-		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Time{},
+		ActionCode:       actionID,
+		MakerID:          maker.ID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+		UniqueId:         id,
+		ActionType:       action.ActionUpdate,
+		RequestAction:    action.RequestUpdateAccountValidation,
+		ActionStatus:     action.ActionPending,
+		CurrentAction:    currentAction, // assign struct directly
+		PreviousAction:   previousActionJSON,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		RejectionReason:  nil,
+		MakerActionTime:  time.Now(),
 	}
 
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
@@ -160,14 +159,7 @@ func (s *ServiceStore) Authorize(ctx context.Context, cpsAction *cps_entities.CP
 	return s.UpdateAccountValidate(ctx, cpsAction)
 }
 
-//	func (s *ServiceStore) Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
-//		return s.UpdateAccountValidate(ctx, cpsAction)
-//	}
 func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error {
-	// if actionID == "" || checker.ID == "" {
-	// 	s.logger.Errorf("action ID or checker ID is empty")
-	// 	return fmt.Errorf("ACTION_ID_OR_CHECKER_ID_EMPTY")
-	// }
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionID)
 	if err != nil {
@@ -175,16 +167,12 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 		return fmt.Errorf("ACTION_NOT_FOUND")
 	}
 
-	// if cpsAction.ActionStatus != action.ActionPending {
-	// 	s.logger.Errorf("action is not pending")
-	// 	return fmt.Errorf("ACTION_NOT_PENDING")
-	// }
+	now := time.Now()
 
-	// cpsAction.CheckerID = checker.ID
-	// cpsAction.CheckerName = checker.FullName
-	// cpsAction.CheckerPhoneNumber = checker.PhoneNumber
-	// cpsAction.CheckerActionTime = time.Now()
-	// cpsAction.LastModifiedAt = time.Now()
+	cpsAction.CheckerID = checker.ID
+	cpsAction.CheckerName = checker.FullName
+	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
+	cpsAction.CheckerActionTime = &now
 
 	if decision == utils.DecisionApproved {
 		var currentAction struct {

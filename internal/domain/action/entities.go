@@ -52,11 +52,11 @@ type CPSAction struct {
 	MakerID            string        `json:"maker_id"`
 	MakerName          string        `json:"maker_name"`
 	MakerPhoneNumber   string        `json:"maker_phone_number"`
-	CheckerID          string        `json:"checker_id"`
-	CheckerName        string        `json:"checker_name"`
-	CheckerPhoneNumber string        `json:"checker_phone_number"`
+	CheckerID          string        `json:"checker_id,omitempty"`
+	CheckerName        string        `json:"checker_name,omitempty"`
+	CheckerPhoneNumber string        `json:"checker_phone_number,omitempty"`
 	Department         string        `json:"department"`
-	RejectionReason    *string       `json:"rejection_reason"`
+	RejectionReason    *string       `json:"rejection_reason,omitempty"`
 	PreviousAction     interface{}   `json:"previos_action"`
 	CurrentAction      interface{}   `json:"current_action"`
 	ActionStatus       ActionStatus  `json:"action_status"`
@@ -65,7 +65,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `json:"created_at"`
 	LastModifiedAt     time.Time     `json:"last_modified_at"`
 	MakerActionTime    time.Time     `json:"maker_action_time"`
-	CheckerActionTime  time.Time     `json:"checker_action_time"`
+	CheckerActionTime  *time.Time     `json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
