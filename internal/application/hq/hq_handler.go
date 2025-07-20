@@ -13,7 +13,7 @@ import (
 
 type ApplicationAbstracts interface {
 	GetHQ(ctx context.Context, id string) (dto.HQ, error)
-	GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*domain_hq.HQRespose, error)
+	GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*domain_hq.HQ], error)
 	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName string) (string, error)
 	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName string) (string, error)
 	UpdateBlockTime(ctx context.Context, request dto.ApproveRejectRequest, checkerID, phone, fullName string) error
@@ -29,12 +29,11 @@ func NewApplication(service domain_hq.Service, logger sharedutils.Logger) Applic
 	return &ApplicationStore{service: service, logger: logger}
 }
 
-func (a *ApplicationStore) GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*domain_hq.HQRespose, error) {
+func (a *ApplicationStore) GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*domain_hq.HQ], error) {
 	hqData, err := a.service.GetAllHQ(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}
-
 	return hqData, nil
 }
 func (a *ApplicationStore) GetHQ(ctx context.Context, id string) (dto.HQ, error) {

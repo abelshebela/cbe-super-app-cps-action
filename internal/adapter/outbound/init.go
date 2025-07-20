@@ -1795,14 +1795,36 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 	return o.UpdateCpsAction(ctx, action)
 }
 
-func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
-
+func (o *outboundStore) GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
 	projection := bson.M{}
 
-	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	// Add search functionality
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"password_id": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	// Add filter functionality (if needed, e.g., by status)
+	if filterParams.Filters != "" {
+		filter["name"] = filterParams.Filters
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	data, err := o.MongoDalPasswordRule.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		return nil, err
+	}
+	totalDocs, err := o.MongoDalPasswordRule.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -1822,8 +1844,12 @@ func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.Pass
 		})
 	}
 
-	return dataList, nil
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
+	return &common_util.PaginatedResponse[[]*action.PasswordRule]{
+		Data: dataList,
+		Meta: meta,
+	}, nil
 }
 
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
