@@ -4,12 +4,14 @@ import (
 	"context"
 
 	portalcardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type PortalCardApplication interface {
-	GetAll(ctx context.Context) ([]*portalcardDomain.Card, error)
+	GetAll(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*portalcardDomain.Card], error)
 }
 
 type portalCardApp struct {
@@ -22,13 +24,8 @@ func NewPortalCardApp(service portalcardDomain.PortalCardRepository, logger util
 		portalDomain: service,
 		logger:       logger,
 	}
-
 }
 
-func (s *portalCardApp) GetAll(ctx context.Context) ([]*portalcardDomain.Card, error) {
-	service, err := s.portalDomain.GetAllPortalCard(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return service, nil
+func (s *portalCardApp) GetAll(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*portalcardDomain.Card], error) {
+	return s.portalDomain.GetAllPortalCard(ctx, filterParams)
 }

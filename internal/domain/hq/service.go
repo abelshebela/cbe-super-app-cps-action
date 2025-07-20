@@ -40,12 +40,8 @@ func NewService(repo Repository, actionRepo action.ActionRepository, logger shar
 	}
 }
 
-func (s *ServiceStore) GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*HQRespose, error) {
-	hqData, err := s.repository.GetAllHQ(ctx, filerParams)
-	if err != nil {
-		return nil, err
-	}
-	return hqData, nil
+func (s *ServiceStore) GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*utils.PaginatedResponse[[]*HQ], error) {
+	return s.repository.GetAllHQ(ctx, filerParams)
 }
 func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 	if id == "" {

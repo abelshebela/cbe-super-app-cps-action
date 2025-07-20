@@ -15,11 +15,11 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 	routes := []sharedhttp.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/password_rule/fetch-all",
+			Path:    "/password_rule/",
 			Handler: handler.GetPasswordRule,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker,role.Checker, role.IFBChecker}),
 			},
 		},
 		{

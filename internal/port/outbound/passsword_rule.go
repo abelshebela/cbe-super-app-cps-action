@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type OutboundPasswordRuleInfra interface {
-	GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error)
+	GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error)
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
 	GetUpdateAction(ctx context.Context, maker action.User) (*action.CPSAction, error)
 	GetCurrentPasswordRule(ctx context.Context) (*action.PasswordRule, error)

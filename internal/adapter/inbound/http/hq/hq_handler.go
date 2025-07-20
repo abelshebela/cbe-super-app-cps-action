@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
@@ -49,40 +48,17 @@ func (h *HQHTTPHandler) GetHQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HQHTTPHandler) GetAllHQ(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
-
+	filterParams := utils.ExtractFilterParams(r)
 	ctx := r.Context()
-	customers, err := h.handler.GetHQDetail(ctx, filterParams)
+
+	hqResp, err := h.handler.GetHQDetail(ctx, filterParams)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
-
 		return
 	}
 
-	data, _ := utils.StructToMap(customers)
-	utils.BaseResponseMaker(data, w, "Successfuly HQ data fetched", http.StatusAccepted)
-
+	data, _ := utils.StructToMap(hqResp)
+	utils.BaseResponseMaker(data, w, "HQs fetched successfully", http.StatusOK)
 }
 func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateBlockTimeRequest
