@@ -50,12 +50,14 @@ func NewApplicationHandler(service account_block.ApplicationServices) Applicatio
 func (h *Handler) FilterSingleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
 	return h.service.FilterSingleBranches(ctx, region, district)
 }
+
 func (h *Handler) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
 	return h.service.DisableSingleBranch(ctx, branch, maker)
 }
 
 func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
-	return h.service.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
+	// return h.service.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
+	return nil
 }
 
 func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district string) ([]action.Branch, error) {
@@ -67,7 +69,8 @@ func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []action
 }
 
 func (h *Handler) ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
-	return h.service.ApproveBulkBranchesDisable(ctx, actionID, approve, reason)
+	// return h.service.ApproveBulkBranchesDisable(ctx, actionID, approve, reason)
+	return nil
 }
 
 func (h *Handler) GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error) {
@@ -82,7 +85,8 @@ func (h *Handler) UpdateRegion(ctx context.Context, region action.Region) error 
 }
 
 func (h *Handler) ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
-	return h.service.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
+	// return h.service.ApproveRegionBlock(ctx, actionID, approve, reason, checker)
+	return nil
 }
 
 func (h *Handler) GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error) {
@@ -97,7 +101,8 @@ func (h *Handler) GetDistrictByCode(ctx context.Context, districtCode string) (a
 }
 
 func (h *Handler) ApproveBlockDistrict(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
-	return h.service.ApproveBlockDistrict(ctx, actionID, approve, reason, checker)
+	// return h.service.ApproveBlockDistrict(ctx, actionID, approve, reason, checker)
+	return nil
 }
 func (h *Handler) BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockCity(ctx, cityCode, maker)
@@ -107,17 +112,18 @@ func (h *Handler) GetCityByCode(ctx context.Context, cityCode string) (action.Ci
 }
 
 func (h *Handler) ApproveBlockCity(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
-	return h.service.ApproveBlockCity(ctx, actionID, approve, reason, checker)
+	// return h.service.ApproveBlockCity(ctx, actionID, approve, reason, checker)
+	return nil
 }
 
 func (h *Handler) BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error) {
-    return h.service.BlockUser(ctx, userID, maker)
+	return h.service.BlockUser(ctx, userID, maker)
 }
 
 func (h *Handler) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
-    return h.service.GetUserByPhone(ctx, phoneNumber, maker)
+	return h.service.GetUserByPhone(ctx, phoneNumber, maker)
 }
-
 func (h *Handler) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
-    return h.service.ApproveBlockUser(ctx, actionID, approve, reason, checker)
+	// return h.service.ApproveBlockUser(ctx, actionID, approve, reason, checker)
+	return nil
 }

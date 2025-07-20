@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -95,4 +96,22 @@ func (s *BudgetService) ApproveAction(ctx context.Context, cpsAction entities.CP
 		return nil, err
 	}
 	return action, nil
+}
+
+func (s *BudgetService) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	_, err := s.repo.Authorize(ctx, cpsAction)
+	if err != nil {
+		return nil, err
+	}
+
+	return cpsAction, nil
+}
+
+func (s *BudgetService) Reject(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	_, err := s.repo.Reject(ctx, cpsAction)
+	if err != nil {
+		return nil, err
+	}
+
+	return cpsAction, nil
 }

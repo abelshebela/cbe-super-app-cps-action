@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type BudgetCategoryApplictionService interface {
+type BudgetCategoryApplicationService interface {
 	CreateBudgetCategory(ctx context.Context, budgetCategory dto.CreateBudgetCategoryRequest) (budgetCategory.BudgetCategory, error)
 	FindBudgetCategoryById(ctx context.Context, id string) (*budgetCategory.BudgetCategory, error)
 	UpdateBudgetCategory(ctx context.Context, budgetCategory dto.UpdateBudgetCategoryRequest) (budgetCategory.BudgetCategory, error)
@@ -33,7 +33,7 @@ type BudgetCategoryHandler struct {
 	logger  utils.Logger
 }
 
-func InitBudgetCategoryHandler(service budgetCategory.BudgetCategoryService, logger utils.Logger) BudgetCategoryApplictionService {
+func InitBudgetCategoryHandler(service budgetCategory.BudgetCategoryService, logger utils.Logger) BudgetCategoryApplicationService {
 	return &BudgetCategoryHandler{
 		service: service,
 		logger:  logger,
