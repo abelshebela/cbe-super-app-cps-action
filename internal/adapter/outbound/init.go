@@ -273,7 +273,7 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 		return domain.ServiceDetails{}, err
 	}
 	filter := bson.M{"_id": objID}
-	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
+	// fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

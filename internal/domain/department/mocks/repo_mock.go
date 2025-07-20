@@ -9,6 +9,8 @@ import (
 	reflect "reflect"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -30,8 +32,18 @@ func NewMockCPSActionRepository(ctrl *gomock.Controller) *MockCPSActionRepositor
 	return mock
 }
 
-func (m *MockDepartmentRepository) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
-	return nil, nil
+func (m *MockDepartmentRepository) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entities.Department], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllDepartments", ctx, filterParams)
+	ret0, _ := ret[0].(*utils.PaginatedResponse[[]*entities.Department])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllDepartments indicates an expected call of GetAllDepartments.
+func (mr *MockDepartmentRepositoryMockRecorder) GetAllDepartments(ctx, filterParams interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDepartments", reflect.TypeOf((*MockDepartmentRepository)(nil).GetAllDepartments), ctx, filterParams)
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.

@@ -10,7 +10,9 @@ import (
 
 	repository "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
@@ -366,11 +368,39 @@ func (r *DepartmentPersistence) RejectDepartmentUpdate(ctx context.Context, cpsA
 	return nil
 }
 
-func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context) ([]*entities.Department, error) {
-	filter := bson.M{}
-	departments, err := r.departmentdal.FindAll(ctx, filter, bson.M{})
-	if err != nil {
-		return nil, err
+func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
+	filter := bson.M{"is_deleted": false}
+	projection := bson.M{}
+
+	// Apply search if provided
+	if filterParams.Search != "" {
+		filter["$or"] = []bson.M{
+			{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"department_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+		}
 	}
-	return departments, nil
+
+	// Calculate pagination
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	// Get total count
+	totalDocs, err := r.departmentdal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count documents: %w", err)
+	}
+
+	// Get paginated data
+	departments, err := r.departmentdal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch departments: %w", err)
+	}
+
+	// Build pagination metadata using utility function
+	meta := common_util.BuildPaginationMeta(totalDocs, filterParams.Page, filterParams.PerPage)
+
+	return &common_util.PaginatedResponse[[]*entities.Department]{
+		Data: departments,
+		Meta: meta,
+	}, nil
 }

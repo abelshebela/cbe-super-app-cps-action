@@ -1,6 +1,12 @@
 package department
 
-import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+import (
+	"context"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+)
 
 type CPSActionRepository interface {
 	CheckRequestExists(action entities.CPSAction) (bool, error)
@@ -13,4 +19,5 @@ type DepartmentRepository interface {
 	CheckDepartmentExists(department string) (bool, error)
 	CreateDepartment(dept entities.Department) error
 	UpdateDepartment(code string, department string, portalCards []string) error
+	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
 }
