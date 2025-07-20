@@ -14,8 +14,6 @@ import (
 
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
-
 	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 )
 

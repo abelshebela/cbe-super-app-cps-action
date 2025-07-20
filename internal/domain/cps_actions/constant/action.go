@@ -69,9 +69,9 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
-	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
-	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
+	RequestCreateServiceFee         RequestAction = "SERVICE_FEE_CREATE"
+	RequestUpdateServiceFee         RequestAction = "SERVICE_FEE_UPDATE"
+	RequestDeleteServiceFee         RequestAction = "SERVICE_FEE_DELETE"
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
@@ -99,6 +99,7 @@ const (
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINI_APP"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
 	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
@@ -114,6 +115,12 @@ const (
 	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
 	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 	RequestDisableFaydaAccount      RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup    RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestCreateBudgetCategory     RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory     RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory     RequestAction = "UPDATE_BUDGET_CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -175,12 +182,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableEvent:             {},
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
-	// RequestDeleteMiniAppMerchant:    {},
-	RequestUpdateBlockTime: {},
-	// RequestUpdateAccountValidation:  {},
-	// RequestUpdateServiceDetails:     {},
-	// RequestUpdateHQBlockTime:        {},
-	// RequestUpdateHQArchiveTime:      {},
+	RequestDeleteMiniAppMerchant:    {},
+	RequestUpdateBlockTime:          {},
+	RequestCreatePermissionGroup:    {},
+	RequestUpdatePermissionGroup:    {},
+	RequestDeletePermissionGroup:    {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -189,102 +195,85 @@ func IsValidRequestAction(requestAction string) bool {
 }
 
 var RequestActionGroups = map[string][]RequestAction{
-	"User": {
-		RequestUser,
-		RequestEnableUser,
-		RequestDisableUser,
-		RequestUpdateUser,
-		RequestArchiveUser,
-	},
-	"BPSUser": {
-		RequestBPSUser,
-		RequestEnableBPSUser,
-		RequestDisableBPSUser,
-	},
-	"PermissionGroup": {
-		RequestPermissionGroup,
-	},
-	"Department": {
-		RequestDepartment,
+	"AccessConfig": {
+		RequestUpdateAccessConfig,
 	},
 	"Advert": {
 		RequestCreateAdvert,
-		RequestUpdateAdvert,
-		RequestEnableAdvert,
-		RequestDisableAdvert,
 		RequestDeleteAdvert,
-	},
-	"Bank": {
-		RequestCreateBank,
-		RequestUpdateBank,
-		RequestDeleteBank,
-		RequestEnableBank,
-		RequestDisableBank,
-	},
-	"Wallet": {
-		RequestCreateWallet,
-		RequestUpdateWallet,
-		RequestDeleteWallet,
-		RequestEnableWallet,
-		RequestDisableWallet,
-	},
-	"Validation": {
-		RequestCreateValidation,
-		RequestUpdateValidation,
-		RequestDeleteValidation,
-	},
-	"ServiceFee": {
-		RequestCreateServiceFee,
-		RequestUpdateServiceFee,
-		RequestDeleteServiceFee,
-	},
-	"DailyLimit": {
-		RequestCreateDailyLimit,
-		RequestUpdateDailyLimit,
-		RequestDeleteDailyLimit,
-		RequestTotalDailyLimit,
-	},
-	"VAT": {
-		RequestUpdateVAT,
-	},
-	"AuthTier": {
-		RequestAuthTier,
-	},
-	"Password": {
-		RequestUpdatePasswordExpiry,
-		RequestCreatePasswordRule,
-		RequestUpdatePasswordRule,
+		RequestDisableAdvert,
+		RequestEnableAdvert,
+		RequestUpdateAdvert,
 	},
 	"Archive": {
 		RequestUpdateArchiveExpiry,
 	},
-	"MinimumService": {
-		RequestUpdateMinimumService,
+	"AuthTier": {
+		RequestAuthTier,
 	},
-	"ServiceRule": {
-		RequestUpdateServiceRule,
+	"Avatar": {
+		RequestCreateAvatar,
+		RequestDeleteAvatar,
+		RequestDisableAvatar,
+		RequestEnableAvatar,
+		RequestUpdateAvatar,
 	},
-	"Total": {
-		RequestUpdateTotal,
+	"Bank": {
+		RequestCreateBank,
+		RequestDeleteBank,
+		RequestDisableBank,
+		RequestEnableBank,
+		RequestUpdateBank,
 	},
-	"AccessConfig": {
-		RequestUpdateAccessConfig,
+	"Block": {
+		RequestBlockCity,
+		RequestBlockDistrict,
+		RequestBlockRegion,
+		RequestBlockUser,
+		RequestDisableMultiBranches,
+		RequestDisableSingleBranch,
+	},
+	"BlockTime": {
+		RequestUpdateBlockTime,
+	},
+	"BPSUser": {
+		RequestBPSUser,
+		RequestDisableBPSUser,
+		RequestEnableBPSUser,
 	},
 	"Branch": {
-		RequestEnableSingleBranch,
-		RequestEnableMultiUsers,
 		RequestDisableMultiUsers,
-		RequestEnableSingleBranches,
 		RequestEnableMultiBranches,
+		RequestEnableMultiUsers,
+		RequestEnableSingleBranch,
+		RequestEnableSingleBranches,
+	},
+	"Budget": {
+		RequestBudgetColor,
+		RequestBudgetIcon,
+	},
+	"BudgetCategory": {
+		RequestCreateBudgetCategory,
+		RequestUpdateBudgetCategory,
+		RequestDeleteBudgetCategory,
 	},
 	"Business": {
 		RequestCreateBusiness,
 		RequestUpdateBusiness,
 	},
+	"DailyLimit": {
+		RequestCreateDailyLimit,
+		RequestDeleteDailyLimit,
+		RequestTotalDailyLimit,
+		RequestUpdateDailyLimit,
+	},
+	"Department": {
+		RequestDepartment,
+	},
 	"Event": {
 		RequestCreateEvent,
-		RequestUpdateEvent,
 		RequestDisableEvent,
+		RequestUpdateEvent,
 	},
 	"EventCategory": {
 		RequestCreateEventCategory,
@@ -292,21 +281,24 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"MiniAppMerchant": {
 		RequestCreateMiniAppMerchant,
+		RequestDeleteMiniAppMerchant,
 		RequestUpdateMiniAppMerchant,
 	},
-	"BlockTime": {
-		RequestUpdateBlockTime,
+	"MinimumService": {
+		RequestUpdateMinimumService,
 	},
-	"Avatar": {
-		RequestCreateAvatar,
-		RequestUpdateAvatar,
-		RequestEnableAvatar,
-		RequestDisableAvatar,
-		RequestDeleteAvatar,
+	"Password": {
+		RequestCreatePasswordRule,
+		RequestUpdatePasswordExpiry,
+		RequestUpdatePasswordRule,
 	},
-	"Budget": {
-		RequestBudgetColor,
-		RequestBudgetIcon,
+	"Permission": {
+		RequestCreatePermissionGroup,
+		RequestDeletePermissionGroup,
+		RequestUpdatePermissionGroup,
+	},
+	"PermissionGroup": {
+		RequestPermissionGroup,
 	},
 	"Product": {
 		RequestUpdateProduct,
@@ -314,18 +306,38 @@ var RequestActionGroups = map[string][]RequestAction{
 	"PublicNotification": {
 		RequestCreatePublicNotification,
 	},
-	"Block": {
-		RequestBlockUser,
-		RequestDisableSingleBranch,
-		RequestDisableMultiBranches,
-		RequestBlockRegion,
-		RequestBlockDistrict,
-		RequestBlockCity,
+	"ServiceFee": {
+		RequestCreateServiceFee,
+		RequestDeleteServiceFee,
+		RequestUpdateServiceFee,
 	},
-	"BudgetCategory": {
-		RequestAction("CREATE_BUDGET_CATEGORY"),
-		RequestAction("UPDATE_BUDGET_CATEGORY"),
-		RequestAction("DELETE_BUDGET_CATEGORY"),
+	"ServiceRule": {
+		RequestUpdateServiceRule,
+	},
+	"Total": {
+		RequestUpdateTotal,
+	},
+	"User": {
+		RequestArchiveUser,
+		RequestDisableUser,
+		RequestEnableUser,
+		RequestUpdateUser,
+		RequestUser,
+	},
+	"Validation": {
+		RequestCreateValidation,
+		RequestDeleteValidation,
+		RequestUpdateValidation,
+	},
+	"VAT": {
+		RequestUpdateVAT,
+	},
+	"Wallet": {
+		RequestCreateWallet,
+		RequestDeleteWallet,
+		RequestDisableWallet,
+		RequestEnableWallet,
+		RequestUpdateWallet,
 	},
 }
 

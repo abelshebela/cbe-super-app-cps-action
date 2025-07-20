@@ -38,7 +38,7 @@ func (a *cpsActionApplication) CPSActionExists(ctx context.Context, uniqueID str
 }
 
 func (a *cpsActionApplication) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
-	cpsAction, err := a.service.ApproveCPSAction(ctx, action)
+	cpsAction, err := a.service.ApproveCPSAction(ctx, action) 
 	if err != nil {
 		return nil, err
 	}

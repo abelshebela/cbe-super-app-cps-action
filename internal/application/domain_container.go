@@ -29,28 +29,29 @@ import (
 )
 
 type Domain struct {
-	AdDomain              ad_service.AdvertService
-	AvatarDomian          avatar_domain.AvatarDomainService
-	BankDomain            bank_service.BankService
-	WalletDomain          wallet_service.WalletService
-	FaydaDomain           *fayda_service.FaydaAccountDomain
-	CustomerDomain        *customer_service.CustomerDomain
-	FeedbackDomain        *feedback_service.FeedbackDomain
-	UnlinkDomain          *unlink_service.Service
-	BudgetDomain          *budget_service.BudgetService
-	AccountDomain         account_validation.Service
-	CPSUserDomain         services.CPSUserService
-	PasswordRuleDomain    password_service.PasswordRuleService
-	PortalCardDomain      portalcard.PortaCardInterface
-	DepartmentDomain      department.Service
-	HQDomain              hq.Service
-	MiniAppDomain         miniApp_domain.MiniAppService
-	AccountBlockDomain    account_block.ApplicationServices
-	PermissionDomain      permission.Service
-	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthRepository
-	ServiceDomain         service.ServiceInterface
-	ActionDomain          action.ServiceInterface
-	EventDomain           event_domain.EventService
-	BudgetCategoryDomain  budget_category.BudgetCategoryService
-	CPSActionDomain       cps_action_service.CPSActionService
+	AccountBlockDomain      account_block.ApplicationServices
+	AccountDomain           account_validation.Service
+	ActionDomain            action.ServiceInterface
+	AdDomain                ad_service.AdvertService
+	AmountBasedAuthDomain   amount_based_auth_domain.AmountBasedAuthRepository
+	AvatarDomian            avatar_domain.AvatarDomainService
+	BankDomain              bank_service.BankService
+	BudgetCategoryDomain    budget_category.BudgetCategoryService
+	BudgetDomain            *budget_service.BudgetService
+	CPSActionDomain         cps_action_service.CPSActionService
+	CPSUserDomain           services.CPSUserService
+	CustomerDomain          *customer_service.CustomerDomain
+	DepartmentDomain        department.Service
+	EventDomain             event_domain.EventService
+	FaydaDomain             *fayda_service.FaydaAccountDomain
+	FeedbackDomain          *feedback_service.FeedbackDomain
+	HQDomain                hq.Service
+	MiniAppDomain           miniApp_domain.MiniAppService
+	PasswordRuleDomain      password_service.PasswordRuleService
+	PermissionDomain        permission.Service
+	PortalCardDomain        portalcard.PortaCardInterface
+	ServiceDomain           service.ServiceInterface
+	UnlinkDomain            *unlink_service.Service
+	WalletDomain            wallet_service.WalletService
+
 }
