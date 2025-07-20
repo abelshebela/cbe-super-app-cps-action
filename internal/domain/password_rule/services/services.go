@@ -32,10 +32,6 @@ func NewPasswordRuleService(repo repository.PasswordRuleRepository) PasswordRule
 	return &passwordRuleService{repo: repo}
 }
 
-func generateActionCode() string {
-	return fmt.Sprintf("CPS_%d", time.Now().UnixNano())
-}
-
 func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error) {
 	fmt.Println("rule", rule)
 	if rule == nil || rule.ID == "" {

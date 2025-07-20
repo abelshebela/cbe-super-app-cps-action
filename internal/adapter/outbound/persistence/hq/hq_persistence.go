@@ -63,7 +63,7 @@ func (p *HQPersistence) GetHQByID(ctx context.Context, id string) (hq.HQ, error)
 	return *result, nil
 }
 
-func (h *HQPersistence) GetAllHQ(ctx context.Context, filterParams *constant.Filter) (*hq.HQRespose, error) {
+func (h *HQPersistence) GetAllHQ(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*hq.HQ], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}

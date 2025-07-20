@@ -10,7 +10,9 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-
+	
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -18,13 +20,12 @@ import (
 
 type Service interface {
 	GetHQ(ctx context.Context, id string) (HQ, error)
-	GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*HQRespose, error)
+	GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*utils.PaginatedResponse[[]*HQ], error)
 	UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (*action.CPSAction, error)
 	UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (*action.CPSAction, error)
 	AuthorizeUpdateBlockTime(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	AuthorizeUpdateArchiveTime(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
-	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
-}
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)}
 
 type ServiceStore struct {
 	repository Repository
@@ -179,7 +180,6 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 
 	return &createdAction, nil
 }
-
 // Add helper for robust JSON extraction, matching account validation
 func toJSONBytes(val interface{}) ([]byte, error) {
 	switch v := val.(type) {
@@ -270,4 +270,4 @@ func (s *ServiceStore) Authorize(ctx context.Context, action *entities.CPSAction
 	default:
 		return nil, fmt.Errorf("unsupported request action: %s", action)
 	}
-}
+
