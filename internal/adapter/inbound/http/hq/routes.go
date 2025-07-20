@@ -25,7 +25,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/",
+				Path:    "/list",
 				Handler: handler.GetAllHQ,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

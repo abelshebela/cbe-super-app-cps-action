@@ -11,12 +11,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type PasswordRuleService interface {
-	GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error)
+	GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error)
 	RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error)
@@ -100,8 +98,8 @@ func (s *passwordRuleService) Authorize(ctx context.Context, cpsAction *entities
 	return cpsAction, nil
 }
 
-func (s *passwordRuleService) GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error) {
-	return s.repo.GetAllPasswordRules(ctx, filterParams)
+func (s *passwordRuleService) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
+	return s.repo.GetAllPasswordRules(ctx)
 }
 func (s *passwordRuleService) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	return s.repo.GetPasswordRuleUpdateActionByID(ctx, actionID)

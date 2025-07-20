@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -18,10 +17,10 @@ import (
 type HQPersistence struct {
 	hqDal   dal.MongoDal[hq.HQ, hq.HQ]
 	timeout time.Duration
-	logger  sharedutils.Logger
+	logger  utils.Logger
 }
 
-func NewHQPersistence(client *mongo.Client, dbName string, timeout time.Duration, logger sharedutils.Logger) *HQPersistence {
+func NewHQPersistence(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *HQPersistence {
 	hqDal := dal.NewMongoDal[hq.HQ, hq.HQ](client, dbName, "hq")
 	return &HQPersistence{
 		hqDal:   hqDal,
@@ -98,26 +97,25 @@ func (h *HQPersistence) GetAllHQ(ctx context.Context, filterParams *constant.Fil
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			h.logger.Errorf("no HQ data found", err)
-			return &common_util.PaginatedResponse[[]*hq.HQ]{
-				Data: []*hq.HQ{},
-				Meta: common_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+
+			return nil, fmt.Errorf("NO_HQ_DATA_FOUND")
 		}
 		h.logger.Errorf("failed to get hq data", err)
 		return nil, fmt.Errorf("FAILED_TO_GET_HQ")
 	}
 
-	total, err := h.hqDal.TotalCount(ctx, filter)
+	total, err := h.hqDal.TotalCount(ctx, bson.M{})
 	if err != nil {
 		h.logger.Errorf("failed to get total counts", err)
+
 		return nil, fmt.Errorf("FAILED_TO_GET_HQ_COUNT")
 	}
 
-	meta := common_util.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
-
-	return &common_util.PaginatedResponse[[]*hq.HQ]{
-		Data: hqData,
-		Meta: meta,
+	return &hq.HQRespose{
+		Page:  1,
+		HQ:    hqData,
+		Limit: constant.DefaultPerPage,
+		Total: total,
 	}, nil
 }
 func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) error {

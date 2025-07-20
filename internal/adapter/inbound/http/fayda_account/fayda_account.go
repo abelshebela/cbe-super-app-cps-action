@@ -71,20 +71,6 @@ func (f FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter, 
 	constant_util.BaseResponseMaker(data, w, "Successfuly Fayda Request initiated", 200)
 }
 
-func (f FaydaAccountAdapter) GetAllFaydaAccounts(w http.ResponseWriter, r *http.Request) {
-	filterParams := constant_util.ExtractFilterParams(r)
-
-	accounts, err := f.FaydaAccountHandler.GetAllFaydaAccounts(r.Context(), filterParams)
-	if err != nil {
-		f.logger.Errorf("GetAllFaydaAccounts request failed: %v", err)
-		constant_util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	data, _ := constant_util.StructToMap(accounts)
-	constant_util.BaseResponseMaker(data, w, "Fayda accounts fetched successfully", 200)
-}
-
 func (f FaydaAccountAdapter) AuthorizeFaydaAccountDisable(w http.ResponseWriter, r *http.Request) {
 	action_code := chi.URLParam(r, "action_code")
 
