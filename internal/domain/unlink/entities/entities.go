@@ -6,6 +6,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type UnlinkDeviceAction struct {
+	ActionType string        `json:"action_type" bson:"action_type"`
+	UserCode   string        `json:"user_code" bson:"user_code"`
+	UserID     bson.ObjectID `json:"user_id" bson:"user_id"`
+	FullName   string        `json:"full_name" bson:"full_name"`
+}
+
 type UserType string
 
 const (

@@ -112,11 +112,11 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	// case constants.IsActionInGroup(action, "City"):
 	// 	return d.app.CityDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "PermissionGroup"):
-	// 	return d.app.PermissionGroupDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "UnlinkDevice"):
+		return d.app.UnlinkDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "Department"):
-	// 	return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Wallet"):
+		return d.app.WalletDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Wallet"):
 		return d.app.WalletDomain.Authorize(ctx, cpsAction)

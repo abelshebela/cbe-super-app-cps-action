@@ -121,6 +121,7 @@ const (
 	RequestCreateBudgetCategory     RequestAction = "CREATE_BUDGET_CATEGORY"
 	RequestDeleteBudgetCategory     RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestUpdateBudgetCategory     RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestUnlinkDevice             RequestAction = "UNLINK_DEVICE"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -338,6 +339,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableWallet,
 		RequestEnableWallet,
 		RequestUpdateWallet,
+	},
+	"UnlinkDevice": {
+		RequestUnlinkDevice,
 	},
 }
 

@@ -2,6 +2,7 @@ package unlink
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,7 +12,9 @@ import (
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/unlink"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -40,8 +43,7 @@ func NewUnlinkInfrastructure(client *mongo.Client, dbName string, collectionName
 	}
 }
 
-func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction) (string, error) {
-	ctx := context.Background()
+func (u *UnlinkRepo) UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error) {
 	filter := bson.M{"user_code": userCode}
 
 	user, err := u.user.FindOne(ctx, filter, bson.M{})
@@ -62,7 +64,7 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 	}
 
 	pendingFilter := bson.M{
-		"action_code":    userCode,
+		"action_code":    cpsAction.ActionCode,
 		"action_status":  "PENDING",
 		"request_action": string(entities.UnlinkDevice),
 	}
@@ -80,7 +82,7 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 		}
 
 		updateFilter := bson.M{
-			"action_code":   userCode,
+			"action_code":   cpsAction.ActionCode,
 			"action_status": "PENDING",
 		}
 		update := bson.M{
@@ -93,7 +95,6 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 		}
 	}
 
-	cpsAction.ActionCode = userCode
 	cpsAction.CreatedAt = time.Now()
 	cpsAction.LastModifiedAt = time.Now()
 
@@ -113,81 +114,50 @@ func (u *UnlinkRepo) UnlinkDevice(userCode string, cpsAction entities.CPSAction)
 	return cpsData.ActionCode, nil
 }
 
-func (u *UnlinkRepo) ApproveOrDecline(userCode, decision, reason string, cpsAction entities.CPSAction) error {
-	u.logger.Infof("[ApproveOrDecline] decision: %s for user: %s by %s", decision, userCode, cpsAction.CheckerName)
-	ctx := context.Background()
-	filter := bson.M{"user_code": userCode}
-	user, err := u.user.FindOne(ctx, filter, bson.M{})
-
+func (u *UnlinkRepo) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	curAction, err := u.ExtractUnlinkDeviceAction(cpsAction)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			u.logger.Warnf("[ApproveOrDecline] user not found for userCode=%s", userCode)
-			return fmt.Errorf(error_codes.AuthUserNotFound)
+		return nil, err
+	}
+	filter := bson.M{"user_code": curAction.UserCode}
+	user, err := u.user.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			u.logger.Warnf("[Authorize] user not found for userCode=%s", cpsAction.ActionCode)
+			return nil, fmt.Errorf(error_codes.AuthUserNotFound)
 		}
-		u.logger.Warnf("[ApproveOrDecline] failed to find user: %v", err)
-		return fmt.Errorf(error_codes.UnhandledServerError)
+		u.logger.Warnf("[Authorize] failed to find user: %v", err)
+		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
-	pendingFilter := bson.M{
-		"action_code":    userCode,
-		"action_status":  "PENDING",
-		"request_action": "UNLINK_DEVICE",
-	}
-	action, err := u.actionRepo.FindOne(ctx, pendingFilter, bson.M{})
-	if err != nil || action == nil {
-		u.logger.Warnf("[ApproveOrDecline] unlink action not found or processed for userCode=%s", userCode)
-		return fmt.Errorf(error_codes.ActionNotFound)
+	updateUser := bson.M{
+		"device.device_uuid":    "",
+		"device_status":         "UNLINKED",
+		"login_pin.pin":         "",
+		"bps_reject_status":     "AUTHORIZED",
+		"login_pin.pin_history": user.LoginPIN.PIN,
 	}
 
-	switch decision {
-	case "AUTHORIZED":
-		updateAction := bson.M{
-			"action_status":        "APPROVED",
-			"checker_name":         cpsAction.CheckerName,
-			"checker_id":           cpsAction.CheckerID,
-			"checker_phone_number": cpsAction.CheckerPhoneNumber,
-			"checker_action_time":  time.Now(),
-		}
-		if _, err := u.actionRepo.UpdateOne(ctx, pendingFilter, updateAction); err != nil {
-			u.logger.Errorf("[ApproveOrDecline] failed to approve action: %v", err)
-			return fmt.Errorf(error_codes.ActionApprovalFailed)
-		}
-
-		updateUser := bson.M{
-			"device.device_uuid":    "",
-			"device_status":         "UNLINKED",
-			"login_pin.pin":         "",
-			"bps_reject_status":     "AUTHORIZED",
-			"login_pin.pin_history": user.LoginPIN.PIN,
-		}
-
-		if _, err = u.user.UpdateOne(ctx, filter, updateUser); err != nil {
-			u.logger.Errorf("[ApproveOrDecline] failed to update user info: %v", err)
-			return fmt.Errorf(error_codes.ActionApprovalFailed)
-		}
-
-		u.logger.Infof("[ApproveOrDecline] unlink approved for user: %s", userCode)
-		return nil
-
-	case "DENIED":
-		updateAction := bson.M{
-			"action_status":        "REJECTED",
-			"checker_name":         cpsAction.CheckerName,
-			"checker_id":           cpsAction.CheckerID,
-			"checker_phone_number": cpsAction.CheckerPhoneNumber,
-			"checker_action_time":  time.Now(),
-			"rejection_reason":     reason,
-		}
-		if _, err := u.actionRepo.UpdateOne(ctx, pendingFilter, updateAction); err != nil {
-			u.logger.Errorf("[ApproveOrDecline] failed to reject action: %v", err)
-			return fmt.Errorf(error_codes.ActionRejectionFailed)
-		}
-
-		u.logger.Infof("[ApproveOrDecline] unlink denied for user: %s", userCode)
-		return nil
-
-	default:
-		u.logger.Warnf("[ApproveOrDecline] invalid decision: %s", decision)
-		return fmt.Errorf(error_codes.InvalidDecison)
+	if _, err = u.user.UpdateOne(ctx, filter, updateUser); err != nil {
+		u.logger.Errorf("[Authorize] failed to update user info: %v", err)
+		return nil, fmt.Errorf(error_codes.ActionApprovalFailed)
 	}
+
+	u.logger.Infof("[Authorize] unlink approved for user: %s", cpsAction.ActionCode)
+	return cpsAction, nil
+}
+
+func (u *UnlinkRepo) ExtractUnlinkDeviceAction(cpsAction *cps_entities.CPSAction) (entities.UnlinkDeviceAction, error) {
+	var action entities.UnlinkDeviceAction
+
+	raw, err := bson.Marshal(cpsAction.CurrentAction)
+	if err != nil {
+		return action, fmt.Errorf("marshal current action", err.Error(), error_codes.InvalidActionData)
+	}
+
+	if err := bson.Unmarshal(raw, &action); err != nil {
+		return action, fmt.Errorf("unmarshal current action", err.Error(), error_codes.InvalidActionData)
+	}
+
+	return action, nil
 }
