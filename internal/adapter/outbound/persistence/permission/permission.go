@@ -94,6 +94,18 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 	return true
 }
 
+// InvalidIDsError is a structured error for reporting missing IDs in validation
+// Field is the type of entity (e.g., "permission categories"), IDs is the list of missing IDs
+//
+type InvalidIDsError struct {
+	Field string
+	IDs   []string
+}
+
+func (e InvalidIDsError) Error() string {
+	return fmt.Sprintf("%s not found: %v", e.Field, e.IDs)
+}
+
 func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
 	ctx := context.Background()
 
@@ -150,7 +162,69 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 	}
 
 	if len(missingIDs) > 0 {
-		return nil, fmt.Errorf("permission categories not found: %v", missingIDs)
+		return nil, InvalidIDsError{Field: "permission categories", IDs: missingIDs}
+	}
+
+	return validIDs, nil
+}
+
+func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string, error) {
+	ctx := context.Background()
+
+	var validObjectIDs []bson.ObjectID
+	var invalidIDs []string
+
+	for _, id := range ids {
+		if id == "" {
+			invalidIDs = append(invalidIDs, "<empty>")
+			continue
+		}
+
+		if len(id) != 24 {
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (length %d)", id, len(id)))
+			continue
+		}
+
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			invalidIDs = append(invalidIDs, fmt.Sprintf("%s (invalid format)", id))
+			continue
+		}
+		validObjectIDs = append(validObjectIDs, objID)
+	}
+
+	if len(invalidIDs) > 0 {
+		return nil, fmt.Errorf("invalid permission group IDs: %v", invalidIDs)
+	}
+
+	groups, err := r.permissionGroupsDal.FindAll(ctx,
+		bson.M{"_id": bson.M{"$in": validObjectIDs}},
+		bson.M{"_id": 1},
+	)
+	if err != nil {
+		r.logger.Errorf("failed to fetch permission groups: %v", err)
+		return nil, fmt.Errorf("database error while validating permission groups")
+	}
+
+	foundIDs := make(map[bson.ObjectID]bool)
+	for _, group := range groups {
+		if !group.ID.IsZero() {
+			foundIDs[group.ID] = true
+		}
+	}
+
+	var missingIDs []string
+	var validIDs []string
+	for _, objID := range validObjectIDs {
+		if foundIDs[objID] {
+			validIDs = append(validIDs, objID.Hex())
+		} else {
+			missingIDs = append(missingIDs, objID.Hex())
+		}
+	}
+
+	if len(missingIDs) > 0 {
+		return nil, InvalidIDsError{Field: "permission groups", IDs: missingIDs}
 	}
 
 	return validIDs, nil

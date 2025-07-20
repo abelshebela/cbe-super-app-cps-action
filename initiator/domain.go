@@ -22,8 +22,8 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
-	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
+	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -57,6 +57,7 @@ type Domain struct {
 }
 
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger) Domain {
+	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	return Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", logger),
@@ -65,12 +66,12 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		UnlinkDomain:          unlink_service.NewUnlinkService(persistence.UnlinkPersistence),
 		BudgetDomain:          budget_service.InitBudgetDomain(persistence.BudgetPersistence, logger),
 		AccountDomain:         account_validation.NewAccountValidationService(persistence.AccountPersistence, persistence.BulkServicesPersistence, logger),
-		CPSUserDomain:         services.NewCPSUserService(persistence.CPSUserPersistence),
+		CPSUserDomain:         services.NewCPSUserService(persistence.CPSUserPersistence, permissionDomain, logger),
 		PasswordRuleDomain:    password_service.NewPasswordRuleService(persistence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
 		BankDomain:            bank_service.InitBankDomain(persistence.BankPersistance, minioClient, "banks", logger),
 		DepartmentDomain:      *department.InitDepartmentDomain(persistence.DepartmentPersistence, persistence.DepartmentPersistence, logger),
 		AccountBlockDomain:    account_block.NewAccountService(persistence.AccountBlockPersistance),
-		PermissionDomain:      *permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger),
+		PermissionDomain:      permissionDomain,
 		HQDomain:              hq.NewService(persistence.HQPersistence, persistence.BulkServicesPersistence, logger),
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, logger),
 		ServiceDomain:         service.NewServiceStore(persistence.ServiceDetailsStore, persistence.BulkServicesPersistence, logger),
@@ -80,6 +81,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		miniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),
-		BudgetCategoryDomain:  *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence,  logger),
+		BudgetCategoryDomain:  *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, logger),
 	}
 }

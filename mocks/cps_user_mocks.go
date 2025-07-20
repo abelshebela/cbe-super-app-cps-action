@@ -1,9 +1,12 @@
-package repository
+package mocks
 
 import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -52,10 +55,18 @@ func (m *MockCPSActionRepo) FetchUserByUserCode(ctx context.Context, userCode st
 	return args.Get(0).(*model.CPSUser), args.Error(1)
 }
 
-func (m *MockCPSActionRepo) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	args := m.Called(ctx)
+func (m *MockCPSActionRepo) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+	args := m.Called(ctx, filterParams)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]model.CPSUser), args.Error(1)
+	return args.Get(0).(*common_util.PaginatedResponse[[]*model.CPSUser]), args.Error(1)
+}
+
+func (m *MockCPSActionRepo) FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error) {
+	args := m.Called(ctx, uniqueID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]action.ActionResponse), args.Error(1)
 }

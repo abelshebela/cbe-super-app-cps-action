@@ -31,6 +31,7 @@ import (
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -1139,24 +1140,51 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 }
 
-func (o *outboundStore) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	filter := bson.M{}
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
 	projection := bson.M{}
 
-	data, err := o.MongoDalCPSUser.FindAll(ctx, filter, projection)
+	// Add search functionality
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"phone_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"email": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"role": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	// Add filter functionality
+	if filterParams.Filters != "" {
+		filter["role"] = filterParams.Filters
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]model.CPSUser, 0, len(data))
-	for _, d := range data {
-		if d != nil {
-			result = append(result, *d)
-
-		}
+	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
-	return result, nil
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+
+	return &common_util.PaginatedResponse[[]*model.CPSUser]{
+		Data: users,
+		Meta: meta,
+	}, nil
 }
 
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {

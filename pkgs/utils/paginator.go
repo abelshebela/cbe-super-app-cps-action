@@ -17,7 +17,7 @@ type PaginationMeta struct {
 	NextPage      *int  `json:"nextPage,omitempty"`
 }
 type PaginatedResponse[T any] struct {
-	Data T              `json:"data"`
+	Data T              `json:"docs"`
 	Meta PaginationMeta `json:"meta"`
 }
 
