@@ -25,7 +25,7 @@ func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInboun
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/{id}",
 				Handler: handler.RequestPasswordRuleUpdate,
 				Middlewares: []func(next http.Handler) http.Handler{
