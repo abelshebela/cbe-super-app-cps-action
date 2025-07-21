@@ -14,6 +14,7 @@ import (
 
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 )
 
@@ -103,10 +104,77 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *mo
 	return &model.CPSAction{}, nil
 }
 
-func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp *model.MiniApp) (*model.MiniApp, error) {
+func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *entities.CPSAction) (*model.MiniApp, error) {
+	var actionData model.MiniApp
+	mapData := make(map[string]interface{})
 
-	miniapp.ID = bson.NewObjectID()
-	cpsAct, err := o.MongoDalMiniApp.InsertOne(ctx, *miniapp)
+	if string(action.ActionType) != string(model.ActionDelete) {
+
+		data, err := bson.Marshal(action.CurrentAction)
+		if err != nil {
+			o.logger.Errorf("failed to marshal bson: %v", err)
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		}
+
+		if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
+			o.logger.Errorf("failed to unmarshal into Avatar: %v", err)
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		}
+		if err := bson.Unmarshal([]byte(data), &mapData); err != nil {
+			o.logger.Errorf("failed to unmarshal into Avatar: %v", err)
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
+		}
+	}
+
+	req := model.MiniApp{
+		ID:                bson.NewObjectID(),
+		AppName:           actionData.AppName,
+		AppIcon:           actionData.AppIcon,
+		CommisonGLAccount: actionData.CommisonGLAccount,
+		AppType: model.AppType{
+			UAT:        actionData.AppType.UAT,
+			Production: actionData.AppType.Production,
+			Test:       actionData.AppType.Test,
+			Dev:        actionData.AppType.Dev,
+		},
+		MerchantID: actionData.MerchantID,
+		ProductCode: func() []model.ProductCode {
+			var result []model.ProductCode
+			for _, p := range actionData.ProductCode {
+				result = append(result, model.ProductCode{
+					ID:          p.ID,
+					BranchType:  p.BranchType,
+					ProductCode: p.ProductCode,
+				})
+			}
+			return result
+		}(),
+		Credential: func() []model.CredentialInformation {
+			var result []model.CredentialInformation
+			for _, c := range actionData.Credential {
+				result = append(result, model.CredentialInformation{
+					ID:            c.ID,
+					Environment:   c.Environment,
+					MerchantAppID: c.MerchantAppID,
+					FabricAppID:   c.FabricAppID,
+					ShortCode:     c.ShortCode,
+					AppSecret:     c.AppSecret,
+					PrivateKey:    c.PrivateKey,
+					PublicKey:     c.PublicKey,
+				})
+			}
+			return result
+		}(),
+		IsEventMiniApp: actionData.IsEventMiniApp,
+		IsThreeClick:   actionData.IsThreeClick,
+		Enabled:        actionData.Enabled,
+		IsDeleted:      actionData.IsDeleted,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+		DeletedAt:      time.Time{},
+	}
+
+	cpsAct, err := o.MongoDalMiniApp.InsertOne(ctx, req)
 
 	if err != nil {
 		return nil, err

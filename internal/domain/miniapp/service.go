@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	bson "go.mongodb.org/mongo-driver/v2/bson"
+	// bson "go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
@@ -62,75 +62,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 
 func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 
-	var actionData model.MiniApp
-	mapData := make(map[string]interface{})
-
-	if string(action.ActionType) != string(model.ActionDelete) {
-
-		data, err := bson.Marshal(action.CurrentAction)
-		if err != nil {
-			s.logger.Errorf("failed to marshal bson: %v", err)
-			return nil, fmt.Errorf("INVALID_ACTION_DATA")
-		}
-
-		if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
-			s.logger.Errorf("failed to unmarshal into Avatar: %v", err)
-			return nil, fmt.Errorf("INVALID_ACTION_DATA")
-		}
-		if err := bson.Unmarshal([]byte(data), &mapData); err != nil {
-			s.logger.Errorf("failed to unmarshal into Avatar: %v", err)
-			return nil, fmt.Errorf("INVALID_ACTION_DATA")
-		}
-	}
-
-	req := model.MiniApp{
-		AppName:           actionData.AppName,
-		AppIcon:           actionData.AppIcon,
-		CommisonGLAccount: actionData.CommisonGLAccount,
-		AppType: model.AppType{
-			UAT:        actionData.AppType.UAT,
-			Production: actionData.AppType.Production,
-			Test:       actionData.AppType.Test,
-			Dev:        actionData.AppType.Dev,
-		},
-		MerchantID: actionData.MerchantID,
-		ProductCode: func() []model.ProductCode {
-			var result []model.ProductCode
-			for _, p := range actionData.ProductCode {
-				result = append(result, model.ProductCode{
-					ID:          p.ID,
-					BranchType:  p.BranchType,
-					ProductCode: p.ProductCode,
-				})
-			}
-			return result
-		}(),
-		Credential: func() []model.CredentialInformation {
-			var result []model.CredentialInformation
-			for _, c := range actionData.Credential {
-				result = append(result, model.CredentialInformation{
-					ID:            c.ID,
-					Environment:   c.Environment,
-					MerchantAppID: c.MerchantAppID,
-					FabricAppID:   c.FabricAppID,
-					ShortCode:     c.ShortCode,
-					AppSecret:     c.AppSecret,
-					PrivateKey:    c.PrivateKey,
-					PublicKey:     c.PublicKey,
-				})
-			}
-			return result
-		}(),
-		IsEventMiniApp: actionData.IsEventMiniApp,
-		IsThreeClick:   actionData.IsThreeClick,
-		Enabled:        actionData.Enabled,
-		IsDeleted:      actionData.IsDeleted,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-		DeletedAt:      time.Time{},
-	}
-
-	_, err := s.Repository.CreateMiniApp(ctx, &req)
+	_, err := s.Repository.CreateMiniApp(ctx, action)
 	if err != nil {
 		fmt.Printf("error form domain chekmiiapp to crate mini app : %v", err)
 		return nil, err
