@@ -45,7 +45,7 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 func (s Service) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
 		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
-		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_CHECK_FAILED_FOR_CREATE_PERMISSION")
+		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_EXISTS")
 	}
 
 	if exists := s.permissionGroupRepo.CheckPermissionGroupExists(groupName); exists {

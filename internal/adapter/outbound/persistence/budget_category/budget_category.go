@@ -3,6 +3,7 @@ package budget_category
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -124,7 +125,16 @@ func (b *BudgetCategoryRepo) FindActionById(ctx context.Context, actionId string
 		b.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
 		return nil, err
 	}
-	return b.cpsDal.FindOne(ctx, bson.M{"_id": oid}, bson.M{})
+	cpsAction, err := b.cpsDal.FindOne(ctx, bson.M{"_id": oid}, bson.M{})
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+	return cpsAction, nil
 }
 
 func (b *BudgetCategoryRepo) ApproveAction(ctx context.Context, approveRequest dto.ApproveBudgetCategoryRequest, checker action_entity.User) (action_entity.CPSAction, error) {
@@ -163,7 +173,16 @@ func (b *BudgetCategoryRepo) FindBudgetCategoryById(ctx context.Context, id stri
 		"_id":        oid,
 		"is_deleted": false,
 	}
-	return b.dal.FindOne(ctx, filter, bson.M{})
+
+	cpsAction, err := b.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+	return cpsAction, nil
 }
 
 func (b *BudgetCategoryRepo) UpdateBudgetCategory(ctx context.Context, req dto.UpdateBudgetCategoryRequest) (budget_entity.BudgetCategory, error) {
@@ -222,7 +241,16 @@ func (b *BudgetCategoryRepo) GetBudgetCategory(ctx context.Context, req dto.GetB
 		"_id":        oid,
 		"is_deleted": false,
 	}
-	return b.dal.FindOne(ctx, filter, bson.M{})
+
+	res, err := b.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+	return res, nil
 }
 
 func (b *BudgetCategoryRepo) GetAllBudgetCategory(ctx context.Context, req dto.GetAllBudgetCategoryRequest) ([]*budget_entity.BudgetCategory, error) {

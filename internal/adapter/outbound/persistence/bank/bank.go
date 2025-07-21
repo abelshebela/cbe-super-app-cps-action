@@ -104,6 +104,9 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 
 	bank, err := b.bankDal.FindOne(ctx, bankFilter, bankProjection)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		b.logger.Errorf("failed to get bank for deletion, id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}

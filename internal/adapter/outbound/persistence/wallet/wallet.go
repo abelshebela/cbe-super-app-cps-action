@@ -186,7 +186,7 @@ func (w *Wallet) AuthorizeCreate(ctx context.Context, cpsAction *entities.CPSAct
 
 	wallet, err := w.walletDal.InsertOne(ctx, *doc)
 	if err != nil {
-		return nil, w.handleError("create wallet", err, error_codes.UnhandledServerError)
+		return nil, w.handleError("GENERAL_DB_INSERT_FAILED", err, error_codes.UnhandledServerError)
 	}
 
 	cpsAction.CreatedAt = cpsAction.MakerActionTime

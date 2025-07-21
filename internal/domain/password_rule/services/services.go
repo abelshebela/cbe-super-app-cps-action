@@ -54,9 +54,6 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 	}
 
 	prevAction := dbRule
-	if dbRule == nil {
-		prevAction = nil
-	}
 
 	cpsAction := action.CPSAction{
 		ActionCode:       utils.GenerateRandom(20),
@@ -79,9 +76,6 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 		return "", err
 	}
 	return created.ActionCode, nil
-}
-func generateActionCode() string {
-	return fmt.Sprintf("ACT-%d", time.Now().UnixNano())
 }
 
 func (s *passwordRuleService) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
