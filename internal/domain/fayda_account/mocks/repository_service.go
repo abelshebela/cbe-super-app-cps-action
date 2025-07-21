@@ -14,6 +14,9 @@ import (
 	reflect "reflect"
 
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	utils0 "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -54,6 +57,21 @@ func (m *MockRepository) AuthorizeFaydaAccountDisable(ctx context.Context, req e
 func (mr *MockRepositoryMockRecorder) AuthorizeFaydaAccountDisable(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeFaydaAccountDisable", reflect.TypeOf((*MockRepository)(nil).AuthorizeFaydaAccountDisable), ctx, req)
+}
+
+// GetAllFaydaAccounts mocks base method.
+func (m *MockRepository) GetAllFaydaAccounts(ctx context.Context, filterParams *utils0.Filter) (*utils.PaginatedResponse[[]*member.User], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllFaydaAccounts", ctx, filterParams)
+	ret0, _ := ret[0].(*utils.PaginatedResponse[[]*member.User])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllFaydaAccounts indicates an expected call of GetAllFaydaAccounts.
+func (mr *MockRepositoryMockRecorder) GetAllFaydaAccounts(ctx, filterParams any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFaydaAccounts", reflect.TypeOf((*MockRepository)(nil).GetAllFaydaAccounts), ctx, filterParams)
 }
 
 // InitiateDisableFaydaAccount mocks base method.

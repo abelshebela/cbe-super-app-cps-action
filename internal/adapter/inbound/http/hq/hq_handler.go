@@ -76,7 +76,7 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName)
+	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return

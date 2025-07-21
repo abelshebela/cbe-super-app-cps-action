@@ -7,8 +7,9 @@ import (
 
 	"encoding/json"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
@@ -58,7 +59,7 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 	}
 
 	cpsAction := action.CPSAction{
-		ActionCode:       generateActionCode(),
+		ActionCode:       utils.GenerateRandom(20),
 		MakerID:          maker.UserID,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
@@ -96,7 +97,7 @@ func (s *passwordRuleService) Authorize(ctx context.Context, cpsAction *entities
 	if err := s.repo.UpdatePasswordRule(ctx, rule); err != nil {
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_PASSWORD_RULE: %w", err)
 	}
-	cpsAction.ActionStatus = "APPROVED"
+	cpsAction.ActionStatus = cps_constants.ActionApproved
 	return cpsAction, nil
 }
 
