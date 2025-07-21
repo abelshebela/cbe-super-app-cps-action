@@ -51,6 +51,7 @@ type User struct {
 	PhoneNumber       string              `json:"phone_number" bson:"phone_number"`
 	Gender            enums.Gender        `json:"gender" bson:"gender"`
 	MartialStatus     enums.MartialStatus `json:"marital_status" bson:"marital_status"`
+	FirstPinSet       bool                `json:"first_pin_set" bson:"first_pin_set"`
 	Fayda             struct {
 		FaydaID          string `json:"id_number" bson:"id_number"`
 		FaydaAccessToken string `json:"fayda_access_token" bson:"fayda_access_token"`

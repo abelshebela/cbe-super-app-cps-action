@@ -15,7 +15,8 @@ import (
 
 	entities "cbe-super-app-member-users/internal/adapter/outbound/model"
 
-	dal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	// dal "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"cbe-super-app-member-users/pkgs/dal"
 
 	localModel "cbe-super-app-member-users/pkgs/entities"
 
@@ -39,12 +40,28 @@ type MongoRepository struct {
 func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
 	return &MongoRepository{
 		userDal:          dal.NewMongoDal[entities.User, entities.User](client, dbName, "user"),
-		linkedAccountDal: dal.NewMongoDal[entities.LinkedAccount, entities.LinkedAccount](client, dbName, "linked_accounts"),
+		linkedAccountDal: dal.NewMongoDal[entities.LinkedAccount, entities.LinkedAccount](client, dbName, "linked_account"),
 		otpDal:           dal.NewMongoDal[entities.OTP, entities.OTP](client, dbName, "otp"),
 		hqDal:            dal.NewMongoDal[entities.HQ, entities.HQ](client, dbName, "hq"),
 		client:           client,
 		dbName:           dbName,
 	}
+}
+
+func (r *MongoRepository) DeleteOtpHard(ctx context.Context, id, otpCode, otpFor string) error {
+	objId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{
+		"_id": objId,
+	}
+	err = r.otpDal.DeleteOneHard(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *MongoRepository) FindByID(ctx context.Context, id string) (*userPort.User, error) {
@@ -504,7 +521,7 @@ func (r *MongoRepository) FindUserByPhone(ctx context.Context, phone string) (*u
 		"phone_number": phone,
 		"is_deleted":   false,
 	}
-	fmt.Println("filter phone", filter)
+
 	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -515,6 +532,21 @@ func (r *MongoRepository) FindUserByPhone(ctx context.Context, phone string) (*u
 
 	return r.mapUserEntityToDomain(userEntity), nil
 }
+func (r *MongoRepository) UpdateOneUser(ctx context.Context, filter map[string]interface{}, req map[string]interface{}) error {
+	bsonFilter := bson.M{}
+	for k, v := range filter {
+		bsonFilter[k] = v
+	}
+
+	update := bson.M{}
+
+	for k, v := range req {
+		update[k] = v
+	}
+
+	_, err := r.userDal.UpdateOne(ctx, bsonFilter, update)
+	return err
+}
 
 func (r *MongoRepository) FindUserByPhoneForLogin(ctx context.Context, phone string, pin string) (*userPort.User, error) {
 	filter := bson.M{
@@ -523,6 +555,7 @@ func (r *MongoRepository) FindUserByPhoneForLogin(ctx context.Context, phone str
 		"is_deleted":    false,
 	}
 
+	fmt.Println("pinLogin---------", filter)
 	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

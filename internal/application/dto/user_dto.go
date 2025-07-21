@@ -53,7 +53,7 @@ type RegisterResponse struct {
 	OTPSent            bool      `json:"otp_sent"`
 	Otp                string    `json:"otp"`
 	OTPExpiryMinutes   int       `json:"otp_expiry_minutes"`
-	Token              string    `json:"token,omitempty"`
+	Token              string    `json:"temp_token,omitempty"`
 	TokenType          string    `json:"token_type,omitempty"`
 	TokenExpiry        time.Time `json:"token_expiry,omitempty"`
 	OTPCode            string    `json:"otp_code,omitempty"`
@@ -68,11 +68,11 @@ type LoginRequest struct {
 }
 
 type PhoneLoginRequest struct {
-	Phone string `json:"phone" validate:"required"`
+	Phone string `json:"phone,omitempty" validate:"required"`
 }
 
 type LoginResponse struct {
-	Token          string    `json:"token"`
+	Token          string    `json:"access_token"`
 	UserID         string    `json:"user_id"`
 	UserCode       string    `json:"user_code"`
 	FullName       string    `json:"full_name"`
@@ -100,7 +100,7 @@ type ForgetPinSendOtpResponse struct {
 	OTPSent          bool      `json:"otp_sent"`
 	OTPExpiryMinutes int       `json:"otp_expiry_minutes"`
 	ResetSessionID   string    `json:"reset_session_id"`
-	Token            string    `json:"token,omitempty"`
+	Token            string    `json:"temp_token,omitempty"`
 	TokenType        string    `json:"token_type,omitempty"`
 	TokenExpiry      time.Time `json:"token_expiry,omitempty"`
 	NextStep         string    `json:"next_step"`
@@ -116,37 +116,40 @@ type ResetPinRequest struct {
 }
 
 type ResetPinResponse struct {
-	UserID           string    `json:"user_id"`
-	UserCode         string    `json:"user_code"`
-	FullName         string    `json:"full_name"`
-	PhoneNumber      string    `json:"phone_number"`
-	PinReset         bool      `json:"pin_reset"`
-	ResetTime        time.Time `json:"reset_time"`
-	AccessRestricted bool      `json:"access_restricted"`
-	Restrictions     []string  `json:"restrictions"`
+	UserID           string    `json:"user_id,omitempty"`
+	UserCode         string    `json:"user_code,omitempty"`
+	FullName         string    `json:"full_name,omitempty"`
+	PhoneNumber      string    `json:"phone_number,omitempty"`
+	PinReset         bool      `json:"pin_reset,omitempty"`
+	ResetTime        time.Time `json:"reset_time,omitempty"`
+	AccessRestricted bool      `json:"access_restricted,omitempty"`
+	Restrictions     []string  `json:"restrictions,omitempty"`
 	Token            string    `json:"token,omitempty"`
 	TokenType        string    `json:"token_type,omitempty"`
 	TokenExpiry      time.Time `json:"token_expiry,omitempty"`
-	NextStep         string    `json:"next_step"`
+	NextStep         string    `json:"next_step,omitempty"`
 }
 
 // Device Lookup DTOs
 type DeviceLookupResponse struct {
-	DeviceUUID  string    `json:"device_uuid"`
-	UserID      string    `json:"user_id"`
-	UserCode    string    `json:"user_code"`
-	FullName    string    `json:"full_name"`
-	PhoneNumber string    `json:"phone_number"`
-	Email       string    `json:"email"`
-	Platform    string    `json:"platform"`
-	AppVersion  string    `json:"app_version"`
-	IsLatest    bool      `json:"is_latest"`
+	DeviceUUID  string    `json:"device_uuid,omitempty"`
+	UserID      string    `json:"user_id,omitempty"`
+	UserCode    string    `json:"user_code,omitempty"`
+	FullName    string    `json:"full_name,omitempty"`
+	PhoneNumber string    `json:"phone_number,omitempty"`
+	Email       string    `json:"email,omitempty"`
+	Platform    string    `json:"platform,omitempty"`
+	AppVersion  string    `json:"app_version,omitempty"`
+	IsLatest    bool      `json:"is_latest,omitempty"`
 	UserFound   bool      `json:"user_found"`
-	Token       string    `json:"token,omitempty"`
+	Token       string    `json:"temp_token,omitempty"`
 	TokenType   string    `json:"token_type,omitempty"`
-	TokenExpiry time.Time `json:"token_expiry,omitempty"`
-	NextStep    string    `json:"next_step"`
+	TokenExpiry time.Time `json:"token_expiry"`
+	NextStep    string    `json:"next_step,omitempty"`
 	OTPCode     string    `json:"otp_code,omitempty"`
+	OTPFor      string    `json:"otp_for,omitempty"`
+	Message     string    `json:"-"`
+	Status      int       `json:"-"`
 }
 
 type PinStrengthRequest struct {
@@ -158,7 +161,7 @@ type VerifyOtpResponse struct {
 	UserID      string    `json:"user_id,omitempty"`
 	PhoneNumber string    `json:"phone_number"`
 	OTPVerified bool      `json:"otp_verified"`
-	Token       string    `json:"token,omitempty"`
+	Token       string    `json:"temp_token,omitempty"`
 	TokenType   string    `json:"token_type,omitempty"`
 	TokenExpiry time.Time `json:"token_expiry,omitempty"`
 	NextStep    string    `json:"next_step"`
@@ -168,7 +171,7 @@ type VerifyOtpResponse struct {
 type SetPinResponse struct {
 	UserID      string    `json:"user_id"`
 	PinSet      bool      `json:"pin_set"`
-	Token       string    `json:"token,omitempty"`
+	Token       string    `json:"access_token,omitempty"`
 	TokenType   string    `json:"token_type,omitempty"`
 	TokenExpiry time.Time `json:"token_expiry,omitempty"`
 	NextStep    string    `json:"next_step"`

@@ -25,7 +25,9 @@ type UserRepository interface {
 	CreateOtp(ctx context.Context, otp *OTPRecord) error
 	GetOtpByID(ctx context.Context, id string) (*OTPRecord, error)
 	UpdateOtp(ctx context.Context, otp *OTPRecord) error
+	UpdateOneUser(ctx context.Context, filter map[string]interface{}, req map[string]interface{}) error
 	DeleteOtp(ctx context.Context, phone, otpCode, otpFor string) error
+	DeleteOtpHard(ctx context.Context, phone, otpCode, otpFor string) error
 	// Registration methods
 	FindUserByPhone(ctx context.Context, phone string) (*User, error)
 	FindUserByPhoneForLogin(ctx context.Context, phone string, pin string) (*User, error)

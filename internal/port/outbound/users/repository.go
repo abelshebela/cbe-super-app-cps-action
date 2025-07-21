@@ -16,6 +16,7 @@ type UserRepositoryPort interface {
 	DeleteOtp(ctx context.Context, id string) error
 	UnlinkDevice(ctx context.Context, userID string, deviceID string) error
 	ChangePin(ctx context.Context, userID string, loginPIN LoginPIN) error
+	UpdateOneUser(ctx context.Context, filter map[string]interface{}, req map[string]interface{}) error
 }
 
 type Device struct {

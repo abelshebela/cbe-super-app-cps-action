@@ -102,6 +102,7 @@ func TempTokenMaker(user *entities.User, permissions []string, otpFor string, ad
 		"user_device_linked_date": "",
 		"permissions":             permissions,
 		"session_expiry":          sessionExpiry,
+		"action":                  action,
 	}
 
 	if additional != nil {

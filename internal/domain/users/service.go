@@ -471,19 +471,18 @@ func (s *UserService) ChangePin(ctx context.Context, ChangePinRequest ChangePinR
 		return err
 	}
 
+	err = s.checkPinHistory(userData, ChangePinRequest.NewPin)
+	if err != nil {
+		return err
+	}
+
 	if ChangePinRequest.OldPin == ChangePinRequest.NewPin {
 		return fmt.Errorf("SAME_PIN")
 	}
 
-	for _, historyPin := range userData.LoginPIN.PINHistory {
-		if historyPin == ChangePinRequest.NewPin {
-			return fmt.Errorf("PIN_IN_HISTORY")
-		}
-	}
-
 	var newHistory [4]string
 	copy(newHistory[1:], userData.LoginPIN.PINHistory[:3])
-	newHistory[0] = userData.LoginPIN.PIN
+	newHistory[0] = ChangePinRequest.OldPin
 	newLoginPIN := type_definition.LoginPIN{
 		PIN:              ChangePinRequest.NewPin,
 		PINHistory:       newHistory,
@@ -501,8 +500,10 @@ func (s *UserService) CreateOtp(ctx context.Context, otp OTPRecord) error {
 	return s.repository.CreateOtp(ctx, &otp)
 }
 
-func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
+func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor, action string) (*dto.VerifyOtpResponse, error) {
 	var phone, fullName string
+	var nextStep string
+	nextStep = "set_pin"
 
 	defer func() {
 		otp = ""
@@ -514,10 +515,10 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		return nil, err
 	}
 
-	if otpFor == "registration" {
+	if otpFor == "REGISTRATION" {
 
 		userEntity := &User{
-			Realm:       enums.MemberRealm,
+			Realm:       enums.MEMBER_REALM,
 			FullName:    full_name,
 			PhoneNumber: phone_number,
 			KYC: struct {
@@ -543,6 +544,9 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		if err != nil {
 			return nil, errRegistrationFailed
 		}
+
+		nextStep = "set_pin"
+
 	}
 
 	user, err := s.FindUserByPhone(ctx, phone_number)
@@ -574,10 +578,24 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		},
 	}
 
+	if action == "pre_login" {
+		nextStep = "pin_login"
+		filter := make(map[string]interface{})
+		req := make(map[string]interface{})
+
+		filter["phone_number"] = user.PhoneNumber
+		req["device.device_uuid"] = deviceUUID
+		err := s.repository.UpdateOneUser(ctx, filter, req)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	permissions := []string{"verify_otp", "set_pin"}
 	additional := map[string]interface{}{
 		"otp_for":    otpFor,
 		"token_type": "verify_otp",
+		"next_step":  nextStep,
 	}
 
 	token, err := utils.TempTokenMaker(userEntity, permissions, otpFor, additional, "verify_otp", s.cfg)
@@ -587,10 +605,6 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 	}
 
 	// Determine next step based on OTP purpose
-	nextStep := "set_pin"
-	if otpFor == "registration" {
-		nextStep = "complete_registration"
-	}
 
 	response := &dto.VerifyOtpResponse{
 		UserID:      userID,
@@ -608,11 +622,11 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 }
 
 func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp string, deviceUUID string, userRealm, otpFor string) (string, error) {
-	if otpFor == "registration" && deviceUUID != "" {
+	if otpFor == "REGISTRATION" && deviceUUID != "" {
 
 		registration, err := s.repository.FindPendingRegistration(ctx, phone, deviceUUID)
 		if err != nil {
-			s.logger.Errorf("Failed to find registration record: %v", err)
+			s.logger.Errorf("Failed to find registration record: %v", err, phone, deviceUUID)
 			return "", fmt.Errorf("OTP_NOT_FOUND")
 		}
 		if time.Now().After(registration.ExpiresAt) {
@@ -626,8 +640,7 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 			s.logger.Warnf("Invalid OTP for registration")
 			return "", fmt.Errorf("INVALID_OTP")
 		}
-
-		s.repository.DeleteOtp(ctx, registration.ID, otp, otpFor)
+		s.repository.DeleteOtpHard(ctx, registration.ID, otp, otpFor)
 
 		return registration.FullName, nil
 	}
@@ -649,17 +662,23 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 		return "", fmt.Errorf("INVALID_OTP")
 	}
 
+	s.repository.DeleteOtpHard(ctx, otpRecord.ID, otp, otpFor)
 	return otpRecord.FullName, nil
 }
 
 func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
 
-	// Clear sensitive data from memory after function execution
-
 	user, err := s.FindByID(ctx, userID)
 	if err != nil {
 		s.logger.Errorf("Failed to find user %s: %v", userID, err)
 		return nil, fmt.Errorf("USER_NOT_FOUND")
+	}
+
+	isValidPin := s.CheckPinInHistory(user.LoginPIN.PINHistory[:], newPin)
+
+	if isValidPin {
+		s.logger.Errorf("The Password you use is recently used")
+		return nil, fmt.Errorf("The Password you use is recently used")
 	}
 
 	encryptedPin, _, err := utils.LocalEncryptPassword(newPin, "otp", "", "", s.cfg)
@@ -707,11 +726,51 @@ func (s *UserService) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 		Token:       token,
 		TokenType:   "set_pin",
 		TokenExpiry: time.Now().Add(24 * time.Hour),
-		NextStep:    "login",
 	}
 
 	s.logger.Infof("PIN set successfully for user %s", userID)
 	return response, nil
+}
+
+func (s *UserService) CheckPinInHistory(pinHistory []string, newPin string) bool {
+	for _, pin := range pinHistory {
+		if pin == newPin {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *UserService) SavePinToHistory(ctx context.Context, userID string, newPin string) ([]string, error) {
+	id, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return []string{}, err
+	}
+	filter := bson.M{
+		"_id":        id,
+		"is_deleted": false,
+	}
+	user, err := s.GetOneUser(ctx, filter)
+	if err != nil {
+		s.logger.Errorf("unable to get user data for Pin history: %v", err)
+		return []string{}, err
+	}
+
+	passHistory := user.LoginPIN.PINHistory[:]
+	// Append the new Pin to the history
+	passHistory = append(passHistory, newPin)
+
+	// Shorten the passHistory to a maximum length of 4
+	if len(passHistory) > 4 {
+		passHistory = passHistory[len(passHistory)-4:]
+	}
+	// Keep only the last 5 Pins (or adjust as needed)
+	const maxHistory = 5
+	if len(passHistory) > maxHistory {
+		passHistory = passHistory[len(passHistory)-maxHistory:]
+	}
+
+	return passHistory, nil
 }
 
 // validateSetPinInputs validates the input parameters for setting PIN
@@ -822,7 +881,7 @@ func (s *UserService) Register(ctx context.Context, phone, full_name, email, dev
 		Platform:    platform,
 		FullName:    full_name,
 		OTP:         encOtpCode,
-		OTPFor:      "registration",
+		OTPFor:      "REGISTRATION",
 		Status:      "pending",
 		ExpiresAt:   time.Now().Add(expirationTime),
 		CreatedAt:   time.Now(),
@@ -843,7 +902,7 @@ func (s *UserService) Register(ctx context.Context, phone, full_name, email, dev
 		}
 	}()
 
-	userEntity := entities.User{
+	userEntity := &entities.User{
 		ID:          bson.NewObjectID(),
 		FullName:    full_name,
 		PhoneNumber: formattedPhone,
@@ -856,11 +915,20 @@ func (s *UserService) Register(ctx context.Context, phone, full_name, email, dev
 		},
 	}
 
-	permissions := []string{"registration"}
-	token, err := utils.TokenMaker(&userEntity, permissions, s.cfg, "permanent")
+	nextStep := "verify_otp"
+	otpFor := "registration"
+
+	permissions := []string{"verify_otp", "set_pin"}
+	additional := map[string]interface{}{
+		"otp_for":    otpFor,
+		"token_type": "registration",
+		"next_step":  nextStep,
+	}
+
+	token, err := utils.TempTokenMaker(userEntity, permissions, otpFor, additional, "verify_otp", s.cfg)
 	if err != nil {
-		s.logger.Errorf("Failed to generate registration token: %v", err)
-		// Don't fail the registration if token generation fails
+		s.logger.Errorf("Failed to generate verify OTP token: %v", err)
+		return nil, fmt.Errorf("TOKEN_GENERATION_FAILED")
 	}
 
 	var otp string
@@ -1233,6 +1301,7 @@ func (s *UserService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID st
 	additional := map[string]interface{}{
 		"reset_session_id": sessionID,
 		"token_type":       "forget_pin",
+		"next_step":        "forget_pin_verify_otp",
 	}
 
 	token, err := utils.TempTokenMaker(userEntity, permissions, "pin_reset", additional, "forget_pin", s.cfg)
@@ -1258,7 +1327,7 @@ func (s *UserService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID st
 		Token:            token,
 		TokenType:        "forget_pin",
 		TokenExpiry:      time.Now().Add(10 * time.Minute),
-		NextStep:         "verify_otp",
+		NextStep:         "forget_pin_verify_otp",
 		OTP:              otp,
 	}
 
@@ -1343,14 +1412,15 @@ func (s *UserService) ResetPin(ctx context.Context, resetSessionID, phone, devic
 		user.LoginPIN.PINHistory[i] = user.LoginPIN.PINHistory[i-1]
 	}
 	hashedPin, _, _ := utils.LocalEncryptPassword(newPin, "", "", "", s.cfg)
-	user.LoginPIN.PINHistory[0] = hashedPin
+	// user.LoginPIN.PINHistory[0] = hashedPin
 	user.LoginPIN.LastPINCreatedAt = time.Now()
+	user.LoginPIN.PIN = hashedPin
+
 	// Update user in database
 	if err := s.repository.ChangePin(ctx, user.ID.Hex(), user.LoginPIN); err != nil {
 		s.logger.Errorf("Failed to update user PIN: %v", err)
 		return nil, ErrPinResetFailed
 	}
-	user.LoginPIN.PINHistory[0] = hashedPin
 	// Update session status to completed
 	session.Status = "completed"
 	session.VerifiedAt = time.Now()
@@ -1487,12 +1557,24 @@ func (s *UserService) validateResetPinInputs(resetSessionID, phone, deviceUUID, 
 
 func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, appVersion, sourceApp string) (*dto.DeviceLookupResponse, error) {
 
-	// Check if device is linked to any user
 	user, err := s.FindUserByDevice(ctx, deviceUUID)
+	if err != nil {
+		return &dto.DeviceLookupResponse{
+			UserFound: false,
+			NextStep:  "pre_login",
+			Message:   "device not found",
+			Status:    400,
+		}, nil
+	}
 	userFound := err == nil && user != nil
 
+	err = s.ValidUserChecker(user)
+	if err != nil {
+		return nil, err
+	}
+
 	var userEntity entities.User
-	// Generate device lookup token using TempTokenMaker
+
 	if userFound {
 		userEntity = entities.User{
 			ID:          user.ID,
@@ -1514,10 +1596,17 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 		return nil, errPleaseRegisterFirst
 	}
 
+	nextStep := "verify_otp"
+	if user.IsVerified {
+		nextStep = "login"
+	}
 	permissions := []string{"device_lookup"}
 	additional := map[string]interface{}{
 		"platform":   platform,
 		"token_type": "device_lookup",
+		"pin_login":  userFound,
+		"register":   !userFound,
+		"next_step":  nextStep,
 	}
 
 	token, err := utils.TempTokenMaker(&userEntity, permissions, "device_lookup", additional, "device_lookup", s.cfg)
@@ -1530,11 +1619,6 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 	isLatest := true
 	if err == nil && hqData != nil {
 		isLatest = s.isAppVersionLatest(platform, appVersion, hqData)
-	}
-
-	nextStep := "register"
-	if userFound {
-		nextStep = "login"
 	}
 
 	response := &dto.DeviceLookupResponse{
@@ -1552,15 +1636,17 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 		TokenType:   "device_lookup",
 		TokenExpiry: time.Now().Add(5 * time.Minute),
 		NextStep:    nextStep,
+		Message:     "Device Successfuly Found",
+		Status:      200,
 	}
 
 	if userFound && !user.IsVerified {
 
 		otpCode := utils.OTPGenerator(6)
 
-		// TEAM_APPROVED: Required direct syscall. See ADR-17 for justification.
 		if s.cfg.GoEnv == "dev" || s.cfg.GoEnv == "uat" {
 			response.OTPCode = otpCode
+			response.OTPFor = "ENABLE"
 		}
 
 		encOtpCode, _, err := utils.LocalEncryptPassword(otpCode, "otp", "", "", s.cfg)
@@ -1584,8 +1670,8 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 			UserCode:   response.UserID,
 			OTP:        encOtpCode,
 			FullName:   response.FullName,
-			OTPFor:     string(enums.OTPForPINSet), // Using enum for "pin_set"
-			UserRealm:  userRealm,                  // Using sourceApp as user_realm
+			OTPFor:     string(enums.OTP_FOR_ENABLE), // Using enum for "pin_set"
+			UserRealm:  userRealm,                    // Using sourceApp as user_realm
 			ExpiresAt:  time.Now().Add(expirationTime),
 			CreatedAt:  time.Now(),
 			DeviceUUID: deviceUUID,
@@ -1612,12 +1698,10 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 
 func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVersion, sourceApp, phone_number string) (*dto.DeviceLookupResponse, error) {
 
-	// Check if device is linked to any user
 	user, err := s.FindUserByPhone(ctx, phone_number)
 	userFound := err == nil && user != nil
 
 	var userEntity entities.User
-	// Generate device lookup token using TempTokenMaker
 	if userFound {
 		userEntity = entities.User{
 			ID:          user.ID,
@@ -1635,17 +1719,32 @@ func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVer
 				AppVersion: appVersion,
 			},
 		}
+
 	} else {
-		return nil, err
+		return s.NotFoundUserResponse(userFound, deviceUUID, platform, appVersion), nil
 	}
 
-	permissions := []string{"device_lookup"}
+	nextStep := "register"
+	if userFound {
+		nextStep = "verify_otp"
+	}
+	permissions := []string{"pre_login"}
 	additional := map[string]interface{}{
 		"platform":   platform,
-		"token_type": "device_lookup",
+		"token_type": "pre_login",
+		"next_step":  nextStep,
 	}
 
-	token, err := utils.TempTokenMaker(&userEntity, permissions, "pre_login", additional, "device_lookup", s.cfg)
+	filter := make(map[string]interface{})
+	req := make(map[string]interface{})
+	filter["phone_number"] = phone_number
+	req["device.device_uuid"] = deviceUUID
+	err = s.repository.UpdateOneUser(ctx, filter, req)
+
+	if err != nil {
+		return nil, err
+	}
+	token, err := utils.TempTokenMaker(&userEntity, permissions, "pre_login", additional, "pre_login", s.cfg)
 	if err != nil {
 		s.logger.Errorf("Failed to generate device lookup token: %v", err)
 		return nil, fmt.Errorf("TOKEN_GENERATION_FAILED")
@@ -1655,11 +1754,6 @@ func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVer
 	isLatest := true
 	if err == nil && hqData != nil {
 		isLatest = s.isAppVersionLatest(platform, appVersion, hqData)
-	}
-
-	nextStep := "register"
-	if userFound {
-		nextStep = "verify_otp"
 	}
 
 	response := &dto.DeviceLookupResponse{
@@ -1677,15 +1771,16 @@ func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVer
 		TokenType:   "pre_login",
 		TokenExpiry: time.Now().Add(5 * time.Minute),
 		NextStep:    nextStep,
+		Message:     "Phone successfuly found",
+		Status:      200,
 	}
 
-	if userFound && !user.IsVerified {
+	if userFound {
 		otpCode := utils.OTPGenerator(6)
-
-		// TEAM_APPROVED: Required direct syscall. See ADR-17 for justification.
 		if s.cfg.GoEnv == "dev" || s.cfg.GoEnv == "uat" {
 			response.OTPCode = otpCode
 		}
+		response.OTPFor = "PIN_SET"
 
 		encOtpCode, _, err := utils.LocalEncryptPassword(otpCode, "otp", "", "", s.cfg)
 		if err != nil {
@@ -1707,8 +1802,8 @@ func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVer
 		otpRecord := OTPRecord{
 			UserCode:   response.UserID,
 			OTP:        encOtpCode,
-			OTPFor:     string(enums.OTPForPINSet), // Using enum for "pin_set"
-			UserRealm:  userRealm,                  // Using sourceApp as user_realm
+			OTPFor:     string(enums.OTP_FOR_PIN_SET), // Using enum for "pin_set"
+			UserRealm:  userRealm,                     // Using sourceApp as user_realm
 			ExpiresAt:  time.Now().Add(expirationTime),
 			CreatedAt:  time.Now(),
 			DeviceUUID: deviceUUID,
@@ -1733,6 +1828,19 @@ func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVer
 
 	s.logger.Infof("Device lookup completed for device %s, user found: %v", deviceUUID, userFound)
 	return response, nil
+}
+
+func (s *UserService) NotFoundUserResponse(userFound bool, deviceUUID, platform, appVersion string) *dto.DeviceLookupResponse {
+
+	return &dto.DeviceLookupResponse{
+		DeviceUUID: deviceUUID,
+		Platform:   platform,
+		AppVersion: appVersion,
+		UserFound:  userFound,
+		NextStep:   "REGISTER",
+		Message:    "Phone Number not found",
+		Status:     400,
+	}
 }
 
 // Helper method to check app version
@@ -1890,7 +1998,6 @@ func (s *UserService) CompleteRegistration(ctx context.Context, registrationID, 
 	return response, nil
 }
 
-// ValidateRegistrationInputs validates the registration input parameters (public for testing)
 func (s *UserService) ValidateRegistrationInputs(phone, deviceUUID, platform string) error {
 	return s.validateRegistrationInputs(phone, deviceUUID, platform)
 }
@@ -1944,7 +2051,6 @@ func (s *UserService) VerifyForgetPinOtp(ctx context.Context, resetSessionID, ph
 		return nil, ErrPinResetFailed
 	}
 
-	// Fetch user and generate token
 	user, err := s.FindUserByPhone(ctx, phone)
 	if err != nil {
 		s.logger.Errorf("Failed to find user for PIN reset: %v", err)
@@ -1981,7 +2087,6 @@ func (s *UserService) VerifyForgetPinOtp(ctx context.Context, resetSessionID, ph
 	return resp, nil
 }
 
-// ResetPinWithToken resets the PIN using a reset pin token (session must be verified, no OTP required)
 func (s *UserService) ResetPinWithToken(ctx context.Context, resetSessionID, phone, deviceUUID, newPin string) (*dto.ResetPinResponse, error) {
 
 	formattedPhone := utils.FormatPhoneNumber(phone)
@@ -1994,11 +2099,6 @@ func (s *UserService) ResetPinWithToken(ctx context.Context, resetSessionID, pho
 		s.logger.Errorf("Failed to find PIN reset session %s: %v", resetSessionID, err)
 		return nil, ErrPinResetSessionNotFound
 	}
-	fmt.Println("==============Domain======================")
-	fmt.Println(session.ExpiresAt)
-	fmt.Println(time.Now())
-	fmt.Println(time.Now().Before(session.ExpiresAt))
-	fmt.Println("==============Domain======================")
 
 	if !time.Now().Before(session.ExpiresAt) {
 		s.logger.Warnf("PIN reset session %s has expired", resetSessionID)
@@ -2033,7 +2133,7 @@ func (s *UserService) ResetPinWithToken(ctx context.Context, resetSessionID, pho
 	for i := len(user.LoginPIN.PINHistory) - 1; i > 0; i-- {
 		user.LoginPIN.PINHistory[i] = user.LoginPIN.PINHistory[i-1]
 	}
-	user.LoginPIN.PINHistory[0] = hashedPin
+	user.LoginPIN.PIN = hashedPin
 
 	if err := s.repository.ChangePin(ctx, user.ID.Hex(), user.LoginPIN); err != nil {
 		s.logger.Errorf("Failed to update user PIN: %v", err)
@@ -2081,4 +2181,28 @@ func (s *UserService) ResetPinWithToken(ctx context.Context, resetSessionID, pho
 
 	s.logger.Infof("PIN reset completed successfully for user %s, session: %s", user.ID.Hex(), resetSessionID)
 	return response, nil
+}
+
+func (s *UserService) ValidUserChecker(userData *User) error {
+
+	if userData.IsAccountBlocked {
+		return fmt.Errorf("Account is blocked")
+	}
+	// if !userData.KYC.KYCApproved {
+	// 	return  fmt.Errorf("KYC is Not Approved")
+	// }
+	// fmt.Println("userData.Enabled--------", userData.AccountStatus)
+
+	if userData.IsDeleted {
+		return fmt.Errorf("User is deleted")
+	}
+
+	if userData.IsDeleted {
+		return fmt.Errorf("User is deleted")
+	}
+
+	if userData.BlockedOnCPS {
+		return fmt.Errorf("User is blocked by cps")
+	}
+	return nil
 }

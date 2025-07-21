@@ -27,6 +27,32 @@ import (
 	// entities "cbe-super-app-member-users/internal/domain/users"
 )
 
+func ErrorStatus(errorInfo string) int {
+	var status int
+	switch errorInfo {
+	case "USER_NOT_FOUND":
+		status = http.StatusNotFound
+	case "INVALID_PIN":
+		status = http.StatusUnauthorized
+	case "ACCOUNT_BLOCKED":
+		status = http.StatusForbidden
+	case "ACCOUNT_DELETED":
+		status = http.StatusGone
+	case "DEVICE_NOT_LINKED":
+		status = http.StatusForbidden
+	case "TOO_MANY_LOGIN_ATTEMPTS":
+		status = http.StatusTooManyRequests
+	case "INVALID_PHONE_NUMBER":
+		status = http.StatusBadRequest
+	case "INVALID_DEVICE_UUID":
+		status = http.StatusBadRequest
+	default:
+		status = http.StatusInternalServerError
+	}
+
+	return status
+}
+
 func OTPGenerator(length uint8) string {
 	numberic := "0123456789"
 	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))

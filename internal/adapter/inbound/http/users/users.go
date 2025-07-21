@@ -126,13 +126,12 @@ func (h UsersAdapter) DeviceLookup(w http.ResponseWriter, r *http.Request) {
 
 	response, err := h.Application.DeviceLookup(r.Context(), headerData)
 	if err != nil {
-		utils.BaseResponseMaker(nil, w, "Device lookup failed", http.StatusNoContent)
+		utils.BaseResponseMaker(nil, w, fmt.Sprintf("Device lookup failed %v", err.Error()), http.StatusNoContent)
 		return
 	}
 
 	data, _ := utils.StructToMap(response)
-	utils.BaseResponseMaker(data, w, "Device Successfly Found", 200)
-	h.sendSuccessResponse(w, http.StatusOK, response)
+	utils.BaseResponseMaker(data, w, response.Message, response.Status)
 }
 
 func (h UsersAdapter) PreLogin(w http.ResponseWriter, r *http.Request) {
@@ -148,6 +147,7 @@ func (h UsersAdapter) PreLogin(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, "INVALID_PAYLOAD", 403, nil)
 		return
 	}
+
 	headerData := map[string]interface{}{
 		"platform":          platform,
 		"app_version":       appVersion,
@@ -156,7 +156,6 @@ func (h UsersAdapter) PreLogin(w http.ResponseWriter, r *http.Request) {
 		"installation_date": installationDate,
 	}
 
-	// Add any additional headers
 	for key, value := range additionalHeaders {
 		headerData[key] = value
 	}
@@ -168,7 +167,7 @@ func (h UsersAdapter) PreLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, _ := utils.StructToMap(response)
-	utils.BaseResponseMaker(data, w, "Phone successfuly found", 200)
+	utils.BaseResponseMaker(data, w, response.Message, response.Status)
 }
 
 func (h UsersAdapter) ForgetPin(w http.ResponseWriter, r *http.Request) {
@@ -442,8 +441,21 @@ type VerifyOtpRequest struct {
 }
 
 func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
+
 	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
 	if !ok || userID == "" {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
+
+	nextStep, ok := r.Context().Value(constant.ContextKey("next_step")).(string)
+	if !ok || nextStep != "verify_otp" {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
+
+	action, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	if !ok {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
 		return
 	}
@@ -463,38 +475,26 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowedOtpTypes := map[string]bool{"pin_set": true, "registration": true, "pin_reset": true, "login": true}
+	allowedOtpTypes := map[string]bool{"PIN_SET": true, "REGISTRATION": true, "PIN_RESET": true, "LOGIN": true, "ENABLE": true}
 	if !allowedOtpTypes[req.OtpFor] {
 		utils.SendErrorResponse(w, "INVALID_OTP_TYPE", http.StatusBadRequest, nil)
 		return
 	}
 
-	token, err := h.Application.VerifyOtp(r.Context(), userID, phoneNumber, req.Otp, deviceUUID, sourceApp, req.OtpFor)
+	data, err := h.Application.VerifyOtp(r.Context(), userID, phoneNumber, req.Otp, deviceUUID, sourceApp, req.OtpFor, action)
 
 	if err != nil {
-		status := http.StatusBadRequest
-		switch err.Error() {
-		case "EXPIRED_OTP":
-			status = http.StatusGone
-		case "INVALID_OTP":
-			status = http.StatusBadRequest
-		case "INVALID_INPUT_PARAMETERS":
-			status = http.StatusBadRequest
-		default:
-			status = http.StatusInternalServerError
-		}
-		utils.BaseResponseMaker(map[string]interface{}{}, w, "OTP verification failed", status)
+		utils.BaseResponseMaker(map[string]interface{}{}, w, "OTP verification failed", 500)
 		return
 	}
 
-	// Prepare success response
-	response := map[string]interface{}{
-		"token":        token,
-		"user_id":      userID,
-		"phone_number": phoneNumber,
+	dataResponse, err := utils.StructToMap(data)
+	if err != nil {
+		utils.BaseResponseMaker(map[string]interface{}{}, w, "OTP verification failed", 500)
+		return
 	}
 
-	utils.BaseResponseMaker(response, w, "OTP verified successfully", http.StatusOK)
+	utils.BaseResponseMaker(dataResponse, w, "OTP verified successfully", http.StatusOK)
 }
 
 type SetPinRequest struct {
@@ -504,6 +504,11 @@ type SetPinRequest struct {
 func (h UsersAdapter) SetPin(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
 	if !ok || userID == "" {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
+	nextStep, ok := r.Context().Value(constant.ContextKey("next_step")).(string)
+	if !ok || nextStep != "set_pin" {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
 		return
 	}
@@ -628,7 +633,12 @@ type LoginRequest struct {
 
 func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 	_, _, deviceUUID, _, _, _ := utils.HeaderRequirement(r, []string{})
+	nextStep, ok := r.Context().Value(constant.ContextKey("next_step")).(string)
 
+	if !ok || nextStep != "login" {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Invalid JSON payload", http.StatusBadRequest)
@@ -647,34 +657,14 @@ func (h UsersAdapter) Login(w http.ResponseWriter, r *http.Request) {
 	phone_number := r.Context().Value(utils.ContextKey("phone_number")).(string)
 	phone := utils.FormatPhoneNumber(phone_number)
 	loginResult, err := h.Application.Login(r.Context(), phone, deviceUUID, req.Pin)
+
 	if err != nil {
-		status := http.StatusUnauthorized
-		switch err.Error() {
-		case "USER_NOT_FOUND":
-			status = http.StatusNotFound
-		case "INVALID_PIN":
-			status = http.StatusUnauthorized
-		case "ACCOUNT_BLOCKED":
-			status = http.StatusForbidden
-		case "ACCOUNT_DELETED":
-			status = http.StatusGone
-		case "DEVICE_NOT_LINKED":
-			status = http.StatusForbidden
-		case "TOO_MANY_LOGIN_ATTEMPTS":
-			status = http.StatusTooManyRequests
-		case "INVALID_PHONE_NUMBER":
-			status = http.StatusBadRequest
-		case "INVALID_DEVICE_UUID":
-			status = http.StatusBadRequest
-		default:
-			status = http.StatusInternalServerError
-		}
-		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), status)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	response := map[string]interface{}{
-		"token":           loginResult.Token,
+		"access_token":    loginResult.Token,
 		"user_id":         loginResult.UserID,
 		"user_code":       loginResult.UserCode,
 		"full_name":       loginResult.FullName,
@@ -754,7 +744,7 @@ func (h UsersAdapter) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 		"device_uuid":        result.DeviceUUID,
 		"otp_sent":           result.OTPSent,
 		"otp":                result.OTP,
-		"token":              result.Token,
+		"temp_token":         result.Token,
 		"otp_expiry_minutes": result.OTPExpiryMinutes,
 		"reset_session_id":   result.ResetSessionID,
 		"next_step":          result.NextStep,
@@ -783,9 +773,15 @@ type VerifyForgetPinOtpRequest struct {
 }
 
 func (h UsersAdapter) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
+	nextStep, ok := r.Context().Value(constant.ContextKey("next_step")).(string)
+	if !ok || nextStep != "forget_pin_verify_otp" {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
 	var req VerifyForgetPinOtpRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.BaseResponseMaker(nil, w, "Invalid JSON payload", http.StatusBadRequest)
+		utils.BaseResponseMaker(nil, w, "Invalid JSON payload"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -868,6 +864,11 @@ func (h UsersAdapter) ResetPin(w http.ResponseWriter, r *http.Request) {
 		utils.BaseResponseMaker(nil, w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
+	nextStep, ok := r.Context().Value(constant.ContextKey("next_step")).(string)
+	if !ok || nextStep != "reset_pin" {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
 
 	if err := h.validateResetPinRequest(req); err != nil {
 		utils.BaseResponseMaker(nil, w, err.Error(), http.StatusBadRequest)
@@ -903,7 +904,6 @@ func (h UsersAdapter) ResetPin(w http.ResponseWriter, r *http.Request) {
 		"reset_time":        result.ResetTime,
 		"access_restricted": result.AccessRestricted,
 		"restrictions":      result.Restrictions,
-		"next_step":         result.NextStep,
 	}
 
 	utils.BaseResponseMaker(response, w, "PIN reset completed successfully", http.StatusOK)
@@ -959,7 +959,11 @@ func (h UsersAdapter) CompleteRegistration(w http.ResponseWriter, r *http.Reques
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
-
+	action, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	if !ok {
+		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
+		return
+	}
 	// Validate required fields
 	if err := h.validateCompleteRegistrationRequest(req); err != nil {
 		utils.BaseResponseMaker(map[string]interface{}{}, w, err.Error(), http.StatusBadRequest)
@@ -967,7 +971,7 @@ func (h UsersAdapter) CompleteRegistration(w http.ResponseWriter, r *http.Reques
 	}
 	phoneNumber := r.Context().Value("phone_number").(string)
 
-	_, err := h.Application.VerifyOtp(r.Context(), req.RegistrationID, phoneNumber, req.OTP, req.DeviceUUID, req.Platform, "registration")
+	_, err := h.Application.VerifyOtp(r.Context(), req.RegistrationID, phoneNumber, req.OTP, req.DeviceUUID, req.Platform, "registration", action)
 	if err != nil {
 		status := http.StatusBadRequest
 		switch err.Error() {

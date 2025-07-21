@@ -376,7 +376,7 @@ func (h UsersHandler) DeviceLookup(ctx context.Context, header map[string]interf
 
 	sourceApp, ok := header["source_app"].(string)
 	if !ok {
-		sourceApp = "" // Default to empty string if not provided
+		sourceApp = ""
 	}
 
 	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
@@ -400,13 +400,13 @@ func (h UsersHandler) PreLogin(ctx context.Context, header map[string]interface{
 
 	sourceApp, ok := header["source_app"].(string)
 	if !ok {
-		sourceApp = "" // Default to empty string if not provided
+		sourceApp = ""
 	}
 
 	return h.userService.PreLogin(ctx, deviceUUID, platform, appVersion, sourceApp, phone)
 }
 
-func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor string) (*dto.VerifyOtpResponse, error) {
+func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor, action string) (*dto.VerifyOtpResponse, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("context error: %w", err)
 	}
@@ -420,7 +420,7 @@ func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		return nil, fmt.Errorf("failed to encrypt OTP: %w", err)
 	}
 
-	return h.userService.VerifyOtp(ctx, userID, phone_number, encOtp, deviceUUID, userRealm, otpFor)
+	return h.userService.VerifyOtp(ctx, userID, phone_number, encOtp, deviceUUID, userRealm, otpFor, action)
 }
 
 func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
@@ -433,6 +433,37 @@ func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 	}
 
 	return h.userService.SetPin(ctx, userID, newPin, deviceUUID, userRealm)
+}
+func (h UsersHandler) SavePinToHistory(ctx context.Context, userID string, newPin string) ([]string, error) {
+	id, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return []string{}, err
+	}
+	filter := bson.M{
+		"_id":        id,
+		"is_deleted": false,
+	}
+	user, err := h.userService.GetOneUser(ctx, filter)
+	if err != nil {
+		h.logger.Errorf("unable to get user data for Pin history: %v", err)
+		return []string{}, err
+	}
+
+	passHistory := user.LoginPIN.PINHistory[:]
+	// Append the new Pin to the history
+	passHistory = append(passHistory, newPin)
+
+	// Shorten the passHistory to a maximum length of 4
+	if len(passHistory) > 4 {
+		passHistory = passHistory[len(passHistory)-4:]
+	}
+	// Keep only the last 5 Pins (or adjust as needed)
+	const maxHistory = 5
+	if len(passHistory) > maxHistory {
+		passHistory = passHistory[len(passHistory)-maxHistory:]
+	}
+
+	return passHistory, nil
 }
 
 // validateOtpInputs validates the input parameters for OTP verification

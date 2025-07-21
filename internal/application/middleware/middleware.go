@@ -32,6 +32,24 @@ type UserPayload struct {
 	SessionExpiry        interface{} `json:"session_expiry,omitempty"`
 }
 
+type UserTempPayload struct {
+	UserID               string      `json:"user_id,omitempty"`
+	UserCode             string      `json:"user_code,omitempty"`
+	FullName             string      `json:"full_name,omitempty"`
+	PhoneNumber          string      `json:"phone_number,omitempty"`
+	Email                string      `json:"user_email,omitempty"`
+	Realm                string      `json:"user_realm,omitempty"`
+	MemberType           bool        `json:"ifb_member,omitempty"`
+	DeviceUUID           string      `json:"device_uuid,omitempty"`
+	UserDeviceLinkedDate string      `json:"user_device_linked_date,omitempty"`
+	Permissions          interface{} `json:"permissions,omitempty"`
+	SessionExpiry        interface{} `json:"session_expiry,omitempty"`
+	PinLogin             bool        `json:"pin_login,omitempty"`
+	Register             bool        `json:"register,omitempty"`
+	Action               string      `json:"action,omitempty"`
+	NextStep             string      `json:"next_step"`
+}
+
 type authMiddleware struct {
 	logger       utils.Logger
 	JWTSecretKey string
@@ -42,6 +60,7 @@ type authMiddleware struct {
 type AuthMiddleware interface {
 	AccessControl(allowedRoles []string) func(http.Handler) http.Handler
 	AuthenticateToken(next http.Handler) http.Handler
+	AuthenticateTempToken(next http.Handler) http.Handler
 }
 
 func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
@@ -152,6 +171,66 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	})
 }
 
+func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const bearer = "Bearer "
+		authHeader := r.Header.Get("Authorization")
+
+		if !strings.HasPrefix(authHeader, bearer) {
+			a.sendUnauthorizedResponse(w, "bearer token is not present", "unauthorized")
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, bearer)
+		if tokenString == "" {
+			a.sendUnauthorizedResponse(w, "empty token string provided", "access token required")
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				a.logger.Errorf("unexpected signing method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(a.JWTSecretKey), nil
+		})
+
+		if err != nil || !token.Valid {
+			a.sendUnauthorizedResponse(w, "invalid or expired token", "invalid or expired token")
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			a.sendUnauthorizedResponse(w, "failed to cast to map claims", "invalid token")
+			return
+		}
+
+		data, ok := claims["data"].(string)
+		if !ok || data == "" {
+			a.sendUnauthorizedResponse(w, "invalid token or data not present", "invalid token")
+			return
+		}
+
+		decryptedUser, err := a.decryptUserData(data)
+		if err != nil {
+			a.sendUnauthorizedResponse(w, "failed to decrypt user data", "invalid token")
+			return
+		}
+
+		// fmt.Println("decoded user---------", decryptedUser)
+		var userPayload UserTempPayload
+		if err := json.Unmarshal([]byte(decryptedUser), &userPayload); err != nil {
+			a.sendUnauthorizedResponse(w, "failed to unmarshal user payload", "invalid token payload")
+			return
+		}
+
+		a.logger.Warnf("user payload: %+v", userPayload)
+		ctx := a.populateContextWithUserTempPayload(r.Context(), userPayload)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (a *authMiddleware) sendUnauthorizedResponse(w http.ResponseWriter, logMessage, responseMessage string) {
 	a.logger.Warnf(logMessage)
 	res := common.Response[constant.ErrorDefinition]{
@@ -181,6 +260,26 @@ func (a *authMiddleware) populateContextWithUserPayload(ctx context.Context, use
 	return ctx
 }
 
+func (a *authMiddleware) populateContextWithUserTempPayload(ctx context.Context, userPayload UserTempPayload) context.Context {
+	// ctx = context.WithValue(ctx, constant.ContextKey("user"), userPayload)
+	ctx = context.WithValue(ctx, constant.ContextKey("user_id"), userPayload.UserID)
+	ctx = context.WithValue(ctx, constant.ContextKey("user_code"), userPayload.UserCode)
+	ctx = context.WithValue(ctx, constant.ContextKey("full_name"), userPayload.FullName)
+	ctx = context.WithValue(ctx, constant.ContextKey("phone_number"), userPayload.PhoneNumber)
+	ctx = context.WithValue(ctx, constant.ContextKey("user_email"), userPayload.Email)
+	ctx = context.WithValue(ctx, constant.ContextKey("user_realm"), userPayload.Realm)
+	ctx = context.WithValue(ctx, constant.ContextKey("ifb_member"), userPayload.MemberType)
+	ctx = context.WithValue(ctx, constant.ContextKey("device_uuid"), userPayload.DeviceUUID)
+	ctx = context.WithValue(ctx, constant.ContextKey("user_device_linked_date"), userPayload.UserDeviceLinkedDate)
+	ctx = context.WithValue(ctx, constant.ContextKey("permissions"), userPayload.Permissions)
+	ctx = context.WithValue(ctx, constant.ContextKey("session_expiry"), userPayload.SessionExpiry)
+	ctx = context.WithValue(ctx, constant.ContextKey("action"), userPayload.Action)
+	ctx = context.WithValue(ctx, constant.ContextKey("pin_login"), userPayload.PinLogin)
+	ctx = context.WithValue(ctx, constant.ContextKey("register"), userPayload.Register)
+	ctx = context.WithValue(ctx, constant.ContextKey("next_step"), userPayload.NextStep)
+	return ctx
+
+}
 func (a *authMiddleware) decryptUserData(data string) (string, error) {
 	keyByte := []byte(a.Key)
 	ivByte := []byte(a.IV)
