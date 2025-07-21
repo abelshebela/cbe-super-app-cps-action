@@ -35,7 +35,6 @@ func NewPasswordRuleService(repo repository.PasswordRuleRepository) PasswordRule
 }
 
 func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error) {
-	fmt.Println("rule", rule)
 	if rule == nil || rule.ID == "" {
 		return "", fmt.Errorf("INVALID_ID")
 	}
@@ -45,10 +44,7 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 		return "", fmt.Errorf("NOT_FOUND")
 	}
 
-	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, rule.ID)
-	if err != nil {
-		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
-	}
+	pendingActions, _ := s.repo.FetchPendingActionsByUniqueID(ctx, rule.ID)
 	if len(pendingActions) > 0 {
 		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
