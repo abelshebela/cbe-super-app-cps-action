@@ -51,7 +51,12 @@ func (w *Wallet) toDocument(wallet *entity.Wallet) *entity.WalletDocument {
 		IsDeleted:      wallet.IsDeleted,
 		CreatedAt:      wallet.CreatedAt,
 		LastModifiedAt: wallet.LastModifiedAt,
-		DeletedAt:      *wallet.DeletedAt,
+		DeletedAt: func() time.Time {
+			if wallet.DeletedAt != nil {
+				return *wallet.DeletedAt
+			}
+			return time.Time{}
+		}(),
 	}
 }
 
