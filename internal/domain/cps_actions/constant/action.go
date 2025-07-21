@@ -353,7 +353,9 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Block": {
 		RequestBlockUser,
 		RequestDisableSingleBranch,
+		RequestEnableSingleBranch,
 		RequestDisableMultiBranches,
+		RequestEnableMultiBranches,
 		RequestBlockRegion,
 		RequestBlockDistrict,
 		RequestBlockCity,

@@ -46,7 +46,7 @@ type Domain struct {
 	FaydaDomain           *fayda_service.FaydaAccountDomain // to here aren't done 
 	FeedbackDomain        *feedback_service.FeedbackDomain
 	HQDomain              hq.Service 
-	MiniAppDomain         miniApp_domain.MiniAppService // not done
+	MiniAppDomain         miniApp_domain.MiniAppService
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service
 	PortalCardDomain      portalcard.PortaCardInterface

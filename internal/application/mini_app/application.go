@@ -5,19 +5,21 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type ApplicationAbstracts interface {
 	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error)
 	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error)
 	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (*entities.CPSAction, error)
-	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
 
@@ -146,8 +148,8 @@ func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.
 	return cpsAction, nil
 }
 
-func (a *ApplicationStore) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
-	list, err := a.service.ListMiniApp(ctx)
+func (a *ApplicationStore) ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error) {
+	list, err := a.service.ListMiniApp(ctx, filterParam)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.ListMiniApp] %v", err)
 		return nil, err

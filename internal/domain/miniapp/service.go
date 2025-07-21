@@ -10,10 +10,13 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type MiniAppStore struct {
@@ -26,7 +29,7 @@ type MiniAppService interface {
 	UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User, id string) (*entities.CPSAction, error)
 
 	DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (*entities.CPSAction, error)
-	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
 
@@ -146,8 +149,8 @@ func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker model.User
 	return a, nil
 }
 
-func (s *MiniAppStore) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {
-	miniApps, err := s.Repository.ListMiniApp(ctx)
+func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error) {
+	miniApps, err := s.Repository.ListMiniApp(ctx, filterParam)
 	return miniApps, err
 }
 

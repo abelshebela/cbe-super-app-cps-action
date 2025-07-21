@@ -33,22 +33,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.BankDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Block"):
-		return d.app.AccountBlockDomain.AuthorizeBlockCity(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Block"):
-		return d.app.AccountBlockDomain.AuthorizeBlockDistrict(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Block"):
-		return d.app.AccountBlockDomain.AuthorizeBlockUser(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Block"):
-		return d.app.AccountBlockDomain.AuthorizeBulkBranchesDisable(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Block"):
-		return d.app.AccountBlockDomain.AuthorizeRegionBlock(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Block"):
-		return d.app.AccountBlockDomain.AuthorizeSingleBranchDisable(ctx, cpsAction)
+		return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)
@@ -70,9 +55,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "UnlinkDevice"):
 		return d.app.UnlinkDomain.Authorize(ctx, cpsAction)
-
-	case constants.IsActionInGroup(action, "Wallet"):
-		return d.app.WalletDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Wallet"):
 		return d.app.WalletDomain.Authorize(ctx, cpsAction)

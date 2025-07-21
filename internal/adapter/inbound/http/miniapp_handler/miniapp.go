@@ -123,7 +123,9 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
-	list, err := h.Application.ListMiniApp(r.Context())
+	filterParam := common_util.ExtractFilterParams(r)
+
+	list, err := h.Application.ListMiniApp(r.Context(), filterParam)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to list mini apps")
 		return

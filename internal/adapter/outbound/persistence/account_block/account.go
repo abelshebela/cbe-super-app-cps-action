@@ -869,41 +869,52 @@ func (o *outboundAccountBlockStore) AuthorizeRegionBlock(ctx context.Context, cp
 	return cpsAction, nil
 
 }
-func (o *outboundAccountBlockStore) AuthorizeBulkBranchesDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-
-	var branches []action.Branch
-	switch v := cpsAction.CurrentAction.(type) {
-	case []byte:
-		_ = json.Unmarshal(v, &branches)
-	case string:
-		_ = json.Unmarshal([]byte(v), &branches)
-	case bson.Binary:
-		_ = json.Unmarshal(v.Data, &branches)
-	case map[string]interface{}:
-		b, _ := json.Marshal(v)
-		_ = json.Unmarshal(b, &branches)
+func (o *outboundAccountBlockStore) AuthorizeBulkBranchesEnable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	if err := o.updateBulkBranches(ctx, cpsAction, true); err != nil {
+		return nil, err
 	}
-	for _, branch := range branches {
-		if branch.BranchCode == "" {
-			return nil, errors.New("branch code is required in action data")
-		}
-		branchUpdate := bson.M{
-			"enabled":    false,
-			"updated_at": time.Now(),
-		}
-		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, branchUpdate)
-		if err != nil {
-			return nil, fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
-		}
-	}
-
 	return cpsAction, nil
-
 }
-func (o *outboundAccountBlockStore) AuthorizeSingleBranchDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+func (o *outboundAccountBlockStore) AuthorizeBulkBranchesDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	if err := o.updateBulkBranches(ctx, cpsAction, false); err != nil {
+		return nil, err
+	}
+	return cpsAction, nil
+}
 
+func (o *outboundAccountBlockStore) AuthorizeSingleBranchDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	branch, err := unmarshalBranchFromAction(cpsAction.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+	if branch.BranchCode == "" {
+		return nil, common.DefineError.Branch["BRANCH_ID_REQUIRED"]
+	}
+	if err := o.updateBranchState(ctx, branch.BranchCode, false); err != nil {
+		return nil, err
+	}
+	return cpsAction, nil
+}
+
+func (o *outboundAccountBlockStore) AuthorizeSingleBranchEnable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	branch, err := unmarshalBranchFromAction(cpsAction.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+	if branch.BranchCode == "" {
+		return nil, common.DefineError.Branch["BRANCH_ID_REQUIRED"]
+	}
+	if err := o.updateBranchState(ctx, branch.BranchCode, true); err != nil {
+		return nil, err
+	}
+	return cpsAction, nil
+}
+
+
+func unmarshalBranchFromAction(data interface{}) (*action.Branch, error) {
 	var branch action.Branch
-	switch v := cpsAction.CurrentAction.(type) {
+
+	switch v := data.(type) {
 	case []byte:
 		if err := json.Unmarshal(v, &branch); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal branch ([]byte): %w", err)
@@ -927,18 +938,65 @@ func (o *outboundAccountBlockStore) AuthorizeSingleBranchDisable(ctx context.Con
 	default:
 		return nil, fmt.Errorf("CurrentAction is not a supported type, got %T", v)
 	}
+	return &branch, nil
+}
 
-	if branch.BranchCode == "" {
-		return nil, common.DefineError.Branch["BRANCH_ID_REQUIRED"]
+func unmarshalBranchesFromAction(data interface{}) ([]action.Branch, error) {
+	var branches []action.Branch
+
+	switch v := data.(type) {
+	case []byte:
+		if err := json.Unmarshal(v, &branches); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal branches ([]byte): %w", err)
+		}
+	case string:
+		if err := json.Unmarshal([]byte(v), &branches); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal branches (string): %w", err)
+		}
+	case bson.Binary:
+		if err := json.Unmarshal(v.Data, &branches); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal branches (bson.Binary): %w", err)
+		}
+	case map[string]interface{}:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal branches (map): %w", err)
+		}
+		if err := json.Unmarshal(b, &branches); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal branches (map): %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("CurrentAction is not a supported type, got %T", v)
 	}
-	branchUpdate := bson.M{
-		"enabled":    false,
+	return branches, nil
+}
+
+
+func (o *outboundAccountBlockStore) updateBulkBranches(ctx context.Context, cpsAction *entities.CPSAction, enable bool) error {
+	branches, err := unmarshalBranchesFromAction(cpsAction.CurrentAction)
+	if err != nil {
+		return err
+	}
+	for _, branch := range branches {
+		if branch.BranchCode == "" {
+			return common.DefineError.Branch["BRANCH_ID_REQUIRED"]
+		}
+		if err := o.updateBranchState(ctx, branch.BranchCode, enable); err != nil {
+			return fmt.Errorf("failed to update branch %s: %w", branch.BranchCode, err)
+		}
+	}
+	return nil
+}
+
+
+func (o *outboundAccountBlockStore) updateBranchState(ctx context.Context, branchCode string, enable bool) error {
+	update := bson.M{
+		"enabled":    enable,
 		"updated_at": time.Now(),
 	}
-	_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branch.BranchCode}, branchUpdate)
+	_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"branch_code": branchCode}, update)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update branch: %w", err)
+		return fmt.Errorf("failed to update branch: %w", err)
 	}
-	return cpsAction, nil
-
+	return nil
 }
