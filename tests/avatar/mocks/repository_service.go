@@ -15,7 +15,9 @@ import (
 
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	avatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
-	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	utils0 "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -44,18 +46,18 @@ func (m *MockAvatarRepository) EXPECT() *MockAvatarRepositoryMockRecorder {
 }
 
 // Authorize mocks base method.
-func (m *MockAvatarRepository) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error) {
+func (m *MockAvatarRepository) Authorize(ctx context.Context, cpsAction *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Authorize", ctx, req)
-	ret0, _ := ret[0].(*avatar.CPSAction)
+	ret := m.ctrl.Call(m, "Authorize", ctx, cpsAction)
+	ret0, _ := ret[0].(*cpsactions.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Authorize indicates an expected call of Authorize.
-func (mr *MockAvatarRepositoryMockRecorder) Authorize(ctx, req any) *gomock.Call {
+func (mr *MockAvatarRepositoryMockRecorder) Authorize(ctx, cpsAction any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockAvatarRepository)(nil).Authorize), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockAvatarRepository)(nil).Authorize), ctx, cpsAction)
 }
 
 // CPSActionExists mocks base method.
@@ -118,10 +120,10 @@ func (mr *MockAvatarRepositoryMockRecorder) EnableOrDisableAvatar(ctx, id, reque
 }
 
 // GetAllAvatar mocks base method.
-func (m *MockAvatarRepository) GetAllAvatar(ctx context.Context, filterParams utils.Filter) (*avatar.AvatarResponse, error) {
+func (m *MockAvatarRepository) GetAllAvatar(ctx context.Context, filterParams utils0.Filter) (*utils.PaginatedResponse[[]*avatar.Avatar], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllAvatar", ctx, filterParams)
-	ret0, _ := ret[0].(*avatar.AvatarResponse)
+	ret0, _ := ret[0].(*utils.PaginatedResponse[[]*avatar.Avatar])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

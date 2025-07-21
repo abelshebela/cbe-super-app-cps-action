@@ -6,11 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block/mocks"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/tests/account_block/mocks"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
 )
 
 func TestAccountService_FilterSingleBranches(t *testing.T) {
@@ -18,7 +19,7 @@ func TestAccountService_FilterSingleBranches(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	tests := []struct {
 		name       string
@@ -34,7 +35,7 @@ func TestAccountService_FilterSingleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterSingleBranches(ctx, "Addis", "Bole").
+					FilterSingleBranches(ctx, "Addis", "Bole", nil).
 					Return([]action.Branch{
 						{BranchCode: "BR001", BranchName: "Branch 1"},
 						{BranchCode: "BR002", BranchName: "Branch 2"},
@@ -60,7 +61,7 @@ func TestAccountService_FilterSingleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterSingleBranches(ctx, "Addis", "Bole").
+					FilterSingleBranches(ctx, "Addis", "Bole", nil).
 					Return(nil, errors.New("db error"))
 			},
 			wantErr:    true,
@@ -71,7 +72,7 @@ func TestAccountService_FilterSingleBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			got, err := service.FilterSingleBranches(ctx, tt.region, tt.district)
+			got, err := service.FilterSingleBranches(ctx, tt.region, tt.district, nil)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, got)
@@ -88,7 +89,7 @@ func TestAccountService_DisableSingleBranch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	branch := action.Branch{BranchCode: "BR001"}
 	maker := action.User{UserCode: "U1"}
@@ -141,7 +142,7 @@ func TestAccountService_ApproveSingleBranchDisable(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	reason := "test reason"
 
@@ -205,7 +206,7 @@ func TestAccountService_FilterMultipleBranches(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	tests := []struct {
 		name       string
@@ -221,7 +222,7 @@ func TestAccountService_FilterMultipleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterMultipleBranches(ctx, "Addis", "Bole").
+					FilterMultipleBranches(ctx, "Addis", "Bole", nil).
 					Return([]action.Branch{
 						{BranchCode: "BR003"},
 						{BranchCode: "BR004"},
@@ -247,7 +248,7 @@ func TestAccountService_FilterMultipleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterMultipleBranches(ctx, "Addis", "Bole").
+					FilterMultipleBranches(ctx, "Addis", "Bole", nil).
 					Return(nil, errors.New("db error"))
 			},
 			wantErr:    true,
@@ -258,7 +259,7 @@ func TestAccountService_FilterMultipleBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			got, err := service.FilterMultipleBranches(ctx, tt.region, tt.district)
+			got, err := service.FilterMultipleBranches(ctx, tt.region, tt.district, nil)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, got)
@@ -275,7 +276,7 @@ func TestAccountService_DisableMultipleBranches(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	branches := []action.Branch{
 		{BranchCode: "BR001"},
@@ -339,7 +340,7 @@ func TestAccountService_ApproveBulkBranchesDisable(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	reason := "bulk reason"
 
@@ -403,7 +404,7 @@ func TestAccountService_GetBranchByCode(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	branch := action.Branch{BranchCode: "BR001"}
 
@@ -464,7 +465,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	region := action.Region{ID: "R1", RegionName: "Addis"}
 	maker := action.CPSAction{MakerID: "U1", MakerName: "Test User", MakerPhoneNumber: "+251911234567"}
@@ -472,7 +473,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
+		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(branches, nil)
 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(nil)
 
@@ -493,14 +494,14 @@ func TestAccountService_BlockRegion(t *testing.T) {
 
 	t.Run("filter branches error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(nil, errors.New("fail"))
+		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(nil, errors.New("fail"))
 		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
 	})
 
 	t.Run("disable branches error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
+		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(branches, nil)
 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(errors.New("fail"))
 		_, err := service.BlockRegion(ctx, region.ID, maker)
 		assert.Error(t, err)
@@ -508,7 +509,7 @@ func TestAccountService_BlockRegion(t *testing.T) {
 
 	t.Run("block region error", func(t *testing.T) {
 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "").Return(branches, nil)
+		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(branches, nil)
 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(errors.New("fail"))
 		_, err := service.BlockRegion(ctx, region.ID, maker)
@@ -521,7 +522,7 @@ func TestAccountService_ApproveRegionBlock(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	reason := "region reason"
 	checker := action.User{UserCode: "U123"} // ✅ Token-based user
@@ -586,7 +587,7 @@ func TestAccountService_UpdateRegion(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mocks.NewMockAccountBlockRepo(ctrl)
-	service := NewAccountService(mockRepo)
+	service := account_block.NewAccountService(mockRepo)
 
 	region := action.Region{ID: "R1", RegionName: "Addis", UpdatedAt: time.Now()}
 

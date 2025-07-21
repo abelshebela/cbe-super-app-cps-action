@@ -15,6 +15,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/tests/avatar/mocks"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -542,18 +544,16 @@ func TestAvatarDomain_GetAllAvatar(t *testing.T) {
 			},
 		}
 
-		expectedResponse := avatar.AvatarResponse{
-			Page:    1,
-			Avatars: avatars,
-			Limit:   10,
-			Total:   2,
+		resp := common_util.PaginatedResponse[[]*avatar.Avatar]{
+			Data: avatars,
+			Meta: common_util.BuildPaginationMeta(2,1, 10),
 		}
 
-		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(expectedResponse, nil)
+		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(resp, nil)
 
 		result, err := avatarService.GetAllAvatar(context.Background(), filterParams)
 		assert.NoError(t, err)
-		assert.Equal(t, expectedResponse, result)
+		assert.Equal(t, resp, result)
 	})
 
 	t.Run("no avatars found", func(t *testing.T) {
@@ -564,11 +564,9 @@ func TestAvatarDomain_GetAllAvatar(t *testing.T) {
 			Filters: "",
 		}
 
-		expectedResponse := avatar.AvatarResponse{
-			Page:    1,
-			Avatars: []*avatar.Avatar{},
-			Limit:   10,
-			Total:   0,
+		expectedResponse := common_util.PaginatedResponse[[]*avatar.Avatar]{
+			Data: []*avatar.Avatar{},
+			Meta: common_util.BuildPaginationMeta(2,1, 10),
 		}
 
 		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(expectedResponse, nil)
@@ -576,7 +574,7 @@ func TestAvatarDomain_GetAllAvatar(t *testing.T) {
 		result, err := avatarService.GetAllAvatar(context.Background(), filterParams)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedResponse, result)
-		assert.Empty(t, result.Avatars)
+		assert.Empty(t, result.Data)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
@@ -586,12 +584,16 @@ func TestAvatarDomain_GetAllAvatar(t *testing.T) {
 			Search:  "",
 			Filters: "",
 		}
+		expectedResponse := common_util.PaginatedResponse[[]*avatar.Avatar]{
+			Data: []*avatar.Avatar{},
+			Meta: common_util.BuildPaginationMeta(2,1, 10),
+		}
 
-		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(avatar.AvatarResponse{}, fmt.Errorf("database error"))
+		mockRepo.EXPECT().GetAllAvatar(gomock.Any(), filterParams).Return(expectedResponse, fmt.Errorf("database error"))
 
 		result, err := avatarService.GetAllAvatar(context.Background(), filterParams)
 		assert.Error(t, err)
-		assert.Equal(t, avatar.AvatarResponse{}, result)
+		assert.Equal(t, expectedResponse, result)
 		assert.Contains(t, err.Error(), "database error")
 	})
 }
@@ -636,12 +638,12 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 			ActionType:         string(model.ActionCreate),
 			CurrentAction:      avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
 			MakerActionTime:    testTime,
-			CheckerActionTime:  testTime,
+			CheckerActionTime:  &testTime,
 		}
 
 		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(expectedCpsAction, nil)
 
-		result, err := avatarService.Authorize(context.Background(), testAuthorizeReq)
+		result, err := avatarService.Authorize(context.Background(), &cpsactions.CPSAction{})
 		assert.NoError(t, err)
 		assert.Equal(t, expectedCpsAction, result)
 	})
@@ -656,7 +658,7 @@ func TestAvatarDomain_Authorize(t *testing.T) {
 
 		mockRepo.EXPECT().Authorize(gomock.Any(), testAuthorizeReq).Return(model.CPSAction{}, fmt.Errorf("action not found"))
 
-		result, err := avatarService.Authorize(context.Background(), testAuthorizeReq)
+		result, err := avatarService.Authorize(context.Background(), &cpsactions.CPSAction{})
 		assert.Error(t, err)
 		assert.Equal(t, model.CPSAction{}, result)
 		assert.Contains(t, err.Error(), "action not found")
@@ -707,7 +709,7 @@ func TestAvatarDomain_Reject(t *testing.T) {
 			CurrentAction:      avatar.Avatar{ID: "AVATAR001", Avatar: "test-bucket/avatar.png", Label: "Test Avatar", Enable: true},
 			RejectionReason:    "The uploaded image does not meet the required specifications and quality standards.",
 			MakerActionTime:    testTime,
-			CheckerActionTime:  testTime,
+			CheckerActionTime:  &testTime,
 		}
 
 		mockRepo.EXPECT().Reject(gomock.Any(), testRejectReq).Return(expectedCpsAction, nil)

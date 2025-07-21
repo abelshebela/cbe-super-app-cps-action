@@ -10,8 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	
-	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -25,7 +24,8 @@ type Service interface {
 	UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (*action.CPSAction, error)
 	AuthorizeUpdateBlockTime(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	AuthorizeUpdateArchiveTime(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
-	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)}
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+}
 
 type ServiceStore struct {
 	repository Repository
@@ -157,20 +157,20 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 	a := action.CPSAction{
-		ActionCode:        actionID,
-		MakerID:           request.MakerID,
-		MakerName:         request.MakerName,
-		MakerPhoneNumber:  request.MakerPhone,
-		Department:        request.Department,
-		ActionType:        action.ActionUpdate,
-		RequestAction:     action.RequestUpdateHQArchiveTime,
-		ActionStatus:      action.ActionPending,
-		CurrentAction:     currentAction,
-		PreviousAction:    previousActionJSON,
-		CreatedAt:         time.Now(),
-		LastModifiedAt:    time.Now(),
-		MakerActionTime:   time.Now(),
-		UniqueId:          request.ID,
+		ActionCode:       actionID,
+		MakerID:          request.MakerID,
+		MakerName:        request.MakerName,
+		MakerPhoneNumber: request.MakerPhone,
+		Department:       request.Department,
+		ActionType:       action.ActionUpdate,
+		RequestAction:    action.RequestUpdateHQArchiveTime,
+		ActionStatus:     action.ActionPending,
+		CurrentAction:    currentAction,
+		PreviousAction:   previousActionJSON,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		MakerActionTime:  time.Now(),
+		UniqueId:         request.ID,
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
@@ -180,6 +180,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 
 	return &createdAction, nil
 }
+
 // Add helper for robust JSON extraction, matching account validation
 func toJSONBytes(val interface{}) ([]byte, error) {
 	switch v := val.(type) {
@@ -271,3 +272,4 @@ func (s *ServiceStore) Authorize(ctx context.Context, action *entities.CPSAction
 		return nil, fmt.Errorf("unsupported request action: %s", action)
 	}
 
+}
