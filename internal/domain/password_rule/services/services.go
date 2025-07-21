@@ -167,5 +167,5 @@ func (s *passwordRuleService) CheckPasswordRule(ctx context.Context, password st
 			return false, "password must contain at least one special character"
 		}
 	}
-	return true, ""
+	return true, "Password is valid"
 }
