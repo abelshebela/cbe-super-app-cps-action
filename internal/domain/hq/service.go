@@ -181,7 +181,6 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	return &createdAction, nil
 }
 
-// Add helper for robust JSON extraction, matching account validation
 func toJSONBytes(val interface{}) ([]byte, error) {
 	switch v := val.(type) {
 	case nil:
@@ -204,36 +203,14 @@ func toJSONBytes(val interface{}) ([]byte, error) {
 }
 
 func (s *ServiceStore) AuthorizeUpdateBlockTime(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-	// Define wrapper to decode CurrentAction
-	type CurrentAction struct {
-		HQ HQ `json:"hq"`
-	}
-
-	var currentAction CurrentAction
-	currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
-	if err != nil {
-		s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
-	}
-
-	if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
-		s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
-		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
-	}
-
-	updatedHQ := currentAction.HQ
-	fmt.Println("updated hq", updatedHQ.ID)
-
-	if err := s.repository.UpdateHQ(ctx, updatedHQ.ID.Hex(), updatedHQ); err != nil {
-		s.logger.Errorf("failed to update HQ: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_HQ")
-	}
-
-	cpsAction.ActionStatus = cps_constants.ActionApproved
-	return cpsAction, nil
+	return s.authorizeUpdateHQ(ctx, cpsAction, "block_time")
 }
 
 func (s *ServiceStore) AuthorizeUpdateArchiveTime(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	return s.authorizeUpdateHQ(ctx, cpsAction, "archive_time")
+}
+
+func (s *ServiceStore) authorizeUpdateHQ(ctx context.Context, cpsAction *entities.CPSAction, actionType string) (*entities.CPSAction, error) {
 	type CurrentAction struct {
 		HQ HQ `json:"hq"`
 	}
@@ -241,23 +218,23 @@ func (s *ServiceStore) AuthorizeUpdateArchiveTime(ctx context.Context, cpsAction
 	var currentAction CurrentAction
 	currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
 	if err != nil {
-		s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
+		s.logger.Errorf("failed to convert CurrentAction to JSON for %s: %v", actionType, err)
 		return nil, fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
 	}
 
 	if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
-		s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
+		s.logger.Errorf("failed to unmarshal CurrentAction for %s: %v, bytes: %s", actionType, err, string(currentActionBytes))
 		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
 	}
 
 	updatedHQ := currentAction.HQ
 	if err := s.repository.UpdateHQ(ctx, updatedHQ.ID.Hex(), updatedHQ); err != nil {
-		s.logger.Errorf("failed to update HQ: %v", err)
+		s.logger.Errorf("failed to update HQ for %s: %v", actionType, err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_HQ")
 	}
 
 	cpsAction.ActionStatus = cps_constants.ActionApproved
-	s.logger.Infof("HQ archive time approved successfully", "action_id", cpsAction.ActionCode)
+	s.logger.Infof("HQ %s approved successfully", actionType, "action_id", cpsAction.ActionCode)
 	return cpsAction, nil
 }
 
@@ -269,7 +246,7 @@ func (s *ServiceStore) Authorize(ctx context.Context, action *entities.CPSAction
 		return s.AuthorizeUpdateArchiveTime(ctx, action)
 
 	default:
-		return nil, fmt.Errorf("unsupported request action: %s", action)
+		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}
 
 }

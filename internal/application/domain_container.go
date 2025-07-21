@@ -43,7 +43,7 @@ type Domain struct {
 	CustomerDomain        *customer_service.CustomerDomain 
 	DepartmentDomain      department.Service // starting here
 	EventDomain           event_domain.EventService // fully not ready
-	FaydaDomain           *fayda_service.FaydaAccountDomain // to here aren't done 
+	FaydaDomain           *fayda_service.FaydaAccountDomain
 	FeedbackDomain        *feedback_service.FeedbackDomain
 	HQDomain              hq.Service 
 	MiniAppDomain         miniApp_domain.MiniAppService
