@@ -23,7 +23,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
-	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
+	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
@@ -59,7 +59,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		MiniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),
-		BudgetCategoryDomain:  *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, logger),
-		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
+		// BudgetCategoryDomain:  *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, logger),
+		CPSActionDomain: cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 	}
 }

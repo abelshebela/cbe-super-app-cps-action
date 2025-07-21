@@ -80,6 +80,9 @@ func (s *passwordRuleService) RequestPasswordRuleUpdate(ctx context.Context, rul
 	}
 	return created.ActionCode, nil
 }
+func generateActionCode() string {
+	return fmt.Sprintf("ACT-%d", time.Now().UnixNano())
+}
 
 func (s *passwordRuleService) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	// Unmarshal the domain PasswordRule from CurrentAction

@@ -31,6 +31,7 @@ import (
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 
+	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -59,9 +60,12 @@ type Application struct {
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 	MiniAppApplication         miniApp_application.ApplicationAbstracts
 	EventApplication           event_application.ApplicationAbstracts
-	BankCategoryApplication    budget_category.BudgetCategoryApplictionService
-	CPSActionApplication       cps_actions_application.CPSActionApplication
-	DispatcherApplication      cps_actions_application.Dispatcher
+	// BankCategoryApplication    budget_category.BudgetCategoryApplictionService
+	CPSActionApplication  cps_actions_application.CPSActionApplication
+	DispatcherApplication cps_actions_application.Dispatcher
+
+	BudgetCategoryApplication budget_category.BudgetCategoryApplicationService
+	FileService               file.FileService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -91,7 +95,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
-		BankCategoryApplication:    budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
+		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
 	}

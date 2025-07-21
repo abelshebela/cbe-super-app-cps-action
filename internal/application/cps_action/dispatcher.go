@@ -33,9 +33,30 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	// 	return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Bank"):
 		return d.app.BankDomain.Authorize(ctx, cpsAction)
-	case constants.IsActionInGroup(action, "Avatar"):
-		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
-	case constants.IsActionInGroup(action, "Advert"):
+
+	case constants.IsActionInGroup(action, "Block"):
+		return d.app.AccountBlockDomain.AuthorizeBlockCity(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Block"):
+		return d.app.AccountBlockDomain.AuthorizeBlockDistrict(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Block"):
+		return d.app.AccountBlockDomain.AuthorizeBlockUser(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Block"):
+		return d.app.AccountBlockDomain.AuthorizeBulkBranchesDisable(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Block"):
+		return d.app.AccountBlockDomain.AuthorizeRegionBlock(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Block"):
+		return d.app.AccountBlockDomain.AuthorizeSingleBranchDisable(ctx, cpsAction)
+
+	//***********************************************************************
+	case constants.IsActionInGroup(action, "Account"):
+		return d.app.AccountDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "AdDomain"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
 
 	// case constants.IsActionInGroup(action, "BPSUser"):
@@ -122,6 +143,14 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Wallet"):
 		return d.app.WalletDomain.Authorize(ctx, cpsAction)
 
+	case constants.IsActionInGroup(action, "AmountBasedAuth"):
+		return d.app.AmountBasedAuthDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "BudgetCategory"):
+		return d.app.BudgetCategoryDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Budget"):
+		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("unsupported request action: %s", action)
 	}

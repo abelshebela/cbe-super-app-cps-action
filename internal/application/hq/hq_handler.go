@@ -3,11 +3,12 @@ package hq
 import (
 	"context"
 
+	// cpsaction "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	domain_hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -15,8 +16,8 @@ import (
 type ApplicationAbstracts interface {
 	GetHQ(ctx context.Context, id string) (dto.HQ, error)
 	GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*domain_hq.HQ], error)
-	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName,dept string) (*action.CPSAction, error)
-	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName,dept string) (*action.CPSAction, error)
+	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
+	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
 }
 
 type ApplicationStore struct {
@@ -68,6 +69,6 @@ func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request
 		MakerID:     makerID,
 		MakerName:   fullName,
 		MakerPhone:  phone,
-		Department: dept,
+		Department:  dept,
 	})
 }

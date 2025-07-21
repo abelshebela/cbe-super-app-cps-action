@@ -101,12 +101,12 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
-	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
-	if err != nil {
-		utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
+	// actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
+	// if err != nil {
+	// 	utils.SendErrorResponse(w, err.Error(), 0, nil)
+	// 	return
+	// }
+	actionCode := ""
 	common_util.WriteSuccessResponse(w, actionCode, "Update archive time request submitted for approval")
 
 }
