@@ -25,13 +25,12 @@ import (
 
 	portalCardRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/department"
-
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	portal_card_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -46,6 +45,10 @@ import (
 	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
 	miniApp_port "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
+
+	budget_category_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget_category"
+	cps_Actions_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/cps_action"
+	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
@@ -62,7 +65,6 @@ type Persitence struct {
 	BankPersistance            bank.BankPersistence
 	DepartmentPersistence      *dept_repo.DepartmentPersistence
 	PermissionPersistence      *perm_repo.PermissionPersistence
-	CPSActionPersistance       department.CPSActionRepository
 	advertPersistence          ad.ADRepo
 	avatarPersitence           avatar.AvatarOutbound
 	AccountBlockPersistance    account_block.AccountBlockOutboundPort
@@ -73,18 +75,20 @@ type Persitence struct {
 	PortalCardPersistance      portalCardRepo.PortaCardInterface
 	WalletPersistance          wallet.WalletPersistence
 	FaydaPersistence           fayda_account_repo.FaydaRepository
-	miniAppPersistance         miniApp_port.Outbound
+	miniAppPersistance         miniApp_port.MiniRepository
 	EventPersistence           *event_persistence.EventPersistence
+	CPSActionsPersistance      cps_actions.CPSActionRepository
+	BudgetCategoryPersistence  budget_category_repo.BudgetCategoryRepoInterface
 }
 
-func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger) Persitence {
+func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
 	collectionNames := []string{
 		"bps_user",
 		"cps_actions",
 		"cps_users",
 		"service",
 		"member",
-		"linked_accounts",
+		"linked_account",
 		"mini_app",
 		"portal_card",
 	}
@@ -97,7 +101,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, databaseName, []string{"user", "otp", "cps_actions"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
-		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger),
+		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),
 		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",
@@ -134,5 +138,8 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
 		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, []string{"events", "cps_actions"}, logger),
+		// BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
+		CPSActionsPersistance:     cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
+		BudgetCategoryPersistence: budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 	}
 }

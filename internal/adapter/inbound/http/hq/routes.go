@@ -25,7 +25,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/list",
+				Path:    "/",
 				Handler: handler.GetAllHQ,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -34,7 +34,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/block_time/update_request",
+				Path:    "/block_time/{id}",
 				Handler: handler.UpdateBlockTimeRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -43,48 +43,11 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/archive_time/update_request",
+				Path:    "/archive_time/{id}",
 				Handler: handler.UpdateArchiveTimeRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/block_time/approve/{action_code}",
-				Handler: handler.UpdateBlockTime,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/block_time/reject/{action_code}",
-				Handler: handler.UpdateBlockTime,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-
-			{
-				Method:  http.MethodGet,
-				Path:    "/archive_time/approve/{action_code}",
-				Handler: handler.UpdateArchiveTime,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/archive_time/reject/{action_code}",
-				Handler: handler.UpdateArchiveTime,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 		}

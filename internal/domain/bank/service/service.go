@@ -9,8 +9,10 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
-	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -24,12 +26,12 @@ type BankDomain struct {
 }
 
 type BankService interface {
-	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error)
+	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error)
 	GetOneBank(ctx context.Context, id string) (*entity.Bank, error)
 	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableBank(ctx context.Context, id string,
 		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
@@ -57,7 +59,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	actionData, ok := req.ActionData.(dto.CreateBankRequest)
 	if !ok {
 		b.logger.Errorf("failed to cast action data to bank request")
-		return nil, fmt.Errorf(error_codes.InvalidActionData)
+		return nil, fmt.Errorf(common_util.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
@@ -71,20 +73,20 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	}
 
 	if bankExists {
-		return nil, fmt.Errorf(error_codes.BankAlreadyExists)
+		return nil, fmt.Errorf(common_util.BankAlreadyExists)
 	}
 
 	exist, err := b.minioClient.BucketExist(ctx, b.bucketName)
 	if err != nil {
 		b.logger.Errorf("failed to check bank bucket: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	if !exist {
 		created, err := b.minioClient.MakeBucket(ctx, b.bucketName)
 		if !created || err != nil {
 			b.logger.Errorf("failed to create bank bucket: %v", err)
-			return nil, fmt.Errorf(error_codes.UnhandledServerError)
+			return nil, fmt.Errorf(common_util.UnhandledServerError)
 		}
 	}
 
@@ -92,7 +94,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 	file, err := actionData.Logo.Open()
 	if err != nil {
 		b.logger.Errorf("failed to open uploaded file: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -106,7 +108,7 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 
 	if err != nil {
 		b.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	cpsRes, err := b.bankRepo.CreateBank(ctx, model.CreateCPSAction{
@@ -142,7 +144,7 @@ func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) GetAllBank(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error) {
+func (b *BankDomain) GetAllBank(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
 	banks, err := b.bankRepo.GetAllBanks(ctx, filterParams)
 	if err != nil {
 		return nil, err
@@ -173,14 +175,8 @@ func (b *BankDomain) UpdateOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-
-	cpsAction, err := b.bankRepo.Authorize(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsAction, nil
+func (b *BankDomain) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	return b.bankRepo.Authorize(ctx, action)
 }
 
 func (b *BankDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
@@ -225,7 +221,7 @@ func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.Create
 	actionData, ok := req.ActionData.(dto.UpdateLogo)
 	if !ok {
 		b.logger.Errorf("failed to cast action data to bank request")
-		return nil, fmt.Errorf(error_codes.InvalidActionData)
+		return nil, fmt.Errorf(common_util.InvalidActionData)
 	}
 
 	if err := actionData.Validate(); err != nil {
@@ -237,7 +233,7 @@ func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.Create
 	file, err := actionData.Logo.Open()
 	if err != nil {
 		b.logger.Errorf("failed to open uploaded file: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 	defer file.Close()
 
@@ -251,7 +247,7 @@ func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.Create
 
 	if err != nil {
 		b.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
 	cpsRes, err := b.bankRepo.UpdateLogo(ctx, id, model.CreateCPSAction{

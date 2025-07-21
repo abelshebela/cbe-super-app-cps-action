@@ -7,6 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+		common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -14,11 +15,11 @@ import (
 
 type ADHandlers interface {
 	CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
-	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error)
+	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
-	Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
+	// Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error)
 	Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error)
 }
 
@@ -46,7 +47,7 @@ func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq mode
 	return a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
 }
 
-func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*entity.AdvertResponse, error) {
+func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error) {
 	adverts, err := a.adDomain.GetAllAdvert(ctx, filterParams)
 	if err != nil {
 		return nil, err
@@ -73,10 +74,10 @@ func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 	return advertCpsAction, nil
 }
 
-func (a ADHandler) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
+// func (a ADHandler) Authorize(ctx context.Context, cpsAction model.AuthorizeCPSAction) (*model.CPSAction, error) {
 
-	return a.adDomain.Authorize(ctx, cpsAction)
-}
+// 	return a.adDomain.Authorize(ctx, cpsAction)
+// }
 
 func (a ADHandler) Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
 	cpsActionRes, err := a.adDomain.Reject(ctx, cpsAction)

@@ -16,6 +16,7 @@ import (
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -30,6 +31,7 @@ import (
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -71,7 +73,7 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 		MongoDalPortalCard:        mongoDalPortalCard,
 	}
 }
-func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger) outbound.OutboundInfra {
+func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger, cfg *config.VaultConfig) outbound.OutboundInfra {
 
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
@@ -89,7 +91,7 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []str
 		MongoDalServices:       mongoDalService,
 		MongoDalMember:         mongoDalMember,
 		MongoDalAccounts:       mongoDalAccounts,
-		BpsCalls:               bpscalls.NewBpsCalls(),
+		BpsCalls:               bpscalls.NewBpsCalls(cfg, logger),
 		MongoDalMiniApp:        mongoDalMiniApp,
 		MongoDalCPSUser:        mongoDalCPSUser,
 		MongoDalServiceDetails: mongoDalServiceDetail,
@@ -271,9 +273,12 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 		return domain.ServiceDetails{}, err
 	}
 	filter := bson.M{"_id": objID}
-	fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
+	// fmt.Println("chkkkkkkkkkkkkkkkkk", filter)
 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.ServiceDetails{}, fmt.Errorf("NOT_FOUND")
+		}
 		return domain.ServiceDetails{}, fmt.Errorf(error_codes.GeneralDBQueryFailed)
 	}
 	return domain.ServiceDetails{
@@ -426,6 +431,8 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 		if err != nil {
 			objID = bson.NilObjectID
 		}
+	} else {
+		objID = bson.NewObjectID()
 	}
 
 	// Convert CurrentAction to map[string]interface{} if needed
@@ -455,7 +462,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 			}
 			return ""
 		}(),
-		PreviosAction:     domainAction.PreviosAction,
+		PreviousAction:    domainAction.PreviousAction,
 		CurrentAction:     currentAction,
 		ActionStatus:      string(domainAction.ActionStatus),
 		ActionType:        string(domainAction.ActionType),
@@ -504,7 +511,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CheckerPhoneNumber: modelAction.CheckerPhoneNumber,
 		Department:         modelAction.Department,
 		RejectionReason:    rejectionReason,
-		PreviosAction:      modelAction.PreviosAction,
+		PreviousAction:     modelAction.PreviousAction,
 		CurrentAction:      bsonDToMap(modelAction.CurrentAction), // always map/slice, never bson.D
 		ActionStatus:       domain.ActionStatus(modelAction.ActionStatus),
 		ActionType:         domain.ActionType(modelAction.ActionType),
@@ -518,6 +525,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 
 func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error) {
 	Action.ActionCode = utils.RandomGenerator(20)
+
 	modelAction := domainToModelCPSAction(Action)
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, modelAction)
 	if err != nil {
@@ -540,7 +548,7 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 		"unique_id":            modelAction.UniqueId,
 		"department":           modelAction.Department,
 		"rejection_reason":     modelAction.RejectionReason,
-		"previous_action":      modelAction.PreviosAction,
+		"previous_action":      modelAction.PreviousAction,
 		"current_action":       modelAction.CurrentAction,
 		"action_status":        modelAction.ActionStatus,
 		"action_type":          modelAction.ActionType,
@@ -557,9 +565,8 @@ func (o *outboundStore) UpdateCpsAction(ctx context.Context, Action domain.CPSAc
 
 	return nil
 }
-func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_Id string) (domain.CPSAction, error) {
-	// fmt.Println("holnvfnkednvg", Action_Id)
-	filter := bson.M{"action_code": Action_Id}
+func (o *outboundStore) FetchCpsActionById(ctx context.Context, Action_code string) (domain.CPSAction, error) {
+	filter := bson.M{"action_code": Action_code}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -576,6 +583,9 @@ func (o *outboundStore) FetchAccountsByAccountNumber(ctx context.Context, accoun
 	v, err := o.BpsCalls.FetchLinkedAccount(accountNumber)
 	if err != nil {
 		return nil, err
+	}
+	if v == nil {
+		return nil, fmt.Errorf(error_codes.AccountNotFound)
 	}
 	filter := map[string]interface{}{"customer_number": v.CustomerNumber}
 	data, err := o.MongoDalAccounts.FindAll(ctx, filter, nil)
@@ -673,6 +683,9 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 
 		_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				return nil, fmt.Errorf(error_codes.AccountNotFound)
+			}
 			return nil, err
 		}
 		updatedAccounts = append(updatedAccounts, acc)
@@ -681,7 +694,11 @@ func (o *outboundStore) UpdateAccounts(ctx context.Context, linkedAccounts []dom
 }
 
 func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error) {
-	filter := map[string]interface{}{"_id": linkedAccount.ID}
+	objID, err := bson.ObjectIDFromHex(*linkedAccount.ID)
+	if err != nil {
+		return domain.LinkedAccount{}, fmt.Errorf(error_codes.AccountNotFound)
+	}
+	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
 
 		"user_id":             linkedAccount.UserID,
@@ -714,8 +731,11 @@ func (o *outboundStore) UpdateAccount(ctx context.Context, linkedAccount domain.
 		"updated_at": linkedAccount.UpdatedAt,
 	}
 
-	_, err := o.MongoDalAccounts.UpdateOne(ctx, filter, update)
+	_, err = o.MongoDalAccounts.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.LinkedAccount{}, fmt.Errorf(error_codes.AccountNotFound)
+		}
 		return domain.LinkedAccount{}, err
 	}
 	return linkedAccount, nil
@@ -758,10 +778,9 @@ func (o *outboundStore) GetAllPortalCard(ctx context.Context) ([]*portalCardDoma
 
 }
 
-func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error) {
-
+func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, ids []string) ([]domain.LinkedAccount, error) {
 	var result []domain.LinkedAccount
-	for _, i := range id {
+	for _, i := range ids {
 
 		filter := bson.M{"customer_number": i}
 		item, err := o.MongoDalAccounts.FindOne(ctx, filter, nil)
@@ -769,7 +788,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, id []string)
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				return nil, fmt.Errorf(error_codes.AccountNotFound)
 			}
-			return nil, fmt.Errorf(error_codes.GeneralDBQueryFailed)
+			return nil, fmt.Errorf(err.Error())
 		}
 		result = append(result, domain.LinkedAccount{
 			ID:                stringToPointer(item.ID.Hex()),
@@ -855,7 +874,7 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 	}
 	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
 	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviosAction = previosCPSAction.CurrentAction
+		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -908,7 +927,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	}
 	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
 	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviosAction = previosCPSAction.CurrentAction
+		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
 	// Create CPS action
@@ -938,6 +957,8 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		return nil, fmt.Errorf("ACTION_HAS_ALREADY_REJECTED")
 	}
 
+	now := time.Now()
+
 	// Update it
 	cps_action.CheckerID = cpsAction.CheckerID
 	cps_action.CheckerName = cpsAction.CheckerName
@@ -946,7 +967,7 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	cps_action.ActionStatus = cpsAction.ActionStatus
 	cps_action.RejectionReason = cpsAction.RejectionReason
 	cps_action.LastModifiedAt = time.Now()
-	cps_action.CheckerActionTime = time.Now()
+	cps_action.CheckerActionTime = &now
 
 	// Conver the struct to bson.M
 	updateBytes, err := bson.Marshal(cps_action)
@@ -1036,7 +1057,7 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 	}
 
 	// Creating a new user
-	now := time.Now()
+	now = time.Now()
 
 	newUser := model.CPSUser{}
 	newUser.ID = bson.NewObjectID()
@@ -1124,24 +1145,51 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 }
 
-func (o *outboundStore) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	filter := bson.M{}
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
 	projection := bson.M{}
 
-	data, err := o.MongoDalCPSUser.FindAll(ctx, filter, projection)
+	// Add search functionality
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"phone_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"email": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"role": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	// Add filter functionality
+	if filterParams.Filters != "" {
+		filter["role"] = filterParams.Filters
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]model.CPSUser, 0, len(data))
-	for _, d := range data {
-		if d != nil {
-			result = append(result, *d)
-
-		}
+	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
 	}
 
-	return result, nil
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+
+	return &common_util.PaginatedResponse[[]*model.CPSUser]{
+		Data: users,
+		Meta: meta,
+	}, nil
 }
 
 func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
@@ -1390,7 +1438,7 @@ func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req servic
 		ActionStatus:       "PENDING",
 		ActionType:         "UPDATE_SERVICE_FEE",
 		RequestAction:      "UPDATE",
-		PreviosAction:      req.PreviosAction,
+		PreviousAction:     req.PreviousAction,
 		CurrentAction:      req.CurrentAction,
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
@@ -1721,9 +1769,9 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 	if action.ActionStatus != domain.ActionPending {
 		return errors.New("action is not in pending status")
 	}
-
+	now := time.Now()
 	action.CheckerID = checkerID
-	action.CheckerActionTime = time.Now()
+	action.CheckerActionTime = &now
 	action.LastModifiedAt = time.Now()
 
 	if approve {
@@ -1752,14 +1800,36 @@ func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID stri
 	return o.UpdateCpsAction(ctx, action)
 }
 
-func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.PasswordRule, error) {
-
+func (o *outboundStore) GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
 	projection := bson.M{}
 
-	data, err := o.MongoDalPasswordRule.FindAll(ctx, filter, projection)
+	// Add search functionality
+	if filterParams.Search != "" {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"password_id": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+	}
+
+	// Add filter functionality (if needed, e.g., by status)
+	if filterParams.Filters != "" {
+		filter["name"] = filterParams.Filters
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	data, err := o.MongoDalPasswordRule.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		return nil, err
+	}
+	totalDocs, err := o.MongoDalPasswordRule.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -1779,8 +1849,12 @@ func (o *outboundStore) GetAllPasswordRules(ctx context.Context) ([]*action.Pass
 		})
 	}
 
-	return dataList, nil
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
+	return &common_util.PaginatedResponse[[]*action.PasswordRule]{
+		Data: dataList,
+		Meta: meta,
+	}, nil
 }
 
 func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
@@ -1805,7 +1879,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviosAction:      data.PreviosAction,
+		PreviousAction:     data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
@@ -1848,7 +1922,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviosAction:      data.PreviosAction,
+		PreviousAction:     data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
@@ -1926,14 +2000,12 @@ func (o *outboundStore) FetchPendingActionsByUniqueID(ctx context.Context, uniqu
 	}
 	doc, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
-			return []action.ActionResponse{}, nil
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return []action.ActionResponse{}, fmt.Errorf("NOT_FOUND")
 		}
-		return nil, fmt.Errorf("failed to fetch pending action: %w", err)
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
-	if doc == nil {
-		return []action.ActionResponse{}, nil
-	}
+
 	response := action.ActionResponse{
 		ID:       doc.ID.Hex(),
 		ActionId: doc.ActionCode,

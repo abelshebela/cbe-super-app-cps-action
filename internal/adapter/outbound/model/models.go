@@ -68,6 +68,7 @@ type User struct {
 	UserCode    string `json:"user_code" bson:"user_code"`
 	FullName    string `json:"full_name" bson:"full_name"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	Department  string `json:"department" bson:"department"`
 }
 
 type Bank struct {
@@ -114,7 +115,7 @@ type CPSAction struct {
 	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string        `bson:"department" json:"department"`
 	RejectionReason    string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
-	PreviosAction      interface{}   `bson:"previous_action" json:"previous_action"`
+	PreviousAction     interface{}   `bson:"previous_action" json:"previou_action"`
 	CurrentAction      interface{}   `bson:"current_action" json:"current_action"`
 	ActionStatus       string        `bson:"action_status" json:"action_status"`
 	ActionType         string        `bson:"action_type" json:"action_type"`
@@ -122,7 +123,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `bson:"created_at" json:"created_at"`
 	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at"`
 	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time"`
-	CheckerActionTime  time.Time     `bson:"checker_action_time" json:"checker_action_time,omitempty"`
+	CheckerActionTime  *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
@@ -213,6 +214,38 @@ const (
 	RegistrationTypeLinked RegistrationType = "LINKED"
 )
 
+type LinkedAccountExternal struct {
+	ID                 string `json:"id"`
+	AccountBranchType  string `json:"account_branchtype"`
+	AccountBranchCode  string `json:"account_branchcode"`
+	AccountNumber      string `json:"account_number"`
+	CustomerNumber     string `json:"customer_number"`
+	CustomerName       string `json:"customer_name"`
+	AccountDescription string `json:"account_description"`
+	PhoneNumber        string `json:"phone_number"`
+	CustomerAddress    string `json:"customer_address"`
+	DebitAllowed       bool   `json:"debit_allowed"`
+	CreditAllowed      bool   `json:"credit_allowed"`
+	AccountType        string `json:"account_type"`
+	AccountFrozen      bool   `json:"account_frozen"`
+	AccountDormant     bool   `json:"account_dormant"`
+	ActiveAccount      bool   `json:"active_account"`
+	AccountCurrency    string `json:"account_currency"`
+}
+
+func (ext *LinkedAccountExternal) MapFromExternal() LinkedAccount {
+	return LinkedAccount{
+		AccountNumber:     ext.AccountNumber,
+		AccountType:       ext.AccountType,
+		AccountHolderName: ext.CustomerName,
+		CustomerNumber:    ext.CustomerNumber,
+		BranchCode:        ext.AccountBranchCode,
+		AccountBranchCode: ext.AccountBranchCode,
+		CurrencyCode:      ext.AccountCurrency,
+		IsAccountActive:   ext.ActiveAccount,
+	}
+}
+
 type LinkedAccount struct {
 	ID                bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
 	UserID            bson.ObjectID    `json:"user_id" bson:"user_id"`
@@ -280,12 +313,6 @@ const (
 	CB  BranchType = "CB"
 )
 
-type ProductCode struct {
-	ID          string     `bson:"id"`
-	BranchType  BranchType `bson:"branch_type"`
-	ProductCode string     `bson:"product_code"`
-}
-
 type AppType struct {
 	UAT        string `bson:"uat"`
 	Production string `bson:"production"`
@@ -305,7 +332,7 @@ type CpsActionNormalized struct {
 	CheckerPhoneNumber string      `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string      `bson:"department" json:"department"`
 	RejectionReason    string      `bson:"rejection_reason" json:"rejection_reason,omitempty"`
-	PreviosAction      interface{} `bson:"previous_action" json:"previous_action"`
+	PreviousAction     interface{} `bson:"previous_action" json:"previous_action"`
 	CurrentAction      interface{} `bson:"current_action" json:"current_action"`
 	ActionStatus       string      `bson:"action_status" json:"action_status"`
 	ActionType         string      `bson:"action_type" json:"action_type"`
@@ -315,19 +342,25 @@ type CpsActionNormalized struct {
 	MakerActionTime    time.Time   `bson:"maker_action_time" json:"maker_action_time"`
 	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
+type ProductCode struct {
+	ID          string     `bson:"id" json:"id,omitempty"`
+	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
+	ProductCode string     `bson:"product_code" json:"product_code"`
+}
+
 type CredentialInformation struct {
-	ID            string          `bson:"id"`
-	Environment   EnvironmentType `bson:"environment"`
-	MerchantAppID string          `bson:"merchant_app_id"`
-	FabricAppID   string          `bson:"fabric_app_id"`
-	ShortCode     string          `bson:"short_code"`
-	AppSecret     string          `bson:"app_secret"`
-	PrivateKey    string          `bson:"private_key"`
-	PublicKey     string          `bson:"public_key"`
+	ID            string          `bson:"id" json:"id,omitempty"`
+	Environment   EnvironmentType `bson:"environment" json:"environment"`
+	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
+	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
+	ShortCode     string          `bson:"short_code" json:"short_code"`
+	AppSecret     string          `bson:"app_secret" json:"app_secret"`
+	PrivateKey    string          `bson:"private_key" json:"private_key"`
+	PublicKey     string          `bson:"public_key" json:"public_key"`
 }
 
 type MiniApp struct {
-	ID                string                  `bson:"id"`
+	ID                bson.ObjectID           `bson:"_id"`
 	AppName           string                  `bson:"app_name"`
 	AppIcon           string                  `bson:"app_icon"`
 	CommisonGLAccount string                  `bson:"commison_gl_account"`

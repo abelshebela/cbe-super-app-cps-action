@@ -61,24 +61,6 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 			},
 			{
 				Method:  http.MethodPatch,
-				Path:    "/{action_code}/approve",
-				Handler: wallet.Authorize,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/{action_code}/reject",
-				Handler: wallet.Reject,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
 				Path:    "/{id}/enable",
 				Handler: wallet.Enable,
 				Middlewares: []func(next http.Handler) http.Handler{

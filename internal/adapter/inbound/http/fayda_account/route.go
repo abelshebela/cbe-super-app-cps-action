@@ -12,11 +12,11 @@ import (
 )
 
 func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/fayda_account_disable", func(r chi.Router) {
+	router.Route("/fayda_account", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/initiate",
+				Path:    "/disable/initiate",
 				Handler: faydaHandler.InitiateDisableFaydaAccount,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -25,20 +25,11 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/approve/{action_code}",
-				Handler: faydaHandler.AuthorizeFaydaAccountDisable,
+				Path:    "/",
+				Handler: faydaHandler.GetAllFaydaAccounts,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/reject/{action_code}",
-				Handler: faydaHandler.RejectFaydaAccountDisable,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
 				},
 			},
 		}

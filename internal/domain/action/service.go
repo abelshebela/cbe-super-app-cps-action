@@ -23,7 +23,7 @@ type ServiceInterface interface {
 	UpdateServiceFlag(ctx context.Context, actionID string, action bool, checker User) error
 	GetAccountByAccount(ctx context.Context, Account string) ([]LinkedAccount, error)
 	RemoveCifRequest(ctx context.Context, id []string, action bool, maker User) (string, error)
-	RemoveCif(ctx context.Context, actionID string, action bool, checker User) error
+	RemoveCif(ctx context.Context, actionID string, action bool, rejectionReason string, checker User) (*CPSAction, error)
 	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
 }
 
@@ -39,7 +39,7 @@ func NewService(repo ActionRepository, logger utils.Logger) ServiceInterface {
 	}
 }
 
-func (s *ServiceStore) createCpsAction(maker User, actionID string, currentAction any) CPSAction {
+func (s *ServiceStore) createCpsAction(maker User, actionID string, currentAction any, requestAction string) CPSAction {
 	return CPSAction{
 		ActionCode:        actionID,
 		MakerID:           maker.UserID,
@@ -48,10 +48,11 @@ func (s *ServiceStore) createCpsAction(maker User, actionID string, currentActio
 		ActionType:        ActionCreate,
 		ActionStatus:      ActionPending,
 		CurrentAction:     currentAction,
+		RequestAction:     RequestAction(requestAction),
+		Department:        maker.Department,
 		CreatedAt:         time.Now(),
 		LastModifiedAt:    time.Now(),
 		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Time{},
 	}
 
 }
@@ -62,10 +63,11 @@ func (s *ServiceStore) approveOrRejectAction(cpsAction *CPSAction, checker User,
 	} else {
 		cpsAction.ActionStatus = ActionRejected
 	}
+	now := time.Now()
 	cpsAction.CheckerID = checker.UserID
 	cpsAction.CheckerName = checker.FullName
 	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
-	cpsAction.CheckerActionTime = time.Now()
+	cpsAction.CheckerActionTime = &now
 	cpsAction.LastModifiedAt = time.Now()
 }
 
@@ -86,10 +88,10 @@ func extractCurrentAction(input any) (CurrentAction, error) {
 	return current, nil
 }
 
-func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction) (string, error) {
+func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction, requestAction string) (string, error) {
 	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
 
-	cpsAction := s.createCpsAction(maker, actionID, current)
+	cpsAction := s.createCpsAction(maker, actionID, current, requestAction)
 	data, err := s.Repository.CreateCpsAction(ctx, cpsAction)
 	if err != nil {
 		return "", err
@@ -117,7 +119,7 @@ func (s *ServiceStore) UpdateServiceFlagRequest(ctx context.Context, id string, 
 	return s.buildAndSaveCpsAction(ctx, maker, CurrentAction{
 		Id:     []string{id},
 		Action: action,
-	})
+	}, "SERVICE_FLAG_UPDATE")
 }
 
 func (s *ServiceStore) UpdateServiceFlag(ctx context.Context, actionID string, action bool, checker User) error {
@@ -180,39 +182,39 @@ func (s *ServiceStore) RemoveCifRequest(ctx context.Context, ids []string, actio
 		Id:            ids,
 		Action:        action,
 		RequestAction: "CIF_REMOVE",
-	})
+	}, "CIF_REMOVE")
 
 }
 
-func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bool, checker User) error {
-	cpsAction, err := s.Repository.FetchCpsActionById(ctx, actionID)
+func (s *ServiceStore) RemoveCif(ctx context.Context, actionCode string, action bool, rejectionReason string, checker User) (*CPSAction, error) {
+	cpsAction, err := s.Repository.FetchCpsActionById(ctx, actionCode)
 	if err != nil {
-		s.Logger.Errorf("RemoveCif: failed to fetch CPS action", "actionID", actionID, "error", err)
-		return err
+		s.Logger.Errorf("RemoveCif: failed to fetch CPS action", "actionCode", actionCode, "error", err)
+		return nil, err
 	}
 
 	s.approveOrRejectAction(&cpsAction, checker, action)
-
+	if rejectionReason != "" {
+		cpsAction.RejectionReason = &rejectionReason
+	}
 	if err := s.Repository.UpdateCpsAction(ctx, cpsAction); err != nil {
-		s.Logger.Errorf("RemoveCif: failed to update CPS action", "actionID", actionID, "error", err)
-		return err
+		s.Logger.Errorf("RemoveCif: failed to update CPS action", "actionCode", actionCode, "error", err)
+		return nil, err
 	}
 
 	if cpsAction.RequestAction == "CIF_REMOVE" {
-		return nil
+		return &cpsAction, nil
 	}
 	currentAction, err := extractCurrentAction(cpsAction.CurrentAction)
 	if err != nil {
-		s.Logger.Errorf("RemoveCif: failed to extract current action", "actionID", actionID, "error", err)
-		return err
+		s.Logger.Errorf("RemoveCif: failed to extract current action", "actionCode", actionCode, "error", err)
+		return nil, err
 	}
-
-	fmt.Println(currentAction.Id, "currentAction IDs")
 
 	linkedAccounts, err := s.Repository.FetchLinkedAccountById(ctx, currentAction.Id)
 	if err != nil {
 		s.Logger.Errorf("RemoveCif: failed to fetch linked accounts", "accountIDs", currentAction.Id, "error", err)
-		return err
+		return nil, err
 	}
 
 	for _, account := range linkedAccounts {
@@ -221,11 +223,11 @@ func (s *ServiceStore) RemoveCif(ctx context.Context, actionID string, action bo
 
 		if _, err := s.Repository.UpdateAccount(ctx, account); err != nil {
 			s.Logger.Errorf("RemoveCif: failed to update account", "accountID", account.ID, "error", err)
-			return fmt.Errorf(common_util.GeneralDBUpdateFailed)
+			return nil, err
 		}
 	}
 
-	return nil
+	return &cpsAction, nil
 }
 
 func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (CPSAction, error) {
@@ -243,6 +245,7 @@ func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (C
 		},
 		actionID,
 		action.CurrentAction,
+		"",
 	)
 	cpsAction.RequestAction = action.RequestAction
 	createdAction, err := s.Repository.CreateCpsAction(ctx, cpsAction)

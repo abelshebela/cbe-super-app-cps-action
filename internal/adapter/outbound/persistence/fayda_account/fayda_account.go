@@ -3,14 +3,19 @@ package faydaaccount
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
+	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -22,15 +27,13 @@ import (
 type FaydaAccountRepo struct {
 	client      *mongo.Client
 	logger      utils.Logger
-	cpsDal      dal.MongoDal[entity.CPSAction, entity.CPSAction]
+	cpsDal      dal.MongoDal[model.CPSAction, model.CPSAction]
 	customerDal dal.MongoDal[member.User, member.User]
 }
 
-var _ outbound.FaydaAccountRepository = (*FaydaAccountRepo)(nil)
+func InitFaydaAccountPersistence(client *mongo.Client, database string, cpsCollection []string, logger utils.Logger) outbound.FaydaAccountRepository {
 
-func InitFaydaAccountPersistence(client *mongo.Client, database string,
-	cpsCollection []string, logger utils.Logger) *FaydaAccountRepo {
-	cpsDal := dal.NewMongoDal[entity.CPSAction, entity.CPSAction](client, database, cpsCollection[0])
+	cpsDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, cpsCollection[0])
 	customerDal := dal.NewMongoDal[member.User, member.User](client, database, cpsCollection[1])
 
 	return &FaydaAccountRepo{
@@ -41,8 +44,9 @@ func InitFaydaAccountPersistence(client *mongo.Client, database string,
 	}
 }
 
-func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
+func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req entities.CPSAction) (*entities.CPSAction, error) {
 
+	now := time.Now()
 	filter := bson.M{
 		"maker_phone_number": req.MakerPhoneNumber,
 		"action_status":      entity.ActionPending,
@@ -54,7 +58,6 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		"_id":         1,
 	}
 
-	fmt.Println("check filter--------", filter)
 	faydaAccount, err := f.cpsDal.FindOne(ctx, filter, projection)
 
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -102,10 +105,10 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		return nil, fmt.Errorf("ACCOUNT_ALREADY_DISABLED")
 	}
 
-	req.ActionStatus = entity.ActionPending
-	req.RequestAction = entity.RequestDisableFaydaAccount
-	req.ActionType = entity.ActionCreate
-	req.PreviosAction = map[string]any{
+	req.ActionStatus = cps_const.ActionPending
+	req.RequestAction = cps_const.RequestDisableFaydaAccount
+	req.ActionType = cps_const.ActionCreate
+	req.PreviousAction = map[string]any{
 		"user_code":          customer.UserCode,
 		"full_name":          customer.FullName,
 		"phone_number":       customer.PhoneNumber,
@@ -115,41 +118,26 @@ func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req 
 		"is_account_blocked": true,
 	}
 
-	req.MakerActionTime = time.Now()
-	cpsAction, err := f.cpsDal.InsertOne(ctx, req)
+	req.MakerActionTime = now
+	req.CreatedAt = now
+	req.LastModifiedAt = now
+	act, err := entities.ToModelCPSAction(&req)
+	if err != nil {
+		return nil, err
+	}
+	cpsAction, err := f.cpsDal.InsertOne(ctx, *act)
 	if err != nil {
 		f.logger.Errorf("failed to create cps action", err)
-
 		return nil, fmt.Errorf("FAILED_TO_INSERT_CPS_ACTION")
 	}
 
-	return &cpsAction, nil
+	return entities.ToDomainCPSAction(&cpsAction), nil
 }
 
-func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
-
-	filter := bson.M{
-		"action_code":   req.ActionCode,
-		"department":    req.Department,
-		"action_status": entity.ActionPending,
-	}
-
-	update := bson.M{
-		"checker_name":         req.CheckerName,
-		"checker_id":           req.CheckerID,
-		"checker_phone_number": req.CheckerPhoneNumber,
-		"action_status":        entity.ActionApproved,
-		"checker_action_time":  time.Now(),
-	}
-
-	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		f.logger.Errorf("failed to update cps action", err)
-		return nil, fmt.Errorf("FAILED_TO_FIND_CPS_ACTION")
-	}
+func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req *entities.CPSAction) (*entities.CPSAction, error) {
 
 	actionData := make(map[string]interface{})
-	byte, err := json.Marshal(cpsAction.PreviosAction)
+	byte, err := json.Marshal(req.PreviousAction)
 
 	if err != nil {
 		return nil, err
@@ -167,45 +155,68 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 		"is_account_blocked": true,
 	}
 
-	_, err = f.customerDal.UpdateOne(ctx, customerFilter, customerUpdate)
+	updated, err := f.customerDal.UpdateOne(ctx, customerFilter, customerUpdate)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		f.logger.Errorf("failed to update  action", err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_USER_DATA")
 	}
-
-	return &cpsAction, nil
+	req.CurrentAction = updated
+	return req, nil
 }
 
-func (f *FaydaAccountRepo) RejectFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
-	actionData := make(map[string]interface{})
-	byte, err := json.Marshal(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := json.Unmarshal(byte, &actionData); err != nil {
-		return nil, err
-	}
+func (f *FaydaAccountRepo) GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 	filter := bson.M{
-		"action_code":   req.ActionCode,
-		"department":    req.Department,
-		"action_status": entity.ActionPending,
+		"is_deleted": false,
+	}
+	filter["kyc.level"] = int32(1) // Only KYC level 1 users (Fayda accounts)
+
+	projection := bson.M{}
+
+	// Apply search if provided
+	if filterParams.Search != "" {
+		filter["$or"] = []bson.M{
+			{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"phone_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"fayda.id_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+		}
 	}
 
-	update := bson.M{
-		"checker_name":           req.CheckerName,
-		"checker_id":             req.CheckerID,
-		"checker_phone_number":   req.CheckerPhoneNumber,
-		"action_status":          entity.ActionRejected,
-		"rejected_action_reason": req.RejectionReason,
-		"checker_action_time":    time.Now(),
+	// Apply filters if provided
+	if filterParams.Filters != "" {
+		filter["account_status"] = filterParams.Filters
 	}
 
-	cpsAction, err := f.cpsDal.UpdateOne(ctx, filter, update)
+	// Calculate pagination
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	// Get total count
+	totalDocs, err := f.customerDal.TotalCount(ctx, filter)
 	if err != nil {
-		f.logger.Errorf("failed to update fayda customer status", err)
-
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_USER_DATA")
+		return nil, fmt.Errorf("failed to get total count: %w", err)
 	}
-	return &cpsAction, nil
+
+	// Get paginated data
+	users, err := f.customerDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return &common_util.PaginatedResponse[[]*member.User]{
+				Data: []*member.User{},
+				Meta: common_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
+		}
+		return nil, fmt.Errorf("failed to get fayda accounts: %w", err)
+	}
+
+	// Build pagination metadata using utility function
+	meta := common_util.BuildPaginationMeta(totalDocs, filterParams.Page, filterParams.PerPage)
+
+	return &common_util.PaginatedResponse[[]*member.User]{
+		Data: users,
+		Meta: meta,
+	}, nil
 }

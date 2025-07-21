@@ -32,6 +32,7 @@ type UpdateBlockTimeRequest struct {
 	MakerID    string `json:"maker_id"`
 	MakerName  string `json:"maker_name,omitempty"`
 	MakerPhone string `json:"maker_phone,omitempty"`
+	Department string `json:"department,omitempty"`
 }
 
 type UpdateArchiveTimeRequest struct {
@@ -40,6 +41,7 @@ type UpdateArchiveTimeRequest struct {
 	MakerID     string `json:"maker_id"`
 	MakerName   string `json:"maker_name,omitempty"`
 	MakerPhone  string `json:"maker_phone,omitempty"`
+	Department  string `json:"department,omitempty"`
 }
 
 type ApproveRejectRequest struct {

@@ -19,7 +19,7 @@ func RegisterAccountBlockRoutes(
 	router.Route("/account_block", func(r chi.Router) {
 		routes := []sharedhttp.Route{
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/branch/filter_single",
 				Handler: handler.FilterSingleBranches,
 				Middlewares: []func(http.Handler) http.Handler{
@@ -46,7 +46,7 @@ func RegisterAccountBlockRoutes(
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/branch/filter_multiple",
 				Handler: handler.FilterMultipleBranches,
 				Middlewares: []func(http.Handler) http.Handler{
@@ -109,6 +109,15 @@ func RegisterAccountBlockRoutes(
 				},
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/region/all",
+				Handler: handler.GetAllRegion,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/district/block",
 				Handler: handler.BlockDistrict,
@@ -136,6 +145,15 @@ func RegisterAccountBlockRoutes(
 				},
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/district/all",
+				Handler: handler.GetAllDistrict,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/city/block",
 				Handler: handler.BlockCity,
@@ -157,6 +175,15 @@ func RegisterAccountBlockRoutes(
 				Method:  http.MethodGet,
 				Path:    "/city",
 				Handler: handler.GetCityByCode,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/city/all",
+				Handler: handler.GetAllCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),

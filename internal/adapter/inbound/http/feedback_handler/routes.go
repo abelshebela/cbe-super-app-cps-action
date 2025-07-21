@@ -14,7 +14,7 @@ func InitFeedbackRoutes(router chi.Router, feedbackHandler inbound.Feedback) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodGet,
-				Path:    "/all",
+				Path:    "/",
 				Handler: feedbackHandler.GetFeedbacks,
 			},
 			{

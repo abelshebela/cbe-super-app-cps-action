@@ -8,13 +8,14 @@ import (
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationService interface {
-	GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
-	GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
+	GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error)
+	GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error)
 	GetFaydaCustomerByID(ctx context.Context, id string) (*member.User, error)
 	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
@@ -32,7 +33,7 @@ func InitCustomerHandler(customerDomain *service.CustomerDomain, logger utils.Lo
 	}
 }
 
-func (c CustomerHandler) GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+func (c CustomerHandler) GetCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 	customers, err := c.domain.GetCustomersDetail(ctx, filterParams)
 	if err != nil {
 		return nil, err
@@ -49,7 +50,7 @@ func (c CustomerHandler) GetCustomerByID(ctx context.Context, id string) (*membe
 	return customer, nil
 }
 
-func (c CustomerHandler) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+func (c CustomerHandler) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 	customers, err := c.domain.GetFaydaCustomersDeatil(ctx, filterParams)
 	if err != nil {
 		return nil, err

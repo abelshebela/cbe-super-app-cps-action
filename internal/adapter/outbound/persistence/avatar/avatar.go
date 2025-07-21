@@ -10,8 +10,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -127,7 +129,7 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 		RequestAction:    string(model.RequestDeleteAvatar),
 		ActionType:       string(model.ActionDelete),
 		CurrentAction:    cpsActionReq.ActionData,
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"label":      avatar.Label,
 			"avatar":     avatar.Avatar,
 			"is_deleted": avatar.IsDeleted,
@@ -144,33 +146,9 @@ func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string, cpsActi
 	return ToCPSAction(&cpsAction), nil
 }
 
-func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*dto.CPSAction, error) {
+func (a *AvatarPersistence) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var err error
-
-	filter := bson.M{
-		"action_code":   req.ActionCode,
-		"department":    req.Department,
-		"action_status": model.ActionPending,
-	}
-
-	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
-		"checker_name":         req.CheckerUser.FullName,
-		"action_status":        model.ActionApproved,
-		"checker_action_time":  time.Now(),
-	}
-
-	cpsAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("cps action not found", err)
-			return nil, fmt.Errorf("ACTION_NOT_FOUND")
-		}
-		a.logger.Errorf("failed to update cps action", err)
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTIONN")
-	}
 
 	var actionData dto.Avatar
 	data, err := bson.Marshal(cpsAction.CurrentAction)
@@ -186,7 +164,7 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
 
-	if cpsAction.ActionType == string(model.ActionCreate) {
+	if string(cpsAction.ActionType) == string(model.ActionCreate) {
 		req, err := ToAvatarDocument(dto.Avatar{
 			ID:             bson.NewObjectID().Hex(),
 			Avatar:         actionData.Avatar,
@@ -211,11 +189,11 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 		cpsAction.CurrentAction = avatarDoc.toModel()
 
-		return ToCPSAction(&cpsAction), nil
+		return cpsAction, nil
 
 	}
 
-	if cpsAction.ActionType == string(model.ActionUpdate) {
+	if string(cpsAction.ActionType) == string(model.ActionUpdate) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -230,11 +208,11 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 			update["avatar"] = actionData.Avatar
 		}
 
-		if cpsAction.RequestAction == string(model.RequestEnableAvatar) {
+		if string(cpsAction.RequestAction) == string(model.RequestEnableAvatar) {
 			update["enable"] = true
 		}
 
-		if cpsAction.RequestAction == string(model.RequestDisableAvatar) {
+		if string(cpsAction.RequestAction) == string(model.RequestDisableAvatar) {
 			update["enable"] = false
 		}
 
@@ -253,10 +231,10 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 
 		cpsAction.CurrentAction = avatarDoc.toModel()
 
-		return ToCPSAction(&cpsAction), nil
+		return cpsAction, nil
 	}
 
-	if cpsAction.ActionType == string(model.ActionDelete) {
+	if string(cpsAction.ActionType) == string(model.ActionDelete) {
 		filter := bson.M{
 			"id":         actionData.ID,
 			"is_deleted": false,
@@ -279,10 +257,10 @@ func (a *AvatarPersistence) Authorize(ctx context.Context, req model.AuthorizeCP
 		}
 		cpsAction.CurrentAction = avatarDoc
 
-		return ToCPSAction(&cpsAction), nil
+		return cpsAction, nil
 	}
 
-	return ToCPSAction(&cpsAction), nil
+	return cpsAction, nil
 }
 
 func (a *AvatarPersistence) Reject(ctx context.Context, req model.RejectCPSAction) (*dto.CPSAction, error) {
@@ -351,7 +329,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(requestAction),
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"avatar": avatar.Avatar,
 			"label":  avatar.Label,
 			"enable": avatar.Enable,
@@ -368,7 +346,7 @@ func (a *AvatarPersistence) EnableOrDisableAvatar(ctx context.Context, id string
 	return ToCPSAction(&cps), nil
 }
 
-func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*dto.AvatarResponse, error) {
+func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*dto.Avatar], error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
@@ -376,6 +354,8 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 		filter["enable"] = filterParams.Filters
 	}
 
+	page := filterParams.Page
+	limit := filterParams.PerPage
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 
 	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
@@ -390,17 +370,16 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 		return nil, fmt.Errorf("FAILED_TO_GET_COUNT")
 	}
 
-	var avatar []*dto.Avatar
+	var avatars []*dto.Avatar
 	for _, doc := range avatarDocs {
 		n := doc.toModel()
-		avatar = append(avatar, &n)
+		avatars = append(avatars, &n)
 	}
 
-	return &dto.AvatarResponse{
-		Page:    filterParams.Page,
-		Avatars: avatar,
-		Limit:   constant.DefaultPerPage,
-		Total:   total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+	return &common_util.PaginatedResponse[[]*dto.Avatar]{
+		Data: avatars,
+		Meta: meta,
 	}, nil
 }
 
@@ -467,7 +446,7 @@ func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, id string, cpsActi
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestUpdateAvatar),
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"avatar": avatar.Avatar,
 		},
 		CurrentAction:   cpsActionReq.ActionData,

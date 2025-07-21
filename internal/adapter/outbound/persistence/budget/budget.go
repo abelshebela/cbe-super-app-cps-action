@@ -2,8 +2,8 @@ package budget
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -11,11 +11,15 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"encoding/json"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type BudgetPersistence struct {
@@ -40,26 +44,63 @@ func InitBudget(client *mongo.Client, dbName string, collections []string, logge
 
 func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.MakerActionTime = time.Now()
+	cpsAction.CreatedAt = time.Now()
+	objID := bson.NewObjectID()
+	cpsAction.ID = objID
 	cps, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		return nil, fmt.Errorf("failed to create CPS action")
+		return nil, fmt.Errorf(error_codes.FailedToCreateAction)
 	}
 
 	return &cps, nil
 }
 
-func (b *BudgetPersistence) FetchIcons(ctx context.Context) ([]*entities.Icon, error) {
-	icons, err := b.iconDal.FindAll(ctx, bson.M{"is_deleted": false}, bson.M{})
+func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["icon"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	icons, err := b.iconDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return icons, nil
+	total, err := b.iconDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*entities.Icon]{
+		Data: icons,
+		Meta: meta,
+	}, nil
 }
 
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.MakerActionTime = time.Now()
+	cpsAction.ID = bson.NewObjectID()
+	cpsAction.LastModifiedAt = time.Now()
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -72,8 +113,12 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 	}
 	existingIcon, err := b.iconDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("icon not found: %s", id)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		b.logger.Errorf("icon not found or db error: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	cpsAction.PreviousAction = map[string]interface{}{
@@ -84,10 +129,7 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		err = fmt.Errorf("failed to queue icon update: %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
+		err = fmt.Errorf("UNHANDLED_SERVER_ERROR")
 		return nil, err
 	}
 
@@ -95,22 +137,59 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 }
 
 func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	cpsAction.CreatedAt = time.Now()
+	cpsAction.MakerActionTime = time.Now()
+	cpsAction.ID = bson.NewObjectID()
+	cpsAction.LastModifiedAt = time.Now()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
-		return nil, fmt.Errorf("failed to queue color creation")
+		return nil, fmt.Errorf("GENERAL_DB_INSERT_FAILED")
 	}
 
 	return &createdAction, nil
 }
 
-func (b *BudgetPersistence) ListAllColor(ctx context.Context) ([]*entities.Color, error) {
-	colors, err := b.colorDal.FindAll(ctx, bson.M{}, bson.M{})
+func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Color], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["color"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
+
+	colors, err := b.colorDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	return colors, nil
+	totalDocs, err := b.colorDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+
+	return &common_util.PaginatedResponse[[]*entities.Color]{
+		Data: colors,
+		Meta: meta,
+	}, nil
 }
 
 func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entities.Color, error) {
@@ -121,13 +200,33 @@ func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entit
 
 	colors, err := b.colorDal.FindOne(ctx, bson.M{"_id": objectId}, bson.M{})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("color not found: %s", id)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		b.logger.Errorf("color not found or db error: %v", err)
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	return colors, nil
 }
 
+func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (bool, error) {
+	colors, err := b.colorDal.FindOne(ctx, bson.M{"color": color}, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		b.logger.Errorf("failed to check color existence: %v", err)
+		return false, fmt.Errorf("failed to check color existence: %w", err)
+	}
+
+	return colors != nil, nil
+}
+
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
+
+	fmt.Println("I hab")
 	update, err := bson.Marshal(color)
 	if err != nil {
 		return nil, err
@@ -136,11 +235,21 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 	if err := bson.Unmarshal(update, &updateMap); err != nil {
 		return nil, err
 	}
+
 	action, err := b.cpsDal.UpdateOne(ctx, bson.M{"_id": color.ID}, bson.M{"$set": updateMap})
-	return &action, err
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("action not found: %s", color.ID.Hex())
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		b.logger.Errorf("failed to update CPSAction: %v", err)
+		return nil, fmt.Errorf("GENERAL_DB_UPDATE_FAILED")
+	}
+	return &action, nil
 }
 
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	cpsAction.ID = bson.NewObjectID()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
@@ -152,9 +261,13 @@ func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities
 
 func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	action, err := b.cpsDal.FindOne(ctx, bson.M{"action_code": cpsAction.ActionCode}, bson.M{})
-	if err != nil || action == nil {
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("action not found: %s", cpsAction.ActionCode)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		b.logger.Errorf("action not found: %s, error: %v", cpsAction.ActionCode, err)
-		return nil, err
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	if action.ActionStatus != "PENDING" {
@@ -298,4 +411,174 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 	}
 
 	return &res, nil
+}
+
+func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	if cpsAction == nil {
+		return nil, errors.New("cpsAction is required")
+	}
+
+	switch cpsAction.RequestAction {
+	case "CREATE_ICON":
+		// For icon creation, mark the icon as enabled (or perform any other necessary business logic)
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		iconID, ok := actionData["icon_id"].(string)
+		if !ok || iconID == "" {
+			return nil, fmt.Errorf("missing icon_id in action data")
+		}
+		filter := bson.M{"_id": iconID, "is_deleted": false}
+		update := bson.M{
+			"enabled":       true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.iconDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize icon creation: %v", err)
+			return nil, fmt.Errorf("failed to authorize icon creation: %w", err)
+		}
+
+	case "UPDATE_ICON":
+		// For icon update, update the icon fields as needed
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		iconID, ok := actionData["icon_id"].(string)
+		if !ok || iconID == "" {
+			return nil, fmt.Errorf("missing icon_id in action data")
+		}
+		updateFields, ok := actionData["update_fields"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("missing update_fields in action data")
+		}
+		updateFields["last_modified"] = time.Now()
+		filter := bson.M{"_id": iconID, "is_deleted": false}
+		_, err := b.iconDal.UpdateOne(ctx, filter, bson.M(updateFields))
+		if err != nil {
+			b.logger.Errorf("failed to authorize icon update: %v", err)
+			return nil, fmt.Errorf("failed to authorize icon update: %w", err)
+		}
+
+	case "DELETE_ICON":
+		// For icon deletion, mark the icon as deleted
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		iconID, ok := actionData["icon_id"].(string)
+		if !ok || iconID == "" {
+			return nil, fmt.Errorf("missing icon_id in action data")
+		}
+		filter := bson.M{"_id": iconID, "is_deleted": false}
+		update := bson.M{
+			"is_deleted":    true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.iconDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize icon deletion: %v", err)
+			return nil, fmt.Errorf("failed to authorize icon deletion: %w", err)
+		}
+
+	case "CREATE_COLOR":
+		// For color creation, mark the color as enabled (or perform any other necessary business logic)
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		colorID, ok := actionData["color_id"].(string)
+		if !ok || colorID == "" {
+			return nil, fmt.Errorf("missing color_id in action data")
+		}
+		filter := bson.M{"_id": colorID, "is_deleted": false}
+		update := bson.M{
+			"enabled":       true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.colorDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize color creation: %v", err)
+			return nil, fmt.Errorf("failed to authorize color creation: %w", err)
+		}
+
+	case "UPDATE_COLOR":
+		// For color update, update the color fields as needed
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		colorID, ok := actionData["color_id"].(string)
+		if !ok || colorID == "" {
+			return nil, fmt.Errorf("missing color_id in action data")
+		}
+		updateFields, ok := actionData["update_fields"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("missing update_fields in action data")
+		}
+		updateFields["last_modified"] = time.Now()
+		filter := bson.M{"_id": colorID, "is_deleted": false}
+		_, err := b.colorDal.UpdateOne(ctx, filter, bson.M(updateFields))
+		if err != nil {
+			b.logger.Errorf("failed to authorize color update: %v", err)
+			return nil, fmt.Errorf("failed to authorize color update: %w", err)
+		}
+
+	case "DELETE_COLOR":
+		// For color deletion, mark the color as deleted
+		var actionData map[string]interface{}
+		if cpsAction.CurrentAction == nil {
+			return nil, fmt.Errorf("missing action data")
+		}
+		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
+			return nil, fmt.Errorf("invalid action data format: %w", err)
+		}
+		colorID, ok := actionData["color_id"].(string)
+		if !ok || colorID == "" {
+			return nil, fmt.Errorf("missing color_id in action data")
+		}
+		filter := bson.M{"_id": colorID, "is_deleted": false}
+		update := bson.M{
+			"is_deleted":    true,
+			"last_modified": time.Now(),
+		}
+		_, err := b.colorDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			b.logger.Errorf("failed to authorize color deletion: %v", err)
+			return nil, fmt.Errorf("failed to authorize color deletion: %w", err)
+		}
+
+	// Add more cases for other budget-related actions as needed
+
+	default:
+		// No budget operation required for this action
+	}
+
+	return cpsAction, nil
+}
+
+// UnmarshalMap converts a map[string]interface{} to a struct.
+func UnmarshalMap(input interface{}, output interface{}) error {
+	bytes, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, output)
 }

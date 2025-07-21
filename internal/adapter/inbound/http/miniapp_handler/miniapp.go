@@ -7,33 +7,30 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	"github.com/go-chi/chi/v5"
-
-	// miniAppApplication "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
-	// miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
+	miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
+	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	// util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	// inboundMiniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
-	// miniApp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
-	// util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	"github.com/go-chi/chi/v5"
 )
 
-// type miniAppAdapter struct {
-// 	miniAppHandler miniApp_application.ApplicationAbstracts
-// 	logger         util.Logger
-// }
+type HttpStore struct {
+	Application miniapp_application.ApplicationAbstracts
+	logger      util.Logger
+}
 
-// func InitMiniAppHandler(miniAppHandler miniAppApplication.ApplicationAbstracts, logger util.Logger) inboundMiniApp.MiniAppInbound {
-// 	return miniAppAdapter{
-// 		miniAppHandler: miniAppHandler,
-// 		logger:         logger,
-// 	}
+func NewMiniAppAdapter(app miniapp_application.ApplicationAbstracts, logger util.Logger) Inbound.MiniAppInbound {
+	return &HttpStore{
+		Application: app,
+		logger:      logger,
+	}
+}
 
-// }
-
-func (h *HttpStore) createUser(w http.ResponseWriter, r *http.Request) (*model.User, error) {
+func (h *HttpStore) createUser(r *http.Request) (*model.User, error) {
 	ctx_extract := ctx_util.ExtractUserContext(r)
 	if ctx_extract.IsIncomplete() {
 		return nil, fmt.Errorf("Unauthrozed")
@@ -42,6 +39,7 @@ func (h *HttpStore) createUser(w http.ResponseWriter, r *http.Request) (*model.U
 		UserCode:    ctx_extract.UserID,
 		FullName:    ctx_extract.FullName,
 		PhoneNumber: ctx_extract.PhoneNumber,
+		Department:  ctx_extract.Department,
 	}
 
 	return maker, nil
@@ -50,74 +48,50 @@ func (h *HttpStore) createUser(w http.ResponseWriter, r *http.Request) (*model.U
 func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	var req dto.MiniAppCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		fmt.Println("handelr decode")
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
 
-	// maker, UserErr := h.createUser(w, r)
-
-	// if UserErr != nil {
-	// 	http.Error(w, "unauthorized", http.StatusUnauthorized)
-	// 	return
-	// }
 	makerUser := contexts.ExtractUserContext(r)
+
+	if makerUser.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
+		return
+	}
 
 	var maker model.User
 
 	maker.FullName = makerUser.FullName
 	maker.UserCode = makerUser.UserCode
 	maker.PhoneNumber = makerUser.PhoneNumber
-	Department := makerUser.Department
+	maker.Department = makerUser.Department
 
-	response, err := h.Application.MakerCreateMiniApp(r.Context(), req, maker, Department)
+	response, err := h.Application.MakerCreateMiniApp(r.Context(), req, maker)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to create mini app")
 		return
 	}
-	utils.WriteSuccessResponse(w, response, "successful")
-}
 
-func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
-	var req dto.MiniAppCheckerRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
-
-	CheckerUser := contexts.ExtractUserContext(r)
-
-	var Checker model.User
-
-	Checker.FullName = CheckerUser.FullName
-	Checker.UserCode = CheckerUser.UserCode
-	Checker.PhoneNumber = CheckerUser.PhoneNumber
-	Department := CheckerUser.Department
-
-	err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
-	if err != nil {
-		fmt.Println("====================")
-		fmt.Println(err)
-		fmt.Println("====================")
-
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "")
-		return
-	}
-	utils.WriteSuccessResponse(w, nil, "successful")
-
+	utils.WriteSuccessResponse(w, response, "mini App request successfully created")
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var req dto.MiniAppCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
+	req.ID = id
 
-	maker, UserErr := h.createUser(w, r)
+	maker, UserErr := h.createUser(r)
 	if UserErr != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -134,7 +108,7 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
-	maker, UserErr := h.createUser(w, r)
+	maker, UserErr := h.createUser(r)
 	if UserErr != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -149,7 +123,9 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
-	list, err := h.Application.ListMiniApp(r.Context())
+	filterParam := common_util.ExtractFilterParams(r)
+
+	list, err := h.Application.ListMiniApp(r.Context(), filterParam)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to list mini apps")
 		return
@@ -158,7 +134,6 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
-	// id := r.URL.Query().Get("id")
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Missing mini app ID")
@@ -166,8 +141,8 @@ func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 	}
 	detail, err := h.Application.DetailMiniAppByID(r.Context(), id)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to get mini app detail")
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get mini app detail")
 		return
 	}
-	utils.WriteSuccessResponse(w, detail, "successful")
+	utils.WriteSuccessResponse(w, detail, "successful feached miniapp by ID")
 }

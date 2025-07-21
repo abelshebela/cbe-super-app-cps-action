@@ -3,10 +3,12 @@ package budget_category
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	action "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -68,6 +70,14 @@ func (s *BudgetCategoryService) ApproveAction(ctx context.Context, approveReques
 	return *cpsAction, operationErr
 }
 
+func (s *BudgetCategoryService) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	if cpsAction == nil {
+		return nil, fmt.Errorf("Authorize cps action data")
+	}
+
+	return s.repository.Authorize(ctx, cpsAction)
+}
+
 func (s *BudgetCategoryService) executeApprovedAction(ctx context.Context, cpsAction *action.CPSAction) error {
 	switch cpsAction.ActionType {
 	case action.ActionCreate:
@@ -122,14 +132,6 @@ func (s *BudgetCategoryService) GetBudgetCategory(ctx context.Context, budgetCat
 
 func (s *BudgetCategoryService) GetAllBudgetCategory(ctx context.Context, getAllBudgetCategory dto.GetAllBudgetCategoryRequest) ([]*BudgetCategory, error) {
 	return s.repository.GetAllBudgetCategory(ctx, getAllBudgetCategory)
-}
-
-func (s *BudgetCategoryService) FindActionById(ctx context.Context, actionId string) (*action.CPSAction, error) {
-	return s.repository.FindActionById(ctx, actionId)
-}
-
-func (s *BudgetCategoryService) UpdateAction(ctx context.Context, actionId string, checker action.User, status action.ActionStatus) (action.CPSAction, error) {
-	return s.repository.UpdateAction(ctx, actionId, checker, status)
 }
 
 func bindAction(source interface{}, target interface{}) error {

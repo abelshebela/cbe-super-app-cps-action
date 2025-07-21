@@ -4,7 +4,6 @@ package wallet
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
@@ -13,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -122,7 +123,7 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string, requestAc
 
 	cps, err := w.cpsDal.InsertOne(ctx, w.createCPSAction(
 		cpsReq,
-		string(model.ActionUpdate),
+		string(actions.ActionUpdate),
 		string(requestAction),
 		bson.M{
 			"name":    wallet.Name,
@@ -175,128 +176,96 @@ func (w *Wallet) GetWallet(ctx context.Context, id string) (*entity.Wallet, erro
 	return w.findWallet(ctx, id, bson.M{})
 }
 
-func (w *Wallet) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-	filter := bson.M{
-		"action_code":   req.ActionCode,
-		"action_status": model.ActionPending,
-	}
+func (w *Wallet) AuthorizeCreate(ctx context.Context, cpsAction *entities.CPSAction, action entity.Wallet) (*entities.CPSAction, error) {
+	doc := w.toDocument(&entity.Wallet{
+		Name:      action.Name,
+		Avatar:    action.Avatar,
+		Code:      action.Code,
+		CreatedAt: cpsAction.MakerActionTime,
+	})
 
-	update := bson.M{
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
-		"action_status":        model.ActionApproved,
-		"checker_action_time":  time.Now(),
-	}
-
-	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
+	wallet, err := w.walletDal.InsertOne(ctx, *doc)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find cps action", err, "WALLET_NOT_FOUND")
-		}
-		return nil, w.handleError("update cps action", err, error_codes.UnhandledServerError)
+		return nil, w.handleError("GENERAL_DB_INSERT_FAILED", err, error_codes.UnhandledServerError)
 	}
 
-	var actionData entity.Wallet
-	data, err := bson.Marshal(cpsAction.CurrentAction)
-	if err != nil {
-		return nil, w.handleError("marshal action data", err, error_codes.InvalidActionData)
-	}
-
-	if err := bson.Unmarshal(data, &actionData); err != nil {
-		return nil, w.handleError("unmarshal action data", err, error_codes.InvalidActionData)
-	}
-
-	switch cpsAction.ActionType {
-	case string(model.ActionCreate):
-		newWallet := w.toDocument(&entity.Wallet{
-			Name:      actionData.Name,
-			Avatar:    actionData.Avatar,
-			Code:      actionData.Code,
-			CreatedAt: time.Now(),
-		})
-
-		wallet, err := w.walletDal.InsertOne(ctx, *newWallet)
-		if err != nil {
-			return nil, w.handleError("create wallet", err, error_codes.UnhandledServerError)
-		}
-		cpsAction.CurrentAction = wallet
-		return &cpsAction, nil
-
-	case string(model.ActionUpdate):
-		update := bson.M{
-			"last_modified_at": time.Now(),
-		}
-		if actionData.Name != "" {
-			update["name"] = actionData.Name
-		}
-		if actionData.Code != "" {
-			update["code"] = actionData.Code
-		}
-		if cpsAction.RequestAction == string(model.RequestEnableWallet) {
-			update["enabled"] = true
-		}
-		if cpsAction.RequestAction == string(model.RequestDisableWallet) {
-			update["enabled"] = false
-		}
-
-		objId, err := bson.ObjectIDFromHex(actionData.ID)
-		if err != nil {
-			return nil, err
-		}
-		wallet, err := w.walletDal.UpdateOne(ctx, bson.M{
-			"_id":        objId,
-			"is_deleted": false,
-		}, update)
-		if err != nil {
-			return nil, w.handleError("update wallet", err, error_codes.UnhandledServerError)
-		}
-		cpsAction.CurrentAction = wallet
-		return &cpsAction, nil
-
-	case string(model.ActionDelete):
-		objectID, err := w.parseObjectID(actionData.ID)
-		if err != nil {
-			return nil, err
-		}
-		wallet, err := w.walletDal.UpdateOne(ctx, bson.M{
-			"_id":        objectID,
-			"is_deleted": false,
-		}, bson.M{
-			"is_deleted": true,
-			"deleted_at": time.Now(),
-		})
-		if err != nil {
-			return nil, w.handleError("delete wallet", err, error_codes.UnhandledServerError)
-		}
-		cpsAction.CurrentAction = wallet
-		return &cpsAction, nil
-	}
-
-	return &cpsAction, nil
+	cpsAction.CreatedAt = cpsAction.MakerActionTime
+	cpsAction.CurrentAction = wallet
+	return cpsAction, nil
 }
 
-func (w *Wallet) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {
-	filter := bson.M{
-		"action_code":   req.ActionCode,
-		"action_status": model.ActionPending,
-	}
-
+func (w *Wallet) AuthorizeUpdate(ctx context.Context, cpsAction *entities.CPSAction, action, prev entity.Wallet) (*entities.CPSAction, error) {
 	update := bson.M{
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
-		"action_status":        model.ActionRejected,
-		"rejected_reason":      req.RejectedReason,
-		"checker_action_time":  time.Now(),
+		"last_modified_at": cpsAction.MakerActionTime,
+	}
+	if action.Name != "" {
+		update["name"] = action.Name
+	}
+	if action.Code != "" {
+		update["code"] = action.Code
+	}
+	ID := prev.ID
+	if cpsAction.RequestAction == actions.RequestEnableWallet || cpsAction.RequestAction == actions.RequestDisableWallet {
+		ID = action.ID
+		update["enabled"] = cpsAction.RequestAction == actions.RequestEnableWallet
 	}
 
-	cpsAction, err := w.cpsDal.UpdateOne(ctx, filter, update)
+	objID, err := w.parseObjectID(ID)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find cps action", err, "WALLET_NOT_FOUND")
-		}
-		return nil, w.handleError("update cps action", err, error_codes.UnhandledServerError)
+		return nil, err
 	}
-	return &cpsAction, nil
+
+	wallet, err := w.walletDal.UpdateOne(ctx, bson.M{
+		"_id":        objID,
+		"is_deleted": false,
+	}, update)
+	if err != nil {
+		return nil, w.handleError("update wallet", err, error_codes.UnhandledServerError)
+	}
+
+	cpsAction.CurrentAction = wallet
+	return cpsAction, nil
+}
+
+func (w *Wallet) AuthorizeDelete(ctx context.Context, cpsAction *entities.CPSAction, prev entity.Wallet) (*entities.CPSAction, error) {
+	objID, err := w.parseObjectID(prev.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	wallet, err := w.walletDal.UpdateOne(ctx, bson.M{
+		"_id":        objID,
+		"is_deleted": false,
+	}, bson.M{
+		"is_deleted": true,
+		"deleted_at": cpsAction.MakerActionTime,
+	})
+	if err != nil {
+		return nil, w.handleError("delete wallet", err, error_codes.UnhandledServerError)
+	}
+
+	cpsAction.CurrentAction = wallet
+	return cpsAction, nil
+}
+
+func (w *Wallet) ExtractActionData(cpsAction *entities.CPSAction) (action entity.Wallet, prev entity.Wallet, err error) {
+	raw, err := bson.Marshal(cpsAction.CurrentAction)
+	if err != nil {
+		return action, prev, w.handleError("marshal current action", err, error_codes.InvalidActionData)
+	}
+	if err := bson.Unmarshal(raw, &action); err != nil {
+		return action, prev, w.handleError("unmarshal current action", err, error_codes.InvalidActionData)
+	}
+
+	if cpsAction.PreviousAction != nil {
+		raw, err = bson.Marshal(cpsAction.PreviousAction)
+		if err != nil {
+			return action, prev, w.handleError("marshal previous action", err, error_codes.InvalidActionData)
+		}
+		if err := bson.Unmarshal(raw, &prev); err != nil {
+			return action, prev, w.handleError("unmarshal previous action", err, error_codes.InvalidActionData)
+		}
+	}
+
+	return action, prev, nil
 }

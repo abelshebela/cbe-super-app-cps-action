@@ -9,8 +9,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -102,6 +104,9 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 
 	bank, err := b.bankDal.FindOne(ctx, bankFilter, bankProjection)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		b.logger.Errorf("failed to get bank for deletion, id: %s, error: %v", id, err)
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
@@ -117,7 +122,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 		RequestAction:    string(model.RequestDeleteBank),
 		ActionType:       string(model.ActionDelete),
 		CurrentAction:    cpsReq.ActionData,
-		PreviosAction: map[string]any{
+		PreviousAction: map[string]any{
 			"name":       bank.Name,
 			"code":       bank.Code,
 			"bic":        bank.BIC,
@@ -136,7 +141,7 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &cpsRes, nil
 }
 
-func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*entity.BankResponse, error) {
+func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
@@ -144,7 +149,9 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 		filter["status"] = filterParams.Filters
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
 	banksDocs, err := b.bankDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
@@ -165,11 +172,11 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 	}
 
 	b.logger.Infof("retrieved banks, page: %d, count: %d, total: %d", filterParams.Page, len(banks), total)
-	return &entity.BankResponse{
-		Page:  filterParams.Page,
-		Banks: banks,
-		Limit: constant.DefaultPerPage,
-		Total: total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+
+	return &common_util.PaginatedResponse[[]*entity.Bank]{
+		Data: banks,
+		Meta: meta,
 	}, nil
 }
 
@@ -228,52 +235,30 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &result, nil
 }
 
-func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error) {
-	filter := bson.M{
-		"action_code":   req.ActionCode,
-		"department":    req.Department,
-		"action_status": model.ActionPending,
-	}
-	update := bson.M{
-		"checker_id":           req.CheckerUser.UserCode,
-		"checker_name":         req.CheckerUser.FullName,
-		"checker_phone_number": req.CheckerUser.PhoneNumber,
-		"action_status":        model.ActionApproved,
-		"checker_action_time":  time.Now(),
-	}
-
-	cpsAction, err := b.cpsDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Errorf("cps action not found for authorization, action_code: %s", shortActionCode(req.ActionCode))
-			return nil, fmt.Errorf(error_codes.ActionNotFound)
-		}
-		b.logger.Errorf("failed to update cps action for authorization, action_code: %s, error: %v", shortActionCode(req.ActionCode), err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
-	}
+func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var actionData entity.BankDocument
 	raw, _ := bson.Marshal(cpsAction.CurrentAction)
 	if err := bson.Unmarshal(raw, &actionData); err != nil {
-		b.logger.Errorf("failed to unmarshal action data for authorization, action_code: %s", shortActionCode(req.ActionCode))
+		b.logger.Errorf("failed to unmarshal action data for authorization, action_code: %s", shortActionCode(cpsAction.ActionCode))
 		return nil, fmt.Errorf(error_codes.InvalidActionData)
 	}
 
 	// handle based on action
-	switch cpsAction.RequestAction {
+	switch string(cpsAction.RequestAction) {
 	case string(model.RequestCreateBank):
 		doc, err := b.toDocument(&actionData)
 		if err != nil {
-			b.logger.Errorf("failed to convert action data to document for bank creation, action_code: %s", shortActionCode(req.ActionCode))
+			b.logger.Errorf("failed to convert action data to document for bank creation, action_code: %s", shortActionCode(cpsAction.ActionCode))
 			return nil, fmt.Errorf(error_codes.InvalidActionData)
 		}
 		bank, err := b.bankDal.InsertOne(ctx, *doc)
 		if err != nil {
-			b.logger.Errorf("failed to insert bank after authorization, action_code: %s", shortActionCode(req.ActionCode))
+			b.logger.Errorf("failed to insert bank after authorization, action_code: %s", shortActionCode(cpsAction.ActionCode))
 			return nil, fmt.Errorf(error_codes.UnhandledServerError)
 		}
 		cpsAction.CurrentAction = bank
-		b.logger.Infof("bank created after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
+		b.logger.Infof("bank created after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestUpdateBank):
 		update := bson.M{}
@@ -291,7 +276,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
-		b.logger.Infof("bank updated after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
+		b.logger.Infof("bank updated after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestDeleteBank):
 		update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
@@ -300,7 +285,7 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
-		b.logger.Infof("bank deleted after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
+		b.logger.Infof("bank deleted after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestEnableBank):
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": true})
@@ -308,18 +293,18 @@ func (b *Bank) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*mo
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
-		b.logger.Infof("bank enabled after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
+		b.logger.Infof("bank enabled after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestDisableBank):
-		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": false})
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": nil})
 		if err != nil {
 			return nil, err
 		}
 		cpsAction.CurrentAction = bank
-		b.logger.Infof("bank disabled after authorization, action_code: %s, checker_code: %s", shortActionCode(req.ActionCode), req.CheckerUser.UserCode)
+		b.logger.Infof("bank disabled after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 	}
 
-	return &cpsAction, nil
+	return cpsAction, nil
 }
 
 func (b *Bank) Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error) {

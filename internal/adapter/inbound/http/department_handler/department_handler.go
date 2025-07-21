@@ -4,17 +4,19 @@ package department_handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
+	cpsconstants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
 	"github.com/go-chi/chi/v5"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 const (
@@ -34,15 +36,15 @@ func NewDepartmentHTTPHandler(service department.DepartmentService, logger utils
 	}
 }
 
-func (h *DepartmentHandler) createCPSActionMaker(ctx ctx_util.UserContext) entities.CPSAction {
-	cpsAction := entities.CPSAction{
+func (h *DepartmentHandler) createCPSActionMaker(ctx ctx_util.UserContext) cpsactions.CPSAction {
+	cpsAction := cpsactions.CPSAction{
 		MakerID:          ctx.UserID,
 		MakerName:        ctx.FullName,
 		MakerPhoneNumber: ctx.PhoneNumber,
 		Department:       ctx.Department,
-		ActionStatus:     entities.ActionPending,
-		ActionType:       entities.ActionCreate,
-		RequestAction:    entities.RequestDepartment,
+		ActionStatus:     cpsconstants.ActionPending,
+		ActionType:       cpsconstants.ActionCreate,
+		RequestAction:    cpsconstants.RequestCreateDepartment,
 	}
 
 	return cpsAction
@@ -94,60 +96,16 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	cpsAction := h.createCPSActionMaker(ctx)
 
 	// creating department
-	createdAction, err := h.departmentService.CreateCPSAction(curCtx, request.Department, request.PortalCards, cpsAction)
+	createdActionCode, err := h.departmentService.CreateCPSAction(curCtx, request.Department, request.PortalCards, request.PermissionGroups, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[CreateDepartment] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
+	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s with action_code: %s", userID, createdActionCode)
 
-	common_util.BaseResponseMaker(createdAction, w, RequestSentSuccesfully, 200)
-}
-
-func (h *DepartmentHandler) ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	actionCode := chi.URLParam(r, "action_code")
-	ctx := ctx_util.ExtractUserContext(r)
-	curCtx := h.getContext(r)
-
-	// context validation
-	if ctx.IsIncomplete() {
-		h.logger.Errorf("[ApproveRequest] incomplete user information")
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
-		return
-	}
-
-	cpsAction, err := h.departmentService.ValidateActionRequest(curCtx, actionCode, ctx.Department)
-	if err != nil {
-		h.logger.Errorf("[ApproveRequest] validation failed: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		return
-	}
-
-	if cpsAction == nil {
-		common_util.SendErrorResponse(w, common_util.AccountNotFound, http.StatusNotFound, nil)
-		return
-	}
-
-	actionCopy := *cpsAction
-
-	if serviceErr := h.departmentService.ApproveActionByType(curCtx, actionCopy); serviceErr != nil {
-		h.logger.Errorf("[ApproveRequest] service error: %v", serviceErr)
-		common_util.SendErrorResponse(w, serviceErr.Error(), http.StatusInternalServerError, nil)
-		return
-	}
-
-	checker := h.createCPSActionChecker(ctx)
-
-	if err := h.departmentService.ApproveActionRequest(curCtx, actionCode, checker); err != nil {
-		h.logger.Errorf("[ApproveRequest] failed to approve action request: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		return
-	}
-
-	h.logger.Infof("[ApproveRequest] action %s approved by user %s", actionCode, ctx.UserID)
-	common_util.BaseResponseMaker(nil, w, ActionApproved, 200)
+	common_util.BaseResponseMaker(map[string]string{"action_code": createdActionCode}, w, RequestSentSuccesfully, 200)
 }
 
 func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
@@ -160,7 +118,7 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if err := request.Validate(); err != nil {
+	if err := validatePatchUpdateDepartmentRequest(request); err != nil {
 		h.logger.Warnf("[UpdateDepartmentRequest] validation failed: %v", err)
 		common_util.SendErrorResponse(w, common_util.InvalidInput, http.StatusBadRequest, nil)
 		return
@@ -175,18 +133,23 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 
-	cpsAction := entities.CPSAction{
+	// Get department_id from URL params (PATCH route uses 'id')
+	departmentID := chi.URLParam(r, "id")
+
+	// Create CPS action for update
+	cpsAction := cpsactions.CPSAction{
 		MakerID:          ctx.UserID,
 		MakerName:        ctx.FullName,
 		MakerPhoneNumber: ctx.PhoneNumber,
 		Department:       ctx.Department,
-		ActionStatus:     entities.ActionPending,
-		ActionType:       entities.ActionUpdate,
-		RequestAction:    entities.RequestDepartment,
-		CurrentAction: map[string]any{
-			"department_code": request.DepartmentCode,
-			"department":      request.Department,
-			"portal_cards":    request.PortalCards,
+		ActionStatus:     cpsconstants.ActionPending,
+		ActionType:       cpsconstants.ActionUpdate,
+		RequestAction:    cpsconstants.RequestUpdateDepartment,
+		CurrentAction: map[string]interface{}{
+			"department_id":     departmentID,
+			"department":        request.Department,
+			"portal_cards":      request.PortalCards,
+			"permission_groups": request.PermissionGroups,
 		},
 	}
 
@@ -197,81 +160,37 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 
-	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s with action_code: %s", userID, createdAction.ActionCode)
-
-	common_util.BaseResponseMaker(createdAction, w, RequestSentSuccesfully, 200)
+	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s for department_id: %s, action_code: %s", userID, departmentID, createdAction.ActionCode)
+	common_util.BaseResponseMaker(map[string]string{"action_code": createdAction.ActionCode}, w, RequestSentSuccesfully, 200)
 }
 
-func (h *DepartmentHandler) RejectDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	actionCode := chi.URLParam(r, "action_code")
-	ctx := ctx_util.ExtractUserContext(r)
-	cur_ctx := r.Context()
-
-	// context validation
-	if ctx.IsIncomplete() {
-		h.logger.Errorf("[RejectDepartmentRequest] incomplete user information")
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
-		return
-	}
-
-	var req RejectRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("[RejectDepartmentRequest] failed to decode request: %v", err)
-		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
-		return
-	}
-	if req.RejectionReason == "" {
-		h.logger.Warnf("[RejectDepartmentRequest] rejection reason required")
-		common_util.SendErrorResponse(w, "rejection reason required", http.StatusBadRequest, nil)
-		return
-	}
-
-	// Validate action exists and is pending
-	cpsAction, err := h.departmentService.ValidateActionRequest(cur_ctx, actionCode, ctx.Department)
-	if err != nil {
-		h.logger.Errorf("[RejectDepartmentRequest] validation failed: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		return
-	}
-	if cpsAction == nil {
-		common_util.SendErrorResponse(w, common_util.AccountNotFound, http.StatusNotFound, nil)
-		return
-	}
-
-	// Prepare checker action with rejection reason
-	reason := req.RejectionReason
-	checker := entities.CPSAction{
-		CheckerID:          ctx.UserID,
-		CheckerName:        ctx.FullName,
-		CheckerPhoneNumber: ctx.PhoneNumber,
-		RejectionReason:    &reason,
-	}
-
-	// Call application/service layer
-	if cpsAction.ActionType == entities.ActionUpdate {
-		cpsAction.CheckerID = ctx.UserID
-		cpsAction.CheckerName = ctx.FullName
-		cpsAction.CheckerPhoneNumber = ctx.PhoneNumber
-		cpsAction.RejectionReason = &reason
-		if err := h.departmentService.RejectDepartmentUpdate(cur_ctx, *cpsAction); err != nil {
-			h.logger.Errorf("[RejectDepartmentRequest] failed to reject department update: %v", err)
-			common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-			return
-		}
-	} else {
-		if err := h.departmentService.RejectActionRequest(cur_ctx, actionCode, checker); err != nil {
-			h.logger.Errorf("[RejectDepartmentRequest] failed to reject action request: %v", err)
-			common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-			return
+// validatePatchUpdateDepartmentRequest validates only fields that are present for PATCH semantics
+func validatePatchUpdateDepartmentRequest(req department.UpdateDepartmentRequest) error {
+	var rules []error
+	if req.Department != "" {
+		if err := validation.Validate(req.Department, validation.Required); err != nil {
+			rules = append(rules, err)
 		}
 	}
-
-	h.logger.Infof("[RejectDepartmentRequest] action %s rejected by user %s", actionCode, ctx.UserID)
-	common_util.BaseResponseMaker(nil, w, "Action rejected", 200)
+	if req.PortalCards != nil {
+		if err := validation.Validate(req.PortalCards, validation.Each(validation.Required)); err != nil {
+			rules = append(rules, err)
+		}
+	}
+	if req.PermissionGroups != nil {
+		if err := validation.Validate(req.PermissionGroups, validation.Each(validation.Required)); err != nil {
+			rules = append(rules, err)
+		}
+	}
+	if len(rules) > 0 {
+		return fmt.Errorf("%v", rules)
+	}
+	return nil
 }
 
 func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
-	departments, err := h.departmentService.GetAllDepartments(r.Context())
+	filterParams := common_util.ExtractFilterParams(r)
+	departments, err := h.departmentService.GetAllDepartments(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("[GetAllDepartments] failed: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)

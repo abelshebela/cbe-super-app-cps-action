@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -99,34 +97,34 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
-	action_code, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
+// func (a *AvatarHTTPHandler) Authorize(w http.ResponseWriter, r *http.Request) {
+// 	action_code, ok := common_util.GetParam(r, "action_code")
+// 	if !ok {
+// 		a.logger.Errorf("missing or invalid parameter 'action_code'")
+// 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+// 		return
+// 	}
 
-	var cpsReq model.AuthorizeCPSAction
+// 	var cpsReq model.AuthorizeCPSAction
 
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	userData, department, err := a.extractUserFromContext(r)
+// 	if err != nil {
+// 		util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	cpsReq.CheckerUser = userData
-	cpsReq.Department = department
-	cpsReq.ActionCode = action_code
+// 	cpsReq.CheckerUser = userData
+// 	cpsReq.Department = department
+// 	cpsReq.ActionCode = action_code
 
-	approvedAction, err := a.avatarHandler.Authorize(r.Context(), cpsReq)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	approvedAction, err := a.avatarHandler.Authorize(r.Context(), cpsReq)
+// 	if err != nil {
+// 		util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	util.WriteSuccessResponse(w, approvedAction, "AD approved Sucessfully")
-}
+// 	util.WriteSuccessResponse(w, approvedAction, "AD approved Sucessfully")
+// }
 
 func (a *AvatarHTTPHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	action_code, ok := common_util.GetParam(r, "action_code")
@@ -228,37 +226,16 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
+	filterParams := common_util.ExtractFilterParams(r)
 
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
-
-	avatars, err := a.avatarHandler.GetAllAvatar(r.Context(), filterParams)
+	data, err := a.avatarHandler.GetAllAvatar(r.Context(), *filterParams)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 
 		return
 	}
 
-	util.WriteSuccessResponse(w, avatars, "Avatar list feached sucessfully")
+	util.WriteSuccessResponse(w, data, "Avatar list feached sucessfully")
 
 }
 

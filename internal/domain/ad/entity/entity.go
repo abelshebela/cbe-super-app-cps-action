@@ -55,7 +55,7 @@ type CPSAction struct {
 	CheckerPhoneNumber string
 	Department         string
 	RejectionReason    *string
-	PreviosAction      interface{}
+	PreviousAction     interface{}
 	CurrentAction      interface{}
 	ActionStatus       ActionStatus
 	ActionType         ActionType

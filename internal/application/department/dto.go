@@ -5,28 +5,30 @@ import (
 )
 
 type CreateDepartmentRequest struct {
-	Department  string   `json:"department"`
-	PortalCards []string `json:"portal_cards"`
+	Department       string   `json:"department"`
+	PortalCards      []string `json:"portal_cards"`
+	PermissionGroups []string `json:"permission_groups"`
 }
 
 func (i CreateDepartmentRequest) Validate() error {
 	return validation.ValidateStruct(&i,
 		validation.Field(&i.Department, validation.Required),
 		validation.Field(&i.PortalCards, validation.Required, validation.Each(validation.Required)),
+		validation.Field(&i.PermissionGroups, validation.Required, validation.Each(validation.Required)),
 	)
 }
 
 type UpdateDepartmentRequest struct {
-	DepartmentCode string   `json:"department_code"`
-	Department     string   `json:"department"`
-	PortalCards    []string `json:"portal_cards"`
+	Department       string   `json:"department"`
+	PortalCards      []string `json:"portal_cards"`
+	PermissionGroups []string `json:"permission_groups"`
 }
 
 func (i UpdateDepartmentRequest) Validate() error {
 	return validation.ValidateStruct(&i,
-		validation.Field(&i.DepartmentCode, validation.Required),
 		validation.Field(&i.Department, validation.Required),
 		validation.Field(&i.PortalCards, validation.Required, validation.Each(validation.Required)),
+		validation.Field(&i.PermissionGroups, validation.Required, validation.Each(validation.Required)),
 	)
 }
 

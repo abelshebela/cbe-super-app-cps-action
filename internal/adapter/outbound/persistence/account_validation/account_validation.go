@@ -9,6 +9,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
 	// outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_validation"
 	local_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -232,4 +233,38 @@ func (r *AccountValidationRepo) FetchAllActionsByUniqueID(ctx context.Context, u
 		})
 	}
 	return responses, nil
+}
+
+func (r *AccountValidationRepo) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	// Input validation
+	if cpsAction == nil || cpsAction.ID == "" {
+		r.logger.Errorf("Authorize: missing or empty validation rule ID")
+		return nil, errors.New("validation rule ID cannot be empty")
+	}
+
+	objID, err := bson.ObjectIDFromHex(cpsAction.ID)
+	if err != nil || objID.IsZero() {
+		r.logger.Errorf("Authorize: invalid object ID for id=%s, err=%v", cpsAction.ID, err)
+		return nil, errors.New("validation rule ID is invalid")
+	}
+
+	// Only update the "enabled" and "last_modified_at" fields
+	update := bson.M{
+		// "enabled":          cpsAction.CurrentAction,
+		"last_modified_at": time.Now(),
+	}
+	filter := bson.M{"_id": objID}
+
+	_, err = r.validationDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("Authorize: validation rule not found for update: id=%s", cpsAction.ID)
+			return nil, errors.New("validation rule not found")
+		}
+		r.logger.Errorf("Authorize: failed to update validation rule: %v", err)
+		return nil, errors.New("failed to update validation rule")
+	}
+
+	r.logger.Infof("Authorize: successfully updated validation rule: id=%s", cpsAction.ID)
+	return cpsAction, nil
 }

@@ -68,7 +68,7 @@ func (s *serviceApp) InitCPSAction(user cpsuser.CPSUser, actionData map[string]a
 		RequestAction:    action.RequestAction(requestAction),
 		ActionType:       action.ActionType(actionType),
 		CurrentAction:    actionData,
-		PreviosAction:    previousData,
+		PreviousAction:   previousData,
 		CreatedAt:        time.Now(),
 	}
 }

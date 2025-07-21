@@ -1,7 +1,13 @@
 package ad
 
+import (
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+
+)
+
 type AdvertService interface {
-	FindAll() ([]*AdvertResponse, error)
+	FindAll() (*common_util.PaginatedResponse[[]*entity.Advert], error)
 	FindOne(id string) (*AdvertResponse, error)
 	InsertOne(req CreateAdvertRequest) (*Advert, error)
 	UpdateOne(id string, update UpdateAdvertRequest) (*Advert, error)
@@ -18,7 +24,7 @@ func NewSerice(repository Repository) (AdvertService, error) {
 	}, nil
 }
 
-func (s *Service) FindAll() ([]*AdvertResponse, error) {
+func (s *Service) FindAll() (*common_util.PaginatedResponse[[]*entity.Advert], error) {
 	adverts, err := s.repository.GetAllAdvert()
 	if err != nil {
 		return nil, err

@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -47,209 +47,81 @@ func (h *HQHTTPHandler) GetHQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HQHTTPHandler) GetAllHQ(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
-
+	filterParams := utils.ExtractFilterParams(r)
 	ctx := r.Context()
-	customers, err := h.handler.GetHQDetail(ctx, filterParams)
+
+	hqResp, err := h.handler.GetHQDetail(ctx, filterParams)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
-
 		return
 	}
 
-	data, _ := utils.StructToMap(customers)
-	utils.BaseResponseMaker(data, w, "Successfuly HQ data fetched", http.StatusAccepted)
-
+	data, _ := utils.StructToMap(hqResp)
+	utils.BaseResponseMaker(data, w, "HQs fetched successfully", http.StatusOK)
 }
 func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateBlockTimeRequest
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+	request.ID = id
 	if err := request.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
 
-	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userID, phoneNumber, fullName)
+	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "Update block time request submitted for approval",
-		"data":    map[string]interface{}{"action_id": actionCode},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+	common_util.WriteSuccessResponse(w, actionCode, "Update block time request submitted for approval")
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateArchiveTimeRequest
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+
+	request.ID = id
 	if err := request.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
 
-	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userID, phoneNumber, fullName)
+	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
+	common_util.WriteSuccessResponse(w, actionCode, "Update archive time request submitted for approval")
 
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "Update archive time request submitted for approval",
-		"data":    map[string]interface{}{"action_id": actionCode},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
-}
-
-func (h *HQHTTPHandler) UpdateBlockTime(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
-
-	var request dto.ApproveRejectRequest
-
-	request.ActionCode = action_code
-	if r.Method == "GET" {
-		request.Decison = "APPROVED"
-	} else {
-		request.Decison = "DENIED"
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
-			return
-		}
-		if err := request.Validate(); err != nil {
-			utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
-			return
-		}
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
-		return
-	}
-
-	if err := h.handler.UpdateBlockTime(r.Context(), request, userID, phoneNumber, fullName); err != nil {
-		utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	action := "approved"
-	if request.Decison == utils.DecisionDenied {
-		action = "rejected"
-	}
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "update request " + action + " successfully Approved",
-		"data":    map[string]interface{}{"action": action},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
-}
-
-func (h *HQHTTPHandler) UpdateArchiveTime(w http.ResponseWriter, r *http.Request) {
-	action_code := chi.URLParam(r, "action_code")
-
-	var request dto.ApproveRejectRequest
-
-	request.ActionCode = action_code
-	if r.Method == "GET" {
-		request.Decison = "APPROVED"
-	} else {
-		request.Decison = "DENIED"
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
-			return
-		}
-		if err := request.Validate(); err != nil {
-			utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
-			return
-		}
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if userID == "" || fullName == "" || phoneNumber == "" || department == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
-		return
-	}
-
-	if err := h.handler.UpdateArchiveTime(r.Context(), request, userID, phoneNumber, fullName); err != nil {
-		utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	action := "approved"
-	if request.Decison == utils.DecisionDenied {
-		action = "rejected"
-	}
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "update request " + action + " successfully Approved",
-		"data":    map[string]interface{}{"action": action},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
 }

@@ -60,15 +60,15 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 				},
 			},
 
-			{
-				Method:  http.MethodPatch,
-				Path:    "/approve/{action_code}",
-				Handler: ad.Authorize,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
+			// {
+			// 	Method:  http.MethodPatch,
+			// 	Path:    "/approve/{action_code}",
+			// 	Handler: ad.Authorize,
+			// 	Middlewares: []func(next http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			// 	},
+			// },
 
 			{
 				Method:  http.MethodPatch,

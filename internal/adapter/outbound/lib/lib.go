@@ -17,7 +17,7 @@ func MapCPSAction(src model.CPSAction) *model.CpsActionNormalized {
 		CheckerPhoneNumber: src.CheckerPhoneNumber,
 		Department:         src.Department,
 		RejectionReason:    src.RejectionReason,
-		PreviosAction:      src.PreviosAction,
+		PreviousAction:     src.PreviousAction,
 		CurrentAction:      src.CurrentAction,
 		ActionStatus:       src.ActionStatus,
 		ActionType:         src.ActionType,
@@ -25,6 +25,6 @@ func MapCPSAction(src model.CPSAction) *model.CpsActionNormalized {
 		CreatedAt:          src.CreatedAt,
 		LastModifiedAt:     src.LastModifiedAt,
 		MakerActionTime:    src.MakerActionTime,
-		CheckerActionTime:  src.CheckerActionTime,
+		CheckerActionTime:  *src.CheckerActionTime,
 	}
 }

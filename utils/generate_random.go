@@ -1,33 +1,24 @@
 package utils
 
 import (
-	"fmt"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
 func GenerateRandom(digit int) string {
-	fmt.Println("generating number...")
-
-	numberDigit := "1"
-	multiplier := "9"
-
-	for i := 1; i < digit; i++ {
-		numberDigit += "0"
-		multiplier += "9"
+	if digit <= 0 {
+		return "0"
 	}
 
-	fmt.Println(numberDigit, multiplier)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	min, _ := strconv.Atoi(numberDigit)
-	max, _ := strconv.Atoi(multiplier)
-	rand.Seed(time.Now().UnixNano())
-	generatedNumber := min + rand.Intn(max+1)
-
-	result := strconv.Itoa(generatedNumber)
-	if len(result) > digit {
-		result = result[:digit]
+	result := make([]byte, digit)
+	for i := 0; i < digit; i++ {
+		if i == 0 {
+			result[i] = byte(r.Intn(9)+1) + '0' // avoid leading 0
+		} else {
+			result[i] = byte(r.Intn(10)) + '0'
+		}
 	}
-	return result
+	return string(result)
 }

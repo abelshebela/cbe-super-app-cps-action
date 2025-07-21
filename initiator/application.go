@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
@@ -26,7 +27,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
 	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
+	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget_category"
+	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+
+	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -53,12 +58,19 @@ type Application struct {
 	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
-	miniAppApplication         miniApp_application.ApplicationAbstracts
+	MiniAppApplication         miniApp_application.ApplicationAbstracts
 	EventApplication           event_application.ApplicationAbstracts
+	// BankCategoryApplication    budget_category.BudgetCategoryApplictionService
+	CPSActionApplication  cps_actions_application.CPSActionApplication
+	DispatcherApplication cps_actions_application.Dispatcher
+
+	BudgetCategoryApplication budget_category.BudgetCategoryApplicationService
+	FileService               file.FileService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
-func InitApplication(domain Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
+func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
+	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
 		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
@@ -81,7 +93,10 @@ func InitApplication(domain Domain, minioClient config.MinioClientInterface, log
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		miniAppApplication:         miniApp_application.NewApplicationService(domain.miniAppDomain, logger),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
+		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
+		DispatcherApplication:      *dispatcher,
+		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
 	}
 }

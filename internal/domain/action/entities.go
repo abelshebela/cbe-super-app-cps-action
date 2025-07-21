@@ -52,12 +52,12 @@ type CPSAction struct {
 	MakerID            string        `json:"maker_id"`
 	MakerName          string        `json:"maker_name"`
 	MakerPhoneNumber   string        `json:"maker_phone_number"`
-	CheckerID          string        `json:"checker_id"`
-	CheckerName        string        `json:"checker_name"`
-	CheckerPhoneNumber string        `json:"checker_phone_number"`
+	CheckerID          string        `json:"checker_id,omitempty"`
+	CheckerName        string        `json:"checker_name,omitempty"`
+	CheckerPhoneNumber string        `json:"checker_phone_number,omitempty"`
 	Department         string        `json:"department"`
-	RejectionReason    *string       `json:"rejection_reason"`
-	PreviosAction      interface{}   `json:"previos_action"`
+	RejectionReason    *string       `json:"rejection_reason,omitempty"`
+	PreviousAction     interface{}   `json:"previos_action"`
 	CurrentAction      interface{}   `json:"current_action"`
 	ActionStatus       ActionStatus  `json:"action_status"`
 	ActionType         ActionType    `json:"action_type"`
@@ -65,7 +65,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `json:"created_at"`
 	LastModifiedAt     time.Time     `json:"last_modified_at"`
 	MakerActionTime    time.Time     `json:"maker_action_time"`
-	CheckerActionTime  time.Time     `json:"checker_action_time"`
+	CheckerActionTime  *time.Time    `json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
@@ -139,6 +139,8 @@ const (
 	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
+	RequestCIFRemove                RequestAction = "CIF_REMOVE"
+	RequestServiceFlagUpdate        RequestAction = "SERVICE_FLAG_UPDATE"
 )
 
 type KYCLevel string
@@ -334,17 +336,17 @@ type District struct {
 	Enabled         bool
 }
 type City struct {
-	ID           string
-	CityCode     string
-	CityName     string
-	CityAddress  string
-	DistrictID   string
-	DistrictName string
-	RegionID     string
-	RegionName   string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Enabled      bool
+	ID           string    `json:"id"`
+	CityCode     string    `json:"city_code"`
+	CityName     string    `json:"city_name"`
+	CityAddress  string    `json:"city_address"`
+	DistrictID   string    `json:"district_id"`
+	DistrictName string    `json:"district_name"`
+	RegionID     string    `json:"region_id"`
+	RegionName   string    `json:"region_name"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
+	Enabled      bool      `json:"-"`
 }
 
 type CreateCPSAction struct {

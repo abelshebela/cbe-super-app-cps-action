@@ -2,11 +2,9 @@ package ad
 
 import (
 	"encoding/json"
-	"fmt"
 
 	// "fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -18,7 +16,6 @@ import (
 
 	inboundAd "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -128,26 +125,7 @@ func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 
 }
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-	perPage := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		perPage = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: perPage,
-		Search:  search,
-		Filters: filter,
-	}
+	filterParams := common_util.ExtractFilterParams(r)
 
 	ctx := r.Context()
 
@@ -225,41 +203,41 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
-	actionCode, ok := common_util.GetParam(r, "action_code")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'action_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
+// func (a ADAdapter) Authorize(w http.ResponseWriter, r *http.Request) {
+// 	actionCode, ok := common_util.GetParam(r, "action_code")
+// 	if !ok {
+// 		a.logger.Errorf("missing or invalid parameter 'action_code'")
+// 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+// 		return
+// 	}
 
-	var cpsReq model.AuthorizeCPSAction
+// 	var cpsReq model.AuthorizeCPSAction
 
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
-		return
-	}
+// 	userContext := ctx_util.ExtractUserContext(r)
+// 	if userContext.IsIncomplete() {
+// 		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+// 		return
+// 	}
 
-	cpsReq.CheckerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-	}
+// 	cpsReq.CheckerUser = model.User{
+// 		UserCode:    userContext.UserCode,
+// 		FullName:    userContext.FullName,
+// 		PhoneNumber: userContext.PhoneNumber,
+// 	}
 
-	cpsReq.Department = userContext.Department
-	cpsReq.ActionCode = actionCode
+// 	cpsReq.Department = userContext.Department
+// 	cpsReq.ActionCode = actionCode
 
-	AuthorizeAction, err := a.adHandler.Authorize(r.Context(), cpsReq)
-	if err != nil {
-		fmt.Printf("error from Authorize Action %v:", err)
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
+// 	AuthorizeAction, err := a.adHandler.Authorize(r.Context(), cpsReq)
+// 	if err != nil {
+// 		fmt.Printf("error from Authorize Action %v:", err)
+// 		util.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
 
-	util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
+// 	util.WriteSuccessResponse(w, AuthorizeAction, "AD Approved")
 
-}
+// }
 
 func (a ADAdapter) Reject(w http.ResponseWriter, r *http.Request) {
 	actionCode, ok := common_util.GetParam(r, "action_code")

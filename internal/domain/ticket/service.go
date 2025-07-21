@@ -16,10 +16,10 @@ func (s *TicketStore) CreateTicketAction(ctx context.Context, ticket Ticket, mak
 		ActionCode: actionId,
 		MakerID:    makerId,
 
-		ActionType:    domain.ActionCreate,
-		RequestAction: domain.RequestCreateMiniAppMerchant,
-		ActionStatus:  domain.ActionPending,
-		PreviosAction: previous_action,
+		ActionType:     domain.ActionCreate,
+		RequestAction:  domain.RequestCreateMiniAppMerchant,
+		ActionStatus:   domain.ActionPending,
+		PreviousAction: previous_action,
 	}
 	a, err := s.repository.CreateTicketAction(ctx, action)
 	if err != nil {
@@ -45,7 +45,7 @@ func (s *TicketStore) CheckTicket(ctx context.Context, actionId string, action b
 	if err != nil {
 		return err
 	}
-	data := act.PreviosAction
+	data := act.PreviousAction
 	miniApp, ok := data.(Ticket)
 	if !ok {
 		return fmt.Errorf("failed to cast previous action data to MiniApp")

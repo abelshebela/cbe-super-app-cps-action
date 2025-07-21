@@ -24,7 +24,7 @@ type CPSActionDocument struct {
 	CheckerPhoneNumber string                 `json:"checker_phone_number" bson:"checker_phone_number"`
 	Department         string                 `json:"department" bson:"department"`
 	RejectionReason    *string                `json:"rejection_reason" bson:"rejection_reason,omitempty"`
-	PreviosAction      any                    `json:"previos_action" bson:"previos_action"`
+	PreviousAction     any                    `json:"previos_action" bson:"previos_action"`
 	CurrentAction      any                    `json:"current_action" bson:"current_action"`
 	ActionStatus       entities.ActionStatus  `json:"action_status" bson:"action_status"`
 	ActionType         entities.ActionType    `json:"action_type" bson:"action_type"`
@@ -61,7 +61,7 @@ func (action *CPSActionDocument) toModel() entities.CPSAction {
 		CheckerPhoneNumber: action.CheckerPhoneNumber,
 		Department:         action.Department,
 		RejectionReason:    action.RejectionReason,
-		PreviosAction:      action.PreviosAction,
+		PreviousAction:     action.PreviousAction,
 		CurrentAction:      currentAction,
 		ActionStatus:       action.ActionStatus,
 		ActionType:         action.ActionType,
@@ -69,7 +69,7 @@ func (action *CPSActionDocument) toModel() entities.CPSAction {
 		CreatedAt:          action.CreatedAt,
 		LastModifiedAt:     action.LastModifiedAt,
 		MakerActionTime:    action.MakerActionTime,
-		CheckerActionTime:  action.CheckerActionTime,
+		CheckerActionTime:  &action.CheckerActionTime,
 	}
 }
 
@@ -99,7 +99,7 @@ func ToCpsActionDocument(cpsAction entities.CPSAction) (*CPSActionDocument, erro
 		CheckerPhoneNumber: cpsAction.CheckerPhoneNumber,
 		Department:         cpsAction.Department,
 		RejectionReason:    cpsAction.RejectionReason,
-		PreviosAction:      cpsAction.PreviosAction,
+		PreviousAction:     cpsAction.PreviousAction,
 		CurrentAction:      cpsAction.CurrentAction,
 		ActionStatus:       cpsAction.ActionStatus,
 		ActionType:         cpsAction.ActionType,
@@ -107,7 +107,7 @@ func ToCpsActionDocument(cpsAction entities.CPSAction) (*CPSActionDocument, erro
 		CreatedAt:          cpsAction.CreatedAt,
 		LastModifiedAt:     cpsAction.LastModifiedAt,
 		MakerActionTime:    cpsAction.MakerActionTime,
-		CheckerActionTime:  cpsAction.CheckerActionTime,
+		CheckerActionTime:  *cpsAction.CheckerActionTime,
 	}, nil
 }
 

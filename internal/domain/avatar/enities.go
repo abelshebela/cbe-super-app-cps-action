@@ -24,8 +24,8 @@ type CPSAction struct {
 	CheckerName        string    `json:"checker_name,omitempty"`
 	CheckerPhoneNumber string    `json:"checker_phone_number,omitempty"`
 	Department         string    `json:"department"`
-	RejectionReason    string   `json:"rejection_reason,omitempty"`
-	PreviosAction      any       `json:"previos_action"`
+	RejectionReason    string    `json:"rejection_reason,omitempty"`
+	PreviousAction     any       `json:"previos_action"`
 	CurrentAction      any       `json:"current_action"`
 	ActionStatus       string    `json:"action_status"`
 	ActionType         string    `json:"action_type"`

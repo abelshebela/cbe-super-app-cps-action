@@ -56,8 +56,10 @@ func (s *ServiceStore) handleActionApproval(ctx context.Context, cpsAction *acti
 		return errors.New(common_util.ActionNotPending)
 	}
 
+	now := time.Now()
+
 	cpsAction.CheckerID = checkerID
-	cpsAction.CheckerActionTime = time.Now()
+	cpsAction.CheckerActionTime = &now
 	cpsAction.LastModifiedAt = time.Now()
 
 	if approve {

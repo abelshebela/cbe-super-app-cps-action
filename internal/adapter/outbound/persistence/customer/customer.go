@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	// "net/http"
 	"regexp"
@@ -13,11 +14,15 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
 type CustomerDetailRepo struct {
@@ -60,7 +65,7 @@ func InitCustomerDetail(client *mongo.Client, database string, collection string
 	}
 }
 
-func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -77,13 +82,19 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 		}
 	}
 
+	// if filterParams.Filters != "" {
+	// 	filter["account_status"] = filterParams.Filters
+	// }
 	if filterParams.Filters != "" {
-		filter["account_status"] = filterParams.Filters
+		blocked, err := strconv.ParseBool(filterParams.Filters)
+		if err == nil {
+			filter["is_blocked"] = blocked
+		}
 	}
-
 	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
 
-	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no customers data found", err)
@@ -101,12 +112,21 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, filterParam
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
-	return &entity.CustomerRespose{
-		Page:      1,
-		Customers: customers,
-		Limit:     constant.DefaultPerPage,
-		Total:     total,
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+	fmt.Println("============================================")
+	// customerList := make([]member.User, len(customers))
+
+	for index, user := range customers {
+		data := *user
+		fmt.Printf("index:%v data: %v", index, data)
+	}
+	// fmt.Printf("list of users : %v", *customers)
+	fmt.Println("============================================")
+	return &common_util.PaginatedResponse[[]*member.User]{
+		Data: customers,
+		Meta: meta,
 	}, nil
+
 }
 
 func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
@@ -162,11 +182,12 @@ func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParam
 	}, nil
 }
 
-func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*entity.CustomerRespose, error) {
+func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
 	filter := bson.M{
 		"is_deleted": false,
-		"kyc.level":  1,
 	}
+	filter["kyc.level"] = int32(1)
+
 	projection := bson.M{}
 
 	if filterParams.Search != "" {
@@ -181,12 +202,21 @@ func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filter
 	}
 
 	if filterParams.Filters != "" {
-		filter["account_status"] = filterParams.Filters
+		filter["is_blocked"] = filterParams.Filters
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	// skip := (filterParams.Page - 1) * filterParams.PerPage
 
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	fmt.Printf("filtered by kyc 1: %v", filter)
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
 	customers, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	fmt.Println("---------------------------------------------------")
+	fmt.Printf("fayda customer: %v ", customers)
+	fmt.Println("----------------------------------------------------")
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no customers data found", err)
@@ -204,11 +234,11 @@ func (c *CustomerDetailRepo) GetFaydaCustomersDeatil(ctx context.Context, filter
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
-	return &entity.CustomerRespose{
-		Page:      1,
-		Customers: customers,
-		Limit:     constant.DefaultPerPage,
-		Total:     total,
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*member.User]{
+		Data: customers,
+		Meta: meta,
 	}, nil
 }
 func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {

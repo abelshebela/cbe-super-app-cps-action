@@ -23,6 +23,7 @@ func InitCPSUserMakerHandler(service cpsapp.ApplicationService, logger utils.Log
 }
 
 func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
+	// h.logger.Infof("hello there ")
 	dataCPSAction, err := h.Service.CreateUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("CreateUserRequest failed: %v", err)
@@ -107,12 +108,15 @@ func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.
 }
 
 func (h CPSUserMakerHandler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
-	user, err := h.Service.GetAllCPSUsers(r.Context())
+	filterParams := local_util.ExtractFilterParams(r)
+
+	users, err := h.Service.GetAllCPSUsers(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("GetAllCPSUser request failed: %v", err)
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	local_util.BaseResponseMaker(user, w, "CPS users fetched successfully", 200)
+	doc, _ := local_util.StructToMap(users)
+	local_util.BaseResponseMaker(doc, w, "CPS users fetched successfully", 200)
 }

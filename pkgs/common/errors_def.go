@@ -666,6 +666,26 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_147",
 			Message: "description length is between 3 and 100 characters",
 		},
+		"MISSING_CONFIG_KEY": {
+			Code:    "GEN_148",
+			Message: "Configuration key is missing.",
+		},
+		"ACTION_CODE_REQUIRED": {
+			Code:    "GEN_149",
+			Message: "ActionCode is required",
+		},
+		"INVALID_ACTION_STATUS": {
+			Code:    "GEN_150",
+			Message: "invalid Action Status",
+		},
+		"INVALID_REQUEST_ACTION": {
+			Code:    "GEN_151",
+			Message: "invalid RequestAction",
+		},
+		"UNSUPPORTED_REQUEST_ACTION": {
+			Code:    "GEN_152",
+			Message: "unsupported request action",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1010,6 +1030,22 @@ var DefineError = ErrorDefinitions{
 			Code:    "BRN_007",
 			Message: "Branches are required.",
 		},
+		"CITY_NOT_FOUND": {
+			Code:    "BRN_008",
+			Message: "City not found",
+		},
+		"DISTRICT_ALREADY_BLOCKED": {
+			Code:    "BRN_009",
+			Message: "The district already blocked",
+		},
+		"DISTRICT_NOT_FOUND": {
+			Code:    "BRN_010",
+			Message: "District Not Found",
+		},
+		"REGION_NOT_FOUND": {
+			Code:    "BRN_011",
+			Message: "Region Not Found",
+		},
 	},
 	Department: ErrorGroup{
 		"DEPARTMENT_NOT_FOUND": {
@@ -1118,6 +1154,18 @@ var DefineError = ErrorDefinitions{
 		"REJECT_REASON_TOO_SHORT": {
 			Code:    "ACT_015",
 			Message: "Rejection reason must be at between 30 to 100 characters long.",
+		},
+		"PENDING_ACTION_ALREADY_EXIST": {
+			Code:    "ACT_016",
+			Message: "A pending block action already exists for this city",
+		},
+		"CITY_ALREADY_BLOCKED": {
+			Code:    "ACT_017",
+			Message: "This city already blocked",
+		},
+		"PENDING_DISTRICT_ACTION_ALREADY_EXIST": {
+			Code:    "ACT_017",
+			Message: "A pending block action already exists for this district",
 		},
 	},
 	User: ErrorGroup{

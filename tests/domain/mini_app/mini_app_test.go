@@ -39,7 +39,7 @@ func TestCreateMiniAppAction(t *testing.T) {
 		ActionType:       action.ActionCreate,
 		RequestAction:    action.RequestCreateMiniAppMerchant,
 		ActionStatus:     action.ActionPending,
-		PreviosAction:    miniApp,
+		PreviousAction:   miniApp,
 	}
 
 	mockRepo.EXPECT().
@@ -73,10 +73,10 @@ func TestCheckMiniApp(t *testing.T) {
 	}
 
 	action := action.CPSAction{
-		ActionCode:    actionId,
-		ActionType:    action.ActionType(action.ActionPending),
-		ActionStatus:  action.ActionPending,
-		PreviosAction: miniApp,
+		ActionCode:     actionId,
+		ActionType:     action.ActionType(action.ActionPending),
+		ActionStatus:   action.ActionPending,
+		PreviousAction: miniApp,
 	}
 
 	mockRepo.EXPECT().
@@ -117,10 +117,10 @@ func TestCheckMiniApp_Rejected(t *testing.T) {
 	}
 
 	action := action.CPSAction{
-		ActionCode:    actionId,
-		ActionType:    action.ActionType(action.ActionPending),
-		ActionStatus:  action.ActionPending,
-		PreviosAction: miniApp,
+		ActionCode:     actionId,
+		ActionType:     action.ActionType(action.ActionPending),
+		ActionStatus:   action.ActionPending,
+		PreviousAction: miniApp,
 	}
 
 	mockRepo.EXPECT().

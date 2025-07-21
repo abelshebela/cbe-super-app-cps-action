@@ -10,7 +10,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
-	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils/common"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"github.com/go-chi/chi/v5"
@@ -19,20 +18,20 @@ import (
 )
 
 type BudgetCategoryAdapter struct {
-	BudgetCategoryHandler budget_category.BudgetCategoryApplictionService
+	BudgetCategoryHandler budget_category.BudgetCategoryApplicationService
 	logger                utils.Logger
 	fileService           file.FileService
 }
 
 func InitBudgetCategoryAdapter(
-	budgetCategoryHandler budget_category.BudgetCategoryApplictionService,
+	budgetCategoryHandler budget_category.BudgetCategoryApplicationService,
 	logger utils.Logger,
-	// fileService file.FileService,
+	fileService file.FileService,
 ) inbound.BudgetCategoryInbound {
 	return BudgetCategoryAdapter{
 		BudgetCategoryHandler: budgetCategoryHandler,
 		logger:                logger,
-		// fileService:           fileService,
+		fileService:           fileService,
 	}
 }
 
@@ -51,11 +50,16 @@ func (b BudgetCategoryAdapter) getUserFromContext(r *http.Request) (action.User,
 }
 
 func (b BudgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(2 << 20); err != nil {
+		b.logger.Errorf("failed to parse multipart form: %v", err)
+		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": err.Error()})
+		return
+	}
 
-	file, fileHeader, err := util.ParseMultipartFormFile(r, "icon", 2<<20)
+	file, fileHeader, err := r.FormFile("icon")
 	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
-		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
+		b.logger.Errorf("failed to get file: %v", err)
+		common.ErrorResponse(w, http.StatusBadRequest, "NO_FILE", map[string]interface{}{"error": err.Error()})
 		return
 	}
 	defer file.Close()
@@ -105,30 +109,32 @@ func (b BudgetCategoryAdapter) ApproveBudgetCategoryActionHTTP(w http.ResponseWr
 }
 
 func (b BudgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *http.Request) {
-
-	file, fileHeader, err := util.ParseMultipartFormFile(r, "icon", 2<<20)
-	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
-		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
+	if err := r.ParseMultipartForm(2 << 20); err != nil {
+		b.logger.Errorf("failed to parse multipart form: %v", err)
+		common.ErrorResponse(w, http.StatusBadRequest, "BAD_REQUEST", map[string]interface{}{"error": err.Error()})
 		return
 	}
-	defer file.Close()
 
 	var req dto.UpdateBudgetCategoryRequest
 	req.ID = chi.URLParam(r, "budget_category_id")
 	req.Name = r.FormValue("name")
 	req.Description = r.FormValue("description")
 
-	uploadResult, err := b.fileService.UploadImage(r.Context(), file, fileHeader, "budget-category-icons")
-	if err != nil {
-		b.logger.Errorf("upload failed: %v", err)
-		common.ErrorResponse(w, http.StatusInternalServerError, "UPLOAD_FAILED", map[string]interface{}{"error": err.Error()})
-		return
-	}
+	file, fileHeader, err := r.FormFile("icon")
+	if err == nil {
+		defer file.Close()
 
-	req.Icon = uploadResult.Key
-	req.BucketName = uploadResult.Bucket
-	req.ObjectName = uploadResult.ObjectName
+		uploadResult, err := b.fileService.UploadImage(r.Context(), file, fileHeader, "budget-category-icons")
+		if err != nil {
+			b.logger.Errorf("upload failed: %v", err)
+			common.ErrorResponse(w, http.StatusInternalServerError, "UPLOAD_FAILED", map[string]interface{}{"error": err.Error()})
+			return
+		}
+
+		req.Icon = uploadResult.Key
+		req.BucketName = uploadResult.Bucket
+		req.ObjectName = uploadResult.ObjectName
+	}
 
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("validation failed: %v", err)

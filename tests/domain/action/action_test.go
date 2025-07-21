@@ -187,7 +187,7 @@ func TestRemoveCif(t *testing.T) {
 	mockRepo.On("FetchLinkedAccountById", ctx, []string{"account-id-1", "account-id-2"}).Return(linkedAccounts, nil)
 	mockRepo.On("UpdateAccount", ctx, mock.Anything).Return(actionDomain.LinkedAccount{}, nil)
 
-	err := serviceStore.RemoveCif(ctx, actionId, action, checker)
+	_, err := serviceStore.RemoveCif(ctx, actionId, action, "",checker)
 
 	assert.NoError(t, err)
 	mockRepo.AssertCalled(t, "FetchCpsActionById", ctx, actionId)

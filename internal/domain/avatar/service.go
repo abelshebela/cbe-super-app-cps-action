@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -25,11 +26,11 @@ type AvatarDomain struct {
 type AvatarDomainService interface {
 	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*CPSAction, error)
 	DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*CPSAction, error)
-	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*Avatar, error)
-	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*AvatarResponse, error)
+	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*Avatar], error)
 	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*CPSAction, error)
 }
 
@@ -129,13 +130,8 @@ func (a *AvatarDomain) DeleteAvatar(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (a *AvatarDomain) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*CPSAction, error) {
-	cpsAction, err := a.avatarRepo.Authorize(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsAction, nil
+func (a *AvatarDomain) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	return a.avatarRepo.Authorize(ctx, cpsAction)
 }
 
 func (a *AvatarDomain) Reject(ctx context.Context, req model.RejectCPSAction) (*CPSAction, error) {
@@ -166,7 +162,7 @@ func (a *AvatarDomain) EnableOrDisableAvatar(ctx context.Context, id string,
 	return cpsAction, nil
 }
 
-func (a *AvatarDomain) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*AvatarResponse, error) {
+func (a *AvatarDomain) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*Avatar], error) {
 	return a.avatarRepo.GetAllAvatar(ctx, filterParams)
 }
 

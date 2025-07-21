@@ -75,7 +75,7 @@ func ToCPSAction(cpsAction *model.CPSAction) *avatar.CPSAction {
 		CheckerPhoneNumber: cpsAction.CheckerPhoneNumber,
 		Department:         cpsAction.Department,
 		RejectionReason:    cpsAction.RejectionReason,
-		PreviosAction:      cpsAction.PreviosAction,
+		PreviousAction:     cpsAction.PreviousAction,
 		CurrentAction:      cpsAction.CurrentAction,
 		ActionStatus:       cpsAction.ActionStatus,
 		ActionType:         cpsAction.ActionType,
@@ -83,8 +83,6 @@ func ToCPSAction(cpsAction *model.CPSAction) *avatar.CPSAction {
 		CreatedAt:          cpsAction.CreatedAt,
 		LastModifiedAt:     cpsAction.LastModifiedAt,
 		MakerActionTime:    cpsAction.MakerActionTime,
-		CheckerActionTime:  cpsAction.CheckerActionTime,
+		CheckerActionTime:  *cpsAction.CheckerActionTime,
 	}
 }
-
-

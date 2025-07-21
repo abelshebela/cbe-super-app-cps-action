@@ -50,9 +50,9 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 				},
 			},
 			{
-				Method:  http.MethodGet,
+				Method:  http.MethodPatch,
 				Path:    "/actions/enable-disable/approve/{action_code}",
-				Handler: handler.EnableDisableServicesChecker,
+				Handler: handler.EnableServicesChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
@@ -61,16 +61,16 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			{
 				Method:  http.MethodPatch,
 				Path:    "/actions/enable-disable/reject/{action_code}",
-				Handler: handler.EnableDisableServicesChecker,
+				Handler: handler.DisableServicesChecker,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/accounts/search",
-				Handler: handler.SearchAccountByCif,
+				Method:  http.MethodGet,
+				Path:    "/accounts/search/{account_number}",
+				Handler: handler.SearchAccountByAccountNumber,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{
@@ -88,9 +88,9 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 				},
 			},
 			{
-				Method:  http.MethodGet,
+				Method:  http.MethodPatch,
 				Path:    "/accounts/remove/approve/{action_code}",
-				Handler: handler.RemoveCifChecker,
+				Handler: handler.RemoveCifCheckerApprove,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
@@ -99,7 +99,7 @@ func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMid
 			{
 				Method:  http.MethodPatch,
 				Path:    "/accounts/remove/reject/{action_code}",
-				Handler: handler.RemoveCifChecker,
+				Handler: handler.RemoveCifCheckerReject,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),

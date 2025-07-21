@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/lib"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -42,7 +43,7 @@ func InitAmountBasedAuth(client *mongo.Client, database string, collection []str
 	}
 }
 
-func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*amount_based_auth_domain.AmountBasedAuthRespose, error) {
+func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*amount_based_auth_domain.AuthTier], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -63,7 +64,9 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 		filter["account_status"] = filterParams.Filters
 	}
 
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	page := filterParams.Page
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
 	amountBased, err := a.authTier.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
@@ -81,11 +84,11 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
-	return &amount_based_auth_domain.AmountBasedAuthRespose{
-		Page:            1,
-		AmountBasedAuth: amountBased,
-		Limit:           constant.DefaultPerPage,
-		Total:           total,
+	meta := common_util.BuildPaginationMeta(total, page, limit)
+
+	return &common_util.PaginatedResponse[[]*amount_based_auth_domain.AuthTier]{
+		Data: amountBased,
+		Meta: meta,
 	}, nil
 }
 
@@ -269,7 +272,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestAuthTier),
-		PreviosAction:    authTier,
+		PreviousAction:   authTier,
 		CurrentAction:    request,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
@@ -286,39 +289,12 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 
 }
 
-func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id string, cpsAction model.AuthorizeCPSAction) (*model.CpsActionNormalized, error) {
-
-	cpsUser := contexts.ExtractContext(ctx)
-	filter := bson.M{
-		"action_code":   id,
-		"action_status": model.ActionPending,
-	}
-
-	update := bson.M{
-		"checker_name":         cpsUser.FullName,
-		"checker_id":           cpsUser.UserCode,
-		"checker_phone_number": cpsUser.PhoneNumber,
-		"action_status":        model.ActionApproved,
-		"checker_action_time":  time.Now(),
-		"last_modified":        time.Now(),
-	}
-
-	// Fetch the action document
-	savedAction, err := a.cpsActionDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("No action found for ID: %s", id)
-			return nil, fmt.Errorf(common_util.AccountNotFound)
-		}
-		a.logger.Errorf("Failed to fetch action: %v", err)
-
-		return nil, fmt.Errorf(common_util.UnhandledServerError)
-	}
+func (a AmountBasedAuthRepo) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var actionData amount_based_auth_domain.UpdateAmountBasedAuth
 
 	// Decode CurrentAction
-	rawDoc, err := bson.Marshal(savedAction.CurrentAction)
+	rawDoc, err := bson.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		a.logger.Errorf("failed to marshal current action", err)
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
@@ -356,9 +332,9 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 		}
 		actionData.LastModified = time.Now()
 		actionData.CreatedAt = time.Now()
-		savedAction.CurrentAction = actionData
+		cpsAction.CurrentAction = actionData
 
-		return lib.MapCPSAction(savedAction), nil
+		return cpsAction, nil
 	}
 
 	if actionData.Method == amount_based_auth_domain.PIN {
@@ -391,8 +367,8 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 			})
 		}
 
-		savedAction.CurrentAction = actionData
-		return lib.MapCPSAction(savedAction), nil
+		cpsAction.CurrentAction = actionData
+		return cpsAction, nil
 
 	}
 
@@ -425,11 +401,11 @@ func (a AmountBasedAuthRepo) ApproveAmountBasedAuth(ctx context.Context, id stri
 			})
 		}
 
-		savedAction.CurrentAction = actionData
-		return lib.MapCPSAction(savedAction), nil
+		cpsAction.CurrentAction = actionData
+		return cpsAction, nil
 	}
 
-	return lib.MapCPSAction(savedAction), nil
+	return cpsAction, nil
 }
 
 func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {

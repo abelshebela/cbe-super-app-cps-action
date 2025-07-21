@@ -9,7 +9,10 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -20,20 +23,53 @@ type CPSUserService interface {
 	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
-	GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
 }
 
 type cpsUserService struct {
-	repo repository.CPSUserRepo
+	repo              repository.CPSUserRepo
+	permissionService permission.PermissionDomainService
+	logger            utils.Logger
 }
 
-func NewCPSUserService(repo repository.CPSUserRepo) CPSUserService {
-	return &cpsUserService{repo: repo}
+func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission.PermissionDomainService, logger utils.Logger) CPSUserService {
+	return &cpsUserService{repo: repo, permissionService: permissionService, logger: logger}
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
-	// Create the CPS action
+	// Validate PermissionCategory
+	categoryIDs := make([]string, len(userData.PermissionCategory))
+	for i, id := range userData.PermissionCategory {
+		categoryIDs[i] = id.Hex()
+	}
+	_, err := s.permissionService.ValidatePermissionCategories(categoryIDs)
+	if err != nil {
+		return nil, fmt.Errorf("invalid permission categories: %w", err)
+	}
+
+	// Validate PermissionGroups
+	groupIDs := make([]string, len(userData.PermissionGroups))
+	for i, id := range userData.PermissionGroups {
+		groupIDs[i] = id.Hex()
+	}
+	_, err = s.permissionService.ValidatePermissionGroups(groupIDs)
+	if err != nil {
+		return nil, fmt.Errorf("invalid permission groups: %w", err)
+	}
+
+	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
+	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
+	if err != nil {
+		s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
+		return nil, fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	// Create the CPS action
 	actionCode := utils.RandomGenerator(24)
 
 	user := model.CPSUser{
@@ -65,7 +101,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionCreate),
 		RequestAction:    string(model.RequestUser),
-		PreviosAction:    nil,
+		PreviousAction:   nil,
 		CurrentAction:    user,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
@@ -75,7 +111,42 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
+	
+	if len(userData.PermissionCategory) > 0 {
+		categoryIDs := make([]string, len(userData.PermissionCategory))
+		for i, id := range userData.PermissionCategory {
+			categoryIDs[i] = id.Hex()
+		}
+		_, err := s.permissionService.ValidatePermissionCategories(categoryIDs)
+		if err != nil {
+			return nil, fmt.Errorf("invalid permission categories: %w", err)
+		}
+	}
+	
+	if len(userData.PermissionGroups) > 0 {
+		groupIDs := make([]string, len(userData.PermissionGroups))
+		for i, id := range userData.PermissionGroups {
+			groupIDs[i] = id.Hex()
+		}
+		_, err := s.permissionService.ValidatePermissionGroups(groupIDs)
+		if err != nil {
+			return nil, fmt.Errorf("invalid permission groups: %w", err)
+		}
+	}
+
+	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
+	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
+	if err != nil {
+		s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
+		return nil, fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+	}
+	if len(pendingActions) > 0 {
+		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	userPayload = ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
 	userData.UserCode = userCode
 
@@ -90,7 +161,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
 		RequestAction:    string(model.RequestUpdateUser),
-		PreviosAction:    nil,
+		PreviousAction:   nil,
 		CurrentAction:    userData,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
@@ -138,12 +209,10 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetAllCPSUsers(ctx context.Context) ([]model.CPSUser, error) {
-	users, err := s.repo.GetAllCPSUsers(ctx)
-	if len(users) == 0 {
-		return nil, fmt.Errorf("NO_USERS_FOUND")
-	} else if err != nil {
+func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+	users, err := s.repo.GetAllCPSUsers(ctx, filterParams)
+	if err != nil {
 		return nil, err
 	}
-	return users, err
+	return users, nil
 }

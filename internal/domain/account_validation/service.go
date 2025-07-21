@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,6 +19,7 @@ type Service interface {
 	GetAccountValidation(ctx context.Context, id string) (ValidationRule, error)
 	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, maker User) (string, error)
 	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error
+	Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 }
 
 type ServiceStore struct {
@@ -64,11 +67,8 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 		return "", fmt.Errorf("NOT_FOUND")
 	}
 
-	pendingActions, err := s.repository.FetchPendingActionsByUniqueID(ctx, id)
-	if err != nil {
-		s.logger.Errorf("failed to fetch pending actions: %v", err)
-		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
-	}
+	pendingActions, _ := s.repository.FetchPendingActionsByUniqueID(ctx, id)
+
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for validation rule: %s", id)
 		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
@@ -94,22 +94,21 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
 	a := action.CPSAction{
-		ActionCode:        actionID,
-		MakerID:           maker.ID,
-		MakerName:         maker.FullName,
-		MakerPhoneNumber:  maker.PhoneNumber,
-		Department:        maker.Department,
-		UniqueId:          id,
-		ActionType:        action.ActionUpdate,
-		RequestAction:     action.RequestUpdateAccountValidation,
-		ActionStatus:      action.ActionPending,
-		CurrentAction:     currentAction, // assign struct directly
-		PreviosAction:     previousActionJSON,
-		CreatedAt:         time.Now(),
-		LastModifiedAt:    time.Now(),
-		RejectionReason:   nil,
-		MakerActionTime:   time.Now(),
-		CheckerActionTime: time.Time{},
+		ActionCode:       actionID,
+		MakerID:          maker.ID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+		UniqueId:         id,
+		ActionType:       action.ActionUpdate,
+		RequestAction:    action.RequestUpdateAccountValidation,
+		ActionStatus:     action.ActionPending,
+		CurrentAction:    currentAction, // assign struct directly
+		PreviousAction:   previousActionJSON,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		RejectionReason:  nil,
+		MakerActionTime:  time.Now(),
 	}
 
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
@@ -153,17 +152,11 @@ func toJSONBytes(val interface{}) ([]byte, error) {
 	}
 }
 
-func (s *ServiceStore) UpdateAccountValidation(
-	ctx context.Context,
-	actionID string,
-	decision utils.DecisonEnum,
-	checker User,
-	rejectedReason string,
-) error {
-	if actionID == "" || checker.ID == "" {
-		s.logger.Errorf("action ID or checker ID is empty")
-		return fmt.Errorf("ACTION_ID_OR_CHECKER_ID_EMPTY")
-	}
+func (s *ServiceStore) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	return s.UpdateAccountValidate(ctx, cpsAction)
+}
+
+func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error {
 
 	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionID)
 	if err != nil {
@@ -171,16 +164,12 @@ func (s *ServiceStore) UpdateAccountValidation(
 		return fmt.Errorf("ACTION_NOT_FOUND")
 	}
 
-	if cpsAction.ActionStatus != action.ActionPending {
-		s.logger.Errorf("action is not pending")
-		return fmt.Errorf("ACTION_NOT_PENDING")
-	}
+	now := time.Now()
 
 	cpsAction.CheckerID = checker.ID
 	cpsAction.CheckerName = checker.FullName
 	cpsAction.CheckerPhoneNumber = checker.PhoneNumber
-	cpsAction.CheckerActionTime = time.Now()
-	cpsAction.LastModifiedAt = time.Now()
+	cpsAction.CheckerActionTime = &now
 
 	if decision == utils.DecisionApproved {
 		var currentAction struct {
@@ -229,6 +218,41 @@ func (s *ServiceStore) UpdateAccountValidation(
 	}
 
 	return nil
+}
+
+// **********************************************
+func (s *ServiceStore) UpdateAccountValidate(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
+	// if decision == entities.DecisionApproved {
+	var currentAction struct {
+		Rule ValidationRule `json:"rule"`
+	}
+
+	currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
+	}
+	if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
+		s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")
+	}
+
+	updatedRule := currentAction.Rule
+
+	if updatedRule.ID == "" {
+		s.logger.Errorf("invalid validation rule ID: empty")
+		return nil, fmt.Errorf("VALIDATION_RULE_ID_EMPTY")
+	}
+
+	if err := s.repository.UpdateAccountValidation(ctx, updatedRule.ID, updatedRule); err != nil {
+		s.logger.Errorf("failed to update validation rule: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_VALIDATION_RULE")
+	}
+
+	s.logger.Infof("validation rule approved successfully")
+	// }
+
+	return cpsAction, nil
 }
 
 func stringToPointer(s string) *string {

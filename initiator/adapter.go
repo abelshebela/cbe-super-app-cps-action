@@ -49,7 +49,14 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
+
+	cps_actions_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
+
+	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
+	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
+	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
 )
 
 type Adapter struct {
@@ -78,6 +85,9 @@ type Adapter struct {
 	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
 	EventAdapter           event_inbound.EventHandler
+	// BudgetCategoryAdapter  budget_category.BudgetCategoryInbound
+	CPSActionAdapter      cps_actions.CPSActionAdapter
+	BudgetCategoryAdapter inboundBudgetCategory.BudgetCategoryInbound
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -103,7 +113,10 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		ServiceAdapter:       serviceHandler.NewServiceHandler(application.ServiceApplication, logger),
 		HQAdapter:            hq.NewHQHTTPHandler(application.HQApplication),
 		AmountBasedAuth:      amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
-		MiniAppAdapter:       miniapp_handler.NewMiniAppAdapter(application.miniAppApplication, logger),
+		MiniAppAdapter:       miniapp_handler.NewMiniAppAdapter(application.MiniAppApplication, logger),
 		EventAdapter:         eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
+		// BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
+		CPSActionAdapter:      cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
+		BudgetCategoryAdapter: budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 	}
 }
