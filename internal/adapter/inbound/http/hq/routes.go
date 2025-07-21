@@ -34,7 +34,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/block_time/update_request",
+				Path:    "/block_time/{id}",
 				Handler: handler.UpdateBlockTimeRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -43,7 +43,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/archive_time/update_request",
+				Path:    "/archive_time/{id}",
 				Handler: handler.UpdateArchiveTimeRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

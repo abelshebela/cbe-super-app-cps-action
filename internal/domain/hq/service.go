@@ -70,12 +70,12 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	}
 
 	// Use actionRepo to check for pending actions by unique ID (outbound/init)
-	pendingActions, err := s.actionRepo.(interface {
+	pendingActions, _ := s.actionRepo.(interface {
 		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
 	}).FetchPendingActionsByUniqueID(ctx, request.ID)
-	if err != nil {
-		return nil, fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
-	}
+	// if err != nil && err.Error() != "NOT_FOUND" {
+	// 	return nil, err
+	// }
 	if len(pendingActions) > 0 {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
@@ -131,12 +131,12 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	}
 
 	// Use actionRepo to check for pending actions by unique ID (outbound/init)
-	pendingActions, err := s.actionRepo.(interface {
+	pendingActions, _ := s.actionRepo.(interface {
 		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
 	}).FetchPendingActionsByUniqueID(ctx, request.ID)
-	if err != nil {
-		return nil, fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
-	}
+	// if err != nil && err.Error() != "NOT_FOUND" {
+	// 	return nil, err
+	// }
 	if len(pendingActions) > 0 {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}

@@ -61,10 +61,17 @@ func (h *HQHTTPHandler) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 }
 func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateBlockTimeRequest
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+	request.ID = id
 	if err := request.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
@@ -87,10 +94,18 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateArchiveTimeRequest
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
+
+	request.ID = id
 	if err := request.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
@@ -101,12 +116,12 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
-	// actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
-	// if err != nil {
-	// 	utils.SendErrorResponse(w, err.Error(), 0, nil)
-	// 	return
-	// }
-	actionCode := ""
+
+	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
 	common_util.WriteSuccessResponse(w, actionCode, "Update archive time request submitted for approval")
 
 }

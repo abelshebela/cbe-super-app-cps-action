@@ -462,7 +462,7 @@ func domainToModelCPSAction(domainAction domain.CPSAction) model.CPSAction {
 			}
 			return ""
 		}(),
-		PreviousAction:     domainAction.PreviousAction,
+		PreviousAction:    domainAction.PreviousAction,
 		CurrentAction:     currentAction,
 		ActionStatus:      string(domainAction.ActionStatus),
 		ActionType:        string(domainAction.ActionType),
@@ -511,7 +511,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 		CheckerPhoneNumber: modelAction.CheckerPhoneNumber,
 		Department:         modelAction.Department,
 		RejectionReason:    rejectionReason,
-		PreviousAction:      modelAction.PreviousAction,
+		PreviousAction:     modelAction.PreviousAction,
 		CurrentAction:      bsonDToMap(modelAction.CurrentAction), // always map/slice, never bson.D
 		ActionStatus:       domain.ActionStatus(modelAction.ActionStatus),
 		ActionType:         domain.ActionType(modelAction.ActionType),
@@ -525,7 +525,7 @@ func modelToDomainCPSAction(modelAction model.CPSAction) domain.CPSAction {
 
 func (o *outboundStore) CreateCpsAction(ctx context.Context, Action domain.CPSAction) (domain.CPSAction, error) {
 	Action.ActionCode = utils.RandomGenerator(20)
-	
+
 	modelAction := domainToModelCPSAction(Action)
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, modelAction)
 	if err != nil {
@@ -957,7 +957,7 @@ func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string
 		return nil, fmt.Errorf("ACTION_HAS_ALREADY_REJECTED")
 	}
 
-	now:= time.Now()
+	now := time.Now()
 
 	// Update it
 	cps_action.CheckerID = cpsAction.CheckerID
@@ -1438,7 +1438,7 @@ func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req servic
 		ActionStatus:       "PENDING",
 		ActionType:         "UPDATE_SERVICE_FEE",
 		RequestAction:      "UPDATE",
-		PreviousAction:      req.PreviousAction,
+		PreviousAction:     req.PreviousAction,
 		CurrentAction:      req.CurrentAction,
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
@@ -1879,7 +1879,7 @@ func (o *outboundStore) GetPasswordRuleUpdateActionByID(ctx context.Context, act
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviousAction:      data.PreviousAction,
+		PreviousAction:     data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
@@ -1922,7 +1922,7 @@ func (o *outboundStore) GetUpdateAction(ctx context.Context, maker action.User) 
 		CheckerPhoneNumber: data.CheckerPhoneNumber,
 		Department:         data.Department,
 		RejectionReason:    rejectionReason,
-		PreviousAction:      data.PreviousAction,
+		PreviousAction:     data.PreviousAction,
 		CurrentAction:      data.CurrentAction,
 		ActionStatus:       action.ActionStatus(data.ActionStatus),
 		ActionType:         action.ActionType(data.ActionType),
@@ -1956,7 +1956,7 @@ func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.Pas
 	return rule, nil
 }
 
-// Add this method to outboundStore: 
+// Add this method to outboundStore:
 func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.PasswordRule) error {
 	if strings.TrimSpace(rule.ID) == "" {
 		return errors.New("password rule ID is required")
@@ -2000,14 +2000,12 @@ func (o *outboundStore) FetchPendingActionsByUniqueID(ctx context.Context, uniqu
 	}
 	doc, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
-			return []action.ActionResponse{}, nil
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return []action.ActionResponse{}, fmt.Errorf("NOT_FOUND")
 		}
-		return nil, fmt.Errorf("failed to fetch pending action: %w", err)
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
-	if doc == nil {
-		return []action.ActionResponse{}, nil
-	}
+
 	response := action.ActionResponse{
 		ID:       doc.ID.Hex(),
 		ActionId: doc.ActionCode,
