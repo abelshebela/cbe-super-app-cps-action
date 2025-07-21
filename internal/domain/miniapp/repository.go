@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	// domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 )
 
 type MiniRepository interface {

@@ -6,17 +6,15 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
-
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
-	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User, department string) (string, *common.ErrorDefinition)
-	// CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (*model.CPSAction, error)
+	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error)
 	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error)
 	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error)
 	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
@@ -35,8 +33,7 @@ func NewApplicationService(service domain.MiniAppService, logger utils.Logger) A
 	}
 }
 
-
-func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User, Department string) (string, *common.ErrorDefinition) {
+func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error) {
 	data := domain.MiniApp{
 		AppName:           miniApp.AppName,
 		AppIcon:           miniApp.AppIcon,
@@ -81,27 +78,13 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 		LastModifiedAt: time.Now(),
 		DeletedAt:      time.Time{},
 	}
-	action_id, err := a.service.CreateMiniAppAction(ctx, data, maker, Department)
+	action, err := a.service.CreateMiniAppAction(ctx, data, maker)
 	if err != nil {
-		err_def := common.ErrorDefinition{
-			Code:    "",
-			Message: "",
-		}
 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err.Error())
-		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
-		return "", &err_def
+		return nil, err
 	}
-	return action_id, nil
+	return action, nil
 }
-
-// func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (*model.CPSAction, error) {
-// 	CreatedAction, err := a.service.CheckMiniApp(ctx, actionId, action, checker, department)
-// 	if err != nil {
-// 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] %v", err.Error())
-// 		return nil, err
-// 	}
-// 	return CreatedAction, nil
-// }
 
 func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error) {
 	data := domain.MiniApp{

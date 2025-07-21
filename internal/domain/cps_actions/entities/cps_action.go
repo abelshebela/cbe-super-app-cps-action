@@ -3,6 +3,7 @@ package cpsactions
 import (
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 )
 
@@ -41,4 +42,34 @@ type AuthorizeCPSAction struct {
 	RejectionReason   string    `json:"rejection_reason"`
 	CheckerUser       User      `json:"checker_user"`
 	CheckerActionTime time.Time `json:"checker_action_time,omitzero"`
+}
+
+func ToDomainCPSAction(m *model.CPSAction) *CPSAction {
+	var checkerActionTime time.Time
+	if m.CheckerActionTime != nil {
+		checkerActionTime = *m.CheckerActionTime
+	}
+
+	return &CPSAction{
+		ID:                 m.ID.Hex(),
+		ActionCode:         m.ActionCode,
+		UniqueID:           m.UniqueId,
+		MakerID:            m.MakerID,
+		MakerName:          m.MakerName,
+		MakerPhoneNumber:   m.MakerPhoneNumber,
+		CheckerID:          m.CheckerID,
+		CheckerName:        m.CheckerName,
+		CheckerPhoneNumber: m.CheckerPhoneNumber,
+		Department:         m.Department,
+		RejectionReason:    m.RejectionReason,
+		PreviousAction:     m.PreviousAction,
+		CurrentAction:      m.CurrentAction,
+		ActionStatus:       constant.ActionStatus(m.ActionStatus),
+		ActionType:         constant.ActionType(m.ActionType),
+		RequestAction:      constant.RequestAction(m.RequestAction),
+		CreatedAt:          m.CreatedAt,
+		LastModifiedAt:     m.LastModifiedAt,
+		MakerActionTime:    m.MakerActionTime,
+		CheckerActionTime:  checkerActionTime,
+	}
 }

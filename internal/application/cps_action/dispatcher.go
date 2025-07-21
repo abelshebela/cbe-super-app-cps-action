@@ -50,7 +50,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Block"):
 		return d.app.AccountBlockDomain.AuthorizeSingleBranchDisable(ctx, cpsAction)
 
-	//***********************************************************************
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)
 
@@ -87,6 +86,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Budget"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
 	default:
-		return nil, fmt.Errorf("unsupported request action: %s", action)
+		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}
 }

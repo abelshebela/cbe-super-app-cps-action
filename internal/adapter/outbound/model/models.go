@@ -68,6 +68,7 @@ type User struct {
 	UserCode    string `json:"user_code" bson:"user_code"`
 	FullName    string `json:"full_name" bson:"full_name"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	Department  string `json:"department" bson:"department"`
 }
 
 type Bank struct {
@@ -122,7 +123,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `bson:"created_at" json:"created_at"`
 	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at"`
 	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time"`
-	CheckerActionTime  *time.Time     `bson:"checker_action_time" json:"checker_action_time,omitempty"`
+	CheckerActionTime  *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
@@ -312,11 +313,7 @@ const (
 	CB  BranchType = "CB"
 )
 
-type ProductCode struct {
-	ID          string     `bson:"id"`
-	BranchType  BranchType `bson:"branch_type"`
-	ProductCode string     `bson:"product_code"`
-}
+
 
 type AppType struct {
 	UAT        string `bson:"uat"`
@@ -347,15 +344,21 @@ type CpsActionNormalized struct {
 	MakerActionTime    time.Time   `bson:"maker_action_time" json:"maker_action_time"`
 	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
+type ProductCode struct {
+	ID          string     `bson:"id" json:"id,omitempty"`
+	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
+	ProductCode string     `bson:"product_code" json:"product_code"`
+}
+
 type CredentialInformation struct {
-	ID            string          `bson:"id"`
-	Environment   EnvironmentType `bson:"environment"`
-	MerchantAppID string          `bson:"merchant_app_id"`
-	FabricAppID   string          `bson:"fabric_app_id"`
-	ShortCode     string          `bson:"short_code"`
-	AppSecret     string          `bson:"app_secret"`
-	PrivateKey    string          `bson:"private_key"`
-	PublicKey     string          `bson:"public_key"`
+	ID            string          `bson:"id" json:"id,omitempty"`
+	Environment   EnvironmentType `bson:"environment" json:"environment"`
+	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
+	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
+	ShortCode     string          `bson:"short_code" json:"short_code"`
+	AppSecret     string          `bson:"app_secret" json:"app_secret"`
+	PrivateKey    string          `bson:"private_key" json:"private_key"`
+	PublicKey     string          `bson:"public_key" json:"public_key"`
 }
 
 type MiniApp struct {

@@ -7,23 +7,9 @@ import (
 
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
 	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
-
-type HttpStore struct {
-	Application miniapp_application.ApplicationAbstracts
-	logger      util.Logger
-}
-
-func NewMiniAppAdapter(app miniapp_application.ApplicationAbstracts, logger util.Logger) Inbound.MiniAppInbound {
-	return &HttpStore{
-		Application: app,
-		logger:      logger,
-	}
-}
 
 func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/mini-apps", func(r chi.Router) {
@@ -37,15 +23,6 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
-			// {
-			// 	Method:  http.MethodPost,
-			// 	Path:    "/approve_or_reject",
-			// 	Handler: handler.CheckerMiniApp,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-			// 	},
-			// },
 			{
 				Method:  http.MethodPatch,
 				Path:    "/update",

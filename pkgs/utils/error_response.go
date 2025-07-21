@@ -135,6 +135,7 @@ var errorKeyToStatus = map[string]int{
 	"REQUIRED_DESCRIPTION":                                       http.StatusBadRequest,
 	"TITLE_TOO_LONG":                                             http.StatusBadRequest,
 	"DESCRIPTION_TOO_LONG":                                       http.StatusBadRequest,
+	"UNSUPPORTED_REQUEST_ACTION":                                 http.StatusBadRequest,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,

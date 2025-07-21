@@ -75,7 +75,7 @@ type Persitence struct {
 	PortalCardPersistance      portalCardRepo.PortaCardInterface
 	WalletPersistance          wallet.WalletPersistence
 	FaydaPersistence           fayda_account_repo.FaydaRepository
-	miniAppPersistance         miniApp_port.Outbound
+	miniAppPersistance         miniApp_port.MiniRepository
 	EventPersistence           *event_persistence.EventPersistence
 	CPSActionsPersistance      cps_actions.CPSActionRepository
 	BudgetCategoryPersistence  budget_category_repo.BudgetCategoryRepoInterface

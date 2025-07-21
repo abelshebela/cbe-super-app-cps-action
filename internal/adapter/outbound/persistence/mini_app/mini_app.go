@@ -2,17 +2,15 @@ package miniapp
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
+	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-
-	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-
-	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 )
@@ -23,17 +21,17 @@ type MiniAppPersistence struct {
 	logger            utils.Logger
 }
 
-func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.Outbound {
+func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.MiniRepository {
 	return &MiniAppPersistence{
 		MongoDalMiniApp:   dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
 		MongoDalCPSAction: dal.NewMongoDal[model.CPSAction, model.CPSAction](client, DB_name, collections[1]),
+		logger:            logger,
 	}
 }
 
-var _ miniApp.Outbound = (*MiniAppPersistence)(nil)
+var _ miniApp.MiniRepository = (*MiniAppPersistence)(nil)
 
-func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action model.CPSAction) (model.CPSAction, error) {
-
+func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action *entities.CPSAction) (*entities.CPSAction, error) {
 	CpsAction := model.CPSAction{
 		ID:                 bson.NewObjectID(),
 		ActionCode:         Action.ActionCode,
@@ -49,69 +47,29 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 		PreviousAction:     Action.PreviousAction,
 		CurrentAction:      Action.CurrentAction,
 		ActionStatus:       string(model.ActionPending),
-		ActionType:         Action.ActionType,
-		RequestAction:      Action.RequestAction,
+		ActionType:         string(Action.ActionType),
+		RequestAction:      string(Action.RequestAction),
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 	}
 
 	data, err := o.MongoDalCPSAction.InsertOne(ctx, CpsAction)
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
 
-	result := model.CPSAction{
-		ID:                 data.ID,
-		ActionCode:         data.ActionCode,
-		UniqueId:           data.UniqueId,
-		MakerID:            data.MakerID,
-		MakerName:          data.MakerName,
-		MakerPhoneNumber:   data.MakerPhoneNumber,
-		CheckerID:          data.CheckerID,
-		CheckerName:        data.CheckerName,
-		CheckerPhoneNumber: data.CheckerPhoneNumber,
-		Department:         data.Department,
-		RejectionReason:    data.RejectionReason,
-		PreviousAction: func() interface{} {
-			var v interface{}
-			if b, ok := data.PreviousAction.(json.RawMessage); ok {
-				_ = json.Unmarshal(b, &v)
-			}
-			return v
-		}(),
-		CurrentAction: func() interface{} {
-			var v interface{}
-			if b, ok := data.CurrentAction.(json.RawMessage); ok {
-				_ = json.Unmarshal(b, &v)
-			}
-			return v
-		}(),
-		// PreviousAction:     Action.PreviousAction,
-		// CurrentAction:     Action.CurrentAction,
-		ActionStatus:      data.ActionStatus,
-		ActionType:        data.ActionType,
-		RequestAction:     data.RequestAction,
-		CreatedAt:         data.CreatedAt,
-		LastModifiedAt:    data.LastModifiedAt,
-		MakerActionTime:   data.MakerActionTime,
-		CheckerActionTime: data.CheckerActionTime,
-	}
-	return result, nil
-}
-
-func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *model.CPSAction, id string) (*model.CPSAction, error) {
-	return &model.CPSAction{}, nil
+	return entities.ToDomainCPSAction(&data), nil
 }
 
 func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp *model.MiniApp) (*model.MiniApp, error) {
 
 	miniapp.ID = bson.NewObjectID()
-	cpsAct, err := o.MongoDalMiniApp.InsertOne(ctx, *miniapp)
+	miniApp, err := o.MongoDalMiniApp.InsertOne(ctx, *miniapp)
 
 	if err != nil {
 		return nil, err
 	}
-	return &cpsAct, nil
+	return &miniApp, nil
 }
 
 func (o *MiniAppPersistence) GetMiniAppActionId(ctx context.Context, action_id string) (model.CPSAction, error) {

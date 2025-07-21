@@ -682,6 +682,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_151",
 			Message: "invalid RequestAction",
 		},
+		"UNSUPPORTED_REQUEST_ACTION":{
+			Code: "GEN_152",
+			Message: "unsupported request action",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
