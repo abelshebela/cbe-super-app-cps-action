@@ -7,16 +7,16 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
 	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error)
-	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error)
-	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error)
+	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error)
+	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (*entities.CPSAction, error)
 	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
 	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
 }
@@ -86,7 +86,7 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 	return action, nil
 }
 
-func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error) {
+func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (*entities.CPSAction, error) {
 	data := domain.MiniApp{
 		AppName:           req.AppName,
 		AppIcon:           req.AppIcon,
@@ -129,21 +129,21 @@ func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniA
 		Enabled:        req.Enabled,
 		LastModifiedAt: time.Now(),
 	}
-	updateID, err := a.service.UpdateMiniAppAction(ctx, data, maker)
+	update, err := a.service.UpdateMiniAppAction(ctx, data, maker, req.ID)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.MakerUpdateMiniApp] %v", err)
-		return "", err
+		return nil, err
 	}
-	return updateID, nil
+	return update, nil
 }
 
-func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error) {
-	deleteID, err := a.service.DeleteMiniAppAction(ctx, *maker, id)
+func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (*entities.CPSAction, error) {
+	cpsAction, err := a.service.DeleteMiniAppAction(ctx, *maker, id)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.MakerDeleteMiniApp] %v", err)
-		return "", err
+		return nil, err
 	}
-	return deleteID, nil
+	return cpsAction, nil
 }
 
 func (a *ApplicationStore) ListMiniApp(ctx context.Context) ([]*model.MiniApp, error) {

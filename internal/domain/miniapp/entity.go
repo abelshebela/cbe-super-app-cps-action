@@ -2,8 +2,6 @@ package miniapp
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type EnvironmentType string
@@ -22,12 +20,6 @@ const (
 	CB  BranchType = "CB"
 )
 
-// type ProductCode struct {
-// 	ID          string
-// 	BranchType  BranchType
-// 	ProductCode string
-// }
-
 type ProductCode struct {
 	ID          string     `bson:"id"`
 	BranchType  BranchType `bson:"branch_type"`
@@ -41,17 +33,6 @@ type AppType struct {
 	Dev        string
 }
 
-// type CredentialInformation struct {
-// 	ID            string
-// 	Environment   EnvironmentType
-// 	MerchantAppID string
-// 	FabricAppID   string
-// 	ShortCode     string
-// 	AppSecret     string
-// 	PrivateKey    string
-// 	PublicKey     string
-// }
-
 type CredentialInformation struct {
 	ID            string          `bson:"id"`
 	Environment   EnvironmentType `bson:"environment"`
@@ -64,7 +45,7 @@ type CredentialInformation struct {
 }
 
 type MiniApp struct {
-	ID                bson.ObjectID           `bson:"_id"`
+	ID                string                  `bson:"_id"`
 	AppName           string                  `bson:"app_name"`
 	AppIcon           string                  `bson:"app_icon"`
 	CommisonGLAccount string                  `bson:"commison_gl_account"`
@@ -80,21 +61,3 @@ type MiniApp struct {
 	LastModifiedAt    time.Time               `bson:"last_modified_at"`
 	DeletedAt         time.Time               `bson:"deleted_at"`
 }
-
-// type MiniApp struct {
-// 	ID                string
-// 	AppName           string
-// 	AppIcon           string
-// 	CommisonGLAccount string
-// 	AppType           AppType
-// 	MerchantID        string
-// 	ProductCode       []ProductCode
-// 	Credential        []CredentialInformation
-// 	IsEventMiniApp    bool
-// 	IsThreeClick      bool
-// 	Enabled           bool
-// 	IsDeleted         bool
-// 	CreatedAt         time.Time
-// 	LastModifiedAt    time.Time
-// 	DeletedAt         time.Time
-// }

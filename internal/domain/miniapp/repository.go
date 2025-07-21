@@ -4,13 +4,15 @@ import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	// domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 )
 
 type MiniRepository interface {
 	CreateMiniAppAction(ctx context.Context, action model.CPSAction) (model.CPSAction, error)
 	DeleteMiniAppAction(ctx context.Context, action *model.CPSAction, id string) (*model.CPSAction, error)
 
-	CreateMiniApp(ctx context.Context, miniapp *model.MiniApp) (*model.MiniApp, error)
+	CreateMiniApp(ctx context.Context, miniapp *entities.CPSAction) (*model.MiniApp, error)
 
 	GetMiniAppActionId(ctx context.Context, action_id string) (model.CPSAction, error)
 	UpdateCpsAction(ctx context.Context, action model.CPSAction) (model.CPSAction, error)

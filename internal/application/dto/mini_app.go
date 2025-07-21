@@ -40,6 +40,7 @@ type CredentialInformation struct {
 }
 
 type MiniAppCreateRequest struct {
+	ID                string                  `json:"id"`
 	AppName           string                  `json:"app_name"`
 	AppIcon           string                  `json:"app_icon"`
 	CommisonGLAccount string                  `json:"commison_gl_account"`

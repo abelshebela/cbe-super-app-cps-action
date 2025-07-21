@@ -12,6 +12,7 @@ import (
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	util "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -76,12 +77,19 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 	var req dto.MiniAppCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
+	req.ID = id
 
 	maker, UserErr := h.createUser(r)
 	if UserErr != nil {
@@ -124,7 +132,6 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
-	// id := r.URL.Query().Get("id")
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Missing mini app ID")

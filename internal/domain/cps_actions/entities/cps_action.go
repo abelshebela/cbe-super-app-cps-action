@@ -1,10 +1,13 @@
 package cpsactions
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type CPSAction struct {
@@ -72,4 +75,43 @@ func ToDomainCPSAction(m *model.CPSAction) *CPSAction {
 		MakerActionTime:    m.MakerActionTime,
 		CheckerActionTime:  checkerActionTime,
 	}
+}
+
+func ToModelCPSAction(d *CPSAction) (*model.CPSAction, error) {
+	if d == nil {
+		return nil, errors.New("domain CPSAction is nil")
+	}
+
+	objectID, err := bson.ObjectIDFromHex(d.ID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid CPSAction ID format: %w", err)
+	}
+
+	var checkerActionTime *time.Time
+	if !d.CheckerActionTime.IsZero() {
+		checkerActionTime = &d.CheckerActionTime
+	}
+
+	return &model.CPSAction{
+		ID:                 objectID,
+		ActionCode:         d.ActionCode,
+		UniqueId:           d.UniqueID,
+		MakerID:            d.MakerID,
+		MakerName:          d.MakerName,
+		MakerPhoneNumber:   d.MakerPhoneNumber,
+		CheckerID:          d.CheckerID,
+		CheckerName:        d.CheckerName,
+		CheckerPhoneNumber: d.CheckerPhoneNumber,
+		Department:         d.Department,
+		RejectionReason:    d.RejectionReason,
+		PreviousAction:     d.PreviousAction,
+		CurrentAction:      d.CurrentAction,
+		ActionStatus:       string(d.ActionStatus),
+		ActionType:         string(d.ActionType),
+		RequestAction:      string(d.RequestAction),
+		CreatedAt:          d.CreatedAt,
+		LastModifiedAt:     d.LastModifiedAt,
+		MakerActionTime:    d.MakerActionTime,
+		CheckerActionTime:  checkerActionTime,
+	}, nil
 }

@@ -101,31 +101,33 @@ const (
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
-	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
-	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
-	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
-	RequestEnableAvatar             RequestAction = "ENABLE_AVATAR"
-	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
-	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
-	RequestBlockRegion              RequestAction = "BLOCK_REGION"
-	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
-	RequestBlockCity                RequestAction = "BLOCK_CITY"
-	RequestBlockUser                RequestAction = "BLOCK_USER"
-	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
-	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
-	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
-	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
-	RequestDisableFaydaAccount      RequestAction = "DISABLE_FAYDA_ACCOUNT"
-	RequestAccountUpdate            RequestAction = "REQUEST_ACCOUNT_UPDATE"
-	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup    RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestCreateBudgetCategory     RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory     RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory     RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestUnlinkDevice             RequestAction = "UNLINK_DEVICE"
-	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINIAPP_MERCHANT"
+
+	RequestUpdateBlockTime       RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar          RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar          RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar          RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar         RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar          RequestAction = "UPDATE_AVATAR"
+	RequestBlockRegion           RequestAction = "BLOCK_REGION"
+	RequestBlockDistrict         RequestAction = "BLOCK_DISTRICT"
+	RequestBlockCity             RequestAction = "BLOCK_CITY"
+	RequestBlockUser             RequestAction = "BLOCK_USER"
+	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestAccountUpdate         RequestAction = "REQUEST_ACCOUNT_UPDATE"
+	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestUnlinkDevice          RequestAction = "UNLINK_DEVICE"
+	RequestUpdateHQBlockTime     RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime   RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -296,6 +298,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	"MiniAppMerchant": {
 		RequestCreateMiniAppMerchant,
 		RequestUpdateMiniAppMerchant,
+		RequestDeleteMiniAppMerchant,
 	},
 	"BlockTime": {
 		RequestUpdateBlockTime,
