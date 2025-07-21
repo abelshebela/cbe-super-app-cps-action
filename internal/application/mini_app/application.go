@@ -10,7 +10,31 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 )
+
+type ApplicationAbstracts interface {
+	MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User, department string) (string, *common.ErrorDefinition)
+	// CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (*model.CPSAction, error)
+	MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error)
+	MakerDeleteMiniApp(ctx context.Context, maker *model.User, id string) (string, error)
+	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
+}
+
+type ApplicationStore struct {
+	service domain.MiniAppService
+	Logger  utils.Logger
+}
+
+func NewApplicationService(service domain.MiniAppService, logger utils.Logger) ApplicationAbstracts {
+	return &ApplicationStore{
+		service: service,
+		Logger:  logger,
+	}
+}
+
 
 func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker model.User, Department string) (string, *common.ErrorDefinition) {
 	data := domain.MiniApp{
@@ -70,19 +94,14 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp dto.M
 	return action_id, nil
 }
 
-func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (model.CPSAction, error) {
-	CreatedAction, err := a.service.CheckMiniApp(ctx, actionId, action, checker, department)
-	if err != nil {
-		err_def := common.ErrorDefinition{
-			Code:    "",
-			Message: "",
-		}
-		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] %v", err.Error())
-		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] ", err_def)
-		return model.CPSAction{}, err
-	}
-	return CreatedAction, nil
-}
+// func (a *ApplicationStore) CheckerCreateMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (*model.CPSAction, error) {
+// 	CreatedAction, err := a.service.CheckMiniApp(ctx, actionId, action, checker, department)
+// 	if err != nil {
+// 		a.Logger.Errorf("[mini_app.MakerCreateMiniApp] %v", err.Error())
+// 		return nil, err
+// 	}
+// 	return CreatedAction, nil
+// }
 
 func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req dto.MiniAppCreateRequest, maker model.User) (string, error) {
 	data := domain.MiniApp{

@@ -10,14 +10,34 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type MiniAppStore struct {
+	Repository MiniRepository
+	logger     utils.Logger
+}
+type MiniAppService interface {
+	CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User, departmen string) (string, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+	UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User) (string, error)
+
+	DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (string, error)
+	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)
+	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
+}
+
+func NewService(repository MiniRepository, logger utils.Logger) MiniAppService {
+	return &MiniAppStore{
+		Repository: repository,
+		logger:     logger,
+	}
+}
+
 func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User, department string) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-	miniApp.ID = bson.NewObjectID()
-	// currentMiniApp := miniApp
-	// currentMiniApp.IsDeleted = true
 	action := model.CPSAction{
 		ActionCode:       actionId,
 		MakerID:          maker.UserCode,
@@ -29,9 +49,8 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 		RequestAction:    string(domain.RequestCreateMiniAppMerchant),
 		ActionStatus:     string(domain.ActionPending),
 		CurrentAction:    miniApp,
-		// PreviousAction:    miniApp,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
 
 	a, err := s.Repository.CreateMiniAppAction(ctx, action)
@@ -41,64 +60,30 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp,
 	return a.ActionCode, nil
 }
 
-func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action bool, checker model.User, department string) (model.CPSAction, error) {
-	act, err := s.Repository.GetMiniAppActionId(ctx, actionId)
-	if err != nil {
-		fmt.Println("Error fetching action:", err)
-		return model.CPSAction{}, err
-	}
-
-	if act.Department != department {
-		s.logger.Errorf("Department mismatch: action department = %s, checker department = %s\n", act.Department, department)
-		return model.CPSAction{}, fmt.Errorf("Maker and Chaker department mismatch")
-	}
-
-	if action {
-		act.ActionType = string(model.ActionUpdate)
-		act.ActionStatus = string(model.ActionApproved)
-	} else {
-		act.ActionType = string(model.ActionUpdate)
-		act.ActionStatus = string(model.ActionRejected)
-	}
-
-	now := time.Now()
-	act.CheckerID = checker.UserCode
-	act.CheckerName = checker.FullName
-	act.CheckerPhoneNumber = checker.PhoneNumber
-	act.CheckerActionTime = &now
-	act.LastModifiedAt = time.Now()
-	updatedAction, err := s.Repository.UpdateCpsAction(ctx, act)
-	fmt.Printf("befor marthal============================")
-	fmt.Printf("type of action update: %v", updatedAction.CurrentAction)
-	// fmt.Printf("type of action data: %v", updatedAction.CurrentAction)
-	fmt.Printf("============================")
+func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var actionData model.MiniApp
 	mapData := make(map[string]interface{})
 
-	if updatedAction.ActionType != string(model.ActionDelete) {
+	if string(action.ActionType) != string(model.ActionDelete) {
 
-		data, err := bson.Marshal(updatedAction.CurrentAction)
+		data, err := bson.Marshal(action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("failed to marshal bson: %v", err)
-			return model.CPSAction{}, fmt.Errorf("INVALID_ACTION_DATA")
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 
 		if err := bson.Unmarshal([]byte(data), &actionData); err != nil {
 			s.logger.Errorf("failed to unmarshal into Avatar: %v", err)
-			return model.CPSAction{}, fmt.Errorf("INVALID_ACTION_DATA")
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 		if err := bson.Unmarshal([]byte(data), &mapData); err != nil {
 			s.logger.Errorf("failed to unmarshal into Avatar: %v", err)
-			return model.CPSAction{}, fmt.Errorf("INVALID_ACTION_DATA")
+			return nil, fmt.Errorf("INVALID_ACTION_DATA")
 		}
 	}
-	// } else {
-	// 	mapData["_id"] = actionData.I
-	// }
 
 	req := model.MiniApp{
-		ID:                bson.NewObjectID(),
 		AppName:           actionData.AppName,
 		AppIcon:           actionData.AppIcon,
 		CommisonGLAccount: actionData.CommisonGLAccount,
@@ -145,14 +130,12 @@ func (s *MiniAppStore) CheckMiniApp(ctx context.Context, actionId string, action
 		DeletedAt:      time.Time{},
 	}
 
-	// }
-
-	_, err = s.Repository.CreateMiniApp(ctx, req)
+	_, err := s.Repository.CreateMiniApp(ctx, &req)
 	if err != nil {
 		fmt.Printf("error form domain chekmiiapp to crate mini app : %v", err)
-		return model.CPSAction{}, err
+		return nil, err
 	}
-	return updatedAction, nil
+	return action, nil
 }
 
 func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User) (string, error) {
@@ -178,10 +161,6 @@ func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, data MiniApp, ma
 
 func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (string, error) {
 	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_DEL_"})
-	// objectID, err := bson.ObjectIDFromHex(id)
-	// if err != nil {
-	// 	return "", fmt.Errorf("invalid id: %w", err)
-	// }
 	miniApp, err := s.Repository.DetailMiniAppByID(ctx, id)
 	currentAction := miniApp
 	currentAction.IsDeleted = true

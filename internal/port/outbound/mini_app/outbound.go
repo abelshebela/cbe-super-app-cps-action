@@ -10,9 +10,9 @@ import (
 
 type Outbound interface {
 	CreateMiniAppAction(ctx context.Context, action model.CPSAction) (model.CPSAction, error)
-	DeleteMiniAppAction(ctx context.Context, action model.CPSAction, id string) (model.CPSAction, error)
+	DeleteMiniAppAction(context.Context, *model.CPSAction, string) (*model.CPSAction, error)
 
-	CreateMiniApp(ctx context.Context, miniapp model.MiniApp) (model.CPSAction, error)
+	CreateMiniApp(context.Context, *model.MiniApp) (*model.MiniApp, error)
 	GetMiniAppActionId(ctx context.Context, action_id string) (model.CPSAction, error)
 	UpdateCpsAction(ctx context.Context, action model.CPSAction) (model.CPSAction, error)
 	ListMiniApp(ctx context.Context) ([]*model.MiniApp, error)

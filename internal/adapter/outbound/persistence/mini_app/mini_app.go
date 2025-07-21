@@ -34,11 +34,8 @@ var _ miniApp.Outbound = (*MiniAppPersistence)(nil)
 
 func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action model.CPSAction) (model.CPSAction, error) {
 
-	fmt.Println("perstance===========================")
-	fmt.Printf("current action to store in DB:%v", Action.CurrentAction)
-	fmt.Println("perstance===========================")
-
 	CpsAction := model.CPSAction{
+		ID:                 bson.NewObjectID(),
 		ActionCode:         Action.ActionCode,
 		MakerID:            Action.MakerID,
 		MakerName:          Action.MakerName,
@@ -102,58 +99,19 @@ func (o *MiniAppPersistence) CreateMiniAppAction(ctx context.Context, Action mod
 	return result, nil
 }
 
-func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action model.CPSAction, id string) (model.CPSAction, error) {
-	return model.CPSAction{}, nil
+func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *model.CPSAction, id string) (*model.CPSAction, error) {
+	return &model.CPSAction{}, nil
 }
 
-func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp model.MiniApp) (model.CPSAction, error) {
-	// var credential []domain.CredentialInformation
-	// var product_code []domain.ProductCode
-	// for _, creds := range miniapp.Credential {
-	// 	credential = append(credential, domain.CredentialInformation{
-	// 		Environment:   domain.EnvironmentType(creds.Environment),
-	// 		MerchantAppID: creds.MerchantAppID,
-	// 		FabricAppID:   creds.FabricAppID,
-	// 		ShortCode:     creds.ShortCode,
-	// 		AppSecret:     creds.AppSecret,
-	// 		PrivateKey:    creds.PrivateKey,
-	// 		PublicKey:     creds.PublicKey,
-	// 	})
-	// }
-	// for _, pc := range miniapp.ProductCode {
-	// 	product_code = append(product_code, domain.ProductCode{
-	// 		BranchType:  domain.BranchType(pc.BranchType),
-	// 		ProductCode: pc.ProductCode,
-	// 	})
-	// // }
+func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, miniapp *model.MiniApp) (*model.MiniApp, error) {
 
-	_, err := o.MongoDalMiniApp.InsertOne(ctx, miniapp)
+	miniapp.ID = bson.NewObjectID()
+	cpsAct, err := o.MongoDalMiniApp.InsertOne(ctx, *miniapp)
 
-	// 	model.MiniApp{
-	// 	AppName:           miniapp.AppName,
-	// 	AppIcon:           miniapp.AppIcon,
-	// 	CommisonGLAccount: miniapp.CommisonGLAccount,
-	// 	AppType: domain.AppType{
-	// 		UAT:        miniapp.AppType.UAT,
-	// 		Production: miniapp.AppType.Production,
-	// 		Test:       miniapp.AppType.Test,
-	// 		Dev:        miniapp.AppType.Dev,
-	// 	},
-	// 	MerchantID:     miniapp.MerchantID,
-	// 	ProductCode:    product_code,
-	// 	Credential:     credential,
-	// 	IsEventMiniApp: miniapp.IsEventMiniApp,
-	// 	IsThreeClick:   miniapp.IsThreeClick,
-	// 	Enabled:        miniapp.Enabled,
-	// 	IsDeleted:      miniapp.IsDeleted,
-	// 	CreatedAt:      time.Now(),
-	// 	LastModifiedAt: time.Now(),
-	// 	DeletedAt:      time.Time{},
-	// })
 	if err != nil {
-		return model.CPSAction{}, err
+		return nil, err
 	}
-	return model.CPSAction{}, nil
+	return &cpsAct, nil
 }
 
 func (o *MiniAppPersistence) GetMiniAppActionId(ctx context.Context, action_id string) (model.CPSAction, error) {

@@ -77,31 +77,31 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	utils.WriteSuccessResponse(w, response_actoinData, "mini App request successfully created")
 }
 
-func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
-	var req dto.MiniAppCheckerRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
+// func (h *HttpStore) CheckerMiniApp(w http.ResponseWriter, r *http.Request) {
+// 	var req dto.MiniAppCheckerRequest
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
+// 		return
+// 	}
+// 	defer r.Body.Close()
 
-	CheckerUser := contexts.ExtractUserContext(r)
+// 	CheckerUser := contexts.ExtractUserContext(r)
 
-	var Checker model.User
+// 	var Checker model.User
 
-	Checker.FullName = CheckerUser.FullName
-	Checker.UserCode = CheckerUser.UserCode
-	Checker.PhoneNumber = CheckerUser.PhoneNumber
-	Department := CheckerUser.Department
+// 	Checker.FullName = CheckerUser.FullName
+// 	Checker.UserCode = CheckerUser.UserCode
+// 	Checker.PhoneNumber = CheckerUser.PhoneNumber
+// 	Department := CheckerUser.Department
 
-	ApprovedAction, err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
-	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "")
-		return
-	}
-	utils.WriteSuccessResponse(w, ApprovedAction, "successful")
+// 	ApprovedAction, err := h.Application.CheckerCreateMiniApp(r.Context(), req.Action_id, req.Action, Checker, Department)
+// 	if err != nil {
+// 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "")
+// 		return
+// 	}
+// 	utils.WriteSuccessResponse(w, ApprovedAction, "successful")
 
-}
+// }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	var req dto.MiniAppCreateRequest
