@@ -578,8 +578,9 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		},
 	}
 
+	s.logger.Infof("try to check the action input ---------%v", action)
 	if action == "pre_login" {
-		nextStep = "pin_login"
+		nextStep = "login"
 		filter := make(map[string]interface{})
 		req := make(map[string]interface{})
 

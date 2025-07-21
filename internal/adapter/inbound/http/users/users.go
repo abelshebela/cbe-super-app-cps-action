@@ -454,7 +454,7 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	action, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	action, ok := r.Context().Value(constant.ContextKey("action")).(string)
 	if !ok {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
 		return
@@ -959,7 +959,7 @@ func (h UsersAdapter) CompleteRegistration(w http.ResponseWriter, r *http.Reques
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
-	action, ok := r.Context().Value(constant.ContextKey("user_id")).(string)
+	action, ok := r.Context().Value(constant.ContextKey("action")).(string)
 	if !ok {
 		utils.SendErrorResponse(w, "UNAUTHORIZED", http.StatusUnauthorized, nil)
 		return
