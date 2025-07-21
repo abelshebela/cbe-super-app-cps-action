@@ -313,8 +313,6 @@ const (
 	CB  BranchType = "CB"
 )
 
-
-
 type AppType struct {
 	UAT        string `bson:"uat"`
 	Production string `bson:"production"`
