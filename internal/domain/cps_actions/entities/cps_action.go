@@ -82,9 +82,16 @@ func ToModelCPSAction(d *CPSAction) (*model.CPSAction, error) {
 		return nil, errors.New("domain CPSAction is nil")
 	}
 
-	objectID, err := bson.ObjectIDFromHex(d.ID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid CPSAction ID format: %w", err)
+	var objectID bson.ObjectID
+	var err error
+
+	if d.ID != "" {
+		objectID, err = bson.ObjectIDFromHex(d.ID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid CPSAction ID format: %w", err)
+		}
+	} else {
+		objectID = bson.NewObjectID()
 	}
 
 	var checkerActionTime *time.Time

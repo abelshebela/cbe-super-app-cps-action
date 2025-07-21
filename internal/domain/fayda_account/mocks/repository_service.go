@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	utils0 "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -45,18 +46,18 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // AuthorizeFaydaAccountDisable mocks base method.
-func (m *MockRepository) AuthorizeFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
+func (m *MockRepository) AuthorizeFaydaAccountDisable(ctx context.Context, action *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuthorizeFaydaAccountDisable", ctx, req)
-	ret0, _ := ret[0].(*entity.CPSAction)
+	ret := m.ctrl.Call(m, "AuthorizeFaydaAccountDisable", ctx, action)
+	ret0, _ := ret[0].(*cpsactions.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AuthorizeFaydaAccountDisable indicates an expected call of AuthorizeFaydaAccountDisable.
-func (mr *MockRepositoryMockRecorder) AuthorizeFaydaAccountDisable(ctx, req any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) AuthorizeFaydaAccountDisable(ctx, action any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeFaydaAccountDisable", reflect.TypeOf((*MockRepository)(nil).AuthorizeFaydaAccountDisable), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeFaydaAccountDisable", reflect.TypeOf((*MockRepository)(nil).AuthorizeFaydaAccountDisable), ctx, action)
 }
 
 // GetAllFaydaAccounts mocks base method.
@@ -87,19 +88,4 @@ func (m *MockRepository) InitiateDisableFaydaAccount(ctx context.Context, req en
 func (mr *MockRepositoryMockRecorder) InitiateDisableFaydaAccount(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateDisableFaydaAccount", reflect.TypeOf((*MockRepository)(nil).InitiateDisableFaydaAccount), ctx, req)
-}
-
-// RejectFaydaAccountDisable mocks base method.
-func (m *MockRepository) RejectFaydaAccountDisable(ctx context.Context, req entity.CPSAction) (*entity.CPSAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RejectFaydaAccountDisable", ctx, req)
-	ret0, _ := ret[0].(*entity.CPSAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RejectFaydaAccountDisable indicates an expected call of RejectFaydaAccountDisable.
-func (mr *MockRepositoryMockRecorder) RejectFaydaAccountDisable(ctx, req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RejectFaydaAccountDisable", reflect.TypeOf((*MockRepository)(nil).RejectFaydaAccountDisable), ctx, req)
 }

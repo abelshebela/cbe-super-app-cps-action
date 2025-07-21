@@ -372,6 +372,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateHQBlockTime,
 		RequestUpdateHQArchiveTime,
 	},
+	"Fayda": {
+		RequestDisableFaydaAccount,
+	},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {
