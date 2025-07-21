@@ -29,8 +29,11 @@ type ApplicationServices interface {
 
 	BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
 	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
+	GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error)
+	GetAllDistricts(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error)
+	GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error)
 
 	GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error)
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error)
-	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) 
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }

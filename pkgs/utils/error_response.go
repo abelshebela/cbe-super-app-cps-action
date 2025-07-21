@@ -251,11 +251,18 @@ var errorKeyToStatus = map[string]int{
 	"NO_PENDING_ACTION_FOUND":     404,
 
 	// AD
-	"AD_NOT_FOUND":       404,
-	"AD_ALREADY_EXISTS":  409,
-	"AD_CREATION_FAILED": 500,
-	"AD_UPDATE_FAILED":   500,
-	"AD_DELETION_FAILED": 500,
+	"AD_NOT_FOUND":                          404,
+	"AD_ALREADY_EXISTS":                     409,
+	"AD_CREATION_FAILED":                    500,
+	"AD_UPDATE_FAILED":                      500,
+	"AD_DELETION_FAILED":                    500,
+	"CITY_NOT_FOUND":                        401,
+	"PENDING_ACTION_ALREADY_EXIST":          401,
+	"CITY_ALREADY_BLOCKED":                  401,
+	"PENDING_DISTRICT_ACTION_ALREADY_EXIST": 401,
+	"DISTRICT_ALREADY_BLOCKED":              401,
+	"DISTRICT_NOT_FOUND":                    400,
+	"REGION_NOT_FOUND":                      400,
 }
 
 func getStatusForErrorKey(key string) int {

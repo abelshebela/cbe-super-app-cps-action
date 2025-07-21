@@ -22,7 +22,7 @@ type AccountBlockRepo interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
 	AuthorizeBulkBranchesDisable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
-AuthorizeBulkBranchesEnable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
+	AuthorizeBulkBranchesEnable(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
 	UpdateRegion(ctx context.Context, region action.Region) error
 	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
@@ -39,4 +39,7 @@ AuthorizeBulkBranchesEnable(ctx context.Context, cpsAction *entities.CPSAction) 
 	GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error)
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error)
 	AuthorizeBlockUser(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
+	GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error)
+	GetAllDistricts(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error)
+	GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error)
 }

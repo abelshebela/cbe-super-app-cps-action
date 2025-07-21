@@ -38,6 +38,10 @@ type ApplicationService interface {
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error)
 	GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error)
 	ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
+
+	GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error)
+	GetAllDistricts(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error)
+	GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error)
 }
 
 type Handler struct {
@@ -129,4 +133,16 @@ func (h *Handler) GetUserByPhone(ctx context.Context, phoneNumber string, maker 
 func (h *Handler) ApproveBlockUser(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error {
 	// return h.service.ApproveBlockUser(ctx, actionID, approve, reason, checker)
 	return nil
+}
+
+func (h *Handler) GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error) {
+	return h.service.GetAllCities(ctx, filter)
+}
+
+func (h *Handler) GetAllDistricts(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error) {
+	return h.service.GetAllDistricts(ctx, filter)
+}
+
+func (h *Handler) GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error) {
+	return h.service.GetAllRegions(ctx, filter)
 }

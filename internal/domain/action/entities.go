@@ -65,7 +65,7 @@ type CPSAction struct {
 	CreatedAt          time.Time     `json:"created_at"`
 	LastModifiedAt     time.Time     `json:"last_modified_at"`
 	MakerActionTime    time.Time     `json:"maker_action_time"`
-	CheckerActionTime  *time.Time     `json:"checker_action_time,omitempty"`
+	CheckerActionTime  *time.Time    `json:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
@@ -336,17 +336,17 @@ type District struct {
 	Enabled         bool
 }
 type City struct {
-	ID           string
-	CityCode     string
-	CityName     string
-	CityAddress  string
-	DistrictID   string
-	DistrictName string
-	RegionID     string
-	RegionName   string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Enabled      bool
+	ID           string    `json:"id"`
+	CityCode     string    `json:"city_code"`
+	CityName     string    `json:"city_name"`
+	CityAddress  string    `json:"city_address"`
+	DistrictID   string    `json:"district_id"`
+	DistrictName string    `json:"district_name"`
+	RegionID     string    `json:"region_id"`
+	RegionName   string    `json:"region_name"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
+	Enabled      bool      `json:"-"`
 }
 
 type CreateCPSAction struct {

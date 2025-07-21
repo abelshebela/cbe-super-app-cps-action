@@ -100,7 +100,7 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
 	}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
+	if existing != nil {
 		return "", common.DefineError.Branch["BRANCH_DISABLE_ACTION_ALREADY_EXISTS"]
 	}
 
@@ -156,7 +156,7 @@ func (o *outboundAccountBlockStore) ApproveSingleBranchDisable(ctx context.Conte
 		"request_action": "DISABLE_SINGLE_BRANCH",
 	}
 	alreadyApproved, err := o.MongoDalCPSAction.FindOne(ctx, dupCheck, bson.M{})
-	if approve && err == nil && alreadyApproved != nil {
+	if alreadyApproved != nil {
 		return common.DefineError.Branch["BRANCH_DISABLE_ACTION_ALREADY_EXISTS"]
 	}
 
@@ -288,7 +288,7 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 		"current_action": currActionBytes,
 	}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
+	if existing != nil {
 		return "", common.DefineError.Branch["BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS"]
 	}
 
@@ -356,10 +356,10 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode 
 		"department":     department,
 		"action_type":    "DELETE",
 		"request_action": "BLOCK_REGION",
-		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+		"action_status":  "PENDING",
 	}
-	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
+	existing, _ := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	if existing != nil {
 		return "", common.DefineError.Branch["BLOCK_REGION_ALREADY_EXISTS"]
 	}
 
@@ -369,6 +369,10 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode 
 		prevAction, _ = json.Marshal(prevRegionPtr)
 	} else {
 		prevAction = json.RawMessage("null")
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("REGION_NOT_FOUND")
 	}
 
 	currAction, _ := json.Marshal(map[string]string{"region_code": regionCode})
@@ -441,14 +445,11 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtC
 		"department":     department,
 		"action_type":    "DELETE",
 		"request_action": "BLOCK_DISTRICT",
-		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+		"action_status":  "PENDING",
 	}
-	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
-		return "", fmt.Errorf("A pending or approved block action already exists for this district")
-	}
-	if err != nil && err != mongo.ErrNoDocuments {
-		return "", fmt.Errorf("database error on FindOne CPSAction: %w", err)
+	existing, _ := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	if existing != nil {
+		return "", fmt.Errorf("PENDING_DISTRICT_ACTION_ALREADY_EXIST")
 	}
 
 	prevDistrictPtr, err := o.MongoDalDistrict.FindOne(ctx, bson.M{"district_code": districtCode}, bson.M{})
@@ -457,6 +458,13 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtC
 		prevAction, _ = json.Marshal(prevDistrictPtr)
 	} else {
 		prevAction = json.RawMessage("null")
+	}
+	if err != nil {
+		return "", fmt.Errorf("DISTRICT_NOT_FOUND")
+	}
+
+	if !prevDistrictPtr.Enabled {
+		return "", fmt.Errorf("DISTRICT_ALREADY_BLOCKED")
 	}
 
 	currAction, _ := json.Marshal(map[string]string{"district_code": districtCode})
@@ -525,8 +533,8 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode stri
 		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
 	}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
-		return "", fmt.Errorf("A pending or approved block action already exists for this city")
+	if existing != nil {
+		return "", fmt.Errorf("PENDING_ACTION_ALREADY_EXIST")
 	}
 	if err != nil && err != mongo.ErrNoDocuments {
 		return "", fmt.Errorf("database error on FindOne CPSAction: %w", err)
@@ -538,6 +546,14 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode stri
 		prevAction, _ = json.Marshal(prevCityPtr)
 	} else {
 		prevAction = json.RawMessage("null")
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("CITY_NOT_FOUND")
+	}
+
+	if !prevCityPtr.Enabled {
+		return "", fmt.Errorf("CITY_ALREADY_BLOCKED")
 	}
 
 	currAction, _ := json.Marshal(map[string]string{"city_code": cityCode})
@@ -576,11 +592,13 @@ func (o *outboundAccountBlockStore) GetCityByCode(ctx context.Context, cityCode 
 	}
 	filter := bson.M{"city_code": cityCode}
 	cityDoc, err := o.MongoDalCity.FindOne(ctx, filter, nil)
+
 	if err != nil || cityDoc == nil {
 		return action.City{}, fmt.Errorf("failed to get city by code: %w", err)
 	}
 	return action.City{
 		ID:           cityDoc.ID.Hex(),
+		CityAddress:  cityDoc.City,
 		CityCode:     cityDoc.CityCode,
 		CityName:     cityDoc.CityName,
 		DistrictID:   cityDoc.DistrictID,
@@ -613,7 +631,7 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, phoneNumber s
 		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
 	}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
-	if err == nil && existing != nil {
+	if existing != nil {
 		return "", fmt.Errorf("BLOCKED_ACTION_USER_ALREADY_EXIST")
 	}
 
@@ -737,7 +755,7 @@ func (o *outboundAccountBlockStore) AuthorizeBlockCity(ctx context.Context, cpsA
 	}
 
 	cityUpdate := bson.M{
-		"enabled":    false,
+		"enablde":    false,
 		"updated_at": time.Now(),
 	}
 	_, err := o.MongoDalCity.UpdateOne(ctx, bson.M{"city_code": cityCode}, cityUpdate)
@@ -910,7 +928,6 @@ func (o *outboundAccountBlockStore) AuthorizeSingleBranchEnable(ctx context.Cont
 	return cpsAction, nil
 }
 
-
 func unmarshalBranchFromAction(data interface{}) (*action.Branch, error) {
 	var branch action.Branch
 
@@ -971,7 +988,6 @@ func unmarshalBranchesFromAction(data interface{}) ([]action.Branch, error) {
 	return branches, nil
 }
 
-
 func (o *outboundAccountBlockStore) updateBulkBranches(ctx context.Context, cpsAction *entities.CPSAction, enable bool) error {
 	branches, err := unmarshalBranchesFromAction(cpsAction.CurrentAction)
 	if err != nil {
@@ -988,7 +1004,6 @@ func (o *outboundAccountBlockStore) updateBulkBranches(ctx context.Context, cpsA
 	return nil
 }
 
-
 func (o *outboundAccountBlockStore) updateBranchState(ctx context.Context, branchCode string, enable bool) error {
 	update := bson.M{
 		"enabled":    enable,
@@ -999,4 +1014,90 @@ func (o *outboundAccountBlockStore) updateBranchState(ctx context.Context, branc
 		return fmt.Errorf("failed to update branch: %w", err)
 	}
 	return nil
+}
+
+// Add to AccountBlockRepo interface if not present
+// GetAllCities fetches all cities with pagination
+func (o *outboundAccountBlockStore) GetAllCities(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, common.DefineError.General["INVALID_PAGINATION_PARAMS"]
+	}
+	filter := bson.M{}
+	projection := bson.M{}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	cities, err := o.MongoDalCity.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		o.Logger.Errorf("failed to fetch cities: %v", err)
+		return nil, common.DefineError.General["FAILED_TO_FETCH"]
+	}
+
+	total, err := o.MongoDalCity.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &constant_utils.PaginatedResponse[[]*model.City]{
+		Data: cities,
+		Meta: meta,
+	}, nil
+}
+
+func (o *outboundAccountBlockStore) GetAllDistricts(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, common.DefineError.General["INVALID_PAGINATION_PARAMS"]
+	}
+	filter := bson.M{}
+	projection := bson.M{}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	districts, err := o.MongoDalDistrict.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		o.Logger.Errorf("failed to fetch districts: %v", err)
+		return nil, common.DefineError.General["FAILED_TO_FETCH"]
+	}
+
+	total, err := o.MongoDalDistrict.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &constant_utils.PaginatedResponse[[]*model.District]{
+		Data: districts,
+		Meta: meta,
+	}, nil
+}
+
+func (o *outboundAccountBlockStore) GetAllRegions(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, common.DefineError.General["INVALID_PAGINATION_PARAMS"]
+	}
+	filter := bson.M{}
+	projection := bson.M{}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	regions, err := o.MongoDalRegion.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		o.Logger.Errorf("failed to fetch regions: %v", err)
+		return nil, common.DefineError.General["FAILED_TO_FETCH"]
+	}
+
+	total, err := o.MongoDalRegion.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &constant_utils.PaginatedResponse[[]*model.Region]{
+		Data: regions,
+		Meta: meta,
+	}, nil
 }

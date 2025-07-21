@@ -114,6 +114,27 @@ func (s *AccountService) GetCityByCode(ctx context.Context, cityCode string) (ac
 	return s.repo.GetCityByCode(ctx, cityCode)
 }
 
+func (s *AccountService) GetAllCities(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, fmt.Errorf("invalid pagination parameters")
+	}
+	return s.repo.GetAllCities(ctx, filterParams)
+}
+
+func (s *AccountService) GetAllDistricts(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, fmt.Errorf("invalid pagination parameters")
+	}
+	return s.repo.GetAllDistricts(ctx, filterParams)
+}
+
+func (s *AccountService) GetAllRegions(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, fmt.Errorf("invalid pagination parameters")
+	}
+	return s.repo.GetAllRegions(ctx, filterParams)
+}
+
 func (s *AccountService) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
 	if strings.TrimSpace(phoneNumber) == "" {
 		return member.User{}, fmt.Errorf("phoneNumber is required")
