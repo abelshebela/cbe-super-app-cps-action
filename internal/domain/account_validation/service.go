@@ -67,11 +67,8 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 		return "", fmt.Errorf("NOT_FOUND")
 	}
 
-	pendingActions, err := s.repository.FetchPendingActionsByUniqueID(ctx, id)
-	if err != nil {
-		s.logger.Errorf("failed to fetch pending actions: %v", err)
-		return "", fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
-	}
+	pendingActions, _ := s.repository.FetchPendingActionsByUniqueID(ctx, id)
+
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for validation rule: %s", id)
 		return "", fmt.Errorf("PENDING_ACTION_EXISTS")

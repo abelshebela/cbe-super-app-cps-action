@@ -22,8 +22,6 @@ func (r RequestPasswordRuleUpdateDTO) Validate() error {
 				if v.PasswordID == "" {
 					return validation.NewError("password_id", "password_id is required")
 				}
-				
-				
 			}
 			return nil
 		})),
