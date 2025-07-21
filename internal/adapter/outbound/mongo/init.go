@@ -2,6 +2,8 @@ package infra_mongo
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -66,6 +68,9 @@ func (m *MongoDal[T, K]) FindOne(ctx context.Context, filter, projection bson.M)
 	opts := options.FindOne().SetProjection(projection)
 	var result K
 	if err := m.collection.FindOne(ctx, filter, opts).Decode(&result); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		return nil, err
 	}
 	return &result, nil
@@ -112,6 +117,9 @@ func (m *MongoDal[T, K]) FindRecentDocument(ctx context.Context, filter, project
 	opts := options.FindOne().SetSort(bson.M{"created_at": -1}).SetProjection(projection)
 	var result K
 	if err := m.collection.FindOne(ctx, filter, opts).Decode(&result); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		return nil, err
 	}
 	return &result, nil

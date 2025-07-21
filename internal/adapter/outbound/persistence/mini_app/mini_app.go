@@ -18,7 +18,6 @@ import (
 
 	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
-
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -195,7 +194,11 @@ func (o *MiniAppPersistence) GetMiniAppActionId(ctx context.Context, action_id s
 	filter := map[string]interface{}{"action_code": action_id}
 	data, err := o.MongoDalCPSAction.FindOne(ctx, filter, nil)
 	if err != nil {
-		return model.CPSAction{}, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.CPSAction{}, fmt.Errorf("NOT_FOUND")
+		}
+
+		return model.CPSAction{}, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 	result := model.CPSAction{
 		ID:              data.ID,
@@ -266,7 +269,11 @@ func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (
 	filter := bson.M{"_id": objectID}
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
 	if err != nil {
-		return model.MiniApp{}, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.MiniApp{}, fmt.Errorf("NOT_FOUND")
+		}
+
+		return model.MiniApp{}, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 	return *miniApp, nil
 }

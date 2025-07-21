@@ -465,6 +465,9 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (entities.P
 	filter := bson.M{"group_name": groupName}
 	result, err := r.permissionGroupsDal.FindOne(context.Background(), filter, bson.M{})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return entities.PermissionGroup{}, fmt.Errorf("NOT_FOUND")
+		}
 		return entities.PermissionGroup{}, err
 	}
 	r.logger.Infof("Permission group found: %v", result)
