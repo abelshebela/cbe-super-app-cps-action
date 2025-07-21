@@ -12,49 +12,45 @@ import (
 )
 
 func RegisterPasswordRuleRoutes(r chi.Router, handler inbound.PasswordRuleInbound, authMiddleware middleware.AuthMiddleware) {
-	routes := []sharedhttp.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/password_rule/",
-			Handler: handler.GetPasswordRule,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker,role.Checker, role.IFBChecker}),
-			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/password_rule/update_request",
-			Handler: handler.RequestPasswordRuleUpdate,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-			},
-		},
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/password_rule/update_approve",
-		// 	Handler: handler.ApproveOrRejectPasswordRuleAction,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateToken,
-		// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-		// 	},
-		// },
-		{
-			Method:  http.MethodGet,
-			Path:    "/password_rule/action_by_id",
-			Handler: handler.GetPasswordRuleUpdateActionByID,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-			},
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/password_rule/check",
-			Handler: handler.CheckPasswordRule,
-		},
-	}
+	r.Route("/password_rule", func(ro chi.Router) {
 
-	sharedhttp.RegisterRoutes(r, routes)
+		routes := []sharedhttp.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: handler.GetPasswordRule,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/{id}",
+				Handler: handler.RequestPasswordRuleUpdate,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/{action_code}",
+				Handler: handler.GetPasswordRuleUpdateActionByID,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/check",
+				Handler: handler.CheckPasswordRule,
+			},
+		}
+
+		sharedhttp.RegisterRoutes(ro, routes)
+
+	})
+
 }

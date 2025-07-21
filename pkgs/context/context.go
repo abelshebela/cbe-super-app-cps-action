@@ -4,6 +4,7 @@ package contexts
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	// constant "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -59,5 +60,5 @@ func ExtractContext(c context.Context) UserContext {
 	}
 }
 func (u UserContext) IsIncomplete() bool {
-	return u.UserID == "" || u.FullName == "" || u.PhoneNumber == "" || u.Department == ""
+	return strings.TrimSpace(u.UserID) == "" || strings.TrimSpace(u.FullName) == "" || strings.TrimSpace(u.PhoneNumber) == "" || strings.TrimSpace(u.Department) == ""
 }

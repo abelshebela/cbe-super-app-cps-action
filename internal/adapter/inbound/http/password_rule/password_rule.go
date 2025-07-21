@@ -3,15 +3,15 @@ package passwordrule
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -40,152 +40,80 @@ func (h *PasswordRuleHTTPHandler) GetPasswordRule(w http.ResponseWriter, r *http
 }
 func (h *PasswordRuleHTTPHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r *http.Request) {
 	var req passwordrule.RequestPasswordRuleUpdateDTO
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
-	fmt.Println(req, "required")
+
+	req.ID = id
+
 	if err := req.Validate(); err != nil {
-		fmt.Println("HOLAAA", err)
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	userCode, _ := r.Context().Value(constant.ContextKey("user_code")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(userCode) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		utils.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), constant.ContextKey("department"), department)
+	ctx := context.WithValue(r.Context(), constant.ContextKey("department"), userContext.Department)
 
 	maker := action.User{
-		UserID:      userID,
-		UserCode:    userCode,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
+		UserID:      userContext.UserID,
+		UserCode:    userContext.UserID,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
 	}
 
 	req.Rule.ID = req.ID
-
-	start := time.Now()
-	actionID, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker, department)
-	elapsed := time.Since(start)
-	fmt.Printf("Password rule update request took %s\n", elapsed)
+	actionID, err := h.service.RequestPasswordRuleUpdate(ctx, &req.Rule, maker, userContext.Department)
 
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "Update request submitted for approval",
-		"data":    map[string]interface{}{"action_id": actionID},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+	utils.WriteSuccessResponse(w, map[string]interface{}{"action_id": actionID}, "Update request submitted for approval")
 }
 
-// func (h *PasswordRuleHTTPHandler) ApproveOrRejectPasswordRuleAction(w http.ResponseWriter, r *http.Request) {
-// 	var req passwordrule.ApproveOrRejectPasswordRuleActionDTO
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
-// 		return
-// 	}
-// 	fmt.Println(req, "required")
-// 	if err := req.Validate(); err != nil {
-// 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
-// 		return
-// 	}
-
-// 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-// 	userCode, _ := r.Context().Value(constant.ContextKey("user_code")).(string)
-// 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-// 	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-// 	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-// 	fmt.Println(userID, userCode, fullName, phoneNumber, department, "nodjghdjkfgheidgjfdk")
-// 	if strings.TrimSpace(userID) == "" || strings.TrimSpace(userCode) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-// 		utils.SendErrorResponse(w, "UNAUTHORIZED", 0, nil)
-// 		return
-// 	}
-
-// 	checker := action.User{
-// 		UserID:      userID,
-// 		UserCode:    userCode,
-// 		FullName:    fullName,
-// 		PhoneNumber: phoneNumber,
-// 	}
-
-// 	ctx := r.Context()
-// 	err := h.service.ApproveOrRejectPasswordRuleAction(ctx, req.ActionID, req.Decision, checker, req.RejectionReason, department)
-// 	if err != nil {
-// 		utils.SendErrorResponse(w, err.Error(), 0, nil)
-// 		return
-// 	}
-
-// 	response := map[string]interface{}{
-// 		"status":  200,
-// 		"message": "Action processed successfully",
-// 		"data":    map[string]interface{}{"action_id": req.ActionID},
-// 	}
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	_ = json.NewEncoder(w).Encode(response)
-// }
-
 func (h *PasswordRuleHTTPHandler) GetPasswordRuleUpdateActionByID(w http.ResponseWriter, r *http.Request) {
-	actionID := r.URL.Query().Get("action_id")
-	if actionID == "" {
-		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"message": "action_id is required"})
-		return
-	}
-
-	userRole, _ := r.Context().Value("user_role").(string)
-	if userRole != "CHECKER" && userRole != "IFB-CHECKER" {
-		utils.SendErrorResponse(w, "ACTION_NOT_ALLOWED", http.StatusForbidden, map[string]interface{}{"message": "forbidden: only checker can access this resource"})
+	actionCode, ok := common_util.GetParam(r, "action_code")
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
 	ctx := r.Context()
-	result, err := h.service.GetPasswordRuleUpdateActionByID(ctx, actionID)
+	result, err := h.service.GetPasswordRuleUpdateActionByID(ctx, actionCode)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "Fetched password rule update action successfully",
-		"data":    result,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+
+	utils.WriteSuccessResponse(w, result, "Fetched password rule update action successfully")
+
 }
 
 func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value("user_id").(string)
-	userCode, _ := r.Context().Value("user_code").(string)
-	fullName, _ := r.Context().Value("full_name").(string)
-	phoneNumber, _ := r.Context().Value("phone_number").(string)
-	department, _ := r.Context().Value("department").(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(userCode) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"message": "missing required user or department info"})
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		utils.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
 
 	maker := action.User{
-		UserID:      userID,
-		UserCode:    userCode,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
+		UserID:      userContext.UserID,
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
 	}
 
 	ctx := r.Context()
@@ -194,14 +122,9 @@ func (h *PasswordRuleHTTPHandler) GetUpdateAction(w http.ResponseWriter, r *http
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	response := map[string]interface{}{
-		"status":  200,
-		"message": "Fetched update action successfully",
-		"data":    result,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(response)
+
+	utils.WriteSuccessResponse(w, result, "Fetched update action successfully")
+
 }
 
 type CheckPasswordDTO struct {
@@ -219,7 +142,7 @@ func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *ht
 	statusCode := http.StatusOK
 	status := 200
 	if !valid {
-		status = 200
+		status = http.StatusBadRequest
 		statusCode = http.StatusBadRequest
 	}
 	response := map[string]interface{}{
@@ -230,11 +153,4 @@ func (h *PasswordRuleHTTPHandler) CheckPasswordRule(w http.ResponseWriter, r *ht
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	_ = json.NewEncoder(w).Encode(response)
-}
-
-func (h *PasswordRuleHTTPHandler) sendSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
 }
