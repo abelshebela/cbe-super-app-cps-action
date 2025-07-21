@@ -1,8 +1,9 @@
 package entities
 
 import (
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UserType string
@@ -65,15 +66,15 @@ type CPSAction struct {
 type RequestAction string
 
 type Department struct {
-	ID                bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	DepartmentCode    string        `bson:"department_code" json:"department_code"`
-	Department        string        `bson:"department" json:"department"`
-	PermissionGroupID bson.ObjectID `bson:"permission_group_id" json:"-"`
-	PortalCards       []string      `bson:"portal_cards" json:"portal_cards"`
-	Enabled           bool          `bson:"enabled" json:"enabled"`
-	IsDeleted         bool          `bson:"is_deleted" json:"is_deleted"`
-	CreatedAt         time.Time     `bson:"created_at" json:"created_at"`
-	LastModified      time.Time     `bson:"last_modified" json:"last_modified"`
+	ID               bson.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
+	DepartmentCode   string          `bson:"department_code" json:"department_code"`
+	Department       string          `bson:"department" json:"department"`
+	PermissionGroups []bson.ObjectID `bson:"permission_groups" json:"permission_groups"`
+	PortalCards      []string        `bson:"portal_cards" json:"portal_cards"`
+	Enabled          bool            `bson:"enabled" json:"enabled"`
+	IsDeleted        bool            `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt        time.Time       `bson:"created_at" json:"created_at"`
+	LastModified     time.Time       `bson:"last_modified" json:"last_modified"`
 }
 
 const (

@@ -29,7 +29,7 @@ func NewBpsCalls(cfg *config.VaultConfig, logger utils.Logger) BpsCallsInterface
 }
 
 func (b *BpsCalls) FetchLinkedAccount(accountNumber string) (*model.LinkedAccount, error) {
-	// url := b.cfg.BPSAccountFetchURL
+	// url := b.cfg.BPS_ACCOUNT_FETCH_URL
 	url := ""
 	if url == "" {
 		b.logger.Errorf("missing BPS_ACCOUNT_FETCH_URL in config")
