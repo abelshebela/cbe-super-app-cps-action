@@ -41,24 +41,6 @@ func InitCustomerRoutes(router chi.Router, customerHandler inbound.CustomerDetai
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/fayda/list",
-				Handler: customerHandler.GetFaydaCustomer,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/fayda/{id}",
-				Handler: customerHandler.GetFaydaCustomerByID,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
-				},
-			},
 		}
 
 		route.RegisterRoutes(r, routes)

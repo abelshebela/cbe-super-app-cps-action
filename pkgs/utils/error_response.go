@@ -138,6 +138,8 @@ var errorKeyToStatus = map[string]int{
 	"UNSUPPORTED_REQUEST_ACTION":                                 http.StatusBadRequest,
 	"WALLET_ALREADY_ENABLED":                                     http.StatusBadRequest,
 	"WALLET_ALREADY_DISABLED":                                    http.StatusBadRequest,
+	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
+	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,

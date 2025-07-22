@@ -686,6 +686,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_152",
 			Message: "unsupported request action",
 		},
+		"KYC_LEVEL_REQUIRED": {
+			Code:    "GEN_153",
+			Message: "kyc_level is required",
+		},
+		"INVALID_KYC_LEVEL": {
+			Code:    "GEN_153",
+			Message: "kyc_level must be a number between 0 and 2",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1223,12 +1231,12 @@ var DefineError = ErrorDefinitions{
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
 		},
-		"WALLET_ALREADY_ENABLED":{
-			Code: "WAL_013",
+		"WALLET_ALREADY_ENABLED": {
+			Code:    "WAL_013",
 			Message: "Wallet is already enabled",
 		},
-		"WALLET_ALREADY_DISABLED":{
-			Code: "WAL_013",
+		"WALLET_ALREADY_DISABLED": {
+			Code:    "WAL_013",
 			Message: "Wallet is already disabled",
 		},
 	},
