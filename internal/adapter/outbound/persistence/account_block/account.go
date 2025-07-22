@@ -268,7 +268,6 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 	if strings.TrimSpace(department) == "" {
 		return "", common.DefineError.General["INCOMPLETE_USER_INFO"]
 	}
-
 	branchCodeSet := make(map[string]struct{})
 	for _, branch := range branches {
 		code := strings.TrimSpace(branch.BranchCode)
@@ -290,7 +289,7 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 	filter := bson.M{
 		"department":     department,
 		"action_type":    "DELETE",
-		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+		"action_status":  "PENDING",
 		"request_action": "REQUEST_DISABLE_MULTI_BRANCHES",
 		"current_action": currActionBytes,
 	}
@@ -301,9 +300,18 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 
 	var prevBranches []model.Branch
 	for _, branch := range branches {
+
 		prevBranchPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"branch_code": branch.BranchCode}, bson.M{})
 		if err == nil && prevBranchPtr != nil {
 			prevBranches = append(prevBranches, *prevBranchPtr)
+		}
+		if err != nil {
+
+			return "", fmt.Errorf("NOT_FOUND")
+		}
+
+		if !prevBranchPtr.Enabled {
+			return "", fmt.Errorf("branch code %v already disabled", branch.BranchCode)
 		}
 	}
 	prevAction, _ := json.Marshal(prevBranches)
@@ -385,7 +393,7 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode 
 	if !prevRegionPtr.Enabled {
 		return "", fmt.Errorf("BLOCK_REGION_ALREADY_PROCESSED")
 	}
-	currAction, _ := json.Marshal(map[string]string{"region_code": regionCode})
+	currAction := map[string]string{"region_code": regionCode}
 
 	cpsAction := model.CPSAction{
 		ActionCode:       utils.RandomGenerator(24),
@@ -477,7 +485,7 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtC
 		return "", fmt.Errorf("DISTRICT_ALREADY_BLOCKED")
 	}
 
-	currAction, _ := json.Marshal(map[string]string{"district_code": districtCode})
+	currAction := map[string]string{"district_code": districtCode}
 
 	cpsAction := model.CPSAction{
 		ActionCode:       utils.RandomGenerator(24),
@@ -563,7 +571,7 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode stri
 		return "", fmt.Errorf("CITY_ALREADY_BLOCKED")
 	}
 
-	currAction, _ := json.Marshal(map[string]string{"city_code": cityCode})
+	currAction := map[string]string{"city_code": cityCode}
 
 	cpsAction := model.CPSAction{
 		ActionCode:       utils.RandomGenerator(24),
