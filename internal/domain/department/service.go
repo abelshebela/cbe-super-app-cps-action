@@ -197,3 +197,7 @@ func (s *Service) GetAllDepartments(ctx context.Context, filterParams *constant.
 	}
 	return departments, nil
 }
+
+func (s *Service) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
+	return s.departmentRepo.GetDepartmentByID(ctx, id)
+}

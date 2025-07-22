@@ -686,6 +686,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_152",
 			Message: "unsupported request action",
 		},
+
+		"FAILED_TO_GET_DEPARTMENT":{
+			Code:    "GEN_152",
+			Message: "failed to get department",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -810,6 +815,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_030",
 			Message: "access token required",
 		},
+		
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {

@@ -15,6 +15,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type FeedbackRepo struct {
@@ -35,7 +37,7 @@ func InitFeedback(client *mongo.Client, database string, collection string, logg
 	}
 }
 
-func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*entity.FeedbackResponse, error) {
+func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Feedback], error) {
 	filter := bson.M{}
 	projection := bson.M{}
 
@@ -52,30 +54,36 @@ func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.
 	}
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
 
-	feedbacks, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	feedbacks, err := c.mongoDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("no feedback data found", err)
-
-			return nil, fmt.Errorf("FAILED_TO_GET FEEDBACK_DATA")
+			return &common_util.PaginatedResponse[[]*entity.Feedback]{
+				Data: []*entity.Feedback{},
+				Meta: common_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
 		}
 		c.logger.Errorf("failed to get feedback data", err)
-		return nil, fmt.Errorf("FAILED_TO_GET FEEDBACK")
+		return nil, fmt.Errorf("FAILED_TO_GET_FEEDBACK")
 	}
 
-	total, err := c.mongoDal.TotalCount(ctx, bson.M{})
+	total, err := c.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		c.logger.Errorf("failed to get total counts", err)
-
 		return nil, fmt.Errorf("FAILED_TO_GET_FEEDBACK_COUNTS")
 	}
 
-	return &entity.FeedbackResponse{
-		Page:      1,
-		Feedbacks: feedbacks,
-		Limit:     constant.DefaultPerPage,
-		Total:     total,
+	meta := common_util.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
+
+	if feedbacks == nil {
+		feedbacks = []*entity.Feedback{}
+	}
+
+	return &common_util.PaginatedResponse[[]*entity.Feedback]{
+		Data: feedbacks,
+		Meta: meta,
 	}, nil
 }
 
