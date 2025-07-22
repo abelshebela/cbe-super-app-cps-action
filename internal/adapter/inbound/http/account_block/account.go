@@ -128,7 +128,7 @@ func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http
 	respData := map[string]any{
 		"action_code": actionCode,
 	}
-	constant_utils.BaseResponseMaker(respData, w, "Branch is disabled and CPS action created", http.StatusCreated)
+	constant_utils.BaseResponseMaker(respData, w, "Branch disabled Request is Successfuly sent", http.StatusCreated)
 }
 
 func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *http.Request) {
@@ -254,16 +254,8 @@ func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *
 	actionCode, err := h.service.DisableMultipleBranches(r.Context(), branches, maker)
 	if err != nil {
 		h.logger.Errorf("DisableMultipleBranches failed: %v", err)
-		switch {
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS", http.StatusConflict, nil)
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_ID_REQUIRED"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_ID_REQUIRED", http.StatusBadRequest, nil)
-		case strings.Contains(err.Error(), common.DefineError.General["INCOMPLETE_USER_INFO"].Message):
-			constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		default:
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		}
+
+		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
@@ -383,10 +375,9 @@ func (h *AccountBlockHandler) GetAllRegion(w http.ResponseWriter, r *http.Reques
 func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RegionCode string `json:"region_code"`
-		RegionName string `json:"region_name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.RegionCode) == "" || strings.TrimSpace(req.RegionName) == "" {
+		strings.TrimSpace(req.RegionCode) == "" {
 		constant_utils.SendErrorResponse(w, "REGION_CODE_AND_NAME_REQUIRED", http.StatusBadRequest, nil)
 		return
 	}
@@ -530,10 +521,9 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
 func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		DistrictCode string `json:"district_code"`
-		DistrictName string `json:"district_name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.DistrictCode) == "" || strings.TrimSpace(req.DistrictName) == "" {
+		strings.TrimSpace(req.DistrictCode) == "" {
 		constant_utils.BaseResponseMaker(nil, w, "district_code and name are required", http.StatusBadRequest)
 		return
 	}
@@ -701,13 +691,12 @@ func (h *AccountBlockHandler) GetCityByCode(w http.ResponseWriter, r *http.Reque
 	if strings.TrimSpace(userID) == "" ||
 		strings.TrimSpace(fullName) == "" ||
 		strings.TrimSpace(phoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-		resp.SendJSON()
+
+		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", 409, nil)
 		return
 	}
 	if strings.TrimSpace(department) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-		resp.SendJSON()
+		constant_utils.SendErrorResponse(w, "DEPARTMEN_REQUIRED", 409, nil)
 		return
 	}
 
@@ -751,11 +740,10 @@ func (h *AccountBlockHandler) GetAllCities(w http.ResponseWriter, r *http.Reques
 func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		CityCode string `json:"city_code"`
-		CityName string `json:"city_name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.CityCode) == "" || strings.TrimSpace(req.CityName) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "city_code and city_name are required", http.StatusBadRequest)
+		strings.TrimSpace(req.CityCode) == "" {
+		constant_utils.BaseResponseMaker(nil, w, "city_code are required", http.StatusBadRequest)
 		return
 	}
 

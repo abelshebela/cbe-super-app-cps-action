@@ -976,6 +976,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "DST_018",
 			Message: "district not found",
 		},
+		"BRANCH_ALREADY_DISABLE": {
+			Code:    "DST_019",
+			Message: "branch code %v already disabled",
+		},
 	},
 	OTP: ErrorGroup{
 		"INVALID_OTP": {
