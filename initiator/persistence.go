@@ -11,6 +11,8 @@ import (
 	bank_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
 	budget_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
 	customer_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
+
 	feedback_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
 	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
@@ -54,7 +56,7 @@ import (
 )
 
 type Persitence struct {
-	CustomerPersistence        *customer_repo.CustomerDetailRepo
+	CustomerPersistence        outbound.CustomerRepository
 	FeedBackPersistence        *feedback_repo.FeedbackRepo
 	UnlinkPersistence          *unlink_repo.UnlinkRepo
 	BudgetPersistence          *budget_repo.BudgetPersistence

@@ -33,7 +33,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger) application.Domain {
+func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger,
+	cfg *config.VaultConfig) application.Domain {
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 
 	return application.Domain{
@@ -54,8 +55,8 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, logger),
 		ServiceDomain:         service.NewServiceStore(persistence.ServiceDetailsStore, persistence.BulkServicesPersistence, logger),
 		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),
-		PortalCardDomain: portalcard.NewPortalCardDomain(persistence.PortalCardPersistance),
-		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger),
+		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance),
+		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger, cfg),
 		MiniAppDomain:         miniApp_domain.NewService(persistence.miniAppPersistance, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),

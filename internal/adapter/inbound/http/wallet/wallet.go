@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
@@ -13,7 +12,6 @@ import (
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -51,18 +49,6 @@ func createCPSUserForCreate(r *http.Request, actionData any) (*model.CreateCPSAc
 	}, nil
 }
 
-func createCPSUserForAuthorize(r *http.Request, actionCode string) (*model.AuthorizeCPSAction, error) {
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
-	}
-	return &model.AuthorizeCPSAction{
-		CheckerUser: toModelUser(userContext),
-		Department:  userContext.Department,
-		ActionCode:  actionCode,
-	}, nil
-}
-
 func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	var walletRequest dto.CreateWalletRequest
 
@@ -86,13 +72,13 @@ func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cpsRes, err := wa.walletHandler.CreateWallet(ctx, *cpsRequest)
+	_, err = wa.walletHandler.CreateWallet(ctx, *cpsRequest)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsRes, "Wallet created successfully")
+	common_util.WriteSuccessResponse(w, nil, "Wallet created successfully")
 }
 
 func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
@@ -118,14 +104,14 @@ func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.UpdateWallet(ctx, id, *cpsReq)
+	_, err = wa.walletHandler.UpdateWallet(ctx, id, *cpsReq)
 	if err != nil {
 		wa.logger.Errorf("failed to update wallet", err)
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Wallet updated successfully")
+	common_util.WriteSuccessResponse(w, nil, "Wallet updated successfully")
 }
 
 func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
@@ -146,39 +132,22 @@ func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.DeleteWallet(ctx, id, *cpsReq)
+	_, err = wa.walletHandler.DeleteWallet(ctx, id, *cpsReq)
 	if err != nil {
 		wa.logger.Errorf("failed to delete wallet", err)
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Wallet deleted successfully")
+	common_util.WriteSuccessResponse(w, nil, "Wallet deleted successfully")
 }
 
 func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
+	filterParams := common_util.ExtractFilterParams(r)
 
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
+	fmt.Print(filterParams.Page, "page")
+	fmt.Print(filterParams.PerPage, "per page")
 
-	perPage := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		perPage = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: perPage,
-		Search:  search,
-		Filters: filter,
-	}
 
 	ctx := r.Context()
 
@@ -230,14 +199,14 @@ func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestDisableWallet, *cpsReq)
+	_, err = wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestDisableWallet, *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		wa.logger.Errorf("failed to delete wallet", err)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Wallet disabled successfully")
+	common_util.WriteSuccessResponse(w, nil, "Wallet disabled successfully")
 }
 
 func (wa *WalletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -258,12 +227,12 @@ func (wa *WalletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cpsAction, err := wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestEnableWallet, *cpsReq)
+	_, err = wa.walletHandler.EnableOrDisableWallet(ctx, id, model.RequestEnableWallet, *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		wa.logger.Errorf("failed to delete wallet", err)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Wallet enabled successfully")
+	common_util.WriteSuccessResponse(w, nil, "Wallet enabled successfully")
 }

@@ -40,7 +40,7 @@ type Domain struct {
 	BudgetDomain          *budget_service.BudgetService
 	CPSActionDomain       cps_action_service.CPSActionService 
 	CPSUserDomain         services.CPSUserService 
-	CustomerDomain        *customer_service.CustomerDomain 
+	CustomerDomain        customer_service.CustomerService 
 	DepartmentDomain      department.Service // starting here
 	EventDomain           event_domain.EventService // fully not ready
 	FaydaDomain           *fayda_service.FaydaAccountDomain

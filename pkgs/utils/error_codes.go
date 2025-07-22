@@ -91,7 +91,9 @@ const (
 	FailedLogin                   = "FAILED_LOGIN"
 	AccountLocked                 = "ACCOUNT_LOCKED"
 	AccessTokenRequired           = "ACCESS_TOKEN_REQUIRED"
-
+	WalletAlreadyDisabled         = "WALLET_ALREADY_DISABLED"
+	WalletAlreadyEnabled          = "WALLET_ALREADY_ENABLED"
+	InvalidRequestAction          = "UNSUPPORTED_REQUEST_ACTION"
 	// Transaction
 	TransactionNotFound = "TRANSACTION_NOT_FOUND"
 	InsufficientFunds   = "INSUFFICIENT_FUNDS"

@@ -3,20 +3,19 @@ package faydaaccount
 import (
 	"context"
 	"encoding/json"
+	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationService interface {
-	InitiateDisableFaydaAccount(ctx context.Context, req entities.CPSAction) (*CPSAction, error)
-	GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error)
+	InitiateDisableFaydaAccount(ctx context.Context, req entities.CPSAction) error
+	InitiateEnableFaydaAccount(ctx context.Context, req entities.CPSAction) error
 }
 
 type FaydaHandler struct {
@@ -31,68 +30,62 @@ func InitFaydaHandler(faydaDomain *service.FaydaAccountDomain, logger utils.Logg
 	}
 }
 
-func (f FaydaHandler) InitiateDisableFaydaAccount(ctx context.Context, req entities.CPSAction) (*CPSAction, error) {
-	// Unmarshal CurrentAction to ActionData
-	var actionData ActionData
+func (f FaydaHandler) InitiateDisableFaydaAccount(ctx context.Context, req entities.CPSAction) error {
+	var actionData ActionDisableData
 	jsonBytes, err := json.Marshal(req.CurrentAction)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if err := json.Unmarshal(jsonBytes, &actionData); err != nil {
-		return nil, err
+		return err
 	}
 
 	cpsReq := entities.CPSAction{
-		ID:               req.ID,
-		ActionCode:       req.ActionCode,
+		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          req.MakerID,
 		MakerName:        req.MakerName,
 		MakerPhoneNumber: req.MakerPhoneNumber,
+		RequestAction:    cps_const.RequestDisableFaydaAccount,
 		Department:       req.Department,
-		CurrentAction: entity.ActionData{
-			UseCode:     actionData.UseCode,
-			FullName:    actionData.FullName,
-			PhoneNumber: actionData.PhoneNumber,
-		},
+		CurrentAction:    actionData,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
 	}
-	cpsReq.ActionCode = utils.RandomGenerator(20)
 
-	res, err := f.FaydaDomain.InitiateDisableFaydaAccount(ctx, cpsReq)
+	_, err = f.FaydaDomain.InitiateDisableFaydaAccount(ctx, cpsReq)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// Unmarshal result CurrentAction to ActionData
-	var resultActionData ActionData
-	resultBytes, err := json.Marshal(res.CurrentAction)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(resultBytes, &resultActionData); err != nil {
-		return nil, err
-	}
-
-	return &CPSAction{
-		ID:               res.ID,
-		ActionCode:       res.ActionCode,
-		MakerID:          res.MakerID,
-		MakerName:        res.MakerName,
-		MakerPhoneNumber: res.MakerPhoneNumber,
-		ActionType:       ActionType(res.ActionType),
-		CurrentAction: ActionData{
-			UseCode:     resultActionData.UseCode,
-			FullName:    resultActionData.FullName,
-			PhoneNumber: resultActionData.PhoneNumber,
-		},
-		ActionStatus:    ActionStatus(res.ActionStatus),
-		MakerActionTime: res.MakerActionTime,
-		Department:      res.Department,
-		RequestAction:   RequestAction(res.RequestAction),
-	}, nil
+	return nil
 }
 
+func (f FaydaHandler) InitiateEnableFaydaAccount(ctx context.Context, req entities.CPSAction) error {
+	var actionData ActionEnableData
+	jsonBytes, err := json.Marshal(req.CurrentAction)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(jsonBytes, &actionData); err != nil {
+		return err
+	}
 
+	cpsReq := entities.CPSAction{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          req.MakerID,
+		MakerName:        req.MakerName,
+		MakerPhoneNumber: req.MakerPhoneNumber,
+		RequestAction:    cps_const.RequestEnableFaydaAccount,
+		Department:       req.Department,
+		CurrentAction:    actionData,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+	}
 
-func (f FaydaHandler) GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
-	return f.FaydaDomain.GetAllFaydaAccounts(ctx, filterParams)
+	_, err = f.FaydaDomain.InitiateDisableFaydaAccount(ctx, cpsReq)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
