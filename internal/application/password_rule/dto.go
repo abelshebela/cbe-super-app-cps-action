@@ -19,9 +19,6 @@ func (r RequestPasswordRuleUpdateDTO) Validate() error {
 				if v.MinLength < 1 {
 					return validation.NewError("min_length", "min_length must be greater than 0")
 				}
-				if v.PasswordID == "" {
-					return validation.NewError("password_id", "password_id is required")
-				}
 			}
 			return nil
 		})),
@@ -29,10 +26,10 @@ func (r RequestPasswordRuleUpdateDTO) Validate() error {
 }
 
 type ApproveOrRejectPasswordRuleActionDTO struct {
-	ActionID        string      `json:"action_code"`
-	Decision        string      `json:"decison"`
-	
-	RejectionReason *string     `json:"rejection_reason"`
+	ActionID string `json:"action_code"`
+	Decision string `json:"decison"`
+
+	RejectionReason *string `json:"rejection_reason"`
 	// Department      string      `json:"department"`
 }
 

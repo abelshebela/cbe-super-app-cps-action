@@ -490,10 +490,10 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 	}
 
 	page := filterParams.Page
-	perPage := filterParams.PerPage
-	skip := (page - 1) * perPage
+	limit := filterParams.PerPage
+	skip := (page - 1) * limit
 
-	permissionGroups, err := r.permissionGroupsDal.FindAllWithPagination(context.Background(), filter, projection, int64(skip), int64(perPage))
+	permissionGroups, err := r.permissionGroupsDal.FindAllWithPagination(context.Background(), filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
@@ -502,7 +502,7 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 	if err != nil {
 		return nil, err
 	}
-	meta := common_util.BuildPaginationMeta(total, page, perPage)
+	meta := common_util.BuildPaginationMeta(total, page, limit)
 
 	return &common_util.PaginatedResponse[[]*entities.PermissionGroup]{
 		Data: permissionGroups,
