@@ -133,10 +133,20 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Get department_id from URL params (PATCH route uses 'id')
 	departmentID := chi.URLParam(r, "id")
+	if departmentID == "" {
+		h.logger.Errorf("[UpdateDepartmentRequest] missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, http.StatusBadRequest, nil)
+		return
+	}
 
-	// Create CPS action for update
+	_, err := h.departmentService.GetDepartmentByID(r.Context(), departmentID)
+	if err != nil {
+		h.logger.Errorf("[UpdateDepartmentRequest] department not found: %v", err)
+		common_util.SendErrorResponse(w, "NOT_FOUND", http.StatusNotFound, nil)
+		return
+	}
+
 	cpsAction := cpsactions.CPSAction{
 		MakerID:          ctx.UserID,
 		MakerName:        ctx.FullName,
