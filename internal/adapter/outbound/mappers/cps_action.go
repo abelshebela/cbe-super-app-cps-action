@@ -3,6 +3,7 @@ package mappers
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
@@ -78,7 +79,7 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 		CreatedAt:          domainAction.CreatedAt,
 		LastModifiedAt:     domainAction.LastModifiedAt,
 		MakerActionTime:    domainAction.MakerActionTime,
-		CheckerActionTime:  &domainAction.CheckerActionTime,
+		CheckerActionTime:  domainAction.CheckerActionTime,
 	}, nil
 }
 
@@ -112,6 +113,10 @@ func BSONToMap(i any) any {
 
 // ModelToDomainCPSAction converts a model CPSAction to a domain CPSAction.
 func ModelToDomainCPSAction(modelAction model.CPSAction) *domain.CPSAction {
+	var checkerActionTime time.Time
+	if modelAction.CheckerActionTime != nil {
+		checkerActionTime = *modelAction.CheckerActionTime
+	}
 
 	return &domain.CPSAction{
 		ID:                 modelAction.ID.Hex(),
@@ -133,7 +138,7 @@ func ModelToDomainCPSAction(modelAction model.CPSAction) *domain.CPSAction {
 		CreatedAt:          modelAction.CreatedAt,
 		LastModifiedAt:     modelAction.LastModifiedAt,
 		MakerActionTime:    modelAction.MakerActionTime,
-		CheckerActionTime:  *modelAction.CheckerActionTime,
+		CheckerActionTime:  &checkerActionTime,
 	}
 }
 

@@ -30,7 +30,7 @@ type CPSAction struct {
 	CreatedAt          time.Time              `json:"created_at"`
 	LastModifiedAt     time.Time              `json:"last_modified_at"`
 	MakerActionTime    time.Time              `json:"maker_action_time"`
-	CheckerActionTime  time.Time              `json:"checker_action_time"`
+	CheckerActionTime  *time.Time              `json:"checker_action_time"`
 }
 
 type User struct {
@@ -73,7 +73,7 @@ func ToDomainCPSAction(m *model.CPSAction) *CPSAction {
 		CreatedAt:          m.CreatedAt,
 		LastModifiedAt:     m.LastModifiedAt,
 		MakerActionTime:    m.MakerActionTime,
-		CheckerActionTime:  checkerActionTime,
+		CheckerActionTime:  &checkerActionTime,
 	}
 }
 
@@ -96,7 +96,7 @@ func ToModelCPSAction(d *CPSAction) (*model.CPSAction, error) {
 
 	var checkerActionTime *time.Time
 	if !d.CheckerActionTime.IsZero() {
-		checkerActionTime = &d.CheckerActionTime
+		checkerActionTime = d.CheckerActionTime
 	}
 
 	return &model.CPSAction{
