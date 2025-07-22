@@ -514,7 +514,7 @@ func (o *outboundAccountBlockStore) GetDistrictByCode(ctx context.Context, distr
 	filter := bson.M{"district_code": districtCode}
 	districtDoc, err := o.MongoDalDistrict.FindOne(ctx, filter, nil)
 	if err != nil || districtDoc == nil {
-		return action.District{}, fmt.Errorf("failed to get district by code")
+		return action.District{}, fmt.Errorf("FAILED_TO_GET_DISTRICT")
 	}
 	return action.District{
 		ID:              districtDoc.ID.Hex(),

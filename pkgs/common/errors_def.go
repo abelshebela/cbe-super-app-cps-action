@@ -964,6 +964,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "DST_017",
 			Message: "Bank id is required",
 		},
+		"FAILED_TO_GET_DISTRICT": {
+			Code:    "DST_018",
+			Message: "district not found",
+		},
 	},
 	OTP: ErrorGroup{
 		"INVALID_OTP": {
