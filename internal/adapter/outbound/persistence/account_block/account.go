@@ -382,6 +382,9 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode 
 		return "", fmt.Errorf("REGION_NOT_FOUND")
 	}
 
+	if !prevRegionPtr.Enabled {
+		return "", fmt.Errorf("BLOCK_REGION_ALREADY_PROCESSED")
+	}
 	currAction, _ := json.Marshal(map[string]string{"region_code": regionCode})
 
 	cpsAction := model.CPSAction{

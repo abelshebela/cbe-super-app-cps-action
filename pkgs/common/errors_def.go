@@ -939,6 +939,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACC_014",
 			Message: "The account is blocked.",
 		},
+		"REGION_CODE_AND_NAME_REQUIRED": {
+			Code:    "ACC_015",
+			Message: "Region code and region name is required",
+		},
+		"BLOCK_REGION_ALREADY_PROCESSED": {
+			Code:    "DST_001",
+			Message: "This region already blocked",
+		},
 	},
 	OTP: ErrorGroup{
 		"INVALID_OTP": {
