@@ -83,14 +83,14 @@ func BuildPaginationMeta(totalDocs int64, page, limit int) PaginationMeta {
 		page = 1
 	}
 
-	totalPages := int((totalDocs + int64(limit) - 1) / int64(limit)) // ceil
+	totalPages := int((totalDocs + int64(limit) - 1) / int64(limit)) 
 	if totalPages == 0 {
 		totalPages = 1
 	}
 
-	if page > totalPages {
-		page = totalPages
-	}
+	// if page > totalPages {
+	// 	page = totalPages
+	// }
 
 	skip := (page - 1) * limit
 	hasPrev := page > 1

@@ -84,7 +84,7 @@ func (c *CustomerDetailRepo) paginateFind(ctx context.Context, filter bson.M, pa
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER_COUNT")
 	}
 
-	meta := common_util.BuildPaginationMeta(total, params.PerPage, params.Page)
+	meta := common_util.BuildPaginationMeta(total, params.Page, params.PerPage)
 
 	return &common_util.PaginatedResponse[[]*member.User]{
 		Data: users,
