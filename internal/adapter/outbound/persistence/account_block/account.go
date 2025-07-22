@@ -763,7 +763,7 @@ func (o *outboundAccountBlockStore) AuthorizeBlockCity(ctx context.Context, cpsA
 	}
 
 	cityUpdate := bson.M{
-		"enablde":    false,
+		"enabled":    false,
 		"updated_at": time.Now(),
 	}
 	_, err := o.MongoDalCity.UpdateOne(ctx, bson.M{"city_code": cityCode}, cityUpdate)
