@@ -93,25 +93,31 @@ func (c *CustomerDetailRepo) paginateFind(ctx context.Context, filter bson.M, pa
 }
 
 func buildCustomerFilter(params *constant.Filter) bson.M {
-	filter := bson.M{}
+    filter := bson.M{}
 
-	if params.Search != "" {
-		search := params.Search
-		filter["$or"] = []bson.M{
-			{"full_name": bson.M{"$regex": search, "$options": "i"}},
-			normalizePhone(search),
-			{"user_code": bson.M{"$regex": search, "$options": "i"}},
-			{"id": bson.M{"$regex": search, "$options": "i"}},
-		}
-	}
+    if params.Search != "" {
+        search := params.Search
 
-	if params.Filters != "" {
-		if blocked, err := strconv.ParseBool(params.Filters); err == nil {
-			filter["is_blocked"] = blocked
-		}
-	}
+        orFilters := []bson.M{
+            {"full_name": bson.M{"$regex": search, "$options": "i"}},
+            {"user_code": bson.M{"$regex": search, "$options": "i"}},
+        }
 
-	return filter
+        phoneFilter := normalizePhone(search)
+        if len(phoneFilter) > 0 {
+            orFilters = append(orFilters, phoneFilter)
+        }
+
+        filter["$or"] = orFilters
+    }
+
+    if params.Filters != "" {
+        if blocked, err := strconv.ParseBool(params.Filters); err == nil {
+            filter["is_blocked"] = blocked
+        }
+    }
+
+    return filter
 }
 
 func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
