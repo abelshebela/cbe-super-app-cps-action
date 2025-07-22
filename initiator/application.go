@@ -76,7 +76,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
 		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, logger),
 		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
-		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
+		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain ,logger),
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
 		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),

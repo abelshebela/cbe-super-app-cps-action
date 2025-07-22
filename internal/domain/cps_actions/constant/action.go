@@ -198,6 +198,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
 	RequestUpdateBlockTime:          {},
+	RequestDisableFaydaAccount:      {},
+	RequestEnableFaydaAccount:       {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
