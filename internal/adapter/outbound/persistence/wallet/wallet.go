@@ -139,16 +139,30 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string, requestAc
 	return &cps, nil
 }
 
-// Persistence
 func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error) {
 	filter := bson.M{"is_deleted": false}
-	ifr := bson.M{}
+	projection := bson.M{}
+
 	if filterParams.Filters != "" {
 		filter["status"] = filterParams.Filters
 	}
 
+	if filterParams.Search != "" {
+		search := filterParams.Search
+		orConditions := bson.A{
+			bson.M{"name": bson.M{"$regex": search, "$options": "i"}},
+			bson.M{"code": bson.M{"$regex": search, "$options": "i"}},
+			bson.M{"avatar": bson.M{"$regex": search, "$options": "i"}},
+			bson.M{"id": bson.M{"$regex": search, "$options": "i"}},
+		}
+
+		filter["$or"] = orConditions
+	}
+
 	skip := (filterParams.Page - 1) * filterParams.PerPage
-	walletsDoc, err := w.walletDal.FindAllWithPagination(ctx, filter, ifr, int64(skip), int64(filterParams.PerPage))
+	limit := filterParams.PerPage
+
+	walletsDoc, err := w.walletDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return &error_codes.PaginatedResponse[[]*entity.Wallet]{
@@ -159,7 +173,7 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 		return nil, w.handleError("find wallets", err, error_codes.UnhandledServerError)
 	}
 
-	total, err := w.walletDal.TotalCount(ctx, bson.M{})
+	total, err := w.walletDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, w.handleError("count wallets", err, error_codes.UnhandledServerError)
 	}
@@ -168,7 +182,6 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	for _, wallet := range walletsDoc {
 		wallets = append(wallets, w.toDomain(*wallet))
 	}
-	// Ensure wallets is never nil
 	if wallets == nil {
 		wallets = []*entity.Wallet{}
 	}
