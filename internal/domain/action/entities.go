@@ -294,7 +294,6 @@ type CPSUser struct {
 
 type PasswordRule struct {
 	ID             string    `json:"id" bson:"id"`
-	PasswordID     string    `json:"password_id" bson:"password_id"`
 	Name           string    `json:"name" bson:"name"`
 	MinLength      int       `json:"min_length" bson:"min_length"`
 	MaxLength      int       `json:"max_length" bson:"max_length"`
