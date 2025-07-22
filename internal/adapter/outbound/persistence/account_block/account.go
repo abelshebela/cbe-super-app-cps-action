@@ -1101,8 +1101,8 @@ func (o *outboundAccountBlockStore) GetAllDistricts(ctx context.Context, filterP
 	if filterParams.Search != "" {
 		// Assuming search on city_name or city_code
 		filter["$or"] = []bson.M{
-			{"city_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"city_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"district_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"district_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 		}
 	}
 
@@ -1137,8 +1137,8 @@ func (o *outboundAccountBlockStore) GetAllRegions(ctx context.Context, filterPar
 	if filterParams.Search != "" {
 		// Assuming search on city_name or city_code
 		filter["$or"] = []bson.M{
-			{"city_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"city_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"region_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"region_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 		}
 	}
 
@@ -1173,8 +1173,8 @@ func (o *outboundAccountBlockStore) GetAllBranches(ctx context.Context, filterPa
 	if filterParams.Search != "" {
 		// Assuming search on city_name or city_code
 		filter["$or"] = []bson.M{
-			{"city_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"city_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"branch_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"branch_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 		}
 	}
 
