@@ -22,4 +22,6 @@ type WalletPersistence interface {
 	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error
 	ExtractActionData(cpsAction *entities.CPSAction) (action entity.Wallet, prev entity.Wallet, err error)
+	CheckWalletExists(ctx context.Context, wallet entity.CheckWallet) (bool, error)
+	CheckIsEnabled(ctx context.Context, id string) (bool, error)
 }

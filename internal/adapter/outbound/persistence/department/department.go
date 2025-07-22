@@ -120,7 +120,7 @@ func (r *DepartmentPersistence) CreateCPSAction(ctx context.Context, department 
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 		MakerActionTime:    action.MakerActionTime,
-		CheckerActionTime:  &action.CheckerActionTime,
+		CheckerActionTime:  action.CheckerActionTime,
 	}
 	if len(permissionGroups) > 0 {
 		modelAction.CurrentAction = map[string]interface{}{
@@ -329,7 +329,7 @@ func (r *DepartmentPersistence) CreateDepartmentUpdateCPSAction(ctx context.Cont
 		CreatedAt:          time.Now(),
 		LastModifiedAt:     time.Now(),
 		MakerActionTime:    req.MakerActionTime,
-		CheckerActionTime:  &req.CheckerActionTime,
+		CheckerActionTime:  req.CheckerActionTime,
 	}
 	_, err = r.modelCpsdal.InsertOne(ctx, modelAction)
 	if err != nil {

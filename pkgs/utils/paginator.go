@@ -41,15 +41,6 @@ func (p PaginatedResponse[T]) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func NewPaginatedResponse[T any](data []T, meta PaginationMeta) *PaginatedResponse[[]T] {
-	if data == nil {
-		data = []T{} // set as empty slice instead of nil
-	}
-	return &PaginatedResponse[[]T]{
-		Data: data,
-		Meta: meta,
-	}
-}
 
 // ExtractPaginator extracts page and limit from the request
 func ExtractPaginator(r *http.Request) (limit, offset int64, err error) {
@@ -86,10 +77,25 @@ func ExtractPaginator(r *http.Request) (limit, offset int64, err error) {
 
 // BuildPaginationMeta constructs PaginationMeta based on total documents, current page, and limit
 func BuildPaginationMeta(totalDocs int64, page, limit int) PaginationMeta {
-	totalPages := int((totalDocs + int64(limit) - 1) / int64(limit)) // ceil(totalDocs / limit)
+	if limit <= 0 {
+		limit = 10
+	}
+	if page <= 0 {
+		page = 1
+	}
+
+	totalPages := int((totalDocs + int64(limit) - 1) / int64(limit)) 
+	if totalPages == 0 {
+		totalPages = 1
+	}
+
+	// if page > totalPages {
+	// 	page = totalPages
+	// }
+
+	skip := (page - 1) * limit
 	hasPrev := page > 1
 	hasNext := page < totalPages
-	skip := (page - 1) * limit
 
 	var prevPage *int
 	var nextPage *int

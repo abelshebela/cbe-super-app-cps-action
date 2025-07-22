@@ -8,11 +8,15 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	common_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type WalletHandlerAppllication interface {
-	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error)
+	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*common_utils.PaginatedResponse[[]*entity.Wallet], error) 
+
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -51,8 +55,15 @@ func (w *WalletHandler) DeleteWallet(ctx context.Context, id string, req model.C
 	return cpsAction, nil
 }
 
-func (w *WalletHandler) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error) {
-	return w.walletDomain.GetAllWallet(ctx, filterParams)
+
+func (w *WalletHandler) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*common_utils.PaginatedResponse[[]*entity.Wallet], error) {
+	banks, err := w.walletDomain.GetAllWallet(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return banks, nil
+
 }
 
 func (w *WalletHandler) GetWallet(ctx context.Context, id string) (*entity.Wallet, error) {

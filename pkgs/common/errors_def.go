@@ -690,6 +690,14 @@ var DefineError = ErrorDefinitions{
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Message: "failed to get department",
+
+		"KYC_LEVEL_REQUIRED": {
+			Code:    "GEN_153",
+			Message: "kyc_level is required",
+		},
+		"INVALID_KYC_LEVEL": {
+			Code:    "GEN_154",
+			Message: "kyc_level must be a number between 0 and 2",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1246,7 +1254,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"WALLET_ALREADY_EXISTS": {
 			Code:    "WAL_008",
-			Message: "Wallet with this ID already exists.",
+			Message: "Wallet already exists.",
 		},
 		"WALLET_TYPE_NOT_SUPPORTED": {
 			Code:    "WAL_009",
@@ -1263,6 +1271,14 @@ var DefineError = ErrorDefinitions{
 		"WALLET_TRANSACTION_ALREADY_EXISTS": {
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
+		},
+		"WALLET_ALREADY_ENABLED": {
+			Code:    "WAL_013",
+			Message: "Wallet is already enabled",
+		},
+		"WALLET_ALREADY_DISABLED": {
+			Code:    "WAL_013",
+			Message: "Wallet is already disabled",
 		},
 	},
 	AD: ErrorGroup{

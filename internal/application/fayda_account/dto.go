@@ -36,18 +36,20 @@ const (
 	ActionDelete ActionType = "DELETE"
 )
 
-type ActionData struct {
-	UseCode     string `json:"user_code"`
-	FullName    string `json:"full_name"`
-	PhoneNumber string `json:"phone_number"`
+type ActionEnableData struct {
+	UseCode string `json:"user_code"`
 }
 
-func (a ActionData) Validate() error {
+type ActionDisableData struct {
+	UseCode          string `json:"user_code"`
+	Type             string `json:"type"`
+	SuspensionReason string `json:"suspension_reason"`
+}
+
+func (a ActionDisableData) Validate() error {
 	return Validation.ValidateStruct(&a,
-		Validation.Field(&a.UseCode, Validation.Required.Error("user code is required")),
-		Validation.Field(&a.FullName, Validation.Required.Error("full name is required")),
-		Validation.Field(&a.PhoneNumber, Validation.Required.Error("phone number is required"),
-			Validation.By(ValidatePhone)),
+		Validation.Field(&a.Type, Validation.Required.Error("type is required")),
+		Validation.Field(&a.SuspensionReason, Validation.Required.Error("suspensionreason is required")),
 	)
 }
 

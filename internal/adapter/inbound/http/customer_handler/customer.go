@@ -1,17 +1,13 @@
 package customerhandler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/customer"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -33,61 +29,32 @@ func NewCustomerHTTPHandler(applicationService customer.ApplicationService, logg
 }
 
 func (c CustomerHTTPHandler) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
-	filterParams := common_util.ExtractFilterParams(r)
+	filterParams, kycLevel, err := ExtractKYCFilterParams(r)
 
-	ctx := r.Context()
-	customers, err := c.applicationService.GetCustomersDeatil(ctx, filterParams)
+	if err != nil {
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	customers, err := c.applicationService.GetCustomersDeatil(r.Context(), kycLevel, filterParams)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 
 		return
 	}
 
-	// def, _ := common.GetSuccessResponseByKey("SUCCESS Fetched User")
-	// data, _ := util.StructToMap(customers)
-	// util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
-
 	util.WriteSuccessResponse(w, customers, "customer fetched successfully")
-
 }
 
 func (c CustomerHTTPHandler) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	ctx := r.Context()
-	customer, err := c.applicationService.GetCustomerByID(ctx, id)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		c.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
-	def, _ := common.GetSuccessResponseByKey("SUCCESS")
-	data, _ := util.StructToMap(customer)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
-}
-
-func (c CustomerHTTPHandler) GetFaydaCustomer(w http.ResponseWriter, r *http.Request) {
-	filterParams := common_util.ExtractFilterParams(r)
-
-	ctx := r.Context()
-	customers, err := c.applicationService.GetFaydaCustomersDeatil(ctx, filterParams)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-
-		return
-	}
-
-	// def, _ := common.GetSuccessResponseByKey("SUCCESS")
-	// data, _ := util.StructToMap(customers)
-	// util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
-
-	util.WriteSuccessResponse(w, customers, "level 1 customer fetched successfully")
-
-}
-
-func (c CustomerHTTPHandler) GetFaydaCustomerByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	ctx := r.Context()
-	customer, err := c.applicationService.GetFaydaCustomerByID(ctx, id)
+	customer, err := c.applicationService.GetCustomerByID(r.Context(), id)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -99,31 +66,9 @@ func (c CustomerHTTPHandler) GetFaydaCustomerByID(w http.ResponseWriter, r *http
 }
 
 func (c CustomerHTTPHandler) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
+	filterParams := common_util.ExtractFilterParams(r)
 
-	page := constant.DefaultPage
-	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
-		page = pageInt
-	}
-
-	per_page := constant.DefaultPerPage
-	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt <= 10 && perPageInt > 0 {
-		per_page = perPageInt
-	}
-
-	search := query.Get("search")
-	filter := query.Get("filter")
-
-	filterParams := &constant.Filter{
-		Page:    page,
-		PerPage: per_page,
-		Search:  search,
-		Filters: filter,
-	}
-
-	ctx := r.Context()
-	customers, err := c.applicationService.GetBlockedCustomer(ctx, filterParams)
+	customers, err := c.applicationService.GetBlockedCustomer(r.Context(), filterParams)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 
@@ -134,4 +79,36 @@ func (c CustomerHTTPHandler) GetBlockedCustomer(w http.ResponseWriter, r *http.R
 	data, _ := util.StructToMap(customers)
 	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
 
+}
+
+func ExtractKYCFilterParams(r *http.Request) (*constant.Filter, int, error) {
+	query := r.URL.Query()
+
+	page := constant.DefaultPage
+	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
+		page = pageInt
+	}
+
+	perPage := constant.DefaultPerPage
+	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
+		perPageInt > 0 {
+		perPage = perPageInt
+	}
+
+	kycLevelStr := query.Get("kyc_level")
+	if kycLevelStr == "" {
+		return nil, 0, fmt.Errorf("KYC_LEVEL_REQUIRED")
+	}
+
+	kycLevel, err := strconv.Atoi(kycLevelStr)
+	if err != nil || kycLevel < 0 || kycLevel > 2 {
+		return nil, 0, fmt.Errorf("INVALID_KYC_LEVEL")
+	}
+
+	return &constant.Filter{
+		Page:    page,
+		PerPage: perPage,
+		Search:  query.Get("search"),
+		Filters: query.Get("filter"),
+	}, kycLevel, nil
 }

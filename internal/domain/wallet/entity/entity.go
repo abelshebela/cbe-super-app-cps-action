@@ -7,6 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type CheckWallet struct {
+	Name string
+	Code string
+}
+
 type Wallet struct {
 	ID             string     `json:"id,omitempty" bson:"id"`
 	Name           string     `json:"name" bson:"name"`

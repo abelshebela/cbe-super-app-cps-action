@@ -23,11 +23,14 @@ type WalletDomain struct {
 	walletRepo  outbound.WalletPersistence
 	bucketName  string
 	minioClient config.MinioClientInterface
-	logger      sharedutils.Logger
+
+	logger      utils.Logger
+	cfg         *config.VaultConfig
 }
 
 type WalletService interface {
-	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error)
+	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error)
+
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -37,12 +40,15 @@ type WalletService interface {
 }
 
 func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.MinioClientInterface,
-	bucketName string, logger sharedutils.Logger) WalletService {
+
+	bucketName string, logger utils.Logger, cfg *config.VaultConfig) WalletService {
+
 	return &WalletDomain{
 		walletRepo:  walletRepo,
 		minioClient: minioClient,
 		bucketName:  bucketName,
 		logger:      logger,
+		cfg:         cfg,
 	}
 }
 
@@ -53,15 +59,17 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 		return nil, err
 	}
 
-	actionData, ok := req.ActionData.(dto.CreateWalletRequest)
-	if !ok {
-		w.logger.Errorf("failed to cast action data to wallet request")
-		return nil, fmt.Errorf(error_codes.InvalidActionData)
-	}
-
+	exists, actionData, err := w.walletAlreadyExists(ctx, req.ActionData)
 	if err := actionData.Validate(); err != nil {
 		w.logger.Errorf("validation error", err)
 		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, fmt.Errorf("WALLET_ALREADY_EXISTS")
 	}
 
 	exist, err := w.minioClient.BucketExist(ctx, w.bucketName)
@@ -99,6 +107,8 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
+	// _ := fmt.Sprintf("%s/%s/%s", w.cfg.MinioEndPoint, saveObj.Bucket, saveObj.Key)
+
 	cpsRes, err := w.walletRepo.CreateWallet(ctx, model.CreateCPSAction{
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
@@ -125,6 +135,11 @@ func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.Cr
 		return nil, err
 	}
 
+	_, err = w.walletRepo.GetWallet(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
 	cpsAction, err := w.walletRepo.UpdateWallet(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -139,6 +154,12 @@ func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.Cr
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = w.walletRepo.GetWallet(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
 	cpsAction, err := w.walletRepo.DeleteWallet(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -147,8 +168,15 @@ func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (w *WalletDomain) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error) {
-	return w.walletRepo.GetAllWallet(ctx, filterParams)
+
+func (w *WalletDomain) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error) {
+	banks, err := w.walletRepo.GetAllWallet(ctx, filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return banks, nil
+
 }
 
 func (w *WalletDomain) GetWallet(ctx context.Context, id string) (*entity.Wallet, error) {
@@ -190,10 +218,49 @@ func (w *WalletDomain) EnableOrDisableWallet(ctx context.Context, id string, req
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = w.walletRepo.GetWallet(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	isEnabled, err := w.walletRepo.CheckIsEnabled(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch {
+	case requestAction == model.RequestEnableWallet && isEnabled:
+		return nil, fmt.Errorf(error_codes.WalletAlreadyEnabled)
+	case requestAction == model.RequestDisableWallet && !isEnabled:
+		return nil, fmt.Errorf(error_codes.WalletAlreadyDisabled)
+	case requestAction != model.RequestEnableWallet && requestAction != model.RequestDisableWallet:
+		return nil, fmt.Errorf(error_codes.InvalidRequestAction)
+	}
+
 	cpsAction, err := w.walletRepo.EnableOrDisableWallet(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err
 	}
 
 	return cpsAction, nil
+}
+
+func (w *WalletDomain) walletAlreadyExists(ctx context.Context, actionData any) (bool, *dto.CreateWalletRequest, error) {
+	walletReq, ok := actionData.(dto.CreateWalletRequest)
+	if !ok {
+		w.logger.Errorf("failed to cast action data to CreateWalletRequest")
+		return false, nil, fmt.Errorf(error_codes.InvalidActionData)
+	}
+
+	exists, err := w.walletRepo.CheckWalletExists(ctx, entity.CheckWallet{
+		Name: walletReq.Name,
+		Code: walletReq.Code,
+	})
+	if err != nil {
+		return false, nil, err
+	}
+
+	return exists, &walletReq, nil
 }
