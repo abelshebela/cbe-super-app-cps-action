@@ -13,9 +13,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	// utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type WalletDomain struct {
@@ -23,7 +25,7 @@ type WalletDomain struct {
 	bucketName  string
 	minioClient config.MinioClientInterface
 
-	logger sharedutils.Logger
+	logger utils.Logger
 	cfg    *config.VaultConfig
 }
 
@@ -40,7 +42,7 @@ type WalletService interface {
 
 func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.MinioClientInterface,
 
-	bucketName string, logger sharedutils.Logger, cfg *config.VaultConfig) WalletService {
+	bucketName string, logger utils.Logger, cfg *config.VaultConfig) WalletService {
 
 	return &WalletDomain{
 		walletRepo:  walletRepo,

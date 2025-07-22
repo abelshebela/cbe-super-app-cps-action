@@ -75,7 +75,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
-	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request  created successfully")
+	common_util.WriteSuccessResponse(w, map[string]string{"action_code": cpsAction.ActionCode}, "group permission Request  created successfully")
 }
 
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
@@ -146,6 +146,5 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	h.logger.Infof("[UpdatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
-
-	common_util.WriteSuccessResponse(w, cpsAction, "group permission Request updated successfully")
+	common_util.WriteSuccessResponse(w, map[string]string{"action_code": cpsAction.ActionCode}, "group permission Request updated successfully")
 }
