@@ -540,14 +540,11 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode stri
 		"department":     department,
 		"action_type":    "DELETE",
 		"request_action": "BLOCK_CITY",
-		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+		"action_status":  "PENDING",
 	}
 	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
 	if existing != nil {
 		return "", fmt.Errorf("PENDING_ACTION_ALREADY_EXIST")
-	}
-	if err != nil && err != mongo.ErrNoDocuments {
-		return "", fmt.Errorf("database error on FindOne CPSAction")
 	}
 
 	prevCityPtr, err := o.MongoDalCity.FindOne(ctx, bson.M{"city_code": cityCode}, bson.M{})
@@ -592,10 +589,11 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode stri
 
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		return "", fmt.Errorf("database error on InsertOne CPSAction")
+		return "", fmt.Errorf("failed to create cps action ")
 	}
 	return cpsAction.ActionCode, nil
 }
+
 func (o *outboundAccountBlockStore) GetCityByCode(ctx context.Context, cityCode string) (action.City, error) {
 	if strings.TrimSpace(cityCode) == "" {
 		return action.City{}, fmt.Errorf("city_code is required")
