@@ -248,6 +248,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 	switch string(cpsAction.RequestAction) {
 	case string(model.RequestCreateBank):
 		doc, err := b.toDocument(&actionData)
+		doc.CreatedAt = time.Now()
 		if err != nil {
 			b.logger.Errorf("failed to convert action data to document for bank creation, action_code: %s", shortActionCode(cpsAction.ActionCode))
 			return nil, fmt.Errorf(error_codes.InvalidActionData)
@@ -274,7 +275,10 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 		if actionData.Logo != "" {
 			update["logo"] = actionData.Logo
 		}
+		update["last_modified_at"] = time.Now()
+
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
+
 		if err != nil {
 			return nil, err
 		}
@@ -282,7 +286,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 		b.logger.Infof("bank updated after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestDeleteBank):
-		update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
+		update := bson.M{"is_deleted": true, "last_modified_at": time.Now()}
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
 		if err != nil {
 			return nil, err
@@ -291,7 +295,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 		b.logger.Infof("bank deleted after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestEnableBank):
-		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": true})
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": true, "last_modified_at": time.Now()})
 		if err != nil {
 			return nil, err
 		}
@@ -300,7 +304,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 
 	case string(model.RequestDisableBank):
 		// fmt.Println("-------------", actionData.ID)
-		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": nil})
+		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": nil, "last_modified_at": time.Now()})
 		if err != nil {
 			return nil, err
 		}
