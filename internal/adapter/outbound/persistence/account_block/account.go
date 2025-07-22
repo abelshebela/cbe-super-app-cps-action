@@ -848,6 +848,9 @@ func (o *outboundAccountBlockStore) AuthorizeRegionBlock(ctx context.Context, cp
 		}
 	}
 	regionCode = strings.TrimSpace(regionCode)
+
+	fmt.Println("regionCode----------", regionCode)
+
 	if regionCode == "" {
 		return nil, common.DefineError.Branch["REGION_CODE_REQUIRED"]
 	}
@@ -856,32 +859,43 @@ func (o *outboundAccountBlockStore) AuthorizeRegionBlock(ctx context.Context, cp
 	if err != nil {
 		return nil, common.DefineError.Branch["REGION_NOT_FOUND"]
 	}
-
+	fmt.Println("check----------", region)
 	branchUpdate := bson.M{
-		"$set": bson.M{
-			"enabled":    false,
-			"updated_at": time.Now(),
-		},
+		"enabled":    false,
+		"updated_at": time.Now(),
 	}
 	branchFilter := bson.M{
 		"$or": []bson.M{
-			{"branch_region_code": region.RegionCode},
+			{"region_code": region.RegionCode},
 			{"branch_region": region.RegionName},
 		},
 	}
-	branches, err := o.MongoDalBranch.FindAll(ctx, branchFilter, nil)
+	branchesPtrs, err := o.MongoDalBranch.FindAll(ctx, branchFilter, bson.M{})
+	var branches []model.Branch
+	for _, b := range branchesPtrs {
+		if b != nil {
+			branches = append(branches, *b)
+		}
+	}
+	fmt.Println("branches--ERR--------", err)
+	fmt.Println("branches----------", branches)
+
 	if err != nil {
 		return nil, common.DefineError.Branch["FAILED_TO_FETCH_BRANCHES"]
 	}
 	for _, branch := range branches {
-		if branch == nil {
+		if branch.ID.Hex() == "" {
 			continue
 		}
 		_, err := o.MongoDalBranch.UpdateOne(ctx, bson.M{"_id": branch.ID}, branchUpdate)
+		fmt.Println("branches--E2222RR--------", err)
+
 		if err != nil {
 			return nil, common.DefineError.Branch["FAILED_TO_DISABLE_BRANCH"]
 		}
 	}
+
+	fmt.Println("branches----------", branches)
 
 	regionUpdate := bson.M{
 		"enabled":    false,
