@@ -13,22 +13,24 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type WalletDomain struct {
 	walletRepo  outbound.WalletPersistence
 	bucketName  string
 	minioClient config.MinioClientInterface
+
 	logger      utils.Logger
 	cfg         *config.VaultConfig
 }
 
 type WalletService interface {
 	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error)
+
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -38,7 +40,9 @@ type WalletService interface {
 }
 
 func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.MinioClientInterface,
+
 	bucketName string, logger utils.Logger, cfg *config.VaultConfig) WalletService {
+
 	return &WalletDomain{
 		walletRepo:  walletRepo,
 		minioClient: minioClient,
@@ -164,6 +168,7 @@ func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
+
 func (w *WalletDomain) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error) {
 	banks, err := w.walletRepo.GetAllWallet(ctx, filterParams)
 	if err != nil {
@@ -171,6 +176,7 @@ func (w *WalletDomain) GetAllWallet(ctx context.Context, filterParams *constant.
 	}
 
 	return banks, nil
+
 }
 
 func (w *WalletDomain) GetWallet(ctx context.Context, id string) (*entity.Wallet, error) {

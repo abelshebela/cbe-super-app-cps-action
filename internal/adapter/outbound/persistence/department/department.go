@@ -20,6 +20,8 @@ import (
 
 	"time"
 
+	"errors"
+
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	cpsconstants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -479,8 +481,31 @@ func (r *DepartmentPersistence) GetAllDepartments(ctx context.Context, filterPar
 	// Build pagination metadata using utility function
 	meta := common_util.BuildPaginationMeta(totalDocs, filterParams.Page, filterParams.PerPage)
 
+	if departments == nil {
+		departments = []*entities.Department{}
+	}
+
 	return &common_util.PaginatedResponse[[]*entities.Department]{
 		Data: departments,
 		Meta: meta,
 	}, nil
+}
+
+func (r *DepartmentPersistence) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("invalid department id provided: %s, error: %v", id, err)
+		return nil, fmt.Errorf("INVALID_ID")
+	}
+	filter := bson.M{"_id": objectID, "is_deleted": false}
+	department, err := r.departmentdal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("department not found, id: %s", id)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		r.logger.Errorf("failed to get department, id: %s, error: %v", id, err)
+		return nil, fmt.Errorf("FAILED_TO_GET_DEPARTMENT")
+	}
+	return department, nil
 }

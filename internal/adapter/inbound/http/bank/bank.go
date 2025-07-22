@@ -83,7 +83,8 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsRes, "Bank created successfully")
+	data := map[string]interface{}{"action_code": cpsRes.ActionCode}
+	common_util.WriteSuccessResponse(w, data, "Bank created successfully")
 }
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
@@ -258,6 +259,11 @@ func (b *BankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		b.logger.Errorf("missing or invalid parameter 'id'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
+	if id == "" {
+		common_util.SendErrorResponse(w, "BANK_ID_REQUIRED", 0, nil)
 		return
 	}
 	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "logo", 10<<20)

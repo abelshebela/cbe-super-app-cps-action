@@ -9,7 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -17,16 +17,18 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	// utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type Wallet struct {
 	walletDal dal.MongoDal[entity.WalletDocument, entity.WalletDocument]
 	cpsDal    dal.MongoDal[model.CPSAction, model.CPSAction]
-	logger    utils.Logger
+	logger    sharedutils.Logger
 }
 
-func InitWalletPersistence(client *mongo.Client, database string, collections []string, logger utils.Logger) outbound.WalletPersistence {
+func InitWalletPersistence(client *mongo.Client, database string, collections []string, logger sharedutils.Logger) outbound.WalletPersistence {
 	return &Wallet{
 		walletDal: dal.NewMongoDal[entity.WalletDocument, entity.WalletDocument](client, database, collections[0]),
 		cpsDal:    dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collections[1]),
@@ -182,6 +184,7 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	for _, wallet := range walletsDoc {
 		wallets = append(wallets, w.toDomain(*wallet))
 	}
+
 	if wallets == nil {
 		wallets = []*entity.Wallet{}
 	}

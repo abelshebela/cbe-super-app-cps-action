@@ -135,6 +135,13 @@ func (s *AccountService) GetAllRegions(ctx context.Context, filterParams *consta
 	return s.repo.GetAllRegions(ctx, filterParams)
 }
 
+func (s *AccountService) GetAllBranches(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, fmt.Errorf("invalid pagination parameters")
+	}
+	return s.repo.GetAllBranches(ctx, filterParams)
+}
+
 func (s *AccountService) GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error) {
 	if strings.TrimSpace(phoneNumber) == "" {
 		return member.User{}, fmt.Errorf("phoneNumber is required")

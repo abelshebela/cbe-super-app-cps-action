@@ -271,6 +271,9 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 		if actionData.BIC != "" {
 			update["bic"] = actionData.BIC
 		}
+		if actionData.Logo != "" {
+			update["logo"] = actionData.Logo
+		}
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), update)
 		if err != nil {
 			return nil, err
@@ -296,6 +299,7 @@ func (b *Bank) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*e
 		b.logger.Infof("bank enabled after authorization, action_code: %s, checker_code: %s", shortActionCode(cpsAction.ActionCode), cpsAction.CheckerID)
 
 	case string(model.RequestDisableBank):
+		// fmt.Println("-------------", actionData.ID)
 		bank, err := b.updateBankByID(ctx, actionData.ID.Hex(), bson.M{"enabled": nil})
 		if err != nil {
 			return nil, err
@@ -345,6 +349,16 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string, requestAction
 	bank, err := b.findBankByID(ctx, id, projection)
 	if err != nil {
 		return nil, err
+	}
+
+	if requestAction == "ENABLE_BANK" {
+		if bank.Enabled {
+			return nil, fmt.Errorf("BANK_ALREADY_ENABLE")
+		}
+	} else {
+		if !bank.Enabled {
+			return nil, fmt.Errorf("BANK_ALREADY_DISABLED")
+		}
 	}
 
 	prev := map[string]any{

@@ -261,12 +261,20 @@ var errorKeyToStatus = map[string]int{
 	"AD_UPDATE_FAILED":                      500,
 	"AD_DELETION_FAILED":                    500,
 	"CITY_NOT_FOUND":                        401,
-	"PENDING_ACTION_ALREADY_EXIST":          401,
+	"PENDING_ACTION_ALREADY_EXIST":          409,
 	"CITY_ALREADY_BLOCKED":                  401,
-	"PENDING_DISTRICT_ACTION_ALREADY_EXIST": 401,
+	"PENDING_DISTRICT_ACTION_ALREADY_EXIST": 409,
 	"DISTRICT_ALREADY_BLOCKED":              401,
 	"DISTRICT_NOT_FOUND":                    400,
 	"REGION_NOT_FOUND":                      400,
+	"BRANCH_ALREADY_BLOCKED":                401,
+	"REGION_CODE_AND_NAME_REQUIRED":         400,
+	"BLOCK_REGION_ALREADY_PROCESSED":        409,
+	"BANK_ID_REQUIRED":                      409,
+	"DEPARTMEN_REQUIRED":                    409,
+	"BANK_ALREADY_DISABLED":                 409,
+	"BANK_ALREADY_ENABLE":                   409,
+	"FAILED_TO_GET_DISTRICT":                404,
 }
 
 func getStatusForErrorKey(key string) int {

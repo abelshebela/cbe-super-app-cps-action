@@ -28,44 +28,46 @@ const (
 )
 
 type User struct {
-	UserID      string
-	UserCode    string
-	FullName    string
-	PhoneNumber string
-	Timestamp   time.Time
-	Department  string
+	UserID      string    `json:"user_id" bson:"user_id"`
+	UserCode    string    `json:"user_code" bson:"user_code"`
+	FullName    string    `json:"full_name" bson:"full_name"`
+	PhoneNumber string    `json:"phone_number" bson:"phone_number"`
+	Timestamp   time.Time `json:"timestamp" bson:"timestamp"`
+	Department  string    `json:"department" bson:"department"`
 }
 
 type CurrentAction struct {
-	Id            []string
-	Action        bool
-	RequestAction string
+	Id            []string `json:"id" bson:"id"`
+	Action        bool     `json:"action" bson:"action"`
+	RequestAction string   `json:"request_action" bson:"request_action"`
 }
+
 type ActionResponse struct {
-	ID       string `json:"_id,omitempty"`
-	ActionId string `json:"action_id"`
+	ID       string `json:"_id,omitempty" bson:"_id,omitempty"`
+	ActionId string `json:"action_id" bson:"action_id"`
 }
+
 type CPSAction struct {
-	ID                 string        `json:"id"`
-	ActionCode         string        `json:"action_code"`
-	UniqueId           string        `json:"unique_id"`
-	MakerID            string        `json:"maker_id"`
-	MakerName          string        `json:"maker_name"`
-	MakerPhoneNumber   string        `json:"maker_phone_number"`
-	CheckerID          string        `json:"checker_id,omitempty"`
-	CheckerName        string        `json:"checker_name,omitempty"`
-	CheckerPhoneNumber string        `json:"checker_phone_number,omitempty"`
-	Department         string        `json:"department"`
-	RejectionReason    *string       `json:"rejection_reason,omitempty"`
-	PreviousAction     interface{}   `json:"previos_action"`
-	CurrentAction      interface{}   `json:"current_action"`
-	ActionStatus       ActionStatus  `json:"action_status"`
-	ActionType         ActionType    `json:"action_type"`
-	RequestAction      RequestAction `json:"request_action"`
-	CreatedAt          time.Time     `json:"created_at"`
-	LastModifiedAt     time.Time     `json:"last_modified_at"`
-	MakerActionTime    time.Time     `json:"maker_action_time"`
-	CheckerActionTime  *time.Time    `json:"checker_action_time,omitempty"`
+	ID                 string        `json:"id" bson:"id"`
+	ActionCode         string        `json:"action_code" bson:"action_code"`
+	UniqueId           string        `json:"unique_id" bson:"unique_id"`
+	MakerID            string        `json:"maker_id" bson:"maker_id"`
+	MakerName          string        `json:"maker_name" bson:"maker_name"`
+	MakerPhoneNumber   string        `json:"maker_phone_number" bson:"maker_phone_number"`
+	CheckerID          string        `json:"checker_id,omitempty" bson:"checker_id,omitempty"`
+	CheckerName        string        `json:"checker_name,omitempty" bson:"checker_name,omitempty"`
+	CheckerPhoneNumber string        `json:"checker_phone_number,omitempty" bson:"checker_phone_number,omitempty"`
+	Department         string        `json:"department" bson:"department"`
+	RejectionReason    *string       `json:"rejection_reason,omitempty" bson:"rejection_reason,omitempty"`
+	PreviousAction     interface{}   `json:"previos_action" bson:"previos_action"`
+	CurrentAction      interface{}   `json:"current_action" bson:"current_action"`
+	ActionStatus       ActionStatus  `json:"action_status" bson:"action_status"`
+	ActionType         ActionType    `json:"action_type" bson:"action_type"`
+	RequestAction      RequestAction `json:"request_action" bson:"request_action"`
+	CreatedAt          time.Time     `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time     `json:"last_modified_at" bson:"last_modified_at"`
+	MakerActionTime    time.Time     `json:"maker_action_time" bson:"maker_action_time"`
+	CheckerActionTime  *time.Time    `json:"checker_action_time,omitempty" bson:"checker_action_time,omitempty"`
 }
 
 type RequestAction string
@@ -152,55 +154,55 @@ const (
 )
 
 type ProductCodes struct {
-	PRD    string
-	VATPRD string
-	SFPRD  string
-	TRXN   string
+	PRD    string `json:"prd" bson:"prd"`
+	VATPRD string `json:"vatprd" bson:"vatprd"`
+	SFPRD  string `json:"sfprd" bson:"sfprd"`
+	TRXN   string `json:"trxn" bson:"trxn"`
 }
 
 type GLEntry struct {
-	ProductAccount    string
-	ProductBranchCode string
-	ServiceAccount    string
-	ServiceBranchCode string
-	VatAccount        string
-	VatBranchCode     string
+	ProductAccount    string `json:"product_account" bson:"product_account"`
+	ProductBranchCode string `json:"product_branch_code" bson:"product_branch_code"`
+	ServiceAccount    string `json:"service_account" bson:"service_account"`
+	ServiceBranchCode string `json:"service_branch_code" bson:"service_branch_code"`
+	VatAccount        string `json:"vat_account" bson:"vat_account"`
+	VatBranchCode     string `json:"vat_branch_code" bson:"vat_branch_code"`
 }
 
 type Tier struct {
-	ID        *string
-	Min       uint64
-	Max       uint64
-	FeeAmount uint64
+	ID        *string `json:"id" bson:"id"`
+	Min       uint64  `json:"min" bson:"min"`
+	Max       uint64  `json:"max" bson:"max"`
+	FeeAmount uint64  `json:"fee_amount" bson:"fee_amount"`
 }
 
 type Cap struct {
-	KYCLevel  KYCLevel
-	SingleCap uint64
-	DailyCap  uint64
-	MinAmount uint64
+	KYCLevel  KYCLevel `json:"kyc_level" bson:"kyc_level"`
+	SingleCap uint64   `json:"single_cap" bson:"single_cap"`
+	DailyCap  uint64   `json:"daily_cap" bson:"daily_cap"`
+	MinAmount uint64   `json:"min_amount" bson:"min_amount"`
 }
 
 type ServiceDetails struct {
-	ID                 *string
-	ServiceCode        string
-	ServiceName        string
-	ServiceType        string
-	Key                string
-	Cap                Cap
-	CBEProductCodes    ProductCodes
-	CBEIFBProductCodes ProductCodes
-	AboveAmount        uint64
-	AboveServiceFee    uint64
-	PaymentType        string
-	Tiers              []Tier
-	CBEGLEntry         GLEntry
-	CBEIFBGLEntry      GLEntry
-	Enabled            bool
-	IsDeleted          bool
-	CreatedAt          time.Time
-	LastModifiedAt     time.Time
-	DeletedAt          time.Time
+	ID                 *string      `json:"id" bson:"id"`
+	ServiceCode        string       `json:"service_code" bson:"service_code"`
+	ServiceName        string       `json:"service_name" bson:"service_name"`
+	ServiceType        string       `json:"service_type" bson:"service_type"`
+	Key                string       `json:"key" bson:"key"`
+	Cap                Cap          `json:"cap" bson:"cap"`
+	CBEProductCodes    ProductCodes `json:"cbe_product_codes" bson:"cbe_product_codes"`
+	CBEIFBProductCodes ProductCodes `json:"cbeifb_product_codes" bson:"cbeifb_product_codes"`
+	AboveAmount        uint64       `json:"above_amount" bson:"above_amount"`
+	AboveServiceFee    uint64       `json:"above_service_fee" bson:"above_service_fee"`
+	PaymentType        string       `json:"payment_type" bson:"payment_type"`
+	Tiers              []Tier       `json:"tiers" bson:"tiers"`
+	CBEGLEntry         GLEntry      `json:"cbegl_entry" bson:"cbegl_entry"`
+	CBEIFBGLEntry      GLEntry      `json:"cbeifbgl_entry" bson:"cbeifbgl_entry"`
+	Enabled            bool         `json:"enabled" bson:"enabled"`
+	IsDeleted          bool         `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt          time.Time    `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time    `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt          time.Time    `json:"deleted_at" bson:"deleted_at"`
 }
 
 type RegistrationType string
@@ -243,110 +245,115 @@ type LinkedAccount struct {
 }
 
 type Password struct {
-	Salt             string
-	CurrentPassword  string
-	OldPassword      [4]string
-	PasswordChangeAt time.Time
+	Salt             string    `json:"salt" bson:"salt"`
+	CurrentPassword  string    `json:"current_password" bson:"current_password"`
+	OldPassword      [4]string `json:"old_password" bson:"old_password"`
+	PasswordChangeAt time.Time `json:"password_change_at" bson:"password_change_at"`
 }
+
 type CPSUser struct {
-	ID                 string
-	UserCode           string
-	FullName           string
-	Role               string
-	Department         string
-	Gender             string
-	PhoneNumber        string
-	Email              string
-	UserName           string
-	Realm              string
-	PermissionCategory []string
-	PermissionGroup    []string
+	ID                 string   `json:"id" bson:"id"`
+	UserCode           string   `json:"user_code" bson:"user_code"`
+	FullName           string   `json:"full_name" bson:"full_name"`
+	Role               string   `json:"role" bson:"role"`
+	Department         string   `json:"department" bson:"department"`
+	Gender             string   `json:"gender" bson:"gender"`
+	PhoneNumber        string   `json:"phone_number" bson:"phone_number"`
+	Email              string   `json:"email" bson:"email"`
+	UserName           string   `json:"user_name" bson:"user_name"`
+	Realm              string   `json:"realm" bson:"realm"`
+	PermissionCategory []string `json:"permission_category" bson:"permission_category"`
+	PermissionGroup    []string `json:"permission_group" bson:"permission_group"`
 
-	Password                 Password
-	PasswordDisable          bool
-	SyncDisabled             bool
-	LoginAttemptCount        uint8
-	LastLoginAttempt         time.Time
-	NextLoginAttempt         time.Time
-	LastOnlineDate           time.Time
-	LastLogin                time.Time
-	LoginPassword            string
-	AccountAuthorizationCode string
-	UnlockAccountRequested   bool
+	Password                 Password  `json:"password" bson:"password"`
+	PasswordDisable          bool      `json:"password_disable" bson:"password_disable"`
+	SyncDisabled             bool      `json:"sync_disabled" bson:"sync_disabled"`
+	LoginAttemptCount        uint8     `json:"login_attempt_count" bson:"login_attempt_count"`
+	LastLoginAttempt         time.Time `json:"last_login_attempt" bson:"last_login_attempt"`
+	NextLoginAttempt         time.Time `json:"next_login_attempt" bson:"next_login_attempt"`
+	LastOnlineDate           time.Time `json:"last_online_date" bson:"last_online_date"`
+	LastLogin                time.Time `json:"last_login" bson:"last_login"`
+	LoginPassword            string    `json:"login_password" bson:"login_password"`
+	AccountAuthorizationCode string    `json:"account_authorization_code" bson:"account_authorization_code"`
+	UnlockAccountRequested   bool      `json:"unlock_account_requested" bson:"unlock_account_requested"`
 
-	PasswordChangedAt *time.Time
-	OTPStatus         string
-	OTPLastTriedAt    *time.Time
-	OPTLastVerifiedAt *time.Time
-	OTPVerifyCount    int
+	PasswordChangedAt *time.Time `json:"password_changed_at" bson:"password_changed_at"`
+	OTPStatus         string     `json:"otp_status" bson:"otp_status"`
+	OTPLastTriedAt    *time.Time `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
+	OPTLastVerifiedAt *time.Time `json:"otp_last_verified_at" bson:"otp_last_verified_at"`
+	OTPVerifyCount    int        `json:"otp_verify_count" bson:"otp_verify_count"`
 
-	Enabled      bool
-	IsDeleted    bool
-	DateJoined   *time.Time
-	LastModified *time.Time
+	Enabled      bool       `json:"enabled" bson:"enabled"`
+	IsDeleted    bool       `json:"is_deleted" bson:"is_deleted"`
+	DateJoined   *time.Time `json:"date_joined" bson:"date_joined"`
+	LastModified *time.Time `json:"last_modified" bson:"last_modified"`
 
-	Country string
-	Region  string
+	Country string `json:"country" bson:"country"`
+	Region  string `json:"region" bson:"region"`
 }
+
 type PasswordRule struct {
-	ID             string    `json:"id"`
-	PasswordID     string    `json:"password_id"`
-	Name           string    `json:"name"`
-	MinLength      int       `json:"min_length"`
-	MaxLength      int       `json:"max_length"`
-	Numbers        bool      `json:"numbers"`
-	CapitalLetters bool      `json:"capital_letters"`
-	SmallLetters   bool      `json:"small_letters"`
-	Characters     bool      `json:"characters"`
-	CreatedAt      time.Time `json:"created_at"`
+	ID             string    `json:"id" bson:"id"`
+	PasswordID     string    `json:"password_id" bson:"password_id"`
+	Name           string    `json:"name" bson:"name"`
+	MinLength      int       `json:"min_length" bson:"min_length"`
+	MaxLength      int       `json:"max_length" bson:"max_length"`
+	Numbers        bool      `json:"numbers" bson:"numbers"`
+	CapitalLetters bool      `json:"capital_letters" bson:"capital_letters"`
+	SmallLetters   bool      `json:"small_letters" bson:"small_letters"`
+	Characters     bool      `json:"characters" bson:"characters"`
+	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 }
+
 type Branch struct {
-	ID            string
-	BranchCode    string
-	BranchName    string
-	BranchAddress string
-	DistrictCode  string
-	DistrictName  string
-	BranchRegion  string
-	RecordStat    string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Version       int
-	Enabled       bool
+	ID            string    `json:"id" bson:"id"`
+	BranchCode    string    `json:"branch_code" bson:"branch_code"`
+	BranchName    string    `json:"branch_name" bson:"branch_name"`
+	BranchAddress string    `json:"branch_address" bson:"branch_address"`
+	DistrictCode  string    `json:"district_code" bson:"district_code"`
+	DistrictName  string    `json:"district_name" bson:"district_name"`
+	BranchRegion  string    `json:"branch_region" bson:"branch_region"`
+	RecordStat    string    `json:"record_stat" bson:"record_stat"`
+	CreatedAt     time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at" bson:"updated_at"`
+	Version       int       `json:"version" bson:"version"`
+	Enabled       bool      `json:"enabled" bson:"enabled"`
 }
 
 type Region struct {
-	ID            string
-	RegionCode    string
-	RegionName    string
-	RegionAddress string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	Enabled       bool
+	ID            string    `json:"id" bson:"id"`
+	RegionCode    string    `json:"region_code" bson:"region_code"`
+	RegionName    string    `json:"region_name" bson:"region_name"`
+	RegionAddress string    `json:"region_address" bson:"region_address"`
+	CreatedAt     time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at" bson:"updated_at"`
+	Enabled       bool      `json:"enabled" bson:"enabled"`
 }
+
 type District struct {
-	ID              string
-	DistrictCode    string
-	DistrictName    string
-	DistrictAddress string
-	RegionID        string
-	RegionName      string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	Enabled         bool
+	ID              string    `json:"id" bson:"id"`
+	DistrictCode    string    `json:"district_code" bson:"district_code"`
+	DistrictName    string    `json:"district_name" bson:"district_name"`
+	DistrictAddress string    `json:"district_address" bson:"district_address"`
+	RegionID        string    `json:"region_id" bson:"region_id"`
+	RegionName      string    `json:"region_name" bson:"region_name"`
+	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
+	Enabled         bool      `json:"enabled" bson:"enabled"`
 }
+
 type City struct {
-	ID           string    `json:"id"`
-	CityCode     string    `json:"city_code"`
-	CityName     string    `json:"city_name"`
-	CityAddress  string    `json:"city_address"`
-	DistrictID   string    `json:"district_id"`
-	DistrictName string    `json:"district_name"`
-	RegionID     string    `json:"region_id"`
-	RegionName   string    `json:"region_name"`
-	CreatedAt    time.Time `json:"-"`
-	UpdatedAt    time.Time `json:"-"`
-	Enabled      bool      `json:"-"`
+	ID           string    `json:"id" bson:"id"`
+	CityCode     string    `json:"city_code" bson:"city_code"`
+	CityName     string    `json:"city_name" bson:"city_name"`
+	CityAddress  string    `json:"city_address" bson:"city_address"`
+	DistrictID   string    `json:"district_id" bson:"district_id"`
+	DistrictName string    `json:"district_name" bson:"district_name"`
+	RegionID     string    `json:"region_id" bson:"region_id"`
+	RegionName   string    `json:"region_name" bson:"region_name"`
+	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" bson:"updated_at"`
+	Enabled      bool      `json:"enabled" bson:"enabled"`
 }
 
 type CreateCPSAction struct {

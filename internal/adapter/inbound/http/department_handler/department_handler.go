@@ -133,10 +133,20 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Get department_id from URL params (PATCH route uses 'id')
 	departmentID := chi.URLParam(r, "id")
+	if departmentID == "" {
+		h.logger.Errorf("[UpdateDepartmentRequest] missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, http.StatusBadRequest, nil)
+		return
+	}
 
-	// Create CPS action for update
+	_, err := h.departmentService.GetDepartmentByID(r.Context(), departmentID)
+	if err != nil {
+		h.logger.Errorf("[UpdateDepartmentRequest] department not found: %v", err)
+		common_util.SendErrorResponse(w, "NOT_FOUND", http.StatusNotFound, nil)
+		return
+	}
+
 	cpsAction := cpsactions.CPSAction{
 		MakerID:          ctx.UserID,
 		MakerName:        ctx.FullName,
@@ -196,5 +206,21 @@ func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
-	common_util.BaseResponseMaker(departments, w, "Departments fetched successfully", http.StatusOK)
+	common_util.WriteSuccessResponse(w, departments, "Departments fetched successfully")
+}
+
+func (h *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+	department, err := h.departmentService.GetDepartmentByID(r.Context(), id)
+	if err != nil {
+		h.logger.Errorf("[GetDepartmentByID] failed: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		return
+	}
+	common_util.WriteSuccessResponse(w, department, "Department fetched successfully")
 }
