@@ -141,17 +141,26 @@ func (o *cpsActionStore) updateCPSActionStatus(ctx context.Context, action *enti
 	return mappers.ModelToDomainCPSAction(cpsAction), nil
 }
 
-func (o *cpsActionStore) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.CPSAction], error) {
+func (o *cpsActionStore) GetCPSActionsByDepartment(ctx context.Context, department string, status string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.CPSAction], error) {
 	o.logger.Infof("Getting CPSActions for department: %s", department)
 	filter := bson.M{
 		"department":    department,
-		"action_status": model.ActionPending,
+		"action_status": status,
+	}
+
+	if filterParams.Search != "" {
+		search := filterParams.Search
+		filter["$or"] = []bson.M{
+			{"action_code": bson.M{"$regex": search, "$options": "i"}},
+			{"action_type": bson.M{"$regex": search, "$options": "i"}},
+			{"request_action": bson.M{"$regex": search, "$options": "i"}},
+		}
 	}
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit
 
-	cpsActionsDocs, err := o.MongoCPSAction.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(filterParams.PerPage))
+	cpsActionsDocs, err := o.MongoCPSAction.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		o.logger.Errorf("failed to fetch cps actions: %v", err)
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
@@ -168,7 +177,7 @@ func (o *cpsActionStore) GetCPSActionsByDepartment(ctx context.Context, departme
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
-	o.logger.Infof("retrieved cps actions, page: %d, count: %d, total: %d", filterParams.Page, len(actions), total)
+	o.logger.Infof("retrieved cps actions, page: %d, count: %d, total: %d", page, len(actions), total)
 	meta := common_util.BuildPaginationMeta(total, page, limit)
 
 	return &common_util.PaginatedResponse[[]*entity.CPSAction]{
