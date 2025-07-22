@@ -38,6 +38,7 @@ type AccountBlockOutboundPort interface {
 	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
 	AuthorizeBlockCity(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 	GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error)
+	GetAllBranches(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error)
 	GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error)

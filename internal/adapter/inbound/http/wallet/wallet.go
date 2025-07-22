@@ -145,12 +145,13 @@ func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 
+
 	fmt.Print(filterParams.Page, "page")
 	fmt.Print(filterParams.PerPage, "per page")
 
 
-	ctx := r.Context()
 
+	ctx := r.Context()
 	wallets, err := wa.walletHandler.GetAllWallet(ctx, filterParams)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -158,7 +159,8 @@ func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, wallets, "Wallets retrieved successfully")
+	doc, _ := common_util.StructToMap(wallets)
+	common_util.BaseResponseMaker(doc, w, "Wallets retrieved successfully", 200)
 }
 
 func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {

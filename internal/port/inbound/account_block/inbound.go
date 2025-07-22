@@ -4,6 +4,7 @@ import "net/http"
 
 type AccountBlockHandler interface {
 	FilterSingleBranches(w http.ResponseWriter, r *http.Request)
+	GetAllBranches(w http.ResponseWriter, r *http.Request)
 	DisableSingleBranch(w http.ResponseWriter, r *http.Request)
 	ApproveSingleBranchDisable(w http.ResponseWriter, r *http.Request)
 

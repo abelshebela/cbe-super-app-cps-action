@@ -686,12 +686,17 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_152",
 			Message: "unsupported request action",
 		},
+
+		"FAILED_TO_GET_DEPARTMENT": {
+			Code:    "GEN_152",
+			Message: "failed to get department",
+
 		"KYC_LEVEL_REQUIRED": {
 			Code:    "GEN_153",
 			Message: "kyc_level is required",
 		},
 		"INVALID_KYC_LEVEL": {
-			Code:    "GEN_153",
+			Code:    "GEN_154",
 			Message: "kyc_level must be a number between 0 and 2",
 		},
 	},
@@ -818,6 +823,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_030",
 			Message: "access token required",
 		},
+		"DEPARTMEN_REQUIRED": {
+			Code:    "AUTH_031",
+			Message: "department is required in context",
+		},
+		"INCOMPLETE_USER_INFO": {
+			Code:    "AUTH_032",
+			Message: "Incomplete user information",
+		},
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {
@@ -892,15 +905,15 @@ var DefineError = ErrorDefinitions{
 		},
 		"BLOCKED_ACTION_USER_ALREADY_EXIST": {
 			Code:    "AUTH_029",
-			Message: "A pending or approved block action already exists for this user",
+			Message: "A pending block action already exists for this user",
 		},
 		"BRANCH_DISABLE_ACTION_ALREADY_EXISTS": {
 			Code:    "BRN_008",
-			Message: "A pending or approved disable action already exists for this branch",
+			Message: "A pending disable action already exists for this branch",
 		},
 		"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": {
 			Code:    "BRN_010",
-			Message: "A pending or approved disable action already exists for one or more of the selected branches",
+			Message: "A pending disable action already exists for one or more of the selected branches",
 		},
 		"BRANCH_BULK_ACTION_ALREADY_PROCESSED": {
 			Code:    "BRN_011",
@@ -946,6 +959,22 @@ var DefineError = ErrorDefinitions{
 		"ACCOUNT_BLOCKED": {
 			Code:    "ACC_014",
 			Message: "The account is blocked.",
+		},
+		"REGION_CODE_AND_NAME_REQUIRED": {
+			Code:    "ACC_015",
+			Message: "Region code and region name is required",
+		},
+		"BLOCK_REGION_ALREADY_PROCESSED": {
+			Code:    "DST_016",
+			Message: "This region already blocked",
+		},
+		"BANK_ID_REQUIRED": {
+			Code:    "DST_017",
+			Message: "Bank id is required",
+		},
+		"FAILED_TO_GET_DISTRICT": {
+			Code:    "DST_018",
+			Message: "district not found",
 		},
 	},
 	OTP: ErrorGroup{
@@ -1054,6 +1083,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "BRN_011",
 			Message: "Region Not Found",
 		},
+		"BRANCH_ALREADY_BLOCKED": {
+			Code:    "BRN_010",
+			Message: "The branch already blocked",
+		},
 	},
 	Department: ErrorGroup{
 		"DEPARTMENT_NOT_FOUND": {
@@ -1101,6 +1134,14 @@ var DefineError = ErrorDefinitions{
 		"BANK_ALREADY_EXISTS": {
 			Code:    "BNK_006",
 			Message: "Bank with this name already exists.",
+		},
+		"BANK_ALREADY_ENABLE": {
+			Code:    "BNK_007",
+			Message: "Bank  already  enabled",
+		},
+		"BANK_ALREADY_DISABLED": {
+			Code:    "BNK_008",
+			Message: "Bank  already  disabled",
 		},
 	},
 	Action: ErrorGroup{

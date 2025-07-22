@@ -42,6 +42,7 @@ type ApplicationService interface {
 	GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error)
 	GetAllDistricts(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error)
 	GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error)
+	GetAllBranches(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 }
 
 type Handler struct {
@@ -145,4 +146,8 @@ func (h *Handler) GetAllDistricts(ctx context.Context, filter *constant.Filter) 
 
 func (h *Handler) GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error) {
 	return h.service.GetAllRegions(ctx, filter)
+}
+
+func (h *Handler) GetAllBranches(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
+	return h.service.GetAllBranches(ctx, filter)
 }

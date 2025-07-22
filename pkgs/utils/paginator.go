@@ -8,15 +8,15 @@ import (
 )
 
 type PaginationMeta struct {
-	TotalDocs     int64 `json:"totalDocs"`
+	TotalDocs     int64 `json:"total_docs"`
 	Limit         int   `json:"limit"`
-	TotalPages    int   `json:"totalPages"`
+	TotalPages    int   `json:"total_pages"`
 	Page          int   `json:"page"`
-	PagingCounter int   `json:"pagingCounter"`
-	HasPrevPage   bool  `json:"hasPrevPage"`
-	HasNextPage   bool  `json:"hasNextPage"`
-	PrevPage      *int  `json:"prevPage,omitempty"`
-	NextPage      *int  `json:"nextPage,omitempty"`
+	PagingCounter int   `json:"paging_counter"`
+	HasPrevPage   bool  `json:"has_prev_page"`
+	HasNextPage   bool  `json:"has_next_page"`
+	PrevPage      *int  `json:"prev_page,omitempty"`
+	NextPage      *int  `json:"next_page,omitempty"`
 }
 type PaginatedResponse[T any] struct {
 	Data T              `json:"docs"`
@@ -40,6 +40,7 @@ func (p PaginatedResponse[T]) MarshalJSON() ([]byte, error) {
 		Meta: p.Meta,
 	})
 }
+
 
 // ExtractPaginator extracts page and limit from the request
 func ExtractPaginator(r *http.Request) (limit, offset int64, err error) {

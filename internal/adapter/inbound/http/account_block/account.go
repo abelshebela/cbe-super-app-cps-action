@@ -23,15 +23,15 @@ func NewAccountBlockHandler(service account_block.ApplicationService, logger uti
 	return &AccountBlockHandler{service: service, logger: logger}
 }
 func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
-	region := strings.TrimSpace(r.URL.Query().Get("region"))
-	district := strings.TrimSpace(r.URL.Query().Get("district"))
 
 	filterParams := constant_utils.ExtractFilterParams(r)
 
-	if region == "" || district == "" {
-		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
+	if !constant_utils.CheckRequiredQueries(w, r, []string{"region", "district"}) {
 		return
 	}
+
+	region := strings.TrimSpace(r.URL.Query().Get("region"))
+	district := strings.TrimSpace(r.URL.Query().Get("district"))
 
 	if len(region) < 3 || len(district) < 3 {
 		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
@@ -57,6 +57,27 @@ func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *htt
 	data, err := constant_utils.StructToMap(branches)
 	if err != nil {
 		constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 500, nil)
+		return
+	}
+	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
+}
+func (h *AccountBlockHandler) GetAllBranches(w http.ResponseWriter, r *http.Request) {
+	filterParams := constant_utils.ExtractFilterParams(r)
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		constant_utils.SendErrorResponse(w, "INVALID_PAGINATION_PARAMS", http.StatusBadRequest, nil)
+		return
+	}
+
+	branches, err := h.service.GetAllBranches(r.Context(), filterParams)
+	if err != nil {
+		h.logger.Errorf("GetAllBranches failed: %v", err)
+		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		return
+	}
+
+	data, err := constant_utils.StructToMap(branches)
+	if err != nil {
+		constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", http.StatusInternalServerError, nil)
 		return
 	}
 	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
@@ -154,15 +175,15 @@ func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, 
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
 func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *http.Request) {
+
+	if !constant_utils.CheckRequiredQueries(w, r, []string{"region", "district"}) {
+		return
+	}
 	region := strings.TrimSpace(r.URL.Query().Get("region"))
 	district := strings.TrimSpace(r.URL.Query().Get("district"))
 
 	filterParams := constant_utils.ExtractFilterParams(r)
 
-	if region == "" || district == "" {
-		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
-		return
-	}
 	if len(region) < 3 || len(district) < 3 {
 		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
 		return
@@ -295,11 +316,11 @@ func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, 
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
 func (h *AccountBlockHandler) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
-	regionCode := r.URL.Query().Get("region_code")
-	if strings.TrimSpace(regionCode) == "" {
-		constant_utils.SendErrorResponse(w, "REGION_CODE_REQUIRED", http.StatusBadRequest, nil)
+
+	if !constant_utils.CheckRequiredQueries(w, r, []string{"region_code"}) {
 		return
 	}
+	regionCode := r.URL.Query().Get("region_code")
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -552,12 +573,11 @@ func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.Request) {
-	districtCode := r.URL.Query().Get("district_code")
-	if strings.TrimSpace(districtCode) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "district_code is required"}
-		resp.SendJSON()
+
+	if !constant_utils.CheckRequiredQueries(w, r, []string{"district_code"}) {
 		return
 	}
+	districtCode := r.URL.Query().Get("district_code")
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -567,13 +587,12 @@ func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.R
 	if strings.TrimSpace(userID) == "" ||
 		strings.TrimSpace(fullName) == "" ||
 		strings.TrimSpace(phoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-		resp.SendJSON()
+
+		constant_utils.SendErrorResponse(w, "DEPARTMEN_REQUIRED", 409, nil)
 		return
 	}
 	if strings.TrimSpace(department) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-		resp.SendJSON()
+		constant_utils.SendErrorResponse(w, "DEPARTMEN_REQUIRED", 409, nil)
 		return
 	}
 
@@ -582,8 +601,7 @@ func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.R
 	district, err := h.service.GetDistrictByCode(r.Context(), districtCode)
 	if err != nil {
 		h.logger.Errorf("GetDistrictByCode failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "District not found"}
-		resp.SendJSON()
+		constant_utils.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
@@ -670,12 +688,10 @@ func (h *AccountBlockHandler) ApproveBlockDistrict(w http.ResponseWriter, r *htt
 }
 
 func (h *AccountBlockHandler) GetCityByCode(w http.ResponseWriter, r *http.Request) {
-	cityCode := r.URL.Query().Get("city_code")
-	if strings.TrimSpace(cityCode) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "city_code is required"}
-		resp.SendJSON()
+	if !constant_utils.CheckRequiredQueries(w, r, []string{"city_code"}) {
 		return
 	}
+	cityCode := r.URL.Query().Get("city_code")
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -876,12 +892,10 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
 	constant_utils.BaseResponseMaker(data, w, "User block action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) GetUserByPhone(w http.ResponseWriter, r *http.Request) {
-	phoneNumber := r.URL.Query().Get("phone_number")
-	if strings.TrimSpace(phoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "phone_number is required"}
-		resp.SendJSON()
+	if !constant_utils.CheckRequiredQueries(w, r, []string{"phone_number"}) {
 		return
 	}
+	phoneNumber := r.URL.Query().Get("phone_number")
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)

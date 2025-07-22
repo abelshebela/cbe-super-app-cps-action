@@ -1,9 +1,10 @@
 package utils
 
 import (
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"net/http"
 	"strconv"
+
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 // ExtractFilterParams extracts pagination and filter params from the HTTP request query.
