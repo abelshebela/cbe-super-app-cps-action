@@ -6,13 +6,13 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type WalletHandlerAppllication interface {
-	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
+	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -23,10 +23,10 @@ type WalletHandlerAppllication interface {
 
 type WalletHandler struct {
 	walletDomain service.WalletService
-	logger       utils.Logger
+	logger       sharedutils.Logger
 }
 
-func InitWalletApplication(walletDomain service.WalletService, logger utils.Logger) WalletHandlerAppllication {
+func InitWalletApplication(walletDomain service.WalletService, logger sharedutils.Logger) WalletHandlerAppllication {
 	return &WalletHandler{
 		walletDomain: walletDomain,
 		logger:       logger,
@@ -51,13 +51,8 @@ func (w *WalletHandler) DeleteWallet(ctx context.Context, id string, req model.C
 	return cpsAction, nil
 }
 
-func (w *WalletHandler) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error) {
-	banks, err := w.walletDomain.GetAllWallet(ctx, filterParams)
-	if err != nil {
-		return nil, err
-	}
-
-	return banks, nil
+func (w *WalletHandler) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error) {
+	return w.walletDomain.GetAllWallet(ctx, filterParams)
 }
 
 func (w *WalletHandler) GetWallet(ctx context.Context, id string) (*entity.Wallet, error) {

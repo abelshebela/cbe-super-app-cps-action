@@ -34,6 +34,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "Block"):
 		return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
+	
+	case constants.IsActionInGroup(action, "Department"):
+		return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)

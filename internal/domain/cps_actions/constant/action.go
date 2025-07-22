@@ -42,7 +42,9 @@ const (
 	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
 	RequestUser                     RequestAction = "USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
-	RequestDepartment               RequestAction = "DEPARMTENT"
+	// RequestDepartment               RequestAction = "DEPARMTENT"
+	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
+	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
 	RequestDisableUser              RequestAction = "DISABLE_USER"
 	RequestBPSUser                  RequestAction = "BPS_USER"
@@ -137,7 +139,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateAmountBasedAuth:    {},
 	RequestUser:                     {},
 	RequestPermissionGroup:          {},
-	RequestDepartment:               {},
+	RequestCreateDepartment:         {},
+	RequestUpdateDepartment:         {},
 	RequestEnableUser:               {},
 	RequestDisableUser:              {},
 	RequestBPSUser:                  {},
@@ -241,7 +244,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestPermissionGroup,
 	},
 	"Department": {
-		RequestDepartment,
+		RequestCreateDepartment,
+		RequestUpdateDepartment,
+		// RequestDeleteDepartment,
 	},
 	"ServiceFee": {
 		RequestCreateServiceFee,

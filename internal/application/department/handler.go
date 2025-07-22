@@ -9,6 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -19,24 +20,19 @@ import (
 )
 
 type DepartmentData struct {
-	Code        string
-	Name        string
-	PortalCards []string
+	Code             string
+	Name             string
+	PortalCards      []string
+	PermissionGroups []string
 }
 
 type DepartmentService interface {
-	CreateCPSAction(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) (*entities.CPSAction, error)
-	CreateDepartment(ctx context.Context, input string, portalCards []string, cpsAction entities.CPSAction) error
-	UpdateDepartment(ctx context.Context, code string, req CreateDepartmentRequest) (*entities.Department, error)
-	CreateDepartmentUpdateCPSAction(ctx context.Context, req entities.CPSAction) (*entities.CPSAction, error)
-	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error)
-	ApproveActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error
-	ApproveCreateAction(ctx context.Context, action *entities.CPSAction) error
-	ApproveUpdateAction(ctx context.Context, action *entities.CPSAction) error
-	ApproveActionByType(ctx context.Context, cpsAction entities.CPSAction) error
-	ApproveDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error
-	RejectDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error
-	RejectActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error
+	CreateCPSAction(ctx context.Context, department string, portalCards []string, permissionGroups []string, cpsAction cpsactions.CPSAction) (string, error)
+	CreateDepartment(ctx context.Context, input string, portalCards []string, cpsAction cpsactions.CPSAction) error
+	UpdateDepartment(ctx context.Context, code string, req UpdateDepartmentRequest) (*entities.Department, error)
+	CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error)
+	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error)
+	RejectActionRequest(ctx context.Context, actionCode string, action cpsactions.CPSAction) error
 	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
 }
 
@@ -94,43 +90,59 @@ func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData,
 		cards = append(cards, str)
 	}
 
+	// Extract permission_groups
+	var permissionGroups []string
+	if rawGroups, ok := data["permission_groups"]; ok {
+		switch v := rawGroups.(type) {
+		case []any:
+			for _, g := range v {
+				if str, ok := g.(string); ok {
+					permissionGroups = append(permissionGroups, str)
+				}
+			}
+		case []string:
+			permissionGroups = v
+		}
+	}
+
 	code, _ := data["department_code"].(string)
 
 	return &DepartmentData{
-		Code:        code,
-		Name:        name,
-		PortalCards: cards,
+		Code:             code,
+		Name:             name,
+		PortalCards:      cards,
+		PermissionGroups: permissionGroups,
 	}, nil
 }
 
-func (h *DepartmentHandler) CreateCPSAction(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+func (h *DepartmentHandler) CreateCPSAction(ctx context.Context, department string, portalCards []string, permissionGroups []string, cpsAction cpsactions.CPSAction) (string, error) {
 	// Check request exists
 	if existing, err := h.service.CheckRequestExists(ctx, cpsAction); err != nil {
 		h.logger.Errorf("failed to check request exists: %v", err)
-		return nil, err
+		return "", err
 	} else if existing != nil {
 		h.logger.Errorf("pending request exists for action code: %s", existing.ActionCode)
-		return nil, fmt.Errorf(err_msg.PendingRequestExists)
+		return "", fmt.Errorf(err_msg.PendingRequestExists)
 	}
 
 	// check department exist
 	if exists, err := h.service.CheckDepartmentExists(ctx, department); err != nil {
 		h.logger.Errorf("failed to check department exists: %v", err)
-		return nil, err
+		return "", err
 	} else if exists {
 		h.logger.Errorf("department already exists for action code: %s", department)
-		return nil, fmt.Errorf(err_msg.DepartmentAlreadyExists)
+		return "", fmt.Errorf(err_msg.DepartmentAlreadyExists)
 	}
 
 	// creating dep
-	createdAction, err := h.service.CreateCPSAction(ctx, department, portalCards, cpsAction)
+	createdActionCode, err := h.service.CreateCPSAction(ctx, department, portalCards, permissionGroups, cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to create CPS action: %v", err)
-		return nil, err
+		return "", err
 	}
-	return createdAction, nil
+	return createdActionCode, nil
 }
-func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction entities.CPSAction) error {
+func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction cpsactions.CPSAction) error {
 	h.logger.Infof("Creating department: %s with portal cards: %v", department, portalCards)
 	err := h.service.CreateDepartment(ctx, department, portalCards, cpsAction)
 	if err != nil {
@@ -141,21 +153,29 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department str
 	return nil
 }
 
-func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, code string, req CreateDepartmentRequest) (*entities.Department, error) {
-	if exists, err := h.service.CheckDepartmentExists(ctx, req.Department); err != nil {
-		return nil, err
-	} else if !exists {
-		return nil, fmt.Errorf(err_msg.DepartmentNotFound)
+func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req UpdateDepartmentRequest) (*entities.Department, error) {
+	
+	if id != "" {
+		if exists, err := h.service.CheckDepartmentExistsByID(ctx, id); err != nil {
+			return nil, err
+		} else if !exists {
+			return nil, fmt.Errorf(err_msg.DepartmentNotFound)
+		}
 	}
-
-	data, err := h.service.UpdateDepartment(ctx, code, req.Department, req.PortalCards)
+	
+	domainReq := domain.UpdateDepartmentRequest{
+		Department:       req.Department,
+		PortalCards:      req.PortalCards,
+		PermissionGroups: req.PermissionGroups,
+	}
+	data, err := h.service.UpdateDepartment(ctx, id, domainReq)
 	if err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-func (h *DepartmentHandler) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*entities.CPSAction, error) {
+func (h *DepartmentHandler) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error) {
 	action, err := h.service.ValidateActionRequest(ctx, actionCode, userDept)
 	if err != nil {
 		h.logger.Errorf("Failed to validate action request: %v", err)
@@ -164,85 +184,7 @@ func (h *DepartmentHandler) ValidateActionRequest(ctx context.Context, actionCod
 	return action, nil
 }
 
-func (h *DepartmentHandler) ApproveActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
-	err := h.service.ApproveActionRequest(ctx, actionCode, action)
-	if err != nil {
-		h.logger.Errorf("Failed to approve action request: %v", err)
-		return err
-	}
-	return nil
-}
-
-func (h *DepartmentHandler) ApproveCreateAction(ctx context.Context, action *entities.CPSAction) error {
-	data, err := h.extractDepartmentData(action.CurrentAction)
-	if err != nil {
-		return err
-	}
-
-	return h.CreateDepartment(ctx, data.Name, data.PortalCards, *action)
-}
-
-func (h *DepartmentHandler) ApproveUpdateAction(ctx context.Context, action *entities.CPSAction) error {
-	data, err := h.extractDepartmentData(action.CurrentAction)
-	if err != nil {
-		return err
-	}
-	if data.Code == "" {
-		h.logger.Errorf("missing department_code for update")
-		return fmt.Errorf(err_msg.DepartmentCodeRequired)
-	}
-	req := CreateDepartmentRequest{
-		Department:  data.Name,
-		PortalCards: data.PortalCards,
-	}
-
-	res := entities.CPSAction{
-		CurrentAction: req,
-	}
-
-	err = h.departmentDomain.ApproveActionRequest(ctx, data.Code, res)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *DepartmentHandler) RejectUpdateAction(ctx context.Context, action *entities.CPSAction) error {
-	data, err := h.extractDepartmentData(action.CurrentAction)
-	if err != nil {
-		return err
-	}
-	if data.Code == "" {
-		h.logger.Errorf("missing department_code for update")
-		return fmt.Errorf(err_msg.DepartmentCodeRequired)
-	}
-
-	res := entities.CPSAction{
-		CheckerID:          action.CheckerID,
-		CheckerName:        action.CheckerName,
-		CheckerPhoneNumber: action.CheckerPhoneNumber,
-	}
-
-	err = h.departmentDomain.RejectActionRequest(ctx, data.Code, res)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *DepartmentHandler) ApproveActionByType(ctx context.Context, cpsAction entities.CPSAction) error {
-	switch cpsAction.ActionType {
-	case entities.ActionCreate:
-		return h.ApproveCreateAction(ctx, &cpsAction)
-	case entities.ActionUpdate:
-		return h.ApproveUpdateAction(ctx, &cpsAction)
-	default:
-		return fmt.Errorf(err_msg.InvalidActionType)
-	}
-}
-
-// CreateDepartmentUpdateCPSAction creates a CPS action for department updates
-func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context, req entities.CPSAction) (*entities.CPSAction, error) {
+func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
 	// Check for pending update action
 	if existing, err := h.service.CheckRequestExists(ctx, req); err != nil {
 		h.logger.Errorf("failed to check request exists: %v", err)
@@ -252,7 +194,6 @@ func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context,
 		return nil, fmt.Errorf(err_msg.PendingRequestExists)
 	}
 
-	// Option 1: Proper type assertion with error checking
 	_, ok := req.CurrentAction.(CreateDepartmentRequest)
 	if !ok {
 		// Try to parse from map if type assertion fails
@@ -293,29 +234,7 @@ func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context,
 	return cpsAction, nil
 }
 
-// ApproveDepartmentUpdate approves a department update CPS action
-func (h *DepartmentHandler) ApproveDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error {
-	err := h.service.ApproveDepartmentUpdate(ctx, cpsAction)
-	if err != nil {
-		h.logger.Errorf("Failed to approve department update: %v", err)
-		return err
-	}
-	h.logger.Infof("Department update approved successfully for action code: %s", cpsAction.ActionCode)
-	return nil
-}
-
-// RejectDepartmentUpdate rejects a department update CPS action
-func (h *DepartmentHandler) RejectDepartmentUpdate(ctx context.Context, cpsAction entities.CPSAction) error {
-	err := h.service.RejectDepartmentUpdate(ctx, cpsAction)
-	if err != nil {
-		h.logger.Errorf("Failed to reject department update: %v", err)
-		return err
-	}
-	h.logger.Infof("Department update rejected successfully for action code: %s", cpsAction.ActionCode)
-	return nil
-}
-
-func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode string, action entities.CPSAction) error {
+func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode string, action cpsactions.CPSAction) error {
 	return h.service.RejectActionRequest(ctx, actionCode, action)
 }
 

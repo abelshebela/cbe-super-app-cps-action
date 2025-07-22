@@ -33,31 +33,31 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 			},
 			{
 				Method:  http.MethodPatch,
-				Path:    "/",
+				Path:    "/{id}",
 				Handler: departmentHandler.UpdateDepartmentRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/{action_code}/approve",
-				Handler: departmentHandler.ApproveDepartmentRequest,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/{action_code}/reject",
-				Handler: departmentHandler.RejectDepartmentRequest,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker}),
-				},
-			},
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/{action_code}/approve",
+			// 	Handler: departmentHandler.ApproveDepartmentRequest,
+			// 	Middlewares: []func(next http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 		authMiddleware.AccessControl([]string{role.Checker}),
+			// 	},
+			// },
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/{action_code}/reject",
+			// 	Handler: departmentHandler.RejectDepartmentRequest,
+			// 	Middlewares: []func(next http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 		authMiddleware.AccessControl([]string{role.Checker}),
+			// 	},
+			// },
 		}
 
 		route.RegisterRoutes(r, routes)
