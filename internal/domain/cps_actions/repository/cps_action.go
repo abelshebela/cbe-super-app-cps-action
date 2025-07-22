@@ -14,7 +14,7 @@ type CPSActionRepository interface {
 	CPSActionExists(ctx context.Context, uniqueID string) (bool, error)
 	ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error)
 	RejectCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error)
-	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
+	GetCPSActionsByDepartment(ctx context.Context, department string, status string,filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
 	GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error)
 }
