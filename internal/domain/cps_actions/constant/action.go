@@ -37,11 +37,11 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
-	RequestDeleteAmountBasedAuth    RequestAction = "DELETE_AMOUNT_BASED_AUTH"
-	RequestCreateAmountBasedAuth    RequestAction = "CREATE_AMOUNT_BASED_AUTH"
-	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
-	RequestUser                     RequestAction = "USER"
-	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
+	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestUser                  RequestAction = "USER"
+	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
@@ -120,6 +120,8 @@ const (
 	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
 	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
+
 	RequestAccountUpdate         RequestAction = "REQUEST_ACCOUNT_UPDATE"
 	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
 	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
@@ -195,12 +197,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableEvent:             {},
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
-	// RequestDeleteMiniAppMerchant:    {},
-	RequestUpdateBlockTime: {},
-	// RequestUpdateAccountValidation:  {},
-	// RequestUpdateServiceDetails:     {},
-	// RequestUpdateHQBlockTime:        {},
-	// RequestUpdateHQArchiveTime:      {},
+	RequestUpdateBlockTime:          {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -379,6 +376,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"Fayda": {
 		RequestDisableFaydaAccount,
+		RequestEnableFaydaAccount,
 	},
 }
 
