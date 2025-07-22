@@ -6,6 +6,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
+	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -14,7 +15,7 @@ type WalletPersistence interface {
 	UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
-	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
+	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error)
 	AuthorizeCreate(ctx context.Context, cpsAction *entities.CPSAction, action entity.Wallet) (*entities.CPSAction, error)
 	AuthorizeUpdate(ctx context.Context, cpsAction *entities.CPSAction, action, prev entity.Wallet) (*entities.CPSAction, error)
 	AuthorizeDelete(ctx context.Context, cpsAction *entities.CPSAction, action entity.Wallet) (*entities.CPSAction, error)

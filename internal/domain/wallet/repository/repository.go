@@ -6,6 +6,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
@@ -14,7 +15,7 @@ type WalletRepository interface {
 	UpdateWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	DeleteWallet(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
-	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error)
+	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error)
 	Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*model.CPSAction, error)
 	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
 	EnableOrDisableWallet(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)

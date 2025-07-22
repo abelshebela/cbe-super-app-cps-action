@@ -8,7 +8,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -16,16 +16,18 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	// utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type Wallet struct {
 	walletDal dal.MongoDal[entity.WalletDocument, entity.WalletDocument]
 	cpsDal    dal.MongoDal[model.CPSAction, model.CPSAction]
-	logger    utils.Logger
+	logger    sharedutils.Logger
 }
 
-func InitWalletPersistence(client *mongo.Client, database string, collections []string, logger utils.Logger) outbound.WalletPersistence {
+func InitWalletPersistence(client *mongo.Client, database string, collections []string, logger sharedutils.Logger) outbound.WalletPersistence {
 	return &Wallet{
 		walletDal: dal.NewMongoDal[entity.WalletDocument, entity.WalletDocument](client, database, collections[0]),
 		cpsDal:    dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collections[1]),
@@ -138,7 +140,7 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string, requestAc
 	return &cps, nil
 }
 
-func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error) {
+func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error) {
 	filter := bson.M{"is_deleted": false}
 	ifr := bson.M{}
 	if filterParams.Filters != "" {
@@ -149,7 +151,10 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	walletsDoc, err := w.walletDal.FindAllWithPagination(ctx, filter, ifr, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find wallets", err, "WALLET_NOT_FOUND")
+			return &error_codes.PaginatedResponse[[]*entity.Wallet]{
+				Data: []*entity.Wallet{},
+				Meta: error_codes.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
 		}
 		return nil, w.handleError("find wallets", err, error_codes.UnhandledServerError)
 	}
@@ -163,12 +168,15 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	for _, wallet := range walletsDoc {
 		wallets = append(wallets, w.toDomain(*wallet))
 	}
+	// Ensure wallets is never nil
+	if wallets == nil {
+		wallets = []*entity.Wallet{}
+	}
 
-	return &entity.WalletResponse{
-		Page:    filterParams.Page,
-		Wallets: wallets,
-		Limit:   constant.DefaultPerPage,
-		Total:   total,
+	meta := error_codes.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
+	return &error_codes.PaginatedResponse[[]*entity.Wallet]{
+		Data: wallets,
+		Meta: meta,
 	}, nil
 }
 
