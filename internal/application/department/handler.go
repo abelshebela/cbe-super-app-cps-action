@@ -34,6 +34,7 @@ type DepartmentService interface {
 	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error)
 	RejectActionRequest(ctx context.Context, actionCode string, action cpsactions.CPSAction) error
 	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error)
 }
 
 type DepartmentHandler struct {
@@ -154,7 +155,7 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department str
 }
 
 func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req UpdateDepartmentRequest) (*entities.Department, error) {
-	
+
 	if id != "" {
 		if exists, err := h.service.CheckDepartmentExistsByID(ctx, id); err != nil {
 			return nil, err
@@ -162,7 +163,7 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 			return nil, fmt.Errorf(err_msg.DepartmentNotFound)
 		}
 	}
-	
+
 	domainReq := domain.UpdateDepartmentRequest{
 		Department:       req.Department,
 		PortalCards:      req.PortalCards,
@@ -185,43 +186,12 @@ func (h *DepartmentHandler) ValidateActionRequest(ctx context.Context, actionCod
 }
 
 func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
-	// Check for pending update action
 	if existing, err := h.service.CheckRequestExists(ctx, req); err != nil {
 		h.logger.Errorf("failed to check request exists: %v", err)
 		return nil, err
 	} else if existing != nil {
 		h.logger.Errorf("pending request exists for action code: %s", existing.ActionCode)
 		return nil, fmt.Errorf(err_msg.PendingRequestExists)
-	}
-
-	_, ok := req.CurrentAction.(CreateDepartmentRequest)
-	if !ok {
-		// Try to parse from map if type assertion fails
-		if m, ok := req.CurrentAction.(map[string]interface{}); ok {
-			// Convert map to CreateDepartmentRequest
-			jsonData, err := json.Marshal(m)
-			if err != nil {
-				h.logger.Errorf("failed to marshal department request: %v", err)
-				return nil, fmt.Errorf("invalid department request format")
-			}
-
-			var createReq CreateDepartmentRequest
-			if err := json.Unmarshal(jsonData, &createReq); err != nil {
-				h.logger.Errorf("failed to unmarshal department request: %v", err)
-				return nil, fmt.Errorf("invalid department request format")
-			}
-
-			// Now use createReq
-			if exists, err := h.service.CheckDepartmentExists(ctx, createReq.Department); err != nil {
-				h.logger.Errorf("failed to check department exists: %v", err)
-				return nil, err
-			} else if !exists {
-				h.logger.Errorf("department not found for action code: %s", createReq.Department)
-				return nil, fmt.Errorf(err_msg.DepartmentNotFound)
-			}
-		} else {
-			return nil, fmt.Errorf("invalid request type for current action")
-		}
 	}
 
 	cpsAction, err := h.service.CreateDepartmentUpdateCPSAction(ctx, req)
@@ -240,4 +210,8 @@ func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode 
 
 func (h *DepartmentHandler) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
 	return h.service.GetAllDepartments(ctx, filterParams)
+}
+
+func (h *DepartmentHandler) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
+	return h.service.GetDepartmentByID(ctx, id)
 }
