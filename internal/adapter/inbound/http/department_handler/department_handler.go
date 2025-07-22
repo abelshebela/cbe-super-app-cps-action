@@ -196,5 +196,21 @@ func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
-	common_util.BaseResponseMaker(departments, w, "Departments fetched successfully", http.StatusOK)
+	common_util.WriteSuccessResponse(w, departments, "Departments fetched successfully")
+}
+
+func (h *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+	department, err := h.departmentService.GetDepartmentByID(r.Context(), id)
+	if err != nil {
+		h.logger.Errorf("[GetDepartmentByID] failed: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		return
+	}
+	common_util.WriteSuccessResponse(w, department, "Department fetched successfully")
 }
