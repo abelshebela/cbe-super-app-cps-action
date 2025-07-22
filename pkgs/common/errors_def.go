@@ -944,8 +944,12 @@ var DefineError = ErrorDefinitions{
 			Message: "Region code and region name is required",
 		},
 		"BLOCK_REGION_ALREADY_PROCESSED": {
-			Code:    "DST_001",
+			Code:    "DST_016",
 			Message: "This region already blocked",
+		},
+		"BANK_ID_REQUIRED": {
+			Code:    "DST_017",
+			Message: "Bank id is required",
 		},
 	},
 	OTP: ErrorGroup{
