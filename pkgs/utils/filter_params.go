@@ -1,9 +1,10 @@
 package utils
 
 import (
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"net/http"
 	"strconv"
+
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 // ExtractFilterParams extracts pagination and filter params from the HTTP request query.
@@ -17,7 +18,7 @@ func ExtractFilterParams(r *http.Request) *constant.Filter {
 
 	perPage := constant.DefaultPerPage
 	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
-		perPageInt > 0 && perPageInt <= 10 {
+		perPageInt > 0 {
 		perPage = perPageInt
 	}
 

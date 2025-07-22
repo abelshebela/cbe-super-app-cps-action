@@ -1,24 +1,54 @@
 package utils
 
 import (
+	"encoding/json"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
 type PaginationMeta struct {
-	TotalDocs     int64 `json:"totalDocs"`
+	TotalDocs     int64 `json:"total_docs"`
 	Limit         int   `json:"limit"`
-	TotalPages    int   `json:"totalPages"`
+	TotalPages    int   `json:"total_pages"`
 	Page          int   `json:"page"`
-	PagingCounter int   `json:"pagingCounter"`
-	HasPrevPage   bool  `json:"hasPrevPage"`
-	HasNextPage   bool  `json:"hasNextPage"`
-	PrevPage      *int  `json:"prevPage,omitempty"`
-	NextPage      *int  `json:"nextPage,omitempty"`
+	PagingCounter int   `json:"paging_counter"`
+	HasPrevPage   bool  `json:"has_prev_page"`
+	HasNextPage   bool  `json:"has_next_page"`
+	PrevPage      *int  `json:"prev_page,omitempty"`
+	NextPage      *int  `json:"next_page,omitempty"`
 }
 type PaginatedResponse[T any] struct {
 	Data T              `json:"docs"`
 	Meta PaginationMeta `json:"meta"`
+}
+
+func (p PaginatedResponse[T]) MarshalJSON() ([]byte, error) {
+	var data any = p.Data
+
+	v := reflect.ValueOf(p.Data)
+	if v.Kind() == reflect.Slice && v.IsNil() {
+		// Replace nil slice with empty slice of the same type
+		data = reflect.MakeSlice(v.Type(), 0, 0).Interface()
+	}
+
+	return json.Marshal(&struct {
+		Data any            `json:"docs"`
+		Meta PaginationMeta `json:"meta"`
+	}{
+		Data: data,
+		Meta: p.Meta,
+	})
+}
+
+func NewPaginatedResponse[T any](data []T, meta PaginationMeta) *PaginatedResponse[[]T] {
+	if data == nil {
+		data = []T{} // set as empty slice instead of nil
+	}
+	return &PaginatedResponse[[]T]{
+		Data: data,
+		Meta: meta,
+	}
 }
 
 // ExtractPaginator extracts page and limit from the request

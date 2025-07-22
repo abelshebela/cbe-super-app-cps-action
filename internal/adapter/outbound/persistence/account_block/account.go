@@ -79,7 +79,7 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+	meta := constant_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 
 	return &constant_utils.PaginatedResponse[[]*model.Branch]{
 		Data: branches,
@@ -97,9 +97,9 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 		"department":     department,
 		"action_type":    "DELETE",
 		"request_action": "DISABLE_SINGLE_BRANCH",
-		"action_status":  bson.M{"$in": []string{"PENDING", "APPROVED"}},
+		"action_status":  "PENDING",
 	}
-	existing, err := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
+	existing, _ := o.MongoDalCPSAction.FindOne(ctx, filter, bson.M{})
 	if existing != nil {
 		return "", common.DefineError.Branch["BRANCH_DISABLE_ACTION_ALREADY_EXISTS"]
 	}
@@ -112,6 +112,13 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 		prevAction = json.RawMessage("null")
 	}
 
+	if err != nil {
+		return "", fmt.Errorf("BRANCH_NOT_FOUND")
+	}
+
+	if !prevBranchPtr.Enabled {
+		return "", fmt.Errorf("BRANCH_ALREADY_BLOCKED")
+	}
 	currAction, _ := json.Marshal(branch)
 	actionCode := utils.RandomGenerator(24)
 	cpsAction := model.CPSAction{
@@ -248,7 +255,7 @@ func (o *outboundAccountBlockStore) FilterMultipleBranches(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+	meta := constant_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 
 	return &constant_utils.PaginatedResponse[[]*model.Branch]{
 		Data: branches,
@@ -1038,12 +1045,13 @@ func (o *outboundAccountBlockStore) GetAllCities(ctx context.Context, filterPara
 	if err != nil {
 		return nil, err
 	}
-	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+	meta := constant_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 
 	return &constant_utils.PaginatedResponse[[]*model.City]{
 		Data: cities,
 		Meta: meta,
 	}, nil
+
 }
 
 func (o *outboundAccountBlockStore) GetAllDistricts(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error) {
@@ -1066,7 +1074,7 @@ func (o *outboundAccountBlockStore) GetAllDistricts(ctx context.Context, filterP
 	if err != nil {
 		return nil, err
 	}
-	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+	meta := constant_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 
 	return &constant_utils.PaginatedResponse[[]*model.District]{
 		Data: districts,
@@ -1094,10 +1102,38 @@ func (o *outboundAccountBlockStore) GetAllRegions(ctx context.Context, filterPar
 	if err != nil {
 		return nil, err
 	}
-	meta := constant_utils.BuildPaginationMeta(total, limit, filterParams.Page)
+	meta := constant_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 
 	return &constant_utils.PaginatedResponse[[]*model.Region]{
 		Data: regions,
+		Meta: meta,
+	}, nil
+}
+
+func (o *outboundAccountBlockStore) GetAllBranches(ctx context.Context, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
+	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
+		return nil, common.DefineError.General["INVALID_PAGINATION_PARAMS"]
+	}
+	filter := bson.M{}
+	projection := bson.M{}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	branches, err := o.MongoDalBranch.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		o.Logger.Errorf("failed to fetch branches: %v", err)
+		return nil, common.DefineError.General["FAILED_TO_FETCH"]
+	}
+
+	total, err := o.MongoDalBranch.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := constant_utils.BuildPaginationMeta(total, filterParams.Page, limit)
+
+	return &constant_utils.PaginatedResponse[[]*model.Branch]{
+		Data: branches,
 		Meta: meta,
 	}, nil
 }

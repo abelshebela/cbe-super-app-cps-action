@@ -884,15 +884,15 @@ var DefineError = ErrorDefinitions{
 		},
 		"BLOCKED_ACTION_USER_ALREADY_EXIST": {
 			Code:    "AUTH_029",
-			Message: "A pending or approved block action already exists for this user",
+			Message: "A pending block action already exists for this user",
 		},
 		"BRANCH_DISABLE_ACTION_ALREADY_EXISTS": {
 			Code:    "BRN_008",
-			Message: "A pending or approved disable action already exists for this branch",
+			Message: "A pending disable action already exists for this branch",
 		},
 		"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": {
 			Code:    "BRN_010",
-			Message: "A pending or approved disable action already exists for one or more of the selected branches",
+			Message: "A pending disable action already exists for one or more of the selected branches",
 		},
 		"BRANCH_BULK_ACTION_ALREADY_PROCESSED": {
 			Code:    "BRN_011",
@@ -1045,6 +1045,10 @@ var DefineError = ErrorDefinitions{
 		"REGION_NOT_FOUND": {
 			Code:    "BRN_011",
 			Message: "Region Not Found",
+		},
+		"BRANCH_ALREADY_BLOCKED": {
+			Code:    "BRN_010",
+			Message: "The branch already blocked",
 		},
 	},
 	Department: ErrorGroup{

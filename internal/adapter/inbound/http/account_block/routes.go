@@ -28,6 +28,15 @@ func RegisterAccountBlockRoutes(
 				},
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/branch/all",
+				Handler: handler.GetAllBranches,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/branch/disable_single",
 				Handler: handler.DisableSingleBranch,
