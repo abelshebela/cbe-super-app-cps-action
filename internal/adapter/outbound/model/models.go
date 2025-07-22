@@ -547,7 +547,6 @@ func (r RejectAuthTierCPSAction) Validate() error {
 
 type PasswordRule struct {
 	ID             bson.ObjectID `bson:"_id,omitempty" json:"_id"`
-	PasswordId     string        `bson:"password_id" json:"password_id"`
 	Name           string        `bson:"name" json:"name"`
 	MinLength      int           `bson:"min_length" json:"min_length"`
 	MaxLength      int           `bson:"max_length" json:"max_length"`

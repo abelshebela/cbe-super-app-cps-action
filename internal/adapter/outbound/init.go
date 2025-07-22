@@ -1943,7 +1943,6 @@ func (o *outboundStore) GetCurrentPasswordRule(ctx context.Context) (*action.Pas
 
 	rule := &action.PasswordRule{
 		ID:             ruleModel.ID.Hex(),
-		PasswordID:     ruleModel.PasswordId,
 		Name:           ruleModel.Name,
 		MinLength:      ruleModel.MinLength,
 		MaxLength:      ruleModel.MaxLength,
@@ -1968,7 +1967,6 @@ func (o *outboundStore) UpdatePasswordRule(ctx context.Context, rule action.Pass
 	filter := map[string]interface{}{"_id": objID}
 	update := map[string]interface{}{
 
-		"password_id":     rule.PasswordID,
 		"name":            rule.Name,
 		"min_length":      rule.MinLength,
 		"max_length":      rule.MaxLength,

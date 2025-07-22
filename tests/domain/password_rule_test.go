@@ -65,10 +65,9 @@ func TestPasswordRuleService_RequestPasswordRuleUpdate(t *testing.T) {
 }
 
 func TestPasswordRuleService_RequestPasswordRuleUpdate_Errors(t *testing.T) {
-	repo := &MockPasswordRuleRepository{
-		GetCurrentPasswordRuleFunc: func(ctx context.Context) (*action.PasswordRule, error) {
-			return nil, errors.New("not found")
-		},
+	repo := &MockPasswordRuleRepository{GetCurrentPasswordRuleFunc: func(ctx context.Context) (*action.PasswordRule, error) {
+		return nil, errors.New("not found")
+	},
 		FetchPendingActionsByUniqueIDFunc: func(ctx context.Context, uniqueID string) ([]action.ActionResponse, error) {
 			return nil, nil
 		},
@@ -148,6 +147,7 @@ func TestPasswordRuleService_CheckPasswordRule(t *testing.T) {
 	repo := &MockPasswordRuleRepository{
 		GetCurrentPasswordRuleFunc: func(ctx context.Context) (*action.PasswordRule, error) {
 			return &action.PasswordRule{ID: "rule-1", MinLength: 6, MaxLength: 12, Numbers: true, CapitalLetters: true, SmallLetters: true, Characters: true}, nil
+
 		},
 	}
 	service := services.NewPasswordRuleService(repo)
