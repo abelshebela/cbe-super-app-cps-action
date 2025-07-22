@@ -4,6 +4,7 @@ package wallet
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
@@ -138,7 +139,8 @@ func (w *Wallet) EnableOrDisableWallet(ctx context.Context, id string, requestAc
 	return &cps, nil
 }
 
-func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*entity.WalletResponse, error) {
+// Persistence
+func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error) {
 	filter := bson.M{"is_deleted": false}
 	ifr := bson.M{}
 	if filterParams.Filters != "" {
@@ -149,7 +151,10 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	walletsDoc, err := w.walletDal.FindAllWithPagination(ctx, filter, ifr, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, w.handleError("find wallets", err, "WALLET_NOT_FOUND")
+			return &error_codes.PaginatedResponse[[]*entity.Wallet]{
+				Data: []*entity.Wallet{},
+				Meta: error_codes.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
 		}
 		return nil, w.handleError("find wallets", err, error_codes.UnhandledServerError)
 	}
@@ -163,12 +168,15 @@ func (w *Wallet) GetAllWallet(ctx context.Context, filterParams *constant.Filter
 	for _, wallet := range walletsDoc {
 		wallets = append(wallets, w.toDomain(*wallet))
 	}
+	// Ensure wallets is never nil
+	if wallets == nil {
+		wallets = []*entity.Wallet{}
+	}
 
-	return &entity.WalletResponse{
-		Page:    filterParams.Page,
-		Wallets: wallets,
-		Limit:   constant.DefaultPerPage,
-		Total:   total,
+	meta := error_codes.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
+	return &error_codes.PaginatedResponse[[]*entity.Wallet]{
+		Data: wallets,
+		Meta: meta,
 	}, nil
 }
 
@@ -246,6 +254,47 @@ func (w *Wallet) AuthorizeDelete(ctx context.Context, cpsAction *entities.CPSAct
 
 	cpsAction.CurrentAction = wallet
 	return cpsAction, nil
+}
+
+func (w *Wallet) CheckWalletExists(ctx context.Context, wallet entity.CheckWallet) (bool, error) {
+	filter := bson.M{
+		"name": wallet.Name,
+		"code": wallet.Code,
+	}
+
+	projection := bson.M{
+		"_id": 1,
+	}
+
+	result, err := w.walletDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return result != nil, nil
+}
+
+func (w *Wallet) CheckIsEnabled(ctx context.Context, id string) (bool, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return false, fmt.Errorf("INVALID_ID")
+	}
+
+	filter := bson.M{"_id": objID}
+	projection := bson.M{"enabled": 1}
+
+	result, err := w.walletDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, fmt.Errorf("NOT_FOUND")
+		}
+		return false, err
+	}
+
+	return result.Enabled, nil
 }
 
 func (w *Wallet) ExtractActionData(cpsAction *entities.CPSAction) (action entity.Wallet, prev entity.Wallet, err error) {

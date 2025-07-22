@@ -1205,7 +1205,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"WALLET_ALREADY_EXISTS": {
 			Code:    "WAL_008",
-			Message: "Wallet with this ID already exists.",
+			Message: "Wallet already exists.",
 		},
 		"WALLET_TYPE_NOT_SUPPORTED": {
 			Code:    "WAL_009",
@@ -1222,6 +1222,14 @@ var DefineError = ErrorDefinitions{
 		"WALLET_TRANSACTION_ALREADY_EXISTS": {
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
+		},
+		"WALLET_ALREADY_ENABLED":{
+			Code: "WAL_013",
+			Message: "Wallet is already enabled",
+		},
+		"WALLET_ALREADY_DISABLED":{
+			Code: "WAL_013",
+			Message: "Wallet is already disabled",
 		},
 	},
 	AD: ErrorGroup{

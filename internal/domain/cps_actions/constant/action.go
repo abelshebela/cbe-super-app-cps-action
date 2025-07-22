@@ -217,11 +217,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestArchiveUser,
 	},
 	"AdDomain": {
-		RequestUser,
-		RequestEnableUser,
-		RequestDisableUser,
-		RequestUpdateUser,
-		RequestArchiveUser,
+		RequestCreateAvatar,
+		RequestDeleteAvatar,
+		RequestDisableAvatar,
+		RequestEnableAvatar,
+		RequestUpdateAvatar,
 	},
 	"AmountBasedAuth": {
 		RequestCreateAmountBasedAuth,

@@ -35,7 +35,7 @@ func Initiator() {
 	logger.Infof("Persistence initialized")
 
 	logger.Infof("Initializing domain services...")
-	domain := InitDomain(minioClient, persitence, logger)
+	domain := InitDomain(minioClient, persitence, logger, cfg)
 	logger.Infof("Domain services initialized")
 
 	logger.Infof("Initializing application services...")

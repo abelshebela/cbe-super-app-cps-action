@@ -136,6 +136,8 @@ var errorKeyToStatus = map[string]int{
 	"TITLE_TOO_LONG":                                             http.StatusBadRequest,
 	"DESCRIPTION_TOO_LONG":                                       http.StatusBadRequest,
 	"UNSUPPORTED_REQUEST_ACTION":                                 http.StatusBadRequest,
+	"WALLET_ALREADY_ENABLED":                                     http.StatusBadRequest,
+	"WALLET_ALREADY_DISABLED":                                    http.StatusBadRequest,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,
