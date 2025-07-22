@@ -9,6 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/repository"
+	constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -27,20 +28,17 @@ type ADDomain struct {
 }
 
 type AdvertService interface {
-	CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
-	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
+	CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
+	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	DeleteOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
-	Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error)
 }
 
 var _ AdvertService = (*ADDomain)(nil)
 
 func stripFieldPrefix(err error) string {
-	// Removes "field: message." format from ozzo-validation errors
-	// Example: "logo: INVALID_FILE_TYPE." → "INVALID_FILE_TYPE"
 	if err == nil {
 		return ""
 	}
@@ -62,10 +60,9 @@ func InitADDomian(bucketName string, minioClient config.MinioClientInterface, ad
 	}
 }
 
-func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
 
 	actionData, ok := cpsAction.ActionData.(dto.CreateAdvertRequest)
-
 	if !ok {
 		a.logger.Errorf("failed to cast action data to ad request")
 		return nil, fmt.Errorf("FAILED_TO_CAST_ACTION_DATA")
@@ -112,10 +109,10 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 	}
 
 	cpsActionRes, err := a.ADRepo.CreateOneAdvert(ctx, model.CreateCPSAction{
+		ActionCode: utils.RandomGenerator(20),
 		MakerUser:  cpsAction.MakerUser,
 		Department: cpsAction.Department,
 		ActionData: entity.Advert{
-			ID:            constant.GenerateID(),
 			Title:         actionData.Title,
 			Description:   actionData.Description,
 			BannerImage:   fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
@@ -124,6 +121,10 @@ func (a *ADDomain) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCP
 			CreatedAt:     time.Now(),
 			LastUpdatedAt: time.Now(),
 		},
+		RequestAction:   model.RequestAction(constants.RequestCreateAdvert),
+		MakerActionTime: time.Now(),
+		Status:          model.ActionPending,
+		ActionType:      model.ActionCreate,
 	})
 	if err != nil {
 		return nil, err
@@ -158,7 +159,7 @@ func (a *ADDomain) GetOneAdvert(ctx context.Context, id string) (*entity.Advert,
 	return advertRes, nil
 }
 
-func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
 
 	actionData, ok := cpsAction.ActionData.(dto.UpdateAdvertRequest)
 	if !ok {
@@ -180,21 +181,6 @@ func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 
 func (a *ADDomain) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	cpsActionRes, err := a.ADRepo.Authorize(ctx, cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	return cpsActionRes, nil
-}
-
-func (a *ADDomain) Reject(ctx context.Context, cpsAction model.RejectCPSAction) (*model.CPSAction, error) {
-
-	if err := cpsAction.Validate(); err != nil {
-		a.logger.Errorf("validation error", err)
-		return nil, fmt.Errorf("%s", stripFieldPrefix(err))
-	}
-
-	cpsActionRes, err := a.ADRepo.Reject(ctx, cpsAction)
 	if err != nil {
 		return nil, err
 	}

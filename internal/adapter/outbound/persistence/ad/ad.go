@@ -66,49 +66,38 @@ func (a *ADPersistence) CheckCPSActionExists(ctx context.Context, cpsAction mode
 	return false, nil
 }
 
-func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
 		"action_status":      model.ActionPending,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-	}
-
-	existingAction, err := a.cpsDal.FindOne(ctx, filter, projection)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		a.logger.Errorf("failed to get cpsAction: %v", err)
-		return &model.CPSAction{}, fmt.Errorf("FAILED_TO_GET_CPS_ACTION")
-	} else if existingAction != nil {
-		a.logger.Infof("pending cps action present for user_code: %s, department: %s", existingAction.MakerID)
-		return &model.CPSAction{}, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
-	}
-
-	filter = bson.M{
-		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
-		"action_status":      model.ActionPending,
-		"department":         cpsAction.Department,
 		"request_action":     cpsAction.RequestAction,
 	}
 
-	projection = bson.M{
-		"action_code": 1,
-		"_id":         1,
+	projection := bson.M{}
+
+	ac, ok := cpsAction.ActionData.(entity.Advert)
+
+	if !ok {
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
-	existingAd, err := a.cpsDal.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		a.logger.Errorf("failed to get ad", err)
-		return nil, fmt.Errorf("FAILED_TO_GET_AD")
+	existingAction, err := a.cpsDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			existingAction = nil
+		} else {
+			a.logger.Errorf("failed to query CPS action: %v", err)
+			return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		}
+	}
 
-	} else if existingAd != nil {
-		a.logger.Infof("pending cps action present", cpsAction.MakerUser.FullName,
-			cpsAction.MakerUser.UserCode, cpsAction.Department)
+	if existingAction != nil {
+		a.logger.Infof("pending CPS action present for maker_id: %s, department: %s", existingAction.MakerID, cpsAction.Department)
 		return nil, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
-
 	}
 
+	ac.ID = bson.NewObjectID()
+	ac.LastUpdatedAt = time.Now()
 	cpsRes, err := a.cpsDal.InsertOne(ctx, model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
@@ -119,11 +108,10 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 		ActionStatus:     string(model.ActionPending),
 		RequestAction:    string(model.RequestCreateAdvert),
 		ActionType:       string(model.ActionCreate),
-		CurrentAction:    cpsAction.ActionData,
+		CurrentAction:    ac,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
-		// LastModifiedAt:   time.Now(),
 	})
 
 	if err != nil {
@@ -131,7 +119,7 @@ func (a *ADPersistence) CreateOneAdvert(ctx context.Context, cpsAction model.Cre
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
-	return &cpsRes, nil
+	return entities.ToDomainCPSAction(&cpsRes), nil
 }
 
 func (a *ADPersistence) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
@@ -253,7 +241,7 @@ func (a *ADPersistence) Authorize(ctx context.Context, cpsAction *entities.CPSAc
 	return cpsRes, nil
 }
 
-func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {
+func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
 
 	_, err := a.CheckCPSActionExists(ctx, cpsAction)
 	if err != nil {
@@ -302,12 +290,12 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsActio
 		ActionType:       string(model.ActionUpdate),
 		CurrentAction:    cpsAction.ActionData,
 		RequestAction:    string(model.RequestUpdateAdvert),
-		PreviousAction: map[string]any{
-			"title":        ad.Title,
-			"description":  ad.Description,
-			"banner_image": ad.BannerImage,
-			"advert_for":   ad.AdvertFor,
-			"date":         ad.Date,
+		PreviousAction: entity.Advert{
+			Title:       ad.Title,
+			Description: ad.Description,
+			BannerImage: ad.BannerImage,
+			AdvertFor:   ad.AdvertFor,
+			Date:        ad.Date,
 		},
 		MakerActionTime: time.Now(),
 		CreatedAt:       time.Now(),
@@ -318,7 +306,7 @@ func (a *ADPersistence) UpdateOneAdvert(ctx context.Context, id string, cpsActio
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
-	return &cps, nil
+	return entities.ToDomainCPSAction(&cps), nil
 }
 
 func (a *ADPersistence) DeleteOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*model.CPSAction, error) {

@@ -156,6 +156,8 @@ func (o *cpsActionStore) GetCPSActionsByDepartment(ctx context.Context, departme
 			{"request_action": bson.M{"$regex": search, "$options": "i"}},
 		}
 	}
+
+	fmt.Println(filter, "filter")
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit

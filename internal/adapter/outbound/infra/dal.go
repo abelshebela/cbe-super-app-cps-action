@@ -3,7 +3,6 @@ package dal
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -67,7 +66,7 @@ func (m *mongoDal[T, K]) FindOne(ctx context.Context, filter, projection bson.M)
 	var result K
 	if err := m.collection.FindOne(ctx, filter, opts).Decode(&result); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("NOT_FOUND")
+			return nil, err
 		}
 		return nil, err
 	}
