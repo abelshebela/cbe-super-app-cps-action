@@ -115,7 +115,7 @@ type CPSAction struct {
 	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string        `bson:"department" json:"department"`
 	RejectionReason    string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
-	PreviousAction     interface{}   `bson:"previous_action" json:"previou_action"`
+	PreviousAction     interface{}   `bson:"previous_action" json:"previous_action"`
 	CurrentAction      interface{}   `bson:"current_action" json:"current_action"`
 	ActionStatus       string        `bson:"action_status" json:"action_status"`
 	ActionType         string        `bson:"action_type" json:"action_type"`

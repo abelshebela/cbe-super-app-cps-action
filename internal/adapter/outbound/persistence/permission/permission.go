@@ -475,15 +475,13 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (entities.P
 }
 
 func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error) {
-	filter := bson.M{
-		// "is_deleted": false,
-	}
+	filter := bson.M{}
 	projection := bson.M{}
 
 	if filterParams.Search != "" {
-		filter["icon"] = bson.M{
-			"$regex":   filterParams.Search,
-			"$options": "i",
+		filter["$or"] = []bson.M{
+			{"icon": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"group_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 		}
 	}
 
@@ -492,10 +490,10 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 	}
 
 	page := filterParams.Page
-	limit := filterParams.PerPage
-	skip := (page - 1) * limit
+	perPage := filterParams.PerPage
+	skip := (page - 1) * perPage
 
-	permissionGroups, err := r.permissionGroupsDal.FindAllWithPagination(context.Background(), filter, projection, int64(skip), int64(limit))
+	permissionGroups, err := r.permissionGroupsDal.FindAllWithPagination(context.Background(), filter, projection, int64(skip), int64(perPage))
 	if err != nil {
 		return nil, err
 	}
@@ -504,7 +502,7 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 	if err != nil {
 		return nil, err
 	}
-	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+	meta := common_util.BuildPaginationMeta(total, page, perPage)
 
 	return &common_util.PaginatedResponse[[]*entities.PermissionGroup]{
 		Data: permissionGroups,
