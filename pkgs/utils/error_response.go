@@ -267,6 +267,9 @@ var errorKeyToStatus = map[string]int{
 	"REGION_CODE_AND_NAME_REQUIRED":         400,
 	"BLOCK_REGION_ALREADY_PROCESSED":        409,
 	"BANK_ID_REQUIRED":                      409,
+	"DEPARTMEN_REQUIRED":                    409,
+	"BANK_ALREADY_DISABLED":                 409,
+	"BANK_ALREADY_ENABLE":                   409,
 }
 
 func getStatusForErrorKey(key string) int {

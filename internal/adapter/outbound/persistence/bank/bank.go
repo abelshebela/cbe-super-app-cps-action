@@ -351,6 +351,16 @@ func (b *Bank) EnableOrDisableBank(ctx context.Context, id string, requestAction
 		return nil, err
 	}
 
+	if requestAction == "ENABLE_BANK" {
+		if bank.Enabled {
+			return nil, fmt.Errorf("BANK_ALREADY_ENABLE")
+		}
+	} else {
+		if !bank.Enabled {
+			return nil, fmt.Errorf("BANK_ALREADY_DISABLED")
+		}
+	}
+
 	prev := map[string]any{
 		"name":    bank.Name,
 		"code":    bank.Code,

@@ -587,13 +587,12 @@ func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.R
 	if strings.TrimSpace(userID) == "" ||
 		strings.TrimSpace(fullName) == "" ||
 		strings.TrimSpace(phoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-		resp.SendJSON()
+
+		constant_utils.SendErrorResponse(w, "DEPARTMEN_REQUIRED", 409, nil)
 		return
 	}
 	if strings.TrimSpace(department) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-		resp.SendJSON()
+		constant_utils.SendErrorResponse(w, "DEPARTMEN_REQUIRED", 409, nil)
 		return
 	}
 
@@ -602,8 +601,7 @@ func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.R
 	district, err := h.service.GetDistrictByCode(r.Context(), districtCode)
 	if err != nil {
 		h.logger.Errorf("GetDistrictByCode failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "District not found"}
-		resp.SendJSON()
+		constant_utils.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 

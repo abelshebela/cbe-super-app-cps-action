@@ -810,6 +810,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_030",
 			Message: "access token required",
 		},
+		"DEPARTMEN_REQUIRED": {
+			Code:    "AUTH_031",
+			Message: "department is required in context",
+		},
+		"INCOMPLETE_USER_INFO": {
+			Code:    "AUTH_032",
+			Message: "Incomplete user information",
+		},
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {
@@ -1109,6 +1117,14 @@ var DefineError = ErrorDefinitions{
 		"BANK_ALREADY_EXISTS": {
 			Code:    "BNK_006",
 			Message: "Bank with this name already exists.",
+		},
+		"BANK_ALREADY_ENABLE": {
+			Code:    "BNK_007",
+			Message: "Bank  already  enabled",
+		},
+		"BANK_ALREADY_DISABLED": {
+			Code:    "BNK_008",
+			Message: "Bank  already  disabled",
 		},
 	},
 	Action: ErrorGroup{
