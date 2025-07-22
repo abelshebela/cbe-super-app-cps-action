@@ -690,7 +690,7 @@ var DefineError = ErrorDefinitions{
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Message: "failed to get department",
-
+		},
 		"KYC_LEVEL_REQUIRED": {
 			Code:    "GEN_153",
 			Message: "kyc_level is required",
