@@ -34,6 +34,7 @@ type DepartmentService interface {
 	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error)
 	RejectActionRequest(ctx context.Context, actionCode string, action cpsactions.CPSAction) error
 	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error)
 }
 
 type DepartmentHandler struct {
@@ -154,7 +155,7 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department str
 }
 
 func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req UpdateDepartmentRequest) (*entities.Department, error) {
-	
+
 	if id != "" {
 		if exists, err := h.service.CheckDepartmentExistsByID(ctx, id); err != nil {
 			return nil, err
@@ -162,7 +163,7 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 			return nil, fmt.Errorf(err_msg.DepartmentNotFound)
 		}
 	}
-	
+
 	domainReq := domain.UpdateDepartmentRequest{
 		Department:       req.Department,
 		PortalCards:      req.PortalCards,
@@ -240,4 +241,8 @@ func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode 
 
 func (h *DepartmentHandler) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
 	return h.service.GetAllDepartments(ctx, filterParams)
+}
+
+func (h *DepartmentHandler) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
+	return h.service.GetDepartmentByID(ctx, id)
 }

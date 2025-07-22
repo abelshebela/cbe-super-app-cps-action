@@ -7,11 +7,12 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type FeedbackService interface {
-	GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*entity.FeedbackResponse, error)
+	GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Feedback], error)
 	GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error)
 }
 
@@ -27,7 +28,7 @@ func InitFeedbackHandler(feedbackDomain *feedback.FeedbackDomain, logger utils.L
 	}
 }
 
-func (f FeedbackHandler) GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*entity.FeedbackResponse, error) {
+func (f FeedbackHandler) GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Feedback], error) {
 	feedbacks, err := f.domain.GetFeedbacks(ctx, filterParams)
 	if err != nil {
 		return nil, err

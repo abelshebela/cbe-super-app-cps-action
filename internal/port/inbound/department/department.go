@@ -8,4 +8,5 @@ type DepartmentPortHandler interface {
 	// ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request)
 	// RejectDepartmentRequest(w http.ResponseWriter, r *http.Request)
 	UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request)
+	GetDepartmentByID(w http.ResponseWriter, r *http.Request)
 }
