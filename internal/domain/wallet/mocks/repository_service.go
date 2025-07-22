@@ -15,7 +15,8 @@ import (
 
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
-	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	utils0 "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -118,10 +119,10 @@ func (mr *MockWalletRepositoryMockRecorder) EnableOrDisableWallet(ctx, id, reque
 }
 
 // GetAllWallet mocks base method.
-func (m *MockWalletRepository) GetAllWallet(ctx context.Context, filterParams *utils.Filter) (*entity.WalletResponse, error) {
+func (m *MockWalletRepository) GetAllWallet(ctx context.Context, filterParams *utils0.Filter) (*utils.PaginatedResponse[[]*entity.Wallet], error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllWallet", ctx, filterParams)
-	ret0, _ := ret[0].(*entity.WalletResponse)
+	ret0, _ := ret[0].(*utils.PaginatedResponse[[]*entity.Wallet])
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

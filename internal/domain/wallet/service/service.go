@@ -13,7 +13,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -24,8 +23,8 @@ type WalletDomain struct {
 	bucketName  string
 	minioClient config.MinioClientInterface
 
-	logger      utils.Logger
-	cfg         *config.VaultConfig
+	logger sharedutils.Logger
+	cfg    *config.VaultConfig
 }
 
 type WalletService interface {
@@ -41,7 +40,7 @@ type WalletService interface {
 
 func InitWalletDomain(walletRepo outbound.WalletPersistence, minioClient config.MinioClientInterface,
 
-	bucketName string, logger utils.Logger, cfg *config.VaultConfig) WalletService {
+	bucketName string, logger sharedutils.Logger, cfg *config.VaultConfig) WalletService {
 
 	return &WalletDomain{
 		walletRepo:  walletRepo,
@@ -167,7 +166,6 @@ func (w *WalletDomain) DeleteWallet(ctx context.Context, id string, req model.Cr
 
 	return cpsAction, nil
 }
-
 
 func (w *WalletDomain) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error) {
 	banks, err := w.walletRepo.GetAllWallet(ctx, filterParams)
