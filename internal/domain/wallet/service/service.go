@@ -103,14 +103,14 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 		return nil, fmt.Errorf(error_codes.UnhandledServerError)
 	}
 
-	// _ := fmt.Sprintf("%s/%s/%s", w.cfg.MinioEndPoint, saveObj.Bucket, saveObj.Key)
+	url := fmt.Sprintf("%s/%s/%s", w.cfg.MinioEndPoint, saveObj.Bucket, saveObj.Key)
 
 	cpsRes, err := w.walletRepo.CreateWallet(ctx, model.CreateCPSAction{
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: entity.Wallet{
 			Name:           actionData.Name,
-			Avatar:         fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			Avatar:         url,
 			Code:           actionData.Code,
 			CreatedAt:      time.Now(),
 			LastModifiedAt: time.Now(),
