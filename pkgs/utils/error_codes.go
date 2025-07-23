@@ -60,6 +60,7 @@ const (
 	FailedToGetAuthTier            = "FAILED_TO_GET_AUTH_TIER"
 	PinAuthorNotFound              = "PIN_AUTHIER_NOT_FOUND"
 	WalletInformationAlreadyExists = "WALLET_INFORMATION_ALREADY_EXISTST"
+	ErrMissingFile                 = "MISSING_FILE"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"

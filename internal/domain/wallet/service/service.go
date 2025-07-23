@@ -72,43 +72,10 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 		return nil, fmt.Errorf("WALLET_ALREADY_EXISTS")
 	}
 
-	exist, err := w.minioClient.BucketExist(ctx, w.bucketName)
+	url, err := error_codes.UploadFileToMinio(ctx, w.minioClient, w.bucketName, actionData.Avatar, "wallet", w.cfg.MinioEndPoint, w.logger)
 	if err != nil {
-		w.logger.Errorf("failed to check wallet bucket: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, err
 	}
-
-	if !exist {
-		created, err := w.minioClient.MakeBucket(ctx, w.bucketName)
-		if !created || err != nil {
-			w.logger.Errorf("failed to create bank bucket: %v", err)
-			return nil, fmt.Errorf(error_codes.UnhandledServerError)
-		}
-	}
-
-	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), actionData.Avatar.Filename)
-	file, err := actionData.Avatar.Open()
-	if err != nil {
-		w.logger.Errorf("failed to open uploaded file: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
-	}
-	defer file.Close()
-
-	saveObj, err := w.minioClient.SaveObjectN(ctx, config.SaveObjectBodyN{
-		BucketName:  w.bucketName,
-		ObjectName:  fileName,
-		Reader:      file,
-		Size:        actionData.Avatar.Size,
-		ContentType: config.ContentType(actionData.Avatar.Header.Get("Content-Type")),
-	})
-
-	if err != nil {
-		w.logger.Errorf("failed to save object to MinIO: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
-	}
-
-	url := fmt.Sprintf("%s/%s/%s", w.cfg.MinioEndPoint, saveObj.Bucket, saveObj.Key)
-
 	cpsRes, err := w.walletRepo.CreateWallet(ctx, model.CreateCPSAction{
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
@@ -142,7 +109,7 @@ func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.Cr
 	}
 
 	// Check for duplicate name or code (excluding this wallet)
-	exists, _, err := w.walletAlreadyExistsUpdate(ctx, id, req.ActionData)
+	exists, actionData, err := w.walletAlreadyExistsUpdate(ctx, id, req.ActionData)
 	if err != nil {
 		return nil, err
 	}
@@ -150,8 +117,28 @@ func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.Cr
 		return nil, fmt.Errorf(error_codes.WalletInformationAlreadyExists)
 	}
 
+	var url string
+
+	if actionData.Avatar != nil {
+		url, err = error_codes.UploadFileToMinio(ctx, w.minioClient, w.bucketName, actionData.Avatar, "wallet", w.cfg.MinioEndPoint, w.logger)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Update wallet via CPS action
-	cpsAction, err := w.walletRepo.UpdateWallet(ctx, id, req)
+
+	cpsAction, err := w.walletRepo.UpdateWallet(ctx, id, model.CreateCPSAction{
+		MakerUser:  req.MakerUser,
+		Department: req.Department,
+		ActionData: entity.Wallet{
+			Name:           actionData.Name,
+			Avatar:         url,
+			Code:           actionData.Code,
+			CreatedAt:      time.Now(),
+			LastModifiedAt: time.Now(),
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -288,8 +275,6 @@ func (w *WalletDomain) walletAlreadyExistsUpdate(ctx context.Context, id string,
 		ExcludeID: id,
 	})
 
-	fmt.Println(exists, "exists")
-	fmt.Println(err, "err")
 	if err != nil {
 		return false, nil, err
 	}
