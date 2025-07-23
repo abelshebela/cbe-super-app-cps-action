@@ -28,6 +28,21 @@ import (
 	// entities "cbe-super-app-member-users/internal/domain/users"
 )
 
+func JsonUnmarshal[T any](data any) (*T, error) {
+
+	var jsonData *T
+	byte, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(byte, &jsonData); err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
+}
+
 func OTPGenerator(length uint8) string {
 	numberic := "0123456789"
 	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))

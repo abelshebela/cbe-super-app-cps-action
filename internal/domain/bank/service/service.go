@@ -3,16 +3,16 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/entity"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bank"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,6 +23,7 @@ type BankDomain struct {
 	bucketName  string
 	minioClient config.MinioClientInterface
 	logger      utils.Logger
+	cfg         *config.VaultConfig
 }
 
 type BankService interface {
@@ -40,12 +41,13 @@ type BankService interface {
 }
 
 func InitBankDomain(bankRepo outbound.BankPersistence, minioClient config.MinioClientInterface,
-	bucketName string, logger utils.Logger) BankService {
+	bucketName string, logger utils.Logger, cfg *config.VaultConfig) BankService {
 	return &BankDomain{
 		bankRepo:    bankRepo,
 		minioClient: minioClient,
 		bucketName:  bucketName,
 		logger:      logger,
+		cfg:         cfg,
 	}
 }
 
@@ -111,13 +113,15 @@ func (b *BankDomain) CreateOneBank(ctx context.Context, req model.CreateCPSActio
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
+	logoURL := fmt.Sprintf("%s%s/%s/%s", "https://", b.cfg.MinioEndPoint, saveObj.Bucket, saveObj.Key)
+
 	cpsRes, err := b.bankRepo.CreateBank(ctx, model.CreateCPSAction{
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: entity.Bank{
 			ID:   constant.GenerateID().Hex(),
 			Name: actionData.Name,
-			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			Logo: logoURL,
 			Code: actionData.Code,
 			BIC:  actionData.BIC,
 		},
@@ -229,7 +233,7 @@ func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.Create
 		return nil, err
 	}
 
-	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), actionData.Logo.Filename)
+	fileName := fmt.Sprintf("bank-%d-%s", time.Now().UnixNano(), strings.TrimSpace(actionData.Logo.Filename))
 	file, err := actionData.Logo.Open()
 	if err != nil {
 		b.logger.Errorf("failed to open uploaded file: %v", err)
@@ -250,12 +254,15 @@ func (b *BankDomain) UpdateLogo(ctx context.Context, id string, req model.Create
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
+	// Construct the full URL for the logo
+	logoURL := fmt.Sprintf("%s%s/%s/%s", "https://", b.cfg.MinioEndPoint, saveObj.Bucket, saveObj.Key)
+
 	cpsRes, err := b.bankRepo.UpdateLogo(ctx, id, model.CreateCPSAction{
 		MakerUser:  req.MakerUser,
 		Department: req.Department,
 		ActionData: entity.UpdateLogo{
 			ID:   actionData.ID,
-			Logo: fmt.Sprintf("%s/%s", saveObj.Bucket, saveObj.Key),
+			Logo: logoURL,
 		},
 	})
 

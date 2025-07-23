@@ -105,9 +105,9 @@ func (o *outboundAccountBlockStore) DisableSingleBranch(ctx context.Context, bra
 	}
 
 	prevBranchPtr, err := o.MongoDalBranch.FindOne(ctx, bson.M{"branch_code": branch.BranchCode}, bson.M{})
-	var prevAction json.RawMessage
+	var prevAction any
 	if err == nil && prevBranchPtr != nil {
-		prevAction, _ = json.Marshal(prevBranchPtr)
+		prevAction = prevBranchPtr
 	} else {
 		prevAction = json.RawMessage("null")
 	}
@@ -314,7 +314,7 @@ func (o *outboundAccountBlockStore) DisableMultipleBranches(ctx context.Context,
 			return "", fmt.Errorf("branch code %v already disabled", branch.BranchCode)
 		}
 	}
-	prevAction, _ := json.Marshal(prevBranches)
+	prevAction := prevBranches
 
 	actionCode := utils.RandomGenerator(24)
 	cpsAction := model.CPSAction{
@@ -356,7 +356,6 @@ func (o *outboundAccountBlockStore) GetBranchByCode(ctx context.Context, branchC
 		RecordStat:    b.RecordStat,
 		CreatedAt:     b.CreatedAt,
 		UpdatedAt:     b.UpdatedAt,
-		Version:       b.Version,
 		Enabled:       b.Enabled,
 	}, nil
 }
@@ -379,9 +378,9 @@ func (o *outboundAccountBlockStore) BlockRegion(ctx context.Context, regionCode 
 	}
 
 	prevRegionPtr, err := o.MongoDalRegion.FindOne(ctx, bson.M{"region_code": regionCode}, bson.M{})
-	var prevAction json.RawMessage
+	var prevAction any
 	if err == nil && prevRegionPtr != nil {
-		prevAction, _ = json.Marshal(prevRegionPtr)
+		prevAction = prevRegionPtr
 	} else {
 		prevAction = json.RawMessage("null")
 	}
@@ -471,9 +470,9 @@ func (o *outboundAccountBlockStore) BlockDistrict(ctx context.Context, districtC
 	}
 
 	prevDistrictPtr, err := o.MongoDalDistrict.FindOne(ctx, bson.M{"district_code": districtCode}, bson.M{})
-	var prevAction json.RawMessage
+	var prevAction any
 	if prevDistrictPtr != nil {
-		prevAction, _ = json.Marshal(prevDistrictPtr)
+		prevAction = prevDistrictPtr
 	} else {
 		prevAction = json.RawMessage("null")
 	}
@@ -556,9 +555,9 @@ func (o *outboundAccountBlockStore) BlockCity(ctx context.Context, cityCode stri
 	}
 
 	prevCityPtr, err := o.MongoDalCity.FindOne(ctx, bson.M{"city_code": cityCode}, bson.M{})
-	var prevAction json.RawMessage
+	var prevAction any
 	if prevCityPtr != nil {
-		prevAction, _ = json.Marshal(prevCityPtr)
+		prevAction = prevCityPtr
 	} else {
 		prevAction = json.RawMessage("null")
 	}
@@ -651,8 +650,8 @@ func (o *outboundAccountBlockStore) BlockUser(ctx context.Context, phoneNumber s
 		return "", fmt.Errorf("BLOCKED_ACTION_USER_ALREADY_EXIST")
 	}
 
-	prevAction, _ := json.Marshal(user)
-	currAction, _ := json.Marshal(userCode)
+	prevAction := user
+	currAction := userCode
 	actionCode := utils.RandomGenerator(24)
 	cpsAction := model.CPSAction{
 		ActionCode:       actionCode,

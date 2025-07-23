@@ -114,7 +114,7 @@ func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http
 		Department:  department,
 	}
 
-	actionCode, err := h.service.DisableSingleBranch(r.Context(), branch, maker)
+	_, err = h.service.DisableSingleBranch(r.Context(), branch, maker)
 	if err != nil {
 		h.logger.Errorf("DisableSingleBranch failed: %v", err)
 		switch {
@@ -125,10 +125,7 @@ func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http
 		}
 		return
 	}
-	respData := map[string]any{
-		"action_code": actionCode,
-	}
-	constant_utils.BaseResponseMaker(respData, w, "Branch disabled Request is Successfuly sent", http.StatusCreated)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Branch disabled Request is Successfuly sent", http.StatusCreated)
 }
 
 func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *http.Request) {
@@ -251,18 +248,18 @@ func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *
 		Department:  department,
 	}
 
-	actionCode, err := h.service.DisableMultipleBranches(r.Context(), branches, maker)
+	_, err := h.service.DisableMultipleBranches(r.Context(), branches, maker)
 	if err != nil {
 		h.logger.Errorf("DisableMultipleBranches failed: %v", err)
-
+		if err.Error() == "branch code BR011 already disabled" {
+			constant_utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+			return
+		}
 		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
 		return
 	}
 
-	respData := map[string]any{
-		"action_code": actionCode,
-	}
-	constant_utils.BaseResponseMaker(respData, w, "Branches are disabled and CPS action created", http.StatusCreated)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Branches are disabled and CPS action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -404,24 +401,14 @@ func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request
 		Department:       maker.Department,
 	}
 
-	actionCode, err := h.service.BlockRegion(r.Context(), req.RegionCode, cpsAction)
+	_, err := h.service.BlockRegion(r.Context(), req.RegionCode, cpsAction)
 	if err != nil {
-		switch err {
-		case common.DefineError.General["INCOMPLETE_USER_INFO"]:
-			constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		case common.DefineError.Branch["BLOCK_REGION_ALREADY_EXISTS"]:
-			constant_utils.SendErrorResponse(w, "BLOCK_REGION_ALREADY_EXISTS", http.StatusConflict, nil)
-		case common.DefineError.General["DATABASE_ERROR"]:
-			constant_utils.SendErrorResponse(w, "DATABASE_ERROR", http.StatusInternalServerError, nil)
-		default:
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		}
+
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+
 		return
 	}
-	respData := map[string]any{
-		"action_code": actionCode,
-	}
-	constant_utils.BaseResponseMaker(respData, w, "Region block action created", http.StatusCreated)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region block action created", http.StatusCreated)
 }
 
 func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Request) {
@@ -459,10 +446,7 @@ func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Reques
 		resp.SendJSON()
 		return
 	}
-	data := map[string]any{
-		"message": "Region updated successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Region updated successfully", http.StatusOK)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region updated successfully", http.StatusOK)
 }
 func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -524,7 +508,7 @@ func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Reque
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
 		strings.TrimSpace(req.DistrictCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "district_code and name are required", http.StatusBadRequest)
+		constant_utils.BaseResponseMaker(nil, w, "district_code is required", http.StatusBadRequest)
 		return
 	}
 
@@ -551,15 +535,12 @@ func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Reque
 		Department:       maker.Department,
 	}
 
-	actionCode, err := h.service.BlockDistrict(r.Context(), req.DistrictCode, cpsAction)
+	_, err := h.service.BlockDistrict(r.Context(), req.DistrictCode, cpsAction)
 	if err != nil {
 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	respData := map[string]any{
-		"action_code": actionCode,
-	}
-	constant_utils.BaseResponseMaker(respData, w, "District block action created", http.StatusCreated)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "District block action created", http.StatusCreated)
 }
 
 func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.Request) {
@@ -770,15 +751,12 @@ func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) 
 		Department:       maker.Department,
 	}
 
-	actionCode, err := h.service.BlockCity(r.Context(), req.CityCode, cpsAction)
+	_, err := h.service.BlockCity(r.Context(), req.CityCode, cpsAction)
 	if err != nil {
 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	respData := map[string]any{
-		"action_code": actionCode,
-	}
-	constant_utils.BaseResponseMaker(respData, w, "City block action created", http.StatusCreated)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "City block action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) ApproveBlockCity(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -865,7 +843,7 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	actionCode, err := h.service.BlockUser(r.Context(), user.PhoneNumber, maker)
+	_, err = h.service.BlockUser(r.Context(), user.PhoneNumber, maker)
 	if err != nil {
 		h.logger.Errorf("BlockUser failed: %v", err)
 		if strings.Contains(err.Error(), common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message) {
@@ -876,8 +854,7 @@ func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	data := map[string]any{"action_code": actionCode}
-	constant_utils.BaseResponseMaker(data, w, "User block action created", http.StatusCreated)
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "User block action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) GetUserByPhone(w http.ResponseWriter, r *http.Request) {
 	if !constant_utils.CheckRequiredQueries(w, r, []string{"phone_number"}) {

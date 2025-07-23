@@ -74,6 +74,36 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 	cps := b.buildCPSAction(cpsReq, model.RequestCreateBank, nil)
 	cps.ActionType = string(model.ActionCreate)
 
+	cpsData, err := common_util.JsonUnmarshal[model.Bank](cpsReq.ActionData)
+	if err != nil {
+		return nil, err
+	}
+
+	bankFilter := bson.M{
+		"$or": []bson.M{
+			{"name": cpsData.Name},
+			{"code": cpsData.Code},
+			{"bic": cpsData.BIC},
+		},
+	}
+	bankData, err := b.bankDal.FindOne(ctx, bankFilter, bson.M{})
+	if err != nil {
+		if err.Error() != "mongo: no documents in result" {
+			return nil, fmt.Errorf("BANK_FETCH_FAILED")
+		}
+	}
+
+	if bankData != nil {
+		if bankData.Code == cpsData.Code {
+			b.logger.Errorf("bank that try to creat with this code already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+			return nil, fmt.Errorf("BIC_CODE_ALREADY_EXIST")
+		} else if bankData.BIC == cpsData.BIC {
+			b.logger.Errorf("bank that try to creat with this BIC already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+			return nil, fmt.Errorf("BANK_BIC_CODE_ALREADY_EXIST")
+		}
+
+	}
+
 	result, err := b.cpsDal.InsertOne(ctx, cps)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action: %v", err)
@@ -212,9 +242,41 @@ func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	projection := bson.M{"name": 1, "code": 1, "bic": 1}
 
+	cpsData, err := common_util.JsonUnmarshal[model.Bank](cpsReq.ActionData)
+	if err != nil {
+		return nil, err
+	}
 	bank, err := b.findBankByID(ctx, id, projection)
 	if err != nil {
 		return nil, err
+	}
+
+	bankFilter := bson.M{
+		"$or": []bson.M{
+			{"name": cpsData.Name},
+			{"code": cpsData.Code},
+			{"bic": cpsData.BIC},
+		},
+	}
+	bankData, err := b.bankDal.FindOne(ctx, bankFilter, bson.M{})
+	if err != nil {
+		if err.Error() != "mongo: no documents in result" {
+			return nil, fmt.Errorf("BANK_FETCH_FAILED")
+		}
+	} else {
+		if bankData.ID != bank.ID {
+			if bankData.Code == cpsData.Code {
+				b.logger.Errorf("bank that try to creat with this code already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+				return nil, fmt.Errorf("BIC_CODE_ALREADY_EXIST")
+			} else if bankData.BIC == cpsData.BIC {
+				b.logger.Errorf("bank that try to creat with this BIC already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+				return nil, fmt.Errorf("BANK_BIC_CODE_ALREADY_EXIST")
+			} else if bankData.Name == cpsData.Name {
+				b.logger.Errorf("bank that try to creat with this BIC already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+				return nil, fmt.Errorf("BANK_NAME_ALREADY_EXIST")
+			}
+
+		}
 	}
 
 	prev := map[string]any{
