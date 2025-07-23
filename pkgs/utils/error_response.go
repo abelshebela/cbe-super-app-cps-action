@@ -234,6 +234,7 @@ var errorKeyToStatus = map[string]int{
 
 	// Banks
 	"BANKS_NOT_FOUND":                   http.StatusNotFound,
+	"BANK_FETCH_FAILED":                 http.StatusInternalServerError,
 	"INVALID_BANK_NAME":                 http.StatusBadRequest,
 	"MISSING_BANK_NAME":                 http.StatusBadRequest,
 	"MISSING_BANK_CODE":                 http.StatusBadRequest,
@@ -277,6 +278,9 @@ var errorKeyToStatus = map[string]int{
 	"BANK_ALREADY_ENABLE":                      http.StatusBadRequest,
 	"FAILED_TO_GET_DISTRICT":                   http.StatusNotFound,
 	"BRANCH_ALREADY_DISABLE":                   http.StatusBadRequest,
+	"BANK_NAME_ALREADY_EXIST":                  http.StatusBadRequest,
+	"BANK_BIC_CODE_ALREADY_EXIST":              http.StatusBadRequest,
+	"BIC_CODE_ALREADY_EXIST":                   http.StatusBadRequest,
 	"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": http.StatusConflict,
 }
 

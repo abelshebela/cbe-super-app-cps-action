@@ -1155,13 +1155,21 @@ var DefineError = ErrorDefinitions{
 			Code:    "BNK_010",
 			Message: "Bank BIC CODE already exist",
 		},
-		"BANK_CODE_ALREADY_EXIST": {
+		"BANK_BIC_CODE_ALREADY_EXIST": {
 			Code:    "BNK_011",
-			Message: "Bank CODE already exist",
+			Message: "Bank BIC CODE already exist",
 		},
 		"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": {
 			Code:    "BNK_012",
 			Message: "Bank already exist with this parameter",
+		},
+		"BANK_FETCH_FAILED": {
+			Code:    "BNK_013",
+			Message: "Bank fetch failed",
+		},
+		"BANK_NAME_ALREADY_EXIST": {
+			Code:    "BNK_014",
+			Message: "Bank Name already exist",
 		},
 	},
 	Action: ErrorGroup{

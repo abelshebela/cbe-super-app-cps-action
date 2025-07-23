@@ -86,11 +86,22 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 			{"bic": cpsData.BIC},
 		},
 	}
-	_, err = b.bankDal.FindOne(ctx, bankFilter, bson.M{})
+	bankData, err := b.bankDal.FindOne(ctx, bankFilter, bson.M{})
 	if err != nil {
 		if err.Error() != "mongo: no documents in result" {
-			return nil, fmt.Errorf("BANK_ALREADY_CREATED_WITH_THIS_PARAMETER")
+			return nil, fmt.Errorf("BANK_FETCH_FAILED")
 		}
+	}
+
+	if bankData != nil {
+		if bankData.Code == cpsData.Code {
+			b.logger.Errorf("bank that try to creat with this code already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+			return nil, fmt.Errorf("BIC_CODE_ALREADY_EXIST")
+		} else if bankData.BIC == cpsData.BIC {
+			b.logger.Errorf("bank that try to creat with this BIC already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+			return nil, fmt.Errorf("BANK_BIC_CODE_ALREADY_EXIST")
+		}
+
 	}
 
 	result, err := b.cpsDal.InsertOne(ctx, cps)
@@ -235,6 +246,10 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	if err != nil {
 		return nil, err
 	}
+	bank, err := b.findBankByID(ctx, id, projection)
+	if err != nil {
+		return nil, err
+	}
 
 	bankFilter := bson.M{
 		"$or": []bson.M{
@@ -243,16 +258,25 @@ func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPS
 			{"bic": cpsData.BIC},
 		},
 	}
-	_, err = b.bankDal.FindOne(ctx, bankFilter, bson.M{})
+	bankData, err := b.bankDal.FindOne(ctx, bankFilter, bson.M{})
 	if err != nil {
 		if err.Error() != "mongo: no documents in result" {
-			return nil, fmt.Errorf("BANK_ALREADY_CREATED_WITH_THIS_PARAMETER")
+			return nil, fmt.Errorf("BANK_FETCH_FAILED")
 		}
-	}
+	} else {
+		if bankData.ID != bank.ID {
+			if bankData.Code == cpsData.Code {
+				b.logger.Errorf("bank that try to creat with this code already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+				return nil, fmt.Errorf("BIC_CODE_ALREADY_EXIST")
+			} else if bankData.BIC == cpsData.BIC {
+				b.logger.Errorf("bank that try to creat with this BIC already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+				return nil, fmt.Errorf("BANK_BIC_CODE_ALREADY_EXIST")
+			} else if bankData.Name == cpsData.Name {
+				b.logger.Errorf("bank that try to creat with this BIC already exist, bank_name: %s,bank_code: %s, bank_bic: %s", cpsData.Name, cpsData.Code, cpsData.BIC)
+				return nil, fmt.Errorf("BANK_NAME_ALREADY_EXIST")
+			}
 
-	bank, err := b.findBankByID(ctx, id, projection)
-	if err != nil {
-		return nil, err
+		}
 	}
 
 	prev := map[string]any{
