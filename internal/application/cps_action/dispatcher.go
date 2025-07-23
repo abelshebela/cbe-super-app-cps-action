@@ -34,7 +34,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "Block"):
 		return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
-	
+
 	case constants.IsActionInGroup(action, "Department"):
 		return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
 
@@ -43,6 +43,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "Advert"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Avatar"):
+		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Fayda"):
 		return d.app.FaydaDomain.Authorize(ctx, cpsAction)

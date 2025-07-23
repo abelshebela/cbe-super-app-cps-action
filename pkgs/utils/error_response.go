@@ -137,11 +137,14 @@ var errorKeyToStatus = map[string]int{
 	"TITLE_TOO_LONG":                                             http.StatusBadRequest,
 	"DESCRIPTION_TOO_LONG":                                       http.StatusBadRequest,
 	"UNSUPPORTED_REQUEST_ACTION":                                 http.StatusBadRequest,
-	"WALLET_ALREADY_ENABLED":                                     http.StatusBadRequest,
-	"WALLET_ALREADY_DISABLED":                                    http.StatusBadRequest,
+	"RESOURCE_ALREADY_ENABLED":                                   http.StatusBadRequest,
+	"RESOURCE_ALREADY_DISABLED":                                  http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
 	"WALLET_INFORMATION_ALREADY_EXISTST":                         http.StatusBadRequest,
+	"NO_DATA_PROVIDED_FOR_UPDATE":                                http.StatusBadRequest,
+	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
+	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,

@@ -699,6 +699,26 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_154",
 			Message: "kyc_level must be a number between 0 and 2",
 		},
+		"NO_DATA_PROVIDED_FOR_UPDATE": {
+			Code:    "GEN_155",
+			Message: "you didn't provide any data to update",
+		},
+		"CONTENT_TYPE_MUST_BE_FORM": {
+			Code:    "GEN_156",
+			Message: "Content-Type must be multipart/form-data",
+		},
+		"CONTENT_TYPE_MUST_BE_JSON": {
+			Code:    "GEN_157",
+			Message: "Content-Type must be application/json",
+		},
+		"RESOURCE_ALREADY_ENABLED": {
+			Code:    "GEN_158",
+			Message: "Resource is already enabled",
+		},
+		"RESOURCE_ALREADY_DISABLED": {
+			Code:    "GEN_159",
+			Message: "Resource is already disabled",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1300,16 +1320,8 @@ var DefineError = ErrorDefinitions{
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
 		},
-		"WALLET_ALREADY_ENABLED": {
-			Code:    "WAL_013",
-			Message: "Wallet is already enabled",
-		},
-		"WALLET_ALREADY_DISABLED": {
-			Code:    "WAL_013",
-			Message: "Wallet is already disabled",
-		},
-		"WALLET_INFORMATION_ALREADY_EXISTST":{
-			Code: "WAL_014",
+		"WALLET_INFORMATION_ALREADY_EXISTST": {
+			Code:    "WAL_014",
 			Message: "One or more fields already exists",
 		},
 	},

@@ -200,6 +200,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateBlockTime:          {},
 	RequestDisableFaydaAccount:      {},
 	RequestEnableFaydaAccount:       {},
+	RequestCreateAvatar:             {},
+	RequestDeleteAvatar:             {},
+	RequestDisableAvatar:            {},
+	RequestEnableAvatar:             {},
+	RequestUpdateAvatar:             {},
 }
 
 func IsValidRequestAction(requestAction string) bool {

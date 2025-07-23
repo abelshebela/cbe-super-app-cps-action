@@ -21,6 +21,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					middleware.RequireFormContentType(),
 				},
 			},
 			{
@@ -30,6 +31,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					middleware.RequireFormContentType(),
 				},
 			},
 			{

@@ -39,7 +39,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 
 	return application.Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
-		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", logger),
+		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
 		CustomerDomain:        customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger),
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
 		UnlinkDomain:          unlink_service.NewUnlinkService(persistence.UnlinkPersistence),

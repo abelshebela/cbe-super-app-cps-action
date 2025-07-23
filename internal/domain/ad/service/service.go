@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -183,16 +182,6 @@ func (a *ADDomain) GetOneAdvert(ctx context.Context, id string) (*entity.Advert,
 	return advertRes, nil
 }
 
-func PrettyPrintJSON(data interface{}) error {
-	prettyJSON, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(prettyJSON))
-	return nil
-}
-
 func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
 
 	actionData, ok := cpsAction.ActionData.(dto.UpdateAdvertRequest)
@@ -212,9 +201,7 @@ func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 		return nil, err
 	}
 
-	PrettyPrintJSON(ad)
 	var url string
-
 	if actionData.BannerImage != nil {
 		url, err = common_util.UploadFileToMinio(
 			ctx,
