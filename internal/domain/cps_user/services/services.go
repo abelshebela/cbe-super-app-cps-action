@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	cps_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
@@ -24,6 +26,7 @@ type CPSUserService interface {
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
+	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 }
 
 type cpsUserService struct {
@@ -42,9 +45,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	for i, id := range userData.PermissionCategory {
 		categoryIDs[i] = id.Hex()
 	}
+
 	_, err := s.permissionService.ValidatePermissionCategories(categoryIDs)
 	if err != nil {
-		return nil, fmt.Errorf("invalid permission categories: %w", err)
+		return nil, err
 	}
 
 	// Validate PermissionGroups
@@ -54,15 +58,15 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	}
 	_, err = s.permissionService.ValidatePermissionGroups(groupIDs)
 	if err != nil {
-		return nil, fmt.Errorf("invalid permission groups: %w", err)
+		return nil, err
 	}
 
 	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
 	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
-	if err != nil {
+	if err != nil && err.Error() != "NOT_FOUND" {
 		s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
-		return nil, fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+		return nil, err
 	}
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
@@ -100,7 +104,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		Department:       userPayload.Department,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionCreate),
-		RequestAction:    string(model.RequestUser),
+		RequestAction:    string(model.RequestCpsUserCreate),
 		PreviousAction:   nil,
 		CurrentAction:    user,
 		CreatedAt:        time.Now(),
@@ -111,7 +115,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
-	
+
 	if len(userData.PermissionCategory) > 0 {
 		categoryIDs := make([]string, len(userData.PermissionCategory))
 		for i, id := range userData.PermissionCategory {
@@ -119,10 +123,10 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		}
 		_, err := s.permissionService.ValidatePermissionCategories(categoryIDs)
 		if err != nil {
-			return nil, fmt.Errorf("invalid permission categories: %w", err)
+			return nil, err
 		}
 	}
-	
+
 	if len(userData.PermissionGroups) > 0 {
 		groupIDs := make([]string, len(userData.PermissionGroups))
 		for i, id := range userData.PermissionGroups {
@@ -130,16 +134,16 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		}
 		_, err := s.permissionService.ValidatePermissionGroups(groupIDs)
 		if err != nil {
-			return nil, fmt.Errorf("invalid permission groups: %w", err)
+			return nil, err
 		}
 	}
 
 	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
 	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
-	if err != nil {
+	if err != nil && err.Error() != "NOT_FOUND" {
 		s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
-		return nil, fmt.Errorf("FAILED_TO_FETCH_PENDING_ACTIONS")
+		return nil, err
 	}
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
@@ -160,7 +164,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		Department:       userPayload.Department,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionUpdate),
-		RequestAction:    string(model.RequestUpdateUser),
+		RequestAction:    string(model.RequestCpsUserUpdate),
 		PreviousAction:   nil,
 		CurrentAction:    userData,
 		CreatedAt:        time.Now(),
@@ -215,4 +219,20 @@ func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filterParams *const
 		return nil, err
 	}
 	return users, nil
+}
+
+func (s *cpsUserService) Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
+	action.MakerActionTime = time.Now()
+	action.LastModifiedAt = action.MakerActionTime
+
+	switch action.ActionType {
+	case cps_constant.ActionCreate:
+		return s.repo.AuthorizeCreate(ctx, action)
+
+	case cps_constant.ActionUpdate:
+		return s.repo.AuthorizeUpdate(ctx, action)
+
+	default:
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
 }
