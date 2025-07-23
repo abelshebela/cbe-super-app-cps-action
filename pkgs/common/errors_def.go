@@ -962,7 +962,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"REGION_CODE_AND_NAME_REQUIRED": {
 			Code:    "ACC_015",
-			Message: "Region code and region name is required",
+			Message: "Region code  is required",
 		},
 		"BLOCK_REGION_ALREADY_PROCESSED": {
 			Code:    "DST_016",
@@ -1146,6 +1146,22 @@ var DefineError = ErrorDefinitions{
 		"BANK_ALREADY_DISABLED": {
 			Code:    "BNK_008",
 			Message: "Bank  already  disabled",
+		},
+		"NAME_OF_BANK_ALREADY_EXIST": {
+			Code:    "BNK_009",
+			Message: "Bank with this name already exist",
+		},
+		"BIC_CODE_ALREADY_EXIST": {
+			Code:    "BNK_010",
+			Message: "Bank BIC CODE already exist",
+		},
+		"BANK_CODE_ALREADY_EXIST": {
+			Code:    "BNK_011",
+			Message: "Bank CODE already exist",
+		},
+		"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": {
+			Code:    "BNK_012",
+			Message: "Bank already exist with this parameter",
 		},
 	},
 	Action: ErrorGroup{

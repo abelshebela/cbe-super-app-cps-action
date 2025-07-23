@@ -74,6 +74,25 @@ func (b *Bank) CreateBank(ctx context.Context, cpsReq model.CreateCPSAction) (*m
 	cps := b.buildCPSAction(cpsReq, model.RequestCreateBank, nil)
 	cps.ActionType = string(model.ActionCreate)
 
+	cpsData, err := common_util.JsonUnmarshal[model.Bank](cpsReq.ActionData)
+	if err != nil {
+		return nil, err
+	}
+
+	bankFilter := bson.M{
+		"$or": []bson.M{
+			{"name": cpsData.Name},
+			{"code": cpsData.Code},
+			{"bic": cpsData.BIC},
+		},
+	}
+	_, err = b.bankDal.FindOne(ctx, bankFilter, bson.M{})
+	if err != nil {
+		if err.Error() != "mongo: no documents in result" {
+			return nil, fmt.Errorf("BANK_ALREADY_CREATED_WITH_THIS_PARAMETER")
+		}
+	}
+
 	result, err := b.cpsDal.InsertOne(ctx, cps)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action: %v", err)
@@ -211,6 +230,25 @@ func (b *Bank) GetBank(ctx context.Context, id string) (*entity.Bank, error) {
 
 func (b *Bank) UpdateBank(ctx context.Context, id string, cpsReq model.CreateCPSAction) (*model.CPSAction, error) {
 	projection := bson.M{"name": 1, "code": 1, "bic": 1}
+
+	cpsData, err := common_util.JsonUnmarshal[model.Bank](cpsReq.ActionData)
+	if err != nil {
+		return nil, err
+	}
+
+	bankFilter := bson.M{
+		"$or": []bson.M{
+			{"name": cpsData.Name},
+			{"code": cpsData.Code},
+			{"bic": cpsData.BIC},
+		},
+	}
+	_, err = b.bankDal.FindOne(ctx, bankFilter, bson.M{})
+	if err != nil {
+		if err.Error() != "mongo: no documents in result" {
+			return nil, fmt.Errorf("BANK_ALREADY_CREATED_WITH_THIS_PARAMETER")
+		}
+	}
 
 	bank, err := b.findBankByID(ctx, id, projection)
 	if err != nil {
