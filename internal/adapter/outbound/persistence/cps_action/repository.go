@@ -10,7 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
+	repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/cps_actions"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -59,8 +59,6 @@ func (a *cpsActionStore) CheckCPSActionExists(ctx context.Context, user entity.C
 }
 
 func (o *cpsActionStore) CreateCPSAction(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-	o.logger.Infof("Creating CPSAction with UniqueID: %s", action.UniqueID)
-	action.ActionCode = utils.RandomGenerator(20)
 	modelAction, err := mappers.DomainToModelCPSAction(*action)
 	if err != nil {
 		o.logger.Errorf("Domain to Model conversion failed: %v", err)
@@ -76,12 +74,12 @@ func (o *cpsActionStore) CreateCPSAction(ctx context.Context, action *entity.CPS
 }
 
 func (o *cpsActionStore) UpdateCPSAction(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-	o.logger.Infof("Updating CPSAction with ActionCode: %s", action.ActionCode)
 	modelAction, err := mappers.DomainToModelCPSAction(*action)
 	if err != nil {
 		o.logger.Errorf("Domain to Model conversion failed: %v", err)
 		return nil, err
 	}
+	
 	filter := bson.M{"action_code": modelAction.ActionCode}
 	update := mappers.BuildCPSActionUpdate(modelAction)
 	res, err := o.MongoCPSAction.UpdateOne(ctx, filter, update)

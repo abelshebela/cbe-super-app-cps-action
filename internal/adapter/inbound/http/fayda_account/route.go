@@ -15,7 +15,7 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 	router.Route("/fayda_account", func(r chi.Router) {
 		routes := []route.Route{
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/disable/{user_code}",
 				Handler: faydaHandler.InitiateDisableFaydaAccount,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -24,9 +24,9 @@ func InitFaydaRoutes(router chi.Router, faydaHandler inbound.FaydaAccount, authM
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/enable/{user_code}",
-				Handler: faydaHandler.InitiateDisableFaydaAccount,
+				Handler: faydaHandler.InitiateEnableFaydaAccount,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),

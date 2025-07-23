@@ -92,7 +92,7 @@ func (h *BranchHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Reque
 		resp.SendJSON()
 		return
 	}
-	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "Branch is disabled and CPS action created"}
+	resp := common.Response[any]{ResponseWriter: w, Status: http.StatusCreated, Data: "Branch disabled Request is Successfuly sent"}
 	resp.SendJSON()
 }
 func (h *BranchHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *http.Request) {

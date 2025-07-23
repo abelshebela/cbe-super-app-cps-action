@@ -976,6 +976,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "DST_018",
 			Message: "district not found",
 		},
+		"BRANCH_ALREADY_DISABLE": {
+			Code:    "DST_019",
+			Message: "branch code %v already disabled",
+		},
 	},
 	OTP: ErrorGroup{
 		"INVALID_OTP": {
@@ -1279,6 +1283,10 @@ var DefineError = ErrorDefinitions{
 		"WALLET_ALREADY_DISABLED": {
 			Code:    "WAL_013",
 			Message: "Wallet is already disabled",
+		},
+		"WALLET_INFORMATION_ALREADY_EXISTST":{
+			Code: "WAL_014",
+			Message: "One or more fields already exists",
 		},
 	},
 	AD: ErrorGroup{

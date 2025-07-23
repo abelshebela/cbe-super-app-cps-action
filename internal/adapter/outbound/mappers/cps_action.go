@@ -16,12 +16,10 @@ import (
 
 // DomainToModelCPSAction converts a domain CPSAction to a model CPSAction for MongoDB storage.
 func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, error) {
-	// Validate required fields
 	if domainAction.ActionCode == "" {
 		return nil, fmt.Errorf("ActionCode is required")
 	}
 
-	// Validate enum fields
 	if !constants.IsValidActionStatus(string(domainAction.ActionStatus)) {
 		return nil, fmt.Errorf("invalid ActionStatus: %s", domainAction.ActionStatus)
 	}
@@ -32,7 +30,6 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 		return nil, fmt.Errorf("invalid RequestAction: %s", domainAction.RequestAction)
 	}
 
-	// Convert domain ID to BSON ObjectID
 	var objID bson.ObjectID
 	if domainAction.ID != "" {
 		var err error
@@ -44,7 +41,14 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 		objID = bson.NewObjectID()
 	}
 
-	// Convert CurrentAction to map[string]interface{} if needed
+	now := time.Now()
+	if domainAction.CreatedAt.IsZero() {
+		domainAction.CreatedAt = now
+	}
+	if domainAction.LastModifiedAt.IsZero() {
+		domainAction.LastModifiedAt = now
+	}
+
 	var currentAction any
 	switch v := domainAction.CurrentAction.(type) {
 	case map[string]any:
@@ -82,6 +86,7 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 		CheckerActionTime:  domainAction.CheckerActionTime,
 	}, nil
 }
+
 
 // BSONToMap recursively converts BSON types to map[string]interface{} or slices.
 func BSONToMap(i any) any {

@@ -93,13 +93,13 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	cpsAction, err := a.cpsActionApplication.ApproveCPSAction(r.Context(), cpsReq)
+	_, err := a.cpsActionApplication.ApproveCPSAction(r.Context(), cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "CPS Action authorized successfully")
+	common_util.WriteSuccessResponse(w, nil, "CPS Action authorized successfully")
 }
 
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
@@ -116,13 +116,13 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 	cpsReq.RejectionReason = rejectPayload.RejectionReason
 
-	cpsAction, err := a.cpsActionApplication.RejectCPSAction(r.Context(), cpsReq)
+	_, err := a.cpsActionApplication.RejectCPSAction(r.Context(), cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "CPS Action rejected successfully")
+	common_util.WriteSuccessResponse(w, nil, "CPS Action rejected successfully")
 }
 
 func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request) {
