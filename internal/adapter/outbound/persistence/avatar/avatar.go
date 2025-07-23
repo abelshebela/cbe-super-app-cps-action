@@ -38,7 +38,6 @@ func InitAvatarPersistence(client *mongo.Client, dbName string, collections []st
 		logger:       logger,
 	}
 }
-
 func (a *AvatarPersistence) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
 	filter := bson.M{
 		"maker_user.phone_number": cpsReq.MakerUser.PhoneNumber,
@@ -350,30 +349,39 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams const
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
+	// Apply enable filter if provided
 	if filterParams.Filters != "" {
-		filter["enable"] = filterParams.Filters
+		filter["enable"] = filterParams.Filters == "true"
+	}
+
+	// Apply search filter on avatar and label fields
+	if filterParams.Search != "" {
+		filter["$or"] = []bson.M{
+			{"avatar": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"label": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+		}
 	}
 
 	page := filterParams.Page
 	limit := filterParams.PerPage
-	skip := (filterParams.Page - 1) * filterParams.PerPage
+	skip := (page - 1) * limit
 
-	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
-		a.logger.Errorf("failed to get avatar", err)
-		return nil, fmt.Errorf("FAILED_TO_GET_AVATER")
+		a.logger.Errorf("failed to get avatars: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_GET_AVATARS")
 	}
 
 	total, err := a.avatarDal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("failed to get avatar total counts", err)
+		a.logger.Errorf("failed to get avatar count: %v", err)
 		return nil, fmt.Errorf("FAILED_TO_GET_COUNT")
 	}
 
-	var avatars []*dto.Avatar
+	avatars := make([]*dto.Avatar, 0, len(avatarDocs))
 	for _, doc := range avatarDocs {
-		n := doc.toModel()
-		avatars = append(avatars, &n)
+		converted := doc.toModel()
+		avatars = append(avatars, &converted)
 	}
 
 	meta := common_util.BuildPaginationMeta(total, page, limit)
