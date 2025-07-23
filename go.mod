@@ -4,8 +4,10 @@ go 1.24.4
 
 require (
 	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/cors v1.2.2
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-viper/mapstructure/v2 v2.4.0
+	github.com/google/uuid v1.6.0
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.20.1
