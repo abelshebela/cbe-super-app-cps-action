@@ -95,7 +95,6 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
 	common_util.WriteSuccessResponse(w, cpsAction, "CPS Action authorized successfully")
 }
 
