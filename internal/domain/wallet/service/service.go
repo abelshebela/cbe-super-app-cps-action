@@ -31,7 +31,6 @@ type WalletDomain struct {
 
 type WalletService interface {
 	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*error_codes.PaginatedResponse[[]*entity.Wallet], error)
-
 	GetWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	CreateWallet(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -131,16 +130,27 @@ func (w *WalletDomain) CreateWallet(ctx context.Context, req model.CreateCPSActi
 
 func (w *WalletDomain) UpdateWallet(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error) {
 	req.RequestAction = model.RequestUpdateWallet
-	err := w.walletRepo.CPSActionExists(ctx, req)
-	if err != nil {
+
+	// Check for pending action
+	if err := w.walletRepo.CPSActionExists(ctx, req); err != nil {
 		return nil, err
 	}
 
-	_, err = w.walletRepo.GetWallet(ctx, id)
-	if err != nil {
+	// Check that the wallet to be updated exists
+	if _, err := w.walletRepo.GetWallet(ctx, id); err != nil {
 		return nil, err
 	}
 
+	// Check for duplicate name or code (excluding this wallet)
+	exists, _, err := w.walletAlreadyExistsUpdate(ctx, id, req.ActionData)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, fmt.Errorf(error_codes.WalletInformationAlreadyExists)
+	}
+
+	// Update wallet via CPS action
 	cpsAction, err := w.walletRepo.UpdateWallet(ctx, id, req)
 	if err != nil {
 		return nil, err
@@ -258,6 +268,28 @@ func (w *WalletDomain) walletAlreadyExists(ctx context.Context, actionData any) 
 		Name: walletReq.Name,
 		Code: walletReq.Code,
 	})
+	if err != nil {
+		return false, nil, err
+	}
+
+	return exists, &walletReq, nil
+}
+
+func (w *WalletDomain) walletAlreadyExistsUpdate(ctx context.Context, id string, actionData any) (bool, *dto.UpdateWalletRequest, error) {
+	walletReq, ok := actionData.(dto.UpdateWalletRequest)
+	if !ok {
+		w.logger.Errorf("failed to cast action data to UpdateWalletRequest") // 🛠 fix typo here
+		return false, nil, fmt.Errorf(error_codes.InvalidActionData)
+	}
+
+	exists, err := w.walletRepo.CheckWalletExists(ctx, entity.CheckWallet{
+		Name:      walletReq.Name,
+		Code:      walletReq.Code,
+		ExcludeID: id,
+	})
+
+	fmt.Println(exists, "exists")
+	fmt.Println(err, "err")
 	if err != nil {
 		return false, nil, err
 	}

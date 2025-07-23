@@ -273,14 +273,40 @@ func (w *Wallet) AuthorizeDelete(ctx context.Context, cpsAction *entities.CPSAct
 }
 
 func (w *Wallet) CheckWalletExists(ctx context.Context, wallet entity.CheckWallet) (bool, error) {
-	filter := bson.M{
-		"name": wallet.Name,
-		"code": wallet.Code,
+	var orFilters []bson.M
+
+	if wallet.Name != "" {
+		orFilters = append(orFilters, bson.M{
+			"name": bson.M{
+				"$regex":   "^" + wallet.Name + "$",
+				"$options": "i",
+			},
+		})
 	}
 
-	projection := bson.M{
-		"_id": 1,
+	if wallet.Code != "" {
+		orFilters = append(orFilters, bson.M{"code": wallet.Code})
 	}
+
+	if len(orFilters) == 0 {
+		return false, nil
+	}
+
+	filter := bson.M{
+		"$or": orFilters,
+	}
+
+	if wallet.ExcludeID != "" {
+		objID, err := bson.ObjectIDFromHex(wallet.ExcludeID)
+		if err != nil {
+			return false, fmt.Errorf(error_codes.InvalidID)
+		}
+		filter["_id"] = bson.M{"$ne": objID}
+	}
+
+	fmt.Println(filter, "filter")
+
+	projection := bson.M{"_id": 1}
 
 	result, err := w.walletDal.FindOne(ctx, filter, projection)
 	if err != nil {
