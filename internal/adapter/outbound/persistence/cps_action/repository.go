@@ -32,6 +32,32 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionName string
 	}
 }
 
+func (a *cpsActionStore) CheckCPSActionExists(ctx context.Context, user entity.CheckCPSAction) (bool, error) {
+	filter := bson.M{
+		"maker_phone_number": user.PhoneNumber,
+		"action_status":      model.ActionPending,
+		"department":         user.Department,
+		"request_action":     user.RequestAction,
+	}
+
+	projection := bson.M{
+		"action_code": 1,
+		"_id":         1,
+	}
+
+	existingAction, err := a.MongoCPSAction.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		a.logger.Errorf("failed to get ad", err)
+		return false, fmt.Errorf("FAILED_TO_GET_AD")
+	}
+	if existingAction != nil {
+		a.logger.Infof("pending cps action present", user.FullName, user.UserCode, user.Department)
+		return true, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
+	}
+
+	return false, nil
+}
+
 func (o *cpsActionStore) CreateCPSAction(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
 	o.logger.Infof("Creating CPSAction with UniqueID: %s", action.UniqueID)
 	action.ActionCode = utils.RandomGenerator(20)
