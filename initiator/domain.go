@@ -38,7 +38,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 
 	return application.Domain{
-		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, logger),
+		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", logger),
 		CustomerDomain:        customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger),
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),

@@ -6,9 +6,11 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
+	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -16,10 +18,10 @@ import (
 
 type ADHandlers interface {
 	CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error)
-	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
+	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.AdvertResponse], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
-	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error)
 }
 
 type ADHandler struct {
@@ -27,26 +29,69 @@ type ADHandler struct {
 	bucketName string
 	minio      config.MinioClientInterface
 	logger     utils.Logger
+	cpsService cps_service.CPSActionService
 }
 
-func InitADHandler(adDomain service.AdvertService, minioClinet config.MinioClientInterface, bucketName string, logger utils.Logger) ADHandlers {
+func InitADHandler(adDomain service.AdvertService, minioClinet config.MinioClientInterface, bucketName string,
+	cpsService cps_service.CPSActionService,
+	logger utils.Logger) ADHandlers {
 	return ADHandler{
 		adDomain:   adDomain,
 		minio:      minioClinet,
 		logger:     logger,
 		bucketName: bucketName,
+		cpsService: cpsService,
 	}
 }
 
 func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
-	return a.adDomain.CreateOneAdvert(ctx, adCpsReq)
+	action, err := a.adDomain.CreateOneAdvert(ctx, adCpsReq)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return a.cpsService.CreateCPSAction(ctx, action)
+
 }
 
-func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*model.CPSAction, error) {
-	return a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
+func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
+
+	action, err := a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return a.cpsService.CreateCPSAction(ctx, action)
 }
 
-func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error) {
+func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.AdvertResponse], error) {
 	adverts, err := a.adDomain.GetAllAdvert(ctx, filterParams)
 	if err != nil {
 		return nil, err
@@ -65,10 +110,24 @@ func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*entity.Advert,
 }
 
 func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
-	advertCpsAction, err := a.adDomain.UpdateOneAdvert(ctx, id, cpsAction)
+	action, err := a.adDomain.UpdateOneAdvert(ctx, id, cpsAction)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return advertCpsAction, nil
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return a.cpsService.CreateCPSAction(ctx, action)
 }

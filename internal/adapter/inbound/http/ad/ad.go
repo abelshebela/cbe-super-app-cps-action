@@ -1,7 +1,6 @@
 package ad
 
 import (
-	"encoding/json"
 
 	// "fmt"
 	"net/http"
@@ -84,13 +83,13 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = userContext.Department
 
 	ctx := r.Context()
-	cpsActionResponse, err := a.adHandler.CreateOneAdvert(ctx, cpsReq)
+	_, err = a.adHandler.CreateOneAdvert(ctx, cpsReq)
 	if err != nil {
-		util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsActionResponse, "AD Create Request Created successfully")
+	util.WriteSuccessResponse(w, nil, "AD Create Request Created successfully")
 }
 
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
@@ -116,20 +115,17 @@ func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
 	cpsReq.Department = userContext.Department
 	ctx := r.Context()
 
-	response, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
+	_, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	util.WriteSuccessResponse(w, response, "AD Delete Request Created successfully")
+	util.WriteSuccessResponse(w, nil, "AD Delete Request Created successfully")
 
 }
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
-
-	ctx := r.Context()
-
-	adverts, err := a.adHandler.GetAllAdvert(ctx, filterParams)
+	adverts, err := a.adHandler.GetAllAdvert(r.Context(), filterParams)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
@@ -167,13 +163,49 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req dto.UpdateAdvertRequest
+	var advertReq dto.UpdateAdvertRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.logger.Errorf("failed to decode advert request", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+	file, fileHeader, err := util.ParseMultipartFormFile(r, "banner_image", 10<<20)
+	if err != nil && err.Error() != common_util.ErrMissingFile {
+		a.logger.Errorf("error parsing file: %v", err)
+		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
 		return
 	}
+	if file != nil {
+		defer file.Close()
+	}
+
+	startedAt := r.FormValue("started_at")
+	expiredAt := r.FormValue("expired_at")
+	var startedAtTime time.Time
+	var expiredAtTime time.Time
+
+	if startedAt != "" {
+		startedAtTime, err = time.Parse(time.RFC3339, startedAt)
+		if err != nil {
+			a.logger.Errorf("failed to parse form data: %v", err)
+			util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+			return
+		}
+
+	}
+
+	if expiredAt != "" {
+		expiredAtTime, err = time.Parse(time.RFC3339, expiredAt)
+		if err != nil {
+			a.logger.Errorf("failed to parse time", err)
+			util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+			return
+		}
+	}
+
+	advertReq.Title = r.FormValue("title")
+	advertReq.Description = r.FormValue("description")
+	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
+	advertReq.Date.StartedAt = startedAtTime
+	advertReq.Date.ExpiredAt = expiredAtTime
+
+	advertReq.BannerImage = fileHeader
 
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
@@ -189,16 +221,15 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: userContext.PhoneNumber,
 	}
 	cpsReq.Department = userContext.Department
-	req.ID = id
-	cpsReq.ActionData = req
+	advertReq.ID = id
+	cpsReq.ActionData = advertReq
 
-	ctx := r.Context()
-	cpsActionResponse, err := a.adHandler.UpdateOneAdvert(ctx, id, cpsReq)
+	_, err = a.adHandler.UpdateOneAdvert(r.Context(), id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsActionResponse, "AD Update Request Created successfully")
+	util.WriteSuccessResponse(w, nil, "AD Update Request Created successfully")
 
 }
