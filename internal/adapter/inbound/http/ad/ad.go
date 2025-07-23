@@ -35,12 +35,14 @@ func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) inboundAd.ADAda
 func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	var advertReq dto.CreateAdvertRequest
 
+	
 	file, fileHeader, err := util.ParseMultipartFormFile(r, "banner_image", 10<<20)
 	if err != nil {
 		a.logger.Errorf("error parsing file: %v", err)
 		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
 		return
 	}
+	
 	defer file.Close()
 	advertReq.BannerImage = fileHeader
 

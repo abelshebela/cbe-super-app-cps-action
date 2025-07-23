@@ -40,66 +40,27 @@ func InitAvatarAPP(avatar_domain avatar.AvatarDomainService,
 }
 
 func (a *AvatarApplication) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*entities.CPSAction, error) {
-	action, err := a.avatarDomain.CreateAvatar(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	// check pending action
-	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return a.cpsService.CreateCPSAction(ctx, action)
+	return a.handleAvatarMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.avatarDomain.CreateAvatar(ctx, req)
+	}, "[avatar.CreateAvatar]")
 }
 
 func (a *AvatarApplication) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error) {
-	action, err := a.avatarDomain.DeleteAvatar(ctx, id, req)
-	if err != nil {
-		return nil, err
-	}
-
-	// check pending action
-	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return a.cpsService.CreateCPSAction(ctx, action)
+	return a.handleAvatarMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.avatarDomain.DeleteAvatar(ctx, id, req)
+	}, "[avatar.DeleteAvatar]")
 }
 
 func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
-	action, err := a.avatarDomain.EnableOrDisableAvatar(ctx, id, requestAction, cpsReq)
-	if err != nil {
-		return nil, err
-	}
+	return a.handleAvatarMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.avatarDomain.EnableOrDisableAvatar(ctx, id, requestAction, cpsReq)
+	}, "[avatar.EnableOrDisableAvatar]")
+}
 
-	// check pending action
-	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return a.cpsService.CreateCPSAction(ctx, action)
+func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error) {
+	return a.handleAvatarMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.avatarDomain.UpdateAvatar(ctx, id, req)
+	}, "[avatar.UpdateAvatar]")
 }
 
 func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*avatar.Avatar], error) {
@@ -120,13 +81,17 @@ func (a *AvatarApplication) GetAvatar(ctx context.Context, id string) (*avatar.A
 	return avatar, nil
 }
 
-func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error) {
-	action, err := a.avatarDomain.UpdateAvatar(ctx, id, req)
+func (a *AvatarApplication) handleAvatarMakerAction(
+	ctx context.Context,
+	buildAction func() (*entities.CPSAction, error),
+	logPrefix string,
+) (*entities.CPSAction, error) {
+	action, err := buildAction()
 	if err != nil {
+		a.logger.Errorf("%s build action error: %v", logPrefix, err)
 		return nil, err
 	}
 
-	// check pending action
 	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
 		UserCode:      action.MakerID,
 		FullName:      action.MakerName,
@@ -134,9 +99,10 @@ func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req mod
 		PhoneNumber:   action.MakerPhoneNumber,
 		RequestAction: string(action.RequestAction),
 	})
-
 	if err != nil {
+		a.logger.Errorf("%s CPSActionExists error: %v", logPrefix, err)
 		return nil, err
 	}
+
 	return a.cpsService.CreateCPSAction(ctx, action)
 }
