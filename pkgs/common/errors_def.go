@@ -1284,6 +1284,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "WAL_013",
 			Message: "Wallet is already disabled",
 		},
+		"WALLET_INFORMATION_ALREADY_EXISTST":{
+			Code: "WAL_014",
+			Message: "One or more fields already exists",
+		},
 	},
 	AD: ErrorGroup{
 		"AD_NOT_FOUND": {

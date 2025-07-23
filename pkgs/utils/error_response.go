@@ -140,6 +140,7 @@ var errorKeyToStatus = map[string]int{
 	"WALLET_ALREADY_DISABLED":                                    http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
+	"WALLET_INFORMATION_ALREADY_EXISTST":                         http.StatusBadRequest,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               404,

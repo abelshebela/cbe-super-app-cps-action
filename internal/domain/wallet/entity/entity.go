@@ -10,6 +10,7 @@ import (
 type CheckWallet struct {
 	Name string
 	Code string
+	ExcludeID string
 }
 
 type Wallet struct {
