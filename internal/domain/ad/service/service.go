@@ -32,7 +32,7 @@ type AdvertService interface {
 	CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.AdvertResponse], error)
-	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
+	GetOneAdvert(ctx context.Context, id string) (*entity.AdvertResponse, error)
 	DeleteOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 }
@@ -173,13 +173,13 @@ func (a *ADDomain) GetAllAdvert(ctx context.Context, filterParams *constant.Filt
 	}, nil
 }
 
-func (a *ADDomain) GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error) {
+func (a *ADDomain) GetOneAdvert(ctx context.Context, id string) (*entity.AdvertResponse, error) {
 	advertRes, err := a.ADRepo.GetOneAdvert(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
-	return advertRes, nil
+	res := entity.ToAdvertResponse(*advertRes)
+	return &res, nil
 }
 
 func (a *ADDomain) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {

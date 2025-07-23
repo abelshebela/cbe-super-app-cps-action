@@ -58,13 +58,13 @@ func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request)
 	cpsRequest.Department = department
 	cpsRequest.ActionData = req
 
-	cpsRes, err := a.avatarHandler.CreateAvatar(r.Context(), cpsRequest)
+	_, err = a.avatarHandler.CreateAvatar(r.Context(), cpsRequest)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsRes, "Avatar Create Request Created successfully")
+	util.WriteSuccessResponse(w, nil, "Avatar Create Request Created successfully")
 
 }
 
@@ -91,13 +91,13 @@ func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request)
 	cpsReq.MakerUser = userData
 	cpsReq.Department = department
 
-	cpsAction, err := a.avatarHandler.DeleteAvatar(r.Context(), id, cpsReq)
+	_, err = a.avatarHandler.DeleteAvatar(r.Context(), id, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsAction, "Avatar Delete Request Created successfully")
+	util.WriteSuccessResponse(w, nil, "Avatar Delete Request Created successfully")
 
 }
 
@@ -123,13 +123,13 @@ func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		ID: id,
 	}
 
-	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestDisableAvatar, cpsReq)
+	_, err = a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestDisableAvatar, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsAction, "Avatar Disabled Request Create sucessfully")
+	util.WriteSuccessResponse(w, nil, "Avatar Disabled Request Create sucessfully")
 }
 
 func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
@@ -154,13 +154,13 @@ func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		ID: id,
 	}
 
-	cpsAction, err := a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestEnableAvatar, cpsReq)
+	_, err = a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestEnableAvatar, cpsReq)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsAction, "Avatar Enable Request Create sucessfully")
+	util.WriteSuccessResponse(w, nil, "Avatar Enable Request Create sucessfully")
 
 }
 
@@ -239,13 +239,13 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 		ActionData: req,
 	}
 
-	cpsAction, err := a.avatarHandler.UpdateAvatar(r.Context(), id, updateRequest)
+	_, err = a.avatarHandler.UpdateAvatar(r.Context(), id, updateRequest)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, cpsAction, "Avatar Update Request created successfully")
+	util.WriteSuccessResponse(w, nil, "Avatar Update Request created successfully")
 }
 
 func (a *AvatarHTTPHandler) extractUserFromContext(r *http.Request) (model.User, string, error) {
