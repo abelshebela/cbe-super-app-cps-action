@@ -130,6 +130,7 @@ var errorKeyToStatus = map[string]int{
 	"PIN_MIN_LE_OPEN_MIN":                                        http.StatusBadRequest,
 	"PIN_MAX_LE_PIN_MIN":                                         http.StatusBadRequest,
 	"OTP_MIN_GE_PIN_MIN":                                         http.StatusBadRequest,
+	"COLOR_ALREADY_EXISTED":                                      http.StatusBadRequest,
 	"TIER_AUTH_NOT_FOUND":                                        http.StatusNotFound,
 	"FAILED_TO_GET_AUTH_TIER":                                    http.StatusInternalServerError,
 	"REQUIRED_TITLE":                                             http.StatusBadRequest,

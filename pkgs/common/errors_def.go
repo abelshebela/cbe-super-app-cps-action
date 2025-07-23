@@ -720,6 +720,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_159",
 			Message: "Username already exists. Please choose a different username.",
 		},
+		"COLOR_ALREADY_EXISTED": {
+			Code:    "GEN_160",
+			Message: "Color already Existed",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

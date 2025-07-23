@@ -62,12 +62,12 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
+	_, err = common_util.StructToMap(action)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 500, nil)
 		return
 	}
-	common_util.BaseResponseMaker(data, w, "Budget icon request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Budget icon request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +119,7 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		MakerActionTime:  time.Now(),
 	}
 
-	action, err := h.budgetService.UpdateIcon(r.Context(), id, cpsAction)
+	_, err = h.budgetService.UpdateIcon(r.Context(), id, cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to update budger icon: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
@@ -127,12 +127,7 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-	}
-
-	common_util.BaseResponseMaker(data, w, "Update request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Update request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request) {
@@ -167,23 +162,21 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 		MakerActionTime:  time.Now(),
 	}
 
-	action, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
+	_, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-		return
-	}
-
-	common_util.BaseResponseMaker(data, w, "Color creattion request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Color creattion request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchColors(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
+	if filterParams.Page < 1 || filterParams.Page < 1 {
+		common_util.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
+		return
+	}
 
 	colors, err := h.budgetService.FetchColors(r.Context(), filterParams)
 	if err != nil {
@@ -236,19 +229,13 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 		LastModifiedAt:   time.Now(),
 	}
 
-	action, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
+	_, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-		return
-	}
-
-	common_util.BaseResponseMaker(data, w, "Color update request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Color update request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Request) {

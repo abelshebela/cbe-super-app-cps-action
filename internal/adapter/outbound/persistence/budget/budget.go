@@ -137,11 +137,22 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 }
 
 func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	filter := bson.M{
+		"color": color,
+	}
+	existing, err := b.colorDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
+	}
 	cpsAction.CreatedAt = time.Now()
 	cpsAction.MakerActionTime = time.Now()
 	cpsAction.ID = bson.NewObjectID()
 	cpsAction.LastModifiedAt = time.Now()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
+
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
 		return nil, fmt.Errorf("GENERAL_DB_INSERT_FAILED")
@@ -184,7 +195,7 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 	if err != nil {
 		return nil, err
 	}
-	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
+	meta := common_util.BuildPaginationMeta(totalDocs, skip, limit)
 
 	return &common_util.PaginatedResponse[[]*entities.Color]{
 		Data: colors,
