@@ -224,6 +224,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestAuthTier,
 	},
 	"User": {
 		RequestUser,

@@ -2,6 +2,7 @@ package amount_based_auth_handler
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
@@ -44,17 +45,23 @@ func (a AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
+		a.logger.Errorf("missing or invalid parameter 'ID'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
-
+	fmt.Println("__________________________________________________________")
+	fmt.Println("Reach stage 1")
+	fmt.Println("__________________________________________________________")
 	var request amount_based_auth_domain.UpdateAmountBasedAuth
+	request.ID = id
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		a.logger.Errorf("failed to decode request body: %v", err)
 		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, 0, nil)
 		return
 	}
+	fmt.Println("__________________________________________________________")
+	fmt.Println("Reach stage 2")
+	fmt.Println("__________________________________________________________")
 
 	var cpsActionRequest model.CreateCPSAction
 
@@ -70,9 +77,10 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		FullName:    userContext.FullName,
 		PhoneNumber: userContext.PhoneNumber,
 	}
-	request.Id = id
+	// request.Id = id
 	cpsActionRequest.Department = userContext.Department
-	cpsActionRequest.CurrentData = request
+
+	// cpsActionRequest.CurrentData = request
 
 	amountBasedAuth, err := a.amountBasedAuthService.UpdateAmountBasedAuth(r.Context(), request, cpsActionRequest)
 	if err != nil {
@@ -87,7 +95,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		common_util.SendErrorResponse(w, common_util.UnhandledServerError, 0, nil)
 		return
 	}
-	common_util.BaseResponseMaker(data, w, "Successfuly updated", 200)
+	common_util.BaseResponseMaker(data, w, "Successfuly Create Action", 200)
 
 }
 
@@ -131,6 +139,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
+
 	if !ok {
 		a.logger.Errorf("missing or invalid parameter 'id'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
