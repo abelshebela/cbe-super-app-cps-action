@@ -145,6 +145,9 @@ var errorKeyToStatus = map[string]int{
 	"NO_DATA_PROVIDED_FOR_UPDATE":                                http.StatusBadRequest,
 	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
 	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
+	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
+	"START_DATE_REQUIRED":                                       http.StatusBadRequest,
+
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
@@ -425,12 +428,12 @@ func httpStatusOrDefault(providedStatus int, errorCode string, isValidation bool
 	return getStatusForErrorKey(errorCode)
 }
 
-func HandleServiceError(w http.ResponseWriter, err error) {
-	if def, ok := err.(common.ErrorDefinition); ok {
-		// Use the most appropriate status code for the error code, not always 400.
-		status := getStatusForErrorKey(def.Code)
-		SendErrorResponse(w, def.Code, status, nil)
-		return
-	}
-	SendErrorResponse(w, "GEN_004", http.StatusInternalServerError, nil)
-}
+// func HandleServiceError(w http.ResponseWriter, err error) {
+// 	if def, ok := err.(common.ErrorDefinition); ok {
+// 		// Use the most appropriate status code for the error code, not always 400.
+// 		status := getStatusForErrorKey(def.Code)
+// 		SendErrorResponse(w, def.Code, status, nil)
+// 		return
+// 	}
+// 	SendErrorResponse(w, "GEN_004", http.StatusInternalServerError, nil)
+// }

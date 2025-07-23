@@ -19,7 +19,7 @@ import (
 type ADHandlers interface {
 	CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error)
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.AdvertResponse], error)
-	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
+	GetOneAdvert(ctx context.Context, id string) (*entity.AdvertResponse, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error)
 }
@@ -99,7 +99,7 @@ func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filt
 	return adverts, nil
 }
 
-func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error) {
+func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*entity.AdvertResponse, error) {
 	advert, err := a.adDomain.GetOneAdvert(ctx, id)
 	if err != nil {
 		return nil, err

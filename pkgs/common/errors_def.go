@@ -1346,6 +1346,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "AD_005",
 			Message: "Failed to delete advert.",
 		},
+		"START_DATE_REQUIRED": {
+			Code:    "AD_006",
+			Message: "started date is required",
+		},
+		"EXPIRE_DATE_REQUIRED": {
+			Code:    "AD_006",
+			Message: "end date is required",
+		},
 	},
 }
 

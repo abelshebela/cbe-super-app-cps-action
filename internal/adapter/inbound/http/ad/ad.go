@@ -42,31 +42,43 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+	advertReq.BannerImage = fileHeader
+
+	advertReq.Title = r.FormValue("title")
+	advertReq.Description = r.FormValue("description")
+	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
 
 	startedAt := r.FormValue("started_at")
+	if startedAt == "" {
+		util.SendErrorResponse(w, "START_DATE_REQUIRED", http.StatusBadRequest, nil)
+		return
+	}
 	startedAtTime, err := time.Parse(time.RFC3339, startedAt)
 	if err != nil {
-		a.logger.Errorf("failed to parse form data: %v", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		a.logger.Errorf("invalid started_at format: %v", err)
+		util.SendErrorResponse(w, "invalid started_at format", http.StatusBadRequest, nil)
 		return
 	}
 
 	expiredAt := r.FormValue("expired_at")
-	expiredAtTime, err := time.Parse(time.RFC3339, expiredAt)
-	if err != nil {
-		a.logger.Errorf("failed to parse time", err)
-		util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+	if expiredAt == "" {
+		util.SendErrorResponse(w, "EXPIRE_DATE_REQUIRED", http.StatusBadRequest, nil)
 		return
 	}
-	advertReq.Title = r.FormValue("title")
-	advertReq.Description = r.FormValue("description")
-	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
+	expiredAtTime, err := time.Parse(time.RFC3339, expiredAt)
+	if err != nil {
+		a.logger.Errorf("invalid expired_at format: %v", err)
+		util.SendErrorResponse(w, "invalid expired_at format", http.StatusBadRequest, nil)
+		return
+	}
+
 	advertReq.Date.StartedAt = startedAtTime
 	advertReq.Date.ExpiredAt = expiredAtTime
 
-	advertReq.BannerImage = fileHeader
-
-	var cpsReq model.CreateCPSAction
+	if advertReq.Title == "" || advertReq.Description == "" || advertReq.AdvertFor == "" {
+		util.SendErrorResponse(w, "missing one or more required fields: title, description, advert_for", http.StatusBadRequest, nil)
+		return
+	}
 
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
@@ -74,14 +86,16 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cpsReq.ActionData = advertReq
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
+	// Prepare CPS request
+	cpsReq := model.CreateCPSAction{
+		ActionData: advertReq,
+		MakerUser: model.User{
+			UserCode:    userContext.UserCode,
+			FullName:    userContext.FullName,
+			PhoneNumber: userContext.PhoneNumber,
+		},
+		Department: userContext.Department,
 	}
-	cpsReq.Department = userContext.Department
 
 	ctx := r.Context()
 	_, err = a.adHandler.CreateOneAdvert(ctx, cpsReq)
@@ -144,9 +158,7 @@ func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
-
-	advert, err := a.adHandler.GetOneAdvert(ctx, id)
+	advert, err := a.adHandler.GetOneAdvert(r.Context(), id)
 	if err != nil {
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
