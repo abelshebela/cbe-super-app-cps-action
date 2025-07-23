@@ -32,6 +32,32 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionName string
 	}
 }
 
+func (a *cpsActionStore) CPSActionExists(ctx context.Context, user entity.CheckCPSAction) (bool, error) {
+	filter := bson.M{
+		"maker_phone_number": user.PhoneNumber,
+		"action_status":      model.ActionPending,
+		"department":         user.Department,
+		"request_action":     user.RequestAction,
+	}
+
+	projection := bson.M{
+		"action_code": 1,
+		"_id":         1,
+	}
+
+	existingAction, err := a.MongoCPSAction.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		a.logger.Errorf("failed to get ad", err)
+		return false, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+	if existingAction != nil {
+		a.logger.Infof("pending cps action present", user.FullName, user.UserCode, user.Department)
+		return true, fmt.Errorf("PENDING_CPS_ACTION_PRESENT")
+	}
+
+	return false, nil
+}
+
 func (o *cpsActionStore) CreateCPSAction(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
 	modelAction, err := mappers.DomainToModelCPSAction(*action)
 	if err != nil {
@@ -69,28 +95,28 @@ func (o *cpsActionStore) UpdateCPSAction(ctx context.Context, action *entity.CPS
 	return mappers.ModelToDomainCPSAction(res), nil
 }
 
-func (o *cpsActionStore) CPSActionExists(ctx context.Context, uniqueID string) (bool, error) {
-	o.logger.Infof("Checking if CPSAction exists with UniqueID: %s", uniqueID)
-	if uniqueID == "" {
-		o.logger.Warnf("CPSActionExists: uniqueID is empty")
-		return false, fmt.Errorf(common_util.InvalidID)
-	}
-	filter := bson.M{"unique_id": uniqueID}
-	projection := bson.M{"_id": 1}
+// func (o *cpsActionStore) CPSActionExists(ctx context.Context, uniqueID string) (bool, error) {
+// 	o.logger.Infof("Checking if CPSAction exists with UniqueID: %s", uniqueID)
+// 	if uniqueID == "" {
+// 		o.logger.Warnf("CPSActionExists: uniqueID is empty")
+// 		return false, fmt.Errorf(common_util.InvalidID)
+// 	}
+// 	filter := bson.M{"unique_id": uniqueID}
+// 	projection := bson.M{"_id": 1}
 
-	_, err := o.MongoCPSAction.FindOne(ctx, filter, projection)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			o.logger.Infof("CPSAction with UniqueID %s does not exist", uniqueID)
-			return false, nil
-		}
-		o.logger.Errorf("CPSActionExists query failed for unique_id=%s: %v", uniqueID, err)
-		return false, fmt.Errorf(common_util.GeneralDBQueryFailed)
-	}
+// 	_, err := o.MongoCPSAction.FindOne(ctx, filter, projection)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			o.logger.Infof("CPSAction with UniqueID %s does not exist", uniqueID)
+// 			return false, nil
+// 		}
+// 		o.logger.Errorf("CPSActionExists query failed for unique_id=%s: %v", uniqueID, err)
+// 		return false, fmt.Errorf(common_util.GeneralDBQueryFailed)
+// 	}
 
-	o.logger.Infof("CPSAction with UniqueID %s exists", uniqueID)
-	return true, nil
-}
+// 	o.logger.Infof("CPSAction with UniqueID %s exists", uniqueID)
+// 	return true, nil
+// }
 
 func (o *cpsActionStore) ApproveCPSAction(ctx context.Context, action *entity.AuthorizeCPSAction) (*entity.CPSAction, error) {
 	o.logger.Infof("Approving CPSAction with ActionCode: %s", action.ActionCode)
@@ -154,6 +180,8 @@ func (o *cpsActionStore) GetCPSActionsByDepartment(ctx context.Context, departme
 			{"request_action": bson.M{"$regex": search, "$options": "i"}},
 		}
 	}
+
+	fmt.Println(filter, "filter")
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit

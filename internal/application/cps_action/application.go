@@ -35,12 +35,8 @@ func NewCPSActionApplication(service service.CPSActionService, services applicat
 	}
 }
 
-func (a *cpsActionApplication) CPSActionExists(ctx context.Context, uniqueID string) (bool, error) {
-	return a.service.CPSActionExists(ctx, uniqueID)
-}
-
 func PrettyPrintJSON(data interface{}) error {
-	prettyJSON, err := json.MarshalIndent(data, "", "  ") // 2 spaces indent
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
 	}
