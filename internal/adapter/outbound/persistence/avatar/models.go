@@ -5,6 +5,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -58,15 +60,15 @@ func ToAvatarDocument(a avatar.Avatar) (*AvatarDocument, error) {
 	}, nil
 }
 
-func ToCPSAction(cpsAction *model.CPSAction) *avatar.CPSAction {
+func ToCPSAction(cpsAction *model.CPSAction) *entities.CPSAction {
 	if cpsAction == nil {
 		return nil
 	}
 
-	return &avatar.CPSAction{
+	return &entities.CPSAction{
 		ID:                 cpsAction.ID.Hex(),
 		ActionCode:         cpsAction.ActionCode,
-		UniqueId:           cpsAction.UniqueId,
+		UniqueID:           cpsAction.UniqueId,
 		MakerID:            cpsAction.MakerID,
 		MakerName:          cpsAction.MakerName,
 		MakerPhoneNumber:   cpsAction.MakerPhoneNumber,
@@ -77,12 +79,12 @@ func ToCPSAction(cpsAction *model.CPSAction) *avatar.CPSAction {
 		RejectionReason:    cpsAction.RejectionReason,
 		PreviousAction:     cpsAction.PreviousAction,
 		CurrentAction:      cpsAction.CurrentAction,
-		ActionStatus:       cpsAction.ActionStatus,
-		ActionType:         cpsAction.ActionType,
-		RequestAction:      cpsAction.RequestAction,
+		ActionStatus:       constants.ActionStatus(cpsAction.ActionStatus),
+		ActionType:         constants.ActionType(cpsAction.ActionType),
+		RequestAction:      constants.RequestAction(cpsAction.RequestAction),
 		CreatedAt:          cpsAction.CreatedAt,
 		LastModifiedAt:     cpsAction.LastModifiedAt,
 		MakerActionTime:    cpsAction.MakerActionTime,
-		CheckerActionTime:  *cpsAction.CheckerActionTime,
+		CheckerActionTime:  cpsAction.CheckerActionTime,
 	}
 }

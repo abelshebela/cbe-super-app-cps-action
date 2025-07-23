@@ -71,7 +71,6 @@ func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPS
 func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
 
 	action, err := a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
-
 	if err != nil {
 		return nil, err
 	}

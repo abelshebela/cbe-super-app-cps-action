@@ -59,25 +59,34 @@ func (c CreateAvatar) Validate() error {
 }
 
 type UpdateAvatar struct {
+	Label  string                `form:"label"`
 	Avatar *multipart.FileHeader `form:"avatar"`
 }
 
 func (u UpdateAvatar) Validate() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.Avatar, validation.Required, validation.By(func(value interface{}) error {
-			file, ok := value.(*multipart.FileHeader)
-			if !ok {
-				return fmt.Errorf("invalid file")
-			}
-			if file.Size > maxFileSize {
-				return fmt.Errorf("file size should be less than 2MB")
-			}
+	// If both fields are not provided, return an error
+	if u.Avatar == nil && u.Label == "" {
+		return fmt.Errorf("NO_DATA_PROVIDED_FOR_UPDATE")
+	}
 
-			if !IsValidImage(file) {
-				return fmt.Errorf("invalid file content")
-			}
+	// Only validate the avatar if it's provided
+	if u.Avatar != nil {
+		return validation.ValidateStruct(&u,
+			validation.Field(&u.Avatar, validation.By(func(value interface{}) error {
+				file, ok := value.(*multipart.FileHeader)
+				if !ok {
+					return fmt.Errorf("invalid file")
+				}
+				if file.Size > maxFileSize {
+					return fmt.Errorf("file size should be less than 2MB")
+				}
+				if !IsValidImage(file) {
+					return fmt.Errorf("invalid file content")
+				}
+				return nil
+			})),
+		)
+	}
 
-			return nil
-		})),
-	)
+	return nil
 }

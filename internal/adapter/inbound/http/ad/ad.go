@@ -3,6 +3,7 @@ package ad
 import (
 
 	// "fmt"
+
 	"net/http"
 	"time"
 
@@ -175,37 +176,40 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 	}
 
-	startedAt := r.FormValue("started_at")
-	expiredAt := r.FormValue("expired_at")
-	var startedAtTime time.Time
-	var expiredAtTime time.Time
-
-	if startedAt != "" {
-		startedAtTime, err = time.Parse(time.RFC3339, startedAt)
-		if err != nil {
-			a.logger.Errorf("failed to parse form data: %v", err)
-			util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-			return
-		}
-
-	}
-
-	if expiredAt != "" {
-		expiredAtTime, err = time.Parse(time.RFC3339, expiredAt)
-		if err != nil {
-			a.logger.Errorf("failed to parse time", err)
-			util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-			return
-		}
-	}
-
 	advertReq.Title = r.FormValue("title")
 	advertReq.Description = r.FormValue("description")
 	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
+	startedAt := r.FormValue("started_at")
+	expiredAt := r.FormValue("expired_at")
+
+	var startedAtTime, expiredAtTime time.Time
+	if startedAt != "" {
+		startedAtTime, err = time.Parse(time.RFC3339, startedAt)
+		if err != nil {
+			a.logger.Errorf("failed to parse started_at: %v", err)
+			util.SendErrorResponse(w, "invalid started_at format", http.StatusBadRequest, nil)
+			return
+		}
+	}
+	if expiredAt != "" {
+		expiredAtTime, err = time.Parse(time.RFC3339, expiredAt)
+		if err != nil {
+			a.logger.Errorf("failed to parse expired_at: %v", err)
+			util.SendErrorResponse(w, "invalid expired_at format", http.StatusBadRequest, nil)
+			return
+		}
+	}
+
 	advertReq.Date.StartedAt = startedAtTime
 	advertReq.Date.ExpiredAt = expiredAtTime
-
 	advertReq.BannerImage = fileHeader
+
+	if advertReq.Title == "" && advertReq.Description == "" &&
+		advertReq.AdvertFor == "" && fileHeader == nil &&
+		startedAt == "" && expiredAt == "" {
+		util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", http.StatusBadRequest, nil)
+		return
+	}
 
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
@@ -213,16 +217,17 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
+	// Build CPS request
+	cpsReq := model.CreateCPSAction{
+		MakerUser: model.User{
+			UserCode:    userContext.UserCode,
+			FullName:    userContext.FullName,
+			PhoneNumber: userContext.PhoneNumber,
+		},
+		Department: userContext.Department,
+		ActionData: advertReq,
 	}
-	cpsReq.Department = userContext.Department
 	advertReq.ID = id
-	cpsReq.ActionData = advertReq
 
 	_, err = a.adHandler.UpdateOneAdvert(r.Context(), id, cpsReq)
 	if err != nil {
@@ -231,5 +236,4 @@ func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.WriteSuccessResponse(w, nil, "AD Update Request Created successfully")
-
 }

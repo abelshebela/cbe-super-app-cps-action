@@ -103,6 +103,11 @@ func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.Avatar = fileHeader
 
+	if updateRequest.Name == "" && updateRequest.Code == "" && fileHeader == nil {
+		common_util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", http.StatusBadRequest, nil)
+		return
+	}
+
 	cpsReq, err := createCPSUserForCreate(r, updateRequest)
 	if err != nil {
 		wa.logger.Errorf("failed to create CPS user for create wallet", err)
