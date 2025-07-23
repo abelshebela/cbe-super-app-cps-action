@@ -30,13 +30,21 @@ type CPSAction struct {
 	CreatedAt          time.Time              `json:"created_at"`
 	LastModifiedAt     time.Time              `json:"last_modified_at"`
 	MakerActionTime    time.Time              `json:"maker_action_time"`
-	CheckerActionTime  *time.Time              `json:"checker_action_time"`
+	CheckerActionTime  *time.Time             `json:"checker_action_time"`
 }
 
 type User struct {
 	UserCode    string
 	FullName    string
 	PhoneNumber string
+}
+
+type CheckCPSAction struct {
+	UserCode      string
+	FullName      string
+	PhoneNumber   string
+	Department    string
+	RequestAction string
 }
 
 type AuthorizeCPSAction struct {
