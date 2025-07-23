@@ -27,14 +27,13 @@ func NewDispatcher(app application.Domain) *Dispatcher {
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	action := cpsAction.RequestAction
 
-	fmt.Println(action, "action")
 	switch {
 	case constants.IsActionInGroup(action, "Bank"):
 		return d.app.BankDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Block"):
 		return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
-	
+
 	case constants.IsActionInGroup(action, "Department"):
 		return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
 
@@ -73,6 +72,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "Budget"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "CPSUser"):
+		return d.app.CPSUserDomain.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

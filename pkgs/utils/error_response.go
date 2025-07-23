@@ -141,6 +141,11 @@ var errorKeyToStatus = map[string]int{
 	"WALLET_ALREADY_DISABLED":                                    http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
+	"UNEXPECTED_DATABASE_ERROR":                                  http.StatusInternalServerError,
+	"USER_CODE_ALREADY_EXIST":                                    http.StatusConflict,
+	"PHONE_NUMBER_EXISTS":                                        http.StatusConflict,
+	"EMAIL_ALREADY_EXISTS":                                       http.StatusConflict,
+	"USERNAME_ALREADY_EXISTS":                                    http.StatusConflict,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
@@ -282,6 +287,14 @@ var errorKeyToStatus = map[string]int{
 	"BANK_BIC_CODE_ALREADY_EXIST":              http.StatusBadRequest,
 	"BIC_CODE_ALREADY_EXIST":                   http.StatusBadRequest,
 	"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": http.StatusConflict,
+
+	// Permission
+	"NO_PERMISSION_CATEGORY_FOUND":                http.StatusNotFound,
+	"INVALID_PERMISSION_CATEGORY_ID":              http.StatusBadRequest,
+	"ONE_OR_MORE_PERMISSION_CATEGORIES_NOT_FOUND": http.StatusNotFound,
+	"INVALID_PERMISSION_GROUP_ID":                 http.StatusBadRequest,
+	"NO_PERMISSION_GROUP_FOUND":                   http.StatusNotFound,
+	"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND":     http.StatusNotFound,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -397,6 +410,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Wallet,
 		common.DefineError.Action,
 		common.DefineError.AD,
+		common.DefineError.Permission,
 	}
 
 	for _, group := range errorGroups {

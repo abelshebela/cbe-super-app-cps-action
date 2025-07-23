@@ -130,6 +130,9 @@ type RequestAction string
 
 const (
 	RequestUser                     RequestAction = "USER"
+	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
@@ -412,16 +415,16 @@ type CPSUser struct {
 	AccountAuthorizationCode string    `json:"account_authorization_code,omitempty" bson:"account_authorization_code,omitempty"`
 	UnlockAccountRequested   bool      `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested,omitempty"`
 
-	PasswordChangedAt *time.Time `json:"password_changed_at,omitempty" bson:"password_changed_at,omitempty"`
-	OTPStatus         string     `json:"otp_status,omitempty" bson:"otp_status,omitempty"`
-	OTPLastTriedAt    *time.Time `json:"otp_last_tried_at,omitempty" bson:"otp_last_tried_at,omitempty"`
-	OPTLastVerifiedAt *time.Time `json:"otp_last_verified_at,omitempty" bson:"otp_last_verified_at,omitempty"`
-	OTPVerifyCount    int        `json:"otp_verify_count,omitempty" bson:"otp_verify_count,omitempty"`
+	PasswordChangedAt *time.Time `json:"password_changed_at,omitempty" bson:"password_changed_at"`
+	OTPStatus         string     `json:"otp_status,omitempty" bson:"otp_status"`
+	OTPLastTriedAt    *time.Time `json:"otp_last_tried_at,omitempty" bson:"otp_last_tried_at"`
+	OPTLastVerifiedAt *time.Time `json:"otp_last_verified_at,omitempty" bson:"otp_last_verified_at"`
+	OTPVerifyCount    int        `json:"otp_verify_count,omitempty" bson:"otp_verify_count"`
 
-	Enabled      bool       `json:"enabled,omitempty" bson:"enabled,omitempty"`
-	IsDeleted    bool       `json:"is_deleted,omitempty" bson:"is_deleted,omitempty"`
-	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined,omitempty"`
-	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified,omitempty"`
+	Enabled      bool       `json:"enabled,omitempty" bson:"enabled"`
+	IsDeleted    bool       `json:"is_deleted,omitempty" bson:"is_deleted"`
+	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined"`
+	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified"`
 
 	Country string `json:"country,omitempty" bson:"country,omitempty"`
 	Region  string `json:"region,omitempty" bson:"region,omitempty"`
