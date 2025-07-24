@@ -153,6 +153,7 @@ var errorKeyToStatus = map[string]int{
 	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
 	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
 	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
+	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
 
 	"MISSING_ACTION_DATA":   http.StatusBadRequest,
 	"INVALID_ACTION_FORMAT": http.StatusBadRequest,

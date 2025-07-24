@@ -721,13 +721,17 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_159",
 			Message: "Username already exists. Please choose a different username.",
 		},
+		"MAKER_OR_CHECKER": {
+			Code:    "GEN_160",
+			Message: "User role can either be 'maker' or 'checker'",
+    },
 		"COLOR_ALREADY_EXISTED": {
 			Code:    "GEN_160",
 			Message: "Color already Existed",
 		},
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_161",
-			Message: "you didn't provide any data to update",
+			Message: "Update request must include at least one field to modify",
 		},
 		"CONTENT_TYPE_MUST_BE_FORM": {
 			Code:    "GEN_162",
@@ -744,6 +748,7 @@ var DefineError = ErrorDefinitions{
 		"RESOURCE_ALREADY_DISABLED": {
 			Code:    "GEN_165",
 			Message: "Resource is already disabled",
+
 		},
 		"INVALID_ACTION_FORMAT": {
 			Code:    "GEN_166",

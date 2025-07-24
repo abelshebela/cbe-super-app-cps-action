@@ -11,6 +11,7 @@ import (
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -27,16 +28,18 @@ type CPSUserService interface {
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
 	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
+	DeleteUserRequest(ctx context.Context, userCode string) (*model.CPSAction, error)
 }
 
 type cpsUserService struct {
 	repo              repository.CPSUserRepo
+	repoDepartment    department.DepartmentRepository
 	permissionService permission.PermissionDomainService
 	logger            utils.Logger
 }
 
-func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission.PermissionDomainService, logger utils.Logger) CPSUserService {
-	return &cpsUserService{repo: repo, permissionService: permissionService, logger: logger}
+func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission.PermissionDomainService, repoDepartment department.DepartmentRepository, logger utils.Logger) CPSUserService {
+	return &cpsUserService{repo: repo, permissionService: permissionService, repoDepartment: repoDepartment, logger: logger}
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
@@ -61,6 +64,16 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		return nil, err
 	}
 
+	// Check if the department exists
+	dept, err := s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
+	if err != nil {
+		s.logger.Errorf("failed to check department existence: %v", err)
+		return nil, err
+	}
+	if dept == nil {
+		s.logger.Errorf("DEPARTMENT_NOT_FOUND")
+		return nil, err
+	}
 	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
 	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
@@ -71,6 +84,11 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	if userData.Role != "maker" && userData.Role != "Checker" {
+		s.logger.Errorf("User role can only be either 'Maker' or 'Checker'")
+		return nil, fmt.Errorf("MAKER_OR_CHECKER")
 	}
 
 	// Create the CPS action
@@ -148,6 +166,21 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	dept, err := s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
+	if err != nil {
+		s.logger.Errorf("failed to check department existence: %v", err)
+		return nil, err
+	}
+	if dept == nil {
+		s.logger.Errorf("DEPARTMENT_NOT_FOUND")
+		return nil, err
+	}
+
+	if userData.Role != "maker" && userData.Role != "Checker" {
+		s.logger.Errorf("User role can only be either 'Maker' or 'Checker'")
+		return nil, fmt.Errorf("MAKER_OR_CHECKER")
 	}
 
 	userPayload = ctx_util.ExtractContext(ctx)
@@ -228,11 +261,41 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *entity.CPSAction
 	switch action.ActionType {
 	case cps_constant.ActionCreate:
 		return s.repo.AuthorizeCreate(ctx, action)
-
 	case cps_constant.ActionUpdate:
 		return s.repo.AuthorizeUpdate(ctx, action)
+	case cps_constant.ActionDelete:
+		return s.repo.AuthorizeDelete(ctx, action)
 
 	default:
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
+}
+
+func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string) (*model.CPSAction, error) {
+	userPayload := ctx_util.ExtractContext(ctx)
+	actionCode := utils.RandomGenerator(24)
+
+	action := model.CPSUser{
+		UserCode:  userCode,
+		IsDeleted: true,
+	}
+
+	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       actionCode,
+		UniqueId:         userPayload.UserCode,
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDelete),
+		RequestAction:    string(model.RequestCpsUserDelete),
+		PreviousAction:   nil,
+		CurrentAction:    action,
+		CreatedAt:        time.Now(),
+		MakerActionTime:  time.Now(),
+	}
+
+	return s.repo.DeleteUserRequest(ctx, userCode, cpsAction)
 }

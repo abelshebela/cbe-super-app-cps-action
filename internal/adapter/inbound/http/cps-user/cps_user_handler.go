@@ -109,3 +109,15 @@ func (h CPSUserMakerHandler) GetAllCPSUsers(w http.ResponseWriter, r *http.Reque
 	doc, _ := local_util.StructToMap(users)
 	local_util.BaseResponseMaker(doc, w, "CPS users fetched successfully", 200)
 }
+
+func (h CPSUserMakerHandler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
+	action, err := h.Service.DeleteUserRequest(r.Context(), r)
+	if err != nil {
+		h.logger.Errorf("DeleteUserRequest failed: %v", err)
+		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	response := map[string]interface{}{"action_code": action.ActionCode}
+	local_util.BaseResponseMaker(response, w, "User deletion action submitted successfully", 200)
+}
