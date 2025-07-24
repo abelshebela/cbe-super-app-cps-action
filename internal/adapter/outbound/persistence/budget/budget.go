@@ -488,6 +488,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 	if cpsAction == nil {
 		return nil, errors.New("cpsAction is required")
 	}
+
 	castToBsonM := func(input interface{}) (bson.M, error) {
 		raw, err := bson.Marshal(input)
 		if err != nil {
@@ -499,6 +500,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 	}
 	switch cpsAction.RequestAction {
 	case "BUDGET_CREATE_ICON":
+
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
 			return nil, fmt.Errorf("missing action data")
@@ -524,10 +526,12 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 		}
 
 	case "BUDGET_UPDATE_ICON":
+
 		current, err := castToBsonM(cpsAction.CurrentAction)
 		if err != nil {
 			b.logger.Errorf("invalid currentAction format for icon approval: %v", err)
 			return nil, fmt.Errorf("invalid currentAction format for icon approval")
+
 		}
 		iconURL, ok := current["icon_url"].(string)
 		if !ok || iconURL == "" {
@@ -665,7 +669,9 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 
 	default:
 		b.logger.Errorf("failed to authorize action")
+
 		return nil, fmt.Errorf("FAILED_TO_AUTHORIZE")
+
 	}
 
 	return cpsAction, nil
