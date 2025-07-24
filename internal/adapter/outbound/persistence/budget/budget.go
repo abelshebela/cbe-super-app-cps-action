@@ -155,6 +155,19 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 		"icon_id":  existingIcon.ID,
 		"icon_url": existingIcon.Icon,
 	}
+	// cpsAction.CurrentAction = map[string]interface{}{
+	// 	"icon_id": existingIcon.ID,
+	// }
+	currentMap, ok := cpsAction.CurrentAction.(map[string]interface{})
+	if !ok {
+		// If it's not a map yet, initialize it
+		currentMap = make(map[string]interface{})
+	}
+	currentMap["icon_id"] = existingIcon.ID
+	cpsAction.CurrentAction = currentMap
+	fmt.Println("=========================================== update actoin data ")
+	fmt.Println(cpsAction.CurrentAction)
+	fmt.Println("===================================================")
 
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
