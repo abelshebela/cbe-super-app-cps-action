@@ -115,7 +115,7 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 	code, err := b.service.CreateIcon(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to persist CPS action: %v", err)
-		return nil, fmt.Errorf("failed to persist CPS action")
+		return nil, err
 	}
 
 	return code, nil

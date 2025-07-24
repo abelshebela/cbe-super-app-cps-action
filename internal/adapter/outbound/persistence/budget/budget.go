@@ -52,18 +52,14 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-
-	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
-
-	if err != nil {
-		if err.Error() != "mongo: no documents in result" {
-			return nil, err
-		}
-	}
-
-	if existingAction != nil {
+	_, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
+	if err == nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
+
+	// if existingAction != nil {
+	// 	return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	// }
 
 	cpsAction.MakerActionTime = time.Now()
 	cpsAction.CreatedAt = time.Now()
@@ -126,13 +122,7 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
-	if err != nil {
-		b.logger.Errorf("their is error")
-		if err.Error() != "mongo: no documents in result" {
-			return nil, err
-		}
-	}
+	existingAction, _ := b.cpsDal.FindOne(ctx, filter, nil)
 
 	if existingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
@@ -184,12 +174,7 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err.Error() != "mongo: no documents in result" {
-			return nil, err
-		}
-	}
+	existingAction, _ := b.cpsDal.FindOne(ctx, filter, nil)
 
 	if existingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
@@ -301,14 +286,9 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 	filter := bson.M{
 		"maker_id":      makerData.UserCode,
 		"department":    makerData.Department,
-		"action_status": "PENDGIN",
+		"action_status": "PENDING",
 	}
-	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err.Error() != "mongo: no documents in result" {
-			return nil, err
-		}
-	}
+	existingAction, _ := b.cpsDal.FindOne(ctx, filter, nil)
 
 	if existingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
