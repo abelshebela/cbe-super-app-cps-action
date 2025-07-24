@@ -749,6 +749,42 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_165",
 			Message: "Resource is already disabled",
 		},
+		"INVALID_ACTION_FORMAT": {
+			Code:    "GEN_166",
+			Message: "invalid action data format",
+		},
+		"MISSING_ICON": {
+			Code:    "GEN_167",
+			Message: "missing icon_id in action data",
+		},
+		"FAILED_TO_AUTHORIZE": {
+			Code:    "GEN_168",
+			Message: "failed to authorize icon creation",
+		},
+		"MISSING_COLOR_ID": {
+			Code:    "GEN_169",
+			Message: "missing color id in action data",
+		},
+		"FAILED_COLOR_UPDATE": {
+			Code:    "GEN_170",
+			Message: "color update failed",
+		},
+		"MISSING_ACTION_DATA": {
+			Code:    "GEN_171",
+			Message: "missing action data",
+		},
+		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
+			Code:    "GEN_166",
+			Message: "current max can not be greter than",
+		},
+		"INVALID_IMG_FORMAT": {
+			Code:    "GEN_167",
+			Message: "Only image file formats are allowed",
+		},
+		"INVALID_OBJECT_ID": {
+			Code:    "GEN_168",
+			Message: "invalid object id",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

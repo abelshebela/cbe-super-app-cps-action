@@ -153,9 +153,18 @@ var errorKeyToStatus = map[string]int{
 	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
 	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
 	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
+	"INVALID_IMG_FORMAT":                                         http.StatusBadRequest,
 	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
 	"GENERAL_DB_QUERY_FAILED":                                    http.StatusInternalServerError,
 	"ERROR_WHILE_CHECKING_PENDING_ACTION":                        http.StatusInternalServerError,
+	"INVALID_OBJECT_ID":                                          http.StatusBadRequest,
+
+	"MISSING_ACTION_DATA":   http.StatusBadRequest,
+	"INVALID_ACTION_FORMAT": http.StatusBadRequest,
+	"MISSING_ICON":          http.StatusBadRequest,
+	"FAILED_TO_AUTHORIZE":   http.StatusInternalServerError,
+	"MISSING_COLOR_ID":      http.StatusBadRequest,
+	"FAILED_COLOR_UPDATE":   http.StatusInternalServerError,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
