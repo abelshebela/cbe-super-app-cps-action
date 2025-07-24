@@ -3,6 +3,7 @@ package hq
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -20,10 +22,15 @@ import (
 type Service interface {
 	GetHQ(ctx context.Context, id string) (HQ, error)
 	GetAllHQ(ctx context.Context, filerParams *constant.Filter) (*utils.PaginatedResponse[[]*HQ], error)
+	GetBlockTime(ctx context.Context) (BlockTimeResponse, error)
+	GetArchiveTime(ctx context.Context) (ArchiveTimeResponse, error)
+	GetPasswordExpiry(ctx context.Context) (PasswordExpiryResponse, error)
 	UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (*action.CPSAction, error)
 	UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (*action.CPSAction, error)
+	UpdatePasswordExpiryRequest(ctx context.Context, request UpdatePasswordExpiryRequest) (*action.CPSAction, error)
 	AuthorizeUpdateBlockTime(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	AuthorizeUpdateArchiveTime(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+	AuthorizeUpdatePasswordExpiry(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
@@ -59,39 +66,83 @@ func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 	return hq, nil
 }
 
-func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (*action.CPSAction, error) {
-	if request.ID == "" {
-		return nil, fmt.Errorf("INVALID_ID")
+func (s *ServiceStore) GetBlockTime(ctx context.Context) (BlockTimeResponse, error) {
+	hq, err := s.repository.GetSingleHQ(ctx)
+	if err != nil {
+		s.logger.Errorf("failed to fetch HQ: %v", err)
+		return BlockTimeResponse{}, fmt.Errorf("NOT_FOUND")
 	}
-	originalHQ, err := s.repository.GetHQByID(ctx, request.ID)
+	return BlockTimeResponse{
+		BlockTime:      hq.BlockTime,
+		CreatedAtBlock: hq.CreatedAtBlock,
+		UpdatedAtBlock: hq.UpdatedAtBlock,
+	}, nil
+}
+
+func (s *ServiceStore) GetArchiveTime(ctx context.Context) (ArchiveTimeResponse, error) {
+	hq, err := s.repository.GetSingleHQ(ctx)
+	if err != nil {
+		s.logger.Errorf("failed to fetch HQ: %v", err)
+		return ArchiveTimeResponse{}, fmt.Errorf("NOT_FOUND")
+	}
+	return ArchiveTimeResponse{
+		ArchiveTime:      hq.ArchiveTime,
+		CreatedAtArchive: hq.CreatedAtArchive,
+		UpdatedAtArchive: hq.UpdatedAtArchive,
+	}, nil
+}
+
+func (s *ServiceStore) GetPasswordExpiry(ctx context.Context) (PasswordExpiryResponse, error) {
+	hq, err := s.repository.GetSingleHQ(ctx)
+	if err != nil {
+		s.logger.Errorf("failed to fetch HQ: %v", err)
+		return PasswordExpiryResponse{}, fmt.Errorf("NOT_FOUND")
+	}
+	return PasswordExpiryResponse{
+		PasswordExpiry:          hq.PasswordExpiry,
+		CreatedAtPasswordExpiry: hq.CreatedAtPasswordExpiry,
+		UpdatedAtPasswordExpiry: hq.UpdatedAtPasswordExpiry,
+	}, nil
+}
+
+func (s *ServiceStore) hasPendingAction(ctx context.Context, requestAction string, department string) (bool, error) {
+	// fmt.Println("Checking for pending action", "requestAction", requestAction, "department", department)
+	pendingAction, err := s.repository.FindPendingAction(ctx, requestAction, department)
+	if err != nil {
+		return false, err
+	}
+	// fmt.Println("hola h",pendingAction)
+	if pendingAction != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request UpdateBlockTimeRequest) (*action.CPSAction, error) {
+	originalHQ, err := s.repository.GetSingleHQ(ctx)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
 
-	// Use actionRepo to check for pending actions by unique ID (outbound/init)
-	pendingActions, _ := s.actionRepo.(interface {
-		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
-	}).FetchPendingActionsByUniqueID(ctx, request.ID)
-	// if err != nil && err.Error() != "NOT_FOUND" {
-	// 	return nil, err
-	// }
-	if len(pendingActions) > 0 {
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdateHQBlockTime), request.Department)
+	if err != nil && !errors.Is(err,mongo.ErrNoDocuments) {
+		return nil, err
 	}
+	if pending {
+		fmt.Println("[hq service update block time pending action found")
+		return nil,fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+	
 
-	previousActionJSON, err := json.Marshal(originalHQ)
-	if err != nil {
-		s.logger.Errorf("failed to marshal previous action: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
-	}
+	
 
 	updatedHQ := originalHQ
 	updatedHQ.BlockTime = request.BlockTime
-	// Use struct wrapper for current action, matching account validation
 	type CurrentAction struct {
 		HQ HQ `json:"hq"`
 	}
+	previousAction:=CurrentAction{HQ: originalHQ}
 	currentAction := CurrentAction{HQ: updatedHQ}
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
@@ -102,58 +153,49 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		MakerPhoneNumber: request.MakerPhone,
 		Department:       request.Department,
 		ActionType:       action.ActionUpdate,
-		RequestAction:    action.RequestUpdateHQBlockTime,
+		RequestAction:    action.RequestAction(cps_constants.RequestUpdateHQBlockTime),
 		ActionStatus:     action.ActionPending,
 		CurrentAction:    currentAction,
-		PreviousAction:   previousActionJSON,
+		PreviousAction:   previousAction,
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
 		MakerActionTime:  time.Now(),
-		UniqueId:         request.ID,
+		UniqueId:         originalHQ.ID.Hex(),
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
 		return nil, fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
-
 	return &createdAction, nil
 }
 
 func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request UpdateArchiveTimeRequest) (*action.CPSAction, error) {
-	if request.ID == "" {
-		return nil, fmt.Errorf("INVALID_ID")
-	}
-	originalHQ, err := s.repository.GetHQByID(ctx, request.ID)
+	originalHQ, err := s.repository.GetSingleHQ(ctx)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
 
-	// Use actionRepo to check for pending actions by unique ID (outbound/init)
-	pendingActions, _ := s.actionRepo.(interface {
-		FetchPendingActionsByUniqueID(context.Context, string) ([]action.ActionResponse, error)
-	}).FetchPendingActionsByUniqueID(ctx, request.ID)
-	// if err != nil && err.Error() != "NOT_FOUND" {
-	// 	return nil, err
-	// }
-	if len(pendingActions) > 0 {
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdateHQArchiveTime), request.Department)
+	if err != nil && !errors.Is(err,mongo.ErrNoDocuments) {
+		return nil, err
 	}
+	if pending {
+		fmt.Println("[hq service update block time]pending action found")
+		return nil,fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+	
 
-	previousActionJSON, err := json.Marshal(originalHQ)
-	if err != nil {
-		s.logger.Errorf("failed to marshal previous action: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
-	}
+	
 
 	updatedHQ := originalHQ
 	updatedHQ.ArchiveTime = request.ArchiveTime
-	// Use struct wrapper for current action, matching account validation
 	type CurrentAction struct {
 		HQ HQ `json:"hq"`
 	}
 	currentAction := CurrentAction{HQ: updatedHQ}
+	previousAction:=CurrentAction{HQ: originalHQ}
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 	a := action.CPSAction{
@@ -163,21 +205,72 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		MakerPhoneNumber: request.MakerPhone,
 		Department:       request.Department,
 		ActionType:       action.ActionUpdate,
-		RequestAction:    action.RequestUpdateHQArchiveTime,
+		RequestAction:    action.RequestAction(cps_constants.RequestUpdateHQArchiveTime),
 		ActionStatus:     action.ActionPending,
 		CurrentAction:    currentAction,
-		PreviousAction:   previousActionJSON,
+		PreviousAction:   previousAction,
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
 		MakerActionTime:  time.Now(),
-		UniqueId:         request.ID,
+		UniqueId:         originalHQ.ID.Hex(),
 	}
 	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
 		return nil, fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
 	}
+	return &createdAction, nil
+}
 
+func (s *ServiceStore) UpdatePasswordExpiryRequest(ctx context.Context, request UpdatePasswordExpiryRequest) (*action.CPSAction, error) {
+	originalHQ, err := s.repository.GetSingleHQ(ctx)
+	if err != nil {
+		s.logger.Errorf("failed to fetch HQ: %v", err)
+		return nil, fmt.Errorf("NOT_FOUND")
+	}
+
+	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdatePasswordExpiry), request.Department)
+	if err != nil && !errors.Is(err,mongo.ErrNoDocuments) {
+		return nil, err
+	}
+	if pending {
+		fmt.Println("[hq service update block time]pending action found")
+		return nil,fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+	
+
+	
+
+	updatedHQ := originalHQ
+	updatedHQ.PasswordExpiry = request.PasswordExpiry
+	type CurrentAction struct {
+		HQ HQ `json:"hq"`
+	}
+	currentAction := CurrentAction{HQ: updatedHQ}
+	priviousAction := CurrentAction{HQ: originalHQ}
+
+	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
+	a := action.CPSAction{
+		ActionCode:       actionID,
+		MakerID:          request.MakerID,
+		MakerName:        request.MakerName,
+		MakerPhoneNumber: request.MakerPhone,
+		Department:       request.Department,
+		ActionType:       action.ActionUpdate,
+		RequestAction:    action.RequestAction(cps_constants.RequestUpdatePasswordExpiry),
+		ActionStatus:     action.ActionPending,
+		CurrentAction:    currentAction,
+		PreviousAction:   priviousAction,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		MakerActionTime:  time.Now(),
+		UniqueId:         originalHQ.ID.Hex(),
+	}
+	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
+	if err != nil {
+		s.logger.Errorf("failed to create CPS action: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
+	}
 	return &createdAction, nil
 }
 
@@ -210,6 +303,10 @@ func (s *ServiceStore) AuthorizeUpdateArchiveTime(ctx context.Context, cpsAction
 	return s.authorizeUpdateHQ(ctx, cpsAction, "archive_time")
 }
 
+func (s *ServiceStore) AuthorizeUpdatePasswordExpiry(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	return s.authorizeUpdateHQ(ctx, cpsAction, "password_expiry")
+}
+
 func (s *ServiceStore) authorizeUpdateHQ(ctx context.Context, cpsAction *entities.CPSAction, actionType string) (*entities.CPSAction, error) {
 	type CurrentAction struct {
 		HQ HQ `json:"hq"`
@@ -228,7 +325,23 @@ func (s *ServiceStore) authorizeUpdateHQ(ctx context.Context, cpsAction *entitie
 	}
 
 	updatedHQ := currentAction.HQ
-	if err := s.repository.UpdateHQ(ctx, updatedHQ.ID.Hex(), updatedHQ); err != nil {
+	var field string
+	var value interface{}
+	now := time.Now()
+	switch actionType {
+	case "block_time":
+		field = "block_time"
+		value = updatedHQ.BlockTime
+	case "archive_time":
+		field = "archive_time"
+		value = updatedHQ.ArchiveTime
+	case "password_expiry":
+		field = "password_expiry"
+		value = updatedHQ.PasswordExpiry
+	default:
+		return nil, fmt.Errorf("UNSUPPORTED_FIELD")
+	}
+	if err := s.repository.UpdateHQField(ctx, field, value, now); err != nil {
 		s.logger.Errorf("failed to update HQ for %s: %v", actionType, err)
 		return nil, fmt.Errorf("FAILED_TO_UPDATE_HQ")
 	}
@@ -244,9 +357,9 @@ func (s *ServiceStore) Authorize(ctx context.Context, action *entities.CPSAction
 		return s.AuthorizeUpdateBlockTime(ctx, action)
 	case cps_constants.RequestUpdateHQArchiveTime:
 		return s.AuthorizeUpdateArchiveTime(ctx, action)
-
+	case cps_constants.RequestUpdatePasswordExpiry:
+		return s.AuthorizeUpdatePasswordExpiry(ctx, action)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}
-
 }

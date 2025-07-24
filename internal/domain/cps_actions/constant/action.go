@@ -336,7 +336,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateBlockTime,
 	},
 	"Password": {
-		RequestUpdatePasswordExpiry,
+		
 		RequestUpdatePasswordRule,
 	},
 	"Permission": {
@@ -407,6 +407,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	"HQ": {
 		RequestUpdateHQBlockTime,
 		RequestUpdateHQArchiveTime,
+		RequestUpdatePasswordExpiry,
 	},
 	"Fayda": {
 		RequestDisableFaydaAccount,
