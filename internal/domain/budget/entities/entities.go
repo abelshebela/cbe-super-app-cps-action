@@ -130,7 +130,7 @@ const (
 	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
-	RequestCreateBudgetColor        RequestAction = "BUDGET_CREATE__COLOR"
+	RequestCreateBudgetColor        RequestAction = "BUDGET_CREATE_COLOR"
 	RequestUpdateBudgetColor        RequestAction = "BUDGET_UPDATE_COLOR"
 	RequestDeleteBudgetColor        RequestAction = "BUDGET_DELETE_COLOR"
 	RequestCreateBudgetIcon         RequestAction = "BUDGET_CREATE_ICON"

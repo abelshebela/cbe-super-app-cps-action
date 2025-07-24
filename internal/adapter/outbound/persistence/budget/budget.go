@@ -431,6 +431,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 		return nil, errors.New("cpsAction is required")
 	}
 
+	fmt.Println("****************", cpsAction.RequestAction)
 	switch cpsAction.RequestAction {
 	case "BUDGET_CREATE_ICON":
 		// For icon creation, mark the icon as enabled (or perform any other necessary business logic)
@@ -505,7 +506,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize icon deletion: %w", err)
 		}
 
-	case "BUDGET_CREATE__COLOR":
+	case "BUDGET_CREATE_COLOR":
 		// For color creation, mark the color as enabled (or perform any other necessary business logic)
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
@@ -514,19 +515,23 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 		if err := UnmarshalMap(cpsAction.CurrentAction, &actionData); err != nil {
 			return nil, fmt.Errorf("invalid action data format: %w", err)
 		}
-		colorID, ok := actionData["color_id"].(string)
-		if !ok || colorID == "" {
-			return nil, fmt.Errorf("missing color_id in action data")
+
+		colorName, ok := actionData["color"].(string)
+		if !ok || colorName == "" {
+			return nil, fmt.Errorf("missing color in action data")
 		}
-		filter := bson.M{"_id": colorID, "is_deleted": false}
-		update := bson.M{
-			"enabled":       true,
-			"last_modified": time.Now(),
+
+		color := entities.Color{
+			Color:     colorName,
+			Enabled:   true,
+			IsDeleted: false,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		}
-		_, err := b.colorDal.UpdateOne(ctx, filter, update)
+		_, err := b.colorDal.InsertOne(ctx, color)
 		if err != nil {
-			b.logger.Errorf("failed to authorize color creation: %v", err)
-			return nil, fmt.Errorf("failed to authorize color creation: %w", err)
+			b.logger.Errorf("failed to approve color creation: %v", err)
+			return nil, fmt.Errorf("color creation failed: %w", err)
 		}
 
 	case "BUDGET_UPDATE_COLOR":
@@ -578,10 +583,9 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize color deletion: %w", err)
 		}
 
-	// Add more cases for other budget-related actions as needed
-
 	default:
-		// No budget operation required for this action
+		b.logger.Errorf("failed to authorize action")
+		return nil, fmt.Errorf("failed to authorize action")
 	}
 
 	return cpsAction, nil

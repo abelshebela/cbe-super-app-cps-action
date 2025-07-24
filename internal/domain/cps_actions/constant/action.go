@@ -125,6 +125,13 @@ const (
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
+	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
+	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
+	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
+	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
+	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
+	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+
 	RequestAccountUpdate         RequestAction = "REQUEST_ACCOUNT_UPDATE"
 	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
 	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
@@ -143,6 +150,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateAmountBasedAuth: {},
 	RequestUpdateAmountBasedAuth: {},
 	RequestUser:                  {},
+
+	RequestCreateBudgetColor: {},
+	RequestUpdateBudgetColor: {},
+	RequestDeleteBudgetColor: {},
+	RequestCreateBudgetIcon:  {},
+	RequestUpdateBudgetIcon:  {},
+	RequestDeleteBudgetIcon:  {},
 
 	RequestCpsUserCreate:            {},
 	RequestCpsUserUpdate:            {},
@@ -337,8 +351,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteAvatar,
 	},
 	"Budget": {
-		RequestBudgetColor,
-		RequestBudgetIcon,
+		RequestCreateBudgetColor,
+		RequestUpdateBudgetColor,
+		RequestDeleteBudgetColor,
+		RequestCreateBudgetIcon,
+		RequestUpdateBudgetIcon,
+		RequestDeleteBudgetIcon,
 	},
 
 	"Advert": {
