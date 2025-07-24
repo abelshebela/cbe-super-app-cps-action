@@ -725,6 +725,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_160",
 			Message: "Color already Existed",
 		},
+		},
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_161",
 			Message: "you didn't provide any data to update",
@@ -768,6 +769,10 @@ var DefineError = ErrorDefinitions{
 		"MISSING_ACTION_DATA": {
 			Code:    "GEN_171",
 			Message: "missing action data",
+		},
+		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
+			Code:    "GEN_166",
+			Message: "current max can not be greter than",
 		},
 	},
 	Auth: ErrorGroup{
