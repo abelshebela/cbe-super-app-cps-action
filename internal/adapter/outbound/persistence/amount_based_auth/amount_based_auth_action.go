@@ -94,19 +94,12 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 }
 
 func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsAction model.CreateCPSAction) error {
-	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ check existing action")
-	fmt.Printf("maker_phone_number: %v\n", cpsAction.MakerUser.PhoneNumber)
-	fmt.Printf("action_status: %v\n", model.ActionPending)
-	fmt.Printf("department: %v\n", cpsAction.Department)
-	fmt.Printf("request_action: %v\n", cpsAction.ActionType)
-
-	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ check existing action")
 
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
 		"action_status":      model.ActionPending,
 		"department":         cpsAction.Department,
-		// "request_action":     cpsAction.ActionType,
+		"request_action":     cpsAction.ActionType,
 	}
 	fmt.Println()
 
@@ -237,7 +230,7 @@ func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsActio
 
 func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
 	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
-
+	cpsAction.ActionType = "AUTHTIER"
 	if err := a.checkExistingAuthTier(ctx, cpsAction); err != nil {
 
 		return nil, err
