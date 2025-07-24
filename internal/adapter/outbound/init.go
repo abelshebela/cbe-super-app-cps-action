@@ -858,17 +858,46 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 		"maker_id":   cpsAction.MakerID,
 		"maker_name": cpsAction.MakerName,
 	}
+
+	data, err := common_util.JsonUnmarshal[model.CPSUser](cpsAction.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check for existing user by phone, email, username, or user_code
+	filter := bson.M{
+		"$or": []bson.M{
+			{"phone_number": data.PhoneNumber},
+			{"email": data.Email},
+			{"username": data.UserName},
+		},
+	}
+	existing, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+
+	if existing != nil {
+		if data.PhoneNumber == existing.PhoneNumber {
+			return nil, fmt.Errorf("PHONE_NUMBER_EXISTS")
+		} else if data.Email == existing.Email {
+			return nil, fmt.Errorf("EMAIL_ALREADY_EXISTS")
+		} else if data.UserName == existing.UserName {
+			return nil, fmt.Errorf("USERNAME_ALREADY_EXISTS")
+		}
+	}
+
 	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
 	if err == nil && previosCPSAction != nil {
 		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
-	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	createdAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		return nil, fmt.Errorf("database error while creating user request action")
 	}
 
-	return &data, nil
+	return &createdAction, nil
 }
 
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
@@ -877,15 +906,29 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		"is_deleted": false,
 	}
 
-	projection := bson.M{}
+	data, err := common_util.JsonUnmarshal[model.CPSUser](cpsAction.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
 
+	projection := bson.M{}
 	// Check if the user does exist
-	_, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
+	existing, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 		}
 		return nil, fmt.Errorf("")
+	}
+
+	if existing != nil {
+		if data.PhoneNumber == existing.PhoneNumber {
+			return nil, fmt.Errorf("PHONE_NUMBER_EXISTS")
+		} else if data.Email == existing.Email {
+			return nil, fmt.Errorf("EMAIL_ALREADY_EXISTS")
+		} else if data.UserName == existing.UserName {
+			return nil, fmt.Errorf("USERNAME_ALREADY_EXISTS")
+		}
 	}
 
 	prevFilter := bson.M{
@@ -899,12 +942,12 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	}
 
 	// Create CPS action
-	data, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	updatedAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		return nil, fmt.Errorf("database error while updating user request action")
 	}
 
-	return &data, nil
+	return &updatedAction, nil
 }
 
 func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, cpsAction model.CPSAction) (*model.CPSAction, error) {
@@ -1117,41 +1160,6 @@ func (o *outboundStore) AuthorizeCreate(ctx context.Context, action *cps_entity.
 		return nil, err
 	}
 
-	// Check for existing user by phone, email, username, or user_code
-	filter := bson.M{
-		"$or": []bson.M{
-			{"phone_number": data.PhoneNumber},
-			{"email": data.Email},
-			{"username": data.UserName},
-			{"user_code": data.UserCode},
-		},
-	}
-	existing, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil && err != mongo.ErrNoDocuments {
-		return nil, err
-	}
-
-	// 	if existing != nil {
-	// 	if data.UserCode == existing.UserCode ||
-	// 		data.PhoneNumber == existing.PhoneNumber ||
-	// 		data.Email == existing.Email ||
-	// 		data.UserName == existing.UserName {
-	// 		return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
-	// 	}
-	// }
-
-	if existing != nil {
-		if data.UserCode == existing.UserCode {
-			return nil, fmt.Errorf("USER_CODE_ALREADY_EXIST")
-		} else if data.PhoneNumber == existing.PhoneNumber {
-			return nil, fmt.Errorf("PHONE_NUMBER_EXISTS")
-		} else if data.Email == existing.Email {
-			return nil, fmt.Errorf("EMAIL_ALREADY_EXISTS")
-		} else if data.UserName == existing.UserName {
-			return nil, fmt.Errorf("USERNAME_ALREADY_EXISTS")
-		}
-	}
-
 	// Add filds to the User collection
 	now := time.Now()
 	data.Country = ""
@@ -1194,13 +1202,6 @@ func (o *outboundStore) AuthorizeUpdate(ctx context.Context, action *cps_entity.
 
 	// Find the user by user_code
 	filter := bson.M{"user_code": data.UserCode}
-	existing, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil {
-		return nil, err
-	}
-	if existing == nil {
-		return nil, fmt.Errorf("USER_NOT_FOUND")
-	}
 
 	now := time.Now()
 	data.LastModified = &now
@@ -1231,13 +1232,6 @@ func (o *outboundStore) AuthorizeDelete(ctx context.Context, action *cps_entity.
 	}
 	// Find the user by user_code
 	filter := bson.M{"user_code": data.UserCode}
-	existing, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil {
-		return nil, err
-	}
-	if existing == nil {
-		return nil, fmt.Errorf("USER_NOT_FOUND")
-	}
 
 	// Soft delete the user by setting is_deleted to true
 	update := bson.M{"is_deleted": true}
