@@ -315,7 +315,7 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	_, err := b.cpsDal.FindOne(ctx, filter, nil)
+	_, err = b.cpsDal.FindOne(ctx, filter, nil)
 
 	if err == nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
