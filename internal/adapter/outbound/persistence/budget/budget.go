@@ -432,7 +432,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 	}
 
 	switch cpsAction.RequestAction {
-	case "CREATE_ICON":
+	case "BUDGET_CREATE_ICON":
 		// For icon creation, mark the icon as enabled (or perform any other necessary business logic)
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
@@ -456,7 +456,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize icon creation: %w", err)
 		}
 
-	case "UPDATE_ICON":
+	case "BUDGET_UPDATE_ICON":
 		// For icon update, update the icon fields as needed
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
@@ -481,7 +481,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize icon update: %w", err)
 		}
 
-	case "DELETE_ICON":
+	case "BUDGET_DELETE_ICON":
 		// For icon deletion, mark the icon as deleted
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
@@ -505,7 +505,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize icon deletion: %w", err)
 		}
 
-	case "CREATE_COLOR":
+	case "BUDGET_CREATE__COLOR":
 		// For color creation, mark the color as enabled (or perform any other necessary business logic)
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
@@ -529,7 +529,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize color creation: %w", err)
 		}
 
-	case "UPDATE_COLOR":
+	case "BUDGET_UPDATE_COLOR":
 		// For color update, update the color fields as needed
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {
@@ -554,7 +554,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			return nil, fmt.Errorf("failed to authorize color update: %w", err)
 		}
 
-	case "DELETE_COLOR":
+	case "BUDGET_DELETE_COLOR":
 		// For color deletion, mark the color as deleted
 		var actionData map[string]interface{}
 		if cpsAction.CurrentAction == nil {

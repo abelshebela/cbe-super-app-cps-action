@@ -66,7 +66,7 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"icon_url": fileHeader},
-		RequestAction:    entities.RequestBudgetIcon,
+		RequestAction:    entities.RequestCreateBudgetIcon,
 		MakerActionTime:  time.Now(),
 	}
 
@@ -130,7 +130,7 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"icon_url": fileHeader},
-		RequestAction:    entities.RequestBudgetIcon,
+		RequestAction:    entities.RequestUpdateBudgetIcon,
 		MakerActionTime:  time.Now(),
 	}
 
@@ -173,7 +173,7 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"color": req.Color},
-		RequestAction:    entities.RequestBudgetColor,
+		RequestAction:    entities.RequestCreateBudgetColor,
 		MakerActionTime:  time.Now(),
 	}
 
@@ -238,7 +238,7 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"color": req.Color},
-		RequestAction:    entities.RequestBudgetColor,
+		RequestAction:    entities.RequestUpdateBudgetColor,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
