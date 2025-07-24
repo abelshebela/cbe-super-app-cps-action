@@ -73,7 +73,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	}
 
 	// Check for existing pending actions for this user
-	fmt.Println("Before")
 	userPayload := ctx_util.ExtractContext(ctx)
 	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
 	if err != nil && err != mongo.ErrNoDocuments {
