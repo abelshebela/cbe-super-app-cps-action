@@ -169,6 +169,7 @@ func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id 
 	if int(rule.MaxLength) < int(rule.MinLength) {
 		return fmt.Errorf("MAX_NOT_BE_LESS")
 	}
+
 	if id == "" {
 		r.logger.Errorf("invalid validation rule ID: empty")
 		return errors.New("validation rule ID cannot be empty")
