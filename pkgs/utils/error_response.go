@@ -130,6 +130,7 @@ var errorKeyToStatus = map[string]int{
 	"PIN_MIN_LE_OPEN_MIN":                                        http.StatusBadRequest,
 	"PIN_MAX_LE_PIN_MIN":                                         http.StatusBadRequest,
 	"OTP_MIN_GE_PIN_MIN":                                         http.StatusBadRequest,
+	"COLOR_ALREADY_EXISTED":                                      http.StatusBadRequest,
 	"TIER_AUTH_NOT_FOUND":                                        http.StatusNotFound,
 	"FAILED_TO_GET_AUTH_TIER":                                    http.StatusInternalServerError,
 	"REQUIRED_TITLE":                                             http.StatusBadRequest,
@@ -141,6 +142,11 @@ var errorKeyToStatus = map[string]int{
 	"RESOURCE_ALREADY_DISABLED":                                  http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
+	"UNEXPECTED_DATABASE_ERROR":                                  http.StatusInternalServerError,
+	"USER_CODE_ALREADY_EXIST":                                    http.StatusConflict,
+	"PHONE_NUMBER_EXISTS":                                        http.StatusConflict,
+	"EMAIL_ALREADY_EXISTS":                                       http.StatusConflict,
+	"USERNAME_ALREADY_EXISTS":                                    http.StatusConflict,
 	"WALLET_INFORMATION_ALREADY_EXISTST":                         http.StatusBadRequest,
 	"NO_DATA_PROVIDED_FOR_UPDATE":                                http.StatusBadRequest,
 	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
@@ -289,6 +295,14 @@ var errorKeyToStatus = map[string]int{
 	"BANK_BIC_CODE_ALREADY_EXIST":              http.StatusBadRequest,
 	"BIC_CODE_ALREADY_EXIST":                   http.StatusBadRequest,
 	"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": http.StatusConflict,
+
+	// Permission
+	"NO_PERMISSION_CATEGORY_FOUND":                http.StatusNotFound,
+	"INVALID_PERMISSION_CATEGORY_ID":              http.StatusBadRequest,
+	"ONE_OR_MORE_PERMISSION_CATEGORIES_NOT_FOUND": http.StatusNotFound,
+	"INVALID_PERMISSION_GROUP_ID":                 http.StatusBadRequest,
+	"NO_PERMISSION_GROUP_FOUND":                   http.StatusNotFound,
+	"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND":     http.StatusNotFound,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -404,6 +418,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Wallet,
 		common.DefineError.Action,
 		common.DefineError.AD,
+		common.DefineError.Permission,
 	}
 
 	for _, group := range errorGroups {
