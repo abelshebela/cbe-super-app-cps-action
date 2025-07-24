@@ -906,31 +906,57 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		"is_deleted": false,
 	}
 
+	// Unmarshal updated user info from CPSAction
 	data, err := common_util.JsonUnmarshal[model.CPSUser](cpsAction.CurrentAction)
 	if err != nil {
 		return nil, err
 	}
 
 	projection := bson.M{}
-	// Check if the user does exist
-	existing, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
+
+	// Ensure the user to update exists
+	_, err = o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 		}
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
-	if existing != nil {
-		if data.PhoneNumber == existing.PhoneNumber {
+	// Check for duplicates in email, phone number, and username excluding this user
+	duplicateFilter := bson.M{
+		"$and": []bson.M{
+			{"user_code": bson.M{"$ne": userCode}},
+			{"is_deleted": false},
+			{
+				"$or": []bson.M{
+					{"phone_number": data.PhoneNumber},
+					{"email": data.Email},
+					{"username": data.UserName},
+				},
+			},
+		},
+	}
+
+	fmt.Println("1")
+	duplicate, err := o.MongoDalCPSUser.FindOne(ctx, duplicateFilter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+	fmt.Println("2", duplicate)
+	if duplicate != nil {
+		if duplicate.PhoneNumber == data.PhoneNumber {
 			return nil, fmt.Errorf("PHONE_NUMBER_EXISTS")
-		} else if data.Email == existing.Email {
+		}
+		if duplicate.Email == data.Email {
 			return nil, fmt.Errorf("EMAIL_ALREADY_EXISTS")
-		} else if data.UserName == existing.UserName {
+		}
+		if duplicate.UserName == data.UserName {
 			return nil, fmt.Errorf("USERNAME_ALREADY_EXISTS")
 		}
 	}
 
+	// Retrieve and attach previous CPS action
 	prevFilter := bson.M{
 		"unique_id":  cpsAction.UniqueId,
 		"maker_id":   cpsAction.MakerID,
@@ -941,10 +967,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
-	// Create CPS action
+	// Create new CPSAction for update
 	updatedAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		return nil, fmt.Errorf("database error while updating user request action")
+		return nil, fmt.Errorf("DATABASE_INSERT_FAILED")
 	}
 
 	return &updatedAction, nil
