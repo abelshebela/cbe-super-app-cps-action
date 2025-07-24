@@ -785,6 +785,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_168",
 			Message: "invalid object id",
 		},
+		"TIER_CAN_BE_UPDATED": {
+			Code:    "GEN_169",
+			Message: "tier can't be updated",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
