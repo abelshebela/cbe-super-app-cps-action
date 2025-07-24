@@ -20,6 +20,7 @@ type CPSActionRepository interface {
 	CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error)
 	ApproveDepartmentUpdate(ctx context.Context, cpsAction cpsactions.CPSAction) error
 	RejectDepartmentUpdate(ctx context.Context, cpsAction cpsactions.CPSAction) error
+	GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error)
 }
 
 type DepartmentRepository interface {

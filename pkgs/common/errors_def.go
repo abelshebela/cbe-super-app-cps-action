@@ -720,6 +720,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_159",
 			Message: "Username already exists. Please choose a different username.",
 		},
+		"MAKER_OR_CHECKER": {
+			Code:    "GEN_160",
+			Message: "User role can either be 'maker' or 'checker'",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

@@ -24,7 +24,7 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 				},
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodPatch,
 				Path:    "/update/{user_code}",
 				Handler: handler.UpdateUserRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
@@ -32,15 +32,15 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
-			// {
-			// 	Method:  http.MethodPost,
-			// 	Path:    "/delete/{user_code}",
-			// 	Handler: handler.DeleteUserRequest,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-			// 	},
-			// },
+			{
+				Method:  http.MethodDelete,
+				Path:    "/delete/{user_code}",
+				Handler: handler.DeleteUserRequest,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
 			{
 				Method:  http.MethodPatch,
 				Path:    "/approve_or_reject/{action_id}",
