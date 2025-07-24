@@ -84,6 +84,8 @@ type Persitence struct {
 	CPSActionsPersistance       cps_actions.CPSActionRepository
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
+
+	// ActionPersistence          *action_repo.ActionRepo
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {

@@ -59,69 +59,102 @@ func (h *HQHTTPHandler) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 	data, _ := utils.StructToMap(hqResp)
 	utils.BaseResponseMaker(data, w, "HQs fetched successfully", http.StatusOK)
 }
-func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
-	var request dto.UpdateBlockTimeRequest
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+
+func (h *HQHTTPHandler) GetBlockTime(w http.ResponseWriter, r *http.Request) {
+	resp, err := h.handler.GetBlockTime(r.Context())
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
+	data, _ := utils.StructToMap(resp)
+	utils.BaseResponseMaker(data, w, "Block time fetched successfully", http.StatusOK)
+}
 
+func (h *HQHTTPHandler) GetArchiveTime(w http.ResponseWriter, r *http.Request) {
+	resp, err := h.handler.GetArchiveTime(r.Context())
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	data, _ := utils.StructToMap(resp)
+	utils.BaseResponseMaker(data, w, "Archive time fetched successfully", http.StatusOK)
+}
+
+func (h *HQHTTPHandler) GetPasswordExpiry(w http.ResponseWriter, r *http.Request) {
+	resp, err := h.handler.GetPasswordExpiry(r.Context())
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	data, _ := utils.StructToMap(resp)
+	utils.BaseResponseMaker(data, w, "Password expiry fetched successfully", http.StatusOK)
+}
+
+func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
+	var request dto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
-	request.ID = id
 	if err := request.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
-
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
 		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
-
-	actionCode, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
+	action, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
-	common_util.WriteSuccessResponse(w, actionCode, "Update block time request submitted for approval")
+	common_util.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update block time request submitted for approval")
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request dto.UpdateArchiveTimeRequest
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
-
-	request.ID = id
 	if err := request.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
-
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
 		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
-
-	actionCode, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
+	action, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, actionCode, "Update archive time request submitted for approval")
+	common_util.WriteSuccessResponse(w,map[string]string{"action_code": action.ActionCode}, "Update archive time request submitted for approval")
+}
 
+func (h *HQHTTPHandler) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.Request) {
+	var request dto.UpdatePasswordExpiryRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
+		return
+	}
+	if err := request.Validate(); err != nil {
+		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
+		return
+	}
+	userContext := ctx_util.ExtractUserContext(r)
+	if userContext.IsIncomplete() {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
+	action, err := h.handler.UpdatePasswordExpiryRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	common_util.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update password expiry request submitted for approval")
 }

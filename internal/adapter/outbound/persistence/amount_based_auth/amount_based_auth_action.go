@@ -257,6 +257,11 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		a.logger.Errorf("failed to fetch auth tier step 1: %v", err)
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
+	if string(authTier.Method) != "OPEN" && string(authTier.Method) != "PIN" {
+		fmt.Println("tier is %v", authTier.Method)
+		a.logger.Errorf("tier can be updated")
+		return nil, fmt.Errorf("TIER_CAN_BE_UPDATED")
+	}
 	if authTier.Method == "OPEN" {
 		filter := bson.M{
 			"method":     "PIN",
