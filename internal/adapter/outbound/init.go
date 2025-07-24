@@ -882,7 +882,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	// Check if the user does exist
 	_, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
+		}
+		return nil, fmt.Errorf("")
 	}
 
 	prevFilter := bson.M{
@@ -909,8 +912,8 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 	// Check if the user exists
 	_, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("USER_NOT_FOUND")
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 		}
 		return nil, fmt.Errorf("database error while finding user")
 	}
@@ -1255,14 +1258,13 @@ func (o *outboundStore) GetDepartmentByID(ctx context.Context, id string) (*dep_
 	filter := bson.M{"_id": objectID, "is_deleted": false}
 	department, err := o.MongoDalDepartment.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("DEPARTMENT_NOT_FOUND")
+		}
 		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
-	}
-	if department == nil {
-		return nil, fmt.Errorf("DEPARTMENT_NOT_FOUND")
 	}
 
 	return department, nil
-
 }
 
 func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {

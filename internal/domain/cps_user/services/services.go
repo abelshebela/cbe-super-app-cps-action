@@ -66,13 +66,9 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	}
 
 	// Check if the department exists
-	dept, err := s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
+	_, err = s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
 	if err != nil {
 		s.logger.Errorf("failed to check department existence: %v", err)
-		return nil, err
-	}
-	if dept == nil {
-		s.logger.Errorf("DEPARTMENT_NOT_FOUND")
 		return nil, err
 	}
 
@@ -89,7 +85,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
-	if userData.Role != "maker" && userData.Role != "Checker" {
+	if userData.Role != "maker" && userData.Role != "checker" {
 		s.logger.Errorf("User role can only be either 'maker' or 'checker'")
 		return nil, fmt.Errorf("MAKER_OR_CHECKER")
 	}
@@ -167,18 +163,14 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
-	dept, err := s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
+	_, err = s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
 	if err != nil {
 		s.logger.Errorf("failed to check department existence: %v", err)
 		return nil, err
 	}
-	if dept == nil {
-		s.logger.Errorf("DEPARTMENT_NOT_FOUND")
-		return nil, err
-	}
 
-	if userData.Role != "maker" && userData.Role != "Checker" {
-		s.logger.Errorf("User role can only be either 'Maker' or 'Checker'")
+	if userData.Role != "" && userData.Role != "maker" && userData.Role != "checker" {
+		s.logger.Errorf("User role can only be either 'maker' or 'checker'")
 		return nil, fmt.Errorf("MAKER_OR_CHECKER")
 	}
 
