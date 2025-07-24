@@ -24,6 +24,15 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 				},
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: handler.FetchAllAccountValidation,
+				Middlewares: []func(next http.Handler) http.Handler{
+					middleware.AuthenticateToken,
+					middleware.AccessControl([]string{role.Maker, role.Checker}),
+				},
+			},
+			{
 				Method:  http.MethodPatch,
 				Path:    "/update/{id}",
 				Handler: handler.UpdateAccountValidationMaker,
