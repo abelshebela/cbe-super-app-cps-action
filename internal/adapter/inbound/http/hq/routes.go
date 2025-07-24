@@ -16,8 +16,8 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 		routes := []route.Route{
 			{
 				Method:  http.MethodGet,
-				Path:    "/{id}",
-				Handler: handler.GetHQ,
+				Path:    "/block_time",
+				Handler: handler.GetBlockTime,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -25,8 +25,17 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/",
-				Handler: handler.GetAllHQ,
+				Path:    "/archive_time",
+				Handler: handler.GetArchiveTime,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/password_expiry",
+				Handler: handler.GetPasswordExpiry,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -34,7 +43,7 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/block_time/{id}",
+				Path:    "/block_time",
 				Handler: handler.UpdateBlockTimeRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -43,8 +52,17 @@ func InitHQRoutes(router chi.Router, handler *HQHTTPHandler, authMiddleware midd
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/archive_time/{id}",
+				Path:    "/archive_time",
 				Handler: handler.UpdateArchiveTimeRequest,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/password_expiry",
+				Handler: handler.UpdatePasswordExpiryRequest,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),

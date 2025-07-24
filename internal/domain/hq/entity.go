@@ -8,15 +8,16 @@ import (
 )
 
 type HQ struct {
-	ID            bson.ObjectID `json:"id" bson:"_id"`
-	Name          string        `json:"name" bson:"name"`
-	Enabled       bool          `json:"enabled" bson:"enabled"`
-	IsDeleted     bool          `json:"is_deleted" bson:"is_deleted"`
-	ArchiveExpiry uint          `json:"archive_expiry" bson:"archive_expiry"`
-	BlockTime     uint          `json:"block_time" bson:"block_time"`
-	ArchiveTime   uint          `json:"archive_time" bson:"archive_time"`
-	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
-	LastModified  time.Time     `json:"last_modified" bson:"last_modified"`
+	ID                      bson.ObjectID `json:"id" bson:"_id"`
+	BlockTime               uint32        `json:"block_time" bson:"block_time"`
+	ArchiveTime             uint32        `json:"archive_time" bson:"archive_time"`
+	PasswordExpiry          uint32        `json:"password_expiry" bson:"password_expiry"`
+	CreatedAtPasswordExpiry time.Time     `json:"created_at_password_expiry" bson:"created_at_password_expiry"`
+	UpdatedAtPasswordExpiry time.Time     `json:"updated_at_password_expiry" bson:"updated_at_password_expiry"`
+	CreatedAtBlock          time.Time     `json:"created_at_block" bson:"created_at_block"`
+	UpdatedAtBlock          time.Time     `json:"updated_at_block" bson:"updated_at_block"`
+	CreatedAtArchive        time.Time     `json:"created_at_archive" bson:"created_at_archive"`
+	UpdatedAtArchive        time.Time     `json:"updated_at_archive" bson:"updated_at_archive"`
 }
 
 type HQRespose struct {
@@ -26,9 +27,26 @@ type HQRespose struct {
 	Total int64 `json:"total"`
 }
 
+type BlockTimeResponse struct {
+	BlockTime      uint32    `json:"block_time"`
+	CreatedAtBlock time.Time `json:"created_at_block"`
+	UpdatedAtBlock time.Time `json:"updated_at_block"`
+}
+
+type ArchiveTimeResponse struct {
+	ArchiveTime      uint32    `json:"archive_time"`
+	CreatedAtArchive time.Time `json:"created_at_archive"`
+	UpdatedAtArchive time.Time `json:"updated_at_archive"`
+}
+
+type PasswordExpiryResponse struct {
+	PasswordExpiry          uint32    `json:"password_expiry"`
+	CreatedAtPasswordExpiry time.Time `json:"created_at_password_expiry"`
+	UpdatedAtPasswordExpiry time.Time `json:"updated_at_password_expiry"`
+}
+
 type UpdateBlockTimeRequest struct {
-	ID         string `json:"id"`
-	BlockTime  uint   `json:"block_time"`
+	BlockTime  uint32 `json:"block_time"`
 	MakerID    string `json:"maker_id"`
 	MakerName  string `json:"maker_name,omitempty"`
 	MakerPhone string `json:"maker_phone,omitempty"`
@@ -36,12 +54,19 @@ type UpdateBlockTimeRequest struct {
 }
 
 type UpdateArchiveTimeRequest struct {
-	ID          string `json:"id"`
-	ArchiveTime uint   `json:"archive_time"`
+	ArchiveTime uint32 `json:"archive_time"`
 	MakerID     string `json:"maker_id"`
 	MakerName   string `json:"maker_name,omitempty"`
 	MakerPhone  string `json:"maker_phone,omitempty"`
 	Department  string `json:"department,omitempty"`
+}
+
+type UpdatePasswordExpiryRequest struct {
+	PasswordExpiry uint32 `json:"password_expiry"`
+	MakerID        string `json:"maker_id"`
+	MakerName      string `json:"maker_name,omitempty"`
+	MakerPhone     string `json:"maker_phone,omitempty"`
+	Department     string `json:"department,omitempty"`
 }
 
 type ApproveRejectRequest struct {

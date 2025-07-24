@@ -21,4 +21,5 @@ type OutboundInfra interface {
 	FetchLinkedAccountById(ctx context.Context, id []string) ([]domain.LinkedAccount, error)
 	UpdateAccounts(ctx context.Context, linkedAccounts []domain.LinkedAccount) ([]domain.LinkedAccount, error)
 	UpdateAccount(ctx context.Context, linkedAccount domain.LinkedAccount) (domain.LinkedAccount, error)
+	FindPendingAction(ctx context.Context, requestAction string, department string) (domain.CPSAction, error)
 }

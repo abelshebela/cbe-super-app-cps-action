@@ -18,6 +18,10 @@ type ApplicationAbstracts interface {
 	GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*domain_hq.HQ], error)
 	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
 	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
+	GetBlockTime(ctx context.Context) (dto.BlockTimeResponse, error)
+	GetArchiveTime(ctx context.Context) (dto.ArchiveTimeResponse, error)
+	GetPasswordExpiry(ctx context.Context) (dto.PasswordExpiryResponse, error)
+	UpdatePasswordExpiryRequest(ctx context.Context, request dto.UpdatePasswordExpiryRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
 }
 
 type ApplicationStore struct {
@@ -42,18 +46,50 @@ func (a *ApplicationStore) GetHQ(ctx context.Context, id string) (dto.HQ, error)
 		return dto.HQ{}, err
 	}
 	return dto.HQ{
-		ID:             hq.ID.Hex(),
-		Name:           hq.Name,
-		BlockTime:      hq.BlockTime,
-		ArchiveTime:    hq.ArchiveTime,
-		CreatedAt:      hq.CreatedAt,
-		LastModifiedAt: hq.LastModified,
+		ID:          hq.ID.Hex(),
+		BlockTime:   hq.BlockTime,
+		ArchiveTime: hq.ArchiveTime,
+	}, nil
+}
+
+func (a *ApplicationStore) GetBlockTime(ctx context.Context) (dto.BlockTimeResponse, error) {
+	resp, err := a.service.GetBlockTime(ctx)
+	if err != nil {
+		return dto.BlockTimeResponse{}, err
+	}
+	return dto.BlockTimeResponse{
+		BlockTime:      resp.BlockTime,
+		CreatedAtBlock: resp.CreatedAtBlock,
+		UpdatedAtBlock: resp.UpdatedAtBlock,
+	}, nil
+}
+
+func (a *ApplicationStore) GetArchiveTime(ctx context.Context) (dto.ArchiveTimeResponse, error) {
+	resp, err := a.service.GetArchiveTime(ctx)
+	if err != nil {
+		return dto.ArchiveTimeResponse{}, err
+	}
+	return dto.ArchiveTimeResponse{
+		ArchiveTime:      resp.ArchiveTime,
+		CreatedAtArchive: resp.CreatedAtArchive,
+		UpdatedAtArchive: resp.UpdatedAtArchive,
+	}, nil
+}
+
+func (a *ApplicationStore) GetPasswordExpiry(ctx context.Context) (dto.PasswordExpiryResponse, error) {
+	resp, err := a.service.GetPasswordExpiry(ctx)
+	if err != nil {
+		return dto.PasswordExpiryResponse{}, err
+	}
+	return dto.PasswordExpiryResponse{
+		PasswordExpiry:          resp.PasswordExpiry,
+		CreatedAtPasswordExpiry: resp.CreatedAtPasswordExpiry,
+		UpdatedAtPasswordExpiry: resp.UpdatedAtPasswordExpiry,
 	}, nil
 }
 
 func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
 	return a.service.UpdateBlockTimeRequest(ctx, domain_hq.UpdateBlockTimeRequest{
-		ID:         request.ID,
 		BlockTime:  request.BlockTime,
 		MakerID:    makerID,
 		MakerName:  fullName,
@@ -64,11 +100,20 @@ func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request d
 
 func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
 	return a.service.UpdateArchiveTimeRequest(ctx, domain_hq.UpdateArchiveTimeRequest{
-		ID:          request.ID,
 		ArchiveTime: request.ArchiveTime,
 		MakerID:     makerID,
 		MakerName:   fullName,
 		MakerPhone:  phone,
 		Department:  dept,
+	})
+}
+
+func (a *ApplicationStore) UpdatePasswordExpiryRequest(ctx context.Context, request dto.UpdatePasswordExpiryRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
+	return a.service.UpdatePasswordExpiryRequest(ctx, domain_hq.UpdatePasswordExpiryRequest{
+		PasswordExpiry: request.PasswordExpiry,
+		MakerID:        makerID,
+		MakerName:      fullName,
+		MakerPhone:     phone,
+		Department:     dept,
 	})
 }

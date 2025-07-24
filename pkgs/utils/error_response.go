@@ -158,6 +158,7 @@ var errorKeyToStatus = map[string]int{
 	"GENERAL_DB_QUERY_FAILED":                                    http.StatusInternalServerError,
 	"ERROR_WHILE_CHECKING_PENDING_ACTION":                        http.StatusInternalServerError,
 	"INVALID_OBJECT_ID":                                          http.StatusBadRequest,
+	"MAX_NOT_BE_LESS":                                            http.StatusBadRequest,
 	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
 	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
 
