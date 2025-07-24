@@ -306,7 +306,7 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 		}
 	}
 
-	if dataColor.ID == colorData.ID {
+	if dataColor.ID != colorData.ID {
 		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
 	}
 	makerData := contexts.ExtractContext(ctx)
