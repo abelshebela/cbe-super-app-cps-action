@@ -85,9 +85,8 @@ type Persitence struct {
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
 
-	ActionPersistence          *action_repo.ActionRepo
+	// ActionPersistence          *action_repo.ActionRepo
 }
-
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
 	collectionNames := []string{
