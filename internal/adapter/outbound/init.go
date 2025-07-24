@@ -29,6 +29,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	cpsconstants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
@@ -124,6 +125,22 @@ func NewServiceDetailsPersistence(client *mongo.Client, dbName string, collectio
 	}
 }
 
+func (p *outboundStore) FindPendingAction(ctx context.Context, requestAction string, department string) (domain.CPSAction, error) {
+	filter := bson.M{
+		"request_action": requestAction,
+		"department":     department,
+		"action_status":  string(cpsconstants.ActionPending),
+	}
+	// fmt.Println("filter", filter)
+	result, err := p.MongoDalCPSAction.FindOne(ctx, filter, nil)
+	if err != nil {
+		return domain.CPSAction{}, err
+	}
+	if result == nil {
+		return domain.CPSAction{}, nil
+	}
+	return modelToDomainCPSAction(*result), nil
+}
 func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {

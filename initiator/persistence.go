@@ -52,6 +52,7 @@ import (
 	cps_Actions_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/cps_action"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 
+	action_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/wallet"
 )
 
@@ -81,6 +82,7 @@ type Persitence struct {
 	EventPersistence           *event_persistence.EventPersistence
 	CPSActionsPersistance      cps_actions.CPSActionRepository
 	BudgetCategoryPersistence  budget_category_repo.BudgetCategoryRepoInterface
+	ActionPersistence          *action_repo.ActionRepo
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -144,5 +146,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		// BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		CPSActionsPersistance:     cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
 		BudgetCategoryPersistence: budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
+		ActionPersistence:         action_repo.NewActionRepo(client, databaseName, []string{"cps_actions"}, logger).(*action_repo.ActionRepo),
 	}
 }
