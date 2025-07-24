@@ -276,7 +276,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 
 		if authTierNext.MaxAmount <= request.MaxAmount {
 			a.logger.Errorf("Max amount can't be Greater than next")
-			return nil, fmt.Errorf(common_util.CurrentMaxGreaterThanNext)
+			return nil, fmt.Errorf("CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT")
 		}
 	}
 

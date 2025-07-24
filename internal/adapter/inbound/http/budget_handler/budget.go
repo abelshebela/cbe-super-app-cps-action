@@ -47,7 +47,7 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 
 	if !allowedImageTypes[fileHeader.Header.Get("Content-Type")] {
 		h.logger.Errorf("invalid file type: %v", fileHeader.Header.Get("Content-Type"))
-		common_util.SendErrorResponse(w, "Only image file formats are allowed", http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, "INVALID_IMG_FORMAT", http.StatusBadRequest, nil)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 	action, err := h.budgetService.CreateIcon(r.Context(), cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to create budget icon: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request)
 	icons, err := h.budgetService.FetchIcons(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("failed to fetch budget icons: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 	data, _ := common_util.StructToMap(icons)
