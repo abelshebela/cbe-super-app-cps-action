@@ -872,11 +872,19 @@ func stringToPointer(s string) *string {
 }
 
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
-	projection := bson.M{}
-	prevFilter := bson.M{
-		"unique_id":  cpsAction.UniqueId,
-		"maker_id":   cpsAction.MakerID,
-		"maker_name": cpsAction.MakerName,
+	makerData := contexts.ExtractContext(ctx)
+	pendingFilter := bson.M{
+		"maker_id":       makerData.UserID,
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": "CREATE_CPS_USER",
+	}
+	pendingAction, err := o.MongoDalCPSAction.FindOne(ctx, pendingFilter, nil)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	data, err := common_util.JsonUnmarshal[model.CPSUser](cpsAction.CurrentAction)
@@ -884,57 +892,75 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 		return nil, err
 	}
 
-	// Check for existing user by phone, email, username, or user_code
-	filter := bson.M{
+	dupFilter := bson.M{
 		"$or": []bson.M{
 			{"phone_number": data.PhoneNumber},
 			{"email": data.Email},
 			{"username": data.UserName},
 		},
 	}
-	existing, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	existing, err := o.MongoDalCPSUser.FindOne(ctx, dupFilter, nil)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
-
 	if existing != nil {
 		if data.PhoneNumber == existing.PhoneNumber {
 			return nil, fmt.Errorf("PHONE_NUMBER_EXISTS")
-		} else if data.Email == existing.Email {
+		}
+		if data.Email == existing.Email {
 			return nil, fmt.Errorf("EMAIL_ALREADY_EXISTS")
-		} else if data.UserName == existing.UserName {
+		}
+		if data.UserName == existing.UserName {
 			return nil, fmt.Errorf("USERNAME_ALREADY_EXISTS")
 		}
 	}
 
-	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
+	prevFilter := bson.M{
+		"unique_id":  cpsAction.UniqueId,
+		"maker_id":   cpsAction.MakerID,
+		"maker_name": cpsAction.MakerName,
+	}
+	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, bson.M{})
 	if err == nil && previosCPSAction != nil {
 		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
 	createdAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		return nil, fmt.Errorf("database error while creating user request action")
+		return nil, fmt.Errorf("DATABASE_CREATE_FAILED")
 	}
 
 	return &createdAction, nil
 }
 
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
-	cpsUserFilter := bson.M{
-		"user_code":  userCode,
-		"is_deleted": false,
+	projection := bson.M{}
+
+	makerData := contexts.ExtractContext(ctx)
+
+	pendingFilter := bson.M{
+		"maker_id":       makerData.UserID,
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": "UPDATE_CPS_USER",
+	}
+	pendingAction, err := o.MongoDalCPSAction.FindOne(ctx, pendingFilter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
-	// Unmarshal updated user info from CPSAction
 	data, err := common_util.JsonUnmarshal[model.CPSUser](cpsAction.CurrentAction)
 	if err != nil {
 		return nil, err
 	}
 
-	projection := bson.M{}
-
-	// Ensure the user to update exists
+	cpsUserFilter := bson.M{
+		"user_code":  userCode,
+		"is_deleted": false,
+	}
 	_, err = o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -943,7 +969,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
-	// Check for duplicates in email, phone number, and username excluding this user
 	duplicateFilter := bson.M{
 		"$and": []bson.M{
 			{"user_code": bson.M{"$ne": userCode}},
@@ -957,13 +982,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 			},
 		},
 	}
-
-	fmt.Println("1")
 	duplicate, err := o.MongoDalCPSUser.FindOne(ctx, duplicateFilter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
-	fmt.Println("2", duplicate)
 	if duplicate != nil {
 		if duplicate.PhoneNumber == data.PhoneNumber {
 			return nil, fmt.Errorf("PHONE_NUMBER_EXISTS")
@@ -976,7 +998,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
-	// Retrieve and attach previous CPS action
 	prevFilter := bson.M{
 		"unique_id":  cpsAction.UniqueId,
 		"maker_id":   cpsAction.MakerID,
@@ -987,7 +1008,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		cpsAction.PreviousAction = previosCPSAction.CurrentAction
 	}
 
-	// Create new CPSAction for update
 	updatedAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		return nil, fmt.Errorf("DATABASE_INSERT_FAILED")
@@ -1211,8 +1231,8 @@ func (o *outboundStore) AuthorizeCreate(ctx context.Context, action *cps_entity.
 	data.Country = ""
 	data.Region = ""
 	data.Enabled = true
-	data.Realm = "bank"
-	data.PasswordDisable = false
+	data.Realm = "BANK"
+	data.PasswordDisable = true
 	data.SyncDisabled = false
 	data.LoginAttemptCount = 0
 	data.NextLoginAttempt = time.Now()
