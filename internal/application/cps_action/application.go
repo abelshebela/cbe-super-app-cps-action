@@ -16,7 +16,7 @@ import (
 type CPSActionApplication interface {
 	ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error)
 	RejectCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error)
-	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
+	GetCPSActionsByDepartment(ctx context.Context, department string, status string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
 	GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error)
 }
@@ -35,12 +35,8 @@ func NewCPSActionApplication(service service.CPSActionService, services applicat
 	}
 }
 
-func (a *cpsActionApplication) CPSActionExists(ctx context.Context, uniqueID string) (bool, error) {
-	return a.service.CPSActionExists(ctx, uniqueID)
-}
-
 func PrettyPrintJSON(data interface{}) error {
-	prettyJSON, err := json.MarshalIndent(data, "", "  ") // 2 spaces indent
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -69,8 +65,8 @@ func (a *cpsActionApplication) RejectCPSAction(ctx context.Context, action *enti
 	return a.service.RejectCPSAction(ctx, action)
 }
 
-func (a *cpsActionApplication) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error) {
-	return a.service.GetCPSActionsByDepartment(ctx, department, filterParams)
+func (a *cpsActionApplication) GetCPSActionsByDepartment(ctx context.Context, department string, status string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error) {
+	return a.service.GetCPSActionsByDepartment(ctx, department, status, filterParams)
 }
 
 func (a *cpsActionApplication) GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error) {

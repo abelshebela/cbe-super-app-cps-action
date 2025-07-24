@@ -1,6 +1,7 @@
 package faydaaccount
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -27,9 +28,8 @@ func InitFaydaAdapter(faydaAccountHandler faydaaccount.ApplicationService, logge
 	}
 }
 
-func (f *FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter, r *http.Request) {
-	var req faydaaccount.ActionDisableData
-
+func (f *FaydaAccountAdapter) handleFaydaAccountAction(w http.ResponseWriter, r *http.Request, actionData interface{}, handlerFunc func(context.Context, entities.CPSAction) error,
+) {
 	userCode, ok := common_util.GetParam(r, "user_code")
 	if !ok {
 		f.logger.Errorf("missing or invalid parameter 'user_code'")
@@ -37,69 +37,57 @@ func (f *FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter,
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		f.logger.Errorf("failed to bind action data", err)
+	if err := json.NewDecoder(r.Body).Decode(actionData); err != nil {
+		f.logger.Errorf("failed to bind action data: %v", err)
 		constant_util.SendErrorResponse(w, constant_util.InvalidInput, 0, nil)
 		return
 	}
 
-	var cpsAction entities.CPSAction
-	req.UseCode = userCode
-
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
-		f.logger.Errorf("incomplete user context", "request_id")
+		f.logger.Errorf("incomplete user context")
 		constant_util.SendErrorResponse(w, constant_util.IncompleteUserInfo, 0, nil)
 		return
 	}
 
-	cpsAction.MakerID = userContext.UserID
-	cpsAction.MakerName = userContext.FullName
-	cpsAction.MakerPhoneNumber = userContext.PhoneNumber
+	switch v := actionData.(type) {
+	case *faydaaccount.ActionDisableData:
+		v.UseCode = userCode
+	case *faydaaccount.ActionEnableData:
+		v.UseCode = userCode
+	}
 
-	cpsAction.CurrentAction = req
-	cpsAction.Department = userContext.Department
+	cpsAction := entities.CPSAction{
+		MakerID:          userContext.UserID,
+		MakerName:        userContext.FullName,
+		MakerPhoneNumber: userContext.PhoneNumber,
+		Department:       userContext.Department,
+		CurrentAction:    actionData,
+	}
 
-	err := f.FaydaAccountHandler.InitiateDisableFaydaAccount(r.Context(), cpsAction)
+	err := handlerFunc(r.Context(), cpsAction)
 	if err != nil {
 		constant_util.SendErrorResponse(w, err.Error(), 500, nil)
 		return
 	}
 
-	constant_util.WriteSuccessResponse(w, nil, "Successfuly Fayda Request initiated")
+	constant_util.WriteSuccessResponse(w, nil, "Successfully Fayda Request initiated")
+}
+
+func (f *FaydaAccountAdapter) InitiateDisableFaydaAccount(w http.ResponseWriter, r *http.Request) {
+	f.handleFaydaAccountAction(
+		w,
+		r,
+		&faydaaccount.ActionDisableData{},
+		f.FaydaAccountHandler.InitiateDisableFaydaAccount,
+	)
 }
 
 func (f *FaydaAccountAdapter) InitiateEnableFaydaAccount(w http.ResponseWriter, r *http.Request) {
-	var req faydaaccount.ActionEnableData
-
-	userCode, ok := common_util.GetParam(r, "user_code")
-	if !ok {
-		f.logger.Errorf("missing or invalid parameter 'user_code'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	var cpsAction entities.CPSAction
-	req.UseCode = userCode
-
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		f.logger.Errorf("incomplete user context", "request_id")
-		constant_util.SendErrorResponse(w, constant_util.IncompleteUserInfo, 0, nil)
-		return
-	}
-
-	cpsAction.MakerID = userContext.UserID
-	cpsAction.MakerName = userContext.FullName
-	cpsAction.MakerPhoneNumber = userContext.PhoneNumber
-	cpsAction.Department = userContext.Department
-
-	cpsAction.CurrentAction = req
-	err := f.FaydaAccountHandler.InitiateEnableFaydaAccount(r.Context(), cpsAction)
-	if err != nil {
-		constant_util.SendErrorResponse(w, err.Error(), 500, nil)
-		return
-	}
-
-	constant_util.WriteSuccessResponse(w, nil, "Successfuly Fayda Request initiated")
+	f.handleFaydaAccountAction(
+		w,
+		r,
+		&faydaaccount.ActionEnableData{},
+		f.FaydaAccountHandler.InitiateEnableFaydaAccount,
+	)
 }

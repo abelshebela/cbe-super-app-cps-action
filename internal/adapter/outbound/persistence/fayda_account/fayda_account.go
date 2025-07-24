@@ -5,15 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"time"
 
-	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/entity"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 
@@ -31,7 +25,7 @@ type FaydaAccountRepo struct {
 	customerDal dal.MongoDal[member.User, member.User]
 }
 
-func InitFaydaAccountPersistence(client *mongo.Client, database string, cpsCollection []string, logger utils.Logger) outbound.FaydaAccountRepository {
+func InitFaydaAccountPersistence(client *mongo.Client, database string, cpsCollection []string, logger utils.Logger) outbound.FaydaRepository {
 
 	cpsDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, cpsCollection[0])
 	customerDal := dal.NewMongoDal[member.User, member.User](client, database, cpsCollection[1])
@@ -44,97 +38,7 @@ func InitFaydaAccountPersistence(client *mongo.Client, database string, cpsColle
 	}
 }
 
-func (f *FaydaAccountRepo) InitiateDisableFaydaAccount(ctx context.Context, req entities.CPSAction) (*entities.CPSAction, error) {
-
-	now := time.Now()
-	filter := bson.M{
-		"maker_phone_number": req.MakerPhoneNumber,
-		"action_status":      entity.ActionPending,
-		"department":         req.Department,
-	}
-
-	projection := bson.M{
-		"action_code": 1,
-		"_id":         1,
-	}
-
-	faydaAccount, err := f.cpsDal.FindOne(ctx, filter, projection)
-
-	if err != nil && err != mongo.ErrNoDocuments {
-		f.logger.Errorf("failed to get fayda account", err)
-
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	if faydaAccount != nil {
-		f.logger.Infof("pending cps action present", req.MakerName, req.MakerID, req.Department)
-		return nil, fmt.Errorf("pending cps action present")
-	}
-
-	actionData := make(map[string]interface{})
-	byte, err := json.Marshal(req.CurrentAction)
-	if err != nil {
-		return nil, err
-	}
-	if err = json.Unmarshal(byte, &actionData); err != nil {
-		return nil, err
-	}
-	customerFilter := bson.M{
-		"phone_number": actionData["phone_number"],
-	}
-
-	customerProjection := bson.M{
-		"is_account_blocked": 1,
-		"user_code":          1,
-		"full_name":          1,
-		"phone_number":       1,
-	}
-
-	customer, err := f.customerDal.FindOne(ctx, customerFilter, customerProjection)
-	if err != nil {
-		f.logger.Errorf("failed to get customer account", err)
-		err = fmt.Errorf("failed to get customer account %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return nil, err
-	}
-
-	if customer.IsAccountBlocked {
-		f.logger.Errorf("the user already disabled")
-		return nil, fmt.Errorf("ACCOUNT_ALREADY_DISABLED")
-	}
-
-	req.ActionStatus = cps_const.ActionPending
-	req.RequestAction = cps_const.RequestDisableFaydaAccount
-	req.ActionType = cps_const.ActionCreate
-	req.PreviousAction = map[string]any{
-		"user_code":          customer.UserCode,
-		"full_name":          customer.FullName,
-		"phone_number":       customer.PhoneNumber,
-		"is_account_blocked": customer.IsAccountBlocked,
-	}
-	req.CurrentAction = map[string]any{
-		"is_account_blocked": true,
-	}
-
-	req.MakerActionTime = now
-	req.CreatedAt = now
-	req.LastModifiedAt = now
-	act, err := entities.ToModelCPSAction(&req)
-	if err != nil {
-		return nil, err
-	}
-	cpsAction, err := f.cpsDal.InsertOne(ctx, *act)
-	if err != nil {
-		f.logger.Errorf("failed to create cps action", err)
-		return nil, fmt.Errorf("FAILED_TO_INSERT_CPS_ACTION")
-	}
-
-	return entities.ToDomainCPSAction(&cpsAction), nil
-}
-
-func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req *entities.CPSAction) (*entities.CPSAction, error) {
+func (f *FaydaAccountRepo) AuthorizeFaydaAccountEnableDisable(ctx context.Context, req *entities.CPSAction) (*entities.CPSAction, error) {
 
 	actionData := make(map[string]interface{})
 	byte, err := json.Marshal(req.PreviousAction)
@@ -165,58 +69,4 @@ func (f *FaydaAccountRepo) AuthorizeFaydaAccountDisable(ctx context.Context, req
 	}
 	req.CurrentAction = updated
 	return req, nil
-}
-
-func (f *FaydaAccountRepo) GetAllFaydaAccounts(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
-	filter["kyc.level"] = int32(1) // Only KYC level 1 users (Fayda accounts)
-
-	projection := bson.M{}
-
-	// Apply search if provided
-	if filterParams.Search != "" {
-		filter["$or"] = []bson.M{
-			{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"phone_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"fayda.id_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-		}
-	}
-
-	// Apply filters if provided
-	if filterParams.Filters != "" {
-		filter["account_status"] = filterParams.Filters
-	}
-
-	// Calculate pagination
-	skip := (filterParams.Page - 1) * filterParams.PerPage
-	limit := filterParams.PerPage
-
-	// Get total count
-	totalDocs, err := f.customerDal.TotalCount(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get total count: %w", err)
-	}
-
-	// Get paginated data
-	users, err := f.customerDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return &common_util.PaginatedResponse[[]*member.User]{
-				Data: []*member.User{},
-				Meta: common_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
-		}
-		return nil, fmt.Errorf("failed to get fayda accounts: %w", err)
-	}
-
-	// Build pagination metadata using utility function
-	meta := common_util.BuildPaginationMeta(totalDocs, filterParams.Page, filterParams.PerPage)
-
-	return &common_util.PaginatedResponse[[]*member.User]{
-		Data: users,
-		Meta: meta,
-	}, nil
 }

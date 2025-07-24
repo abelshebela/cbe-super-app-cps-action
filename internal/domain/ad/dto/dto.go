@@ -123,11 +123,13 @@ func (c CreateAdvertRequest) Validate() error {
 }
 
 type UpdateAdvertRequest struct {
-	ID          string     `json:"id"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	AdvertFor   AdvertFor  `json:"advert_for"`
-	Date        AdvertDate `json:"date"`
+	ID          string                `json:"id"`
+	Title       string                `json:"title"`
+	Description string                `json:"description"`
+	AdvertFor   AdvertFor             `json:"advert_for"`
+	BannerImage *multipart.FileHeader `form:"banner_image" json:"banner_image"`
+
+	Date AdvertDate `json:"date"`
 }
 
 func (u UpdateAdvertRequest) Validate() error {
