@@ -155,6 +155,13 @@ var errorKeyToStatus = map[string]int{
 	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
 	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
 
+	"MISSING_ACTION_DATA":   http.StatusBadRequest,
+	"INVALID_ACTION_FORMAT": http.StatusBadRequest,
+	"MISSING_ICON":          http.StatusBadRequest,
+	"FAILED_TO_AUTHORIZE":   http.StatusInternalServerError,
+	"MISSING_COLOR_ID":      http.StatusBadRequest,
+	"FAILED_COLOR_UPDATE":   http.StatusInternalServerError,
+
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
 	"AUTH_USER_DISABLED":                http.StatusForbidden,

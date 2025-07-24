@@ -728,7 +728,7 @@ var DefineError = ErrorDefinitions{
 		"COLOR_ALREADY_EXISTED": {
 			Code:    "GEN_160",
 			Message: "Color already Existed",
-    },
+		},
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_161",
 			Message: "Update request must include at least one field to modify",
@@ -749,6 +749,34 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_165",
 			Message: "Resource is already disabled",
 
+		},
+		"INVALID_ACTION_FORMAT": {
+			Code:    "GEN_166",
+			Message: "invalid action data format",
+		},
+		"MISSING_ICON": {
+			Code:    "GEN_167",
+			Message: "missing icon_id in action data",
+		},
+		"FAILED_TO_AUTHORIZE": {
+			Code:    "GEN_168",
+			Message: "failed to authorize icon creation",
+		},
+		"MISSING_COLOR_ID": {
+			Code:    "GEN_169",
+			Message: "missing color id in action data",
+		},
+		"FAILED_COLOR_UPDATE": {
+			Code:    "GEN_170",
+			Message: "color update failed",
+		},
+		"MISSING_ACTION_DATA": {
+			Code:    "GEN_171",
+			Message: "missing action data",
+		},
+		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
+			Code:    "GEN_166",
+			Message: "current max can not be greter than",
 		},
 	},
 	Auth: ErrorGroup{

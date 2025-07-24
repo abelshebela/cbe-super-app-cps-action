@@ -44,11 +44,26 @@ func (h *HttpStore) FetchAccountValidation(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	data, err := utils.StructToMap(resp)
+	data, err := utils.StructToMap(resp.Validation)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 500, nil)
 	}
 	utils.BaseResponseMaker(data, w, "Account fetched successfully", 200)
+}
+func (h *HttpStore) FetchAllAccountValidation(w http.ResponseWriter, r *http.Request) {
+	filterParams := common_util.ExtractFilterParams(r)
+	if filterParams.Page < 1 || filterParams.PerPage < 1 {
+		common_util.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
+		return
+	}
+
+	resp, err := h.Application.GetAllAccountValidation(r.Context(), common_util.Filter(*filterParams))
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	utils.BaseResponseMaker(resp, w, "Account fetched successfully", 200)
 }
 
 func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.Request) {
@@ -83,18 +98,14 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 		Department:  userContext.Department,
 	}
 
-	resp, err := h.Application.UpdateAccountValidationRequest(r.Context(), id, accountvalidation_app.ToDomainValidationRule(req), maker)
+	_, err := h.Application.UpdateAccountValidationRequest(r.Context(), id, accountvalidation_app.ToDomainValidationRule(req), maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	data, err := utils.StructToMap(resp)
-	if err != nil {
-		utils.SendErrorResponse(w, err.Error(), 500, nil)
-	}
 	message := "Update request submitted for approval"
-	utils.BaseResponseMaker(data, w, message, 200)
+	utils.BaseResponseMaker(map[string]interface{}{}, w, message, 200)
 }
 
 func (h *HttpStore) UpdateAccountValidationChecker(w http.ResponseWriter, r *http.Request) {
