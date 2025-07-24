@@ -5,15 +5,15 @@ import (
 
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type ApplicationAbstracts interface {
 	GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error)
-	GetAllAccountValidation(ctx context.Context, filterParams utils.Filter) (*utils.PaginatedResponse[[]*entities.ValidationRule], error)
+	GetAllAccountValidation(ctx context.Context, filterParams utils.Filter) (*utils.PaginatedResponse[[]*model.ValidationRule], error)
 	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, maker account_validation.User) (dto.UpdateAccountValidationResponse, error)
 	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker account_validation.User, rejectedReason string) error
 }
@@ -25,6 +25,10 @@ type ApplicationStore struct {
 
 func NewApplication(service account_validation.Service, logger sharedutils.Logger) ApplicationAbstracts {
 	return &ApplicationStore{service: service, Logger: logger}
+}
+
+func (a *ApplicationStore) GetAllAccountValidation(ctx context.Context, filterParams utils.Filter) (*utils.PaginatedResponse[[]*model.ValidationRule], error) {
+	return a.service.GetAllAccountValidation(ctx, filterParams)
 }
 
 func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error) {
