@@ -135,6 +135,7 @@ const (
 	RequestUnlinkDevice          RequestAction = "UNLINK_DEVICE"
 	RequestUpdateHQBlockTime     RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime   RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	
 )
 
 var validRequestActions = map[RequestAction]struct{}{

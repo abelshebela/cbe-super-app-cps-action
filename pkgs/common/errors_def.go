@@ -727,7 +727,7 @@ var DefineError = ErrorDefinitions{
     },
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_161",
-			Message: "you didn't provide any data to update",
+			Message: "Update request must include at least one field to modify",
 		},
 		"CONTENT_TYPE_MUST_BE_FORM": {
 			Code:    "GEN_162",

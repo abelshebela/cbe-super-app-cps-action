@@ -78,7 +78,6 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
-					middleware.RequireFormContentType(),
 				},
 			},
 		}
