@@ -24,6 +24,7 @@ type ApplicationService interface {
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
+	DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 }
 
 type Handler struct {
@@ -43,6 +44,9 @@ func (h *Handler) CreateUserRequest(ctx context.Context, r *http.Request) (*mode
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("failed to bind user data: %v", err)
+		if err.Error() == "the provided hex string is not a valid ObjectID" {
+			return nil, fmt.Errorf("INVALID_OBJECT_ID_FORMAT")
+		}
 		return nil, err
 	}
 
@@ -67,6 +71,9 @@ func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*mode
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("failed to bind user data: %v", err)
+		if err.Error() == "the provided hex string is not a valid ObjectID" {
+			return nil, fmt.Errorf("INVALID_OBJECT_ID_FORMAT")
+		}
 		return nil, err
 	}
 
@@ -114,4 +121,14 @@ func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Fil
 		return nil, err
 	}
 	return users, nil
+}
+
+func (h *Handler) DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error) {
+	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
+	if userCode == "" {
+		h.logger.Errorf("user_code is required")
+		return nil, fmt.Errorf("user_code is required")
+	}
+
+	return h.service.DeleteUserRequest(ctx, userCode)
 }

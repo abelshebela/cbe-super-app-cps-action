@@ -20,4 +20,5 @@ type DepartmentRepository interface {
 	CreateDepartment(dept entities.Department) error
 	UpdateDepartment(code string, department string, portalCards []string) error
 	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
+	CheckDepartmentExistsByName(ctx context.Context, name string) (bool, error)
 }

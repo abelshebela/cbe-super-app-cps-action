@@ -721,6 +721,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_159",
 			Message: "Username already exists. Please choose a different username.",
 		},
+		"MAKER_OR_CHECKER": {
+			Code:    "GEN_160",
+			Message: "User role can either be 'maker' or 'checker'",
+    },
 		"COLOR_ALREADY_EXISTED": {
 			Code:    "GEN_160",
 			Message: "Color already Existed",
@@ -744,6 +748,7 @@ var DefineError = ErrorDefinitions{
 		"RESOURCE_ALREADY_DISABLED": {
 			Code:    "GEN_165",
 			Message: "Resource is already disabled",
+
 		},
 	},
 	Auth: ErrorGroup{
