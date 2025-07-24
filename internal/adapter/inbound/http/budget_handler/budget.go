@@ -47,7 +47,7 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 
 	if !allowedImageTypes[fileHeader.Header.Get("Content-Type")] {
 		h.logger.Errorf("invalid file type: %v", fileHeader.Header.Get("Content-Type"))
-		common_util.SendErrorResponse(w, "Only image file formats are allowed", http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, "INVALID_IMG_FORMAT", http.StatusBadRequest, nil)
 		return
 	}
 

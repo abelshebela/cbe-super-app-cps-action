@@ -724,7 +724,7 @@ var DefineError = ErrorDefinitions{
 		"MAKER_OR_CHECKER": {
 			Code:    "GEN_160",
 			Message: "User role can either be 'maker' or 'checker'",
-    },
+		},
 		"COLOR_ALREADY_EXISTED": {
 			Code:    "GEN_160",
 			Message: "Color already Existed",
@@ -748,7 +748,6 @@ var DefineError = ErrorDefinitions{
 		"RESOURCE_ALREADY_DISABLED": {
 			Code:    "GEN_165",
 			Message: "Resource is already disabled",
-
 		},
 		"INVALID_ACTION_FORMAT": {
 			Code:    "GEN_166",
@@ -777,6 +776,14 @@ var DefineError = ErrorDefinitions{
 		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
 			Code:    "GEN_166",
 			Message: "current max can not be greter than",
+		},
+		"INVALID_IMG_FORMAT": {
+			Code:    "GEN_167",
+			Message: "Only image file formats are allowed",
+		},
+		"INVALID_OBJECT_ID": {
+			Code:    "GEN_168",
+			Message: "invalid object id",
 		},
 	},
 	Auth: ErrorGroup{

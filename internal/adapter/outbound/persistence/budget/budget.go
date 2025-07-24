@@ -14,6 +14,8 @@ import (
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
+	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -43,6 +45,20 @@ func InitBudget(client *mongo.Client, dbName string, collections []string, logge
 }
 
 func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	makerData := contexts.ExtractContext(ctx)
+	filter := bson.M{
+		"maker_id":   makerData.UserID,
+		"department": makerData.Department,
+	}
+	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if existingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
 	cpsAction.MakerActionTime = time.Now()
 	cpsAction.CreatedAt = time.Now()
 	objID := bson.NewObjectID()
@@ -98,16 +114,30 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 }
 
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	makerData := contexts.ExtractContext(ctx)
+	filter := bson.M{
+		"maker_id":   makerData.UserID,
+		"department": makerData.Department,
+	}
+	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if existingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
 	cpsAction.MakerActionTime = time.Now()
 	cpsAction.ID = bson.NewObjectID()
 	cpsAction.LastModifiedAt = time.Now()
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid object ID: %w", err)
+		return nil, fmt.Errorf("invalid object ID")
 	}
 
-	filter := bson.M{
+	filter = bson.M{
 		"_id":        objectID,
 		"is_deleted": false,
 	}
@@ -137,7 +167,22 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 }
 
 func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+
+	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
+		"maker_id":   makerData.UserID,
+		"department": makerData.Department,
+	}
+	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if existingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	filter = bson.M{
 		"color": color,
 	}
 	existing, err := b.colorDal.FindOne(ctx, filter, nil)
@@ -239,7 +284,20 @@ func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (
 
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
 
-	fmt.Println("I hab")
+	makerData := contexts.ExtractContext(ctx)
+	filter := bson.M{
+		"maker_id":   makerData.UserID,
+		"department": makerData.Department,
+	}
+	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if existingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
 	update, err := bson.Marshal(color)
 	if err != nil {
 		return nil, err
