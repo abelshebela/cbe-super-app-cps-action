@@ -90,9 +90,6 @@ type AdvertDate struct {
 	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
 }
 
-
-
-
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -344,34 +341,7 @@ type ProductCode struct {
 	ProductCode string     `bson:"product_code" json:"product_code"`
 }
 
-type CredentialInformation struct {
-	ID            string          `bson:"id" json:"id,omitempty"`
-	Environment   EnvironmentType `bson:"environment" json:"environment"`
-	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
-	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
-	ShortCode     string          `bson:"short_code" json:"short_code"`
-	AppSecret     string          `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string          `bson:"private_key" json:"private_key"`
-	PublicKey     string          `bson:"public_key" json:"public_key"`
-}
 
-type MiniApp struct {
-	ID                bson.ObjectID           `bson:"_id"`
-	AppName           string                  `bson:"app_name"`
-	AppIcon           string                  `bson:"app_icon"`
-	CommisonGLAccount string                  `bson:"commison_gl_account"`
-	AppType           AppType                 `bson:"app_type"`
-	MerchantID        string                  `bson:"merchant_id"`
-	ProductCode       []ProductCode           `bson:"product_code"`
-	Credential        []CredentialInformation `bson:"credential"`
-	IsEventMiniApp    bool                    `bson:"is_event_mini_app"`
-	IsThreeClick      bool                    `bson:"is_three_click"`
-	Enabled           bool                    `bson:"enabled"`
-	IsDeleted         bool                    `bson:"is_deleted"`
-	CreatedAt         time.Time               `bson:"created_at"`
-	LastModifiedAt    time.Time               `bson:"last_modified_at"`
-	DeletedAt         time.Time               `bson:"deleted_at"`
-}
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -393,7 +363,7 @@ type CPSUser struct {
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
 	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group,omitempty"`
 
-	Password                 Password  `json:"password" bson:"password"`
+	Password                 Password  `json:"password" bson:"password,omitempty"`
 	PasswordDisable          bool      `json:"password_disable,omitempty" bson:"password_disable,omitempty"`
 	SyncDisabled             bool      `json:"sync_disabled,omitempty" bson:"sync_disabled,omitempty"`
 	LoginAttemptCount        uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`

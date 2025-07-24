@@ -50,7 +50,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.FaydaDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "MiniAppMerchant"):
-		return d.app.MiniAppDomain.Authorize(ctx, cpsAction)
+		return d.app.MiniAppMerchantDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "HQ"):
 		return d.app.HQDomain.Authorize(ctx, cpsAction)

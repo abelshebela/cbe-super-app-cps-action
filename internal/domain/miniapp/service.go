@@ -5,85 +5,101 @@ import (
 	"fmt"
 	"time"
 
-	// bson "go.mongodb.org/mongo-driver/v2/bson"
-
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
-
-	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type MiniAppStore struct {
-	Repository outbound.MiniRepository
-	logger     utils.Logger
+	Repository  MiniRepository
+	logger      utils.Logger
+	cfg         *config.VaultConfig
+	bucketName  string
+	minioClient config.MinioClientInterface
 }
 type MiniAppService interface {
-	CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User) (*entities.CPSAction, error)
-	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
-	UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User, id string) (*entities.CPSAction, error)
+	CreateMiniAppAction(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error)
+	UpdateMiniAppAction(ctx context.Context, req dto.MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error)
+	DeleteMiniAppAction(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error)
 
-	DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (*entities.CPSAction, error)
-	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error)
-	DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error)
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
+	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
 }
 
-func NewService(repository outbound.MiniRepository, logger utils.Logger) MiniAppService {
+func NewService(bucketName string, minioClient config.MinioClientInterface, repository MiniRepository, cfg *config.VaultConfig, logger utils.Logger) MiniAppService {
 	return &MiniAppStore{
-		Repository: repository,
-		logger:     logger,
+		Repository:  repository,
+		logger:      logger,
+		cfg:         cfg,
+		bucketName:  bucketName,
+		minioClient: minioClient,
 	}
 }
 
-func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, miniApp MiniApp, maker model.User) (*entities.CPSAction, error) {
+func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req dto.MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error) {
+	data := buildMiniAppFromRequest(req, "", true)
+	now := time.Now()
+
+	var URL string
+	if req.AppIcon != nil {
+		url, err := common_util.UploadFileToMinio(
+			ctx,
+			s.minioClient,
+			s.bucketName,
+			req.AppIcon,
+			"advert",
+			s.cfg.MinioEndPoint,
+			s.logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		URL = url
+	}
+
+	data.AppIcon = URL
+
 	action := entities.CPSAction{
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          maker.UserCode,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
 		Department:       maker.Department,
-		MakerActionTime:  time.Now(),
 		ActionType:       constant.ActionCreate,
 		RequestAction:    constant.RequestCreateMiniAppMerchant,
 		ActionStatus:     constant.ActionPending,
-		CurrentAction:    miniApp,
-		CreatedAt:        time.Now(),
-		LastModifiedAt:   time.Now(),
+		CurrentAction:    data,
+		MakerActionTime:  now,
+		CreatedAt:        now,
+		LastModifiedAt:   now,
 	}
 
-	cpsAction, err := s.Repository.CreateMiniAppAction(ctx, &action)
-	if err != nil {
-		return nil, err
-	}
-	return cpsAction, nil
+	return &action, nil
 }
 
 func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
-
-	prevData, Serr := s.Repository.ExtractActionData(action.PreviousAction)
-	if Serr != nil {
-		return nil, Serr
-	}
-
 	requestedAction := action.RequestAction
-	var minApp *model.MiniApp
+
+	var minApp *MiniApp
 	var err error
 	switch requestedAction {
 	case constant.RequestCreateMiniAppMerchant:
 		minApp, err = s.Repository.CreateMiniApp(ctx, action)
 	case constant.RequestUpdateMiniAppMerchant:
-		minApp, err = s.Repository.UpdateMinApp(ctx, action, prevData.ID.Hex())
+		minApp, err = s.Repository.UpdateMinApp(ctx, action)
 	case constant.RequestDeleteMiniAppMerchant:
-		minApp, err = s.Repository.DeleteMiniAppAction(ctx, prevData.ID.Hex())
-
+		minApp, err = s.Repository.DeleteMiniAppAction(ctx, action)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}
+
 	if err != nil {
 		fmt.Printf("error form domain chekmiiapp to crate mini app : %v", err)
 		return nil, err
@@ -93,67 +109,137 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	return action, nil
 }
 
-func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, data MiniApp, maker model.User, id string) (*entities.CPSAction, error) {
-
+func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req dto.MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error) {
 	prevData, err := s.Repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+
+	data := buildMiniAppFromRequest(req, id, false)
+	now := time.Now()
+
+	var url string
+	if req.AppIcon != nil {
+		url, err = common_util.UploadFileToMinio(
+			ctx,
+			s.minioClient,
+			s.bucketName,
+			req.AppIcon,
+			"advert",
+			s.cfg.MinioEndPoint,
+			s.logger,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	data.AppIcon = url
+
 	action := entities.CPSAction{
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          maker.UserCode,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
 		Department:       maker.Department,
-		MakerActionTime:  time.Now(),
 		ActionType:       constant.ActionUpdate,
 		RequestAction:    constant.RequestUpdateMiniAppMerchant,
 		ActionStatus:     constant.ActionPending,
 		CurrentAction:    data,
 		PreviousAction:   prevData,
+		MakerActionTime:  now,
 	}
-	a, err := s.Repository.CreateMiniAppAction(ctx, &action)
+
+	return &action, nil
+}
+
+func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error) {
+
+	miniApp, err := s.Repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return a, nil
-}
 
-func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker model.User, id string) (*entities.CPSAction, error) {
-	actionId := utils.Random(10, &utils.PreSufix{Prefix: "CPS_DEL_"})
-	miniApp, err := s.Repository.DetailMiniAppByID(ctx, id)
 	currentAction := miniApp
 	currentAction.IsDeleted = true
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch mini app by id: %w", err)
-	}
 
+	now := time.Now()
 	action := entities.CPSAction{
-		ActionCode:       actionId,
+		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          maker.UserCode,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
-		MakerActionTime:  time.Now(),
 		Department:       maker.Department,
 		ActionType:       constant.ActionDelete,
 		RequestAction:    constant.RequestDeleteMiniAppMerchant,
 		ActionStatus:     constant.ActionPending,
 		PreviousAction:   miniApp,
 		CurrentAction:    currentAction,
-		LastModifiedAt:   time.Now(),
+		MakerActionTime:  now,
+		LastModifiedAt:   now,
 	}
-	a, err := s.Repository.CreateMiniAppAction(ctx, &action)
-	if err != nil {
-		return nil, err
-	}
-	return a, nil
+
+	return &action, nil
 }
 
-func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*model.MiniApp], error) {
-	miniApps, err := s.Repository.ListMiniApp(ctx, filterParam)
-	return miniApps, err
+func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error) {
+	return s.Repository.ListMiniApp(ctx, filterParam)
 }
 
-func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (model.MiniApp, error) {
+func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error) {
 	return s.Repository.DetailMiniAppByID(ctx, id)
+}
+
+func buildMiniAppFromRequest(req dto.MiniAppCreateRequest, id string, withTimestamps bool) MiniApp {
+	now := time.Now()
+
+	productCodes := make([]ProductCode, 0, len(req.ProductCode))
+	for _, pc := range req.ProductCode {
+		productCodes = append(productCodes, ProductCode{
+			ID:          pc.ID,
+			BranchType:  BranchType(pc.BranchType),
+			ProductCode: pc.ProductCode,
+		})
+	}
+
+	credentials := make([]CredentialInformation, 0, len(req.Credential))
+	for _, cred := range req.Credential {
+		credentials = append(credentials, CredentialInformation{
+			Environment:   EnvironmentType(cred.Environment),
+			MerchantAppID: cred.MerchantAppID,
+			FabricAppID:   cred.FabricAppID,
+			ShortCode:     cred.ShortCode,
+			AppSecret:     cred.AppSecret,
+			PrivateKey:    cred.PrivateKey,
+			PublicKey:     cred.PublicKey,
+		})
+	}
+
+	miniApp := MiniApp{
+		ID:                id,
+		AppName:           req.AppName,
+		CommisonGLAccount: req.CommisonGLAccount,
+		AppType: AppType{
+			UAT:        req.AppType.UAT,
+			Production: req.AppType.Production,
+			Test:       req.AppType.Test,
+			Dev:        req.AppType.Dev,
+		},
+		MerchantID:     req.MerchantID,
+		ProductCode:    productCodes,
+		Credential:     credentials,
+		IsEventMiniApp: req.IsEventMiniApp,
+		IsThreeClick:   req.IsThreeClick,
+		Enabled:        req.Enabled,
+	}
+
+	if withTimestamps {
+		miniApp.CreatedAt = now
+		miniApp.LastModifiedAt = now
+		miniApp.DeletedAt = time.Time{}
+	} else {
+		miniApp.LastModifiedAt = now
+	}
+
+	return miniApp
 }

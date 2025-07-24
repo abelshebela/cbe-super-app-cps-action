@@ -792,6 +792,14 @@ var DefineError = ErrorDefinitions{
 		"MAX_NOT_BE_LESS": {
 			Code:    "GEN_168",
 			Message: "max length not be less than min length",
+    },
+		"METHOD_NOT_ALLOWED": {
+			Code:    "GEN_169",
+			Message: "Method not allowed",
+		},
+		"RESOURCE_INFORMATION_ALREADY_EXISTS": {
+			Code:    "GEN_170",
+			Message: "One or more fields already exists",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1392,10 +1400,6 @@ var DefineError = ErrorDefinitions{
 		"WALLET_TRANSACTION_ALREADY_EXISTS": {
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
-		},
-		"WALLET_INFORMATION_ALREADY_EXISTST": {
-			Code:    "WAL_014",
-			Message: "One or more fields already exists",
 		},
 	},
 	AD: ErrorGroup{

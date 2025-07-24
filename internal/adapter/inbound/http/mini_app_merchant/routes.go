@@ -1,4 +1,4 @@
-package miniapphandler
+package miniappmerchant
 
 import (
 	"net/http"
@@ -7,17 +7,17 @@ import (
 
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
+	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/mini_app_merchant"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/mini-apps", func(r chi.Router) {
+func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppMerchantInbound, authMiddleware middleware.AuthMiddleware) {
+	router.Route("/mini-app-merchants", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
 				Path:    "/",
-				Handler: handler.MakerCreateMiniApp,
+				Handler: handler.CreateMiniAppMerchant,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
@@ -26,7 +26,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 			{
 				Method:  http.MethodPatch,
 				Path:    "/{id}",
-				Handler: handler.MakerUpdateMiniApp,
+				Handler: handler.UpdateMiniAppMerchant,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
@@ -35,7 +35,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 			{
 				Method:  http.MethodDelete,
 				Path:    "/{id}",
-				Handler: handler.MakerDeleteMiniApp,
+				Handler: handler.DeleteMiniAppMerchant,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
@@ -44,7 +44,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 			{
 				Method:  http.MethodGet,
 				Path:    "/",
-				Handler: handler.ListMiniApp,
+				Handler: handler.GetAllMiniAppMerchant,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
@@ -53,10 +53,28 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 			{
 				Method:  http.MethodGet,
 				Path:    "/{id}",
-				Handler: handler.DetailMiniAppByID,
+				Handler: handler.GetMiniAppMerchant,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/enable/{id}",
+				Handler: handler.Enable,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/disable/{id}",
+				Handler: handler.Disable,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 		}

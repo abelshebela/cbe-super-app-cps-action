@@ -46,52 +46,6 @@ func InitADHandler(adDomain service.AdvertService, minioClinet config.MinioClien
 	}
 }
 
-func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
-	action, err := a.adDomain.CreateOneAdvert(ctx, adCpsReq)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// check pending action
-	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return a.cpsService.CreateCPSAction(ctx, action)
-
-}
-
-func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
-
-	action, err := a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return a.cpsService.CreateCPSAction(ctx, action)
-}
-
 func (a ADHandler) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.AdvertResponse], error) {
 	adverts, err := a.adDomain.GetAllAdvert(ctx, filterParams)
 	if err != nil {
@@ -109,15 +63,35 @@ func (a ADHandler) GetOneAdvert(ctx context.Context, id string) (*entity.AdvertR
 
 	return advert, nil
 }
+func (a ADHandler) CreateOneAdvert(ctx context.Context, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
+	return a.handleAdvertMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.adDomain.CreateOneAdvert(ctx, adCpsReq)
+	}, "[ad.CreateOneAdvert]")
+}
 
 func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error) {
-	action, err := a.adDomain.UpdateOneAdvert(ctx, id, cpsAction)
+	return a.handleAdvertMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.adDomain.UpdateOneAdvert(ctx, id, cpsAction)
+	}, "[ad.UpdateOneAdvert]")
+}
 
+func (a ADHandler) DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
+	return a.handleAdvertMakerAction(ctx, func() (*entities.CPSAction, error) {
+		return a.adDomain.DeleteOneAdvert(ctx, id, adCpsReq)
+	}, "[ad.DeleteOneAdvert]")
+}
+
+func (a ADHandler) handleAdvertMakerAction(
+	ctx context.Context,
+	buildAction func() (*entities.CPSAction, error),
+	logPrefix string,
+) (*entities.CPSAction, error) {
+	action, err := buildAction()
 	if err != nil {
+		a.logger.Errorf("%s build action error: %v", logPrefix, err)
 		return nil, err
 	}
 
-	// check pending action
 	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
 		UserCode:      action.MakerID,
 		FullName:      action.MakerName,
@@ -125,8 +99,8 @@ func (a ADHandler) UpdateOneAdvert(ctx context.Context, id string, cpsAction mod
 		PhoneNumber:   action.MakerPhoneNumber,
 		RequestAction: string(action.RequestAction),
 	})
-
 	if err != nil {
+		a.logger.Errorf("%s duplicate check failed: %v", logPrefix, err)
 		return nil, err
 	}
 
