@@ -725,7 +725,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_160",
 			Message: "Color already Existed",
 		},
-		},
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_161",
 			Message: "you didn't provide any data to update",
