@@ -1,7 +1,6 @@
 package wallet
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -82,17 +81,30 @@ func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
+	var updateRequest dto.UpdateWalletRequest
+
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		wa.logger.Errorf("missing or invalid parameter 'id'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
-	var updateRequest dto.UpdateWalletRequest
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "avatar", 10<<20)
+	if err != nil && err.Error() != common_util.ErrMissingFile {
+		wa.logger.Errorf("error parsing file: %v", err)
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
+		return
+	}
+	if file != nil {
+		defer file.Close()
+	}
 
-	if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
-		wa.logger.Errorf("invalid input", err)
-		common_util.SendErrorResponse(w, common_util.InvalidReq, 0, nil)
+	updateRequest.Name = r.FormValue("name")
+	updateRequest.Code = r.FormValue("code")
+	updateRequest.Avatar = fileHeader
+
+	if updateRequest.Name == "" && updateRequest.Code == "" && fileHeader == nil {
+		common_util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", http.StatusBadRequest, nil)
 		return
 	}
 
@@ -103,8 +115,7 @@ func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
-	_, err = wa.walletHandler.UpdateWallet(ctx, id, *cpsReq)
+	_, err = wa.walletHandler.UpdateWallet(r.Context(), id, *cpsReq)
 	if err != nil {
 		wa.logger.Errorf("failed to update wallet", err)
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -145,11 +156,8 @@ func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 
-
 	fmt.Print(filterParams.Page, "page")
 	fmt.Print(filterParams.PerPage, "per page")
-
-
 
 	ctx := r.Context()
 	wallets, err := wa.walletHandler.GetAllWallet(ctx, filterParams)

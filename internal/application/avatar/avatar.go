@@ -5,8 +5,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -14,70 +16,90 @@ import (
 type AvatarApplication struct {
 	avatarDomain avatar.AvatarDomainService
 	logger       utils.Logger
+	cpsService   cps_service.CPSActionService
 }
 
 type AvatarApplicationService interface {
-	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error)
-	DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error)
-	// Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error)
-	Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error)
+	CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*entities.CPSAction, error)
+	DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error)
 	EnableOrDisableAvatar(ctx context.Context, id string,
-		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error)
+		requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*entities.CPSAction, error)
 	GetAvatar(ctx context.Context, id string) (*avatar.Avatar, error)
 	GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*avatar.Avatar], error)
-	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error)
+	UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error)
 }
 
-func InitAvatarAPP(avatar_domain avatar.AvatarDomainService, logger utils.Logger) AvatarApplicationService {
+func InitAvatarAPP(avatar_domain avatar.AvatarDomainService,
+	cpsService cps_service.CPSActionService,
+	logger utils.Logger) AvatarApplicationService {
 	return &AvatarApplication{
 		avatarDomain: avatar_domain,
 		logger:       logger,
+		cpsService:   cpsService,
 	}
 }
 
-func (a *AvatarApplication) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error) {
-	cpsRes, err := a.avatarDomain.CreateAvatar(ctx, req)
+func (a *AvatarApplication) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*entities.CPSAction, error) {
+	action, err := a.avatarDomain.CreateAvatar(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	return cpsRes, nil
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return a.cpsService.CreateCPSAction(ctx, action)
 }
 
-func (a *AvatarApplication) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error) {
-	cpsAction, err := a.avatarDomain.DeleteAvatar(ctx, id, req)
+func (a *AvatarApplication) DeleteAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error) {
+	action, err := a.avatarDomain.DeleteAvatar(ctx, id, req)
 	if err != nil {
 		return nil, err
 	}
 
-	return cpsAction, nil
-}
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
 
-// func (a *AvatarApplication) Authorize(ctx context.Context, req model.AuthorizeCPSAction) (*avatar.CPSAction, error) {
-// 	cpsAction, err := a.avatarDomain.Authorize(ctx, req)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return cpsAction, nil
-// }
-
-func (a *AvatarApplication) Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error) {
-	cpsAction, err := a.avatarDomain.Reject(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return cpsAction, nil
+	return a.cpsService.CreateCPSAction(ctx, action)
 }
 
-func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string,
-	requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error) {
-	cpsAction, err := a.avatarDomain.EnableOrDisableAvatar(ctx, id, requestAction, cpsReq)
+func (a *AvatarApplication) EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
+	action, err := a.avatarDomain.EnableOrDisableAvatar(ctx, id, requestAction, cpsReq)
 	if err != nil {
 		return nil, err
 	}
 
-	return cpsAction, nil
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return a.cpsService.CreateCPSAction(ctx, action)
 }
 
 func (a *AvatarApplication) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*avatar.Avatar], error) {
@@ -98,11 +120,23 @@ func (a *AvatarApplication) GetAvatar(ctx context.Context, id string) (*avatar.A
 	return avatar, nil
 }
 
-func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error) {
-	cpsAction, err := a.avatarDomain.UpdateAvatar(ctx, id, req)
+func (a *AvatarApplication) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*entities.CPSAction, error) {
+	action, err := a.avatarDomain.UpdateAvatar(ctx, id, req)
 	if err != nil {
 		return nil, err
 	}
 
-	return cpsAction, nil
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return a.cpsService.CreateCPSAction(ctx, action)
 }

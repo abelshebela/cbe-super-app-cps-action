@@ -138,8 +138,8 @@ var errorKeyToStatus = map[string]int{
 	"TITLE_TOO_LONG":                                             http.StatusBadRequest,
 	"DESCRIPTION_TOO_LONG":                                       http.StatusBadRequest,
 	"UNSUPPORTED_REQUEST_ACTION":                                 http.StatusBadRequest,
-	"WALLET_ALREADY_ENABLED":                                     http.StatusBadRequest,
-	"WALLET_ALREADY_DISABLED":                                    http.StatusBadRequest,
+	"RESOURCE_ALREADY_ENABLED":                                   http.StatusBadRequest,
+	"RESOURCE_ALREADY_DISABLED":                                  http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
 	"UNEXPECTED_DATABASE_ERROR":                                  http.StatusInternalServerError,
@@ -147,6 +147,13 @@ var errorKeyToStatus = map[string]int{
 	"PHONE_NUMBER_EXISTS":                                        http.StatusConflict,
 	"EMAIL_ALREADY_EXISTS":                                       http.StatusConflict,
 	"USERNAME_ALREADY_EXISTS":                                    http.StatusConflict,
+	"WALLET_INFORMATION_ALREADY_EXISTST":                         http.StatusBadRequest,
+	"NO_DATA_PROVIDED_FOR_UPDATE":                                http.StatusBadRequest,
+	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
+	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
+	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
+	"START_DATE_REQUIRED":                                       http.StatusBadRequest,
+
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
@@ -436,12 +443,12 @@ func httpStatusOrDefault(providedStatus int, errorCode string, isValidation bool
 	return getStatusForErrorKey(errorCode)
 }
 
-func HandleServiceError(w http.ResponseWriter, err error) {
-	if def, ok := err.(common.ErrorDefinition); ok {
-		// Use the most appropriate status code for the error code, not always 400.
-		status := getStatusForErrorKey(def.Code)
-		SendErrorResponse(w, def.Code, status, nil)
-		return
-	}
-	SendErrorResponse(w, "GEN_004", http.StatusInternalServerError, nil)
-}
+// func HandleServiceError(w http.ResponseWriter, err error) {
+// 	if def, ok := err.(common.ErrorDefinition); ok {
+// 		// Use the most appropriate status code for the error code, not always 400.
+// 		status := getStatusForErrorKey(def.Code)
+// 		SendErrorResponse(w, def.Code, status, nil)
+// 		return
+// 	}
+// 	SendErrorResponse(w, "GEN_004", http.StatusInternalServerError, nil)
+// }

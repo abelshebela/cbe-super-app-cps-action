@@ -94,12 +94,14 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 }
 
 func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsAction model.CreateCPSAction) error {
+
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
 		"action_status":      model.ActionPending,
 		"department":         cpsAction.Department,
-		"request_action":     model.RequestUpdateAmountBasedAuth,
+		"request_action":     cpsAction.ActionType,
 	}
+	fmt.Println()
 
 	projection := bson.M{
 		"action_code": 1,
@@ -228,7 +230,7 @@ func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsActio
 
 func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
 	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
-
+	cpsAction.ActionType = "AUTHTIER"
 	if err := a.checkExistingAuthTier(ctx, cpsAction); err != nil {
 
 		return nil, err
@@ -246,9 +248,6 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 	projection := bson.M{}
 
 	authTier, err := a.authTier.FindOne(ctx, filter, projection)
-	fmt.Println("persistance----------------------------------------------")
-	fmt.Println("authTire   :", authTier)
-	fmt.Println("persistance----------------------------------------------")
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -260,7 +259,6 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 	}
 	if authTier.Method == "OPEN" {
 		filter := bson.M{
-			// "tire":       Tier,
 			"method":     "PIN",
 			"is_deleted": false,
 		}
@@ -281,9 +279,6 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 			return nil, fmt.Errorf(common_util.CurrentMaxGreaterThanNext)
 		}
 	}
-	fmt.Println("min max check=================================================")
-	fmt.Printf("priv min: %v  >= incomingMax : %v", authTier.MinAmount, request.MaxAmount)
-	fmt.Println("=================================================")
 
 	if authTier.MinAmount >= request.MaxAmount {
 		a.logger.Infof("max amount can not be less that or equal to min amount")
@@ -318,10 +313,6 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 }
 
 func (a AmountBasedAuthRepo) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-
-	fmt.Println("____________________AM hear in amount basedauth persistance Authorize")
-	fmt.Printf("action data  %v", cpsAction.CurrentAction)
-	fmt.Println("____________________AM hear in amount basedauth persistance Authorize")
 
 	var actionData amount_based_auth_domain.UpdateAmountBasedAuth
 
@@ -369,7 +360,6 @@ func (a AmountBasedAuthRepo) Authorize(ctx context.Context, cpsAction *entities.
 		updateFilterNext := bson.M{
 
 			"min_amount": nextMIN,
-			// "last_modified_at": time.Now(),
 		}
 
 		_, err := a.authTier.UpdateOne(ctx, openFilterNext, updateFilterNext)
@@ -387,7 +377,6 @@ func (a AmountBasedAuthRepo) Authorize(ctx context.Context, cpsAction *entities.
 		updateFilterNext := bson.M{
 
 			"min_amount": nextMIN,
-			// "last_modified_at": time.Now(),
 		}
 
 		_, err := a.authTier.UpdateOne(ctx, openFilterNext, updateFilterNext)

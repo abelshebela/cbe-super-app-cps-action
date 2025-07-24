@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/entity"
@@ -202,10 +203,11 @@ func (w *Wallet) GetWallet(ctx context.Context, id string) (*entity.Wallet, erro
 
 func (w *Wallet) AuthorizeCreate(ctx context.Context, cpsAction *entities.CPSAction, action entity.Wallet) (*entities.CPSAction, error) {
 	doc := w.toDocument(&entity.Wallet{
-		Name:      action.Name,
-		Avatar:    action.Avatar,
-		Code:      action.Code,
-		CreatedAt: cpsAction.MakerActionTime,
+		Name:           action.Name,
+		Avatar:         action.Avatar,
+		Code:           action.Code,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
 	})
 
 	wallet, err := w.walletDal.InsertOne(ctx, *doc)
@@ -227,6 +229,10 @@ func (w *Wallet) AuthorizeUpdate(ctx context.Context, cpsAction *entities.CPSAct
 	}
 	if action.Code != "" {
 		update["code"] = action.Code
+	}
+
+	if action.Avatar != "" {
+		update["avatar"] = action.Avatar
 	}
 	ID := prev.ID
 	if cpsAction.RequestAction == actions.RequestEnableWallet || cpsAction.RequestAction == actions.RequestDisableWallet {
@@ -273,14 +279,40 @@ func (w *Wallet) AuthorizeDelete(ctx context.Context, cpsAction *entities.CPSAct
 }
 
 func (w *Wallet) CheckWalletExists(ctx context.Context, wallet entity.CheckWallet) (bool, error) {
-	filter := bson.M{
-		"name": wallet.Name,
-		"code": wallet.Code,
+	var orFilters []bson.M
+
+	if wallet.Name != "" {
+		orFilters = append(orFilters, bson.M{
+			"name": bson.M{
+				"$regex":   "^" + wallet.Name + "$",
+				"$options": "i",
+			},
+		})
 	}
 
-	projection := bson.M{
-		"_id": 1,
+	if wallet.Code != "" {
+		orFilters = append(orFilters, bson.M{"code": wallet.Code})
 	}
+
+	if len(orFilters) == 0 {
+		return false, nil
+	}
+
+	filter := bson.M{
+		"$or": orFilters,
+	}
+
+	if wallet.ExcludeID != "" {
+		objID, err := bson.ObjectIDFromHex(wallet.ExcludeID)
+		if err != nil {
+			return false, fmt.Errorf(error_codes.InvalidID)
+		}
+		filter["_id"] = bson.M{"$ne": objID}
+	}
+
+	fmt.Println(filter, "filter")
+
+	projection := bson.M{"_id": 1}
 
 	result, err := w.walletDal.FindOne(ctx, filter, projection)
 	if err != nil {

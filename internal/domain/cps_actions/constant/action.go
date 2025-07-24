@@ -205,6 +205,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
 	RequestUpdateBlockTime:          {},
+	RequestDisableFaydaAccount:      {},
+	RequestEnableFaydaAccount:       {},
+	RequestCreateAvatar:             {},
+	RequestDeleteAvatar:             {},
+	RequestDisableAvatar:            {},
+	RequestEnableAvatar:             {},
+	RequestUpdateAvatar:             {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -220,7 +227,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"AdDomain": {
+	"A": {
 		RequestCreateAvatar,
 		RequestDeleteAvatar,
 		RequestDisableAvatar,

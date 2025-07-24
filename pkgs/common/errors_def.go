@@ -700,6 +700,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_154",
 			Message: "kyc_level must be a number between 0 and 2",
 		},
+
 		"UNEXPECTED_DATABASE_ERROR": {
 			Code:    "GEN_155",
 			Message: "An unexpected database error occurred. Please try again later.",
@@ -723,6 +724,26 @@ var DefineError = ErrorDefinitions{
 		"COLOR_ALREADY_EXISTED": {
 			Code:    "GEN_160",
 			Message: "Color already Existed",
+    },
+		"NO_DATA_PROVIDED_FOR_UPDATE": {
+			Code:    "GEN_161",
+			Message: "you didn't provide any data to update",
+		},
+		"CONTENT_TYPE_MUST_BE_FORM": {
+			Code:    "GEN_162",
+			Message: "Content-Type must be multipart/form-data",
+		},
+		"CONTENT_TYPE_MUST_BE_JSON": {
+			Code:    "GEN_163",
+			Message: "Content-Type must be application/json",
+		},
+		"RESOURCE_ALREADY_ENABLED": {
+			Code:    "GEN_164",
+			Message: "Resource is already enabled",
+		},
+		"RESOURCE_ALREADY_DISABLED": {
+			Code:    "GEN_165",
+			Message: "Resource is already disabled",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1324,13 +1345,9 @@ var DefineError = ErrorDefinitions{
 			Code:    "WAL_012",
 			Message: "Wallet transaction already exists.",
 		},
-		"WALLET_ALREADY_ENABLED": {
-			Code:    "WAL_013",
-			Message: "Wallet is already enabled",
-		},
-		"WALLET_ALREADY_DISABLED": {
-			Code:    "WAL_013",
-			Message: "Wallet is already disabled",
+		"WALLET_INFORMATION_ALREADY_EXISTST": {
+			Code:    "WAL_014",
+			Message: "One or more fields already exists",
 		},
 	},
 	AD: ErrorGroup{
@@ -1353,6 +1370,14 @@ var DefineError = ErrorDefinitions{
 		"AD_DELETION_FAILED": {
 			Code:    "AD_005",
 			Message: "Failed to delete advert.",
+		},
+		"START_DATE_REQUIRED": {
+			Code:    "AD_006",
+			Message: "started date is required",
+		},
+		"EXPIRE_DATE_REQUIRED": {
+			Code:    "AD_006",
+			Message: "end date is required",
 		},
 	},
 	Permission: ErrorGroup{

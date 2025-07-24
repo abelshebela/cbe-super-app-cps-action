@@ -21,6 +21,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					middleware.RequireFormContentType(),
 				},
 			},
 			{
@@ -32,24 +33,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 					authMiddleware.AccessControl([]string{role.Maker}),
 				},
 			},
-			// {
-			// 	Method:  http.MethodPatch,
-			// 	Path:    "/approve/{action_code}",
-			// 	Handler: handler.Authorize,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Checker}),
-			// 	},
-			// },
-			{
-				Method:  http.MethodPatch,
-				Path:    "/reject/{action_code}",
-				Handler: handler.Reject,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker}),
-				},
-			},
+
 			{
 				Method:  http.MethodPatch,
 				Path:    "/disable/{id}",
@@ -94,6 +78,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					middleware.RequireFormContentType(),
 				},
 			},
 		}
