@@ -166,7 +166,7 @@ func (r *AccountValidationRepo) GetAllAccountValidation(ctx context.Context, fil
 
 func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id string, rule account_validation.ValidationRule) error {
 
-	if int(rule.MaxLength) < int(rule.MinLength) {
+	if rule.MaxLength < rule.MinLength {
 		return fmt.Errorf("MAX_NOT_BE_LESS")
 	}
 
