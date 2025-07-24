@@ -206,7 +206,6 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 
 	var req dto.UpdateAvatar
 
-	// Attempt to parse file — ignore if missing
 	file, fileHeader, err := util.ParseMultipartFormFile(r, "avatar", 10<<20)
 	if err != nil && err.Error() != common_util.ErrMissingFile {
 		a.logger.Errorf("error parsing file: %v", err)
@@ -218,10 +217,8 @@ func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request)
 		req.Avatar = fileHeader
 	}
 
-	// This works for both JSON and form
 	req.Label = r.FormValue("label")
 
-	// Ensure there's something to update
 	if req.Label == "" && fileHeader == nil {
 		util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", 0, nil)
 		return

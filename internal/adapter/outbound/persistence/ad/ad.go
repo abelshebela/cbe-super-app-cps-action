@@ -16,6 +16,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -183,6 +185,13 @@ func (a *ADPersistence) HandleAdvertUpdate(ctx context.Context, cpsRes *entities
 	}
 	if !actionData.Date.ExpiredAt.IsZero() {
 		update["date.expired_at"] = actionData.Date.ExpiredAt
+	}
+
+	switch cpsRes.RequestAction {
+	case cps_const.RequestEnableAdvert:
+		update["enabled"] = true
+	case cps_const.RequestDisableAdvert:
+		update["enabled"] = false
 	}
 	update["last_updated_at"] = time.Now()
 

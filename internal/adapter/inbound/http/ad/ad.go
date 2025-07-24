@@ -1,94 +1,70 @@
 package ad
 
 import (
-
-	// "fmt"
-
+	"fmt"
+	"mime/multipart"
 	"net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
-
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-
-	inboundAd "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
-	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+// ADAdapter handles HTTP requests for advertisement operations
 type ADAdapter struct {
 	adHandler ad.ADHandlers
 	logger    utils.Logger
 }
 
-func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) inboundAd.ADAdapter {
+// InitADAdapter initializes a new ADAdapter
+func InitADAdapter(adHandler ad.ADHandlers, logger utils.Logger) ADAdapter {
 	return ADAdapter{
 		adHandler: adHandler,
 		logger:    logger,
 	}
 }
 
-func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
-	var advertReq dto.CreateAdvertRequest
-
-	file, fileHeader, err := util.ParseMultipartFormFile(r, "banner_image", 10<<20)
+// parseTime parses a time string in RFC3339 format
+func (a ADAdapter) parseTime(timeStr, fieldName string) (time.Time, error) {
+	if timeStr == "" {
+		return time.Time{}, fmt.Errorf("%s_REQUIRED", fieldName)
+	}
+	t, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
-		a.logger.Errorf("error parsing file: %v", err)
-		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
-		return
+		a.logger.Errorf("invalid %s format: %v", fieldName, err)
+		return time.Time{}, fmt.Errorf("invalid %s format", fieldName)
 	}
-	defer file.Close()
-	advertReq.BannerImage = fileHeader
+	return t, nil
+}
 
-	advertReq.Title = r.FormValue("title")
-	advertReq.Description = r.FormValue("description")
-	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
-
-	startedAt := r.FormValue("started_at")
-	if startedAt == "" {
-		util.SendErrorResponse(w, "START_DATE_REQUIRED", http.StatusBadRequest, nil)
-		return
+// validateID extracts and validates the ID parameter
+func (a ADAdapter) validateID(r *http.Request) (string, bool) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("missing or invalid parameter 'id'")
 	}
-	startedAtTime, err := time.Parse(time.RFC3339, startedAt)
-	if err != nil {
-		a.logger.Errorf("invalid started_at format: %v", err)
-		util.SendErrorResponse(w, "invalid started_at format", http.StatusBadRequest, nil)
-		return
-	}
+	return id, ok
+}
 
-	expiredAt := r.FormValue("expired_at")
-	if expiredAt == "" {
-		util.SendErrorResponse(w, "EXPIRE_DATE_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-	expiredAtTime, err := time.Parse(time.RFC3339, expiredAt)
-	if err != nil {
-		a.logger.Errorf("invalid expired_at format: %v", err)
-		util.SendErrorResponse(w, "invalid expired_at format", http.StatusBadRequest, nil)
-		return
-	}
-
-	advertReq.Date.StartedAt = startedAtTime
-	advertReq.Date.ExpiredAt = expiredAtTime
-
-	if advertReq.Title == "" || advertReq.Description == "" || advertReq.AdvertFor == "" {
-		util.SendErrorResponse(w, "missing one or more required fields: title, description, advert_for", http.StatusBadRequest, nil)
-		return
-	}
-
+// getUserContext extracts and validates user context
+func (a ADAdapter) getUserContext(r *http.Request) (ctx_util.UserContext, bool) {
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
-		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
-		return
+		return ctx_util.UserContext{}, false
 	}
+	return userContext, true
+}
 
-	// Prepare CPS request
-	cpsReq := model.CreateCPSAction{
-		ActionData: advertReq,
+// buildCPSRequest constructs a CPS request from user context
+func (a ADAdapter) buildCPSRequest(userContext ctx_util.UserContext, actionData interface{}) model.CreateCPSAction {
+	return model.CreateCPSAction{
+		ActionData: actionData,
 		MakerUser: model.User{
 			UserCode:    userContext.UserCode,
 			FullName:    userContext.FullName,
@@ -96,156 +72,230 @@ func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
 		},
 		Department: userContext.Department,
 	}
+}
 
-	ctx := r.Context()
-	_, err = a.adHandler.CreateOneAdvert(ctx, cpsReq)
+// parseBannerImage handles banner image parsing with size limit of 10MB
+func (a ADAdapter) parseBannerImage(r *http.Request, isUpdate bool) (*multipart.FileHeader, error) {
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "banner_image", 10<<20)
 	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
+		if isUpdate && err.Error() == common_util.ErrMissingFile {
+			return nil, nil
+		}
+		a.logger.Errorf("error parsing file: %v", err)
+		return nil, err
+	}
+	if file != nil {
+		defer file.Close()
+	}
+	return fileHeader, nil
+}
+
+// CreateOneAdvert handles creation of a new advertisement
+func (a ADAdapter) CreateOneAdvert(w http.ResponseWriter, r *http.Request) {
+	var advertReq dto.CreateAdvertRequest
+
+	// Parse banner image
+	bannerImage, err := a.parseBannerImage(r, false)
+	if err != nil {
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
+		return
+	}
+	advertReq.BannerImage = bannerImage
+
+	// Parse form values
+	advertReq.Title = r.FormValue("title")
+	advertReq.Description = r.FormValue("description")
+	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
+
+	// Parse and validate dates
+	startedAt, err := a.parseTime(r.FormValue("started_at"), "START_DATE")
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+	expiredAt, err := a.parseTime(r.FormValue("expired_at"), "EXPIRE_DATE")
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+	advertReq.Date.StartedAt = startedAt
+	advertReq.Date.ExpiredAt = expiredAt
+
+	// Validate required fields
+	if advertReq.Title == "" || advertReq.Description == "" || advertReq.AdvertFor == "" {
+		common_util.SendErrorResponse(w, "missing required fields: title, description, advert_for", http.StatusBadRequest, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, nil, "AD Create Request Created successfully")
+	// Validate user context
+	userContext, ok := a.getUserContext(r)
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
+
+	// Execute request
+	cpsReq := a.buildCPSRequest(userContext, advertReq)
+	_, err = a.adHandler.CreateOneAdvert(r.Context(), cpsReq)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.WriteSuccessResponse(w, nil, "AD Create Request Created successfully")
 }
 
+// DeleteOneAdvert handles deletion of an advertisement
 func (a ADAdapter) DeleteOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := a.validateID(r)
 	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
-	var cpsReq model.CreateCPSAction
-
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+	userContext, ok := a.getUserContext(r)
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
-	cpsReq.MakerUser = model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-	}
-	cpsReq.Department = userContext.Department
-	ctx := r.Context()
 
-	_, err := a.adHandler.DeleteOneAdvert(ctx, id, cpsReq)
+	cpsReq := a.buildCPSRequest(userContext, nil)
+	_, err := a.adHandler.DeleteOneAdvert(r.Context(), id, cpsReq)
 	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	util.WriteSuccessResponse(w, nil, "AD Delete Request Created successfully")
 
+	common_util.WriteSuccessResponse(w, nil, "AD Delete Request Created successfully")
 }
+
+// GetAllAdvert retrieves all advertisements
 func (a ADAdapter) GetAllAdvert(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 	adverts, err := a.adHandler.GetAllAdvert(r.Context(), filterParams)
 	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, adverts, "AD featch successfully")
-
+	common_util.WriteSuccessResponse(w, adverts, "AD fetch successfully")
 }
 
+// GetOneAdvert retrieves a single advertisement
 func (a ADAdapter) GetOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := a.validateID(r)
 	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
 	advert, err := a.adHandler.GetOneAdvert(r.Context(), id)
 	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, advert, "AD featch successfully")
-
+	common_util.WriteSuccessResponse(w, advert, "AD fetch successfully")
 }
 
+// UpdateOneAdvert handles updating an advertisement
 func (a ADAdapter) UpdateOneAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := a.validateID(r)
 	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
 		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
 		return
 	}
 
 	var advertReq dto.UpdateAdvertRequest
+	advertReq.ID = id
 
-	file, fileHeader, err := util.ParseMultipartFormFile(r, "banner_image", 10<<20)
-	if err != nil && err.Error() != common_util.ErrMissingFile {
-		a.logger.Errorf("error parsing file: %v", err)
-		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
+	// Parse banner image
+	bannerImage, err := a.parseBannerImage(r, true)
+	if err != nil {
+		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
 		return
 	}
-	if file != nil {
-		defer file.Close()
-	}
+	advertReq.BannerImage = bannerImage
 
+	// Parse form values
 	advertReq.Title = r.FormValue("title")
 	advertReq.Description = r.FormValue("description")
 	advertReq.AdvertFor = dto.AdvertFor(r.FormValue("advert_for"))
-	startedAt := r.FormValue("started_at")
-	expiredAt := r.FormValue("expired_at")
 
-	var startedAtTime, expiredAtTime time.Time
-	if startedAt != "" {
-		startedAtTime, err = time.Parse(time.RFC3339, startedAt)
-		if err != nil {
-			a.logger.Errorf("failed to parse started_at: %v", err)
-			util.SendErrorResponse(w, "invalid started_at format", http.StatusBadRequest, nil)
+	// Parse optional dates
+	startedAtStr := r.FormValue("started_at")
+	expiredAtStr := r.FormValue("expired_at")
+	if startedAtStr != "" {
+		if startedAt, err := a.parseTime(startedAtStr, "started_at"); err != nil {
+			common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 			return
+		} else {
+			advertReq.Date.StartedAt = startedAt
 		}
 	}
-	if expiredAt != "" {
-		expiredAtTime, err = time.Parse(time.RFC3339, expiredAt)
-		if err != nil {
-			a.logger.Errorf("failed to parse expired_at: %v", err)
-			util.SendErrorResponse(w, "invalid expired_at format", http.StatusBadRequest, nil)
+	if expiredAtStr != "" {
+		if expiredAt, err := a.parseTime(expiredAtStr, "expired_at"); err != nil {
+			common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 			return
+		} else {
+			advertReq.Date.ExpiredAt = expiredAt
 		}
 	}
 
-	advertReq.Date.StartedAt = startedAtTime
-	advertReq.Date.ExpiredAt = expiredAtTime
-	advertReq.BannerImage = fileHeader
-
+	// Validate update data
 	if advertReq.Title == "" && advertReq.Description == "" &&
-		advertReq.AdvertFor == "" && fileHeader == nil &&
-		startedAt == "" && expiredAt == "" {
-		util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", http.StatusBadRequest, nil)
+		advertReq.AdvertFor == "" && advertReq.BannerImage == nil &&
+		startedAtStr == "" && expiredAtStr == "" {
+		common_util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", http.StatusBadRequest, nil)
 		return
 	}
 
-	userContext := ctx_util.ExtractUserContext(r)
-	if userContext.IsIncomplete() {
-		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
+	userContext, ok := a.getUserContext(r)
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
 
-	// Build CPS request
-	cpsReq := model.CreateCPSAction{
-		MakerUser: model.User{
-			UserCode:    userContext.UserCode,
-			FullName:    userContext.FullName,
-			PhoneNumber: userContext.PhoneNumber,
-		},
-		Department: userContext.Department,
-		ActionData: advertReq,
-	}
-	advertReq.ID = id
-
+	cpsReq := a.buildCPSRequest(userContext, advertReq)
 	_, err = a.adHandler.UpdateOneAdvert(r.Context(), id, cpsReq)
 	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	util.WriteSuccessResponse(w, nil, "AD Update Request Created successfully")
+	common_util.WriteSuccessResponse(w, nil, "AD Update Request Created successfully")
+}
+
+// EnableOrDisableAdvert handles enabling or disabling an advertisement
+func (a ADAdapter) enableOrDisableAdvert(w http.ResponseWriter, r *http.Request, actionType cps_const.RequestAction, successMessage string) {
+	id, ok := a.validateID(r)
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
+	userContext, ok := a.getUserContext(r)
+	if !ok {
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		return
+	}
+
+	cpsReq := a.buildCPSRequest(userContext, nil)
+	_, err := a.adHandler.EnableOrDisableAdvert(r.Context(), id, actionType, cpsReq)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.WriteSuccessResponse(w, nil, successMessage)
+}
+
+// EnableAdvert handles enabling an advertisement
+func (a ADAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
+	a.enableOrDisableAdvert(w, r, cps_const.RequestEnableAdvert, "Advert Enable Request Created successfully")
+}
+
+// DisableAdvert handles disabling an advertisement
+func (a ADAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
+	a.enableOrDisableAdvert(w, r, cps_const.RequestDisableAdvert, "Advert Disable Request Created successfully")
 }

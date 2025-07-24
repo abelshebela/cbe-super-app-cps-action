@@ -701,7 +701,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_155",
-			Message: "you didn't provide any data to update",
+			Message: "Update request must include at least one field to modify.",
 		},
 		"CONTENT_TYPE_MUST_BE_FORM": {
 			Code:    "GEN_156",
@@ -718,6 +718,10 @@ var DefineError = ErrorDefinitions{
 		"RESOURCE_ALREADY_DISABLED": {
 			Code:    "GEN_159",
 			Message: "Resource is already disabled",
+		},
+		"INVALID_PAYLOAD": {
+			Code:    "GEN_160",
+			Message: "The request payload is invalid or malformed. Please check the input structure and types.",
 		},
 	},
 	Auth: ErrorGroup{
