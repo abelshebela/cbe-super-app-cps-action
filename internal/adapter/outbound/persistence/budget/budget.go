@@ -45,14 +45,18 @@ func InitBudget(client *mongo.Client, dbName string, collections []string, logge
 }
 
 func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":   makerData.UserID,
-		"department": makerData.Department,
+		"maker_id":      makerData.UserCode,
+		"department":    makerData.Department,
+		"action_status": "PENDING",
 	}
+
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
+
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
+		if err.Error() != "mongo: no documents in result" {
 			return nil, err
 		}
 	}
@@ -332,6 +336,7 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 }
 
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	fmt.Println("********CreateAction***********")
 	cpsAction.ID = bson.NewObjectID()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
