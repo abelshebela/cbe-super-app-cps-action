@@ -17,6 +17,7 @@ type HttpStore struct {
 	logger      shared_utils.Logger
 }
 
+
 func NewMiniAppMerchantAdapter(app miniapp_application.MiniAppMerchantApplication, logger shared_utils.Logger) *HttpStore {
 	return &HttpStore{Application: app, logger: logger}
 }
@@ -58,13 +59,13 @@ func (h *HttpStore) CreateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		ActionData: miniApp,
 	}
 
-	result, err := h.Application.CreateOne(r.Context(), cpsReq)
+	_, err = h.Application.CreateOne(r.Context(), cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, result, "Create MiniAppMerchant request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Create MiniAppMerchant request submitted")
 }
 
 func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
@@ -98,13 +99,13 @@ func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		ActionData: miniApp,
 	}
 
-	result, err := h.Application.UpdateOne(r.Context(), cpsReq)
+	_, err = h.Application.UpdateOne(r.Context(), cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, result, "Update request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Update request submitted")
 }
 
 func (h *HttpStore) DeleteMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
@@ -121,13 +122,13 @@ func (h *HttpStore) DeleteMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	result, err := h.Application.DeleteOne(r.Context(), id, entities.CreateCPSAction{MakerUser: *maker})
+	_, err = h.Application.DeleteOne(r.Context(), id, entities.CreateCPSAction{MakerUser: *maker})
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, result, "Delete request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Delete request submitted")
 }
 
 func (h *HttpStore) Enable(w http.ResponseWriter, r *http.Request) {
@@ -143,13 +144,13 @@ func (h *HttpStore) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.Application.EnableOne(r.Context(), id, entities.CreateCPSAction{MakerUser: *maker})
+	_, err = h.Application.EnableOne(r.Context(), id, entities.CreateCPSAction{MakerUser: *maker})
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, result, "Enable request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Enable request submitted")
 }
 
 func (h *HttpStore) Disable(w http.ResponseWriter, r *http.Request) {
@@ -165,13 +166,13 @@ func (h *HttpStore) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.Application.DisableOne(r.Context(), id, entities.CreateCPSAction{MakerUser: *maker})
+	_, err = h.Application.DisableOne(r.Context(), id, entities.CreateCPSAction{MakerUser: *maker})
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, result, "Disable request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Disable request submitted")
 }
 
 func (h *HttpStore) GetMiniAppMerchant(w http.ResponseWriter, r *http.Request) {

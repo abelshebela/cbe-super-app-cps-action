@@ -21,6 +21,7 @@ type MiniAppMerchantService interface {
 	DeleteMiniAppMerchant(ctx context.Context, id string, req *entities.CreateCPSAction) (*entities.CPSAction, error)
 	EnableOrDisableMerchant(ctx context.Context, id string, requestAction cps_constants.RequestAction, req *entities.CreateCPSAction) (*entities.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
+	GetCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error)
 }
 type MiniAppMerchantServiceImpl struct {
 	repo   MiniAppMerchantRepository
@@ -35,7 +36,7 @@ func NewMiniAppMerchantService(repo MiniAppMerchantRepository, logger shared_uti
 	}
 }
 
-func (s *MiniAppMerchantServiceImpl) getCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error) {
+func (s *MiniAppMerchantServiceImpl) GetCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error) {
 
 	// This works even if ActionData is map[string]interface{} or *MiniAppMerchant serialized from HTTP
 	bytes, err := json.Marshal(req.ActionData)
@@ -54,7 +55,7 @@ func (s *MiniAppMerchantServiceImpl) getCurrentData(req *entities.CreateCPSActio
 }
 
 func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
-	data, err := s.getCurrentData(req)
+	data, err := s.GetCurrentData(req)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +114,7 @@ func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, 
 }
 
 func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
-	data, err := s.getCurrentData(req)
+	data, err := s.GetCurrentData(req)
 	if err != nil {
 		return nil, err
 	}

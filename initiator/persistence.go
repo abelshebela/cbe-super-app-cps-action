@@ -55,6 +55,10 @@ import (
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/repository"
+
+	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
+
 )
 
 type Persitence struct {
@@ -84,6 +88,7 @@ type Persitence struct {
 	CPSActionsPersistance       cps_actions.CPSActionRepository
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
+	AccounLookUp                account_lookup_domain.UserSearchRepository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -148,5 +153,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		CPSActionsPersistance:       cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
+		AccounLookUp: account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
 	}
 }

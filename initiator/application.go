@@ -30,6 +30,7 @@ import (
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget_category"
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
+	account_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_lookup"
 
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 
@@ -69,6 +70,7 @@ type Application struct {
 	BudgetCategoryApplication  budget_category.BudgetCategoryApplicationService
 	FileService                file.FileService
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
+	AccountLookupApplication account_application.UserSearchService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -101,6 +103,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
-		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, logger),
+		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
+		AccountLookupApplication: *account_application.NewUserSearchService(domain.AccountLookup),
 	}
 }
