@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/responseutil"
+	app_middleware "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	app_middleware "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 )
 
 func Initiator() {
@@ -59,6 +59,7 @@ func Initiator() {
 		AllowCredentials: true,
 	}))
 	r.NotFound(responseutil.NotFoundHandler)
+	r.MethodNotAllowed(responseutil.MethodNOtAllowedHandler)
 	logger.Infof("Chi router initialized")
 
 	logger.Infof("Initializing routes...")

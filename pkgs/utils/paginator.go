@@ -41,7 +41,6 @@ func (p PaginatedResponse[T]) MarshalJSON() ([]byte, error) {
 	})
 }
 
-
 // ExtractPaginator extracts page and limit from the request
 func ExtractPaginator(r *http.Request) (limit, offset int64, err error) {
 	pageStr := r.URL.Query().Get("page")
@@ -84,14 +83,13 @@ func BuildPaginationMeta(totalDocs int64, page, limit int) PaginationMeta {
 		page = 1
 	}
 
-	totalPages := int((totalDocs + int64(limit) - 1) / int64(limit)) 
-	if totalPages == 0 {
-		totalPages = 1
+	var totalPages int
+	if totalDocs == 0 {
+		totalPages = 0
+		page = 1
+	} else {
+		totalPages = int((totalDocs + int64(limit) - 1) / int64(limit))
 	}
-
-	// if page > totalPages {
-	// 	page = totalPages
-	// }
 
 	skip := (page - 1) * limit
 	hasPrev := page > 1
@@ -109,12 +107,17 @@ func BuildPaginationMeta(totalDocs int64, page, limit int) PaginationMeta {
 		nextPage = &n
 	}
 
+	pagingCounter := 0
+	if totalDocs > 0 {
+		pagingCounter = skip + 1
+	}
+
 	return PaginationMeta{
 		TotalDocs:     totalDocs,
 		Limit:         limit,
 		TotalPages:    totalPages,
 		Page:          page,
-		PagingCounter: skip + 1,
+		PagingCounter: pagingCounter,
 		HasPrevPage:   hasPrev,
 		HasNextPage:   hasNext,
 		PrevPage:      prevPage,

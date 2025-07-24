@@ -341,34 +341,7 @@ type ProductCode struct {
 	ProductCode string     `bson:"product_code" json:"product_code"`
 }
 
-type CredentialInformation struct {
-	ID            string          `bson:"id" json:"id,omitempty"`
-	Environment   EnvironmentType `bson:"environment" json:"environment"`
-	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
-	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
-	ShortCode     string          `bson:"short_code" json:"short_code"`
-	AppSecret     string          `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string          `bson:"private_key" json:"private_key"`
-	PublicKey     string          `bson:"public_key" json:"public_key"`
-}
 
-type MiniApp struct {
-	ID                bson.ObjectID           `bson:"_id"`
-	AppName           string                  `bson:"app_name"`
-	AppIcon           string                  `bson:"app_icon"`
-	CommisonGLAccount string                  `bson:"commison_gl_account"`
-	AppType           AppType                 `bson:"app_type"`
-	MerchantID        string                  `bson:"merchant_id"`
-	ProductCode       []ProductCode           `bson:"product_code"`
-	Credential        []CredentialInformation `bson:"credential"`
-	IsEventMiniApp    bool                    `bson:"is_event_mini_app"`
-	IsThreeClick      bool                    `bson:"is_three_click"`
-	Enabled           bool                    `bson:"enabled"`
-	IsDeleted         bool                    `bson:"is_deleted"`
-	CreatedAt         time.Time               `bson:"created_at"`
-	LastModifiedAt    time.Time               `bson:"last_modified_at"`
-	DeletedAt         time.Time               `bson:"deleted_at"`
-}
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`

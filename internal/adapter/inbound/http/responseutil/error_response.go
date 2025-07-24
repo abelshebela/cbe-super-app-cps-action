@@ -15,3 +15,7 @@ type ErrorResponse struct {
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	common_util.SendErrorResponse(w, common_util.PageNotFound, http.StatusNotFound, nil)
 }
+
+func MethodNOtAllowedHandler(w http.ResponseWriter, r *http.Request) {
+	common_util.SendErrorResponse(w, common_util.MethodNotAllowed, 0, nil)
+}

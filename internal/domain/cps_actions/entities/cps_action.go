@@ -1,13 +1,9 @@
 package cpsactions
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type CPSAction struct {
@@ -37,6 +33,7 @@ type User struct {
 	UserCode    string
 	FullName    string
 	PhoneNumber string
+	Department  string
 }
 
 type CheckCPSAction struct {
@@ -55,78 +52,15 @@ type AuthorizeCPSAction struct {
 	CheckerActionTime time.Time `json:"checker_action_time,omitzero"`
 }
 
-func ToDomainCPSAction(m *model.CPSAction) *CPSAction {
-	var checkerActionTime time.Time
-	if m.CheckerActionTime != nil {
-		checkerActionTime = *m.CheckerActionTime
-	}
-
-	return &CPSAction{
-		ID:                 m.ID.Hex(),
-		ActionCode:         m.ActionCode,
-		UniqueID:           m.UniqueId,
-		MakerID:            m.MakerID,
-		MakerName:          m.MakerName,
-		MakerPhoneNumber:   m.MakerPhoneNumber,
-		CheckerID:          m.CheckerID,
-		CheckerName:        m.CheckerName,
-		CheckerPhoneNumber: m.CheckerPhoneNumber,
-		Department:         m.Department,
-		RejectionReason:    m.RejectionReason,
-		PreviousAction:     m.PreviousAction,
-		CurrentAction:      m.CurrentAction,
-		ActionStatus:       constant.ActionStatus(m.ActionStatus),
-		ActionType:         constant.ActionType(m.ActionType),
-		RequestAction:      constant.RequestAction(m.RequestAction),
-		CreatedAt:          m.CreatedAt,
-		LastModifiedAt:     m.LastModifiedAt,
-		MakerActionTime:    m.MakerActionTime,
-		CheckerActionTime:  &checkerActionTime,
-	}
-}
-
-func ToModelCPSAction(d *CPSAction) (*model.CPSAction, error) {
-	if d == nil {
-		return nil, errors.New("domain CPSAction is nil")
-	}
-
-	var objectID bson.ObjectID
-	var err error
-
-	if d.ID != "" {
-		objectID, err = bson.ObjectIDFromHex(d.ID)
-		if err != nil {
-			return nil, fmt.Errorf("invalid CPSAction ID format: %w", err)
-		}
-	} else {
-		objectID = bson.NewObjectID()
-	}
-
-	var checkerActionTime *time.Time
-	if !d.CheckerActionTime.IsZero() {
-		checkerActionTime = d.CheckerActionTime
-	}
-
-	return &model.CPSAction{
-		ID:                 objectID,
-		ActionCode:         d.ActionCode,
-		UniqueId:           d.UniqueID,
-		MakerID:            d.MakerID,
-		MakerName:          d.MakerName,
-		MakerPhoneNumber:   d.MakerPhoneNumber,
-		CheckerID:          d.CheckerID,
-		CheckerName:        d.CheckerName,
-		CheckerPhoneNumber: d.CheckerPhoneNumber,
-		Department:         d.Department,
-		RejectionReason:    d.RejectionReason,
-		PreviousAction:     d.PreviousAction,
-		CurrentAction:      d.CurrentAction,
-		ActionStatus:       string(d.ActionStatus),
-		ActionType:         string(d.ActionType),
-		RequestAction:      string(d.RequestAction),
-		CreatedAt:          d.CreatedAt,
-		LastModifiedAt:     d.LastModifiedAt,
-		MakerActionTime:    d.MakerActionTime,
-		CheckerActionTime:  checkerActionTime,
-	}, nil
+type CreateCPSAction struct {
+	ActionCode      string                 `json:"action_code"`
+	MakerUser       User                   `json:"maker_user"`
+	Department      string                 `json:"department,omitempty"`
+	Status          constant.ActionStatus  `json:"status,omitempty"`
+	RequestAction   constant.RequestAction `json:"request_action,omitempty"`
+	ActionType      constant.ActionType    `json:"action_type,omitempty"`
+	ActionData      any                    `json:"action_data"`
+	PreviousData    any                    `json:"previous_action,omitempty"`
+	CurrentData     any                    `json:"current_action,omitempty"`
+	MakerActionTime time.Time              `json:"maker_action_time,omitzero"`
 }

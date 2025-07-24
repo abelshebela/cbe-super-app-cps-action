@@ -35,7 +35,9 @@ import (
 	inboundBulkServices "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_services"
 	inboundDepartment "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	inboundFeedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
+	inboundMiniAppMerchant "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/mini_app_merchant"
 	inboundMiniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
+
 	inboundPermission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
 	inboundUnlink "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
@@ -52,7 +54,8 @@ import (
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 
 	cps_actions_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
-	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/miniapp_handler"
+	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_handler"
+	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
@@ -86,8 +89,9 @@ type Adapter struct {
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
 	EventAdapter           event_inbound.EventHandler
 	// BudgetCategoryAdapter  budget_category.BudgetCategoryInbound
-	CPSActionAdapter      cps_actions.CPSActionAdapter
-	BudgetCategoryAdapter inboundBudgetCategory.BudgetCategoryInbound
+	CPSActionAdapter       cps_actions.CPSActionAdapter
+	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
+	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -116,7 +120,8 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		MiniAppAdapter:       miniapp_handler.NewMiniAppAdapter(application.MiniAppApplication, logger),
 		EventAdapter:         eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
 		// BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
-		CPSActionAdapter:      cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
-		BudgetCategoryAdapter: budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
+		CPSActionAdapter:       cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
+		BudgetCategoryAdapter:  budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
+		MiniAppMerchantAdapter: miniapp_merchant_handler.NewMiniAppMerchantAdapter(application.MiniAppMerchantApplication, logger),
 	}
 }

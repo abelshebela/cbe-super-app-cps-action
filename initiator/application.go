@@ -29,6 +29,8 @@ import (
 	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget_category"
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
+	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
+
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
@@ -64,8 +66,9 @@ type Application struct {
 	CPSActionApplication  cps_actions_application.CPSActionApplication
 	DispatcherApplication cps_actions_application.Dispatcher
 
-	BudgetCategoryApplication budget_category.BudgetCategoryApplicationService
-	FileService               file.FileService
+	BudgetCategoryApplication  budget_category.BudgetCategoryApplicationService
+	FileService                file.FileService
+	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -74,9 +77,9 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
 		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
-		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian,domain.CPSActionDomain, logger),
+		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
 		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
-		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain ,logger),
+		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
 		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
@@ -93,10 +96,11 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, logger),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
+		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, logger),
 	}
 }
