@@ -2,7 +2,7 @@ package budget
 
 import (
 	"cbe-super-app-budget/internal/constants/dto"
-	"cbe-super-app-budget/internal/handler/middleware"
+	"cbe-super-app-budget/internal/handlers/middleware"
 	"cbe-super-app-budget/internal/storage"
 	"cbe-super-app-budget/platform/logger"
 	"context"
@@ -32,6 +32,7 @@ func (s *budgetCategoryRepository) Delete(ctx context.Context, id string) error 
 	update := bson.M{
 		"$set": bson.M{
 			"is_deleted": true,
+			"deleted_at": time.Now(),
 		},
 	}
 

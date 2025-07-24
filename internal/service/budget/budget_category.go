@@ -2,7 +2,7 @@ package budget
 
 import (
 	"cbe-super-app-budget/internal/constants/dto"
-	"cbe-super-app-budget/internal/handler/middleware"
+	"cbe-super-app-budget/internal/handlers/middleware"
 	"cbe-super-app-budget/internal/service"
 	"cbe-super-app-budget/internal/storage"
 	"cbe-super-app-budget/platform/logger"
@@ -96,19 +96,31 @@ func (b budgetCategoryService) Modify(ctx context.Context, req dto.BudgetCategor
 		return err
 	}
 
+	var hasChange bool
 	exists.LastModifiedAt = time.Now()
-	exists.Name = req.Name
-	exists.Logo = req.Logo
-	exists.Color = req.Color
+	if exists.Logo != req.Logo && len(req.Logo) > 0 {
+		hasChange = true
+		exists.Logo = req.Logo
+	}
+	if exists.Name != req.Name && len(req.Name) > 0 {
+		hasChange = true
+		exists.Name = req.Name
+	}
+	if exists.Color != req.Color && len(req.Color) > 0 {
+		hasChange = true
+		exists.Color = req.Color
+	}
 
-	if err := b.repository.Update(ctx, exists); err != nil {
-		b.logger.Error(ctx,
-			"failed to update budget_category",
-			zap.String("budget_id", req.ID.Hex()),
-			zap.Error(err),
-		)
+	if hasChange {
+		if err := b.repository.Update(ctx, exists); err != nil {
+			b.logger.Error(ctx,
+				"failed to update budget_category",
+				zap.String("budget_id", req.ID.Hex()),
+				zap.Error(err),
+			)
 
-		return err
+			return err
+		}
 	}
 
 	b.logger.Info(ctx,

@@ -2,10 +2,11 @@ package budget
 
 import (
 	"cbe-super-app-budget/internal/constants/dto"
-	"cbe-super-app-budget/internal/handler/middleware"
+	"cbe-super-app-budget/internal/handlers/middleware"
 	"cbe-super-app-budget/internal/storage"
 	"cbe-super-app-budget/platform/logger"
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -32,6 +33,7 @@ func (s *budgetRepository) Delete(ctx context.Context, id string) error {
 	update := bson.M{
 		"$set": bson.M{
 			"is_deleted": true,
+			"deleted_at": time.Now(),
 		},
 	}
 
@@ -52,7 +54,7 @@ func (s *budgetRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (s *budgetRepository) Find(ctx context.Context) ([]dto.Budget, error) {
-	filter := bson.M{"isDelete": false}
+	filter := bson.M{"is_deleted": false}
 	cursor, err := s.collection.Find(ctx, filter)
 	if err != nil {
 		s.logger.Error(ctx,
@@ -76,10 +78,12 @@ func (s *budgetRepository) Find(ctx context.Context) ([]dto.Budget, error) {
 				WithService("cbe-super-app-budget").
 				WithOperation("find")
 		}
+		fmt.Println(budget)
 
 		budgets = append(budgets, budget)
 	}
 
+	fmt.Println("length: ", len(budgets))
 	return budgets, nil
 }
 
@@ -138,6 +142,7 @@ func (s *budgetRepository) Update(ctx context.Context, budget *dto.Budget) error
 	update := bson.M{
 		"$set": budget,
 	}
+
 	if _, err := s.collection.UpdateOne(ctx, filter, update); err != nil {
 		s.logger.Error(ctx,
 			"failed to update budget",

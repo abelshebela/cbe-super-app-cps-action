@@ -18,9 +18,10 @@ type Budget struct {
 	EndingDate                        time.Time          `json:"ending_date" bson:"ending_date"`
 	OverspendNotification             bool               `json:"overspend_notification" bson:"overspend_notification"`
 	LimitedBudgetExceededNotifiaction bool               `json:"limited_budget_exceeded_notification" bson:"limited_budget_exceeded_notification"`
-	Spending                          float64            `json:"speding" bson:"spending"`
+	Spending                          float64            `json:"spending" bson:"spending"`
+	IsDeleted                         bool               `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt                         time.Time          `json:"created_at" bson:"created_at"`
-	LastModifiedAt                    time.Time          `json:"lasT_modified_at" bson:"last_modified_at"`
+	LastModifiedAt                    time.Time          `json:"last_modified_at" bson:"last_modified_at"`
 	DeletedAt                         *time.Time         `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
 }
 
@@ -40,6 +41,7 @@ func NewBudget(req BudgetRequest) (*Budget, error) {
 		OverspendNotification:             req.OverspendNotification,
 		LimitedBudgetExceededNotifiaction: req.LimitedBudgetExceededNotifiaction,
 		Spending:                          req.Spending,
+		IsDeleted:                         false,
 		CreatedAt:                         now,
 		LastModifiedAt:                    now,
 	}, nil
@@ -54,7 +56,7 @@ type BudgetRequest struct {
 	EndingDate                        time.Time          `json:"ending_date"`
 	OverspendNotification             bool               `json:"overspend_notification"`
 	LimitedBudgetExceededNotifiaction bool               `json:"limited_budget_exceeded_notification"`
-	Spending                          float64            `json:"speding"`
+	Spending                          float64            `json:"spending"`
 }
 
 func (br *BudgetRequest) Validate() error {

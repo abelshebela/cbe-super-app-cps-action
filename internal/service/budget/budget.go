@@ -2,7 +2,7 @@ package budget
 
 import (
 	"cbe-super-app-budget/internal/constants/dto"
-	"cbe-super-app-budget/internal/handler/middleware"
+	"cbe-super-app-budget/internal/handlers/middleware"
 	"cbe-super-app-budget/internal/service"
 	"cbe-super-app-budget/internal/storage"
 	"cbe-super-app-budget/platform/logger"
@@ -97,19 +97,49 @@ func (b budgetService) Modify(ctx context.Context, req dto.BudgetRequest) error 
 	}
 
 	exists.LastModifiedAt = time.Now()
-	exists.BudgetCategory = req.BudgetCategory
-	exists.OverspendNotification = req.OverspendNotification
-	exists.LimitedBudgetExceededNotifiaction = req.LimitedBudgetExceededNotifiaction
-	exists.BudgetType = req.BudgetType
+	var hasChange bool
+	if exists.Spending != req.Spending && req.Spending > 0.0 {
+		hasChange = true
+		exists.Spending = req.Spending
+	}
 
-	if err := b.repository.Update(ctx, exists); err != nil {
-		b.logger.Error(ctx,
-			"failed to update budget",
-			zap.String("budget_id", req.ID.Hex()),
-			zap.Error(err),
-		)
+	if exists.BudgetCategory != req.BudgetCategory && !req.BudgetCategory.IsZero() {
+		hasChange = true
+		exists.BudgetCategory = req.BudgetCategory
+	}
 
-		return err
+	if exists.OverspendNotification != req.OverspendNotification {
+		hasChange = true
+		exists.OverspendNotification = req.OverspendNotification
+	}
+	if exists.LimitedBudgetExceededNotifiaction != req.LimitedBudgetExceededNotifiaction {
+		hasChange = true
+		exists.LimitedBudgetExceededNotifiaction = req.LimitedBudgetExceededNotifiaction
+	}
+	if exists.BudgetType != req.BudgetType && req.BudgetType != "" {
+		hasChange = true
+		exists.BudgetType = req.BudgetType
+	}
+	if exists.StartingDate != req.StartingDate && !req.StartingDate.IsZero() {
+		hasChange = true
+		exists.StartingDate = req.StartingDate
+	}
+	if exists.EndingDate != req.EndingDate && !req.EndingDate.IsZero() {
+		hasChange = true
+		exists.EndingDate = req.EndingDate
+
+	}
+
+	if hasChange {
+		if err := b.repository.Update(ctx, exists); err != nil {
+			b.logger.Error(ctx,
+				"failed to update budget",
+				zap.String("budget_id", req.ID.Hex()),
+				zap.Error(err),
+			)
+
+			return err
+		}
 	}
 
 	b.logger.Info(ctx,

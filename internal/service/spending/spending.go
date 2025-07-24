@@ -2,7 +2,7 @@ package spending
 
 import (
 	"cbe-super-app-budget/internal/constants/dto"
-	"cbe-super-app-budget/internal/handler/middleware"
+	"cbe-super-app-budget/internal/handlers/middleware"
 	"cbe-super-app-budget/internal/service"
 	"cbe-super-app-budget/internal/storage"
 	"cbe-super-app-budget/platform/logger"
@@ -96,20 +96,35 @@ func (b spendingService) Modify(ctx context.Context, req dto.SpendingRequest) er
 		return err
 	}
 
+	var hasChange bool
 	exists.LastModifiedAt = time.Now()
-	exists.BudgetID = req.BudgetID
-	exists.SpendingAmount = req.SpendingAmount
-	exists.TransactionDate = req.TransactionDate
-	exists.TransactionReference = req.TransactionReference
+	if exists.BudgetID != req.BudgetID && !req.BudgetID.IsZero() {
+		hasChange = true
+		exists.BudgetID = req.BudgetID
+	}
+	if exists.SpendingAmount != req.SpendingAmount && req.SpendingAmount > 0 {
+		hasChange = true
+		exists.SpendingAmount = req.SpendingAmount
+	}
+	if exists.TransactionDate != req.TransactionDate && req.TransactionDate.IsZero() {
+		hasChange = true
+		exists.TransactionDate = req.TransactionDate
+	}
+	if exists.TransactionReference != req.TransactionReference && req.TransactionReference != "" {
+		hasChange = true
+		exists.TransactionReference = req.TransactionReference
+	}
 
-	if err := b.repository.Update(ctx, exists); err != nil {
-		b.logger.Error(ctx,
-			"failed to update spending",
-			zap.String("spending_id", req.ID.Hex()),
-			zap.Error(err),
-		)
+	if hasChange {
+		if err := b.repository.Update(ctx, exists); err != nil {
+			b.logger.Error(ctx,
+				"failed to update spending",
+				zap.String("spending_id", req.ID.Hex()),
+				zap.Error(err),
+			)
 
-		return err
+			return err
+		}
 	}
 
 	b.logger.Info(ctx,
