@@ -35,6 +35,7 @@ type AdvertService interface {
 	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.AdvertResponse], error)
 	GetOneAdvert(ctx context.Context, id string) (*entity.AdvertResponse, error)
 	DeleteOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
+	EnableOrDisableAdvert(ctx context.Context, id string, requestAction cps_const.RequestAction, req model.CreateCPSAction) (*entities.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
 }
 
@@ -270,4 +271,47 @@ func (a *ADDomain) Authorize(ctx context.Context, cpsAction *entities.CPSAction)
 		a.logger.Errorf("unsupported action type: %v", cpsAction.ActionType)
 		return nil, fmt.Errorf("UNSUPPORTED_ACTION_TYPE")
 	}
+}
+
+func (a *ADDomain) EnableOrDisableAdvert(ctx context.Context, id string, requestAction cps_const.RequestAction, req model.CreateCPSAction) (*entities.CPSAction, error) {
+
+	existingAdvert, err := a.ADRepo.GetOneAdvert(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	enable := requestAction == cps_const.RequestEnableAdvert
+
+	if enable && existingAdvert.Enabled {
+		return nil, fmt.Errorf("RESOURCE_ALREADY_ENABLED")
+	}
+
+	if !enable && !existingAdvert.Enabled {
+		return nil, fmt.Errorf("RESOURCE_ALREADY_DISABLED")
+	}
+
+	cpsActionRes := &entities.CPSAction{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          req.MakerUser.UserCode,
+		MakerName:        req.MakerUser.FullName,
+		MakerPhoneNumber: req.MakerUser.PhoneNumber,
+		Department:       req.Department,
+		ActionStatus:     cps_const.ActionPending,
+		ActionType:       cps_const.ActionUpdate,
+		RequestAction:    cps_const.RequestAction(requestAction),
+		CurrentAction: entity.AdvertResponse{
+			ID:            existingAdvert.ID,
+			Enabled:       enable,
+			LastUpdatedAt: time.Now(),
+		},
+		PreviousAction: entity.AdvertResponse{
+			ID:      existingAdvert.ID,
+			Enabled: existingAdvert.Enabled,
+		},
+		MakerActionTime: time.Now(),
+		CreatedAt:       time.Now(),
+		LastModifiedAt:  time.Now(),
+	}
+
+	return cpsActionRes, nil
 }

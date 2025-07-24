@@ -7,6 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -22,6 +23,7 @@ type ADHandlers interface {
 	GetOneAdvert(ctx context.Context, id string) (*entity.AdvertResponse, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	DeleteOneAdvert(ctx context.Context, id string, adCpsReq model.CreateCPSAction) (*entities.CPSAction, error)
+	EnableOrDisableAdvert(ctx context.Context, id string, requestAction cps_const.RequestAction, cpsReq model.CreateCPSAction) (*entities.CPSAction, error)
 }
 
 type ADHandler struct {
@@ -102,5 +104,26 @@ func (a ADHandler) handleAdvertMakerAction(
 		return nil, err
 	}
 
+	return a.cpsService.CreateCPSAction(ctx, action)
+}
+
+func (a ADHandler) EnableOrDisableAdvert(ctx context.Context, id string, requestAction cps_const.RequestAction, cpsReq model.CreateCPSAction) (*entities.CPSAction, error) {
+	action, err := a.adDomain.EnableOrDisableAdvert(ctx, id, requestAction, cpsReq)
+	if err != nil {
+		return nil, err
+	}
+
+	// check pending action
+	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+
+	if err != nil {
+		return nil, err
+	}
 	return a.cpsService.CreateCPSAction(ctx, action)
 }

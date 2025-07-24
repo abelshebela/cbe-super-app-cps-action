@@ -11,8 +11,8 @@ import (
 
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -33,14 +33,16 @@ type BudgetHandler struct {
 	bucketName string
 	minio      config.MinioClientInterface
 	logger     utils.Logger
+	cfg        *config.VaultConfig
 }
 
-func InitBudgetHandler(service *service.BudgetService, minioClinet config.MinioClientInterface, bucketName string, logger utils.Logger) BudgetService {
+func InitBudgetHandler(service *service.BudgetService, minioClinet config.MinioClientInterface, bucketName string, logger utils.Logger, cfg *config.VaultConfig) BudgetService {
 	return &BudgetHandler{
 		service:    service,
 		minio:      minioClinet,
 		bucketName: bucketName,
 		logger:     logger,
+		cfg:        cfg,
 	}
 }
 
@@ -108,12 +110,12 @@ func (b *BudgetHandler) CreateIcon(ctx context.Context, cpsAction entities.CPSAc
 		return nil, fmt.Errorf("failed to save object to MinIo")
 	}
 
-	cpsAction.CurrentAction = map[string]interface{}{"icon_url": saveObj.Bucket + "/" + saveObj.Key}
+	cpsAction.CurrentAction = map[string]interface{}{"icon_url": "https://" + b.cfg.MinioEndPoint + "/" + saveObj.Bucket + "/" + saveObj.Key}
 
 	code, err := b.service.CreateIcon(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to persist CPS action: %v", err)
-		return nil, fmt.Errorf("failed to persist CPS action")
+		return nil, err
 	}
 
 	return code, nil
@@ -213,7 +215,7 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 		})
 	}
 
-	cpsAction.CurrentAction = map[string]interface{}{"icon_url": saveObj.Bucket + "/" + saveObj.Key}
+	cpsAction.CurrentAction = map[string]interface{}{"icon_url": "https://" + b.cfg.MinioEndPoint + "/" + saveObj.Bucket + "/" + saveObj.Key}
 
 	action, err := b.service.UpdateIcon(ctx, id, cpsAction)
 	if err != nil {

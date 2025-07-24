@@ -47,7 +47,7 @@ func (m *MockCPSActionRepo) ApproveUserAction(ctx context.Context, actionCode st
 	return args.Get(0).(*model.CPSAction), args.Error(1)
 }
 
-func (m *MockCPSActionRepo) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
+func (m *MockCPSActionRepo) FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error) {
 	args := m.Called(ctx, userCode)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -55,7 +55,7 @@ func (m *MockCPSActionRepo) FetchUserByUserCode(ctx context.Context, userCode st
 	return args.Get(0).(*model.CPSUser), args.Error(1)
 }
 
-func (m *MockCPSActionRepo) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+func (m *MockCPSActionRepo) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUserDTO], error) {
 	args := m.Called(ctx, filterParams)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

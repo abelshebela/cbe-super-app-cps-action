@@ -22,8 +22,9 @@ type ApplicationService interface {
 	UpdateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
+	FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
+	DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 }
 
 type Handler struct {
@@ -43,6 +44,9 @@ func (h *Handler) CreateUserRequest(ctx context.Context, r *http.Request) (*mode
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("failed to bind user data: %v", err)
+		if err.Error() == "the provided hex string is not a valid ObjectID" {
+			return nil, fmt.Errorf("INVALID_OBJECT_ID_FORMAT")
+		}
 		return nil, err
 	}
 
@@ -67,6 +71,9 @@ func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*mode
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("failed to bind user data: %v", err)
+		if err.Error() == "the provided hex string is not a valid ObjectID" {
+			return nil, fmt.Errorf("INVALID_OBJECT_ID_FORMAT")
+		}
 		return nil, err
 	}
 
@@ -103,15 +110,25 @@ func (h *Handler) ApproveUserAction(ctx context.Context, r *http.Request) (*mode
 func (h *Handler) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
 	return h.service.GetPendingUserActions(ctx)
 }
-func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error) {
+func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error) {
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	return h.service.FetchUserByUserCode(ctx, userCode)
 }
 
-func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	users, err := h.service.GetAllCPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (h *Handler) DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error) {
+	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
+	if userCode == "" {
+		h.logger.Errorf("user_code is required")
+		return nil, fmt.Errorf("user_code is required")
+	}
+
+	return h.service.DeleteUserRequest(ctx, userCode)
 }

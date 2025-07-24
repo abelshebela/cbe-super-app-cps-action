@@ -40,7 +40,7 @@ func Initiator() {
 	logger.Infof("Domain services initialized")
 
 	logger.Infof("Initializing application services...")
-	application := InitApplication(domain, minioClient, logger)
+	application := InitApplication(domain, minioClient, logger, cfg)
 	logger.Infof("Application services initialized")
 
 	logger.Infof("Initializing adapter services...")

@@ -35,7 +35,7 @@ type Domain struct {
 	AccountDomain         account_validation.Service
 	ActionDomain          action.ServiceInterface
 	AdDomain              ad_service.AdvertService
-	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthRepository
+	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthDomain
 	AvatarDomian          avatar_domain.AvatarDomainService
 	BankDomain            bank_service.BankService
 	BudgetCategoryDomain  budget_category.BudgetCategoryService

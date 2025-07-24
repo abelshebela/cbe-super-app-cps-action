@@ -72,7 +72,7 @@ type Application struct {
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
-func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
+func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger, cfg *config.VaultConfig) Application {
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
@@ -83,7 +83,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
 		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
-		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger),
+		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),

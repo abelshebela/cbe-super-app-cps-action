@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
@@ -22,6 +23,9 @@ func GetParam(r *http.Request, key string) (string, bool) {
 }
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
+	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		return nil, nil, fmt.Errorf(ErrMissingFile)
+	}
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
 		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
 	}
@@ -42,6 +46,7 @@ func UserContextToModel(userContext ctx_util.UserContext) model.User {
 		UserCode:    userContext.UserCode,
 		FullName:    userContext.FullName,
 		PhoneNumber: userContext.PhoneNumber,
+		Department:  userContext.Department,
 	}
 }
 

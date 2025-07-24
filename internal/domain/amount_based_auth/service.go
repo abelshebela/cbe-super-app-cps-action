@@ -17,6 +17,13 @@ type Service struct {
 	logger utils.Logger
 }
 
+type AmountBasedAuthDomain interface {
+	UpdateAmountBasedAuth(ctx context.Context, request UpdateAmountBasedAuth, cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error)
+	GetAllAmountBasedDetail(ctx context.Context, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*AuthTier], error)
+	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
+	RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error)
+}
+
 func NewAmountBasedAuthService(repo AmountBasedAuthRepository, logger utils.Logger) *Service {
 	return &Service{
 		repo:   repo,
@@ -43,6 +50,7 @@ func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams
 }
 
 func (service *Service) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+	fmt.Println("am hear for amount based tier")
 	return service.repo.Authorize(ctx, cpsAction)
 }
 

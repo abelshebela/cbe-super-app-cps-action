@@ -3,7 +3,9 @@ package dto
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -21,12 +23,8 @@ type CreateUserRequest struct {
 	Role               string          `json:"role" bson:"role,omitempty"`
 	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
 	Email              string          `json:"email,omitempty" bson:"email,omitempty"`
-	Realm              string          `json:"realm,omitempty" bson:"realm,omitempty"`
 	PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty"`
 	PermissionGroups   []bson.ObjectID `json:"permission_groups" bson:"permission_groups,omitempty"`
-	Enabled            bool            `json:"enabled,omitempty" bson:"enabled,omitempty"`
-	Country            string          `json:"country,omitempty" bson:"country,omitempty"`
-	Region             string          `json:"region,omitempty" bson:"region,omitempty"`
 }
 
 type UpdateUserRequest struct {
@@ -38,12 +36,52 @@ type UpdateUserRequest struct {
 	Role               string          `json:"role,omitempty" bson:"role,omitempty"`
 	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
 	Email              string          `json:"email,omitempty" bson:"email,omitempty"`
-	Realm              string          `json:"realm,omitempty" bson:"realm,omitempty"`
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
 	PermissionGroups   []bson.ObjectID `json:"permission_groups,omitempty" bson:"permission_groups,omitempty"`
-	Enabled            bool            `json:"enabled,omitempty" bson:"enabled,omitempty"`
-	Country            string          `json:"country,omitempty" bson:"country,omitempty"`
-	Region             string          `json:"region,omitempty" bson:"region,omitempty"`
+}
+
+type CPSUserDTO struct {
+	ID                 bson.ObjectID   `json:"id,omitempty"`
+	UserCode           string          `json:"user_code,omitempty"`
+	FullName           string          `json:"full_name,omitempty"`
+	Role               string          `json:"role,omitempty"`
+	Department         bson.ObjectID   `json:"department,omitempty"`
+	Gender             string          `json:"gender,omitempty"`
+	PhoneNumber        string          `json:"phone_number,omitempty"`
+	Email              string          `json:"email,omitempty"`
+	UserName           string          `json:"username,omitempty"`
+	Realm              string          `json:"realm,omitempty"`
+	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty"`
+
+	Enabled      bool       `json:"enabled,omitempty"`
+	DateJoined   *time.Time `json:"date_joined,omitempty"`
+	LastModified *time.Time `json:"last_modified,omitempty"`
+
+	Country string `json:"country,omitempty"`
+	Region  string `json:"region,omitempty"`
+}
+
+func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {
+	return CPSUserDTO{
+		ID:                 user.ID,
+		UserCode:           user.UserCode,
+		FullName:           user.FullName,
+		Role:               user.Role,
+		Department:         user.Department,
+		Gender:             user.Gender,
+		PhoneNumber:        user.PhoneNumber,
+		Email:              user.Email,
+		UserName:           user.UserName,
+		Realm:              user.Realm,
+		PermissionCategory: user.PermissionCategory,
+		PermissionGroup:    user.PermissionGroup,
+		Enabled:            user.Enabled,
+		DateJoined:         user.DateJoined,
+		LastModified:       user.LastModified,
+		Country:            user.Country,
+		Region:             user.Region,
+	}
 }
 
 type ApproveCPSAction struct {
@@ -70,9 +108,6 @@ func (r *CreateUserRequest) Normalize() {
 	r.Role = strings.TrimSpace(r.Role)
 	r.Gender = strings.TrimSpace(r.Gender)
 	r.Email = strings.TrimSpace(r.Email)
-	r.Realm = strings.TrimSpace(r.Realm)
-	r.Country = strings.TrimSpace(r.Country)
-	r.Region = strings.TrimSpace(r.Region)
 }
 
 func IsObjectIDRequired(value interface{}) error {
@@ -103,9 +138,6 @@ func (r CreateUserRequest) Validate() error {
 		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
 		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
 		validation.Field(&r.Email, validation.Required.Error("email is required")),
-		validation.Field(&r.Realm, validation.Required.Error("realm is required")),
-		validation.Field(&r.Country, validation.Required.Error("country is required")),
-		validation.Field(&r.Region, validation.Required.Error("region is required")),
 	)
 }
 

@@ -12,6 +12,7 @@ import (
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
 	// outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_validation"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	local_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -120,6 +121,47 @@ func (r *AccountValidationRepo) GetAccountValidationByID(ctx context.Context, id
 		LastModifiedAt: rule.LastModifiedAt,
 		ServiceID:      rule.ServiceID,
 	}, nil
+}
+func (r *AccountValidationRepo) GetAllAccountValidation(ctx context.Context, filterParams common_util.Filter) (*common_util.PaginatedResponse[[]*model.ValidationRule], error) {
+	filter := bson.M{
+		"is_deleted": false,
+	}
+
+	if filterParams.Search != "" {
+		filter["icon"] = bson.M{
+			"$regex":   filterParams.Search,
+			"$options": "i",
+		}
+	}
+
+	if filterParams.Filters != "" {
+		switch filterParams.Filters {
+		case "enabled":
+			filter["enabled"] = true
+		case "disabled":
+			filter["enabled"] = false
+		}
+	}
+
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+
+	validation, err := r.validationDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
+	if err != nil {
+		return nil, err
+	}
+
+	total, err := r.validationDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := common_util.BuildPaginationMeta(total, limit, filterParams.Page)
+
+	return &common_util.PaginatedResponse[[]*model.ValidationRule]{
+		Data: validation,
+		Meta: meta,
+	}, nil
+
 }
 
 func (r *AccountValidationRepo) UpdateAccountValidation(ctx context.Context, id string, rule account_validation.ValidationRule) error {

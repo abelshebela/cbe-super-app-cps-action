@@ -90,9 +90,6 @@ type AdvertDate struct {
 	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
 }
 
-
-
-
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -120,6 +117,9 @@ type RequestAction string
 
 const (
 	RequestUser                     RequestAction = "USER"
+	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
@@ -131,6 +131,9 @@ const (
 	RequestTotalDailyLimit          RequestAction = "TOTAL_DAILY_LIMIT"
 	RequestUpdateVAT                RequestAction = "UPDATE_VAT"
 	RequestAuthTier                 RequestAction = "AUTHTIER"
+	RequestDeleteAmountBasedAuth    RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth    RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
 	RequestCreateAdvert             RequestAction = "CREATE_ADVERT"
 	RequestUpdateAdvert             RequestAction = "UPDATE_ADVERT"
 	RequestEnableAdvert             RequestAction = "ENABLE_ADVERT"
@@ -360,7 +363,7 @@ type CPSUser struct {
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
 	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group,omitempty"`
 
-	Password                 Password  `json:"password" bson:"password"`
+	Password                 Password  `json:"password" bson:"password,omitempty"`
 	PasswordDisable          bool      `json:"password_disable,omitempty" bson:"password_disable,omitempty"`
 	SyncDisabled             bool      `json:"sync_disabled,omitempty" bson:"sync_disabled,omitempty"`
 	LoginAttemptCount        uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`
@@ -372,16 +375,16 @@ type CPSUser struct {
 	AccountAuthorizationCode string    `json:"account_authorization_code,omitempty" bson:"account_authorization_code,omitempty"`
 	UnlockAccountRequested   bool      `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested,omitempty"`
 
-	PasswordChangedAt *time.Time `json:"password_changed_at,omitempty" bson:"password_changed_at,omitempty"`
-	OTPStatus         string     `json:"otp_status,omitempty" bson:"otp_status,omitempty"`
-	OTPLastTriedAt    *time.Time `json:"otp_last_tried_at,omitempty" bson:"otp_last_tried_at,omitempty"`
-	OPTLastVerifiedAt *time.Time `json:"otp_last_verified_at,omitempty" bson:"otp_last_verified_at,omitempty"`
-	OTPVerifyCount    int        `json:"otp_verify_count,omitempty" bson:"otp_verify_count,omitempty"`
+	PasswordChangedAt *time.Time `json:"password_changed_at,omitempty" bson:"password_changed_at"`
+	OTPStatus         string     `json:"otp_status,omitempty" bson:"otp_status"`
+	OTPLastTriedAt    *time.Time `json:"otp_last_tried_at,omitempty" bson:"otp_last_tried_at"`
+	OPTLastVerifiedAt *time.Time `json:"otp_last_verified_at,omitempty" bson:"otp_last_verified_at"`
+	OTPVerifyCount    int        `json:"otp_verify_count,omitempty" bson:"otp_verify_count"`
 
-	Enabled      bool       `json:"enabled,omitempty" bson:"enabled,omitempty"`
-	IsDeleted    bool       `json:"is_deleted,omitempty" bson:"is_deleted,omitempty"`
-	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined,omitempty"`
-	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified,omitempty"`
+	Enabled      bool       `json:"enabled,omitempty" bson:"enabled"`
+	IsDeleted    bool       `json:"is_deleted,omitempty" bson:"is_deleted"`
+	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined"`
+	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified"`
 
 	Country string `json:"country,omitempty" bson:"country,omitempty"`
 	Region  string `json:"region,omitempty" bson:"region,omitempty"`

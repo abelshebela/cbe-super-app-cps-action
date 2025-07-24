@@ -7,7 +7,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -17,6 +19,7 @@ import (
 
 type Service interface {
 	GetAccountValidation(ctx context.Context, id string) (ValidationRule, error)
+	GetAllAccountValidation(ctx context.Context, filterParamet utils.Filter) (*utils.PaginatedResponse[[]*model.ValidationRule], error)
 	UpdateAccountValidationRequest(ctx context.Context, id string, update ValidationRule, maker User) (string, error)
 	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error
 	Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
@@ -36,6 +39,9 @@ func NewAccountValidationService(repo AccountValidationRepository, actionRepo ac
 	}
 }
 
+func (s *ServiceStore) GetAllAccountValidation(ctx context.Context, filterParam utils.Filter) (*utils.PaginatedResponse[[]*model.ValidationRule], error) {
+	return s.repository.GetAllAccountValidation(ctx, filterParam)
+}
 func (s *ServiceStore) GetAccountValidation(ctx context.Context, id string) (ValidationRule, error) {
 	if id == "" {
 		s.logger.Errorf("ID is empty")

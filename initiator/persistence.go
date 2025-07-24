@@ -114,6 +114,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 			"CPSServices",
 			"portal_cards",
 			"validation_rules",
+			"department",
 		}),
 		PasswordRulesPersistence: outboundStore.NewOutboundPasswordRuleInfra(client, databaseName, []string{
 			"password_rules",

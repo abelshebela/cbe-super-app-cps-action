@@ -41,6 +41,9 @@ const (
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
 	RequestUser                  RequestAction = "USER"
+	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
 	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
@@ -134,14 +137,32 @@ const (
 	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
+
+	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
+	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
+	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
+	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
+	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
+	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestAccountUpdate:            {},
-	RequestDeleteAmountBasedAuth:    {},
-	RequestCreateAmountBasedAuth:    {},
-	RequestUpdateAmountBasedAuth:    {},
-	RequestUser:                     {},
+	RequestAccountUpdate:         {},
+	RequestDeleteAmountBasedAuth: {},
+	RequestCreateAmountBasedAuth: {},
+	RequestUpdateAmountBasedAuth: {},
+	RequestUser:                  {},
+
+	RequestCreateBudgetColor: {},
+	RequestUpdateBudgetColor: {},
+	RequestDeleteBudgetColor: {},
+	RequestCreateBudgetIcon:  {},
+	RequestUpdateBudgetIcon:  {},
+	RequestDeleteBudgetIcon:  {},
+
+	RequestCpsUserCreate:            {},
+	RequestCpsUserUpdate:            {},
+	RequestCpsUserDelete:            {},
 	RequestPermissionGroup:          {},
 	RequestCreateDepartment:         {},
 	RequestUpdateDepartment:         {},
@@ -236,6 +257,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestAuthTier,
 	},
 	"User": {
 		RequestUser,
@@ -336,8 +358,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteAvatar,
 	},
 	"Budget": {
-		RequestBudgetColor,
-		RequestBudgetIcon,
+		RequestCreateBudgetColor,
+		RequestUpdateBudgetColor,
+		RequestDeleteBudgetColor,
+		RequestCreateBudgetIcon,
+		RequestUpdateBudgetIcon,
+		RequestDeleteBudgetIcon,
 	},
 
 	"Advert": {
@@ -391,6 +417,11 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Fayda": {
 		RequestDisableFaydaAccount,
 		RequestEnableFaydaAccount,
+	},
+	"CPSUser": {
+		RequestCpsUserCreate,
+		RequestCpsUserUpdate,
+		RequestCpsUserDelete,
 	},
 }
 

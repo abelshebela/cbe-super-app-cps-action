@@ -130,6 +130,7 @@ var errorKeyToStatus = map[string]int{
 	"PIN_MIN_LE_OPEN_MIN":                                        http.StatusBadRequest,
 	"PIN_MAX_LE_PIN_MIN":                                         http.StatusBadRequest,
 	"OTP_MIN_GE_PIN_MIN":                                         http.StatusBadRequest,
+	"COLOR_ALREADY_EXISTED":                                      http.StatusBadRequest,
 	"TIER_AUTH_NOT_FOUND":                                        http.StatusNotFound,
 	"FAILED_TO_GET_AUTH_TIER":                                    http.StatusInternalServerError,
 	"REQUIRED_TITLE":                                             http.StatusBadRequest,
@@ -141,13 +142,31 @@ var errorKeyToStatus = map[string]int{
 	"RESOURCE_ALREADY_DISABLED":                                  http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
-	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
+	"UNEXPECTED_DATABASE_ERROR":                                  http.StatusInternalServerError,
+	"USER_CODE_ALREADY_EXIST":                                    http.StatusConflict,
+	"PHONE_NUMBER_EXISTS":                                        http.StatusConflict,
+	"EMAIL_ALREADY_EXISTS":                                       http.StatusConflict,
+	"USERNAME_ALREADY_EXISTS":                                    http.StatusConflict,
+	"WALLET_INFORMATION_ALREADY_EXISTST":                         http.StatusBadRequest,
 	"NO_DATA_PROVIDED_FOR_UPDATE":                                http.StatusBadRequest,
 	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
 	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
 	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
 	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
+	"INVALID_IMG_FORMAT":                                         http.StatusBadRequest,
+	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
+	"GENERAL_DB_QUERY_FAILED":                                    http.StatusInternalServerError,
+	"ERROR_WHILE_CHECKING_PENDING_ACTION":                        http.StatusInternalServerError,
+	"INVALID_OBJECT_ID":                                          http.StatusBadRequest,
 	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
+	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
+
+	"MISSING_ACTION_DATA":   http.StatusBadRequest,
+	"INVALID_ACTION_FORMAT": http.StatusBadRequest,
+	"MISSING_ICON":          http.StatusBadRequest,
+	"FAILED_TO_AUTHORIZE":   http.StatusInternalServerError,
+	"MISSING_COLOR_ID":      http.StatusBadRequest,
+	"FAILED_COLOR_UPDATE":   http.StatusInternalServerError,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
@@ -289,6 +308,14 @@ var errorKeyToStatus = map[string]int{
 	"BANK_BIC_CODE_ALREADY_EXIST":              http.StatusBadRequest,
 	"BIC_CODE_ALREADY_EXIST":                   http.StatusBadRequest,
 	"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": http.StatusConflict,
+
+	// Permission
+	"NO_PERMISSION_CATEGORY_FOUND":                http.StatusNotFound,
+	"INVALID_PERMISSION_CATEGORY_ID":              http.StatusBadRequest,
+	"ONE_OR_MORE_PERMISSION_CATEGORIES_NOT_FOUND": http.StatusNotFound,
+	"INVALID_PERMISSION_GROUP_ID":                 http.StatusBadRequest,
+	"NO_PERMISSION_GROUP_FOUND":                   http.StatusNotFound,
+	"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND":     http.StatusNotFound,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -404,6 +431,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Wallet,
 		common.DefineError.Action,
 		common.DefineError.AD,
+		common.DefineError.Permission,
 	}
 
 	for _, group := range errorGroups {

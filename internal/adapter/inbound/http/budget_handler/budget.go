@@ -36,6 +36,21 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
+	allowedImageTypes := map[string]bool{
+		"image/jpeg":    true,
+		"image/png":     true,
+		"image/gif":     true,
+		"image/webp":    true,
+		"image/bmp":     true,
+		"image/svg+xml": true,
+	}
+
+	if !allowedImageTypes[fileHeader.Header.Get("Content-Type")] {
+		h.logger.Errorf("invalid file type: %v", fileHeader.Header.Get("Content-Type"))
+		common_util.SendErrorResponse(w, "INVALID_IMG_FORMAT", http.StatusBadRequest, nil)
+		return
+	}
+
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
 		h.logger.Errorf("Incomplete user information")
@@ -51,23 +66,23 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"icon_url": fileHeader},
-		RequestAction:    entities.RequestBudgetIcon,
+		RequestAction:    entities.RequestCreateBudgetIcon,
 		MakerActionTime:  time.Now(),
 	}
 
 	action, err := h.budgetService.CreateIcon(r.Context(), cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to create budget icon: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
+	_, err = common_util.StructToMap(action)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 500, nil)
 		return
 	}
-	common_util.BaseResponseMaker(data, w, "Budget icon request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Budget icon request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +91,7 @@ func (h *BudgetHandler) BudgetFetchIcons(w http.ResponseWriter, r *http.Request)
 	icons, err := h.budgetService.FetchIcons(r.Context(), filterParams)
 	if err != nil {
 		h.logger.Errorf("failed to fetch budget icons: %v", err)
-		common_util.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 	data, _ := common_util.StructToMap(icons)
@@ -115,11 +130,11 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"icon_url": fileHeader},
-		RequestAction:    entities.RequestBudgetIcon,
+		RequestAction:    entities.RequestUpdateBudgetIcon,
 		MakerActionTime:  time.Now(),
 	}
 
-	action, err := h.budgetService.UpdateIcon(r.Context(), id, cpsAction)
+	_, err = h.budgetService.UpdateIcon(r.Context(), id, cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to update budger icon: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
@@ -127,12 +142,7 @@ func (h *BudgetHandler) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-	}
-
-	common_util.BaseResponseMaker(data, w, "Update request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Update request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request) {
@@ -163,27 +173,25 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"color": req.Color},
-		RequestAction:    entities.RequestBudgetColor,
+		RequestAction:    entities.RequestCreateBudgetColor,
 		MakerActionTime:  time.Now(),
 	}
 
-	action, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
+	_, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-		return
-	}
-
-	common_util.BaseResponseMaker(data, w, "Color creattion request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Color creattion request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchColors(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
+	if filterParams.Page < 1 || filterParams.Page < 1 {
+		common_util.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
+		return
+	}
 
 	colors, err := h.budgetService.FetchColors(r.Context(), filterParams)
 	if err != nil {
@@ -230,25 +238,19 @@ func (h *BudgetHandler) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 		ActionStatus:     entities.ActionPending,
 		ActionType:       entities.ActionCreate,
 		CurrentAction:    map[string]interface{}{"color": req.Color},
-		RequestAction:    entities.RequestBudgetColor,
+		RequestAction:    entities.RequestUpdateBudgetColor,
 		MakerActionTime:  time.Now(),
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
 	}
 
-	action, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
+	_, err := h.budgetService.UpdateColor(r.Context(), id, req.Color, cpsAction)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), http.StatusNotFound, nil)
 		return
 	}
 
-	data, err := common_util.StructToMap(action)
-	if err != nil {
-		common_util.SendErrorResponse(w, err.Error(), 500, nil)
-		return
-	}
-
-	common_util.BaseResponseMaker(data, w, "Color update request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Color update request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetCheckerApproval(w http.ResponseWriter, r *http.Request) {
