@@ -23,27 +23,29 @@ func InitCPSUserMakerHandler(service cpsapp.ApplicationService, logger utils.Log
 }
 
 func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
-	dataCPSAction, err := h.Service.CreateUserRequest(r.Context(), r)
+	_, err := h.Service.CreateUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("CreateUserRequest failed: %v", err)
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	response := map[string]interface{}{"action_code": dataCPSAction.ActionCode}
-	local_util.BaseResponseMaker(response, w, "User request submitted successfully", 200)
+	// response := map[string]interface{}{"action_code": dataCPSAction.ActionCode}
+	// local_util.BaseResponseMaker(response, w, "User request submitted successfully", 200)
+	local_util.WriteSuccessResponse(w, nil, "Create user request action submitted successfully")
 }
 
 func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
-	dataCPSAction, err := h.Service.UpdateUserRequest(r.Context(), r)
+	_, err := h.Service.UpdateUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("UpdateUserRequest failed: %v", err)
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	response := map[string]interface{}{"action_code": dataCPSAction.ActionCode}
-	local_util.BaseResponseMaker(response, w, "User update request processed successfully", 200)
+	// response := map[string]interface{}{"action_code": dataCPSAction.ActionCode}
+	// local_util.BaseResponseMaker(response, w, "User update request processed successfully", 200)
+	local_util.WriteSuccessResponse(w, nil, "Update user request action submitted successfully")
 }
 
 func (h CPSUserMakerHandler) ApproveUserAction(w http.ResponseWriter, r *http.Request) {

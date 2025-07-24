@@ -155,6 +155,8 @@ var errorKeyToStatus = map[string]int{
 	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
 	"INVALID_IMG_FORMAT":                                         http.StatusBadRequest,
 	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
+	"GENERAL_DB_QUERY_FAILED":                                    http.StatusInternalServerError,
+	"ERROR_WHILE_CHECKING_PENDING_ACTION":                        http.StatusInternalServerError,
 	"INVALID_OBJECT_ID":                                          http.StatusBadRequest,
 
 	"MISSING_ACTION_DATA":   http.StatusBadRequest,
