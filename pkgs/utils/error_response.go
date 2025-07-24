@@ -152,8 +152,14 @@ var errorKeyToStatus = map[string]int{
 	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
 	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
 	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
-	"START_DATE_REQUIRED":                                       http.StatusBadRequest,
+	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
 
+	"MISSING_ACTION_DATA":   http.StatusBadRequest,
+	"INVALID_ACTION_FORMAT": http.StatusBadRequest,
+	"MISSING_ICON":          http.StatusBadRequest,
+	"FAILED_TO_AUTHORIZE":   http.StatusInternalServerError,
+	"MISSING_COLOR_ID":      http.StatusBadRequest,
+	"FAILED_COLOR_UPDATE":   http.StatusInternalServerError,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
