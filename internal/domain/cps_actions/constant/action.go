@@ -41,6 +41,9 @@ const (
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
 	RequestUser                  RequestAction = "USER"
+	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
 	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
@@ -136,11 +139,15 @@ const (
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestAccountUpdate:            {},
-	RequestDeleteAmountBasedAuth:    {},
-	RequestCreateAmountBasedAuth:    {},
-	RequestUpdateAmountBasedAuth:    {},
-	RequestUser:                     {},
+	RequestAccountUpdate:         {},
+	RequestDeleteAmountBasedAuth: {},
+	RequestCreateAmountBasedAuth: {},
+	RequestUpdateAmountBasedAuth: {},
+	RequestUser:                  {},
+
+	RequestCpsUserCreate:            {},
+	RequestCpsUserUpdate:            {},
+	RequestCpsUserDelete:            {},
 	RequestPermissionGroup:          {},
 	RequestCreateDepartment:         {},
 	RequestUpdateDepartment:         {},
@@ -232,6 +239,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestAuthTier,
 	},
 	"User": {
 		RequestUser,
@@ -385,6 +393,11 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Fayda": {
 		RequestDisableFaydaAccount,
 		RequestEnableFaydaAccount,
+	},
+	"CPSUser": {
+		RequestCpsUserCreate,
+		RequestCpsUserUpdate,
+		RequestCpsUserDelete,
 	},
 }
 

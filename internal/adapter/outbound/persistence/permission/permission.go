@@ -111,7 +111,6 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 
 	var validObjectIDs []bson.ObjectID
 	var invalidIDs []string
-
 	for _, id := range ids {
 		if id == "" {
 			invalidIDs = append(invalidIDs, "<empty>")
@@ -132,16 +131,22 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 	}
 
 	if len(invalidIDs) > 0 {
-		return nil, fmt.Errorf("invalid permission category IDs: %v", invalidIDs)
+		r.logger.Errorf("Invalid permission category IDs: %v", invalidIDs)
+		return nil, fmt.Errorf("INVALID_PERMISSION_CATEGORY_ID")
 	}
 
 	categories, err := r.permissionCategoryDal.FindAll(ctx,
 		bson.M{"_id": bson.M{"$in": validObjectIDs}},
 		bson.M{"_id": 1},
 	)
+
 	if err != nil {
 		r.logger.Errorf("failed to fetch permission categories: %v", err)
-		return nil, fmt.Errorf("database error while validating permissions")
+		return nil, fmt.Errorf("UNEXPECTED_DATABASE_ERROR")
+	}
+
+	if len(categories) == 0 || err == mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("NO_PERMISSION_CATEGORY_FOUND")
 	}
 
 	foundIDs := make(map[bson.ObjectID]bool)
@@ -162,7 +167,7 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 	}
 
 	if len(missingIDs) > 0 {
-		return nil, InvalidIDsError{Field: "permission categories", IDs: missingIDs}
+		return nil, fmt.Errorf("ONE_OR_MORE_PERMISSION_CATEGORIES_NOT_FOUND")
 	}
 
 	return validIDs, nil
@@ -194,16 +199,22 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string
 	}
 
 	if len(invalidIDs) > 0 {
-		return nil, fmt.Errorf("invalid permission group IDs: %v", invalidIDs)
+		r.logger.Errorf("Invalid permission groups IDs: %v", invalidIDs)
+		return nil, fmt.Errorf("INVALID_PERMISSION_GROUP_ID")
 	}
 
 	groups, err := r.permissionGroupsDal.FindAll(ctx,
 		bson.M{"_id": bson.M{"$in": validObjectIDs}},
 		bson.M{"_id": 1},
 	)
+
 	if err != nil {
-		r.logger.Errorf("failed to fetch permission groups: %v", err)
-		return nil, fmt.Errorf("database error while validating permission groups")
+		r.logger.Errorf("failed to fetch permission categories: %v", err)
+		return nil, fmt.Errorf("UNEXPECTED_DATABASE_ERROR")
+	}
+
+	if len(groups) == 0 || err == mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("NO_PERMISSION_GROUP_FOUND")
 	}
 
 	foundIDs := make(map[bson.ObjectID]bool)
@@ -224,7 +235,7 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string
 	}
 
 	if len(missingIDs) > 0 {
-		return nil, InvalidIDsError{Field: "permission groups", IDs: missingIDs}
+		return nil, fmt.Errorf("ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND")
 	}
 
 	return validIDs, nil

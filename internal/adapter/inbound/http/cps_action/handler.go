@@ -99,6 +99,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+
 	common_util.WriteSuccessResponse(w, nil, "CPS Action authorized successfully")
 }
 

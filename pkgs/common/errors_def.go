@@ -22,6 +22,7 @@ type ErrorDefinitions struct {
 	Action      ErrorGroup
 	Wallet      ErrorGroup
 	AD          ErrorGroup
+	Permission  ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -520,7 +521,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"PENDING_ACTION_EXISTS": {
 			Code:    "GEN_124",
-			Message: "A pending action already exists for this validation rule.",
+			Message: "A pending action already.",
 		},
 		"FAILED_TO_FETCH_PENDING_ACTIONS": {
 			Code:    "GEN_125",
@@ -699,29 +700,50 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_154",
 			Message: "kyc_level must be a number between 0 and 2",
 		},
-		"NO_DATA_PROVIDED_FOR_UPDATE": {
+
+		"UNEXPECTED_DATABASE_ERROR": {
 			Code:    "GEN_155",
-			Message: "Update request must include at least one field to modify.",
+			Message: "An unexpected database error occurred. Please try again later.",
+		},
+		"USER_CODE_ALREADY_EXIST": {
+			Code:    "GEN_156",
+			Message: "User code already exists. Please choose a different user code.",
+		},
+		"PHONE_NUMBER_EXISTS": {
+			Code:    "GEN_157",
+			Message: "Phone number already exists. Please use a different phone number.",
+		},
+		"EMAIL_ALREADY_EXISTS": {
+			Code:    "GEN_158",
+			Message: "Email already exists. Please use a different email address.",
+		},
+		"USERNAME_ALREADY_EXISTS": {
+			Code:    "GEN_159",
+			Message: "Username already exists. Please choose a different username.",
+		},
+		"COLOR_ALREADY_EXISTED": {
+			Code:    "GEN_160",
+			Message: "Color already Existed",
+    },
+		"NO_DATA_PROVIDED_FOR_UPDATE": {
+			Code:    "GEN_161",
+			Message: "Update request must include at least one field to modify",
 		},
 		"CONTENT_TYPE_MUST_BE_FORM": {
-			Code:    "GEN_156",
+			Code:    "GEN_162",
 			Message: "Content-Type must be multipart/form-data",
 		},
 		"CONTENT_TYPE_MUST_BE_JSON": {
-			Code:    "GEN_157",
+			Code:    "GEN_163",
 			Message: "Content-Type must be application/json",
 		},
 		"RESOURCE_ALREADY_ENABLED": {
-			Code:    "GEN_158",
+			Code:    "GEN_164",
 			Message: "Resource is already enabled",
 		},
 		"RESOURCE_ALREADY_DISABLED": {
-			Code:    "GEN_159",
+			Code:    "GEN_165",
 			Message: "Resource is already disabled",
-		},
-		"INVALID_PAYLOAD": {
-			Code:    "GEN_160",
-			Message: "The request payload is invalid or malformed. Please check the input structure and types.",
 		},
 	},
 	Auth: ErrorGroup{
@@ -733,7 +755,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_002",
 			Message: "User is not allowed to login, please contact your admin!",
 		},
-
 		"AUTH_USER_HAS_NO_PASSWORD": {
 			Code:    "AUTH_004",
 			Message: "Please reset your password. to login",
@@ -1357,6 +1378,32 @@ var DefineError = ErrorDefinitions{
 		"EXPIRE_DATE_REQUIRED": {
 			Code:    "AD_006",
 			Message: "end date is required",
+		},
+	},
+	Permission: ErrorGroup{
+		"NO_PERMISSION_CATEGORY_FOUND": {
+			Code:    "PERM_001",
+			Message: "No permission category found.",
+		},
+		"INVALID_PERMISSION_CATEGORY_ID": {
+			Code:    "PERM_002",
+			Message: "Invalid permission category ID provided.",
+		},
+		"ONE_OR_MORE_PERMISSION_CATEGORIES_NOT_FOUND": {
+			Code:    "PERM_003",
+			Message: "One or more permission categories not found.",
+		},
+		"INVALID_PERMISSION_GROUP_ID": {
+			Code:    "PERM_004",
+			Message: "Invalid permission group ID provided.",
+		},
+		"NO_PERMISSION_GROUP_FOUND": {
+			Code:    "PERM_005",
+			Message: "No permission group found.",
+		},
+		"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND": {
+			Code:    "PERM_006",
+			Message: "One or more permission groups not found.",
 		},
 	},
 }

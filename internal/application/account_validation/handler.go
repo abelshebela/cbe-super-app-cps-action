@@ -7,11 +7,13 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type ApplicationAbstracts interface {
 	GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error)
+	GetAllAccountValidation(ctx context.Context, filterParams utils.Filter) (*utils.PaginatedResponse[[]*entities.ValidationRule], error)
 	UpdateAccountValidationRequest(ctx context.Context, id string, update account_validation.ValidationRule, maker account_validation.User) (dto.UpdateAccountValidationResponse, error)
 	UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker account_validation.User, rejectedReason string) error
 }

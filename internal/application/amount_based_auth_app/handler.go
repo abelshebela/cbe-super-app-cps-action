@@ -17,10 +17,10 @@ type ApplicationService interface {
 }
 
 type Handler struct {
-	service *amount_based_auth_domain.Service
+	service amount_based_auth_domain.AmountBasedAuthDomain
 }
 
-func AmountBasedAuthHandler(service *amount_based_auth_domain.Service) ApplicationService {
+func AmountBasedAuthHandler(service amount_based_auth_domain.AmountBasedAuthDomain) ApplicationService {
 	return &Handler{
 		service: service,
 	}
