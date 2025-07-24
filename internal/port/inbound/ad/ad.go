@@ -8,6 +8,4 @@ type ADAdapter interface {
 	GetOneAdvert(w http.ResponseWriter, r *http.Request)
 	UpdateOneAdvert(w http.ResponseWriter, r *http.Request)
 	DeleteOneAdvert(w http.ResponseWriter, r *http.Request)
-	// Authorize(w http.ResponseWriter, r *http.Request)
-	Reject(w http.ResponseWriter, r *http.Request)
 }

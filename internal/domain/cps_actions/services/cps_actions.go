@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -14,10 +15,10 @@ import (
 type CPSActionService interface {
 	CreateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	UpdateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
-	CPSActionExists(ctx context.Context, uniqueID string) (bool, error)
+	CPSActionExists(ctx context.Context, user entities.CheckCPSAction) (bool, error)
 	ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error)
 	RejectCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error)
-	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
+	GetCPSActionsByDepartment(ctx context.Context, department string, status string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
 	GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error)
 }
@@ -41,9 +42,9 @@ func (s *cpsActionService) UpdateCPSAction(ctx context.Context, action *entities
 	s.logger.Infof("Updating CPS Action with ID: %s", action.ID)
 	return s.repo.UpdateCPSAction(ctx, action)
 }
-func (s *cpsActionService) CPSActionExists(ctx context.Context, uniqueID string) (bool, error) {
-	s.logger.Infof("Checking if CPS Action exists with unique ID: %s", uniqueID)
-	return s.repo.CPSActionExists(ctx, uniqueID)
+func (s *cpsActionService) CPSActionExists(ctx context.Context, user entities.CheckCPSAction) (bool, error) {
+	s.logger.Infof("Checking if CPS Action exists with unique ID: %s", user.UserCode)
+	return s.repo.CPSActionExists(ctx, user)
 }
 func (s *cpsActionService) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
 	return s.repo.ApproveCPSAction(ctx, action)
@@ -52,9 +53,12 @@ func (s *cpsActionService) RejectCPSAction(ctx context.Context, action *entities
 	s.logger.Infof("Rejecting CPS Action with ID: %s", action.ActionCode)
 	return s.repo.RejectCPSAction(ctx, action)
 }
-func (s *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error) {
+func (s *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, status string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error) {
 	s.logger.Infof("Fetching CPS Actions for department: %s", department)
-	return s.repo.GetCPSActionsByDepartment(ctx, department, filterParams)
+	if status == "" {
+		status = string(model.ActionPending)
+	}
+	return s.repo.GetCPSActionsByDepartment(ctx, department, status, filterParams)
 }
 func (s *cpsActionService) GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error) {
 	s.logger.Infof("Fetching CPS Action by ID: %s", id)

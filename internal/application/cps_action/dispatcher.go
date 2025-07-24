@@ -40,8 +40,11 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "AdDomain"):
+	case constants.IsActionInGroup(action, "Advert"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
+
+	case constants.IsActionInGroup(action, "Avatar"):
+		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Fayda"):
 		return d.app.FaydaDomain.Authorize(ctx, cpsAction)

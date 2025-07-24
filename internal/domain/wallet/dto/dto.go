@@ -62,7 +62,7 @@ func (c CreateWalletRequest) Validate() error {
 }
 
 type UpdateWalletRequest struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Code string `json:"code"`
+	Name   string                `json:"name"`
+	Code   string                `json:"code"`
+	Avatar *multipart.FileHeader `form:"avatar" json:"avatar"`
 }

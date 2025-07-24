@@ -28,6 +28,9 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 
 	file, fileHeader, err := r.FormFile(key)
 	if err != nil {
+		if err == http.ErrMissingFile {
+			return nil, nil, fmt.Errorf(ErrMissingFile)
+		}
 		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
 	}
 
