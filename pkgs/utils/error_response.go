@@ -156,6 +156,7 @@ var errorKeyToStatus = map[string]int{
 	"INVALID_IMG_FORMAT":                                         http.StatusBadRequest,
 	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
 	"INVALID_OBJECT_ID":                                          http.StatusBadRequest,
+	"MAX_NOT_BE_LESS":                                            http.StatusBadRequest,
 
 	"MISSING_ACTION_DATA":   http.StatusBadRequest,
 	"INVALID_ACTION_FORMAT": http.StatusBadRequest,

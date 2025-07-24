@@ -122,9 +122,9 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	existingAction, _ := b.cpsDal.FindOne(ctx, filter, nil)
+	_, err := b.cpsDal.FindOne(ctx, filter, nil)
 
-	if existingAction != nil {
+	if err == nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
@@ -174,9 +174,9 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	existingAction, _ := b.cpsDal.FindOne(ctx, filter, nil)
+	_, err := b.cpsDal.FindOne(ctx, filter, nil)
 
-	if existingAction != nil {
+	if err == nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
@@ -288,9 +288,9 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	existingAction, _ := b.cpsDal.FindOne(ctx, filter, nil)
+	_, err := b.cpsDal.FindOne(ctx, filter, nil)
 
-	if existingAction != nil {
+	if err == nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 

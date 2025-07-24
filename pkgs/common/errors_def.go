@@ -785,6 +785,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_168",
 			Message: "invalid object id",
 		},
+		"MAX_NOT_BE_LESS": {
+			Code:    "GEN_168",
+			Message: "max length not be less than min length",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

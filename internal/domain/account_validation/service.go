@@ -75,6 +75,9 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 
 	pendingActions, _ := s.repository.FetchPendingActionsByUniqueID(ctx, id)
 
+	// fmt.Println("*****************")
+	// fmt.Println(id)
+	// fmt.Println(pendingActions)
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for validation rule: %s", id)
 		return "", fmt.Errorf("PENDING_ACTION_EXISTS")
@@ -83,11 +86,7 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 	// Debug log to check update
 	fmt.Printf("update being marshaled: %+v\n", update)
 
-	previousActionJSON, err := json.Marshal(originalRule)
-	if err != nil {
-		s.logger.Errorf("failed to marshal previous action: %v", err)
-		return "", fmt.Errorf("FAILED_TO_MARSHAL_PREVIOUS_ACTION")
-	}
+	previousActionJSON := originalRule
 
 	// Ensure the update struct has the ID set
 	update.ID = id
