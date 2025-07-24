@@ -142,7 +142,9 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	}
 	existing, err := b.colorDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		if err.Error() != "mongo: no documents in result" {
+			return nil, err
+		}
 	}
 	if existing != nil {
 		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")

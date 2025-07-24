@@ -36,6 +36,21 @@ func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
+	allowedImageTypes := map[string]bool{
+		"image/jpeg":    true,
+		"image/png":     true,
+		"image/gif":     true,
+		"image/webp":    true,
+		"image/bmp":     true,
+		"image/svg+xml": true,
+	}
+
+	if !allowedImageTypes[fileHeader.Header.Get("Content-Type")] {
+		h.logger.Errorf("invalid file type: %v", fileHeader.Header.Get("Content-Type"))
+		common_util.SendErrorResponse(w, "Only image file formats are allowed", http.StatusBadRequest, nil)
+		return
+	}
+
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
 		h.logger.Errorf("Incomplete user information")

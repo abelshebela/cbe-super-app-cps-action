@@ -755,7 +755,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "AUTH_002",
 			Message: "User is not allowed to login, please contact your admin!",
 		},
-
 		"AUTH_USER_HAS_NO_PASSWORD": {
 			Code:    "AUTH_004",
 			Message: "Please reset your password. to login",
