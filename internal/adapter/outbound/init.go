@@ -874,10 +874,10 @@ func stringToPointer(s string) *string {
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserCode,
+		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
-		"request_action": cpsAction.RequestAction,
+		"request_action": "CREATE_CPS_USER",
 	}
 	pendingAction, err := o.MongoDalCPSAction.FindOne(ctx, pendingFilter, nil)
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -939,10 +939,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	makerData := contexts.ExtractContext(ctx)
 
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserCode,
+		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
-		"request_action": cpsAction.RequestAction,
+		"request_action": "UPDATE_CPS_USER",
 	}
 	pendingAction, err := o.MongoDalCPSAction.FindOne(ctx, pendingFilter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -1231,8 +1231,8 @@ func (o *outboundStore) AuthorizeCreate(ctx context.Context, action *cps_entity.
 	data.Country = ""
 	data.Region = ""
 	data.Enabled = true
-	data.Realm = "bank"
-	data.PasswordDisable = false
+	data.Realm = "BANK"
+	data.PasswordDisable = true
 	data.SyncDisabled = false
 	data.LoginAttemptCount = 0
 	data.NextLoginAttempt = time.Now()

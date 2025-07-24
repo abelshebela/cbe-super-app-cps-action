@@ -521,7 +521,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"PENDING_ACTION_EXISTS": {
 			Code:    "GEN_124",
-			Message: "A pending action already.",
+			Message: "A pending action already exist.",
 		},
 		"FAILED_TO_FETCH_PENDING_ACTIONS": {
 			Code:    "GEN_125",
@@ -792,7 +792,7 @@ var DefineError = ErrorDefinitions{
 		"MAX_NOT_BE_LESS": {
 			Code:    "GEN_168",
 			Message: "max length not be less than min length",
-    },
+		},
 		"METHOD_NOT_ALLOWED": {
 			Code:    "GEN_169",
 			Message: "Method not allowed",

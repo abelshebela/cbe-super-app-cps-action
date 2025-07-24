@@ -133,23 +133,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		}
 	}
 
-	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
-	// pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
-	// if err != nil && err != mongo.ErrNoDocuments {
-	// 	s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
-	// 	return nil, fmt.Errorf("ERROR_WHILE_CHECKING_PENDING_ACTION")
-	// }
-	// if len(pendingActions) > 0 {
-	// 	s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
-	// 	return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
-	// }
-
-	// _, err = s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
-	// if err != nil {
-	// 	s.logger.Errorf("failed to check department existence: %v", err)
-	// 	return nil, err
-	// }
 
 	if userData.Role != "" && userData.Role != "maker" && userData.Role != "checker" {
 		s.logger.Errorf("User role can only be either 'maker' or 'checker'")
