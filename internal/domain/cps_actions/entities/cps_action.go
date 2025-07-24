@@ -33,7 +33,7 @@ type User struct {
 	UserCode    string
 	FullName    string
 	PhoneNumber string
-	Department string
+	Department  string
 }
 
 type CheckCPSAction struct {
@@ -50,4 +50,17 @@ type AuthorizeCPSAction struct {
 	RejectionReason   string    `json:"rejection_reason"`
 	CheckerUser       User      `json:"checker_user"`
 	CheckerActionTime time.Time `json:"checker_action_time,omitzero"`
+}
+
+type CreateCPSAction struct {
+	ActionCode      string                 `json:"action_code"`
+	MakerUser       User                   `json:"maker_user"`
+	Department      string                 `json:"department,omitempty"`
+	Status          constant.ActionStatus  `json:"status,omitempty"`
+	RequestAction   constant.RequestAction `json:"request_action,omitempty"`
+	ActionType      constant.ActionType    `json:"action_type,omitempty"`
+	ActionData      any                    `json:"action_data"`
+	PreviousData    any                    `json:"previous_action,omitempty"`
+	CurrentData     any                    `json:"current_action,omitempty"`
+	MakerActionTime time.Time              `json:"maker_action_time,omitzero"`
 }

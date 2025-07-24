@@ -59,9 +59,14 @@ const (
 	TierAuthNotFound               = "TIER_AUTH_NOT_FOUND"
 	FailedToGetAuthTier            = "FAILED_TO_GET_AUTH_TIER"
 	PinAuthorNotFound              = "PIN_AUTHIER_NOT_FOUND"
-	WalletInformationAlreadyExists = "WALLET_INFORMATION_ALREADY_EXISTST"
+	WalletInformationAlreadyExists = "RESOURCE_INFORMATION_ALREADY_EXISTS"
 	ErrMissingFile                 = "MISSING_FILE"
-
+	NoDataProvidedForUpdate        = "NO_DATA_PROVIDED_FOR_UPDATE"
+	ErrAlreadyEnabled              = "RESOURCE_ALREADY_ENABLED"
+	ErrAlreadyDisabled             = "RESOURCE_ALREADY_DISABLED"
+	ErrUnsupported                 = "UNSUPPORTED_REQUEST_ACTION"
+	MethodNotAllowed               = "METHOD_NOT_ALLOWED"
+	InformationAlreadyExistst      = "RESOURCE_INFORMATION_ALREADY_EXISTS"
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
 	AuthUserDisabled              = "AUTH_USER_DISABLED"

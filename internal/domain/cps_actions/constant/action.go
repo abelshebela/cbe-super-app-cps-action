@@ -101,9 +101,6 @@ const (
 	RequestCreateEventCategory      RequestAction = "CREATE_EVENT_CATEGORY"
 	RequestUpdateEventCategory      RequestAction = "UPDATE_EVENT_CATEGORY"
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
-	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
-	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
-	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINIAPP_MERCHANT"
 
 	RequestUpdateBlockTime       RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar          RequestAction = "CREATE_AVATAR"
@@ -122,16 +119,21 @@ const (
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
-	RequestAccountUpdate         RequestAction = "REQUEST_ACCOUNT_UPDATE"
-	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestUnlinkDevice          RequestAction = "UNLINK_DEVICE"
-	RequestUpdateHQBlockTime     RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime   RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestAccountUpdate          RequestAction = "REQUEST_ACCOUNT_UPDATE"
+	RequestCreatePermissionGroup  RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup  RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup  RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestCreateBudgetCategory   RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory   RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
+	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime    RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
+	RequestUpdateMiniAppMerchant  RequestAction = "UPDATE_MINI_APP_MERCHANT"
+	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
+	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
+	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -205,6 +207,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableAvatar:            {},
 	RequestEnableAvatar:             {},
 	RequestUpdateAvatar:             {},
+	RequestEnableMiniAppMerchant:    {},
+	RequestDisableMiniAppMerchant:   {},
+	RequestDeleteMiniAppMerchant:    {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -308,6 +313,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateMiniAppMerchant,
 		RequestUpdateMiniAppMerchant,
 		RequestDeleteMiniAppMerchant,
+		RequestEnableMiniAppMerchant,
+		RequestDisableMiniAppMerchant,
 	},
 	"BlockTime": {
 		RequestUpdateBlockTime,

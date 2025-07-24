@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
+	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -23,16 +23,14 @@ import (
 )
 
 type MiniAppPersistence struct {
-	MongoDalMiniApp   dal.MongoDal[model.MiniApp, model.MiniApp]
-	MongoDalCPSAction dal.MongoDal[model.CPSAction, model.CPSAction]
-	logger            utils.Logger
+	MongoDalMiniApp dal.MongoDal[model.MiniApp, model.MiniApp]
+	logger          utils.Logger
 }
 
 func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.MiniRepository {
 	return &MiniAppPersistence{
-		MongoDalMiniApp:   dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
-		MongoDalCPSAction: dal.NewMongoDal[model.CPSAction, model.CPSAction](client, DB_name, collections[1]),
-		logger:            logger,
+		MongoDalMiniApp: dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
+		logger:          logger,
 	}
 }
 

@@ -86,6 +86,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req dto.MiniAppC
 
 func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 	requestedAction := action.RequestAction
+
 	var minApp *MiniApp
 	var err error
 	switch requestedAction {

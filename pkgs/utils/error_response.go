@@ -141,13 +141,13 @@ var errorKeyToStatus = map[string]int{
 	"RESOURCE_ALREADY_DISABLED":                                  http.StatusBadRequest,
 	"KYC_LEVEL_REQUIRED":                                         http.StatusBadRequest,
 	"INVALID_KYC_LEVEL":                                          http.StatusBadRequest,
-	"WALLET_INFORMATION_ALREADY_EXISTST":                         http.StatusBadRequest,
+	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
 	"NO_DATA_PROVIDED_FOR_UPDATE":                                http.StatusBadRequest,
 	"CONTENT_TYPE_MUST_BE_FORM":                                  http.StatusUnsupportedMediaType,
 	"CONTENT_TYPE_MUST_BE_JSON":                                  http.StatusUnsupportedMediaType,
 	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
-	"START_DATE_REQUIRED":                                       http.StatusBadRequest,
-
+	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
+	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,

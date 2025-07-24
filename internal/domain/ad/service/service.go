@@ -28,6 +28,7 @@ type ADDomain struct {
 	cfg         *config.VaultConfig
 }
 
+
 type AdvertService interface {
 	CreateOneAdvert(ctx context.Context, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
 	UpdateOneAdvert(ctx context.Context, id string, cpsAction model.CreateCPSAction) (*entities.CPSAction, error)
