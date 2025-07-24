@@ -118,8 +118,9 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":   makerData.UserID,
-		"department": makerData.Department,
+		"maker_id":      makerData.UserCode,
+		"department":    makerData.Department,
+		"action_status": "PENDING",
 	}
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -175,8 +176,9 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":   makerData.UserID,
-		"department": makerData.Department,
+		"maker_id":      makerData.UserCode,
+		"department":    makerData.Department,
+		"action_status": "PENDING",
 	}
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -293,8 +295,9 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":   makerData.UserID,
-		"department": makerData.Department,
+		"maker_id":      makerData.UserCode,
+		"department":    makerData.Department,
+		"action_status": "PENDGIN",
 	}
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
