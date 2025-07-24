@@ -123,7 +123,8 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 	}
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
+		b.logger.Errorf("their is error")
+		if err.Error() != "mongo: no documents in result" {
 			return nil, err
 		}
 	}
@@ -179,7 +180,7 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 	}
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
+		if err.Error() != "mongo: no documents in result" {
 			return nil, err
 		}
 	}
@@ -297,7 +298,7 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 	}
 	existingAction, err := b.cpsDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
+		if err.Error() != "mongo: no documents in result" {
 			return nil, err
 		}
 	}
