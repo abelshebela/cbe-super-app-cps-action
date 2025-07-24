@@ -29,6 +29,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
@@ -1123,7 +1124,7 @@ func (o *outboundStore) AuthorizeCreate(ctx context.Context, action *cps_entity.
 		},
 	}
 	existing, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil && err.Error() != "NOT_FOUND" {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
 
@@ -1150,6 +1151,10 @@ func (o *outboundStore) AuthorizeCreate(ctx context.Context, action *cps_entity.
 
 	// Add filds to the User collection
 	now := time.Now()
+	data.Country = ""
+	data.Region = ""
+	data.Enabled = true
+	data.Realm = "bank"
 	data.PasswordDisable = false
 	data.SyncDisabled = false
 	data.LoginAttemptCount = 0
@@ -1246,14 +1251,16 @@ func (o *outboundStore) GetDepartmentByID(ctx context.Context, id string) (*dep_
 	if err != nil {
 		return nil, fmt.Errorf("INVALID_ID")
 	}
+
 	filter := bson.M{"_id": objectID, "is_deleted": false}
 	department, err := o.MongoDalDepartment.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("DEPARTMENT_NOT_FOUND")
-		}
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+	if department == nil {
 		return nil, fmt.Errorf("DEPARTMENT_NOT_FOUND")
 	}
+
 	return department, nil
 
 }
@@ -1282,17 +1289,18 @@ func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSA
 	return result, nil
 }
 
-func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
+func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error) {
 	filter := bson.M{"user_code": userCode}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil && modelUser == nil {
 		return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 	}
-	return modelUser, nil
 
+	safeUser := userDTO.NewCPSUserDTO(*modelUser)
+	return &safeUser, nil
 }
 
-func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	filter := bson.M{
 		// "is_deleted": false,
 	}
@@ -1326,6 +1334,13 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 		return nil, err
 	}
 
+	// Covert to DTOs
+	dtoUsers := make([]*userDTO.CPSUserDTO, 0, len(users))
+	for _, user := range users {
+		dto := userDTO.NewCPSUserDTO(*user)
+		dtoUsers = append(dtoUsers, &dto)
+	}
+
 	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -1333,8 +1348,8 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 
 	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
-	return &common_util.PaginatedResponse[[]*model.CPSUser]{
-		Data: users,
+	return &common_util.PaginatedResponse[[]*userDTO.CPSUserDTO]{
+		Data: dtoUsers,
 		Meta: meta,
 	}, nil
 }

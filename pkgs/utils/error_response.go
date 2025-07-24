@@ -154,6 +154,8 @@ var errorKeyToStatus = map[string]int{
 	"EXPIRE_DATE_REQUIRED":                                       http.StatusBadRequest,
 	"START_DATE_REQUIRED":                                        http.StatusBadRequest,
 	"INVALID_PAYLOAD":                                            http.StatusBadRequest,
+	"GENERAL_DB_QUERY_FAILED":                                    http.StatusInternalServerError,
+	"ERROR_WHILE_CHECKING_PENDING_ACTION":                        http.StatusInternalServerError,
 
 	// Auth
 	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,

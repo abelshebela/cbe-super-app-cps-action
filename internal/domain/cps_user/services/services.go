@@ -18,6 +18,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type CPSUserService interface {
@@ -25,8 +26,8 @@ type CPSUserService interface {
 	UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 	DeleteUserRequest(ctx context.Context, userCode string) (*model.CPSAction, error)
 }
@@ -74,12 +75,14 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		s.logger.Errorf("DEPARTMENT_NOT_FOUND")
 		return nil, err
 	}
+
 	// Check for existing pending actions for this user
+	fmt.Println("Before")
 	userPayload := ctx_util.ExtractContext(ctx)
 	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
-	if err != nil && err.Error() != "NOT_FOUND" {
+	if err != nil && err != mongo.ErrNoDocuments {
 		s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
-		return nil, err
+		return nil, fmt.Errorf("ERROR_WHILE_CHECKING_PENDING_ACTION")
 	}
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
@@ -87,7 +90,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	}
 
 	if userData.Role != "maker" && userData.Role != "Checker" {
-		s.logger.Errorf("User role can only be either 'Maker' or 'Checker'")
+		s.logger.Errorf("User role can only be either 'maker' or 'checker'")
 		return nil, fmt.Errorf("MAKER_OR_CHECKER")
 	}
 
@@ -104,10 +107,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		PhoneNumber:        userData.PhoneNumber,
 		Email:              userData.Email,
 		UserName:           userData.UserName,
-		Realm:              userData.Realm,
-		Enabled:            userData.Enabled,
-		Country:            userData.Country,
-		Region:             userData.Region,
 		PermissionCategory: userData.PermissionCategory,
 		PermissionGroup:    userData.PermissionGroups,
 	}
@@ -159,9 +158,9 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 	// Check for existing pending actions for this user
 	userPayload := ctx_util.ExtractContext(ctx)
 	pendingActions, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
-	if err != nil && err.Error() != "NOT_FOUND" {
+	if err != nil && err != mongo.ErrNoDocuments {
 		s.logger.Errorf("failed to fetch pending actions for user %s: %v", userPayload.UserCode, err)
-		return nil, err
+		return nil, fmt.Errorf("ERROR_WHILE_CHECKING_PENDING_ACTION")
 	}
 	if len(pendingActions) > 0 {
 		s.logger.Errorf("pending action already exists for user: %s", userPayload.UserCode)
@@ -238,7 +237,7 @@ func (s *cpsUserService) GetPendingUserActions(ctx context.Context) ([]model.CPS
 	return data, nil
 }
 
-func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*model.CPSUser, error) {
+func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error) {
 	user, err := s.repo.FetchUserByUserCode(ctx, userCode)
 	if err != nil {
 		return nil, err
@@ -246,7 +245,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	users, err := s.repo.GetAllCPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err

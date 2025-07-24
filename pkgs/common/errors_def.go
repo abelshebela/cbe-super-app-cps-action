@@ -724,11 +724,11 @@ var DefineError = ErrorDefinitions{
 		"MAKER_OR_CHECKER": {
 			Code:    "GEN_160",
 			Message: "User role can either be 'maker' or 'checker'",
-    },
+		},
 		"COLOR_ALREADY_EXISTED": {
 			Code:    "GEN_160",
 			Message: "Color already Existed",
-    },
+		},
 		"NO_DATA_PROVIDED_FOR_UPDATE": {
 			Code:    "GEN_161",
 			Message: "Update request must include at least one field to modify",
@@ -748,7 +748,6 @@ var DefineError = ErrorDefinitions{
 		"RESOURCE_ALREADY_DISABLED": {
 			Code:    "GEN_165",
 			Message: "Resource is already disabled",
-
 		},
 	},
 	Auth: ErrorGroup{

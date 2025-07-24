@@ -22,8 +22,8 @@ type ApplicationService interface {
 	UpdateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error)
+	FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 }
 
@@ -110,12 +110,12 @@ func (h *Handler) ApproveUserAction(ctx context.Context, r *http.Request) (*mode
 func (h *Handler) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
 	return h.service.GetPendingUserActions(ctx)
 }
-func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*model.CPSUser, error) {
+func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error) {
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	return h.service.FetchUserByUserCode(ctx, userCode)
 }
 
-func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*model.CPSUser], error) {
+func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	users, err := h.service.GetAllCPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err

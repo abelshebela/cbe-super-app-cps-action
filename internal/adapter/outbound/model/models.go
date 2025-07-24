@@ -90,9 +90,6 @@ type AdvertDate struct {
 	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
 }
 
-
-
-
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -393,7 +390,7 @@ type CPSUser struct {
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
 	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group,omitempty"`
 
-	Password                 Password  `json:"password" bson:"password"`
+	Password                 Password  `json:"password" bson:"password,omitempty"`
 	PasswordDisable          bool      `json:"password_disable,omitempty" bson:"password_disable,omitempty"`
 	SyncDisabled             bool      `json:"sync_disabled,omitempty" bson:"sync_disabled,omitempty"`
 	LoginAttemptCount        uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`
