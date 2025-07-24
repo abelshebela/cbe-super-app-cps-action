@@ -293,6 +293,22 @@ func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (
 
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
 
+	colorData, err := common_util.JsonUnmarshal[entities.Color](color.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	dataColor, err := b.colorDal.FindOne(ctx, bson.M{"name": colorData.Color}, nil)
+	if err != nil {
+		if err.Error() != "mongo: no documents in result " {
+			return nil, err
+
+		}
+	}
+
+	if dataColor.ID == colorData.ID {
+		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
+	}
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
 		"maker_id":      makerData.UserCode,
