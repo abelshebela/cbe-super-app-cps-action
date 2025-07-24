@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
+
+	// "net/http"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/lib"
@@ -93,12 +94,14 @@ func (a *AmountBasedAuthRepo) GetAllAmountBasedDetail(ctx context.Context, filte
 }
 
 func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsAction model.CreateCPSAction) error {
+
 	filter := bson.M{
 		"maker_phone_number": cpsAction.MakerUser.PhoneNumber,
 		"action_status":      model.ActionPending,
 		"department":         cpsAction.Department,
-		"request_action":     model.RequestAuthTier,
+		"request_action":     cpsAction.ActionType,
 	}
+	fmt.Println()
 
 	projection := bson.M{
 		"action_code": 1,
@@ -119,148 +122,168 @@ func (a AmountBasedAuthRepo) checkExistingAuthTier(ctx context.Context, cpsActio
 	return nil
 }
 
-func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
-	authTier *amount_based_auth_domain.AuthTier, request amount_based_auth_domain.UpdateAmountBasedAuth) error {
-	if request.Method == amount_based_auth_domain.OPEN {
-		if authTier.MinAmount >= uint64(request.MaxAmount) {
-			a.logger.Errorf("min amount cannot be greater than or equal to max amount min: %s, max: %s", authTier.MinAmount, request.MaxAmount)
-			err := fmt.Errorf(common_util.OpenMinGEOpenMax)
-			return err
-		}
-		filter := bson.M{
-			"method":     amount_based_auth_domain.PIN,
-			"is_deleted": false,
-		}
-		projection := bson.M{
-			"max_amount": 1,
-		}
+// func (a AmountBasedAuthRepo) validateAuthTier(ctx context.Context,
+// 	authTier *amount_based_auth_domain.AuthTier, request amount_based_auth_domain.UpdateAmountBasedAuth) error {
+// 	if request.Method == amount_based_auth_domain.OPEN {
+// 		if authTier.MinAmount >= uint64(request.MaxAmount) {
+// 			a.logger.Errorf("min amount cannot be greater than or equal to max amount min: %s, max: %s", authTier.MinAmount, request.MaxAmount)
+// 			err := fmt.Errorf(common_util.OpenMinGEOpenMax)
+// 			return err
+// 		}
+// 		filter := bson.M{
+// 			"method":     amount_based_auth_domain.PIN,
+// 			"is_deleted": false,
+// 		}
+// 		projection := bson.M{
+// 			"max_amount": 1,
+// 		}
 
-		pinTier, err := a.authTier.FindOne(ctx, filter, projection)
-		if err != nil {
-			if errors.Is(err, mongo.ErrNoDocuments) {
-				a.logger.Errorf("pin authier not found", err)
-				err = fmt.Errorf(common_util.PinAuthorNotFound)
-				return err
-			}
-			a.logger.Errorf("failed to get pin authier", err)
-			err = fmt.Errorf(common_util.UnhandledServerError)
-		}
+// 		pinTier, err := a.authTier.FindOne(ctx, filter, projection)
+// 		if err != nil {
+// 			if errors.Is(err, mongo.ErrNoDocuments) {
+// 				a.logger.Errorf("pin authier not found", err)
+// 				err = fmt.Errorf(common_util.PinAuthorNotFound)
+// 				return err
+// 			}
+// 			a.logger.Errorf("failed to get pin authier", err)
+// 			err = fmt.Errorf(common_util.UnhandledServerError)
+// 		}
 
-		if pinTier.MaxAmount <= uint64(request.MaxAmount) {
-			a.logger.Warnf("open tier max amount can not be greater than max amount of pin tier", pinTier.MaxAmount, request.MaxAmount)
-			err = fmt.Errorf(common_util.OpenMaxGEPinMax)
-			return err
-		}
-	} else if request.Method == amount_based_auth_domain.PIN {
+// 		if pinTier.MaxAmount <= uint64(request.MaxAmount) {
+// 			a.logger.Warnf("open tier max amount can not be greater than max amount of pin tier", pinTier.MaxAmount, request.MaxAmount)
+// 			err = fmt.Errorf(common_util.OpenMaxGEPinMax)
+// 			return err
+// 		}
+// 	} else if request.Method == amount_based_auth_domain.PIN {
 
-		if request.MinAmount > 0 {
-			if authTier.MaxAmount <= uint64(request.MinAmount) {
-				a.logger.Errorf("min amount cannot be greater than or equal to max amount min: %s, max: %s", authTier.MinAmount, request.MaxAmount)
-				err := fmt.Errorf(common_util.PinMinGEPinMax)
-				return err
-			}
+// 		if request.MinAmount > 0 {
+// 			if authTier.MaxAmount <= uint64(request.MinAmount) {
+// 				a.logger.Errorf("min amount cannot be greater than or equal to max amount min: %s, max: %s", authTier.MinAmount, request.MaxAmount)
+// 				err := fmt.Errorf(common_util.PinMinGEPinMax)
+// 				return err
+// 			}
 
-			filter := bson.M{
-				"method":     amount_based_auth_domain.OPEN,
-				"is_deleted": false,
-			}
-			projection := bson.M{
-				"min_amount": 1,
-			}
+// 			filter := bson.M{
+// 				"method":     amount_based_auth_domain.OPEN,
+// 				"is_deleted": false,
+// 			}
+// 			projection := bson.M{
+// 				"min_amount": 1,
+// 			}
 
-			openTier, err := a.authTier.FindOne(ctx, filter, projection)
-			if err != nil {
-				if errors.Is(err, mongo.ErrNoDocuments) {
-					a.logger.Errorf("open authier not found", err)
-					err = fmt.Errorf(common_util.TierAuthNotFound)
-					return err
-				}
-				a.logger.Errorf("failed to get open authier", err)
-				err = fmt.Errorf(common_util.FailedToGetAuthTier)
-			}
+// 			openTier, err := a.authTier.FindOne(ctx, filter, projection)
+// 			if err != nil {
+// 				if errors.Is(err, mongo.ErrNoDocuments) {
+// 					a.logger.Errorf("open authier not found", err)
+// 					err = fmt.Errorf(common_util.TierAuthNotFound)
+// 					return err
+// 				}
+// 				a.logger.Errorf("failed to get open authier", err)
+// 				err = fmt.Errorf(common_util.FailedToGetAuthTier)
+// 			}
 
-			if openTier.MinAmount >= uint64(request.MinAmount) {
-				a.logger.Errorf("pin min amount can not be less than open min amount")
-				err = fmt.Errorf(common_util.PinMinLEOpenMin)
-				return err
-			}
-		}
+// 			if openTier.MinAmount >= uint64(request.MinAmount) {
+// 				a.logger.Errorf("pin min amount can not be less than open min amount")
+// 				err = fmt.Errorf(common_util.PinMinLEOpenMin)
+// 				return err
+// 			}
+// 		}
 
-		if request.MaxAmount > 0 {
-			if authTier.MinAmount >= uint64(request.MaxAmount) {
-				a.logger.Errorf("max pin amount should be greater than pin min amount")
-				err := fmt.Errorf(common_util.PinMaxLEPinMin)
-				return err
-			}
-		}
-	} else if request.Method == amount_based_auth_domain.OTPANDPIN {
-		if request.MinAmount > 0 {
-			filter := bson.M{
-				"method":     amount_based_auth_domain.PIN,
-				"is_deleted": false,
-			}
-			projection := bson.M{
-				"min_amount": 1,
-			}
+// 		if request.MaxAmount > 0 {
+// 			if authTier.MinAmount >= uint64(request.MaxAmount) {
+// 				a.logger.Errorf("max pin amount should be greater than pin min amount")
+// 				err := fmt.Errorf(common_util.PinMaxLEPinMin)
+// 				return err
+// 			}
+// 		}
+// 	} else if request.Method == amount_based_auth_domain.OTPANDPIN {
+// 		if request.MinAmount > 0 {
+// 			filter := bson.M{
+// 				"method":     amount_based_auth_domain.PIN,
+// 				"is_deleted": false,
+// 			}
+// 			projection := bson.M{
+// 				"min_amount": 1,
+// 			}
 
-			pinTier, err := a.authTier.FindOne(ctx, filter, projection)
-			if err != nil {
-				if errors.Is(err, mongo.ErrNoDocuments) {
-					a.logger.Errorf("pin authier not found", err)
-					err = fmt.Errorf(common_util.PinAuthorNotFound)
-					return err
-				}
-				a.logger.Errorf("failed to get open authier", err)
-				err = fmt.Errorf(common_util.FailedToGetAuthTier)
-			}
+// 			pinTier, err := a.authTier.FindOne(ctx, filter, projection)
+// 			if err != nil {
+// 				if errors.Is(err, mongo.ErrNoDocuments) {
+// 					a.logger.Errorf("pin authier not found", err)
+// 					err = fmt.Errorf(common_util.PinAuthorNotFound)
+// 					return err
+// 				}
+// 				a.logger.Errorf("failed to get open authier", err)
+// 				err = fmt.Errorf(common_util.FailedToGetAuthTier)
+// 			}
 
-			if pinTier.MinAmount >= uint64(request.MinAmount) {
-				a.logger.Errorf("min amount cannot be greater than or equal to pin min amount min: %s, max: %s", pinTier.MinAmount, request.MinAmount)
-				err = fmt.Errorf(common_util.OTPMinGEPinMin)
-				return err
-			}
-		}
-	}
+// 			if pinTier.MinAmount >= uint64(request.MinAmount) {
+// 				a.logger.Errorf("min amount cannot be greater than or equal to pin min amount min: %s, max: %s", pinTier.MinAmount, request.MinAmount)
+// 				err = fmt.Errorf(common_util.OTPMinGEPinMin)
+// 				return err
+// 			}
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request amount_based_auth_domain.UpdateAmountBasedAuth,
 	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
-
+	cpsAction.ActionType = "AUTHTIER"
 	if err := a.checkExistingAuthTier(ctx, cpsAction); err != nil {
+
 		return nil, err
 	}
 
-	objectID, err := bson.ObjectIDFromHex(request.Id)
+	ID, err := bson.ObjectIDFromHex(request.ID)
 	if err != nil {
-		a.logger.Errorf("Failed to parse object id: %v", err)
-		return nil, fmt.Errorf(common_util.InvalidInput)
+		a.logger.Errorf("can't convert ID string to object ID : %v", err)
+		return nil, fmt.Errorf("INVALID_ID")
 	}
-
 	filter := bson.M{
-		"_id":        objectID,
-		"method":     request.Method,
+		"_id":        ID,
 		"is_deleted": false,
 	}
 	projection := bson.M{}
 
 	authTier, err := a.authTier.FindOne(ctx, filter, projection)
+
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("no auth tier found for ID: %s", request.Id, err)
-			return nil, fmt.Errorf(common_util.NotFound)
+			a.logger.Errorf("no Tire found for given ID: %s ", request.ID, err)
+			return nil, fmt.Errorf("INVALID_ID")
 		}
-		a.logger.Errorf("failed to fetch auth tier: %v", err)
+		a.logger.Errorf("failed to fetch auth tier step 1: %v", err)
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
+	if authTier.Method == "OPEN" {
+		filter := bson.M{
+			"method":     "PIN",
+			"is_deleted": false,
+		}
 
-	if err := a.validateAuthTier(ctx, authTier, request); err != nil {
-		return nil, err
+		projection := bson.M{}
+		authTierNext, err := a.authTier.FindOne(ctx, filter, projection)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				a.logger.Errorf("no auth tier found given ID: %v   error : %v", request.ID, err)
+				return nil, fmt.Errorf(common_util.NotFound)
+			}
+			a.logger.Errorf("failed to fetch auth tier step 2: %v", err)
+			return nil, fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		if authTierNext.MaxAmount <= request.MaxAmount {
+			a.logger.Errorf("Max amount can't be Greater than next")
+			return nil, fmt.Errorf(common_util.CurrentMaxGreaterThanNext)
+		}
 	}
 
-	authTier.CreatedAt = time.Now()
-	authTier.LastModified = time.Now()
+	if authTier.MinAmount >= request.MaxAmount {
+		a.logger.Infof("max amount can not be less that or equal to min amount")
+		return nil, fmt.Errorf(common_util.MaxTireLessThanMIN)
+	}
 
 	actionInsert, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:               bson.NewObjectID(),
@@ -285,7 +308,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 
 	log.Printf("actionInsert %v", actionInsert)
 
-	return lib.MapCPSAction(actionInsert), nil
+	return nil, nil
 
 }
 
@@ -306,107 +329,138 @@ func (a AmountBasedAuthRepo) Authorize(ctx context.Context, cpsAction *entities.
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 
-	// Update the document in the DB
-	if actionData.Method == amount_based_auth_domain.OPEN {
-		objectId, err := bson.ObjectIDFromHex(actionData.Id)
-		var maxAmount, minAmount uint64
-		openFilter := bson.M{
-			"_id": objectId,
-		}
-		if actionData.MaxAmount != 0 {
-			maxAmount = uint64(actionData.MaxAmount)
-		}
-		if actionData.MinAmount != 0 {
-			minAmount = uint64(actionData.MinAmount)
-		}
-		updateOpenFilter := bson.M{
-			"max_amount":       maxAmount,
-			"min_amount":       minAmount,
-			"last_modified_at": time.Now(),
+	maxAmount := actionData.MaxAmount
+	ObjID, err := bson.ObjectIDFromHex(actionData.ID)
+	if err != nil {
+		a.logger.Errorf("[amount_based_auth_persistance]can't convert stiring ID to object id")
+		return nil, fmt.Errorf("INVALID_ID")
+	}
+	openFilter := bson.M{
+		"_id":        ObjID,
+		"is_deleted": false,
+	}
+
+	updateFilter := bson.M{
+		"max_amount":       maxAmount,
+		"last_modified_at": time.Now(),
+	}
+
+	actionDataUpdated, err := a.authTier.UpdateOne(ctx, openFilter, updateFilter)
+	if err != nil {
+		a.logger.Errorf("Failed to update open auth tier: %v", err)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
+	}
+	if actionDataUpdated.Method == "OPEN" {
+		nextMIN := maxAmount
+		openFilterNext := bson.M{
+			"method":     "PIN",
+			"is_deleted": false,
 		}
 
-		actionData, err := a.authTier.UpdateOne(ctx, openFilter, updateOpenFilter)
+		updateFilterNext := bson.M{
+
+			"min_amount": nextMIN,
+		}
+
+		_, err := a.authTier.UpdateOne(ctx, openFilterNext, updateFilterNext)
 		if err != nil {
 			a.logger.Errorf("Failed to update open auth tier: %v", err)
 			return nil, fmt.Errorf(common_util.UnhandledServerError)
 		}
-		actionData.LastModified = time.Now()
-		actionData.CreatedAt = time.Now()
-		cpsAction.CurrentAction = actionData
-
-		return cpsAction, nil
-	}
-
-	if actionData.Method == amount_based_auth_domain.PIN {
-
-		objectId, err := bson.ObjectIDFromHex(actionData.Id)
-		pinFilter := bson.M{
-			"_id": objectId,
+	} else {
+		nextMIN := maxAmount
+		openFilterNext := bson.M{
+			"method":     "OTP_PIN",
+			"is_deleted": false,
 		}
 
-		var minAmount, maxAmount uint64
+		updateFilterNext := bson.M{
 
-		if actionData.MinAmount > 0 {
-			minAmount = uint64(actionData.MinAmount)
-		}
-		if actionData.MaxAmount > 0 {
-			maxAmount = uint64(actionData.MaxAmount)
+			"min_amount": nextMIN,
 		}
 
-		updatePinFilter := bson.M{
-			"min_amount": minAmount,
-			"max_amount": maxAmount,
-		}
-
-		actionData, err := a.authTier.UpdateOne(ctx, pinFilter, updatePinFilter)
+		_, err := a.authTier.UpdateOne(ctx, openFilterNext, updateFilterNext)
 		if err != nil {
-			a.logger.Errorf("Failed to update pin auth tier: %v", err)
-			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
+			a.logger.Errorf("Failed to update open auth tier: %v", err)
+			return nil, fmt.Errorf(common_util.UnhandledServerError)
 		}
-
-		cpsAction.CurrentAction = actionData
-		return cpsAction, nil
 
 	}
 
-	if actionData.Method == amount_based_auth_domain.OTPANDPIN {
-		objectId, err := bson.ObjectIDFromHex(actionData.Id)
-		filter := bson.M{
-			"_id": objectId,
-		}
-
-		var minAmount, maxAmount uint64
-
-		if actionData.MinAmount > 0 {
-			minAmount = uint64(actionData.MinAmount)
-		}
-		if actionData.MaxAmount > 0 {
-			maxAmount = uint64(actionData.MaxAmount)
-		}
-
-		updateFilter := bson.M{
-			"min_amount": minAmount,
-			"max_amount": maxAmount,
-		}
-
-		actionData, err := a.authTier.UpdateOne(ctx, filter, updateFilter)
-		if err != nil {
-			a.logger.Errorf("Failed to update OTP and PIN auth tier: %v", err)
-			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
-				Code:    http.StatusInternalServerError,
-				Message: "internal server error",
-			})
-		}
-
-		cpsAction.CurrentAction = actionData
-		return cpsAction, nil
-	}
-
+	cpsAction.CurrentAction = actionDataUpdated
 	return cpsAction, nil
 }
+
+// 	if actionData.Method == amount_based_auth_domain.PIN {
+
+// 		objectId, err := bson.ObjectIDFromHex(actionData.Id)
+// 		pinFilter := bson.M{
+// 			"_id": objectId,
+// 		}
+
+// 		var minAmount, maxAmount uint64
+
+// 		if actionData.MinAmount > 0 {
+// 			minAmount = uint64(actionData.MinAmount)
+// 		}
+// 		if actionData.MaxAmount > 0 {
+// 			maxAmount = uint64(actionData.MaxAmount)
+// 		}
+
+// 		updatePinFilter := bson.M{
+// 			"min_amount": minAmount,
+// 			"max_amount": maxAmount,
+// 		}
+
+// 		actionData, err := a.authTier.UpdateOne(ctx, pinFilter, updatePinFilter)
+// 		if err != nil {
+// 			a.logger.Errorf("Failed to update pin auth tier: %v", err)
+// 			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
+// 				Code:    http.StatusInternalServerError,
+// 				Message: "internal server error",
+// 			})
+// 		}
+
+// 		cpsAction.CurrentAction = actionData
+// 		return cpsAction, nil
+
+// 	}
+
+// 	if actionData.Method == amount_based_auth_domain.OTPANDPIN {
+// 		objectId, err := bson.ObjectIDFromHex(actionData.Id)
+// 		filter := bson.M{
+// 			"_id": objectId,
+// 		}
+
+// 		var minAmount, maxAmount uint64
+
+// 		if actionData.MinAmount > 0 {
+// 			minAmount = uint64(actionData.MinAmount)
+// 		}
+// 		if actionData.MaxAmount > 0 {
+// 			maxAmount = uint64(actionData.MaxAmount)
+// 		}
+
+// 		updateFilter := bson.M{
+// 			"min_amount": minAmount,
+// 			"max_amount": maxAmount,
+// 		}
+
+// 		actionData, err := a.authTier.UpdateOne(ctx, filter, updateFilter)
+// 		if err != nil {
+// 			a.logger.Errorf("Failed to update OTP and PIN auth tier: %v", err)
+// 			return nil, fmt.Errorf("%w", constant.ErrorDefinition{
+// 				Code:    http.StatusInternalServerError,
+// 				Message: "internal server error",
+// 			})
+// 		}
+
+// 		cpsAction.CurrentAction = actionData
+// 		return cpsAction, nil
+// 	}
+
+// 	return cpsAction, nil
+// }
 
 func (a AmountBasedAuthRepo) RejectAmountBasedAuth(ctx context.Context, id string, cpsAction model.RejectAuthTierCPSAction) (*model.CpsActionNormalized, error) {
 

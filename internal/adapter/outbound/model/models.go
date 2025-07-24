@@ -90,19 +90,9 @@ type AdvertDate struct {
 	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
 }
 
-type Advert struct {
-	ID            string     `json:"_id" bson:"_id"`
-	Title         string     `json:"title" bson:"title"`
-	Description   string     `json:"description" bson:"description"`
-	BannerImage   string     `json:"banner_image" bson:"banner_image"`
-	AdvertFor     AdvertFor  `json:"advert_for" bson:"advert_for"`
-	Date          AdvertDate `json:"advert_date" bson:"advert_date"`
-	Enabled       bool       `json:"enabled" bson:"enabled"`
-	IsDeleted     bool       `json:"is_deleted" bson:"is_deleted"`
-	DeletedAt     time.Time  `json:"deleted_at" bson:"deleted_at"`
-	CreatedAt     time.Time  `json:"created_at" bson:"created_at"`
-	LastUpdatedAt time.Time  `json:"last_updated_at" bson:"last_updated_at"`
-}
+
+
+
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	ActionCode         string        `bson:"action_code" json:"action_code"`
@@ -144,6 +134,9 @@ const (
 	RequestTotalDailyLimit          RequestAction = "TOTAL_DAILY_LIMIT"
 	RequestUpdateVAT                RequestAction = "UPDATE_VAT"
 	RequestAuthTier                 RequestAction = "AUTHTIER"
+	RequestDeleteAmountBasedAuth    RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth    RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
 	RequestCreateAdvert             RequestAction = "CREATE_ADVERT"
 	RequestUpdateAdvert             RequestAction = "UPDATE_ADVERT"
 	RequestEnableAdvert             RequestAction = "ENABLE_ADVERT"

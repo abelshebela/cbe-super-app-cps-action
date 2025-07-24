@@ -69,18 +69,18 @@ type Application struct {
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
-func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger) Application {
+func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger, cfg *config.VaultConfig) Application {
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", logger),
-		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, logger),
+		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
+		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian,domain.CPSActionDomain, logger),
 		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
-		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
+		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain ,logger),
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
 		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
-		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger),
+		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),

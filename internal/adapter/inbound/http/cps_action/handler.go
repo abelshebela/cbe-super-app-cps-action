@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	inboundCPS "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -90,13 +93,14 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	cpsAction, err := a.cpsActionApplication.ApproveCPSAction(r.Context(), cpsReq)
+	_, err := a.cpsActionApplication.ApproveCPSAction(r.Context(), cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "CPS Action authorized successfully")
+
+	common_util.WriteSuccessResponse(w, nil, "CPS Action authorized successfully")
 }
 
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
@@ -113,13 +117,13 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 	cpsReq.RejectionReason = rejectPayload.RejectionReason
 
-	cpsAction, err := a.cpsActionApplication.RejectCPSAction(r.Context(), cpsReq)
+	_, err := a.cpsActionApplication.RejectCPSAction(r.Context(), cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "CPS Action rejected successfully")
+	common_util.WriteSuccessResponse(w, nil, "CPS Action rejected successfully")
 }
 
 func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request) {
@@ -129,8 +133,8 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 		return
 	}
 
-	filterParams := common_util.ExtractFilterParams(r)
-	cpsActions, err := a.cpsActionApplication.GetCPSActionsByDepartment(r.Context(), user.Department, filterParams)
+	filterParams, status := ExtractStatusFilterParams(r)
+	cpsActions, err := a.cpsActionApplication.GetCPSActionsByDepartment(r.Context(), user.Department, status, filterParams)
 
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -146,4 +150,28 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 
 func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request) {
 	a.getCPSAction(w, r, "action_code", a.cpsActionApplication.GetCPSActionByActionCode)
+}
+
+func ExtractStatusFilterParams(r *http.Request) (*constant.Filter, string) {
+	query := r.URL.Query()
+
+	page := constant.DefaultPage
+	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
+		page = pageInt
+	}
+
+	perPage := constant.DefaultPerPage
+	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
+		perPageInt > 0 {
+		perPage = perPageInt
+	}
+
+	status := query.Get("status")
+
+	return &constant.Filter{
+		Page:    page,
+		PerPage: perPage,
+		Search:  query.Get("search"),
+		Filters: query.Get("filter"),
+	}, status
 }

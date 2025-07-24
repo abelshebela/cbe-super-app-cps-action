@@ -135,6 +135,7 @@ const (
 	RequestUnlinkDevice          RequestAction = "UNLINK_DEVICE"
 	RequestUpdateHQBlockTime     RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime   RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -205,6 +206,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateMiniAppMerchant:    {},
 	RequestUpdateMiniAppMerchant:    {},
 	RequestUpdateBlockTime:          {},
+	RequestDisableFaydaAccount:      {},
+	RequestEnableFaydaAccount:       {},
+	RequestCreateAvatar:             {},
+	RequestDeleteAvatar:             {},
+	RequestDisableAvatar:            {},
+	RequestEnableAvatar:             {},
+	RequestUpdateAvatar:             {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -220,7 +228,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"AdDomain": {
+	"A": {
 		RequestCreateAvatar,
 		RequestDeleteAvatar,
 		RequestDisableAvatar,
@@ -231,6 +239,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestAuthTier,
 	},
 	"User": {
 		RequestUser,

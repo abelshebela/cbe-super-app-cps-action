@@ -59,6 +59,9 @@ const (
 	TierAuthNotFound             = "TIER_AUTH_NOT_FOUND"
 	FailedToGetAuthTier          = "FAILED_TO_GET_AUTH_TIER"
 	PinAuthorNotFound            = "PIN_AUTHIER_NOT_FOUND"
+	CurrentMaxGreaterThanNext    = "CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT"
+	WalletInformationAlreadyExists = "WALLET_INFORMATION_ALREADY_EXISTST"
+	ErrMissingFile                 = "MISSING_FILE"
 
 	// Auth
 	AuthUserNotFound              = "AUTH_USER_NOT_FOUND"
@@ -91,9 +94,10 @@ const (
 	FailedLogin                   = "FAILED_LOGIN"
 	AccountLocked                 = "ACCOUNT_LOCKED"
 	AccessTokenRequired           = "ACCESS_TOKEN_REQUIRED"
-	WalletAlreadyDisabled         = "WALLET_ALREADY_DISABLED"
-	WalletAlreadyEnabled          = "WALLET_ALREADY_ENABLED"
+	WalletAlreadyDisabled         = "RESOURCE_ALREADY_DISABLED"
+	WalletAlreadyEnabled          = "RESOURCE_ALREADY_ENABLED"
 	InvalidRequestAction          = "UNSUPPORTED_REQUEST_ACTION"
+
 	// Transaction
 	TransactionNotFound = "TRANSACTION_NOT_FOUND"
 	InsufficientFunds   = "INSUFFICIENT_FUNDS"
@@ -171,6 +175,7 @@ const (
 	AccountBlocked               = "ACCOUNT_BLOCKED"
 	MissingRejectionReason       = "MISSING_REJECT_REASON"
 	RejectReasonTooShort         = "REJECT_REASON_TOO_SHORT"
+	MaxTireLessThanMIN           = "MAX TIER CAN NOT BE LESS THAN MIN TIER"
 
 	// User
 	UserStatusUpdateFailed = "USER_STATUS_UPDATE_FAILED"

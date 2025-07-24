@@ -33,19 +33,19 @@ type Domain struct {
 	AccountDomain         account_validation.Service
 	ActionDomain          action.ServiceInterface
 	AdDomain              ad_service.AdvertService
-	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthRepository
+	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthDomain
 	AvatarDomian          avatar_domain.AvatarDomainService
 	BankDomain            bank_service.BankService
 	BudgetCategoryDomain  budget_category.BudgetCategoryService
 	BudgetDomain          *budget_service.BudgetService
-	CPSActionDomain       cps_action_service.CPSActionService 
-	CPSUserDomain         services.CPSUserService 
-	CustomerDomain        customer_service.CustomerService 
-	DepartmentDomain      department.Service // starting here
+	CPSActionDomain       cps_action_service.CPSActionService
+	CPSUserDomain         services.CPSUserService
+	CustomerDomain        customer_service.CustomerService
+	DepartmentDomain      department.Service        // starting here
 	EventDomain           event_domain.EventService // fully not ready
-	FaydaDomain           *fayda_service.FaydaAccountDomain
+	FaydaDomain           fayda_service.FaydaAccount
 	FeedbackDomain        *feedback_service.FeedbackDomain
-	HQDomain              hq.Service 
+	HQDomain              hq.Service
 	MiniAppDomain         miniApp_domain.MiniAppService
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service

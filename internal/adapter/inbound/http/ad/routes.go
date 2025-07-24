@@ -12,7 +12,7 @@ import (
 )
 
 func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/ad", func(r chi.Router) {
+	router.Route("/adverts", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
@@ -21,6 +21,7 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					middleware.RequireFormContentType(),
 				},
 			},
 			{
@@ -52,31 +53,29 @@ func InitADRoutes(router chi.Router, ad adRoutes.ADAdapter, authMiddleware middl
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/adverts",
+				Path:    "/",
 				Handler: ad.GetAllAdvert,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
-
-			// {
-			// 	Method:  http.MethodPatch,
-			// 	Path:    "/approve/{action_code}",
-			// 	Handler: ad.Authorize,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-			// 	},
-			// },
-
 			{
 				Method:  http.MethodPatch,
-				Path:    "/reject/{action_code}",
-				Handler: ad.Reject,
+				Path:    "/enable/{id}",
+				Handler: ad.EnableAdvert,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/disable/{id}",
+				Handler: ad.DisableAdvert,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 		}

@@ -1,7 +1,7 @@
 package amount_based_auth_domain
 
 import (
-	"fmt"
+	// "fmt"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -21,30 +21,30 @@ type AmountBasedAuthRespose struct {
 }
 
 type UpdateAmountBasedAuth struct {
-	Id        string `json:"id" bson:"id"`
-	MinAmount int    `json:"min_amount" bson:"min_amount"`
-	MaxAmount int    `json:"max_amount" bson:"max_amount"`
-	Method    Method `json:"method" bson:"method"`
+	ID string `json:"id" bson:"id"`
+	// Tier int `json:"tier"      bson:"tier"`
+	// MinAmount int    `json:"min_amount" bson:"min_amount"`
+	MaxAmount uint64 `json:"max_amount" bson:"max_amount"`
+	// Method    Method `json:"method" bson:"method"`
 }
 
 func (u UpdateAmountBasedAuth) Valiadate() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.Method, validation.Required, validation.In(OPEN, PIN, OTPANDPIN),
-			validation.By(validateRequest(u)),
-		))
+	return validation.ValidateStruct(&u) // validation.Field(&u.Method, validation.Required, validation.In(OPEN, PIN, OTPANDPIN)), // ,
+	// validation.By(validateRequest(u)
+
 }
 
-func validateRequest(u UpdateAmountBasedAuth) validation.RuleFunc {
-	return func(_ interface{}) error {
-		if u.Method == OPEN && u.MaxAmount == 0 {
-			return fmt.Errorf("maximum amount is required for open method")
-		}
-		if u.Method == OTPANDPIN && u.MinAmount == 0 {
-			return fmt.Errorf("minimum amount is required for OTP and PIN method")
-		}
-		if u.Method == PIN && (u.MaxAmount == 0 && u.MinAmount == 0) {
-			return fmt.Errorf("either minimum or maximum amount are required for PIN method")
-		}
-		return nil
-	}
-}
+// func validateRequest(u UpdateAmountBasedAuth) validation.RuleFunc {
+// 	return func(_ interface{}) error {
+// 		if u.Method == OPEN && u.MaxAmount == 0 {
+// 			return fmt.Errorf("maximum amount is required for open method")
+// 		}
+// 		if u.Method == OTPANDPIN && u.MinAmount == 0 {
+// 			return fmt.Errorf("minimum amount is required for OTP and PIN method")
+// 		}
+// 		if u.Method == PIN && (u.MaxAmount == 0 && u.MinAmount == 0) {
+// 			return fmt.Errorf("either minimum or maximum amount are required for PIN method")
+// 		}
+// 		return nil
+// 	}
+// }

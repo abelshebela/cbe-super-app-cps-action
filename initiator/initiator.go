@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	app_middleware "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 )
 
 func Initiator() {
@@ -39,7 +40,7 @@ func Initiator() {
 	logger.Infof("Domain services initialized")
 
 	logger.Infof("Initializing application services...")
-	application := InitApplication(domain, minioClient, logger)
+	application := InitApplication(domain, minioClient, logger, cfg)
 	logger.Infof("Application services initialized")
 
 	logger.Infof("Initializing adapter services...")
@@ -50,6 +51,7 @@ func Initiator() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app_middleware.RecoveryMiddleware(logger))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST"},
