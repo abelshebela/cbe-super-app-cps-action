@@ -5,10 +5,10 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -56,7 +56,6 @@ func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker entitie
 	}, "[mini_app.MakerDeleteMiniApp]")
 }
 
-
 func (a *ApplicationStore) ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error) {
 	list, err := a.service.ListMiniApp(ctx, filterParam)
 	if err != nil {
@@ -75,12 +74,7 @@ func (a *ApplicationStore) DetailMiniAppByID(ctx context.Context, id string) (*m
 	return detail, nil
 }
 
-
-func (a *ApplicationStore) handleMiniAppMakerAction(
-	ctx context.Context,
-	buildAction func() (*entities.CPSAction, error),
-	logPrefix string,
-) (*entities.CPSAction, error) {
+func (a *ApplicationStore) handleMiniAppMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error) {
 	action, err := buildAction()
 	if err != nil {
 		a.Logger.Errorf("%s %v", logPrefix, err)

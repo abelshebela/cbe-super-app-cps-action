@@ -2,10 +2,10 @@ package miniapp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -23,8 +23,8 @@ type MiniAppStore struct {
 	minioClient config.MinioClientInterface
 }
 type MiniAppService interface {
-	CreateMiniAppAction(ctx context.Context, miniApp dto.MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error)
-	UpdateMiniAppAction(ctx context.Context, req dto.MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error)
+	CreateMiniAppAction(ctx context.Context, miniApp MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error)
+	UpdateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error)
 	DeleteMiniAppAction(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error)
 
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
@@ -42,7 +42,7 @@ func NewService(bucketName string, minioClient config.MinioClientInterface, repo
 	}
 }
 
-func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req dto.MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error) {
+func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error) {
 	data := buildMiniAppFromRequest(req, "", true)
 	now := time.Now()
 
@@ -73,7 +73,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req dto.MiniAppC
 		MakerPhoneNumber: maker.PhoneNumber,
 		Department:       maker.Department,
 		ActionType:       constant.ActionCreate,
-		RequestAction:    constant.RequestCreateMiniAppMerchant,
+		RequestAction:    constant.RequestCreateMiniApp,
 		ActionStatus:     constant.ActionPending,
 		CurrentAction:    data,
 		MakerActionTime:  now,
@@ -84,32 +84,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req dto.MiniAppC
 	return &action, nil
 }
 
-func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
-	requestedAction := action.RequestAction
-
-	var minApp *MiniApp
-	var err error
-	switch requestedAction {
-	case constant.RequestCreateMiniAppMerchant:
-		minApp, err = s.Repository.CreateMiniApp(ctx, action)
-	case constant.RequestUpdateMiniAppMerchant:
-		minApp, err = s.Repository.UpdateMinApp(ctx, action)
-	case constant.RequestDeleteMiniAppMerchant:
-		minApp, err = s.Repository.DeleteMiniAppAction(ctx, action)
-	default:
-		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
-	}
-
-	if err != nil {
-		fmt.Printf("error form domain chekmiiapp to crate mini app : %v", err)
-		return nil, err
-	}
-
-	action.CurrentAction = minApp
-	return action, nil
-}
-
-func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req dto.MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error) {
+func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error) {
 	prevData, err := s.Repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -143,7 +118,7 @@ func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req dto.MiniAppC
 		MakerPhoneNumber: maker.PhoneNumber,
 		Department:       maker.Department,
 		ActionType:       constant.ActionUpdate,
-		RequestAction:    constant.RequestUpdateMiniAppMerchant,
+		RequestAction:    constant.RequestUpdateMiniApp,
 		ActionStatus:     constant.ActionPending,
 		CurrentAction:    data,
 		PreviousAction:   prevData,
@@ -171,7 +146,7 @@ func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker entities.U
 		MakerPhoneNumber: maker.PhoneNumber,
 		Department:       maker.Department,
 		ActionType:       constant.ActionDelete,
-		RequestAction:    constant.RequestDeleteMiniAppMerchant,
+		RequestAction:    constant.RequestDeleteMiniApp,
 		ActionStatus:     constant.ActionPending,
 		PreviousAction:   miniApp,
 		CurrentAction:    currentAction,
@@ -182,6 +157,44 @@ func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker entities.U
 	return &action, nil
 }
 
+func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	requestedAction := action.RequestAction
+	var minApp *MiniApp
+
+	raw := action.CurrentAction
+	tmpJSON, errr := json.Marshal(raw)
+	if errr != nil {
+		s.logger.Errorf("failed to marshal current action: %v", errr)
+		return nil, fmt.Errorf(common_util.InvalidActionData)
+	}
+
+	errr = json.Unmarshal(tmpJSON, &minApp)
+	if errr != nil {
+		s.logger.Errorf("failed to unmarshal current action to MiniAppMerchant: %v", errr)
+		return nil, fmt.Errorf(common_util.InvalidActionData)
+	}
+
+	var err error
+	switch requestedAction {
+	case constant.RequestCreateMiniApp:
+		minApp, err = s.Repository.CreateMiniApp(ctx, minApp)
+	case constant.RequestUpdateMiniApp:
+		minApp, err = s.Repository.UpdateMinApp(ctx, minApp)
+	case constant.RequestDeleteMiniApp:
+		minApp, err = s.Repository.DeleteMiniAppAction(ctx, minApp)
+	default:
+		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
+	}
+
+	if err != nil {
+		fmt.Printf("error form domain chekmiiapp to crate mini app : %v", err)
+		return nil, err
+	}
+
+	action.CurrentAction = minApp
+	return action, nil
+}
+
 func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error) {
 	return s.Repository.ListMiniApp(ctx, filterParam)
 }
@@ -190,21 +203,24 @@ func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniA
 	return s.Repository.DetailMiniAppByID(ctx, id)
 }
 
-func buildMiniAppFromRequest(req dto.MiniAppCreateRequest, id string, withTimestamps bool) MiniApp {
+func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps bool) MiniApp {
 	now := time.Now()
 
 	productCodes := make([]ProductCode, 0, len(req.ProductCode))
 	for _, pc := range req.ProductCode {
 		productCodes = append(productCodes, ProductCode{
-			ID:          pc.ID,
-			BranchType:  BranchType(pc.BranchType),
-			ProductCode: pc.ProductCode,
+			ID:             utils.RandomGenerator(20),
+			BranchType:     BranchType(pc.BranchType),
+			ProductCode:    pc.ProductCode,
+			VATCode:        pc.VATCode,
+			ServiceFeeCode: pc.ServiceFeeCode,
 		})
 	}
 
 	credentials := make([]CredentialInformation, 0, len(req.Credential))
 	for _, cred := range req.Credential {
 		credentials = append(credentials, CredentialInformation{
+			ID:            utils.RandomGenerator(20),
 			Environment:   EnvironmentType(cred.Environment),
 			MerchantAppID: cred.MerchantAppID,
 			FabricAppID:   cred.FabricAppID,
@@ -216,21 +232,15 @@ func buildMiniAppFromRequest(req dto.MiniAppCreateRequest, id string, withTimest
 	}
 
 	miniApp := MiniApp{
-		ID:                id,
-		AppName:           req.AppName,
-		CommisonGLAccount: req.CommisonGLAccount,
-		AppType: AppType{
-			UAT:        req.AppType.UAT,
-			Production: req.AppType.Production,
-			Test:       req.AppType.Test,
-			Dev:        req.AppType.Dev,
-		},
-		MerchantID:     req.MerchantID,
-		ProductCode:    productCodes,
-		Credential:     credentials,
-		IsEventMiniApp: req.IsEventMiniApp,
-		IsThreeClick:   req.IsThreeClick,
-		Enabled:        req.Enabled,
+		ID:                  id,
+		AppName:             req.AppName,
+		CommissionGLAccount: req.CommissionGLAccount,
+		AppType:             req.AppType,
+		MerchantID:          req.MerchantID,
+		ProductCode:         productCodes,
+		Credential:          credentials,
+		IsEventMiniApp:      req.IsEventMiniApp,
+		IsThreeClick:        req.IsThreeClick,
 	}
 
 	if withTimestamps {
