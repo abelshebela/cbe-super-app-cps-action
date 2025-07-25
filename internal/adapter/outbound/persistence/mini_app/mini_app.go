@@ -2,15 +2,13 @@ package miniapp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -33,8 +31,6 @@ func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []
 		logger:          logger,
 	}
 }
-
-var _ miniApp.MiniRepository = (*MiniAppPersistence)(nil)
 
 func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error) {
 	filter := bson.M{"is_deleted": false}
@@ -83,9 +79,9 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *cons
 
 func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (*miniApp_domain.MiniApp, error) {
 
-	objectID, err := bson.ObjectIDFromHex(id)
+	objectID, err := common_util.ParsePrimitiveObjectID(id)
 	if err != nil {
-		return nil, fmt.Errorf("INVALID_ID")
+		return nil, err
 	}
 	filter := bson.M{"_id": objectID, "is_deleted": false}
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
@@ -100,18 +96,9 @@ func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (
 	return &res, nil
 }
 
-func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *entities.CPSAction) (*miniApp_domain.MiniApp, error) {
-	var actionData miniApp_domain.MiniApp
-	bytes, err := json.Marshal(action.PreviousAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
-	}
+func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
 
-	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction into Advert: %w", err)
-	}
-
-	objID, err := bson.ObjectIDFromHex(actionData.ID)
+	objID, err := bson.ObjectIDFromHex(action.ID)
 	if err != nil {
 		return nil, fmt.Errorf(common_util.InvalidID)
 	}
@@ -130,19 +117,8 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *en
 	return &mappedApp, nil
 }
 
-func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, action *entities.CPSAction) (*miniApp_domain.MiniApp, error) {
-
-	var actionData miniApp_domain.MiniApp
-	bytes, err := json.Marshal(action.CurrentAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
-	}
-
-	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction into Advert: %w", err)
-	}
-
-	objID, err := bson.ObjectIDFromHex(actionData.ID)
+func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
+	objID, err := bson.ObjectIDFromHex(miniApp.ID)
 	if err != nil {
 		return nil, fmt.Errorf(common_util.InvalidID)
 	}
@@ -152,16 +128,33 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, action *entities.
 		"is_deleted": false,
 	}
 
-	update := bson.M{
-		"app_name":            actionData.AppName,
-		"app_icon":            actionData.AppIcon,
-		"commison_gl_account": actionData.CommisonGLAccount,
-		"app_type":            actionData.AppType,
-		"product_code":        actionData.ProductCode,
-		"credential":          actionData.Credential,
-		"is_event_mini_app":   actionData.IsEventMiniApp,
-		"is_three_click":      actionData.IsThreeClick,
-		"last_modified_at":    time.Now(),
+	update := bson.M{}
+	if miniApp.AppName != "" {
+		update["app_name"] = miniApp.AppName
+	}
+	if miniApp.AppIcon != "" {
+		update["app_icon"] = miniApp.AppIcon
+	}
+	if miniApp.CommissionGLAccount != "" {
+		update["commison_gl_account"] = miniApp.CommissionGLAccount
+	}
+	if miniApp.AppType != "" {
+		update["app_type"] = miniApp.AppType
+	}
+	if len(miniApp.ProductCode) > 0 {
+		update["product_code"] = miniApp.ProductCode
+	}
+	if len(miniApp.Credential) > 0 {
+		update["credential"] = miniApp.Credential
+	}
+
+	update["is_event_mini_app"] = miniApp.IsEventMiniApp
+	update["is_three_click"] = miniApp.IsThreeClick
+
+	update["last_modified_at"] = time.Now()
+
+	if len(update) == 1 {
+		return nil, fmt.Errorf("no valid fields to update")
 	}
 
 	mini, err := o.MongoDalMiniApp.UpdateOne(ctx, filter, update)
@@ -169,28 +162,17 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, action *entities.
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, fmt.Errorf("NOT_FOUND")
 		}
-
 		o.logger.Warnf(err.Error(), "while updating")
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
 	res := mappers.ToDomainMiniApp(mini)
-
 	return &res, nil
 }
 
-func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *entities.CPSAction) (*miniApp_domain.MiniApp, error) {
-	var actionData miniApp_domain.MiniApp
-	bytes, err := json.Marshal(action.CurrentAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
-	}
+func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
 
-	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction into Advert: %w", err)
-	}
-
-	miniAppDoc, err := mappers.ToModelMiniApp(&actionData)
+	miniAppDoc, err := mappers.ToModelMiniApp(action)
 	if err != nil {
 		return nil, err
 	}

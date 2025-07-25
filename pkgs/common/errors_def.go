@@ -801,8 +801,12 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_170",
 			Message: "One or more fields already exists",
 		},
-		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+		"MERCHANT_NOT_FOUND": {
 			Code:    "GEN_171",
+			Message: "merchant not found",
+		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_172",
 			Message: "Only Ethiopian numbers in local or international format are acceptable",
 		},
 	},
