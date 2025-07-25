@@ -77,12 +77,14 @@ func DomainToUserModel(u *domain.User) (*model.User, error) {
 			KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
 			KYCIsApproved        bool                `json:"kyc_approved" bson:"kyc_approved"`
 			KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by"`
+			Level                int                 `json:"level" bson:"level"`
 		}{
 			KYCRejectReasonField: u.KYC.KYCRejectReasonField,
 			KYCStatus:            model.KYCStatus(u.KYC.KYCStatus),
 			KYCRejectReason:      u.KYC.KYCRejectReason,
 			KYCIsApproved:        u.KYC.KYCIsApproved,
 			KYCActivityBy:        u.KYC.KYCActivityBy,
+			Level:                0,
 		},
 
 		IsBranchApproved:   u.IsBranchApproved,
