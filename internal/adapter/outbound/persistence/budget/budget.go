@@ -293,11 +293,13 @@ func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (
 
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
 
+	fmt.Println("**********************8")
 	colorData, err := common_util.JsonUnmarshal[entities.Color](color.CurrentAction)
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Println(colorData.Color)
 	dataColor, err := b.colorDal.FindOne(ctx, bson.M{"name": colorData.Color}, nil)
 	if err != nil {
 		if err.Error() != "mongo: no documents in result " {
@@ -306,7 +308,7 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 		}
 	}
 
-	if dataColor.ID != colorData.ID {
+	if dataColor.Color == colorData.Color {
 		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
 	}
 	makerData := contexts.ExtractContext(ctx)
@@ -343,6 +345,23 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 }
 
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	if cpsAction.RequestAction == "BUDGET_UPDATE_COLOR" {
+		colorData, err := common_util.JsonUnmarshal[entities.Color](cpsAction.CurrentAction)
+		if err != nil {
+			return nil, err
+		}
+
+		dataColor, err := b.colorDal.FindOne(ctx, bson.M{"color": colorData.Color}, nil)
+		if err != nil {
+			if err.Error() != "mongo: no documents in result" {
+				return nil, err
+			}
+		}
+
+		if dataColor.Color == colorData.Color {
+			return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
+		}
+	}
 	cpsAction.ID = bson.NewObjectID()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
