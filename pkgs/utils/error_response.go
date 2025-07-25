@@ -200,6 +200,8 @@ var errorKeyToStatus = map[string]int{
 	"PENDING_ACTION_ALREADY_EXISTS":     http.StatusBadRequest,
 	"NO_DOCUMENT_FOUND":                 http.StatusNotFound,
 	"ACCESS_TOKEN_REQUIRED":             http.StatusUnauthorized,
+	"UNSUPPORTED_PHONE_NUMBER_FORMAT":   http.StatusBadRequest,
+	"USER_CODE_IS_REQUIRED":             http.StatusBadRequest,
 
 	// Transaction
 	"TRANSACTION_NOT_FOUND": http.StatusNotFound,

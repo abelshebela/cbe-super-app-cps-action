@@ -29,6 +29,8 @@ type CPSUserService interface {
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 	DeleteUserRequest(ctx context.Context, userCode string) (*model.CPSAction, error)
+	EnableUser(ctx context.Context, userCode string) error
+	DisableUser(ctx context.Context, userCode string) error
 }
 
 type cpsUserService struct {
@@ -71,6 +73,12 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		return nil, err
 	}
 
+	// Validate the phone number
+	phone_number := common_util.FormatPhoneNumber(userData.PhoneNumber)
+	if phone_number == "" {
+		return nil, fmt.Errorf("UNSUPPORTED_PHONE_NUMBER_FORMAT")
+	}
+
 	// Create the CPS action
 	actionCode := utils.RandomGenerator(24)
 
@@ -81,7 +89,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		Role:               userData.Role,
 		Department:         userData.Department,
 		Gender:             userData.Gender,
-		PhoneNumber:        userData.PhoneNumber,
+		PhoneNumber:        phone_number,
 		Email:              userData.Email,
 		UserName:           userData.UserName,
 		PermissionCategory: userData.PermissionCategory,
@@ -140,9 +148,21 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		return nil, fmt.Errorf("MAKER_OR_CHECKER")
 	}
 
+	// Validate the phone number
+	var phone_number string
+	if userData.PhoneNumber != "" {
+		phone_number = common_util.FormatPhoneNumber(userData.PhoneNumber)
+		if phone_number == "" {
+			return nil, fmt.Errorf("UNSUPPORTED_PHONE_NUMBER_FORMAT")
+		}
+	}
+
 	userPayload = ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
 	userData.UserCode = userCode
+
+	// Format phone_number
+	userData.PhoneNumber = phone_number
 
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
@@ -217,12 +237,15 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *entity.CPSAction
 
 	switch action.ActionType {
 	case cps_constant.ActionCreate:
-		return s.repo.AuthorizeCreate(ctx, action)
+		return s.repo.AuthorizeUserCreate(ctx, action)
 	case cps_constant.ActionUpdate:
-		return s.repo.AuthorizeUpdate(ctx, action)
+		return s.repo.AuthorizeUserUpdate(ctx, action)
 	case cps_constant.ActionDelete:
-		return s.repo.AuthorizeDelete(ctx, action)
-
+		return s.repo.AuthorizeUserDelete(ctx, action)
+	case cps_constant.ActionEnable:
+		return s.repo.AuthorizeUserEnable(ctx, action)
+	case cps_constant.ActionDisable:
+		return s.repo.AuthorizeUserDisable(ctx, action)
 	default:
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
@@ -255,4 +278,62 @@ func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string)
 	}
 
 	return s.repo.DeleteUserRequest(ctx, userCode, cpsAction)
+}
+
+func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error {
+	userPayload := ctx_util.ExtractContext(ctx)
+	actionCode := utils.RandomGenerator(24)
+
+	action := model.CPSUser{
+		UserCode: userCode,
+		Enabled:  true,
+	}
+
+	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       actionCode,
+		UniqueId:         userPayload.UserCode,
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionEnable),
+		RequestAction:    string(model.RequestCpsUserEnable),
+		PreviousAction:   nil,
+		CurrentAction:    action,
+		CreatedAt:        time.Now(),
+		MakerActionTime:  time.Now(),
+	}
+
+	return s.repo.EnableDisableUser(ctx, userCode, cpsAction, model.RequestCpsUserEnable)
+}
+
+func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error {
+	userPayload := ctx_util.ExtractContext(ctx)
+	actionCode := utils.RandomGenerator(24)
+
+	action := model.CPSUser{
+		UserCode: userCode,
+		Enabled:  false,
+	}
+
+	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       actionCode,
+		UniqueId:         userPayload.UserCode,
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDisable),
+		RequestAction:    string(model.RequestCpsUserDisable),
+		PreviousAction:   nil,
+		CurrentAction:    action,
+		CreatedAt:        time.Now(),
+		MakerActionTime:  time.Now(),
+	}
+
+	return s.repo.EnableDisableUser(ctx, userCode, cpsAction, model.RequestCpsUserDisable)
 }
