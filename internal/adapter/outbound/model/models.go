@@ -191,8 +191,11 @@ const (
 	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
 	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
 	RequestBlockRegion              RequestAction = "BLOCK_REGION"
+	RequestEnableRegion             RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
+	RequestEnableDistrict           RequestAction = "ENABLE_DISTRICT"
 	RequestBlockCity                RequestAction = "BLOCK_CITY"
+	RequestEnableCity               RequestAction = "ENABLE_CITY"
 	RequestBlockUser                RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
@@ -340,8 +343,6 @@ type ProductCode struct {
 	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
 	ProductCode string     `bson:"product_code" json:"product_code"`
 }
-
-
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`

@@ -112,7 +112,10 @@ const (
 	RequestDisableAvatar         RequestAction = "DISABLE_AVATAR"
 	RequestUpdateAvatar          RequestAction = "UPDATE_AVATAR"
 	RequestBlockRegion           RequestAction = "BLOCK_REGION"
+	RequestEnableRegion          RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict         RequestAction = "BLOCK_DISTRICT"
+	RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
+	RequestEnableCity            RequestAction = "ENABLE_CITY"
 	RequestBlockCity             RequestAction = "BLOCK_CITY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
@@ -207,30 +210,33 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateServiceRule:        {},
 	RequestUpdateTotal:              {},
 	RequestUpdateAccessConfig:       {},
-	RequestEnableSingleBranch:       {},
-	RequestDisableSingleBranch:      {},
-	RequestEnableMultiUsers:         {},
-	RequestDisableMultiUsers:        {},
-	RequestCreateBusiness:           {},
-	RequestUpdateBusiness:           {},
-	RequestCreateEvent:              {},
-	RequestUpdateEvent:              {},
-	RequestCreateEventCategory:      {},
-	RequestUpdateEventCategory:      {},
-	RequestDisableEvent:             {},
-	RequestCreateMiniAppMerchant:    {},
-	RequestUpdateMiniAppMerchant:    {},
-	RequestUpdateBlockTime:          {},
-	RequestDisableFaydaAccount:      {},
-	RequestEnableFaydaAccount:       {},
-	RequestCreateAvatar:             {},
-	RequestDeleteAvatar:             {},
-	RequestDisableAvatar:            {},
-	RequestEnableAvatar:             {},
-	RequestUpdateAvatar:             {},
-	RequestEnableMiniAppMerchant:    {},
-	RequestDisableMiniAppMerchant:   {},
-	RequestDeleteMiniAppMerchant:    {},
+
+	RequestEnableSingleBranch:  {},
+	RequestDisableSingleBranch: {},
+
+	RequestEnableMultiUsers:  {},
+	RequestDisableMultiUsers: {},
+
+	RequestCreateBusiness:         {},
+	RequestUpdateBusiness:         {},
+	RequestCreateEvent:            {},
+	RequestUpdateEvent:            {},
+	RequestCreateEventCategory:    {},
+	RequestUpdateEventCategory:    {},
+	RequestDisableEvent:           {},
+	RequestCreateMiniAppMerchant:  {},
+	RequestUpdateMiniAppMerchant:  {},
+	RequestUpdateBlockTime:        {},
+	RequestDisableFaydaAccount:    {},
+	RequestEnableFaydaAccount:     {},
+	RequestCreateAvatar:           {},
+	RequestDeleteAvatar:           {},
+	RequestDisableAvatar:          {},
+	RequestEnableAvatar:           {},
+	RequestUpdateAvatar:           {},
+	RequestEnableMiniAppMerchant:  {},
+	RequestDisableMiniAppMerchant: {},
+	RequestDeleteMiniAppMerchant:  {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -342,7 +348,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateBlockTime,
 	},
 	"Password": {
-		
+
 		RequestUpdatePasswordRule,
 	},
 	"Permission": {
@@ -396,11 +402,16 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestBlockUser,
 		RequestDisableSingleBranch,
 		RequestEnableSingleBranch,
+
 		RequestDisableMultiBranches,
 		RequestEnableMultiBranches,
+
 		RequestBlockRegion,
+		RequestEnableRegion,
 		RequestBlockDistrict,
+		RequestEnableDistrict,
 		RequestBlockCity,
+		RequestEnableCity,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),

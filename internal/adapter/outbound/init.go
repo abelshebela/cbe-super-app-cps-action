@@ -84,6 +84,18 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 	}
 }
 
+/*
+	collectionNames := []string{
+		"bps_user",
+		"cps_actions",
+		"cps_users",
+		"service",
+		"member",
+		"linked_account",
+		"mini_app",
+		"portal_card",
+	}
+*/
 func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger, cfg *config.VaultConfig) outbound.OutboundInfra {
 
 	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[0])
