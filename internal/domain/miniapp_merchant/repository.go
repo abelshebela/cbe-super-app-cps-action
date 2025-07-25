@@ -15,5 +15,5 @@ type MiniAppMerchantRepository interface {
 	EnableMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, error)
 	DisableMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, error)
 	DeleteMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, error)
-	MiniAppMerchantInfoExists(ctx context.Context, data CheckMiniAppMerchant) (bool, error)
+	MiniAppMerchantInfoExists(ctx context.Context, data CheckMiniAppMerchant, opts *MiniAppMerchantExistOptions) (bool, error)
 }

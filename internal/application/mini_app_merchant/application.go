@@ -2,7 +2,6 @@ package miniappmerchant
 
 import (
 	"context"
-	"fmt"
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -47,7 +46,6 @@ func NewMiniAppMerchantHandler(service domain.MiniAppMerchantService, cpsService
 
 func (h *MiniAppMerchantHandlerImpl) CreateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
 	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
-		fmt.Println("I get called") // Debug log — consider replacing with structured logging
 
 		curData, err := h.service.GetCurrentData(&req)
 		if err != nil {
@@ -58,12 +56,28 @@ func (h *MiniAppMerchantHandlerImpl) CreateOne(ctx context.Context, req entities
 		if err != nil {
 			return nil, err
 		}
-		return h.service.CreateMiniAppMerchant(ctx, &req)
+		res, err := h.service.CreateMiniAppMerchant(ctx, &req)
+		if err != nil {
+			return nil, err
+		}
+
+		return res, nil
 	}, "[MiniAppMerchant.Create]")
 }
 
 func (h *MiniAppMerchantHandlerImpl) UpdateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
 	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+		curData, err := h.service.GetCurrentData(&req)
+		if err != nil {
+			return nil, err
+		}
+
+		if curData.BankAccountNumber != "" {
+			_, err = h.accountLookUpService.SearchUser(ctx, curData.BankAccountNumber)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return h.service.UpdateMiniAppMerchant(ctx, &req)
 	}, "[MiniAppMerchant.Update]")
 }
