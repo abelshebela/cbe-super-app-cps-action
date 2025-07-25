@@ -278,3 +278,14 @@ func validateExclusiveAppFlags(r MiniAppRequest) validation.RuleFunc {
 		return nil
 	}
 }
+
+func IsEmptyUpdate(dto *miniappentity.MiniAppCreateRequest) bool {
+	return dto.AppName == "" &&
+		dto.AppIcon == nil &&
+		dto.CommissionGLAccount == "" &&
+		dto.AppType == "" &&
+		len(dto.ProductCode) == 0 &&
+		len(dto.Credential) == 0 &&
+		!dto.IsEventMiniApp &&
+		!dto.IsThreeClick
+}

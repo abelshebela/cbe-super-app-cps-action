@@ -232,6 +232,10 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dto.ID = id
+	if IsEmptyUpdate(dto) {
+		utils.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
+		return
+	}
 
 	// Call domain application logic
 	response, err := h.Application.MakerUpdateMiniApp(r.Context(), dto, maker)
