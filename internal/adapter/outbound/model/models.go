@@ -195,8 +195,11 @@ const (
 	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
 	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
 	RequestBlockRegion              RequestAction = "BLOCK_REGION"
+	RequestEnableRegion             RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
+	RequestEnableDistrict           RequestAction = "ENABLE_DISTRICT"
 	RequestBlockCity                RequestAction = "BLOCK_CITY"
+	RequestEnableCity               RequestAction = "ENABLE_CITY"
 	RequestBlockUser                RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
@@ -294,8 +297,6 @@ type LinkedAccountResponse struct {
 	AccountCurrency    string `json:"account_currency"`
 }
 
-
-
 type CpsActionNormalized struct {
 	ID                 string      `bson:"_id,omitempty" json:"id,omitempty"`
 	ActionCode         string      `bson:"action_code" json:"action_code,omitempty"`
@@ -319,6 +320,11 @@ type CpsActionNormalized struct {
 	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
 
+// type ProductCode struct {
+// 	ID          string     `bson:"id" json:"id,omitempty"`
+// 	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
+// 	ProductCode string     `bson:"product_code" json:"product_code"`
+// }
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`

@@ -1197,8 +1197,20 @@ var DefineError = ErrorDefinitions{
 			Message: "Region Not Found",
 		},
 		"BRANCH_ALREADY_BLOCKED": {
-			Code:    "BRN_010",
+			Code:    "BRN_012",
 			Message: "The branch already blocked",
+		},
+		"BRANCH_ENABLE_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_013",
+			Message: "branch enable action already exists",
+		},
+		"BRANCH_ALREADY_ENABLED": {
+			Code:    "BRN_014",
+			Message: "Branch already enabled",
+		},
+		"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": {
+			Code:    "BRN_015",
+			Message: "multiple branch enable list have  already enabled branch.",
 		},
 	},
 	Department: ErrorGroup{
@@ -1352,6 +1364,14 @@ var DefineError = ErrorDefinitions{
 		"PENDING_DISTRICT_ACTION_ALREADY_EXIST": {
 			Code:    "ACT_017",
 			Message: "A pending block action already exists for this district",
+		},
+		"REGION_ALREADY_ENABLED": {
+			Code:    "ACT_018",
+			Message: "A region already enbled",
+		},
+		"ENABLE_REGION_ACTION_ALREADY_EXISTS": {
+			Code:    "ACT_019",
+			Message: "enabel region action already exists",
 		},
 	},
 	User: ErrorGroup{

@@ -243,14 +243,16 @@ var errorKeyToStatus = map[string]int{
 	"UPLOAD_FAILED":     http.StatusInternalServerError,
 
 	// Branch
-	"BRANCH_NOT_FOUND":                           http.StatusNotFound,
-	"BRANCH_DISABLED":                            http.StatusBadRequest,
-	"FAILED_TO_FETCH_BRANCHES":                   http.StatusInternalServerError,
-	"INVALID_BRANCH_ID":                          http.StatusBadRequest,
-	"INVALID_LOCATION_FILTER":                    http.StatusBadRequest,
-	"BRANCH_ID_REQUIRED":                         http.StatusBadRequest,
-	"BRANCH_DISABLE_ACTION_ALREADY_EXISTS":       http.StatusBadRequest,
-	"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": http.StatusConflict,
+	"BRANCH_NOT_FOUND":                                   http.StatusNotFound,
+	"BRANCH_DISABLED":                                    http.StatusBadRequest,
+	"FAILED_TO_FETCH_BRANCHES":                           http.StatusInternalServerError,
+	"INVALID_BRANCH_ID":                                  http.StatusBadRequest,
+	"INVALID_LOCATION_FILTER":                            http.StatusBadRequest,
+	"BRANCH_ID_REQUIRED":                                 http.StatusBadRequest,
+	"BRANCH_DISABLE_ACTION_ALREADY_EXISTS":               http.StatusBadRequest,
+	"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS":         http.StatusConflict,
+	"BRANCH_ENABLE_ACTION_ALREADY_EXISTS":                http.StatusConflict,
+	"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": http.StatusConflict,
 
 	// Department
 	"DEPARTMENT_NOT_FOUND":      http.StatusNotFound,
@@ -320,6 +322,10 @@ var errorKeyToStatus = map[string]int{
 	"INVALID_PERMISSION_GROUP_ID":                 http.StatusBadRequest,
 	"NO_PERMISSION_GROUP_FOUND":                   http.StatusNotFound,
 	"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND":     http.StatusNotFound,
+
+	//Region Enable
+	"REGION_ALREADY_ENABLED":              http.StatusConflict,
+	"ENABLE_REGION_ACTION_ALREADY_EXISTS": http.StatusConflict,
 }
 
 func getStatusForErrorKey(key string) int {
