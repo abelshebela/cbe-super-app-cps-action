@@ -1,8 +1,9 @@
 package mappers
 
 import (
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
