@@ -298,7 +298,7 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 			return nil, err
 		}
 
-		_, err = s.userService.CreateUser(ctx, &entity.User{
+		_, err = s.userService.CreateUserMiniAppMercahant(ctx, &entity.User{
 			FullName:    newMerchant.KYC.Representative.Name,
 			PhoneNumber: newMerchant.KYC.Representative.Phone,
 			Email:       newMerchant.KYC.Representative.Email,
