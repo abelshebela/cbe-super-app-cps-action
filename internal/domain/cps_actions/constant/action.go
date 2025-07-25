@@ -20,9 +20,11 @@ func IsValidActionStatus(status string) bool {
 type ActionType string
 
 const (
-	ActionCreate ActionType = "CREATE"
-	ActionUpdate ActionType = "UPDATE"
-	ActionDelete ActionType = "DELETE"
+	ActionCreate  ActionType = "CREATE"
+	ActionUpdate  ActionType = "UPDATE"
+	ActionDelete  ActionType = "DELETE"
+	ActionEnable  ActionType = "ENABLE"
+	ActionDisable ActionType = "DISABLE"
 )
 
 func IsValidActionType(actionType string) bool {
@@ -44,6 +46,8 @@ const (
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
 	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
@@ -434,6 +438,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserCreate,
 		RequestCpsUserUpdate,
 		RequestCpsUserDelete,
+		RequestCpsUserEnable,
+		RequestCpsUserDisable,
 	},
 	"MiniApp": {
 		RequestCreateMiniApp,

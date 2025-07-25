@@ -118,9 +118,10 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":      makerData.UserCode,
-		"department":    makerData.Department,
-		"action_status": "PENDING",
+		"maker_id":       makerData.UserCode,
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": cpsAction.RequestAction,
 	}
 	_, err := b.cpsDal.FindOne(ctx, filter, nil)
 
@@ -165,9 +166,6 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 	}
 	currentMap["icon_id"] = existingIcon.ID
 	cpsAction.CurrentAction = currentMap
-	fmt.Println("=========================================== update actoin data ")
-	fmt.Println(cpsAction.CurrentAction)
-	fmt.Println("===================================================")
 
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -295,13 +293,31 @@ func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (
 
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
 
+	fmt.Println("**********************8")
+	colorData, err := common_util.JsonUnmarshal[entities.Color](color.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(colorData.Color)
+	dataColor, err := b.colorDal.FindOne(ctx, bson.M{"name": colorData.Color}, nil)
+	if err != nil {
+		if err.Error() != "mongo: no documents in result " {
+			return nil, err
+
+		}
+	}
+
+	if dataColor.Color == colorData.Color {
+		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
+	}
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
 		"maker_id":      makerData.UserCode,
 		"department":    makerData.Department,
 		"action_status": "PENDING",
 	}
-	_, err := b.cpsDal.FindOne(ctx, filter, nil)
+	_, err = b.cpsDal.FindOne(ctx, filter, nil)
 
 	if err == nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
@@ -329,7 +345,23 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 }
 
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
-	fmt.Println("********CreateAction***********")
+	if cpsAction.RequestAction == "BUDGET_UPDATE_COLOR" {
+		colorData, err := common_util.JsonUnmarshal[entities.Color](cpsAction.CurrentAction)
+		if err != nil {
+			return nil, err
+		}
+
+		dataColor, err := b.colorDal.FindOne(ctx, bson.M{"color": colorData.Color}, nil)
+		if err != nil {
+			if err.Error() != "mongo: no documents in result" {
+				return nil, err
+			}
+		}
+
+		if dataColor.Color == colorData.Color {
+			return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
+		}
+	}
 	cpsAction.ID = bson.NewObjectID()
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -398,13 +430,17 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 			}
 
 		case entities.ActionUpdate:
+			fmt.Println("----------KKKKKKKKKKKK-----------")
+
 			prev, err := castToBsonM(action.PreviousAction)
 			if err != nil {
 				b.logger.Errorf("invalid previousAction format for icon update: %v", err)
 				return nil, fmt.Errorf("invalid previousAction format for icon update: %w", err)
 			}
 			iconID, ok := prev["icon_id"].(string)
-			if !ok || iconID == "" {
+			fmt.Println("---------------------")
+			fmt.Println(iconID)
+			if !ok {
 				b.logger.Errorf("missing icon_id in previousAction")
 				return nil, fmt.Errorf("missing icon_id in previousAction")
 			}
@@ -553,11 +589,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 			b.logger.Errorf("invalid previousAction format for icon update: %v", err)
 			return nil, fmt.Errorf("invalid previousAction format for icon update: %w", err)
 		}
-		iconID, ok := prev["icon_id"].(string)
-		if !ok || iconID == "" {
-			b.logger.Errorf("missing icon_id in previousAction")
-			return nil, fmt.Errorf("missing icon_id in previousAction")
-		}
+		iconID := prev["icon_id"]
 
 		filter := bson.M{"_id": iconID, "is_deleted": false}
 		update := bson.M{
@@ -637,10 +669,7 @@ func (b *BudgetPersistence) Authorize(ctx context.Context, cpsAction *cps_entiti
 		if err != nil {
 			return nil, fmt.Errorf("invalid previousAction format for color update: %w", err)
 		}
-		colorID, ok := prev["color_id"].(string)
-		if !ok || colorID == "" {
-			return nil, fmt.Errorf("missing color_id in action data")
-		}
+		colorID, ok := prev["color_id"]
 
 		filter := bson.M{"_id": colorID, "is_deleted": false}
 		update := bson.M{

@@ -21,11 +21,11 @@ type OutboundInfra interface {
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
 	GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error)
-	AuthorizeCreate(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
-	AuthorizeUpdate(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
-	AuthorizeDelete(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
+	AuthorizeUserCreate(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
+	AuthorizeUserUpdate(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
+	AuthorizeUserDelete(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
+	AuthorizeUserEnable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
+	AuthorizeUserDisable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 	DeleteUserRequest(ctx context.Context, userCode string, cpsAction model.CPSAction) (*model.CPSAction, error)
-
-	// UpdateOneServiceDetailRequest(ctx context.Context, id string, update service.Service) error
-	// UpdateOneSeviceDeatil(ctx context.Context, pd service.Service) error
+	EnableDisableUser(ctx context.Context, userCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error
 }

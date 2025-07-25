@@ -76,8 +76,6 @@ const (
 	RequestUser                     RequestAction = "USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
-	RequestEnableUser               RequestAction = "ENABLE_USER"
-	RequestDisableUser              RequestAction = "DISABLE_USER"
 	RequestBPSUser                  RequestAction = "BPS_USER"
 	RequestDisableBPSUser           RequestAction = "DISABLE_BPS_USER"
 	RequestEnableBPSUser            RequestAction = "ENABLE_BPS_USER"

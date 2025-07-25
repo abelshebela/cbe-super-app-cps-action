@@ -521,7 +521,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"PENDING_ACTION_EXISTS": {
 			Code:    "GEN_124",
-			Message: "A pending action already.",
+			Message: "A pending action already exist.",
 		},
 		"FAILED_TO_FETCH_PENDING_ACTIONS": {
 			Code:    "GEN_125",
@@ -804,6 +804,10 @@ var DefineError = ErrorDefinitions{
 		"MERCHANT_NOT_FOUND": {
 			Code:    "GEN_171",
 			Message: "merchant not found",
+		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_172",
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
 		},
 	},
 	Auth: ErrorGroup{
