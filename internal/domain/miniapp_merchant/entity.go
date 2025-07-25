@@ -52,3 +52,6 @@ type CheckMiniAppMerchant struct {
 	Email             string `json:"email"`
 	PhoneNumber       string `json:"phone_number"`
 }
+type MiniAppMerchantExistOptions struct {
+	ExcludeID string 
+}

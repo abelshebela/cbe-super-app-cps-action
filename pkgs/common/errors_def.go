@@ -33,7 +33,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"INVALID_ID": {
 			Code:    "GEN_002",
-			Message: "Invalid ObjectId provided.",
+			Message: "Invalid ID provided.",
 		},
 		"INVALID_JSON_PAYLOAD": {
 			Code:    "GEN_003",
@@ -833,7 +833,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"AUTH_USER_ALREADY_EXISTS": {
 			Code:    "AUTH_009",
-			Message: `user with this ${name} already exist`,
+			Message: `user already exist`,
 		},
 		"LOGIN_PROHIBITED_FOR_15_MIN": {
 			Code:    "AUTH_010",
