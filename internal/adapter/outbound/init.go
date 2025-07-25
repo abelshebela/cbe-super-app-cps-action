@@ -1458,7 +1458,7 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	filter := bson.M{
-		// "is_deleted": false,
+		"is_deleted": false,
 	}
 	projection := bson.M{}
 

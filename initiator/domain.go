@@ -32,6 +32,7 @@ import (
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 
+	BulkServiceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -40,7 +41,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	cfg *config.VaultConfig) application.Domain {
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
-	
+
 	return application.Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
@@ -67,5 +68,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
+		BulkServiceDomain:     BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
 	}
 }

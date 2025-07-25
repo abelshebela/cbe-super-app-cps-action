@@ -33,6 +33,7 @@ import (
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	bulk_service_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/updated_bulk_service"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -71,6 +72,7 @@ type Application struct {
 	FileService                file.FileService
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
 	AccountLookupApplication   account_application.UserSearchService
+	BulkServiceApplication     bulk_service_app.BulkServiceApplication
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -105,5 +107,6 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
+		BulkServiceApplication:     *bulk_service_app.NewApplicationHandler(domain.BulkServiceDomain, logger),
 	}
 }

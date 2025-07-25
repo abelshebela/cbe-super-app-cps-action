@@ -21,15 +21,14 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
+	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
-	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
-	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
-	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
-
-
+	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
+	bulk_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
+	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 )
 
 type Domain struct {
@@ -42,14 +41,14 @@ type Domain struct {
 	BankDomain            bank_service.BankService
 	BudgetCategoryDomain  budget_category.BudgetCategoryService
 	BudgetDomain          *budget_service.BudgetService
-	CPSActionDomain       cps_action_service.CPSActionService 
-	CPSUserDomain         services.CPSUserService 
-	CustomerDomain        customer_service.CustomerService 
+	CPSActionDomain       cps_action_service.CPSActionService
+	CPSUserDomain         services.CPSUserService
+	CustomerDomain        customer_service.CustomerService
 	DepartmentDomain      department.Service
 	EventDomain           event_domain.EventService // fully not ready
 	FaydaDomain           fayda_service.FaydaAccount
 	FeedbackDomain        *feedback_service.FeedbackDomain
-	HQDomain              hq.Service 
+	HQDomain              hq.Service
 	MiniAppDomain         miniApp_domain.MiniAppService // not done
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service
@@ -58,5 +57,6 @@ type Domain struct {
 	UnlinkDomain          *unlink_service.Service
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
-	AccountLookup *account_service.UserSearchService
+	AccountLookup         *account_service.UserSearchService
+	BulkServiceDomain     bulk_service.BulkService
 }
