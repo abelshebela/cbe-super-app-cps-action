@@ -801,6 +801,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_170",
 			Message: "One or more fields already exists",
 		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_171",
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

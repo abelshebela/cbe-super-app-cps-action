@@ -77,6 +77,24 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/disable/{user_code}",
+				Handler: handler.DisableUser,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/enable/{user_code}",
+				Handler: handler.EnableUser,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
 		}
 
 		sharedhttp.RegisterRoutes(r, routes)

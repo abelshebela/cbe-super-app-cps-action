@@ -55,9 +55,11 @@ type AdvertResponse struct {
 type ActionType string
 
 const (
-	ActionCreate ActionType = "CREATE"
-	ActionUpdate ActionType = "UPDATE"
-	ActionDelete ActionType = "DELETE"
+	ActionCreate  ActionType = "CREATE"
+	ActionUpdate  ActionType = "UPDATE"
+	ActionDelete  ActionType = "DELETE"
+	ActionEnable  ActionType = "ENABLE"
+	ActionDisable ActionType = "DISABLE"
 )
 
 type CurrentAction struct {
@@ -120,6 +122,8 @@ const (
 	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
@@ -340,8 +344,6 @@ type ProductCode struct {
 	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
 	ProductCode string     `bson:"product_code" json:"product_code"`
 }
-
-
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`
