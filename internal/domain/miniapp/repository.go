@@ -14,4 +14,5 @@ type MiniRepository interface {
 
 	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
+	EnableDisableMiniApp(ctx context.Context, id string, enabled bool) (*MiniApp, error)
 }

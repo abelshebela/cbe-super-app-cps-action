@@ -16,7 +16,7 @@ import (
 )
 
 type MiniAppStore struct {
-	Repository  MiniRepository
+	repository  MiniRepository
 	logger      utils.Logger
 	cfg         *config.VaultConfig
 	bucketName  string
@@ -30,11 +30,12 @@ type MiniAppService interface {
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
+	EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*entities.CPSAction, error)
 }
 
 func NewService(bucketName string, minioClient config.MinioClientInterface, repository MiniRepository, cfg *config.VaultConfig, logger utils.Logger) MiniAppService {
 	return &MiniAppStore{
-		Repository:  repository,
+		repository:  repository,
 		logger:      logger,
 		cfg:         cfg,
 		bucketName:  bucketName,
@@ -85,7 +86,7 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req MiniAppCreat
 }
 
 func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error) {
-	prevData, err := s.Repository.DetailMiniAppByID(ctx, id)
+	prevData, err := s.repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +131,7 @@ func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req MiniAppCreat
 
 func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error) {
 
-	miniApp, err := s.Repository.DetailMiniAppByID(ctx, id)
+	miniApp, err := s.repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -177,13 +178,17 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	var err error
 	switch requestedAction {
 	case constant.RequestCreateMiniApp:
-		minApp, err = s.Repository.CreateMiniApp(ctx, minApp)
+		minApp, err = s.repository.CreateMiniApp(ctx, minApp)
 	case constant.RequestUpdateMiniApp:
-		minApp, err = s.Repository.UpdateMinApp(ctx, minApp)
+		minApp, err = s.repository.UpdateMinApp(ctx, minApp)
 	case constant.RequestDeleteMiniApp:
-		minApp, err = s.Repository.DeleteMiniAppAction(ctx, minApp)
+		minApp, err = s.repository.DeleteMiniAppAction(ctx, minApp)
+	case constant.RequestEnableMiniApp:
+		minApp, err = s.repository.EnableDisableMiniApp(ctx, minApp.ID, true)
+	case constant.RequestDisableMiniApp:
+		minApp, err = s.repository.EnableDisableMiniApp(ctx, minApp.ID, false)
 	default:
-		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
+		return nil, fmt.Errorf(common_util.ErrUnsupported)
 	}
 
 	if err != nil {
@@ -196,11 +201,11 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 }
 
 func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error) {
-	return s.Repository.ListMiniApp(ctx, filterParam)
+	return s.repository.ListMiniApp(ctx, filterParam)
 }
 
 func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error) {
-	return s.Repository.DetailMiniAppByID(ctx, id)
+	return s.repository.DetailMiniAppByID(ctx, id)
 }
 
 func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps bool) MiniApp {
@@ -252,4 +257,52 @@ func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps
 	}
 
 	return miniApp
+}
+
+func (s *MiniAppStore) EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*entities.CPSAction, error) {
+	prevApp, err := s.repository.DetailMiniAppByID(ctx, id)
+
+	fmt.Println(prevApp.Enabled, "prevApp.Enabled")
+	fmt.Println(enabled)
+	if err != nil {
+		return nil, err
+	}
+	if prevApp.Enabled && enabled {
+		return nil, fmt.Errorf(common_util.ErrAlreadyEnabled)
+
+	}
+
+	if !prevApp.Enabled && !enabled {
+		return nil, fmt.Errorf(common_util.ErrAlreadyDisabled)
+
+	}
+	now := time.Now()
+	var action constant.RequestAction
+
+	if enabled {
+		action = constant.RequestEnableMiniApp
+	} else {
+		action = constant.RequestDisableMiniApp
+	}
+
+	currentAction := prevApp
+	currentAction.Enabled = enabled
+
+	cpsAction := entities.CPSAction{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          maker.UserCode,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+		ActionType:       constant.ActionUpdate,
+		ActionStatus:     constant.ActionPending,
+		RequestAction:    action,
+		PreviousAction:   prevApp,
+		CurrentAction:    currentAction,
+		MakerActionTime:  now,
+		CreatedAt:        now,
+		LastModifiedAt:   now,
+	}
+
+	return &cpsAction, nil
 }

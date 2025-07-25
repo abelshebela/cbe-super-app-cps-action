@@ -23,6 +23,7 @@ type ApplicationAbstracts interface {
 	MakerDeleteMiniApp(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error)
 	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*miniApp_domain.MiniApp, error)
+	EnableDisableMiniAppByID(ctx context.Context, id string, enabled bool, maker entities.User) (*entities.CPSAction, error)
 }
 
 type ApplicationStore struct {
@@ -97,6 +98,20 @@ func (a *ApplicationStore) DetailMiniAppByID(ctx context.Context, id string) (*m
 		return nil, err
 	}
 	return detail, nil
+}
+
+func (a *ApplicationStore) EnableDisableMiniAppByID(ctx context.Context, id string, enabled bool, maker entities.User) (*entities.CPSAction, error) {
+
+	return a.handleMiniAppMakerAction(ctx, func() (*entities.CPSAction, error) {
+
+		detail, err := a.service.EnableDisableMiniApp(ctx, maker, id, enabled)
+		if err != nil {
+			a.Logger.Errorf("[EnableDisableMiniAppByID] %v", err)
+			return nil, err
+		}
+		return detail, nil
+
+	}, "[mini_app.EnableDisableMiniAppByID]")
 }
 
 func (a *ApplicationStore) handleMiniAppMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error) {

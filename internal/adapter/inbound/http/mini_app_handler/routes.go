@@ -60,6 +60,24 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/enable/{id}",
+				Handler: handler.EnableMiniAppByID,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/disable/{id}",
+				Handler: handler.DisableMiniAppByID,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+				},
+			},
 		}
 
 		route.RegisterRoutes(r, routes)
