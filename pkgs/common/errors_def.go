@@ -792,7 +792,7 @@ var DefineError = ErrorDefinitions{
 		"MAX_NOT_BE_LESS": {
 			Code:    "GEN_168",
 			Message: "max length not be less than min length",
-    },
+		},
 		"METHOD_NOT_ALLOWED": {
 			Code:    "GEN_169",
 			Message: "Method not allowed",

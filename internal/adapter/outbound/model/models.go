@@ -341,8 +341,6 @@ type ProductCode struct {
 	ProductCode string     `bson:"product_code" json:"product_code"`
 }
 
-
-
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`
 	CardName string        `bson:"card_name" json:"card_name"`
@@ -440,11 +438,13 @@ type Tier struct {
 }
 
 type Cap struct {
-	KYCLevel  KYCLevel `bson:"kyc_level"`
-	SingleCap uint64   `bson:"single_cap"`
-	DailyCap  uint64   `bson:"daily_cap"`
-	MinAmount uint64   `bson:"min_amount"`
-	MaxAmount uint64   `bson:"max_amount"`
+	KYCLevel           KYCLevel `bson:"kyc_level"`
+	ISingleCap         uint64   `bson:"individual_single_cap"`
+	IDailyCap          uint64   `bson:"individual_daily_cap"`
+	CorporateSingleCap uint64   `bson:"corporate_single_cap"`
+	CorporateDailyCap  uint64   `bson:"corporate_daily_cap"`
+	MinAmount          uint64   `bson:"min_amount"`
+	MaxAmount          uint64   `bson:"max_amount"`
 }
 
 type ServiceDetails struct {
