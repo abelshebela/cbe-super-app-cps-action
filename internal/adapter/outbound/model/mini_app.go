@@ -6,6 +6,39 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type EnvironmentType string
+
+const (
+	UatEnvironment        EnvironmentType = "UAT"
+	DevEnvironment        EnvironmentType = "DEV"
+	TestEnvironment       EnvironmentType = "TEST"
+	ProductionEnvironment EnvironmentType = "PRODUCTION"
+)
+
+type BranchType string
+
+const (
+	IFB BranchType = "IFB"
+	CB  BranchType = "CB"
+)
+
+type AppType string
+
+const (
+	UAT        AppType = "UAT"
+	Production AppType = "PRODUCATION"
+	Test       AppType = "TEST"
+	Dev        AppType = "DEV"
+)
+
+type ProductCode struct {
+	ID             string     `bson:"id"`
+	BranchType     BranchType `bson:"branch_type"`
+	ProductCode    string     `bson:"product_code"`
+	VATCode        string     `bson:"vat_code"`
+	ServiceFeeCode string     `bson:"service_fee_code"`
+}
+
 type CredentialInformation struct {
 	ID            string          `bson:"id" json:"id,omitempty"`
 	Environment   EnvironmentType `bson:"environment" json:"environment"`
@@ -22,7 +55,7 @@ type MiniApp struct {
 	AppName           string                  `bson:"app_name"`
 	AppIcon           string                  `bson:"app_icon"`
 	CommisonGLAccount string                  `bson:"commison_gl_account"`
-	AppType           AppType                 `bson:"app_type"`
+	AppType           string                  `bson:"app_type"`
 	MerchantID        string                  `bson:"merchant_id"`
 	ProductCode       []ProductCode           `bson:"product_code"`
 	Credential        []CredentialInformation `bson:"credential"`

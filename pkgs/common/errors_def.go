@@ -33,7 +33,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"INVALID_ID": {
 			Code:    "GEN_002",
-			Message: "Invalid ObjectId provided.",
+			Message: "Invalid ID provided.",
 		},
 		"INVALID_JSON_PAYLOAD": {
 			Code:    "GEN_003",
@@ -521,7 +521,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"PENDING_ACTION_EXISTS": {
 			Code:    "GEN_124",
-			Message: "A pending action already.",
+			Message: "A pending action already exist.",
 		},
 		"FAILED_TO_FETCH_PENDING_ACTIONS": {
 			Code:    "GEN_125",
@@ -801,6 +801,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_170",
 			Message: "One or more fields already exists",
 		},
+		"MERCHANT_NOT_FOUND": {
+			Code:    "GEN_171",
+			Message: "merchant not found",
+		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_172",
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -833,7 +841,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"AUTH_USER_ALREADY_EXISTS": {
 			Code:    "AUTH_009",
-			Message: `user with this ${name} already exist`,
+			Message: `user already exist`,
 		},
 		"LOGIN_PROHIBITED_FOR_15_MIN": {
 			Code:    "AUTH_010",

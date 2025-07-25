@@ -25,6 +25,8 @@ type ApplicationService interface {
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
+	DisableUser(ctx context.Context, r *http.Request) error
+	EnableUser(ctx context.Context, r *http.Request) error
 }
 
 type Handler struct {
@@ -64,7 +66,7 @@ func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*mode
 
 	if userCode == "" {
 		h.logger.Errorf("user_code is required")
-		return nil, fmt.Errorf("user_code is required")
+		return nil, fmt.Errorf("USER_CODE_IS_REQUIRED")
 	}
 
 	var req userDTO.UpdateUserRequest
@@ -90,7 +92,7 @@ func (h *Handler) ApproveUserAction(ctx context.Context, r *http.Request) (*mode
 
 	if actionID == "" {
 		h.logger.Errorf("action_id is required")
-		return nil, fmt.Errorf("action_id is required")
+		return nil, fmt.Errorf("USER_CODE_IS_REQUIRED")
 	}
 
 	var req userDTO.ApproveCPSAction
@@ -127,8 +129,40 @@ func (h *Handler) DeleteUserRequest(ctx context.Context, r *http.Request) (*mode
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		h.logger.Errorf("user_code is required")
-		return nil, fmt.Errorf("user_code is required")
+		return nil, fmt.Errorf("USER_CODE_IS_REQUIRED")
 	}
 
 	return h.service.DeleteUserRequest(ctx, userCode)
+}
+
+func (h *Handler) DisableUser(ctx context.Context, r *http.Request) error {
+	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
+
+	if userCode == "" {
+		h.logger.Errorf("user_code is required")
+		return fmt.Errorf("USER_CODE_IS_REQUIRED")
+	}
+
+	err := h.service.DisableUser(ctx, userCode)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) EnableUser(ctx context.Context, r *http.Request) error {
+	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
+
+	if userCode == "" {
+		h.logger.Errorf("user_code is required")
+		return fmt.Errorf("USER_CODE_IS_REQUIRED")
+	}
+
+	err := h.service.EnableUser(ctx, userCode)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

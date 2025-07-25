@@ -12,6 +12,7 @@ import (
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
+	account_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_lookup"
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
 	cps_action_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	mini_app_merchant_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
@@ -65,5 +66,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware)
 		cps_action_inbound.InitCPSActionsRoutes(sub, adapter.CPSActionAdapter, authMiddleware)
 		mini_app_merchant_inbound.InitMiniAppMerchantHandlerMaker(sub, adapter.MiniAppMerchantAdapter, authMiddleware)
+		account_inbound.InitAccountLookUpRoutes(sub, adapter.AccountLookUp, authMiddleware)
 	})
 }

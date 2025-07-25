@@ -27,6 +27,8 @@ import (
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+
 
 )
 
@@ -56,4 +58,5 @@ type Domain struct {
 	UnlinkDomain          *unlink_service.Service
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
+	AccountLookup *account_service.UserSearchService
 }

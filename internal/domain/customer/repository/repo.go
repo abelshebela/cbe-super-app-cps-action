@@ -1,4 +1,4 @@
-package customer
+package repository
 
 import (
 	"context"

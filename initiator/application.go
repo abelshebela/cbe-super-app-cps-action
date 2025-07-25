@@ -26,6 +26,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
+	account_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_lookup"
 	amount_based_auth_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/amount_based_auth_app"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget_category"
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
@@ -69,6 +70,7 @@ type Application struct {
 	BudgetCategoryApplication  budget_category.BudgetCategoryApplicationService
 	FileService                file.FileService
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
+	AccountLookupApplication   account_application.UserSearchService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -96,11 +98,12 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, logger),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain ,logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
-		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, logger),
+		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
+		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
 	}
 }

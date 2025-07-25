@@ -55,9 +55,11 @@ type AdvertResponse struct {
 type ActionType string
 
 const (
-	ActionCreate ActionType = "CREATE"
-	ActionUpdate ActionType = "UPDATE"
-	ActionDelete ActionType = "DELETE"
+	ActionCreate  ActionType = "CREATE"
+	ActionUpdate  ActionType = "UPDATE"
+	ActionDelete  ActionType = "DELETE"
+	ActionEnable  ActionType = "ENABLE"
+	ActionDisable ActionType = "DISABLE"
 )
 
 type CurrentAction struct {
@@ -120,6 +122,8 @@ const (
 	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
@@ -293,28 +297,7 @@ type LinkedAccountResponse struct {
 	AccountCurrency    string `json:"account_currency"`
 }
 
-type EnvironmentType string
 
-const (
-	UatEnvironment        EnvironmentType = "UAT"
-	DevEnvironment        EnvironmentType = "DEV"
-	TestEnvironment       EnvironmentType = "TEST"
-	ProductionEnvironment EnvironmentType = "PRODUCTION"
-)
-
-type BranchType string
-
-const (
-	IFB BranchType = "IFB"
-	CB  BranchType = "CB"
-)
-
-type AppType struct {
-	UAT        string `bson:"uat"`
-	Production string `bson:"production"`
-	Test       string `bson:"test"`
-	Dev        string `bson:"dev"`
-}
 
 type CpsActionNormalized struct {
 	ID                 string      `bson:"_id,omitempty" json:"id,omitempty"`
@@ -338,11 +321,13 @@ type CpsActionNormalized struct {
 	MakerActionTime    time.Time   `bson:"maker_action_time" json:"maker_action_time"`
 	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
+
 type ProductCode struct {
 	ID          string     `bson:"id" json:"id,omitempty"`
 	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
 	ProductCode string     `bson:"product_code" json:"product_code"`
 }
+
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`

@@ -33,7 +33,6 @@ func NewMiniAppMerchantPersistence(client *mongo.Client, DB_name string, collect
 
 func (p *miniAppMerchantPersistence) CreateMiniAppMerchant(ctx context.Context, merchant *entities.MiniAppMerchant) (*entities.MiniAppMerchant, error) {
 
-	fmt.Println("THis is the persistence")
 	merchant.CreatedAt = time.Now()
 	merchant.LastModifiedAt = time.Now()
 	doc, err := mappers.ToMiniAppMerchantModel(merchant)
@@ -174,7 +173,11 @@ func (p *miniAppMerchantPersistence) DeleteMiniAppMerchant(ctx context.Context, 
 	return mappers.ToMiniAppMerchantDomain(&result), nil
 }
 
-func (p *miniAppMerchantPersistence) MiniAppMerchantInfoExists(ctx context.Context, data entities.CheckMiniAppMerchant) (bool, error) {
+func (p *miniAppMerchantPersistence) MiniAppMerchantInfoExists(
+	ctx context.Context,
+	data entities.CheckMiniAppMerchant,
+	opts *entities.MiniAppMerchantExistOptions,
+) (bool, error) {
 	filter := bson.M{
 		"is_deleted": false,
 		"$or":        []bson.M{},
@@ -192,6 +195,15 @@ func (p *miniAppMerchantPersistence) MiniAppMerchantInfoExists(ctx context.Conte
 
 	if len(filter["$or"].([]bson.M)) == 0 {
 		return false, nil
+	}
+
+	if opts != nil && opts.ExcludeID != "" {
+		id, err := bson.ObjectIDFromHex(opts.ExcludeID)
+		if err != nil {
+			p.logger.Errorf("invalid exclude ID: %v", err)
+			return false, fmt.Errorf("INVALID_ID")
+		}
+		filter["_id"] = bson.M{"$ne": id}
 	}
 
 	count, err := p.MongoDalMiniApp.TotalCount(ctx, filter)

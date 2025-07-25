@@ -26,9 +26,11 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 	productCodes := make([]model.ProductCode, len(domain.ProductCode))
 	for i, pc := range domain.ProductCode {
 		productCodes[i] = model.ProductCode{
-			ID:          pc.ID,
-			BranchType:  model.BranchType(pc.BranchType),
-			ProductCode: pc.ProductCode,
+			ID:             pc.ID,
+			BranchType:     model.BranchType(pc.BranchType),
+			ProductCode:    pc.ProductCode,
+			VATCode:        pc.VATCode,
+			ServiceFeeCode: pc.VATCode,
 		}
 	}
 
@@ -49,23 +51,18 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 		ID:                objectID,
 		AppName:           domain.AppName,
 		AppIcon:           domain.AppIcon,
-		CommisonGLAccount: domain.CommisonGLAccount,
-		AppType: model.AppType{
-			UAT:        domain.AppType.UAT,
-			Production: domain.AppType.Production,
-			Test:       domain.AppType.Test,
-			Dev:        domain.AppType.Dev,
-		},
-		MerchantID:     domain.MerchantID,
-		ProductCode:    productCodes,
-		Credential:     creds,
-		IsEventMiniApp: domain.IsEventMiniApp,
-		IsThreeClick:   domain.IsThreeClick,
-		Enabled:        domain.Enabled,
-		IsDeleted:      domain.IsDeleted,
-		CreatedAt:      domain.CreatedAt,
-		LastModifiedAt: domain.LastModifiedAt,
-		DeletedAt:      domain.DeletedAt,
+		CommisonGLAccount: domain.CommissionGLAccount,
+		AppType:           string(domain.AppType),
+		MerchantID:        domain.MerchantID,
+		ProductCode:       productCodes,
+		Credential:        creds,
+		IsEventMiniApp:    domain.IsEventMiniApp,
+		IsThreeClick:      domain.IsThreeClick,
+		Enabled:           domain.Enabled,
+		IsDeleted:         domain.IsDeleted,
+		CreatedAt:         domain.CreatedAt,
+		LastModifiedAt:    domain.LastModifiedAt,
+		DeletedAt:         domain.DeletedAt,
 	}, nil
 }
 
@@ -87,32 +84,29 @@ func ToDomainMiniApp(model model.MiniApp) miniapp.MiniApp {
 	productCodes := make([]miniapp.ProductCode, len(model.ProductCode))
 	for i, pc := range model.ProductCode {
 		productCodes[i] = miniapp.ProductCode{
-			ID:          pc.ID,
-			BranchType:  miniapp.BranchType(pc.BranchType),
-			ProductCode: pc.ProductCode,
+			ID:             pc.ID,
+			BranchType:     miniapp.BranchType(pc.BranchType),
+			ProductCode:    pc.ProductCode,
+			VATCode:        pc.VATCode,
+			ServiceFeeCode: pc.ServiceFeeCode,
 		}
 	}
 
 	return miniapp.MiniApp{
-		ID:                model.ID.Hex(),
-		AppName:           model.AppName,
-		AppIcon:           model.AppIcon,
-		CommisonGLAccount: model.CommisonGLAccount,
-		AppType: miniapp.AppType{
-			UAT:        model.AppType.UAT,
-			Production: model.AppType.Production,
-			Test:       model.AppType.Test,
-			Dev:        model.AppType.Dev,
-		},
-		MerchantID:     model.MerchantID,
-		ProductCode:    productCodes,
-		Credential:     creds,
-		IsEventMiniApp: model.IsEventMiniApp,
-		IsThreeClick:   model.IsThreeClick,
-		Enabled:        model.Enabled,
-		IsDeleted:      model.IsDeleted,
-		CreatedAt:      model.CreatedAt,
-		LastModifiedAt: model.LastModifiedAt,
-		DeletedAt:      model.DeletedAt,
+		ID:                  model.ID.Hex(),
+		AppName:             model.AppName,
+		AppIcon:             model.AppIcon,
+		CommissionGLAccount: model.CommisonGLAccount,
+		AppType:             miniapp.AppType(model.AppType),
+		MerchantID:          model.MerchantID,
+		ProductCode:         productCodes,
+		Credential:          creds,
+		IsEventMiniApp:      model.IsEventMiniApp,
+		IsThreeClick:        model.IsThreeClick,
+		Enabled:             model.Enabled,
+		IsDeleted:           model.IsDeleted,
+		CreatedAt:           model.CreatedAt,
+		LastModifiedAt:      model.LastModifiedAt,
+		DeletedAt:           model.DeletedAt,
 	}
 }

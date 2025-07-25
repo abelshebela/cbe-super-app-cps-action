@@ -123,3 +123,25 @@ func (h CPSUserMakerHandler) DeleteUserRequest(w http.ResponseWriter, r *http.Re
 	response := map[string]interface{}{"action_code": action.ActionCode}
 	local_util.BaseResponseMaker(response, w, "User deletion action submitted successfully", 200)
 }
+
+func (h CPSUserMakerHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
+	err := h.Service.DisableUser(r.Context(), r)
+	if err != nil {
+		h.logger.Errorf("Disable user request failed: %v\n", err)
+		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	local_util.BaseResponseMaker(nil, w, "User disable request submitted successfully", 200)
+}
+
+func (h CPSUserMakerHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
+	err := h.Service.EnableUser(r.Context(), r)
+	if err != nil {
+		h.logger.Errorf("Enable user request failed: %v\n", err)
+		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	local_util.BaseResponseMaker(nil, w, "User Enable request submitted successfully", 200)
+}

@@ -27,6 +27,8 @@ import (
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+
+	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 
@@ -37,11 +39,12 @@ import (
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger,
 	cfg *config.VaultConfig) application.Domain {
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
-
+	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
+	
 	return application.Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
-		CustomerDomain:        customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger),
+		CustomerDomain:        customerDomain,
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
 		UnlinkDomain:          unlink_service.NewUnlinkService(persistence.UnlinkPersistence),
 		BudgetDomain:          budget_service.InitBudgetDomain(persistence.BudgetPersistence, logger),
@@ -61,8 +64,8 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),
-		// BudgetCategoryDomain:  *budget_category.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, logger),
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
-		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger),
+		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
+		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
 	}
 }
