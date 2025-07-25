@@ -118,7 +118,6 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *mi
 }
 
 func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
-
 	objID, err := bson.ObjectIDFromHex(miniApp.ID)
 	if err != nil {
 		return nil, fmt.Errorf(common_util.InvalidID)
@@ -129,16 +128,33 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 		"is_deleted": false,
 	}
 
-	update := bson.M{
-		"app_name":            miniApp.AppName,
-		"app_icon":            miniApp.AppIcon,
-		"commison_gl_account": miniApp.CommissionGLAccount,
-		"app_type":            miniApp.AppType,
-		"product_code":        miniApp.ProductCode,
-		"credential":          miniApp.Credential,
-		"is_event_mini_app":   miniApp.IsEventMiniApp,
-		"is_three_click":      miniApp.IsThreeClick,
-		"last_modified_at":    time.Now(),
+	update := bson.M{}
+	if miniApp.AppName != "" {
+		update["app_name"] = miniApp.AppName
+	}
+	if miniApp.AppIcon != "" {
+		update["app_icon"] = miniApp.AppIcon
+	}
+	if miniApp.CommissionGLAccount != "" {
+		update["commison_gl_account"] = miniApp.CommissionGLAccount
+	}
+	if miniApp.AppType != "" {
+		update["app_type"] = miniApp.AppType
+	}
+	if len(miniApp.ProductCode) > 0 {
+		update["product_code"] = miniApp.ProductCode
+	}
+	if len(miniApp.Credential) > 0 {
+		update["credential"] = miniApp.Credential
+	}
+
+	update["is_event_mini_app"] = miniApp.IsEventMiniApp
+	update["is_three_click"] = miniApp.IsThreeClick
+
+	update["last_modified_at"] = time.Now()
+
+	if len(update) == 1 {
+		return nil, fmt.Errorf("no valid fields to update")
 	}
 
 	mini, err := o.MongoDalMiniApp.UpdateOne(ctx, filter, update)
@@ -146,13 +162,11 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, fmt.Errorf("NOT_FOUND")
 		}
-
 		o.logger.Warnf(err.Error(), "while updating")
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
 	res := mappers.ToDomainMiniApp(mini)
-
 	return &res, nil
 }
 

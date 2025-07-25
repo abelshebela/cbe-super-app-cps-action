@@ -106,7 +106,6 @@ type MiniAppResponse struct {
 
 // Validate validates the MiniAppRequest for create or update (PATCH)
 func (r MiniAppRequest) Validate(isCreate bool) error {
-	// Field-specific validations
 	var fieldRules []*validation.FieldRules
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
@@ -121,13 +120,11 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 		}
 	}
 
-	// Validate struct-level fields
 	err := validation.ValidateStruct(&r, fieldRules...)
 	if err != nil {
 		return err
 	}
 
-	// Struct-level custom validations
 	return validation.Validate(&r,
 		validation.By(validateAppType(r, isCreate)),
 		validation.By(validateProductCodes(r, isCreate)),
@@ -140,10 +137,10 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 func validateFile(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
 	if !ok || file == nil {
-		return nil // Handled by Required for create
+		return nil
 	}
 	if file.Size > (2 << 20) {
-		return errors.New("file size should be less than 2MB")
+		return errors.New("FILE_TOO_LARGE")
 	}
 	return nil
 }
@@ -196,7 +193,7 @@ func validateProductCodes(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 			}
 		}
 
-		if validBranchCount == 0 {
+		if isCreate && validBranchCount == 0 {
 			return errors.New("at least one complete set of product codes (IFB or CB) must be provided")
 		}
 
@@ -235,17 +232,15 @@ func validateCredentials(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 			seenEnvs[c.Environment] = true
 		}
 
-		if isCreate && len(seenEnvs) != 1 {
-			return errors.New("exactly one credential environment must be provided")
-		}
-		if len(seenEnvs) > 1 {
-			return errors.New("only one credential environment can be provided")
-		}
+		// if isCreate && len(seenEnvs) < 1 {
+		// 	return errors.New("at least one credential environment must be provided")
+		// }
+
 		return nil
 	}
 }
 
-func (r *MiniAppRequest) GetAppType() (miniappentity.AppType, error) {
+func (r *MiniAppRequest) GetAppType(isCreate bool) (miniappentity.AppType, error) {
 	var selected miniappentity.AppType
 	count := 0
 
@@ -266,7 +261,7 @@ func (r *MiniAppRequest) GetAppType() (miniappentity.AppType, error) {
 		count++
 	}
 
-	if count == 0 {
+	if count == 0 && isCreate {
 		return "", errors.New("one app type must be provided")
 	}
 	if count > 1 {

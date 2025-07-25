@@ -801,6 +801,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_170",
 			Message: "One or more fields already exists",
 		},
+		"MERCHANT_NOT_FOUND": {
+			Code:    "GEN_171",
+			Message: "merchant not found",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

@@ -47,17 +47,11 @@ func (h *HttpStore) createUser(r *http.Request) (*entities.User, error) {
 	return maker, nil
 }
 
-func (h *HttpStore) getValues(r *http.Request) (*MiniAppRequest, error) {
+func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, error) {
 	var req MiniAppRequest
 
-	// Parse form with 10MB limit (will be validated to 2MB in Validate)
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		h.logger.Errorf("error parsing multipart form: %v", err)
-		return nil, err
-	}
-
-	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "app_icon", 10<<20)
-	if err != nil && err != http.ErrMissingFile {
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "app_icon", 2<<20)
+	if err != nil && err.Error() != common_util.ErrMissingFile && !isCreate {
 		h.logger.Errorf("error parsing file: %v", err)
 		return nil, err
 	}
@@ -164,13 +158,11 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := h.getValues(r)
+	req, err := h.getValues(r, true)
 	if err != nil {
 		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
-
-	PrettyPrintJSON(req)
 
 	if err := req.Validate(true); err != nil {
 		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
@@ -199,35 +191,56 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
-	// id, ok := common_util.GetParam(r, "id")
-	// if !ok {
-	// 	h.logger.Errorf("missing or invalid parameter 'id'")
-	// 	common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-	// 	return
-	// }
 
-	// // Extract user
-	// makerUser := contexts.ExtractUserContext(r)
-	// if makerUser.IsIncomplete() {
-	// 	utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
-	// 	return
-	// }
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
 
-	// maker := entities.User{
-	// 	UserCode:    makerUser.UserCode,
-	// 	FullName:    makerUser.FullName,
-	// 	PhoneNumber: makerUser.PhoneNumber,
-	// 	Department:  makerUser.Department,
-	// }
+	// Extract user
+	makerUser := contexts.ExtractUserContext(r)
+	if makerUser.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
+		return
+	}
 
-	// // Call domain application logic
-	// response, err := h.Application.MakerUpdateMiniApp(r.Context(), &req, maker)
-	// if err != nil {
-	// 	utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to update mini app")
-	// 	return
-	// }
+	maker := entities.User{
+		UserCode:    makerUser.UserCode,
+		FullName:    makerUser.FullName,
+		PhoneNumber: makerUser.PhoneNumber,
+		Department:  makerUser.Department,
+	}
 
-	utils.WriteSuccessResponse(w, "response", "Mini App update request created successfully")
+	req, err := h.getValues(r, false)
+
+	if err != nil {
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		return
+	}
+
+	if err := req.Validate(false); err != nil {
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		return
+	}
+
+	dto, err := req.ToMiniAppCreateRequest(false)
+	if err != nil {
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		return
+	}
+
+	dto.ID = id
+
+	// Call domain application logic
+	response, err := h.Application.MakerUpdateMiniApp(r.Context(), dto, maker)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, response, "Mini App update request created successfully")
 }
 
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -241,7 +254,7 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 
 	ActionCode, err := h.Application.MakerDeleteMiniApp(r.Context(), *maker, id)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to delete mini app")
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 	utils.WriteSuccessResponse(w, ActionCode, "successful")
@@ -252,7 +265,7 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 
 	list, err := h.Application.ListMiniApp(r.Context(), filterParam)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to list mini apps")
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 	var docs []MiniAppResponse
@@ -271,12 +284,12 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Missing mini app ID")
+		utils.SendErrorResponse(w, common_util.InvalidID, 0, nil)
 		return
 	}
 	detail, err := h.Application.DetailMiniAppByID(r.Context(), id)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get mini app detail")
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 	utils.WriteSuccessResponse(w, detail, "successful feached miniapp by ID")

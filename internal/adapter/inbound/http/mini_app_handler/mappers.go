@@ -11,7 +11,7 @@ func (r MiniAppRequest) ToMiniAppCreateRequest(isCreate bool) (*miniappentity.Mi
 		return nil, err
 	}
 
-	appType, err := r.GetAppType()
+	appType, err := r.GetAppType(isCreate)
 
 	if err != nil {
 		return nil, err
