@@ -41,7 +41,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	cfg *config.VaultConfig) application.Domain {
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
-	keygenService := keyGen_service.NewKeyGenerator()
+	keygenService := keyGen_service.NewKeyGenerator(logger)
 	return application.Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
