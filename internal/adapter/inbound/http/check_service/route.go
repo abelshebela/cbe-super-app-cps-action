@@ -10,7 +10,7 @@ import (
 )
 
 func InteServiceRoute(router chi.Router, serviceHandler inbound.Service, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/service", func(r chi.Router) {
+	router.Route("/service_check", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodGet,
@@ -105,15 +105,6 @@ func InteServiceRoute(router chi.Router, serviceHandler inbound.Service, authMid
 			{
 				Method:  http.MethodDelete,
 				Path:    "/service_fee/delete/{id}",
-				Handler: serviceHandler.DeleteServiceFeeTire,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{"maker", "checker"}),
-				},
-			},
-			{
-				Method:  http.MethodDelete,
-				Path:    "/minimum_transfer/delete/{id}",
 				Handler: serviceHandler.DeleteServiceFeeTire,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

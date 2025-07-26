@@ -114,9 +114,10 @@ func (sa *serviceHandler) GetServiceFeeDetail(w http.ResponseWriter, r *http.Req
 	local_utils.BaseResponseMaker(data, w, "Successfuly Service retrived", 200)
 }
 func (sa *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Request) {
-	var req UpdateServiceFeeRequest
+	var req ServiceFeeDetailDTO
 	service_id := chi.URLParam(r, "id")
-	if service_id != "" {
+
+	if service_id == "" {
 		local_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
 		return
 	}
@@ -125,17 +126,22 @@ func (sa *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if req.Validate() != nil {
+		local_utils.SendErrorResponse(w, req.Validate().Error(), 0, nil)
+		return
+	}
 	err := sa.appService.UpdateServiceFee(r.Context(), string(service_id), req) // to be continued
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(map[string]interface{}{}, w, "Successfuly Service tire updated", 200)
 }
 func (sa *serviceHandler) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.Request) {
 	var req SingleMaxTransferRequest
 	service_id := chi.URLParam(r, "id")
-	if service_id != "" {
+	if service_id == "" {
 		local_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
 		return
 	}
@@ -148,18 +154,23 @@ func (sa *serviceHandler) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(map[string]interface{}{}, w, "Successfuly Service single transfer updated", 200)
 }
 func (sa *serviceHandler) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *http.Request) {
 	var req TotalMaxTransferUpdateRequest
 	service_id := chi.URLParam(r, "id")
-	if service_id != "" {
+	if service_id == "" {
 		local_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
 		return
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	if req.Validate() != nil {
+		local_utils.SendErrorResponse(w, req.Validate().Error(), 0, nil)
 		return
 	}
 
@@ -167,45 +178,41 @@ func (sa *serviceHandler) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *ht
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(map[string]interface{}{}, w, "Successfuly Service single transfer updated", 200)
 }
 func (sa *serviceHandler) UpdateMinimumTransferCap(w http.ResponseWriter, r *http.Request) {
 	var req MinimumTransferUpdateRequest
 	service_id := chi.URLParam(r, "id")
-	if service_id != "" {
+	if service_id == "" {
 		local_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
 		return
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
 	err := sa.appService.UpdateMinimumTransferCap(r.Context(), string(service_id), req) // to be continued
-	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(map[string]interface{}{}, w, "Successfuly Service min amount transfer updated", 200)
 }
 func (sa *serviceHandler) DeleteServiceFeeTire(w http.ResponseWriter, r *http.Request) {
-	var req DeleteServiceFeeTireRequest
 	service_id := chi.URLParam(r, "id")
-	if service_id != "" {
+	if service_id == "" {
 		local_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		local_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 0, nil)
-		return
-	}
-
-	err := sa.appService.DeleteMinimumTransferCap(r.Context(), string(service_id)) // to be continued
-	// res,err := sa.appService.  // to be continued
+	err := sa.appService.DeleteServiceFeeTire(r.Context(), string(service_id)) // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
-	local_utils.BaseResponseMaker(map[string]interface{}{}, w, "Successfuly Service min amount transfer updated", 200)
+	local_utils.BaseResponseMaker(map[string]interface{}{}, w, "Successfuly Delete service tier delete request", 200)
 }

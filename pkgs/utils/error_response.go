@@ -60,6 +60,11 @@ var errorKeyToStatus = map[string]int{
 	"MISSING_OTP":                                    http.StatusBadRequest,
 	"INVALID_INPUT_PARAMETERS":                       http.StatusBadRequest,
 	"SAME_PIN":                                       http.StatusBadRequest,
+	"INVALID_TOTAL_CAP_VALUE":                        http.StatusBadRequest,
+	"INDIVIDUAL_SINGLE_CAP_EXCEEDS_TOTAL_CAP":        http.StatusBadRequest,
+	"INDIVIDUAL_DAILY_CAP_EXCEEDS_TOTAL_CAP":         http.StatusBadRequest,
+	"CORPORATE_SINGLE_CAP_EXCEEDS_TOTAL_CAP":         http.StatusBadRequest,
+	"CORPORATE_DAILY_CAP_EXCEEDS_TOTAL_CAP":          http.StatusBadRequest,
 	"PIN_IN_HISTORY":                                 http.StatusBadRequest,
 	"ERROR_SETTING_PIN":                              http.StatusInternalServerError,
 	"OTP_CREATION_FAILED":                            http.StatusInternalServerError,
@@ -247,6 +252,7 @@ var errorKeyToStatus = map[string]int{
 	"INVALID_LOCATION_FILTER":                    http.StatusBadRequest,
 	"BRANCH_ID_REQUIRED":                         http.StatusBadRequest,
 	"BRANCH_DISABLE_ACTION_ALREADY_EXISTS":       http.StatusBadRequest,
+	"NO_DOC_FOUND":                               http.StatusNoContent,
 	"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS": http.StatusConflict,
 
 	// Department

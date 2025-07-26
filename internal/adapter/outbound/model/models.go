@@ -10,7 +10,7 @@ import (
 )
 
 type Service struct {
-	ID                 bson.ObjectID `json:"id" bson:"id"`
+	ID                 bson.ObjectID `json:"_id" bson:"_id"`
 	ServiceCode        string        `json:"service_code" bson:"service_code"`
 	ServiceName        string        `json:"service_name" bson:"service_name"`
 	ServiceType        string        `json:"service_type" bson:"service_type"`
@@ -154,6 +154,9 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle      RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal       RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap      RequestAction = "UPDATE_SERVICE_MIN_CAP"
 	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
 	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
 	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
@@ -527,6 +530,7 @@ type HQ struct {
 	ID                bson.ObjectID `bson:"_id" json:"id"`
 	UniqueId          string        `bson:"unique_id" json:"unique_id"`
 	Name              string        `bson:"name" json:"name"`
+	TotalCap          string        `bson:"total_cap" json:"total_cap"`
 	BlockTime         uint          `bson:"block_time" json:"block_time"`
 	BlockTimeStatus   string        `bson:"block_time_status" json:"block_time_status"`
 	ArchiveTime       uint          `bson:"archive_time" json:"archive_time"`

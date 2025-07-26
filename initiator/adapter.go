@@ -47,15 +47,19 @@ import (
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
+
+	// service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 
+	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/check_service"
 	cps_actions_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_handler"
 	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
+	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
@@ -92,6 +96,7 @@ type Adapter struct {
 	CPSActionAdapter       cps_actions.CPSActionAdapter
 	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
 	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
+	ServiceCheckAdapter    service_inbound.Service
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -123,5 +128,6 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		CPSActionAdapter:       cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
 		BudgetCategoryAdapter:  budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 		MiniAppMerchantAdapter: miniapp_merchant_handler.NewMiniAppMerchantAdapter(application.MiniAppMerchantApplication, logger),
+		ServiceCheckAdapter:    service_handler.NewServiceHandler(application.ServicCheckeApplication, logger),
 	}
 }

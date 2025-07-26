@@ -31,6 +31,7 @@ import (
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
+	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/check_service"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
@@ -69,6 +70,7 @@ type Application struct {
 	BudgetCategoryApplication  budget_category.BudgetCategoryApplicationService
 	FileService                file.FileService
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
+	ServicCheckeApplication    service_application.ApplicationService
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -102,5 +104,6 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, logger),
+		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 	}
 }

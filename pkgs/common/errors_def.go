@@ -801,6 +801,30 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_170",
 			Message: "One or more fields already exists",
 		},
+		"NO_DOC_FOUND": {
+			Code:    "GEN_171	",
+			Message: "mongo: no documents in result",
+		},
+		"INVALID_TOTAL_CAP_VALUE": {
+			Code:    "GEN_172	",
+			Message: "invalid total cap value",
+		},
+		"INDIVIDUAL_SINGLE_CAP_EXCEEDS_TOTAL_CAP": {
+			Code:    "GEN_173	",
+			Message: "individual single cap exceed total cap",
+		},
+		"INDIVIDUAL_DAILY_CAP_EXCEEDS_TOTAL_CAP": {
+			Code:    "GEN_174	",
+			Message: "individual daily cap exceed total cap",
+		},
+		"CORPORATE_SINGLE_CAP_EXCEEDS_TOTAL_CAP": {
+			Code:    "GEN_175	",
+			Message: "corporate single cap exceed total cap",
+		},
+		"CORPORATE_DAILY_CAP_EXCEEDS_TOTAL_CAP": {
+			Code:    "GEN_176	",
+			Message: "corporate daily cap exceed total cap",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

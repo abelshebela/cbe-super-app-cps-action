@@ -96,15 +96,9 @@ func (sa *serviceApplication) UpdateMinimumTransferCap(ctx context.Context, id s
 	}
 	return nil
 }
-func (sa *serviceApplication) DeleteMinimumTransferCap(ctx context.Context, id string) error {
-	err := sa.serviceDomain.DeleteMinimumTransferCap(ctx, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+
 func (sa *serviceApplication) DeleteServiceFeeTire(ctx context.Context, id string) error {
-	err := sa.serviceDomain.DeleteMinimumTransferCap(ctx, id)
+	err := sa.serviceDomain.DeleteServiceFeeTire(ctx, id)
 	if err != nil {
 		return err
 	}

@@ -44,6 +44,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
+	service_persist "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/check_service"
 	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
@@ -53,6 +54,7 @@ import (
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
+	chec_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/repository"
 )
@@ -84,7 +86,7 @@ type Persitence struct {
 	CPSActionsPersistance       cps_actions.CPSActionRepository
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
-
+	ServicePersistence          chec_service.ServiceRepo
 	// ActionPersistence          *action_repo.ActionRepo
 }
 
@@ -150,5 +152,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		CPSActionsPersistance:       cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
+		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
 	}
 }
