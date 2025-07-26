@@ -1,7 +1,6 @@
 package miniapphandler
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -75,14 +74,13 @@ func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, 
 		}
 	}
 
-	// Populate fields
 	req.AppName = get("app_name")
 	req.CommissionGLAccount = get("commission_gl_account")
 	req.MerchantID = get("merchant_id")
-	req.AppTypeUAT = get("app_type_uat")
-	req.AppTypeProd = get("app_type_production")
-	req.AppTypeTest = get("app_type_test")
-	req.AppTypeDev = get("app_type_dev")
+	req.AppType = get("app_type")
+	req.URL = get("url")
+	req.MPAASID = get("mpaas_id")
+	req.AppViewType = get("app_view_type")
 
 	req.IFBProductCode = get("ifb_product_code")
 	req.IFBVATCode = get("ifb_vat_code")
@@ -91,7 +89,6 @@ func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, 
 	req.CBVATCode = get("cb_vat_code")
 	req.CBServiceFeeCode = get("cb_service_fee_code")
 
-	// Parse boolean fields
 	isEventMiniApp, err := parseBool("is_event_mini_app")
 	if err != nil {
 		return nil, err
@@ -103,52 +100,9 @@ func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, 
 		return nil, err
 	}
 	req.IsThreeClick = isThreeClick
-
-	// UAT Credentials
-	req.UATMerchantAppID = get("uat_merchant_app_id")
-	req.UATFabricAppID = get("uat_fabric_app_id")
-	req.UATShortCode = get("uat_short_code")
-	req.UATAppSecret = get("uat_app_secret")
-	req.UATPrivateKey = get("uat_private_key")
-	req.UATPublicKey = get("uat_public_key")
-
-	// PROD Credentials
-	req.ProdMerchantAppID = get("prod_merchant_app_id")
-	req.ProdFabricAppID = get("prod_fabric_app_id")
-	req.ProdShortCode = get("prod_short_code")
-	req.ProdAppSecret = get("prod_app_secret")
-	req.ProdPrivateKey = get("prod_private_key")
-	req.ProdPublicKey = get("prod_public_key")
-
-	// TEST Credentials
-	req.TestMerchantAppID = get("test_merchant_app_id")
-	req.TestFabricAppID = get("test_fabric_app_id")
-	req.TestShortCode = get("test_short_code")
-	req.TestAppSecret = get("test_app_secret")
-	req.TestPrivateKey = get("test_private_key")
-	req.TestPublicKey = get("test_public_key")
-
-	// DEV Credentials
-	req.DevMerchantAppID = get("dev_merchant_app_id")
-	req.DevFabricAppID = get("dev_fabric_app_id")
-	req.DevShortCode = get("dev_short_code")
-	req.DevAppSecret = get("dev_app_secret")
-	req.DevPrivateKey = get("dev_private_key")
-	req.DevPublicKey = get("dev_public_key")
-
-	req.AppIcon = fileHeader // May be nil if optional (handled by Validate)
+	req.AppIcon = fileHeader
 
 	return &req, nil
-}
-
-func PrettyPrintJSON(data interface{}) error {
-	prettyJSON, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(prettyJSON))
-	return nil
 }
 
 func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {

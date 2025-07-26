@@ -55,7 +55,7 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *cons
 
 	miniAppsDocs, err := o.MongoDalMiniApp.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
 	}
 
 	var miniApps []*miniApp_domain.MiniApp
@@ -90,7 +90,7 @@ func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (
 			return nil, fmt.Errorf(common_util.NotFound)
 		}
 
-		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
 	}
 	res := mappers.ToDomainMiniApp(*miniApp)
 	return &res, nil

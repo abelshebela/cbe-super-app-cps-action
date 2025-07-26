@@ -1,6 +1,8 @@
 package miniapphandler
 
 import (
+	"strings"
+
 	miniappentity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 )
 
@@ -25,6 +27,10 @@ func (r MiniAppRequest) ToMiniAppCreateRequest(isCreate bool) (*miniappentity.Mi
 		IsEventMiniApp:      r.IsEventMiniApp,
 		IsThreeClick:        r.IsThreeClick,
 		AppType:             appType,
+		AppViewType:         miniappentity.AppViewType(strings.ToUpper(r.AppViewType)),
+		URL:                 r.URL,
+		MPAASID:             r.MPAASID,
+		Stage:               miniappentity.StageUat,
 	}
 
 	// Map ProductCode
@@ -49,39 +55,6 @@ func (r MiniAppRequest) ToMiniAppCreateRequest(isCreate bool) (*miniappentity.Mi
 		}
 	}
 
-	// Map CredentialInformation
-	creds := []struct {
-		Environment   miniappentity.EnvironmentType
-		MerchantAppID string
-		FabricAppID   string
-		ShortCode     string
-		AppSecret     string
-		PrivateKey    string
-		PublicKey     string
-	}{
-		{miniappentity.UatEnvironment, r.UATMerchantAppID, r.UATFabricAppID, r.UATShortCode, r.UATAppSecret, r.UATPrivateKey, r.UATPublicKey},
-		{miniappentity.ProductionEnvironment, r.ProdMerchantAppID, r.ProdFabricAppID, r.ProdShortCode, r.ProdAppSecret, r.ProdPrivateKey, r.ProdPublicKey},
-		{miniappentity.TestEnvironment, r.TestMerchantAppID, r.TestFabricAppID, r.TestShortCode, r.TestAppSecret, r.TestPrivateKey, r.TestPublicKey},
-		{miniappentity.DevEnvironment, r.DevMerchantAppID, r.DevFabricAppID, r.DevShortCode, r.DevAppSecret, r.DevPrivateKey, r.DevPublicKey},
-	}
-	for _, c := range creds {
-		if c.MerchantAppID != "" || c.FabricAppID != "" || c.ShortCode != "" ||
-			c.AppSecret != "" || c.PrivateKey != "" || c.PublicKey != "" {
-			result.Credential = []miniappentity.CredentialInformation{
-				{
-					Environment:   c.Environment,
-					MerchantAppID: c.MerchantAppID,
-					FabricAppID:   c.FabricAppID,
-					ShortCode:     c.ShortCode,
-					AppSecret:     c.AppSecret,
-					PrivateKey:    c.PrivateKey,
-					PublicKey:     c.PublicKey,
-				},
-			}
-			break // Only one credential set is allowed
-		}
-	}
-
 	return &result, nil
 }
 
@@ -95,6 +68,10 @@ func ToMiniAppResponse(m *miniappentity.MiniApp) MiniAppResponse {
 		MerchantID:        m.MerchantID,
 		ProductCode:       m.ProductCode,
 		Credential:        m.Credential,
+		URL:               m.URL,
+		MPAASID:           m.MPAASID,
+		AppViewType:       m.AppViewType,
+		Stage:             m.Stage,
 		IsEventMiniApp:    m.IsEventMiniApp,
 		IsThreeClick:      m.IsThreeClick,
 		Enabled:           m.Enabled,
