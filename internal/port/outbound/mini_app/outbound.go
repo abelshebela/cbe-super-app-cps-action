@@ -14,5 +14,5 @@ type MiniRepository interface {
 	DetailMiniAppByID(ctx context.Context, id string) (*miniApp_domain.MiniApp, error)
 	UpdateMinApp(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error)
 	DeleteMiniAppAction(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error)
-	// ExtractActionData(currentAction interface{}) (*miniApp_domain.MiniApp, error)
+	EnableDisableMiniApp(ctx context.Context, id string, enabled bool) (*miniApp_domain.MiniApp, error)
 }

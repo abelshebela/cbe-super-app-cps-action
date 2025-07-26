@@ -41,6 +41,7 @@ type Address struct {
 }
 
 type Ticket struct {
+	Name           string
 	Category       string
 	Type           string
 	Price          uint64
@@ -73,9 +74,9 @@ type Restriction struct {
 
 type Event struct {
 	ID                  string
-	Code                string
+	EventCode           string
 	Name                string
-	Address             Address
+	City                string
 	AccountNumber       string
 	EventVenue          string
 	RefundPolicy        []string

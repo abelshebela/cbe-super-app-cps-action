@@ -181,13 +181,13 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.Application.MakerCreateMiniApp(r.Context(), dto, maker)
+	_, err = h.Application.MakerCreateMiniApp(r.Context(), dto, maker)
 	if err != nil {
-		utils.SendErrorResponse(w, err, http.StatusInternalServerError, nil)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	utils.WriteSuccessResponse(w, response, "Mini App request successfully created")
+	utils.WriteSuccessResponse(w, nil, "Mini App request successfully created")
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -238,13 +238,13 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call domain application logic
-	response, err := h.Application.MakerUpdateMiniApp(r.Context(), dto, maker)
+	_, err = h.Application.MakerUpdateMiniApp(r.Context(), dto, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	utils.WriteSuccessResponse(w, response, "Mini App update request created successfully")
+	utils.WriteSuccessResponse(w, nil, "Mini App update request created successfully")
 }
 
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -256,12 +256,12 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ActionCode, err := h.Application.MakerDeleteMiniApp(r.Context(), *maker, id)
+	_, err := h.Application.MakerDeleteMiniApp(r.Context(), *maker, id)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, ActionCode, "successful")
+	utils.WriteSuccessResponse(w, nil, "successful")
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -297,4 +297,47 @@ func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteSuccessResponse(w, detail, "successful feached miniapp by ID")
+}
+
+func (h *HttpStore) EnableMiniAppByID(w http.ResponseWriter, r *http.Request) {
+	h.enableDisableMiniApp(w, r, true)
+}
+
+func (h *HttpStore) DisableMiniAppByID(w http.ResponseWriter, r *http.Request) {
+	h.enableDisableMiniApp(w, r, false)
+}
+
+func (h *HttpStore) enableDisableMiniApp(w http.ResponseWriter, r *http.Request, enable bool) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
+	makerUser := contexts.ExtractUserContext(r)
+	if makerUser.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
+		return
+	}
+
+	maker := entities.User{
+		UserCode:    makerUser.UserCode,
+		FullName:    makerUser.FullName,
+		PhoneNumber: makerUser.PhoneNumber,
+		Department:  makerUser.Department,
+	}
+
+	_, err := h.Application.EnableDisableMiniAppByID(r.Context(), id, enable, maker)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	action := "disabled"
+	if enable {
+		action = "enabled"
+	}
+
+	utils.WriteSuccessResponse(w, nil, fmt.Sprintf("Mini App request to be %s successfully created", action))
 }

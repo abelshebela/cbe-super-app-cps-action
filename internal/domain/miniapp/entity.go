@@ -44,9 +44,12 @@ type CredentialInformation struct {
 	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
 	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
 	ShortCode     string          `bson:"short_code" json:"short_code"`
+	MiniAppCode   string          `bson:"mini_app_code" json:"mini_app_code"`
 	AppSecret     string          `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string          `bson:"private_key" json:"private_key"`
+	PrivateKey    string          `bson:"private_key" json:"-"`
 	PublicKey     string          `bson:"public_key" json:"public_key"`
+	Signature     string          `bson:"signature" json:"-"`
+	Timestamp     time.Time       `bson:"timestamp" json:"timestamp"`
 }
 
 type MiniApp struct {
