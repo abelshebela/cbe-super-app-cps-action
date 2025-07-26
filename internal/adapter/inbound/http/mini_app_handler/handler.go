@@ -183,7 +183,7 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.Application.MakerCreateMiniApp(r.Context(), dto, maker)
 	if err != nil {
-		utils.SendErrorResponse(w, err, http.StatusInternalServerError, nil)
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 

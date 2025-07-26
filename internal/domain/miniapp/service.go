@@ -2,6 +2,7 @@ package miniapp
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -10,17 +11,20 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	keyGen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type MiniAppStore struct {
-	repository  MiniRepository
-	logger      utils.Logger
-	cfg         *config.VaultConfig
-	bucketName  string
-	minioClient config.MinioClientInterface
+	repository    MiniRepository
+	logger        utils.Logger
+	cfg           *config.VaultConfig
+	bucketName    string
+	minioClient   config.MinioClientInterface
+	keyGenService keyGen.KeyGeneratorService
 }
 type MiniAppService interface {
 	CreateMiniAppAction(ctx context.Context, miniApp MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error)
@@ -33,13 +37,15 @@ type MiniAppService interface {
 	EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*entities.CPSAction, error)
 }
 
-func NewService(bucketName string, minioClient config.MinioClientInterface, repository MiniRepository, cfg *config.VaultConfig, logger utils.Logger) MiniAppService {
+func NewService(bucketName string, minioClient config.MinioClientInterface, repository MiniRepository, cfg *config.VaultConfig,
+	keyGenService keyGen.KeyGeneratorService, logger utils.Logger) MiniAppService {
 	return &MiniAppStore{
-		repository:  repository,
-		logger:      logger,
-		cfg:         cfg,
-		bucketName:  bucketName,
-		minioClient: minioClient,
+		repository:    repository,
+		logger:        logger,
+		cfg:           cfg,
+		bucketName:    bucketName,
+		minioClient:   minioClient,
+		keyGenService: keyGenService,
 	}
 }
 
@@ -178,7 +184,16 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	var err error
 	switch requestedAction {
 	case constant.RequestCreateMiniApp:
+		uatCred, _, err := s.CredentialInformationGenrator(EnvironmentType(minApp.AppType))
+		if err != nil {
+			return nil, err
+		}
+		minApp.Credential = append(minApp.Credential, *uatCred)
 		minApp, err = s.repository.CreateMiniApp(ctx, minApp)
+		if err != nil {
+			return nil, err
+		}
+
 	case constant.RequestUpdateMiniApp:
 		minApp, err = s.repository.UpdateMinApp(ctx, minApp)
 	case constant.RequestDeleteMiniApp:
@@ -305,4 +320,58 @@ func (s *MiniAppStore) EnableDisableMiniApp(ctx context.Context, maker entities.
 	}
 
 	return &cpsAction, nil
+}
+
+func (s *MiniAppStore) CredentialInformationGenrator(envType EnvironmentType) (*CredentialInformation, *string, error) {
+	merchnatCode, err := s.keyGenService.GenerateNumericCode(15)
+	if err != nil {
+		return nil, nil, err
+	}
+	fabID := s.keyGenService.GenerateFabricID()
+	shortCode, err := s.keyGenService.GenerateNumericCode(6)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	miniAppCode, err := s.keyGenService.GenerateNumericCode(6)
+	if err != nil {
+		return nil, nil, err
+	}
+	keys, err := s.keyGenService.GenerateKeyPair()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rawSecret, err := s.keyGenService.GenerateAppSecret(32)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	hashedSecret, err := s.keyGenService.HashAppSecret(rawSecret)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	timestamp := time.Now().UTC()
+	sorted := fmt.Sprintf("%s|%s|%s|%s", merchnatCode, fabID, miniAppCode, timestamp.Format(time.RFC3339))
+	signature, err := s.keyGenService.Sign([]byte(sorted), keys.PrivateKey)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	res := CredentialInformation{
+		Environment:   envType,
+		MerchantAppID: merchnatCode,
+		FabricAppID:   fabID,
+		ShortCode:     shortCode,
+		MiniAppCode:   miniAppCode,
+		PrivateKey:    keys.PrivateKey,
+		PublicKey:     keys.PublicKey,
+		AppSecret:     hashedSecret,
+		Signature:     base64.StdEncoding.EncodeToString(signature),
+		Timestamp:     timestamp,
+	}
+
+	return &res, &rawSecret, nil
 }
