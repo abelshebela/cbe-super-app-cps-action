@@ -27,7 +27,7 @@ func NewHttpBulkService(app bulkservices_application.ApplicationAbstracts, logge
 }
 
 func InitServiceHandlerMaker(router chi.Router, handler inbound.Inbound, authMiddleware middleware.AuthMiddleware) {
-	router.Route("/bulk/survices", func(r chi.Router) {
+	router.Route("/bulk/services", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,

@@ -1464,7 +1464,7 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 
 	// Add search functionality
 	if filterParams.Search != "" {
-		filter = bson.M{
+		searchFilter := bson.M{
 			"$or": []bson.M{
 				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
@@ -1474,6 +1474,15 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
+
+		// Combile the filter
+		filter = bson.M{
+			"$and": []bson.M{
+				{"is_deleted": false},
+				searchFilter,
+			},
+		}
+
 	}
 
 	// Add filter functionality

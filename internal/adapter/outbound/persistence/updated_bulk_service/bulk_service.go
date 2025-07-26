@@ -39,7 +39,7 @@ func (b BulkServicePersistence) GetAllBulkServices(ctx context.Context, filterPa
 
 	// Add search functionality
 	if filterParams.Search != "" {
-		filter = bson.M{
+		searchFilter := bson.M{
 			"$or": []bson.M{
 				{"key": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 				{"serviceCode": bson.M{"$regex": filterParams.Search, "$options": "i"}},
@@ -51,6 +51,13 @@ func (b BulkServicePersistence) GetAllBulkServices(ctx context.Context, filterPa
 				{"productCodes.TRXN": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 				{"IFBproductCodes.PRD": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 				{"IFBproductCodes.TRXN": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+
+		filter = bson.M{
+			"$and": []bson.M{
+				{"is_deleted": false},
+				searchFilter,
 			},
 		}
 	}
