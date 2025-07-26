@@ -33,7 +33,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"INVALID_ID": {
 			Code:    "GEN_002",
-			Message: "Invalid ObjectId provided.",
+			Message: "Invalid ID provided.",
 		},
 		"INVALID_JSON_PAYLOAD": {
 			Code:    "GEN_003",
@@ -521,7 +521,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"PENDING_ACTION_EXISTS": {
 			Code:    "GEN_124",
-			Message: "A pending action already.",
+			Message: "A pending action already exist.",
 		},
 		"FAILED_TO_FETCH_PENDING_ACTIONS": {
 			Code:    "GEN_125",
@@ -801,6 +801,14 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_170",
 			Message: "One or more fields already exists",
 		},
+		"MERCHANT_NOT_FOUND": {
+			Code:    "GEN_171",
+			Message: "merchant not found",
+		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_172",
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
 		"NO_DOC_FOUND": {
 			Code:    "GEN_171	",
 			Message: "mongo: no documents in result",
@@ -857,7 +865,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"AUTH_USER_ALREADY_EXISTS": {
 			Code:    "AUTH_009",
-			Message: `user with this ${name} already exist`,
+			Message: `user already exist`,
 		},
 		"LOGIN_PROHIBITED_FOR_15_MIN": {
 			Code:    "AUTH_010",
@@ -1213,8 +1221,20 @@ var DefineError = ErrorDefinitions{
 			Message: "Region Not Found",
 		},
 		"BRANCH_ALREADY_BLOCKED": {
-			Code:    "BRN_010",
+			Code:    "BRN_012",
 			Message: "The branch already blocked",
+		},
+		"BRANCH_ENABLE_ACTION_ALREADY_EXISTS": {
+			Code:    "BRN_013",
+			Message: "branch enable action already exists",
+		},
+		"BRANCH_ALREADY_ENABLED": {
+			Code:    "BRN_014",
+			Message: "Branch already enabled",
+		},
+		"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": {
+			Code:    "BRN_015",
+			Message: "multiple branch enable list have  already enabled branch.",
 		},
 	},
 	Department: ErrorGroup{
@@ -1368,6 +1388,14 @@ var DefineError = ErrorDefinitions{
 		"PENDING_DISTRICT_ACTION_ALREADY_EXIST": {
 			Code:    "ACT_017",
 			Message: "A pending block action already exists for this district",
+		},
+		"REGION_ALREADY_ENABLED": {
+			Code:    "ACT_018",
+			Message: "A region already enbled",
+		},
+		"ENABLE_REGION_ACTION_ALREADY_EXISTS": {
+			Code:    "ACT_019",
+			Message: "enabel region action already exists",
 		},
 	},
 	User: ErrorGroup{

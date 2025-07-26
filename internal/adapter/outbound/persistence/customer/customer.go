@@ -15,6 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -35,7 +37,6 @@ func normalizePhone(search string) bson.M {
 		return bson.M{"phone_number": bson.M{"$regex": trimmed, "$options": "i"}}
 	}
 
-	// no match => skip phone condition
 	return nil
 }
 
@@ -49,7 +50,7 @@ func InitCustomerDetail(client *mongo.Client, database string, collection string
 	}
 }
 
-func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, kycLevel int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
+func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, kycLevel int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error) {
 	filter := buildCustomerFilter(filterParams)
 	filter["is_deleted"] = false
 	filter["kyc_level"] = kycLevel
@@ -57,7 +58,7 @@ func (c *CustomerDetailRepo) GetCustomersDetail(ctx context.Context, kycLevel in
 	return c.paginateFind(ctx, filter, filterParams)
 }
 
-func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
+func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error) {
 	filter := buildCustomerFilter(filterParams)
 	filter["is_deleted"] = false
 	filter["is_blocked"] = true
@@ -69,13 +70,13 @@ func (c *CustomerDetailRepo) GetBlockedCustomer(ctx context.Context, filterParam
 	return c.paginateFind(ctx, filter, filterParams)
 }
 
-func (c *CustomerDetailRepo) paginateFind(ctx context.Context, filter bson.M, params *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
+func (c *CustomerDetailRepo) paginateFind(ctx context.Context, filter bson.M, params *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error) {
 	skip := int64((params.Page - 1) * params.PerPage)
 	limit := int64(params.PerPage)
 
 	users, err := c.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return &common_util.PaginatedResponse[[]*member.User]{}, nil
+		return &common_util.PaginatedResponse[[]*entity.User]{}, nil
 	}
 
 	total, err := c.mongoDal.TotalCount(ctx, filter)
@@ -85,42 +86,47 @@ func (c *CustomerDetailRepo) paginateFind(ctx context.Context, filter bson.M, pa
 	}
 
 	meta := common_util.BuildPaginationMeta(total, params.Page, params.PerPage)
+	var result []*entity.User
+	for _, doc := range users {
+		res := mappers.ModelToUserDomain(doc)
+		result = append(result, res)
+	}
 
-	return &common_util.PaginatedResponse[[]*member.User]{
-		Data: users,
+	return &common_util.PaginatedResponse[[]*entity.User]{
+		Data: result,
 		Meta: meta,
 	}, nil
 }
 
 func buildCustomerFilter(params *constant.Filter) bson.M {
-    filter := bson.M{}
+	filter := bson.M{}
 
-    if params.Search != "" {
-        search := params.Search
+	if params.Search != "" {
+		search := params.Search
 
-        orFilters := []bson.M{
-            {"full_name": bson.M{"$regex": search, "$options": "i"}},
-            {"user_code": bson.M{"$regex": search, "$options": "i"}},
-        }
+		orFilters := []bson.M{
+			{"full_name": bson.M{"$regex": search, "$options": "i"}},
+			{"user_code": bson.M{"$regex": search, "$options": "i"}},
+		}
 
-        phoneFilter := normalizePhone(search)
-        if len(phoneFilter) > 0 {
-            orFilters = append(orFilters, phoneFilter)
-        }
+		phoneFilter := normalizePhone(search)
+		if len(phoneFilter) > 0 {
+			orFilters = append(orFilters, phoneFilter)
+		}
 
-        filter["$or"] = orFilters
-    }
+		filter["$or"] = orFilters
+	}
 
-    if params.Filters != "" {
-        if blocked, err := strconv.ParseBool(params.Filters); err == nil {
-            filter["is_blocked"] = blocked
-        }
-    }
+	if params.Filters != "" {
+		if blocked, err := strconv.ParseBool(params.Filters); err == nil {
+			filter["is_blocked"] = blocked
+		}
+	}
 
-    return filter
+	return filter
 }
 
-func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
+func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*entity.User, error) {
 	userID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		c.logger.Errorf("failed to convert id to object id", err)
@@ -143,5 +149,36 @@ func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*m
 
 		return nil, fmt.Errorf("FAILED_TO_GET_CUSTOMER")
 	}
-	return member, nil
+	return mappers.ModelToUserDomain(member), nil
+}
+
+func (c *CustomerDetailRepo) CreateUser(ctx context.Context, user *entity.User) (*entity.User, error) {
+	userDoc, err := mappers.DomainToUserModel(user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.mongoDal.InsertOne(ctx, *userDoc)
+	if err != nil {
+		return nil, fmt.Errorf(common_util.GeneralDBInsertFailed)
+	}
+
+	return mappers.ModelToUserDomain(&res), nil
+}
+
+func (c *CustomerDetailRepo) CheckUserExist(ctx context.Context, user *entity.User) (bool, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"email": user.Email},
+			{"phone_number": user.PhoneNumber},
+		},
+	}
+
+	count, err := c.mongoDal.TotalCount(ctx, filter)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }

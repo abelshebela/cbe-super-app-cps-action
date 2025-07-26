@@ -20,9 +20,11 @@ func IsValidActionStatus(status string) bool {
 type ActionType string
 
 const (
-	ActionCreate ActionType = "CREATE"
-	ActionUpdate ActionType = "UPDATE"
-	ActionDelete ActionType = "DELETE"
+	ActionCreate  ActionType = "CREATE"
+	ActionUpdate  ActionType = "UPDATE"
+	ActionDelete  ActionType = "DELETE"
+	ActionEnable  ActionType = "ENABLE"
+	ActionDisable ActionType = "DISABLE"
 )
 
 func IsValidActionType(actionType string) bool {
@@ -44,6 +46,8 @@ const (
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
 	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
@@ -109,7 +113,10 @@ const (
 	RequestDisableAvatar         RequestAction = "DISABLE_AVATAR"
 	RequestUpdateAvatar          RequestAction = "UPDATE_AVATAR"
 	RequestBlockRegion           RequestAction = "BLOCK_REGION"
+	RequestEnableRegion          RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict         RequestAction = "BLOCK_DISTRICT"
+	RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
+	RequestEnableCity            RequestAction = "ENABLE_CITY"
 	RequestBlockCity             RequestAction = "BLOCK_CITY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
@@ -134,6 +141,12 @@ const (
 	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
+
+	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MINI_APP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINI_APP"
 
 	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
 	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
@@ -205,39 +218,48 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateServiceRule:        {},
 	RequestUpdateTotal:              {},
 	RequestUpdateAccessConfig:       {},
-	RequestEnableSingleBranch:       {},
-	RequestDisableSingleBranch:      {},
-	RequestEnableMultiUsers:         {},
-	RequestDisableMultiUsers:        {},
-	RequestCreateBusiness:           {},
-	RequestUpdateBusiness:           {},
-	RequestCreateEvent:              {},
-	RequestUpdateEvent:              {},
-	RequestCreateEventCategory:      {},
-	RequestUpdateEventCategory:      {},
-	RequestDisableEvent:             {},
-	RequestCreateMiniAppMerchant:    {},
-	RequestUpdateMiniAppMerchant:    {},
-	RequestUpdateBlockTime:          {},
-	RequestDisableFaydaAccount:      {},
-	RequestEnableFaydaAccount:       {},
-	RequestCreateAvatar:             {},
-	RequestDeleteAvatar:             {},
-	RequestDisableAvatar:            {},
-	RequestEnableAvatar:             {},
-	RequestUpdateAvatar:             {},
-	RequestEnableMiniAppMerchant:    {},
-	RequestDisableMiniAppMerchant:   {},
-	RequestDeleteMiniAppMerchant:    {},
-	RequestUpdateServiceSingle:      {},
-	RequestUpdateServiceTotal:       {},
-	RequestUpdateServiceMinCap:      {},
-	RequestCreateServiceFee:         {},
-	RequestUpdateServiceFee:         {},
-	RequestDeleteServiceFee:         {},
-	RequestCreateDailyLimit:         {},
-	RequestUpdateDailyLimit:         {},
-	RequestDeleteDailyLimit:         {},
+
+	RequestEnableSingleBranch:  {},
+	RequestDisableSingleBranch: {},
+
+	RequestEnableMultiUsers:  {},
+	RequestDisableMultiUsers: {},
+
+	RequestCreateBusiness:         {},
+	RequestUpdateBusiness:         {},
+	RequestCreateEvent:            {},
+	RequestUpdateEvent:            {},
+	RequestCreateEventCategory:    {},
+	RequestUpdateEventCategory:    {},
+	RequestDisableEvent:           {},
+	RequestCreateMiniAppMerchant:  {},
+	RequestUpdateMiniAppMerchant:  {},
+	RequestUpdateBlockTime:        {},
+	RequestDisableFaydaAccount:    {},
+	RequestEnableFaydaAccount:     {},
+	RequestCreateAvatar:           {},
+	RequestDeleteAvatar:           {},
+	RequestDisableAvatar:          {},
+	RequestEnableAvatar:           {},
+	RequestUpdateAvatar:           {},
+	RequestEnableMiniAppMerchant:  {},
+	RequestDisableMiniAppMerchant: {},
+	RequestDeleteMiniAppMerchant:  {},
+	RequestCreateMiniApp:          {},
+	RequestUpdateMiniApp:          {},
+	RequestEnableMiniApp:          {},
+	RequestDisableMiniApp:         {},
+	RequestDeleteMiniApp:          {},
+
+	RequestUpdateServiceSingle: {},
+	RequestUpdateServiceTotal:  {},
+	RequestUpdateServiceMinCap: {},
+	RequestCreateServiceFee:    {},
+	RequestUpdateServiceFee:    {},
+	RequestDeleteServiceFee:    {},
+	RequestCreateDailyLimit:    {},
+	RequestUpdateDailyLimit:    {},
+	RequestDeleteDailyLimit:    {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -414,11 +436,16 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestBlockUser,
 		RequestDisableSingleBranch,
 		RequestEnableSingleBranch,
+
 		RequestDisableMultiBranches,
 		RequestEnableMultiBranches,
+
 		RequestBlockRegion,
+		RequestEnableRegion,
 		RequestBlockDistrict,
+		RequestEnableDistrict,
 		RequestBlockCity,
+		RequestEnableCity,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),
@@ -441,6 +468,15 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserCreate,
 		RequestCpsUserUpdate,
 		RequestCpsUserDelete,
+		RequestCpsUserEnable,
+		RequestCpsUserDisable,
+	},
+	"MiniApp": {
+		RequestCreateMiniApp,
+		RequestUpdateMiniApp,
+		RequestDeleteMiniApp,
+		RequestEnableMiniApp,
+		RequestDisableMiniApp,
 	},
 }
 

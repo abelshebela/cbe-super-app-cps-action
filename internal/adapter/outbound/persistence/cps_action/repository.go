@@ -95,28 +95,6 @@ func (o *cpsActionStore) UpdateCPSAction(ctx context.Context, action *entity.CPS
 	return mappers.ModelToDomainCPSAction(res), nil
 }
 
-// func (o *cpsActionStore) CPSActionExists(ctx context.Context, uniqueID string) (bool, error) {
-// 	o.logger.Infof("Checking if CPSAction exists with UniqueID: %s", uniqueID)
-// 	if uniqueID == "" {
-// 		o.logger.Warnf("CPSActionExists: uniqueID is empty")
-// 		return false, fmt.Errorf(common_util.InvalidID)
-// 	}
-// 	filter := bson.M{"unique_id": uniqueID}
-// 	projection := bson.M{"_id": 1}
-
-// 	_, err := o.MongoCPSAction.FindOne(ctx, filter, projection)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			o.logger.Infof("CPSAction with UniqueID %s does not exist", uniqueID)
-// 			return false, nil
-// 		}
-// 		o.logger.Errorf("CPSActionExists query failed for unique_id=%s: %v", uniqueID, err)
-// 		return false, fmt.Errorf(common_util.GeneralDBQueryFailed)
-// 	}
-
-// 	o.logger.Infof("CPSAction with UniqueID %s exists", uniqueID)
-// 	return true, nil
-// }
 
 func (o *cpsActionStore) ApproveCPSAction(ctx context.Context, action *entity.AuthorizeCPSAction) (*entity.CPSAction, error) {
 	o.logger.Infof("Approving CPSAction with ActionCode: %s", action.ActionCode)

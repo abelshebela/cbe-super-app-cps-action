@@ -27,6 +27,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	inboudService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	accountblock "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_block"
+	inboundLookUp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_lookup"
 	inboundAccount "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/account_validation"
 	inboundAD "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/ad"
 	inboundAvatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
@@ -36,6 +37,7 @@ import (
 	inboundDepartment "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	inboundFeedback "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/feedback"
 	inboundMiniAppMerchant "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/mini_app_merchant"
+
 	inboundMiniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 
 	inboundPermission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
@@ -55,10 +57,12 @@ import (
 
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
 
+	account_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_lookup"
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/check_service"
 	cps_actions_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_handler"
 	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
+
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
@@ -96,6 +100,7 @@ type Adapter struct {
 	CPSActionAdapter       cps_actions.CPSActionAdapter
 	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
 	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
+	AccountLookUp          inboundLookUp.UserSearchAdapter
 	ServiceCheckAdapter    service_inbound.Service
 }
 
@@ -128,6 +133,7 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		CPSActionAdapter:       cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
 		BudgetCategoryAdapter:  budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 		MiniAppMerchantAdapter: miniapp_merchant_handler.NewMiniAppMerchantAdapter(application.MiniAppMerchantApplication, logger),
+		AccountLookUp:          account_handler.NewMiniAppMerchantAdapter(application.AccountLookupApplication, logger),
 		ServiceCheckAdapter:    service_handler.NewServiceHandler(application.ServicCheckeApplication, logger),
 	}
 }

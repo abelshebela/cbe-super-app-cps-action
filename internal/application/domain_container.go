@@ -21,6 +21,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
+	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
@@ -56,5 +57,6 @@ type Domain struct {
 	UnlinkDomain          *unlink_service.Service
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
+	AccountLookup         *account_service.UserSearchService
 	ServiceCheckDomain    service_domain.ServiceRepo
 }

@@ -8,6 +8,8 @@ import (
 
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
+	user_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -21,21 +23,26 @@ type MiniAppMerchantService interface {
 	DeleteMiniAppMerchant(ctx context.Context, id string, req *entities.CreateCPSAction) (*entities.CPSAction, error)
 	EnableOrDisableMerchant(ctx context.Context, id string, requestAction cps_constants.RequestAction, req *entities.CreateCPSAction) (*entities.CPSAction, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
+	GetCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error)
 }
 type MiniAppMerchantServiceImpl struct {
-	repo   MiniAppMerchantRepository
-	logger shared_utils.Logger
+	repo        MiniAppMerchantRepository
+	logger      shared_utils.Logger
+	userService user_service.CustomerService
 }
 
-func NewMiniAppMerchantService(repo MiniAppMerchantRepository, logger shared_utils.Logger,
+func NewMiniAppMerchantService(repo MiniAppMerchantRepository,
+	userService user_service.CustomerService,
+	logger shared_utils.Logger,
 ) MiniAppMerchantService {
 	return &MiniAppMerchantServiceImpl{
-		logger: logger,
-		repo:   repo,
+		logger:      logger,
+		repo:        repo,
+		userService: userService,
 	}
 }
 
-func (s *MiniAppMerchantServiceImpl) getCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error) {
+func (s *MiniAppMerchantServiceImpl) GetCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error) {
 
 	// This works even if ActionData is map[string]interface{} or *MiniAppMerchant serialized from HTTP
 	bytes, err := json.Marshal(req.ActionData)
@@ -54,7 +61,7 @@ func (s *MiniAppMerchantServiceImpl) getCurrentData(req *entities.CreateCPSActio
 }
 
 func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
-	data, err := s.getCurrentData(req)
+	data, err := s.GetCurrentData(req)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +69,7 @@ func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, 
 		BankAccountNumber: data.BankAccountNumber,
 		Email:             data.Email,
 		PhoneNumber:       data.PhoneNumber,
-	})
+	}, nil)
 
 	if err != nil {
 		return nil, err
@@ -113,7 +120,7 @@ func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, 
 }
 
 func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
-	data, err := s.getCurrentData(req)
+	data, err := s.GetCurrentData(req)
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +134,8 @@ func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, 
 		BankAccountNumber: data.BankAccountNumber,
 		Email:             data.Email,
 		PhoneNumber:       data.PhoneNumber,
+	}, &MiniAppMerchantExistOptions{
+		ExcludeID: data.ID,
 	})
 
 	if err != nil {
@@ -284,6 +293,21 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 	switch cpsAction.RequestAction {
 	case cps_constants.RequestCreateMiniAppMerchant:
 		newMerchant, err = s.repo.CreateMiniAppMerchant(ctx, &currentAction)
+
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = s.userService.CreateUserMiniAppMercahant(ctx, &entity.User{
+			FullName:    newMerchant.KYC.Representative.Name,
+			PhoneNumber: newMerchant.KYC.Representative.Phone,
+			Email:       newMerchant.KYC.Representative.Email,
+		})
+
+		if err != nil && err.Error() != common_util.AuthUserAlreadyExists {
+			s.logger.Errorf("error occured on create minin app merchant %s", err.Error())
+			return nil, err
+		}
 
 	case cps_constants.RequestUpdateMiniAppMerchant:
 		newMerchant, err = s.repo.UpdateMiniAppMerchant(ctx, &currentAction)

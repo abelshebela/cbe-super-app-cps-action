@@ -14,24 +14,32 @@ import (
 type ApplicationService interface {
 	FilterSingleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error)
+	EnableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error)
+
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
+	EnableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
+
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 
 	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
+	EnabelRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
 	UpdateRegion(ctx context.Context, region action.Region) error
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
 
 	BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
+	EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
 	GetDistrictByCode(ctx context.Context, districtCode string) (action.District, error)
 	ApproveBlockDistrict(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
 	BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
+	EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
+
 	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
 	ApproveBlockCity(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
@@ -63,6 +71,10 @@ func (h *Handler) DisableSingleBranch(ctx context.Context, branch action.Branch,
 	return h.service.DisableSingleBranch(ctx, branch, maker)
 }
 
+func (h *Handler) EnableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
+	return h.service.EnableSingleBranch(ctx, branch, maker)
+}
+
 func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error {
 	// return h.service.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
 	return nil
@@ -71,7 +83,9 @@ func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID strin
 func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district string, filterParams *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	return h.service.FilterMultipleBranches(ctx, region, district, filterParams)
 }
-
+func (h *Handler) EnableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
+	return h.service.EnableMultipleBranches(ctx, branches, maker)
+}
 func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	return h.service.DisableMultipleBranches(ctx, branches, maker)
 }
@@ -85,6 +99,9 @@ func (h *Handler) GetBranchByCode(ctx context.Context, branchCode string) (actio
 	return h.service.GetBranchByCode(ctx, branchCode)
 }
 
+func (h *Handler) EnabelRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
+	return h.service.EnableRegion(ctx, regionCode, maker)
+}
 func (h *Handler) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockRegion(ctx, regionCode, maker)
 }
@@ -101,6 +118,9 @@ func (h *Handler) GetRegionByCode(ctx context.Context, regionCode string) (actio
 	return h.service.GetRegionByCode(ctx, regionCode)
 }
 
+func (h *Handler) EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
+	return h.service.EnableDistrict(ctx, districtCode, maker)
+}
 func (h *Handler) BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockDistrict(ctx, districtCode, maker)
 }
@@ -112,9 +132,15 @@ func (h *Handler) ApproveBlockDistrict(ctx context.Context, actionID string, app
 	// return h.service.ApproveBlockDistrict(ctx, actionID, approve, reason, checker)
 	return nil
 }
+
+func (h *Handler) EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
+	return h.service.EnableCity(ctx, cityCode, maker)
+}
+
 func (h *Handler) BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockCity(ctx, cityCode, maker)
 }
+
 func (h *Handler) GetCityByCode(ctx context.Context, cityCode string) (action.City, error) {
 	return h.service.GetCityByCode(ctx, cityCode)
 }

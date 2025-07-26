@@ -6,7 +6,9 @@ import (
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 
+	account_lookup_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -26,27 +28,56 @@ type MiniAppMerchantApplication interface {
 }
 
 type MiniAppMerchantHandlerImpl struct {
-	service    domain.MiniAppMerchantService
-	cpsService cps_service.CPSActionService
-	logger     utils.Logger
+	service              domain.MiniAppMerchantService
+	cpsService           cps_service.CPSActionService
+	accountLookUpService account_lookup_service.UserSearchService
+	logger               utils.Logger
 }
 
-func NewMiniAppMerchantHandler(service domain.MiniAppMerchantService, cpsService cps_service.CPSActionService, logger utils.Logger) MiniAppMerchantApplication {
+func NewMiniAppMerchantHandler(service domain.MiniAppMerchantService, cpsService cps_service.CPSActionService,
+	accountLookUpService account_lookup_service.UserSearchService, logger utils.Logger) MiniAppMerchantApplication {
 	return &MiniAppMerchantHandlerImpl{
-		service:    service,
-		cpsService: cpsService,
-		logger:     logger,
+		service:              service,
+		cpsService:           cpsService,
+		logger:               logger,
+		accountLookUpService: accountLookUpService,
 	}
 }
 
 func (h *MiniAppMerchantHandlerImpl) CreateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
 	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
-		return h.service.CreateMiniAppMerchant(ctx, &req)
+
+		curData, err := h.service.GetCurrentData(&req)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = h.accountLookUpService.SearchUser(ctx, curData.BankAccountNumber)
+		if err != nil {
+			return nil, err
+		}
+		res, err := h.service.CreateMiniAppMerchant(ctx, &req)
+		if err != nil {
+			return nil, err
+		}
+
+		return res, nil
 	}, "[MiniAppMerchant.Create]")
 }
 
 func (h *MiniAppMerchantHandlerImpl) UpdateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
 	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+		curData, err := h.service.GetCurrentData(&req)
+		if err != nil {
+			return nil, err
+		}
+
+		if curData.BankAccountNumber != "" {
+			_, err = h.accountLookUpService.SearchUser(ctx, curData.BankAccountNumber)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return h.service.UpdateMiniAppMerchant(ctx, &req)
 	}, "[MiniAppMerchant.Update]")
 }

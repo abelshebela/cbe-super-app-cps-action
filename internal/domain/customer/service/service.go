@@ -3,44 +3,46 @@ package service
 import (
 	"context"
 
-	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/repository"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type CustomerDomain struct {
-	customerService outbound.CustomerRepository
-	logger          utils.Logger
+	customerRepo domain.CustomerRepository
+	logger       utils.Logger
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, kycLevel int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error)
-	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
-	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error)
+	GetCustomersDetail(ctx context.Context, kycLevel int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
+	GetCustomerByID(ctx context.Context, id string) (*entity.User, error)
+	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
+	CreateUserMiniAppMercahant(ctx context.Context, user *entity.User) (*entity.User, error)
 }
 
-func IntiCustomerDomain(customerRepo outbound.CustomerRepository, logger utils.Logger) CustomerService {
+func IntiCustomerDomain(customerRepo domain.CustomerRepository, logger utils.Logger) CustomerService {
 	return &CustomerDomain{
-		customerService: customerRepo,
-		logger:          logger,
+		customerRepo: customerRepo,
+		logger:       logger,
 	}
 }
 
-func (c *CustomerDomain) GetCustomersDetail(ctx context.Context, kyc_level int, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
-	customers, err := c.customerService.GetCustomersDetail(ctx, kyc_level, filerParams)
+func (c *CustomerDomain) GetCustomersDetail(ctx context.Context, kyc_level int, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error) {
+	customers, err := c.customerRepo.GetCustomersDetail(ctx, kyc_level, filerParams)
 	if err != nil {
 		return nil, err
 	}
 	return customers, nil
 }
 
-func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
-	customer, err := c.customerService.GetCustomerByID(ctx, id)
+func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*entity.User, error) {
+	customer, err := c.customerRepo.GetCustomerByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -48,10 +50,16 @@ func (c *CustomerDomain) GetCustomerByID(ctx context.Context, id string) (*membe
 	return customer, nil
 }
 
-func (c *CustomerDomain) GetBlockedCustomer(ctx context.Context, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*member.User], error) {
-	customers, err := c.customerService.GetBlockedCustomer(ctx, filerParams)
+func (c *CustomerDomain) GetBlockedCustomer(ctx context.Context, filerParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error) {
+	customers, err := c.customerRepo.GetBlockedCustomer(ctx, filerParams)
 	if err != nil {
 		return nil, err
 	}
 	return customers, nil
+}
+
+func (c *CustomerDomain) CreateUserMiniAppMercahant(ctx context.Context, user *entity.User) (*entity.User, error) {
+	user.Realm = member.MerchantRealm
+	user.UserCode = utils.RandomGenerator(10)
+	return c.customerRepo.CreateUser(ctx, user)
 }
