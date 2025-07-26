@@ -1,13 +1,17 @@
 package keygen
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/google/uuid"
@@ -16,6 +20,7 @@ import (
 
 type Ed25519KeyGen struct {
 	logger shared_utils.Logger
+	cfg    *config.VaultConfig
 }
 
 type KeyPair struct {
@@ -32,14 +37,20 @@ type KeyGeneratorService interface {
 	GenerateAppSecret(byteLength int) (string, error)
 	HashAppSecret(secret string) (string, error)
 	VerifyAppSecret(hashedSecret, inputSecret string) error
+	DecryptAppSecret(encrypted string) (string, error)
+	EncryptAppSecret(plainText string) (string, error)
 }
+
+var secretKey = []byte("01234567890123456789012345678901")
 
 func NewKeyGenerator(
 	logger shared_utils.Logger,
+	cfg *config.VaultConfig,
 ) KeyGeneratorService {
 	logger.Infof("Initializing Ed25519KeyGen")
 	return &Ed25519KeyGen{
 		logger: logger,
+		cfg:    cfg,
 	}
 }
 
@@ -164,4 +175,61 @@ func (g *Ed25519KeyGen) VerifyAppSecret(hashedSecret, inputSecret string) error 
 	}
 	g.logger.Infof("App secret verification successful")
 	return nil
+}
+
+func (g *Ed25519KeyGen) DecryptAppSecret(encrypted string) (string, error) {
+	cipherData, err := base64.StdEncoding.DecodeString(encrypted)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(secretKey)
+	if err != nil {
+		g.logger.Errorf("Failed to create AES cipher", "error", err)
+		return "", fmt.Errorf(utils.UnhandledServerError)
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		g.logger.Errorf("Failed to create AES GCM", "error", err)
+		return "", fmt.Errorf(utils.UnhandledServerError)
+	}
+
+	nonceSize := aesGCM.NonceSize()
+	if len(cipherData) < nonceSize {
+		g.logger.Errorf("Ciphertext too short", "cipherDataLength", len(cipherData), "nonceSize", nonceSize)
+		return "", fmt.Errorf(utils.UnhandledServerError)
+	}
+
+	nonce, cipherText := cipherData[:nonceSize], cipherData[nonceSize:]
+	plainText, err := aesGCM.Open(nil, nonce, cipherText, nil)
+	if err != nil {
+		g.logger.Errorf("Failed to open AES GCM", "error", err)
+		return "", fmt.Errorf(utils.UnhandledServerError)
+	}
+
+	return string(plainText), nil
+}
+
+func (g *Ed25519KeyGen) EncryptAppSecret(plainText string) (string, error) {
+	block, err := aes.NewCipher(secretKey)
+	if err != nil {
+		g.logger.Errorf("Failed to create AES cipher", "error", err)
+		return "", fmt.Errorf(utils.UnhandledServerError)
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		g.logger.Errorf("Failed to create AES GCM", "error", err)
+		return "", fmt.Errorf(utils.UnhandledServerError)
+	}
+
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		g.logger.Errorf("Failed to read full random reader", "error", err)
+		return "", err
+	}
+
+	cipherText := aesGCM.Seal(nonce, nonce, []byte(plainText), nil)
+	return base64.StdEncoding.EncodeToString(cipherText), nil
 }

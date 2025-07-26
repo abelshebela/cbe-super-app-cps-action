@@ -3,7 +3,6 @@ package miniapp
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -168,27 +167,30 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	requestedAction := action.RequestAction
 	var minApp *MiniApp
 
-	raw := action.CurrentAction
-	tmpJSON, errr := json.Marshal(raw)
-	if errr != nil {
-		s.logger.Errorf("failed to marshal current action: %v", errr)
+	bindErr := bindAction(action.CurrentAction, &minApp)
+	if bindErr != nil {
+		s.logger.Errorf("failed to bind current action to MiniApp: %v", bindErr)
 		return nil, fmt.Errorf(common_util.InvalidActionData)
 	}
 
-	errr = json.Unmarshal(tmpJSON, &minApp)
-	if errr != nil {
-		s.logger.Errorf("failed to unmarshal current action to MiniAppMerchant: %v", errr)
-		return nil, fmt.Errorf(common_util.InvalidActionData)
+	envs := []EnvironmentType{
+		DevEnvironment,
+		TestEnvironment,
+		UatEnvironment,
+		ProductionEnvironment,
 	}
 
 	var err error
 	switch requestedAction {
 	case constant.RequestCreateMiniApp:
-		uatCred, _, err := s.CredentialInformationGenrator(EnvironmentType(minApp.AppType))
-		if err != nil {
-			return nil, err
+		minApp.Credential = make([]CredentialInformation, 0, len(envs))
+		for _, env := range envs {
+			uatCred, _, err := s.CredentialInformationGenrator(env)
+			if err != nil {
+				return nil, err
+			}
+			minApp.Credential = append(minApp.Credential, *uatCred)
 		}
-		minApp.Credential = append(minApp.Credential, *uatCred)
 		minApp, err = s.repository.CreateMiniApp(ctx, minApp)
 		if err != nil {
 			return nil, err
@@ -220,7 +222,20 @@ func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_consta
 }
 
 func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error) {
-	return s.repository.DetailMiniAppByID(ctx, id)
+	miniApp, err := s.repository.DetailMiniAppByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, cred := range miniApp.Credential {
+		decryptedSecret, err := s.keyGenService.DecryptAppSecret(cred.AppSecret)
+		if err != nil {
+			return nil, err
+		}
+		cred.AppSecret = decryptedSecret
+	}
+
+	return miniApp, nil
 }
 
 func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps bool) MiniApp {
@@ -261,6 +276,10 @@ func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps
 		Credential:          credentials,
 		IsEventMiniApp:      req.IsEventMiniApp,
 		IsThreeClick:        req.IsThreeClick,
+		URL:                 req.URL,
+		MPAASID:             req.MPAASID,
+		Stage:               req.Stage,
+		AppViewType:         req.AppViewType,
 	}
 
 	if withTimestamps {
@@ -347,7 +366,7 @@ func (s *MiniAppStore) CredentialInformationGenrator(envType EnvironmentType) (*
 		return nil, nil, err
 	}
 
-	hashedSecret, err := s.keyGenService.HashAppSecret(rawSecret)
+	encryptedSecret, err := s.keyGenService.EncryptAppSecret(rawSecret)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -368,7 +387,7 @@ func (s *MiniAppStore) CredentialInformationGenrator(envType EnvironmentType) (*
 		MiniAppCode:   miniAppCode,
 		PrivateKey:    keys.PrivateKey,
 		PublicKey:     keys.PublicKey,
-		AppSecret:     hashedSecret,
+		AppSecret:     encryptedSecret,
 		Signature:     base64.StdEncoding.EncodeToString(signature),
 		Timestamp:     timestamp,
 	}

@@ -62,6 +62,10 @@ type MiniApp struct {
 	MerchantID        string                  `bson:"merchant_id"`
 	ProductCode       []ProductCode           `bson:"product_code"`
 	Credential        []CredentialInformation `bson:"credential"`
+	AppViewType       string                  `bson:"app_view_type"`
+	URL               string                  `bson:"url"`
+	MPAASID           string                  `bson:"mpaas_id"`
+	Stage             string                  `bson:"stage"`
 	IsEventMiniApp    bool                    `bson:"is_event_mini_app"`
 	IsThreeClick      bool                    `bson:"is_three_click"`
 	Enabled           bool                    `bson:"enabled"`
