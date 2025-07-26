@@ -24,10 +24,22 @@ const (
 type AppType string
 
 const (
-	UAT        AppType = "UAT"
-	Production AppType = "PRODUCATION"
-	Test       AppType = "TEST"
-	Dev        AppType = "DEV"
+	URL        AppType = "URL"
+	MPAASID    AppType = "MPAAS_ID"
+)
+
+type Stage string
+
+const (
+	StageUat Stage = "UAT"
+)
+
+type AppViewType string
+
+const (
+	AppViewTypeBoth AppViewType = "BOTH"
+	AppViewTypeCB  AppViewType = "CB"
+	AppViewTypeIFB AppViewType = "IFB"
 )
 
 type ProductCode struct {
@@ -44,20 +56,27 @@ type CredentialInformation struct {
 	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
 	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
 	ShortCode     string          `bson:"short_code" json:"short_code"`
+	MiniAppCode   string          `bson:"mini_app_code" json:"mini_app_code"`
 	AppSecret     string          `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string          `bson:"private_key" json:"private_key"`
+	PrivateKey    string          `bson:"private_key" json:"-"`
 	PublicKey     string          `bson:"public_key" json:"public_key"`
+	Signature     string          `bson:"signature" json:"-"`
+	Timestamp     time.Time       `bson:"timestamp" json:"timestamp"`
 }
 
 type MiniApp struct {
 	ID                  string                  `bson:"_id" json:"id,omitempty"`
 	AppName             string                  `bson:"app_name" json:"app_name"`
 	AppIcon             string                  `bson:"app_icon" json:"app_icon"`
-	CommissionGLAccount string                  `bson:"commison_gl_account" json:"commison_gl_account"`
+	CommissionGLAccount string                  `bson:"commison_gl_account" json:"commison_gl_account,omitempty"`
 	AppType             AppType                 `bson:"app_type" json:"app_type"`
 	MerchantID          string                  `bson:"merchant_id" json:"merchant_id"`
 	ProductCode         []ProductCode           `bson:"product_code" json:"product_code"`
-	Credential          []CredentialInformation `bson:"credential" json:"credential"`
+	Credential          []CredentialInformation `bson:"credential" json:"credential,omitempty"`
+	URL                 string                  `bson:"url" json:"url,omitempty"`
+	MPAASID             string                  `bson:"mpaas_id" json:"mpaas_id,omitempty"`
+	AppViewType         AppViewType             `bson:"app_view_type" json:"app_view_type"`
+	Stage               Stage                   `bson:"stage" json:"stage"`
 	IsEventMiniApp      bool                    `bson:"is_event_mini_app" json:"is_event_mini_app"`
 	IsThreeClick        bool                    `bson:"is_three_click" json:"is_three_click"`
 	Enabled             bool                    `bson:"enabled" json:"enabled"`
@@ -74,6 +93,10 @@ type MiniAppCreateRequest struct {
 	CommissionGLAccount string                  `json:"commison_gl_account"`
 	AppType             AppType                 `json:"app_type"`
 	MerchantID          string                  `json:"merchant_id"`
+	URL                 string                  `json:"url"`
+	MPAASID             string                  `json:"mpaas_id"`
+	Stage               Stage                   `json:"stage"`
+	AppViewType         AppViewType             `json:"app_view_type"`
 	ProductCode         []ProductCode           `json:"product_code"`
 	Credential          []CredentialInformation `json:"credential"`
 	IsEventMiniApp      bool                    `json:"is_event_mini_app"`

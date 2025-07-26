@@ -19,6 +19,7 @@ type APIErrorResponse struct {
 	Errors        any    `json:"errors,omitempty"`
 }
 
+
 // errorKeyToStatus provides the most appropriate HTTP status code for each error key.
 var errorKeyToStatus = map[string]int{
 	// General
@@ -168,200 +169,7 @@ var errorKeyToStatus = map[string]int{
 	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
 	"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
 
-	"MISSING_ACTION_DATA":   http.StatusBadRequest,
-	"INVALID_ACTION_FORMAT": http.StatusBadRequest,
-	"MISSING_ICON":          http.StatusBadRequest,
-	"FAILED_TO_AUTHORIZE":   http.StatusInternalServerError,
-	"MISSING_COLOR_ID":      http.StatusBadRequest,
-	"FAILED_COLOR_UPDATE":   http.StatusInternalServerError,
 
-	// Auth
-	"AUTH_USER_NOT_FOUND":               http.StatusNotFound,
-	"AUTH_USER_DISABLED":                http.StatusForbidden,
-	"AUTH_INVALID_PASSWORD":             http.StatusUnauthorized,
-	"AUTH_USER_HAS_NO_PASSWORD":         http.StatusBadRequest,
-	"AUTH_TOO_MANY_ATTEMPTS":            http.StatusTooManyRequests,
-	"AUTH_INVALID_OTP":                  http.StatusBadRequest,
-	"AUTH_EXPIRED_OTP":                  http.StatusBadRequest,
-	"AUTH_USER_RESET_PASSWORD_REQUIRED": http.StatusForbidden,
-	"AUTH_USER_ALREADY_EXISTS":          http.StatusBadRequest,
-	"LOGIN_PROHIBITED_FOR_15_MIN":       http.StatusTooManyRequests,
-	"INCORRECT_PASSWORD":                http.StatusUnauthorized,
-	"OLD_PASSWORD_SAME_AS_NEW":          http.StatusBadRequest,
-	"PIN_OLY_DIG":                       http.StatusBadRequest,
-	"PIN_LIMIT":                         http.StatusBadRequest,
-	"PIN_REDANDANT":                     http.StatusBadRequest,
-	"PIN_SEQ":                           http.StatusBadRequest,
-	"FAILD_TO_GEN_TOKEN":                http.StatusInternalServerError,
-	"FAILD_TO_RESET_PASS":               http.StatusInternalServerError,
-	"FAILD_VALIDATION":                  http.StatusBadRequest,
-	"OLD_PIN_MISMATCH":                  http.StatusBadRequest,
-	"INVALID_BEARER":                    http.StatusUnauthorized,
-	"USE_RIGHT_AUTH":                    http.StatusUnauthorized,
-	"INVALID_CLAIM":                     http.StatusUnauthorized,
-	"INVALID_TOKEN_DATAu":               http.StatusUnauthorized,
-	"UNABLE_TO_DYCRYPT_TOKEN":           http.StatusUnauthorized,
-	"FAILED_LOGIN":                      http.StatusUnauthorized,
-	"ACCOUNT_LOCKED":                    http.StatusForbidden,
-	"PENDING_ACTION_ALREADY_EXISTS":     http.StatusBadRequest,
-	"NO_DOCUMENT_FOUND":                 http.StatusNotFound,
-	"ACCESS_TOKEN_REQUIRED":             http.StatusUnauthorized,
-	"UNSUPPORTED_PHONE_NUMBER_FORMAT":   http.StatusBadRequest,
-	"USER_CODE_IS_REQUIRED":             http.StatusBadRequest,
-
-	// Transaction
-	"TRANSACTION_NOT_FOUND": http.StatusNotFound,
-	"INSUFFICIENT_FUNDS":    http.StatusPaymentRequired,
-	"COMMISSION_NOT_FOUND":  http.StatusNotFound,
-	"CUSTOMER_NOT_FOUND":    http.StatusNotFound,
-
-	// Account
-	"PHONE_LOOKUP_FAILED":           http.StatusBadGateway,
-	"API_REQUEST_FAILED":            http.StatusBadGateway,
-	"ACCOUNT_NOT_FOUND":             http.StatusNotFound,
-	"USER_PHONE_EXISTS":             http.StatusConflict,
-	"GENERAL_SIF_GENERATION_FAILED": http.StatusInternalServerError,
-	"GENERAL_DB_UPDATE_FAILED":      http.StatusInternalServerError,
-	"GENERAL_DB_INSERT_FAILED":      http.StatusInternalServerError,
-	"CORE_ACCOUNT_NOT_FOUND":        http.StatusNotFound,
-	"CORE_ACCOUNT_TYPE_ERROR":       http.StatusBadRequest,
-	"ACCOUNT_LOOKUP_FAILED":         http.StatusBadGateway,
-	"ACCOUNT_DETAIL_FAILED":         http.StatusBadGateway,
-	"INVALID_CORE_RESPONSE":         http.StatusBadGateway,
-	"ACCOUNT_ALREADY_LINKED":        http.StatusBadRequest,
-	"ACCOUNT_BLOCKED":               http.StatusForbidden,
-
-	// OTP
-	"INVALID_OTP":            http.StatusBadRequest,
-	"EXPIRED_OTP":            http.StatusBadRequest,
-	"EMAIL_IN_USE":           http.StatusConflict,
-	"USER_ALREADY_HAS_EMAIL": http.StatusBadRequest,
-	"OTP_GENERATION_FAILED":  http.StatusInternalServerError,
-	"USER_KYC_LEVEL_ZERO":    http.StatusBadRequest,
-	"USER_KYC_LEVEL_WRONG":   http.StatusBadRequest,
-
-	// File
-	"INVALID_FORM":      http.StatusBadRequest,
-	"NO_FILE":           http.StatusBadRequest,
-	"FILE_TOO_LARGE":    http.StatusRequestEntityTooLarge,
-	"INVALID_FILE_TYPE": http.StatusBadRequest,
-	"UPLOAD_FAILED":     http.StatusInternalServerError,
-
-	// Branch
-	"BRANCH_NOT_FOUND":                                   http.StatusNotFound,
-	"BRANCH_DISABLED":                                    http.StatusBadRequest,
-	"FAILED_TO_FETCH_BRANCHES":                           http.StatusInternalServerError,
-	"INVALID_BRANCH_ID":                                  http.StatusBadRequest,
-	"INVALID_LOCATION_FILTER":                            http.StatusBadRequest,
-	"BRANCH_ID_REQUIRED":                                 http.StatusBadRequest,
-	"BRANCH_DISABLE_ACTION_ALREADY_EXISTS":               http.StatusBadRequest,
-	"BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS":         http.StatusConflict,
-	"BRANCH_ENABLE_ACTION_ALREADY_EXISTS":                http.StatusConflict,
-	"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": http.StatusConflict,
-
-	// Department
-	"DEPARTMENT_NOT_FOUND":      http.StatusNotFound,
-	"DEPARTMENT_ALREADY_EXISTS": http.StatusBadRequest,
-	"DEPARTMENT_CODE_REQUIRED":  http.StatusBadRequest,
-	"DEPARTMENT_NAME_REQUIRED":  http.StatusBadRequest,
-	"PORTAL_CARDS_INVALID":      http.StatusBadRequest,
-
-	// unidentified key
-	"UNIDENTIFIED_KEY": http.StatusInternalServerError,
-
-	// Banks
-	"BANKS_NOT_FOUND":                   http.StatusNotFound,
-	"BANK_FETCH_FAILED":                 http.StatusInternalServerError,
-	"INVALID_BANK_NAME":                 http.StatusBadRequest,
-	"MISSING_BANK_NAME":                 http.StatusBadRequest,
-	"MISSING_BANK_CODE":                 http.StatusBadRequest,
-	"MISSING_BANK_BIC":                  http.StatusBadRequest,
-	"BANK_ALREADY_EXISTS":               http.StatusBadRequest,
-	"BLOCKED_ACTION_USER_ALREADY_EXIST": http.StatusBadRequest,
-
-	// Action
-	"FAILED_TO_CREATE_ACTION":  http.StatusInternalServerError,
-	"FAILED_TO_UPDATE_ACTION":  http.StatusInternalServerError,
-	"FAILED_TO_FETCH_ACTION":   http.StatusInternalServerError,
-	"ACTION_NOT_PENDING":       http.StatusBadRequest,
-	"FAILED_TO_UPDATE_SERVICE": http.StatusInternalServerError,
-	"FAILED_TO_UPDATE_CAP_MIN": http.StatusInternalServerError,
-
-	// CPS
-	"CPS_USER_NOT_FOUND":          http.StatusNotFound,
-	"ACTION_HAS_ALREADY_APPROVED": http.StatusBadRequest,
-	"ACTION_HAS_ALREADY_REJECTED": http.StatusBadRequest,
-	"NO_PENDING_ACTION_FOUND":     http.StatusNotFound,
-
-	// AD
-	"AD_NOT_FOUND":                             http.StatusNotFound,
-	"AD_ALREADY_EXISTS":                        http.StatusBadRequest,
-	"AD_CREATION_FAILED":                       http.StatusInternalServerError,
-	"AD_UPDATE_FAILED":                         http.StatusInternalServerError,
-	"AD_DELETION_FAILED":                       http.StatusInternalServerError,
-	"CITY_NOT_FOUND":                           http.StatusNotFound,
-	"PENDING_ACTION_ALREADY_EXIST":             http.StatusBadRequest,
-	"CITY_ALREADY_BLOCKED":                     http.StatusBadRequest,
-	"PENDING_DISTRICT_ACTION_ALREADY_EXIST":    http.StatusBadRequest,
-	"DISTRICT_ALREADY_BLOCKED":                 http.StatusBadRequest,
-	"DISTRICT_NOT_FOUND":                       http.StatusNotFound,
-	"REGION_NOT_FOUND":                         http.StatusNotFound,
-	"BRANCH_ALREADY_BLOCKED":                   http.StatusBadRequest,
-	"REGION_CODE_AND_NAME_REQUIRED":            http.StatusBadRequest,
-	"BLOCK_REGION_ALREADY_PROCESSED":           http.StatusBadRequest,
-	"BANK_ID_REQUIRED":                         http.StatusConflict,
-	"DEPARTMEN_REQUIRED":                       http.StatusConflict,
-	"BANK_ALREADY_DISABLED":                    http.StatusBadRequest,
-	"BANK_ALREADY_ENABLE":                      http.StatusBadRequest,
-	"FAILED_TO_GET_DISTRICT":                   http.StatusNotFound,
-	"BRANCH_ALREADY_DISABLE":                   http.StatusBadRequest,
-	"BANK_NAME_ALREADY_EXIST":                  http.StatusBadRequest,
-	"BANK_BIC_CODE_ALREADY_EXIST":              http.StatusBadRequest,
-	"BIC_CODE_ALREADY_EXIST":                   http.StatusBadRequest,
-	"BANK_ALREADY_CREATED_WITH_THIS_PARAMETER": http.StatusConflict,
-
-	// Permission
-	"NO_PERMISSION_CATEGORY_FOUND":                http.StatusNotFound,
-	"INVALID_PERMISSION_CATEGORY_ID":              http.StatusBadRequest,
-	"ONE_OR_MORE_PERMISSION_CATEGORIES_NOT_FOUND": http.StatusNotFound,
-	"INVALID_PERMISSION_GROUP_ID":                 http.StatusBadRequest,
-	"NO_PERMISSION_GROUP_FOUND":                   http.StatusNotFound,
-	"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND":     http.StatusNotFound,
-
-	//Region Enable
-	"REGION_ALREADY_ENABLED":              http.StatusConflict,
-	"ENABLE_REGION_ACTION_ALREADY_EXISTS": http.StatusConflict,
-}
-
-func getStatusForErrorKey(key string) int {
-	if status, ok := errorKeyToStatus[key]; ok {
-		return status
-	}
-
-	for _, group := range []common.ErrorGroup{
-		common.DefineError.General,
-		common.DefineError.Auth,
-		common.DefineError.User,
-		common.DefineError.Transaction,
-		common.DefineError.Account,
-		common.DefineError.OTP,
-		common.DefineError.File,
-		common.DefineError.Branch,
-		common.DefineError.Bank,
-		common.DefineError.Department,
-		common.DefineError.Action,
-		common.DefineError.Wallet,
-		common.DefineError.AD,
-	} {
-		if _, ok := group[key]; ok {
-			// If the error key is defined in any group but not in the map, default to 400 Bad Request.
-			return http.StatusBadRequest
-		}
-	}
-
-	// If the error key is not found anywhere, return 500 Internal Server Error.
-	return http.StatusInternalServerError
-}
 
 func formatValidationErrors(ve validation.Errors) map[string]string {
 	result := make(map[string]string)
@@ -447,6 +255,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Action,
 		common.DefineError.AD,
 		common.DefineError.Permission,
+		common.DefineError.MiniApp,
 	}
 
 	for _, group := range errorGroups {
@@ -458,6 +267,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 	return common.ErrorDefinition{
 		Code:    key,
 		Message: key,
+		Status:  http.StatusInternalServerError,
 	}
 }
 
@@ -468,15 +278,7 @@ func httpStatusOrDefault(providedStatus int, errorCode string, isValidation bool
 	if providedStatus != 0 {
 		return providedStatus
 	}
-	return getStatusForErrorKey(errorCode)
-}
 
-// func HandleServiceError(w http.ResponseWriter, err error) {
-// 	if def, ok := err.(common.ErrorDefinition); ok {
-// 		// Use the most appropriate status code for the error code, not always 400.
-// 		status := getStatusForErrorKey(def.Code)
-// 		SendErrorResponse(w, def.Code, status, nil)
-// 		return
-// 	}
-// 	SendErrorResponse(w, "GEN_004", http.StatusInternalServerError, nil)
-// }
+	def := lookupErrorDefinition(errorCode)
+	return def.Status
+}

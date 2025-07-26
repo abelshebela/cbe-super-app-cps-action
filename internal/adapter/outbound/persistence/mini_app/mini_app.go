@@ -55,7 +55,7 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *cons
 
 	miniAppsDocs, err := o.MongoDalMiniApp.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
 	}
 
 	var miniApps []*miniApp_domain.MiniApp
@@ -87,10 +87,10 @@ func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("NOT_FOUND")
+			return nil, fmt.Errorf(common_util.NotFound)
 		}
 
-		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
 	}
 	res := mappers.ToDomainMiniApp(*miniApp)
 	return &res, nil
@@ -118,9 +118,9 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *mi
 }
 
 func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
-	objID, err := bson.ObjectIDFromHex(miniApp.ID)
+	objID, err := common_util.ParsePrimitiveObjectID(miniApp.ID)
 	if err != nil {
-		return nil, fmt.Errorf(common_util.InvalidID)
+		return nil, err
 	}
 
 	filter := bson.M{
@@ -150,17 +150,16 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 
 	update["is_event_mini_app"] = miniApp.IsEventMiniApp
 	update["is_three_click"] = miniApp.IsThreeClick
-
 	update["last_modified_at"] = time.Now()
 
 	if len(update) == 1 {
-		return nil, fmt.Errorf("no valid fields to update")
+		return nil, fmt.Errorf(common_util.NoDataProvidedForUpdate)
 	}
 
 	mini, err := o.MongoDalMiniApp.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("NOT_FOUND")
+			return nil, fmt.Errorf(common_util.NotFound)
 		}
 		o.logger.Warnf(err.Error(), "while updating")
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
@@ -180,6 +179,38 @@ func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *miniApp_
 	miniApp, err := o.MongoDalMiniApp.InsertOne(ctx, *miniAppDoc)
 	if err != nil {
 		return nil, err
+	}
+
+	res := mappers.ToDomainMiniApp(miniApp)
+	return &res, nil
+}
+
+func (o *MiniAppPersistence) EnableDisableMiniApp(ctx context.Context, id string, enabled bool) (*miniApp_domain.MiniApp, error) {
+	objID, err := common_util.ParsePrimitiveObjectID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{
+		"_id":        objID,
+		"is_deleted": false,
+	}
+
+	fmt.Println(enabled, "Enabled")
+	update := bson.M{
+		"enabled":          enabled,
+		"last_modified_at": time.Now(),
+	}
+
+	miniApp, err := o.MongoDalMiniApp.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			o.logger.Errorf("MiniApp with ID %s not found for enable/disable", id)
+			return nil, fmt.Errorf(common_util.NotFound)
+		}
+
+		o.logger.Errorf("Failed to update enabled state for MiniApp ID %s: %v", id, err)
+		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
 	res := mappers.ToDomainMiniApp(miniApp)

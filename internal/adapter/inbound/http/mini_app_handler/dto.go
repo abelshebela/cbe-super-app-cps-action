@@ -1,9 +1,11 @@
+// Package miniapphandler provides DTOs and validation functions for miniapp requests
 package miniapphandler
 
 import (
 	"errors"
-	"fmt"
 	"mime/multipart"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -37,12 +39,13 @@ type MiniAppRequest struct {
 	MerchantID          string                `form:"merchant_id"`
 	IsEventMiniApp      bool                  `form:"is_event_mini_app"`
 	IsThreeClick        bool                  `form:"is_three_click"`
+	AppViewType         string                `form:"app_view_type"`
 
-	// App types by environment
-	AppTypeUAT  string `form:"app_type_uat"`
-	AppTypeProd string `form:"app_type_production"`
-	AppTypeTest string `form:"app_type_test"`
-	AppTypeDev  string `form:"app_type_dev"`
+	// App types
+	AppType string `form:"app_type"`
+
+	URL     string `form:"url"`
+	MPAASID string `form:"mpaas_id"`
 
 	// IFB product codes
 	IFBProductCode    string `form:"ifb_product_code"`
@@ -53,38 +56,6 @@ type MiniAppRequest struct {
 	CBProductCode    string `form:"cb_product_code"`
 	CBVATCode        string `form:"cb_vat_code"`
 	CBServiceFeeCode string `form:"cb_service_fee_code"`
-
-	// UAT credentials
-	UATMerchantAppID string `form:"uat_merchant_app_id"`
-	UATFabricAppID   string `form:"uat_fabric_app_id"`
-	UATShortCode     string `form:"uat_short_code"`
-	UATAppSecret     string `form:"uat_app_secret"`
-	UATPrivateKey    string `form:"uat_private_key"`
-	UATPublicKey     string `form:"uat_public_key"`
-
-	// Prod credentials
-	ProdMerchantAppID string `form:"prod_merchant_app_id"`
-	ProdFabricAppID   string `form:"prod_fabric_app_id"`
-	ProdShortCode     string `form:"prod_short_code"`
-	ProdAppSecret     string `form:"prod_app_secret"`
-	ProdPrivateKey    string `form:"prod_private_key"`
-	ProdPublicKey     string `form:"prod_public_key"`
-
-	// Test credentials
-	TestMerchantAppID string `form:"test_merchant_app_id"`
-	TestFabricAppID   string `form:"test_fabric_app_id"`
-	TestShortCode     string `form:"test_short_code"`
-	TestAppSecret     string `form:"test_app_secret"`
-	TestPrivateKey    string `form:"test_private_key"`
-	TestPublicKey     string `form:"test_public_key"`
-
-	// Dev credentials
-	DevMerchantAppID string `form:"dev_merchant_app_id"`
-	DevFabricAppID   string `form:"dev_fabric_app_id"`
-	DevShortCode     string `form:"dev_short_code"`
-	DevAppSecret     string `form:"dev_app_secret"`
-	DevPrivateKey    string `form:"dev_private_key"`
-	DevPublicKey     string `form:"dev_public_key"`
 }
 
 // MiniAppResponse struct
@@ -92,9 +63,13 @@ type MiniAppResponse struct {
 	ID                string                                `json:"id"`
 	AppName           string                                `json:"app_name"`
 	AppIcon           string                                `json:"app_icon"`
-	CommisonGLAccount string                                `json:"commison_gl_account"`
+	CommisonGLAccount string                                `json:"commison_gl_account,omitempty"`
 	AppType           miniappentity.AppType                 `json:"app_type"`
 	MerchantID        string                                `json:"merchant_id"`
+	AppViewType       miniappentity.AppViewType             `json:"app_view_type"`
+	URL               string                                `json:"url,omitempty"`
+	MPAASID           string                                `json:"mpaas_id,omitempty"`
+	Stage             miniappentity.Stage                   `json:"stage"`
 	ProductCode       []miniappentity.ProductCode           `json:"product_code"`
 	Credential        []miniappentity.CredentialInformation `json:"credential"`
 	IsEventMiniApp    bool                                  `json:"is_event_mini_app"`
@@ -110,9 +85,10 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.AppName, validation.Required.Error("app_name is required")),
-			validation.Field(&r.CommissionGLAccount, validation.Required.Error("commission_gl_account is required")),
 			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required")),
 			validation.Field(&r.AppIcon, validation.Required, validation.By(validateFile)),
+			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required")),
+			validation.Field(&r.AppType, validation.Required.Error("app_type is required")),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
@@ -126,10 +102,10 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 	}
 
 	return validation.Validate(&r,
-		validation.By(validateAppType(r, isCreate)),
+		validation.By(validateAppType(r)),
 		validation.By(validateProductCodes(r, isCreate)),
-		validation.By(validateCredentials(r, isCreate)),
 		validation.By(validateExclusiveAppFlags(r)),
+		validation.By(validateAppViewType(r)),
 	)
 }
 
@@ -145,30 +121,50 @@ func validateFile(value interface{}) error {
 	return nil
 }
 
-// validateAppType ensures exactly one app type is provided
-func validateAppType(r MiniAppRequest, isCreate bool) validation.RuleFunc {
-	return func(value interface{}) error {
-		types := []string{r.AppTypeUAT, r.AppTypeProd, r.AppTypeTest, r.AppTypeDev}
-		count := 0
-		for _, t := range types {
-			if strings.TrimSpace(t) != "" {
-				count++
+// validateAppType ensures exactly one app type is provided and validates URL if AppType is "URL"
+func validateAppType(r MiniAppRequest) validation.RuleFunc {
+	return func(value any) error {
+		if strings.ToUpper(r.AppType) == "URL" {
+			if r.URL == "" {
+				return errors.New("URL_REQUIRED")
 			}
-		}
-
-		if isCreate && count == 0 {
-			return errors.New("one app type (app_type_uat, app_type_production, app_type_test, app_type_dev) must be provided")
-		}
-		if count > 1 {
-			return errors.New("only one app type (app_type_uat, app_type_production, app_type_test, app_type_dev) can be provided")
+			// Validate if URL is valid
+			if err := validateURL(r.URL); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
 }
 
+// validURL is a stricter regex for basic URL validation as a fallback
+var validURL = regexp.MustCompile(`^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[\w-./?%&=]*)?$`)
+
+// validateURL checks if the provided string is a valid URL
+func validateURL(raw string) error {
+	parsedURL, err := url.ParseRequestURI(raw)
+	if err != nil {
+		return errors.New("INVALID_URL")
+	}
+
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return errors.New("INVALID_URL")
+	}
+
+	if parsedURL.Host == "" {
+		return errors.New("INVALID_URL")
+	}
+
+	if !validURL.MatchString(raw) {
+		return errors.New("INVALID_URL")
+	}
+
+	return nil
+}
+
 // validateProductCodes ensures product codes are valid and complete for each branch
 func validateProductCodes(r MiniAppRequest, isCreate bool) validation.RuleFunc {
-	return func(value interface{}) error {
+	return func(value any) error {
 		products := []struct {
 			BranchType     BranchType
 			ProductCode    string
@@ -186,7 +182,7 @@ func validateProductCodes(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 			hasAll := p.ProductCode != "" && p.VATCode != "" && p.ServiceFeeCode != ""
 
 			if hasAny && !hasAll {
-				return fmt.Errorf("all fields for branch_type %s must be provided if one is set", p.BranchType)
+				return errors.New("INCOMPLETE_BRANCH_PRODUCT_CODES")
 			}
 			if hasAll {
 				validBranchCount++
@@ -194,49 +190,35 @@ func validateProductCodes(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 		}
 
 		if isCreate && validBranchCount == 0 {
-			return errors.New("at least one complete set of product codes (IFB or CB) must be provided")
+			return errors.New("NO_PRODUCT_CODES_PROVIDED")
+		}
+
+		if r.AppViewType == "BOTH" {
+			if validBranchCount != 2 {
+				return errors.New("BOTH_PRODUCT_CODES_REQUIRED")
+			}
 		}
 
 		return nil
 	}
 }
 
-// validateCredentials ensures exactly one credential environment is provided and valid
-func validateCredentials(r MiniAppRequest, isCreate bool) validation.RuleFunc {
-	return func(value interface{}) error {
-		creds := []struct {
-			Environment   EnvironmentType
-			MerchantAppID string
-			FabricAppID   string
-			ShortCode     string
-			AppSecret     string
-			PrivateKey    string
-			PublicKey     string
-		}{
-			{UatEnvironment, r.UATMerchantAppID, r.UATFabricAppID, r.UATShortCode, r.UATAppSecret, r.UATPrivateKey, r.UATPublicKey},
-			{ProductionEnvironment, r.ProdMerchantAppID, r.ProdFabricAppID, r.ProdShortCode, r.ProdAppSecret, r.ProdPrivateKey, r.ProdPublicKey},
-			{TestEnvironment, r.TestMerchantAppID, r.TestFabricAppID, r.TestShortCode, r.TestAppSecret, r.TestPrivateKey, r.TestPublicKey},
-			{DevEnvironment, r.DevMerchantAppID, r.DevFabricAppID, r.DevShortCode, r.DevAppSecret, r.DevPrivateKey, r.DevPublicKey},
+// validateAppViewType ensures app_view_type is one of the allowed values
+func validateAppViewType(r MiniAppRequest) validation.RuleFunc {
+	return func(value any) error {
+		viewType := strings.TrimSpace(r.AppViewType)
+		if viewType == "" {
+			return errors.New("APP_VIEW_TYPE_INVALID_OR_MISSING")
 		}
 
-		seenEnvs := make(map[EnvironmentType]bool)
-		for _, c := range creds {
-			if c.MerchantAppID == "" && c.FabricAppID == "" && c.ShortCode == "" &&
-				c.AppSecret == "" && c.PrivateKey == "" && c.PublicKey == "" {
-				continue
-			}
-			if c.MerchantAppID == "" || c.FabricAppID == "" || c.ShortCode == "" ||
-				c.AppSecret == "" || c.PrivateKey == "" || c.PublicKey == "" {
-				return fmt.Errorf("all credential fields for environment %s must be provided", c.Environment)
-			}
-			seenEnvs[c.Environment] = true
+		// Validate against allowed enum values
+		switch viewType {
+		case string(miniappentity.AppViewTypeBoth), string(miniappentity.AppViewTypeCB), string(miniappentity.AppViewTypeIFB):
+			return nil
+
+		default:
+			return errors.New("INVALID_APP_VIEW_TYPE")
 		}
-
-		// if isCreate && len(seenEnvs) < 1 {
-		// 	return errors.New("at least one credential environment must be provided")
-		// }
-
-		return nil
 	}
 }
 
@@ -244,36 +226,26 @@ func (r *MiniAppRequest) GetAppType(isCreate bool) (miniappentity.AppType, error
 	var selected miniappentity.AppType
 	count := 0
 
-	if r.AppTypeUAT != "" {
-		selected = miniappentity.UAT
+	if strings.ToUpper(r.AppType) == "URL" {
+		selected = miniappentity.URL
 		count++
 	}
-	if r.AppTypeProd != "" {
-		selected = miniappentity.Production
-		count++
-	}
-	if r.AppTypeTest != "" {
-		selected = miniappentity.Test
-		count++
-	}
-	if r.AppTypeDev != "" {
-		selected = miniappentity.Dev
+	if strings.ToUpper(r.AppType) == "MPAASID" {
+		selected = miniappentity.MPAASID
 		count++
 	}
 
 	if count == 0 && isCreate {
-		return "", errors.New("one app type must be provided")
+		return "", errors.New("APP_TYPE_MISSING")
 	}
-	if count > 1 {
-		return "", errors.New("only one app type is allowed")
-	}
+
 	return selected, nil
 }
 
 func validateExclusiveAppFlags(r MiniAppRequest) validation.RuleFunc {
 	return func(value any) error {
 		if r.IsEventMiniApp && r.IsThreeClick {
-			return errors.New("only one of is_event_mini_app or is_three_click can be true")
+			return errors.New("EXCLUSIVE_APP_FLAGS")
 		}
 		return nil
 	}
