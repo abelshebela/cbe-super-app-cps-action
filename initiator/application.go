@@ -32,6 +32,7 @@ import (
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
+	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/check_service"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
@@ -70,6 +71,7 @@ type Application struct {
 	BudgetCategoryApplication  budget_category.BudgetCategoryApplicationService
 	FileService                file.FileService
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
+	ServicCheckeApplication    service_application.ApplicationService
 	AccountLookupApplication   account_application.UserSearchService
 }
 
@@ -98,11 +100,13 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain ,logger),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
+		// MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, logger),
+		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
 	}

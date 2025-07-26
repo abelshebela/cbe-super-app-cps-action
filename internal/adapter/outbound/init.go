@@ -172,8 +172,8 @@ func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceD
 			Key:         v.Key,
 			Cap: domain.Cap{
 				KYCLevel:  domain.KYCLevel(v.Cap.KYCLevel),
-				SingleCap: v.Cap.SingleCap,
-				DailyCap:  v.Cap.DailyCap,
+				SingleCap: v.Cap.ISingleCap,
+				DailyCap:  v.Cap.IDailyCap,
 				MinAmount: v.Cap.MinAmount,
 			},
 			CBEProductCodes: domain.ProductCodes{
@@ -248,8 +248,8 @@ func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, l
 			Key:         v.Key,
 			Cap: domain.Cap{
 				KYCLevel:  domain.KYCLevel(v.Cap.KYCLevel),
-				SingleCap: v.Cap.SingleCap,
-				DailyCap:  v.Cap.DailyCap,
+				SingleCap: v.Cap.ISingleCap,
+				DailyCap:  v.Cap.IDailyCap,
 				MinAmount: v.Cap.MinAmount,
 			},
 			CBEProductCodes: domain.ProductCodes{
@@ -328,8 +328,8 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 		Key:         data.Key,
 		Cap: domain.Cap{
 			KYCLevel:  domain.KYCLevel(data.Cap.KYCLevel),
-			SingleCap: data.Cap.SingleCap,
-			DailyCap:  data.Cap.DailyCap,
+			SingleCap: data.Cap.ISingleCap,
+			DailyCap:  data.Cap.IDailyCap,
 			MinAmount: data.Cap.MinAmount,
 		},
 		CBEProductCodes: domain.ProductCodes{
@@ -1630,18 +1630,18 @@ func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, u
 func convertToServiceCap(c model.Cap) serviceDomain.Cap {
 	return serviceDomain.Cap{
 		KYCLevel:  serviceDomain.KYCLevel(c.KYCLevel),
-		SingleCap: c.SingleCap,
-		DailyCap:  c.DailyCap,
+		SingleCap: c.ISingleCap,
+		DailyCap:  c.IDailyCap,
 		MinAmount: c.MinAmount,
 	}
 }
 
 func convertToModelCap(c serviceDomain.Cap) model.Cap {
 	return model.Cap{
-		KYCLevel:  model.KYCLevel(c.KYCLevel),
-		SingleCap: c.SingleCap,
-		DailyCap:  c.DailyCap,
-		MinAmount: c.MinAmount,
+		KYCLevel:   model.KYCLevel(c.KYCLevel),
+		ISingleCap: c.SingleCap,
+		IDailyCap:  c.DailyCap,
+		MinAmount:  c.MinAmount,
 	}
 }
 
@@ -1892,11 +1892,11 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 			return model.Cap{}
 		}
 		return model.Cap{
-			KYCLevel:  model.KYCLevel(safeStringFromMap(capMap, "kyc_level")),
-			SingleCap: safeUint64FromMap(capMap, "single_cap"),
-			DailyCap:  safeUint64FromMap(capMap, "daily_cap"),
-			MinAmount: safeUint64FromMap(capMap, "min_amount"),
-			MaxAmount: safeUint64FromMap(capMap, "max_amount"),
+			KYCLevel:   model.KYCLevel(safeStringFromMap(capMap, "kyc_level")),
+			ISingleCap: safeUint64FromMap(capMap, "single_cap"),
+			IDailyCap:  safeUint64FromMap(capMap, "daily_cap"),
+			MinAmount:  safeUint64FromMap(capMap, "min_amount"),
+			MaxAmount:  safeUint64FromMap(capMap, "max_amount"),
 		}
 	}
 	// Helper for ProductCodes
