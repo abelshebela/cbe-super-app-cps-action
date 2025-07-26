@@ -319,6 +319,10 @@ var errorKeyToStatus = map[string]int{
 	"INVALID_PERMISSION_GROUP_ID":                 http.StatusBadRequest,
 	"NO_PERMISSION_GROUP_FOUND":                   http.StatusNotFound,
 	"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND":     http.StatusNotFound,
+
+	// Bulk_Service
+	"BULK_SERVICE_CODE_IS_REQUIRED": http.StatusBadRequest,
+	"SURVICE_NOT_FOUND":             http.StatusNotFound,
 }
 
 func getStatusForErrorKey(key string) int {
@@ -435,6 +439,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Action,
 		common.DefineError.AD,
 		common.DefineError.Permission,
+		common.DefineError.BulkService,
 	}
 
 	for _, group := range errorGroups {

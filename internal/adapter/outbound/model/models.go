@@ -124,6 +124,8 @@ const (
 	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
 	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
 	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
+	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"

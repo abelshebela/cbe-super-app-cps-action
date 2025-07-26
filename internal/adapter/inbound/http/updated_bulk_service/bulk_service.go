@@ -35,5 +35,24 @@ func (h BulkServiceHandler) GetAllBulkServices(w http.ResponseWriter, r *http.Re
 	common_util.BaseResponseMaker(doc, w, "Bulk Services fetched successfully", 200)
 }
 
-// func (h BulkServiceHandler) EnableBulkService(w http.ResponseWriter, r *http.Request)  {}
-// func (h BulkServiceHandler) DisableBulkService(w http.ResponseWriter, r *http.Request) {}
+func (h BulkServiceHandler) EnableBulkService(w http.ResponseWriter, r *http.Request) {
+	err := h.app.EnableBulkService(r.Context(), r)
+	if err != nil {
+		h.logger.Errorf("Enable bulk service request failed: %v\n", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(nil, w, "Request to enable bulk service submitted successfully", 200)
+}
+
+func (h BulkServiceHandler) DisableBulkService(w http.ResponseWriter, r *http.Request) {
+	err := h.app.DisableBulkService(r.Context(), r)
+	if err != nil {
+		h.logger.Errorf("Disable bulk service request failed: %v\n", err)
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	common_util.BaseResponseMaker(nil, w, "Request to disable bulk service submitted successfully", 200)
+}

@@ -2,19 +2,24 @@ package updatedbulkservice
 
 import (
 	"context"
+	"fmt"
+	"time"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	// action_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	cps_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type BulkService interface {
 	GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*ServiceDetails], error)
-	// EnableDisableUser(ctx context.Context, userCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error
-	// AuthorizeUserEnable(ctx context.Context, action *action_entity.CPSAction) (*action_entity.CPSAction, error)
-	// AuthorizeUserDisable(ctx context.Context, action *action_entity.CPSAction) (*action_entity.CPSAction, error)
+	EnableBulkService(ctx context.Context, service_code string) error
+	DisableBulkService(ctx context.Context, service_code string) error
+	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 }
 
 type bulkServiceImpl struct {
@@ -30,12 +35,74 @@ func (b *bulkServiceImpl) GetAllBulkServices(ctx context.Context, filterParams *
 	return b.repo.GetAllBulkServices(ctx, filterParams)
 }
 
-// func (b *bulkServiceImpl) EnableDisableUser(ctx context.Context, userCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
-// }
+func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, service_code string) error {
+	userPayload := ctx_util.ExtractContext(ctx)
+	actionCode := utils.RandomGenerator(24)
 
-// func (b *bulkServiceImpl) AuthorizeUserEnable(ctx context.Context, action *action_entity.CPSAction) (*action_entity.CPSAction, error) {
-// }
+	action := ServiceDetails{
+		ServiceCode: service_code,
+		Enabled:     true,
+	}
 
-// func (b *bulkServiceImpl) AuthorizeUserDisable(ctx context.Context, action *action_entity.CPSAction) (*action_entity.CPSAction, error) {
-// 	return nil, nil
-// }
+	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       actionCode,
+		UniqueId:         userPayload.UserCode,
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionEnable),
+		RequestAction:    string(model.RequestBulkServiceEnable),
+		PreviousAction:   nil,
+		CurrentAction:    action,
+		CreatedAt:        time.Now(),
+		MakerActionTime:  time.Now(),
+	}
+
+	return b.repo.EnableOrDisableBulkService(ctx, service_code, cpsAction, model.RequestBulkServiceEnable)
+}
+
+func (b *bulkServiceImpl) DisableBulkService(ctx context.Context, service_code string) error {
+	userPayload := ctx_util.ExtractContext(ctx)
+	actionCode := utils.RandomGenerator(24)
+
+	action := ServiceDetails{
+		ServiceCode: service_code,
+		Enabled:     false,
+	}
+
+	cpsAction := model.CPSAction{
+		ID:               bson.NewObjectID(),
+		ActionCode:       actionCode,
+		UniqueId:         userPayload.UserCode,
+		MakerID:          userPayload.UserID,
+		MakerName:        userPayload.FullName,
+		MakerPhoneNumber: userPayload.PhoneNumber,
+		Department:       userPayload.Department,
+		ActionStatus:     string(model.ActionPending),
+		ActionType:       string(model.ActionDisable),
+		RequestAction:    string(model.RequestBulkServiceDisable),
+		PreviousAction:   nil,
+		CurrentAction:    action,
+		CreatedAt:        time.Now(),
+		MakerActionTime:  time.Now(),
+	}
+
+	return b.repo.EnableOrDisableBulkService(ctx, service_code, cpsAction, model.RequestBulkServiceDisable)
+}
+
+func (b *bulkServiceImpl) Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
+	action.MakerActionTime = time.Now()
+	action.LastModifiedAt = time.Now()
+
+	switch action.ActionType {
+	case cps_constant.ActionEnable:
+		return b.repo.AuthorizeBulkServiceEnable(ctx, action)
+	case cps_constant.ActionDisable:
+		return b.repo.AuthorizeBulkServiceDisable(ctx, action)
+	default:
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+}

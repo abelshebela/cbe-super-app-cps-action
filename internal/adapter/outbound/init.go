@@ -145,6 +145,7 @@ func (p *outboundStore) FindPendingAction(ctx context.Context, requestAction str
 	}
 	return modelToDomainCPSAction(*result), nil
 }
+
 func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {

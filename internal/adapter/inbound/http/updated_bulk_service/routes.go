@@ -22,24 +22,24 @@ func RegisterBulkServiceRoutes(router chi.Router, handler inbound.BulkServiceHan
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
-			// {
-			// 	Method:  http.MethodPost,
-			// 	Path:    "/disable/{id}",
-			// 	Handler: handler.DisableBulkService,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-			// 	},
-			// },
-			// {
-			// 	Method:  http.MethodPost,
-			// 	Path:    "/enable/{id}",
-			// 	Handler: handler.EnableBulkService,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-			// 	},
-			// },
+			{
+				Method:  http.MethodPost,
+				Path:    "/disable/{service_code}",
+				Handler: handler.DisableBulkService,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/enable/{service_code}",
+				Handler: handler.EnableBulkService,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
 		}
 		route.RegisterRoutes(r, routes)
 	})

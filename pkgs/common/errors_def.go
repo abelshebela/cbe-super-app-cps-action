@@ -23,6 +23,7 @@ type ErrorDefinitions struct {
 	Wallet      ErrorGroup
 	AD          ErrorGroup
 	Permission  ErrorGroup
+	BulkService ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -1460,6 +1461,16 @@ var DefineError = ErrorDefinitions{
 		"ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND": {
 			Code:    "PERM_006",
 			Message: "One or more permission groups not found.",
+		},
+	},
+	BulkService: ErrorGroup{
+		"BULK_SERVICE_CODE_IS_REQUIRED": {
+			Code:    "BULK_001",
+			Message: "Bulk service code is required",
+		},
+		"SURVICE_NOT_FOUND": {
+			Code:    "BULK_002",
+			Message: "Service not found",
 		},
 	},
 }
