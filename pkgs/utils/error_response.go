@@ -167,7 +167,8 @@ var errorKeyToStatus = map[string]int{
 	"MAX_NOT_BE_LESS":                                            http.StatusBadRequest,
 	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
 	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
-	"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
+		"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
+	}
 
 
 
