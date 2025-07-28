@@ -4,8 +4,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
-
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
@@ -22,7 +20,6 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
-	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
@@ -32,8 +29,8 @@ import (
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
-	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/check_service"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -55,11 +52,9 @@ type Application struct {
 	CPSUserApplication         cpsusermaker.ApplicationService
 	PasswordRuleApplication    *passwordrule.PasswordRuleHandler
 	PortalCardApplication      portalcard.PortalCardApplication
-	ServiceDetailApplication   service_details_app.ApplicationAbstracts
 	DepartmentApplication      department.DepartmentService
 	AccountBlockApplication    account_block.ApplicationService
 	HQApplication              hq.ApplicationAbstracts
-	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 	MiniAppApplication         miniApp_application.ApplicationAbstracts
@@ -93,13 +88,11 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
-		ServiceDetailApplication:   service_details_app.NewApplication(domain.ServiceDomain, logger),
 		DepartmentApplication:      department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 		AccountBlockApplication:    account_block.NewApplicationHandler(domain.AccountBlockDomain),
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
-		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),

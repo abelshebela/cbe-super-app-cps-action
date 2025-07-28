@@ -104,14 +104,15 @@ type CPSAction struct {
 	CheckerPhoneNumber string        `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
 	Department         string        `bson:"department" json:"department"`
 	RejectionReason    string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
-	PreviousAction     interface{}   `bson:"previous_action" json:"previous_action"`
-	CurrentAction      interface{}   `bson:"current_action" json:"current_action"`
-	ActionStatus       string        `bson:"action_status" json:"action_status"`
-	ActionType         string        `bson:"action_type" json:"action_type"`
+	PreviousAction     interface{}   `bson:"previous_action" json:"previous_action,omitempty"`
+	CurrentAction      interface{}   `bson:"current_action" json:"current_action,omitempty"`
+	ActionStatus       string        `bson:"action_status" json:"action_status,omitempty"`
+	ActionType         string        `bson:"action_type" json:"action_type,omitempty"`
+	IsDeleted          bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
 	RequestAction      string        `bson:"request_action" json:"request_action"`
-	CreatedAt          time.Time     `bson:"created_at" json:"created_at"`
-	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at"`
-	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time"`
+	CreatedAt          time.Time     `bson:"created_at" json:"created_at,omitempty"`
+	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at,omitempty"`
+	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time,omitempty"`
 	CheckerActionTime  *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
 
@@ -424,20 +425,19 @@ type GLEntry struct {
 }
 
 type Tier struct {
-	ID        bson.ObjectID `bson:"id"`
+	ID        bson.ObjectID `bson:"id" json:"-"`
 	Min       uint64        `bson:"min"`
 	Max       uint64        `bson:"max"`
 	FeeAmount uint64        `bson:"fee_amount"`
 }
 
 type Cap struct {
-	KYCLevel           KYCLevel `bson:"kyc_level"`
-	ISingleCap         uint64   `bson:"individual_single_cap"`
-	IDailyCap          uint64   `bson:"individual_daily_cap"`
-	CorporateSingleCap uint64   `bson:"corporate_single_cap"`
-	CorporateDailyCap  uint64   `bson:"corporate_daily_cap"`
-	MinAmount          uint64   `bson:"min_amount"`
-	MaxAmount          uint64   `bson:"max_amount"`
+	KYCLevel           KYCLevel `json:"kyc_level" bson:"kyc_level"`
+	ISingleCap         uint64   `json:"individual_single_cap" bson:"individual_single_cap"`
+	IDailyCap          uint64   `json:"individual_daily_cap" bson:"individual_daily_cap"`
+	CorporateSingleCap uint64   `json:"corporate_single_cap" bson:"corporate_single_cap"`
+	CorporateDailyCap  uint64   `json:"corporate_daily_cap" bson:"corporate_daily_cap"`
+	MinAmount          uint64   `json:"min_amount" bson:"min_amount"`
 }
 
 type ServiceDetails struct {

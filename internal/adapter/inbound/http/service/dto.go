@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strconv"
 
 	local_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -26,41 +25,43 @@ type ApplicationService interface {
 
 type UpdateServiceFeeRequest struct {
 	ID        string `json:"tire_id"`
-	MinAmount string `json:"min_amount"`
-	MaxAmount string `json:"max_amount"`
+	MinAmount uint64 `json:"min_amount"`
+	MaxAmount uint64 `json:"max_amount"`
 }
 
+// StringToUint64 converts MinAmount and MaxAmount from string to uint64
+
 type TierDTO struct {
-	Min       string `json:"min"`
-	Max       string `json:"max"`
-	FeeAmount string `json:"feeAmount"`
+	Min       uint64 `json:"min"`
+	Max       uint64 `json:"max"`
+	FeeAmount uint64 `json:"fee_amount"`
 }
 
 type CBglEntryDTO struct {
-	CBglProductAccount    string `json:"CBglProductAccount"`
-	CBglProductBranchcode string `json:"CBglProductBranchcode"`
-	CBglServiceAccount    string `json:"CBglServiceAccount"`
-	CBglServiceBranchcode string `json:"CBglServiceBranchcode"`
+	CBglProductAccount    string `json:"cbgl_product_account"`
+	CBglProductBranchcode string `json:"cbgl_product_branchcode"`
+	CBglServiceAccount    string `json:"cbgl_service_account"`
+	CBglServiceBranchcode string `json:"cbgl_service_branchcode"`
 }
 
 type IFBglEntryDTO struct {
-	IFBglProductAccount    string `json:"IFBglProductAccount"`
-	IFBglProductBranchcode string `json:"IFBglProductBranchcode"`
-	IFBglServiceAccount    string `json:"IFBglServiceAccount"`
-	IFBglServiceBranchcode string `json:"IFBglServiceBranchcode"`
+	IFBglProductAccount    string `json:"ifbgl_product_account"`
+	IFBglProductBranchcode string `json:"ifbgl_product_branchcode"`
+	IFBglServiceAccount    string `json:"ifbgl_service_account"`
+	IFBglServiceBranchcode string `json:"ifbgl_service_branchcode"`
 }
 
 type ServiceFeeDetailDTO struct {
-	ServiceType       string        `json:"serviceType"`
-	PaymentType       string        `json:"paymentType"`
-	SingleCapLevelOne int           `json:"singleCapLevelOne"`
-	DailyCapLevelOne  int           `json:"dailyCapLevelOne"`
-	MinAmountVIRTUAL  int           `json:"minAmountVIRTUAL"`
-	AboveAmount       string        `json:"aboveAmount"`
-	AboveServiceFee   string        `json:"aboveServiceFee"`
+	ServiceType       string        `json:"service_type"`
+	PaymentType       string        `json:"payment_type"`
+	SingleCapLevelOne int           `json:"single_cap_level_one"`
+	DailyCapLevelOne  int           `json:"daily_cap_level_one"`
+	MinAmountVIRTUAL  int           `json:"min_amount_virtual"`
+	AboveAmount       uint64        `json:"above_amount"`
+	AboveServiceFee   uint64        `json:"above_service_fee"`
 	Tiers             []TierDTO     `json:"tiers"`
-	CBglEntry         CBglEntryDTO  `json:"CBglEntry"`
-	IFBglEntry        IFBglEntryDTO `json:"IFBglEntry"`
+	CBglEntry         CBglEntryDTO  `json:"cbgl_entry"`
+	IFBglEntry        IFBglEntryDTO `json:"ifbgl_entry"`
 }
 
 func (dto *ServiceFeeDetailDTO) Validate() error {
@@ -83,20 +84,16 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 	for i := 0; i < len(dto.Tiers); i++ {
 		tier := dto.Tiers[i]
 
-		min, errMin := strconv.ParseFloat(tier.Min, 64)
-		max, errMax := strconv.ParseFloat(tier.Max, 64)
-		if errMin != nil || errMax != nil {
-			return fmt.Errorf("invalid min or max value in tier %d", i+1)
-		}
+		min := tier.Min
+		max := tier.Max
+
 		if min >= max {
 			return fmt.Errorf("in tier %d, min must be less than max", i+1)
 		}
 		if i < len(dto.Tiers)-1 {
 			nextTier := dto.Tiers[i+1]
-			nextMin, errNextMin := strconv.ParseFloat(nextTier.Min, 64)
-			if errNextMin != nil {
-				return fmt.Errorf("invalid min value in tier %d", i+2)
-			}
+			nextMin := nextTier.Min
+
 			if max != nextMin {
 				return fmt.Errorf("tier %d max must equal tier %d min", i+1, i+2)
 			}
@@ -106,14 +103,14 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 }
 
 type SingleMaxTransferRequest struct {
-	ISingleCap string `json:"individual_single_cap"`
-	IDailyCap  string `json:"individual_daily_cap"`
-	CSingleCap string `json:"corporate_single_cap"`
-	CDailyCap  string `json:"corporate_daily_cap"`
+	ISingleCap uint64 `json:"individual_single_cap"`
+	IDailyCap  uint64 `json:"individual_daily_cap"`
+	CSingleCap uint64 `json:"corporate_single_cap"`
+	CDailyCap  uint64 `json:"corporate_daily_cap"`
 }
 
 type TotalMaxTransferUpdateRequest struct {
-	TotalTransferLimit string `json:"total_cap"`
+	TotalTransferLimit uint64 `json:"total_cap"`
 }
 
 func (r *TotalMaxTransferUpdateRequest) Validate() error {
@@ -128,7 +125,7 @@ func (r *TotalMaxTransferUpdateRequest) Validate() error {
 }
 
 type MinimumTransferUpdateRequest struct {
-	Minimum string `json:"min_amount"`
+	Minimum uint64 `json:"min_amount"`
 }
 
 func (r *MinimumTransferUpdateRequest) Validate() error {

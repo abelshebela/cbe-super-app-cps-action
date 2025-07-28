@@ -19,14 +19,13 @@ import (
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
-	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
-	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 )
@@ -53,7 +52,6 @@ type Domain struct {
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service
 	PortalCardDomain      portalcard.PortaCardInterface
-	ServiceDomain         service.ServiceInterface // not done
 	UnlinkDomain          *unlink_service.Service
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
