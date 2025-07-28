@@ -6,14 +6,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 )
 
-func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandler, authMiddleware middleware.AuthMiddleware) {
+func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandler, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/events", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -23,6 +23,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateEvent)),
 				},
 			},
 			{
@@ -32,6 +33,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateEvent)),
 				},
 			},
 			{
@@ -41,6 +43,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableEvent)),
 				},
 			},
 			{
@@ -50,6 +53,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDisableEvent)),
 				},
 			},
 			{
@@ -59,6 +63,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDeleteEvent)),
 				},
 			},
 			{
@@ -67,7 +72,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Handler: handler.FetchEventByID,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker,role.Maker, role.IFBMaker}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker, role.Maker, role.IFBMaker}),
 				},
 			},
 			{
@@ -76,7 +81,7 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 				Handler: handler.FetchEvents,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker,role.Maker, role.IFBMaker}),
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker, role.Maker, role.IFBMaker}),
 				},
 			},
 		}

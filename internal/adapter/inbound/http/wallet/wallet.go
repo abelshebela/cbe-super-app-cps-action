@@ -37,7 +37,6 @@ func toModelUser(userContext ctx_util.UserContext) model.User {
 
 func createCPSUserForCreate(r *http.Request, actionData any) (*model.CreateCPSAction, error) {
 	userContext := ctx_util.ExtractUserContext(r)
-
 	if userContext.IsIncomplete() {
 		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
 	}

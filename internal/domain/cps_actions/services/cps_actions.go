@@ -78,17 +78,6 @@ func (a *cpsActionService) HandleMakerAction(ctx context.Context, buildAction fu
 		return nil, err
 	}
 
-	_, err = a.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return a.CreateCPSAction(ctx, action)
 }
 

@@ -295,9 +295,6 @@ func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps
 
 func (s *MiniAppStore) EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*entities.CPSAction, error) {
 	prevApp, err := s.repository.DetailMiniAppByID(ctx, id)
-
-	fmt.Println(prevApp.Enabled, "prevApp.Enabled")
-	fmt.Println(enabled)
 	if err != nil {
 		return nil, err
 	}

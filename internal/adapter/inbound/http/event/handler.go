@@ -153,7 +153,6 @@ func (h *EventHTTPStore) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	PrettyPrintJSON(req)
 	maker, ok := h.extractUserAndMaker(w, r)
 	if !ok {
 		return

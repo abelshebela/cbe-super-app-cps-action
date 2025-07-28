@@ -2,7 +2,6 @@ package event_application
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
@@ -49,17 +48,6 @@ func NewEventApplication(service domain.EventService,
 
 // handleCPSAction encapsulates the common CPS action logic
 func (a *ApplicationStore) handleCPSAction(ctx context.Context, maker cps_entitites.User, requestAction cps_const.RequestAction, curData, prevData interface{}, actionType cps_const.ActionType) error {
-	_, err := a.cpsService.CPSActionExists(ctx, cps_entitites.CheckCPSAction{
-		UserCode:      maker.UserCode,
-		FullName:      maker.FullName,
-		Department:    maker.Department,
-		PhoneNumber:   maker.PhoneNumber,
-		RequestAction: string(requestAction),
-	})
-	if err != nil {
-		return err
-	}
-
 	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
 		User:          maker,
 		CurData:       curData,
@@ -69,7 +57,7 @@ func (a *ApplicationStore) handleCPSAction(ctx context.Context, maker cps_entiti
 		ActionType:    actionType,
 	})
 
-	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
+	_, err := a.cpsService.CreateCPSAction(ctx, cpsAction)
 	return err
 }
 
@@ -143,16 +131,6 @@ func (a *ApplicationStore) EnableDisableEvent(ctx context.Context, id string, ma
 	}
 
 	return a.handleCPSAction(ctx, maker, action, curAction, prevAction, cps_const.ActionUpdate)
-}
-
-func PrettyPrintJSON(data interface{}) error {
-	prettyJSON, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(prettyJSON))
-	return nil
 }
 
 func (a *ApplicationStore) FetchEventByID(ctx context.Context, id string) (*evententity.Event, error) {
