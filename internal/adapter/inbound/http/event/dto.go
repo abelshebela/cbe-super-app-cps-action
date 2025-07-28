@@ -94,63 +94,72 @@ func validateTickets(e EventRequest, isCreate bool) validation.RuleFunc {
 }
 
 func (e EventRequest) Validate(isCreate bool) error {
-	// For updates, return no error if the request is empty
+	// For updates, return no error if the request is completely empty
 	if !isCreate && e.IsEmpty() {
 		return nil
 	}
 
-	// Apply field-specific validation rules
-	var fieldRules []*validation.FieldRules
+	var rules []*validation.FieldRules
+
 	if isCreate {
-		// All fields are required for create
-		fieldRules = []*validation.FieldRules{
-			validateRequiredString(&e.MerchantID, "merchant_id"),
-			validateRequiredString(&e.EventName, "event_name"),
-			validateRequiredString(&e.EventVenue, "event_venue"),
-			validateRequiredString(&e.EventCity, "event_city"),
-			validation.Field(&e.StartDate, validation.Required.Error("start_date is required")),
-			validation.Field(&e.DueDate, validation.Required.Error("due_date is required")),
-			validation.Field(&e.CoverImage, validation.Required.Error("cover_image is required")),
-			validateRequiredString(&e.EventDescription, "event_description"),
-			validation.Field(&e.TotalTicketCount, validation.Required.Error("total_ticket_count is required"), validation.Min(uint(1)).Error("total_ticket_count must be at least 1")),
-			validation.Field(&e.Tickets, validation.Required.Error("tickets are required")),
+		rules = []*validation.FieldRules{
+			validation.Field(&e.MerchantID, validation.Required.Error("merchant_id is required")),
+			validation.Field(&e.EventName, validation.Required.Error("event_name is required")),
+			validation.Field(&e.EventVenue, validation.Required.Error("event_venue is required")),
+			validation.Field(&e.EventCity, validation.Required.Error("event_city is required")),
+			validation.Field(&e.StartDate, validation.Required.Error("start_date is required"), validation.By(validateStartDate(e))),
+			validation.Field(&e.DueDate, validation.Required.Error("due_date is required"), validation.By(validateDueDate(e))),
+			validation.Field(&e.CoverImage, validation.Required.Error("cover_image is required"), validation.By(validateCoverImage(e))),
+			validation.Field(&e.EventDescription, validation.Required.Error("event_description is required")),
+			validation.Field(&e.TotalTicketCount,
+				validation.Required.Error("total_ticket_count is required"),
+				validation.Min(uint(1)).Error("total_ticket_count must be at least 1"),
+			),
+			validation.Field(&e.Tickets, validation.Required.Error("tickets are required"), validation.By(validateTickets(e, isCreate))),
 		}
 	} else {
-		// Only validate provided fields for update
+		// For update: only validate fields that are present (non-zero / non-empty)
 		if e.MerchantID != "" {
-			fieldRules = append(fieldRules, validateRequiredString(&e.MerchantID, "merchant_id"))
+			rules = append(rules, validation.Field(&e.MerchantID, validation.Required.Error("merchant_id is required")))
 		}
 		if e.EventName != "" {
-			fieldRules = append(fieldRules, validateRequiredString(&e.EventName, "event_name"))
+			rules = append(rules, validation.Field(&e.EventName, validation.Required.Error("event_name is required")))
 		}
 		if e.EventVenue != "" {
-			fieldRules = append(fieldRules, validateRequiredString(&e.EventVenue, "event_venue"))
+			rules = append(rules, validation.Field(&e.EventVenue, validation.Required.Error("event_venue is required")))
 		}
 		if e.EventCity != "" {
-			fieldRules = append(fieldRules, validateRequiredString(&e.EventCity, "event_city"))
+			rules = append(rules, validation.Field(&e.EventCity, validation.Required.Error("event_city is required")))
+		}
+		if !e.StartDate.IsZero() {
+			rules = append(rules, validation.Field(&e.StartDate, validation.By(validateStartDate(e))))
+		}
+		if !e.DueDate.IsZero() {
+			rules = append(rules, validation.Field(&e.DueDate, validation.By(validateDueDate(e))))
+		}
+		if e.CoverImage != nil {
+			rules = append(rules, validation.Field(&e.CoverImage, validation.By(validateCoverImage(e))))
 		}
 		if e.EventDescription != "" {
-			fieldRules = append(fieldRules, validateRequiredString(&e.EventDescription, "event_description"))
+			rules = append(rules, validation.Field(&e.EventDescription, validation.Required.Error("event_description is required")))
 		}
 		if e.TotalTicketCount != 0 {
-			fieldRules = append(fieldRules, validation.Field(&e.TotalTicketCount, validation.Min(uint(1)).Error("total_ticket_count must be at least 1")))
+			rules = append(rules, validation.Field(&e.TotalTicketCount,
+				validation.Min(uint(1)).Error("total_ticket_count must be at least 1")))
+		}
+		if e.Tickets != nil && len(e.Tickets) > 0 {
+			rules = append(rules, validation.Field(&e.Tickets, validation.By(validateTickets(e, isCreate))))
 		}
 	}
 
-	// Apply field-specific validations
-	if len(fieldRules) > 0 {
-		if err := validation.ValidateStruct(&e, fieldRules...); err != nil {
+	// Run validations if any rules are accumulated
+	if len(rules) > 0 {
+		if err := validation.ValidateStruct(&e, rules...); err != nil {
 			return err
 		}
 	}
 
-	// Apply cross-field validations
-	return validation.Validate(&e,
-		validation.By(validateStartDate(e)),
-		validation.By(validateDueDate(e)),
-		validation.By(validateCoverImage(e)),
-		validation.By(validateTickets(e, isCreate)),
-	)
+	return nil
 }
 
 func (e EventRequest) IsEmpty() bool {
