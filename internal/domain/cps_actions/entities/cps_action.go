@@ -67,8 +67,8 @@ type CreateCPSAction struct {
 
 type CreateCPSRequest struct {
 	User          User
-	CurData       *any
-	PrevData      *any
+	CurData       any
+	PrevData      any
 	RequestAction constant.RequestAction
 	ActionStatus  constant.ActionStatus
 	ActionType    constant.ActionType

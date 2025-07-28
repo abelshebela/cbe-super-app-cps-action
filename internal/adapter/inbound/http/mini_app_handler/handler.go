@@ -153,7 +153,6 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract user
 	makerUser := contexts.ExtractUserContext(r)
 	if makerUser.IsIncomplete() {
 		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)

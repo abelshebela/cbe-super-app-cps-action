@@ -79,18 +79,17 @@ func ToEventResponse(e *evententity.Event) EventResponse {
 		EventID:          e.ID,
 		EventCode:        e.EventCode,
 		CoverImage:       e.EventInformation.Cover,
-		EventName:        e.Name,
+		EventName:        e.EventName,
 		EventDescription: e.EventInformation.Description,
 		TotalTicketCount: int(e.TicketInformation.TotalNumberOfTicket),
-		EventStartDate:   e.CreatedAt, // or another field if available
+		EventStartDate:   e.CreatedAt,
 		EventEndDate:     e.EventInformation.DueDate,
 		EventStatus:      string(e.Status),
 		EventVenue:       e.EventVenue,
-		EventCity:        e.City,
-		MerchantName:     e.MerchantInformation.Name,
-		MerchantPhone:    e.MerchantInformation.PhoneNumber,
+		EventCity:        e.EventCity,
+		MerchantName:     e.MerchantInformation.MercahntName,
+		MerchantPhone:    e.MerchantInformation.MerchantPhoneNumber,
 		TicketTypes:      toTicketTypeResponses(e.Ticket),
-		TicketSales:      toTicketSaleResponses(e.TicketStatistics),
 	}
 }
 
@@ -104,14 +103,4 @@ func toTicketTypeResponses(tickets []evententity.Ticket) []TicketTypeResponse {
 		})
 	}
 	return res
-}
-
-func toTicketSaleResponses(stats evententity.TicketStatistics) []TicketSaleResponse {
-	// This assumes one statistics per event
-	return []TicketSaleResponse{{
-		TicketName:    stats.Category,
-		TicketRevenue: int(stats.Revenue),
-		TicketSold:    int(stats.NumberOfSoldTicket),
-		TicketCount:   0, // Not available in statistics, set as needed
-	}}
 }

@@ -4,8 +4,6 @@ import (
 	"context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
-
 )
 
 type EventRepository interface {
@@ -13,6 +11,7 @@ type EventRepository interface {
 	UpdateEvent(ctx context.Context, event Event) (*Event, error)
 	DeleteEvent(ctx context.Context, id string) (*Event, error)
 	EnableDisableEvent(ctx context.Context, id string, enable bool) (*Event, error)
+	EventNameExists(ctx context.Context, name string, id *string) (bool, error)
 
 	FetchEventByID(ctx context.Context, id string) (*Event, error)
 	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Event], error)

@@ -45,6 +45,8 @@ import (
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
 	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
+	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 
@@ -84,7 +86,7 @@ type Persitence struct {
 	WalletPersistance           wallet.WalletRepository
 	FaydaPersistence            fayda_account_repo.FaydaRepository
 	miniAppPersistance          miniApp_domain.MiniRepository
-	EventPersistence            *event_persistence.EventPersistence
+	EventPersistence            event_domain.EventRepository
 	CPSActionsPersistance       cps_actions.CPSActionRepository
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
@@ -148,7 +150,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, []string{"wallets", "cps_actions"}, logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
-		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, []string{"events", "cps_actions"}, logger),
+		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, "events", logger),
 		// BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		CPSActionsPersistance:       cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),

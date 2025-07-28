@@ -19,8 +19,6 @@ type APIErrorResponse struct {
 	Errors        any    `json:"errors,omitempty"`
 }
 
-
-
 func formatValidationErrors(ve validation.Errors) map[string]string {
 	result := make(map[string]string)
 	for field, fieldErr := range ve {
@@ -106,6 +104,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.AD,
 		common.DefineError.Permission,
 		common.DefineError.MiniApp,
+		common.DefineError.Event,
 	}
 
 	for _, group := range errorGroups {

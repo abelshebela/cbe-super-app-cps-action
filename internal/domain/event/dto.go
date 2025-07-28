@@ -6,6 +6,7 @@ import (
 )
 
 type EventRequest struct {
+	AccountNumber       string                `json:"account_number"`
 	MerchantID          string                `json:"merchant_id"`
 	MercahntName        string                `json:"merchant_name"`
 	MerchantPhoneNumber string                `json:"merchant_phone_number"`

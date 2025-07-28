@@ -79,6 +79,7 @@ func (s *cpsActionService) BuildCPSAction(ctx context.Context, request entities.
 		MakerPhoneNumber: request.User.PhoneNumber,
 		Department:       request.User.Department,
 		CurrentAction:    request.CurData,
+		PreviousAction:   request.PrevData,
 		RequestAction:    request.RequestAction,
 		ActionStatus:     request.ActionStatus,
 		ActionType:       request.ActionType,

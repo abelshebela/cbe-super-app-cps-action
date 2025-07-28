@@ -18,20 +18,65 @@ func InitEventsHandlerMaker(router chi.Router, handler event_inbound.EventHandle
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/create",
-				Handler: handler.MakerCreateEvent,
+				Path:    "/",
+				Handler: handler.CreateEvent,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/review",
-				Handler: handler.CheckerEvent,
+				Method:  http.MethodPatch,
+				Path:    "/{id}",
+				Handler: handler.UpdateEvent,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/enable/{id}",
+				Handler: handler.EnableEvent,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPatch,
+				Path:    "/disable/{id}",
+				Handler: handler.DisableEvent,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/{id}",
+				Handler: handler.DeleteEvent,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/{id}",
+				Handler: handler.FetchEventByID,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker,role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: handler.FetchEvents,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker,role.Maker, role.IFBMaker}),
 				},
 			},
 		}

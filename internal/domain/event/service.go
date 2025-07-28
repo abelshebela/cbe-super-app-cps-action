@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -17,6 +19,8 @@ type EventService interface {
 	UpdateEvent(ctx context.Context, id string, event EventRequest) (*Event, *Event, error)
 	DeleteEvent(ctx context.Context, id string) (*Event, *Event, error)
 	EnableDisableEvent(ctx context.Context, id string, enable bool) (*Event, *Event, error)
+
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 
 	FetchEventByID(ctx context.Context, id string) (*Event, error)
 	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Event], error)
@@ -30,24 +34,38 @@ type Service struct {
 	cfg        *config.VaultConfig
 }
 
-func NewEventService(repository EventRepository, logger shared_utils.Logger,
+func NewEventService(repository EventRepository,
 	minio config.MinioClientInterface,
 	bucketName string,
 	cfg *config.VaultConfig,
+	logger shared_utils.Logger,
 ) EventService {
 	return &Service{
 		Repository: repository,
 		logger:     logger,
 		minio:      minio,
+		cfg: cfg,
 		bucketName: bucketName,
 	}
 }
 
 func (e *Service) CreateEvent(ctx context.Context, event EventRequest) (*Event, error) {
-	//check if the event name already exists
+	exist, err := e.Repository.EventNameExists(ctx, event.EventName, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if exist {
+		return nil, fmt.Errorf("EVENT_NAME_ALREADY_EXISTS")
+	}
+
 	code, err := common_util.GeneratePrefixedName("EVE", event.EventName, e.logger)
 	if err != nil {
-		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
+	}
+
+	if event.CoverImage == nil || e.cfg == nil {
+		return nil, fmt.Errorf("Nill")
 	}
 
 	URL, err := common_util.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.cfg.MinioEndPoint, e.logger)
@@ -60,6 +78,7 @@ func (e *Service) CreateEvent(ctx context.Context, event EventRequest) (*Event, 
 		EventCity:  event.EventCity,
 		EventVenue: event.EventVenue,
 		Status:     EventUpcomming,
+		AccountNumber: event.AccountNumber,
 		MerchantInformation: MerchantInformation{
 			MerchantID:          event.MerchantID,
 			MercahntName:        event.MercahntName,
@@ -74,8 +93,11 @@ func (e *Service) CreateEvent(ctx context.Context, event EventRequest) (*Event, 
 		},
 		TicketInformation: TicketInformation{
 			TotalNumberOfTicket: uint64(event.TotalTicketCount),
+			TotalNumberOfAvailableTicket: uint64(event.TotalTicketCount),
 		},
 		Ticket: event.Tickets,
+		CreatedAt: time.Now(),
+		LastModifiedAt: time.Now(),
 	}
 
 	return &result, nil
@@ -104,6 +126,17 @@ func (e *Service) UpdateEvent(ctx context.Context, id string, event EventRequest
 		e.logger.Infof("Using previous cover image", "url", URL)
 	}
 
+	if event.EventName != "" {
+		exist, err := e.Repository.EventNameExists(ctx, event.EventName, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if exist {
+			return nil, nil, fmt.Errorf(common_util.EventNameAlreadyExists)
+		}
+	}
+
 	curAction := Event{
 		ID:         prevEvent.ID,
 		EventCode:  prevEvent.EventCode,
@@ -127,6 +160,9 @@ func (e *Service) UpdateEvent(ctx context.Context, id string, event EventRequest
 			TotalNumberOfTicket: nonZeroUint64(uint64(event.TotalTicketCount), prevEvent.TicketInformation.TotalNumberOfTicket),
 		},
 		Ticket: nonEmptyTickets(event.Tickets, prevEvent.Ticket),
+		CreatedAt: time.Now(),
+		LastModifiedAt: time.Now(),
+		AccountNumber: nonEmptyString(event.AccountNumber, prevEvent.AccountNumber),
 	}
 
 	e.logger.Infof("Updated event", "id", id, "merchantAppID", curAction.MerchantInformation.MerchantID)
@@ -188,6 +224,7 @@ func generateEvent(event Event) *Event {
 		EventCity:  event.EventCity,
 		EventVenue: event.EventVenue,
 		Status:     EventUpcomming,
+		AccountNumber: event.AccountNumber,
 		MerchantInformation: MerchantInformation{
 			MerchantID:          event.MerchantInformation.MerchantID,
 			MercahntName:        event.MerchantInformation.MercahntName,
@@ -204,5 +241,55 @@ func generateEvent(event Event) *Event {
 			TotalNumberOfTicket: event.TicketInformation.TotalNumberOfTicket,
 		},
 		Ticket: event.Ticket,
+		CreatedAt: event.CreatedAt,
+		LastModifiedAt: event.LastModifiedAt,
 	}
+}
+
+func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	requestedAction := action.RequestAction
+
+	var event *Event
+	var err error
+
+	bindErr := common_util.BindAction(action.CurrentAction, &event)
+	if bindErr != nil {
+		e.logger.Errorf("failed to bind current action to event: %v", bindErr)
+		return nil, fmt.Errorf(common_util.InvalidActionData)
+	}
+
+	switch requestedAction {
+	case cps_const.RequestCreateEvent:
+
+		event, err = e.Repository.CreateEvent(ctx, *event)
+		if err != nil {
+			return nil, err
+		}
+
+	case cps_const.RequestUpdateEvent:
+		event, err = e.Repository.UpdateEvent(ctx, *event)
+		if err != nil {
+			return nil, err
+		}
+	case cps_const.RequestDeleteEvent:
+		event, err = e.Repository.DeleteEvent(ctx, event.ID)
+		if err != nil {
+			return nil, err
+		}
+	case cps_const.RequestEnableEvent:
+		event, err = e.Repository.EnableDisableEvent(ctx, event.ID, true)
+		if err != nil {
+			return nil, err
+		}
+	case cps_const.RequestDisableEvent:
+		event, err = e.Repository.EnableDisableEvent(ctx, event.ID, false)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf(common_util.ErrUnsupported)
+	}
+
+	action.CurrentAction = event
+	return action, nil
 }
