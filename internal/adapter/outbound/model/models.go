@@ -10,7 +10,7 @@ import (
 )
 
 type Service struct {
-	ID                 bson.ObjectID `json:"id" bson:"id"`
+	ID                 bson.ObjectID `json:"_id" bson:"_id"`
 	ServiceCode        string        `json:"service_code" bson:"service_code"`
 	ServiceName        string        `json:"service_name" bson:"service_name"`
 	ServiceType        string        `json:"service_type" bson:"service_type"`
@@ -158,6 +158,9 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle      RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal       RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap      RequestAction = "UPDATE_SERVICE_MIN_CAP"
 	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
 	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
 	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
@@ -320,6 +323,11 @@ type CpsActionNormalized struct {
 	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
 
+//	type ProductCode struct {
+//		ID          string     `bson:"id" json:"id,omitempty"`
+//		BranchType  BranchType `bson:"branch_type" json:"branch_type"`
+//		ProductCode string     `bson:"product_code" json:"product_code"`
+//	}
 // type ProductCode struct {
 // 	ID          string     `bson:"id" json:"id,omitempty"`
 // 	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
@@ -423,11 +431,13 @@ type Tier struct {
 }
 
 type Cap struct {
-	KYCLevel  KYCLevel `bson:"kyc_level"`
-	SingleCap uint64   `bson:"single_cap"`
-	DailyCap  uint64   `bson:"daily_cap"`
-	MinAmount uint64   `bson:"min_amount"`
-	MaxAmount uint64   `bson:"max_amount"`
+	KYCLevel           KYCLevel `bson:"kyc_level"`
+	ISingleCap         uint64   `bson:"individual_single_cap"`
+	IDailyCap          uint64   `bson:"individual_daily_cap"`
+	CorporateSingleCap uint64   `bson:"corporate_single_cap"`
+	CorporateDailyCap  uint64   `bson:"corporate_daily_cap"`
+	MinAmount          uint64   `bson:"min_amount"`
+	MaxAmount          uint64   `bson:"max_amount"`
 }
 
 type ServiceDetails struct {
@@ -510,6 +520,7 @@ type HQ struct {
 	ID                bson.ObjectID `bson:"_id" json:"id"`
 	UniqueId          string        `bson:"unique_id" json:"unique_id"`
 	Name              string        `bson:"name" json:"name"`
+	TotalCap          string        `bson:"total_cap" json:"total_cap"`
 	BlockTime         uint          `bson:"block_time" json:"block_time"`
 	BlockTimeStatus   string        `bson:"block_time_status" json:"block_time_status"`
 	ArchiveTime       uint          `bson:"archive_time" json:"archive_time"`

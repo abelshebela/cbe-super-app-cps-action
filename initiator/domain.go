@@ -10,6 +10,7 @@ import (
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	budget_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
+	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
@@ -41,7 +42,9 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	cfg *config.VaultConfig) application.Domain {
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
+
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
+
 	return application.Domain{
 		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
@@ -68,5 +71,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
+		// MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger),
+		ServiceCheckDomain: service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
 	}
 }

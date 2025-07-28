@@ -7,6 +7,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type CPSActionModule interface {
@@ -27,6 +28,7 @@ func NewDispatcher(app application.Domain) *Dispatcher {
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	action := cpsAction.RequestAction
 
+	fmt.Println(action, "action")
 	switch {
 	case constants.IsActionInGroup(action, "Bank"):
 		return d.app.BankDomain.Authorize(ctx, cpsAction)
@@ -34,18 +36,19 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Block"):
 		return d.app.AccountBlockDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "Department"):
-		return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
-
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "Advert"):
+	case constants.IsActionInGroup(action, "AdDomain"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "Avatar"):
-		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
-
+	case constants.IsActionInGroup(action, "Service"):
+		fmt.Println("*********IsActionInGroup*********")
+		data, err := d.app.ServiceCheckDomain.Authorize(ctx, cpsAction)
+		if err != nil {
+			return nil, err
+		}
+		return marshalBuilder(data)
 	case constants.IsActionInGroup(action, "Fayda"):
 		return d.app.FaydaDomain.Authorize(ctx, cpsAction)
 
@@ -53,6 +56,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.MiniAppMerchantDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "MiniApp"):
 		return d.app.MiniAppDomain.Authorize(ctx, cpsAction)
+		return d.app.MiniAppDomain.Authorize(ctx, cpsAction)
+
 	case constants.IsActionInGroup(action, "HQ"):
 		return d.app.HQDomain.Authorize(ctx, cpsAction)
 
@@ -80,7 +85,17 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.CPSUserDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Event"):
 		return d.app.EventDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Service"):
+		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}
+}
+
+func marshalBuilder(data any) (*entities.CPSAction, error) {
+	action, err := local_util.JsonUnmarshal[*entities.CPSAction](data)
+	if err != nil {
+		return nil, err
+	}
+	return *action, nil
 }

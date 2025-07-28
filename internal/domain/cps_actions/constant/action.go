@@ -81,12 +81,9 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
-	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
-	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
-	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
-	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
-	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
+	RequestUpdateServiceSingle      RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal       RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap      RequestAction = "UPDATE_SERVICE_MIN_CAP"
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
@@ -160,6 +157,13 @@ const (
 	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
 	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
 	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+
+	RequestCreateServiceFee RequestAction = "CREATE_SERVICE_FEE"
+	RequestUpdateServiceFee RequestAction = "UPDATE_SERVICE_FEE"
+	RequestDeleteServiceFee RequestAction = "DELETE_SERVICE_FEE"
+	RequestCreateDailyLimit RequestAction = "CREATE DAILY LIMIT"
+	RequestUpdateDailyLimit RequestAction = "UPDATE DAILY LIMIT"
+	RequestDeleteDailyLimit RequestAction = "DELETE DAILY LIMIT"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -207,12 +211,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateValidation:         {},
 	RequestDeleteValidation:         {},
 	RequestUpdateArchiveExpiry:      {},
-	RequestCreateServiceFee:         {},
-	RequestUpdateServiceFee:         {},
-	RequestDeleteServiceFee:         {},
-	RequestCreateDailyLimit:         {},
-	RequestUpdateDailyLimit:         {},
-	RequestDeleteDailyLimit:         {},
 	RequestBudgetColor:              {},
 	RequestBudgetIcon:               {},
 	RequestUpdateProduct:            {},
@@ -257,6 +255,16 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteMiniApp:          {},
 	RequestDeleteEvent:            {},
 	RequestEnableEvent:            {},
+
+	RequestUpdateServiceSingle: {},
+	RequestUpdateServiceTotal:  {},
+	RequestUpdateServiceMinCap: {},
+	RequestCreateServiceFee:    {},
+	RequestUpdateServiceFee:    {},
+	RequestDeleteServiceFee:    {},
+	RequestCreateDailyLimit:    {},
+	RequestUpdateDailyLimit:    {},
+	RequestDeleteDailyLimit:    {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -265,6 +273,17 @@ func IsValidRequestAction(requestAction string) bool {
 }
 
 var RequestActionGroups = map[string][]RequestAction{
+	"Service": {
+		RequestUpdateServiceSingle,
+		RequestUpdateServiceTotal,
+		RequestUpdateServiceMinCap,
+		RequestCreateServiceFee,
+		RequestUpdateServiceFee,
+		RequestDeleteServiceFee,
+		RequestCreateDailyLimit,
+		RequestUpdateDailyLimit,
+		RequestDeleteDailyLimit,
+	},
 	"Account": {
 		RequestUser,
 		RequestEnableUser,

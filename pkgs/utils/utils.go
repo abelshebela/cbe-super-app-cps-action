@@ -42,7 +42,25 @@ func JsonUnmarshal[T any](data any) (*T, error) {
 
 	return jsonData, nil
 }
+func JsonUnmarshalArray[T any](data []T) (*[]T, error) {
 
+	// var jsonData *T
+	var arrayData []T
+	var fragment T
+	for _, v := range data {
+		byte, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+
+		if err = json.Unmarshal(byte, &fragment); err != nil {
+			return nil, err
+		}
+		arrayData = append(arrayData, fragment)
+	}
+
+	return &arrayData, nil
+}
 func OTPGenerator(length uint8) string {
 	numberic := "0123456789"
 	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))

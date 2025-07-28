@@ -31,6 +31,18 @@ func GenerateRandom(digit int) string {
 	return result
 }
 
+func GenerateUniqueActionCode(length int) string {
+	if length <= 0 {
+		return ""
+	}
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
 func intPow(a, b int) int {
 	result := 1
 	for i := 0; i < b; i++ {
