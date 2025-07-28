@@ -225,7 +225,7 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	var docs []MiniAppResponse
+	 docs  := []MiniAppResponse{}
 	for _, doc := range list.Data {
 		res := ToMiniAppResponse(doc)
 		docs = append(docs, res)

@@ -23,6 +23,7 @@ type CPSActionService interface {
 	GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error)
 	BuildCPSAction(ctx context.Context, request entities.CreateCPSRequest) *entities.CPSAction
+	HandleMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error)
 }
 
 type cpsActionService struct {
@@ -69,6 +70,26 @@ func (s *cpsActionService) GetCPSActionByID(ctx context.Context, id string) (*en
 func (s *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error) {
 	s.logger.Infof("Fetching CPS Action by unique ID: %s", uniqueID)
 	return s.repo.GetCPSActionByActionCode(ctx, uniqueID)
+}
+
+func (a *cpsActionService) HandleMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error) {
+	action, err := buildAction()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = a.CPSActionExists(ctx, entities.CheckCPSAction{
+		UserCode:      action.MakerID,
+		FullName:      action.MakerName,
+		Department:    action.Department,
+		PhoneNumber:   action.MakerPhoneNumber,
+		RequestAction: string(action.RequestAction),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return a.CreateCPSAction(ctx, action)
 }
 
 func (s *cpsActionService) BuildCPSAction(ctx context.Context, request entities.CreateCPSRequest) *entities.CPSAction {

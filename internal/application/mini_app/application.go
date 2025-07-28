@@ -46,7 +46,7 @@ func NewApplicationService(service domain.MiniAppService,
 }
 
 func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp *dto.MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error) {
-	return a.handleMiniAppMakerAction(ctx, func() (*entities.CPSAction, error) {
+	return a.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 		_, err := a.merchantService.DetailMiniAppByID(ctx, miniApp.MerchantID)
 
 		if err != nil {
@@ -60,7 +60,7 @@ func (a *ApplicationStore) MakerCreateMiniApp(ctx context.Context, miniApp *dto.
 }
 
 func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req *dto.MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error) {
-	return a.handleMiniAppMakerAction(ctx, func() (*entities.CPSAction, error) {
+	return a.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 
 		if req.MerchantID != "" {
 			_, err := a.merchantService.DetailMiniAppByID(ctx, req.MerchantID)
@@ -77,7 +77,7 @@ func (a *ApplicationStore) MakerUpdateMiniApp(ctx context.Context, req *dto.Mini
 }
 
 func (a *ApplicationStore) MakerDeleteMiniApp(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error) {
-	return a.handleMiniAppMakerAction(ctx, func() (*entities.CPSAction, error) {
+	return a.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 		return a.service.DeleteMiniAppAction(ctx, maker, id)
 	}, "[mini_app.MakerDeleteMiniApp]")
 }
@@ -102,7 +102,7 @@ func (a *ApplicationStore) DetailMiniAppByID(ctx context.Context, id string) (*m
 
 func (a *ApplicationStore) EnableDisableMiniAppByID(ctx context.Context, id string, enabled bool, maker entities.User) (*entities.CPSAction, error) {
 
-	return a.handleMiniAppMakerAction(ctx, func() (*entities.CPSAction, error) {
+	return a.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 
 		detail, err := a.service.EnableDisableMiniApp(ctx, maker, id, enabled)
 		if err != nil {
@@ -114,23 +114,3 @@ func (a *ApplicationStore) EnableDisableMiniAppByID(ctx context.Context, id stri
 	}, "[mini_app.EnableDisableMiniAppByID]")
 }
 
-func (a *ApplicationStore) handleMiniAppMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error) {
-	action, err := buildAction()
-	if err != nil {
-		a.Logger.Errorf("%s %v", logPrefix, err)
-		return nil, err
-	}
-
-	_, err = a.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return a.cpsService.CreateCPSAction(ctx, action)
-}

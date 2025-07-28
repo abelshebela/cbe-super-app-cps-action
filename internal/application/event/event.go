@@ -47,16 +47,36 @@ func NewEventApplication(service domain.EventService,
 	}
 }
 
-func (a *ApplicationStore) CreateEvent(ctx context.Context, event dto.EventRequest, maker cps_entitites.User) error {
+// handleCPSAction encapsulates the common CPS action logic
+func (a *ApplicationStore) handleCPSAction(ctx context.Context, maker cps_entitites.User, requestAction cps_const.RequestAction, curData, prevData interface{}, actionType cps_const.ActionType) error {
 	_, err := a.cpsService.CPSActionExists(ctx, cps_entitites.CheckCPSAction{
 		UserCode:      maker.UserCode,
 		FullName:      maker.FullName,
 		Department:    maker.Department,
 		PhoneNumber:   maker.PhoneNumber,
-		RequestAction: string(cps_const.RequestCreateEvent),
+		RequestAction: string(requestAction),
 	})
 	if err != nil {
 		return err
+	}
+
+	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
+		User:          maker,
+		CurData:       curData,
+		PrevData:      prevData,
+		RequestAction: requestAction,
+		ActionStatus:  cps_const.ActionPending,
+		ActionType:    actionType,
+	})
+
+	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
+	return err
+}
+
+// setMerchantDetails retrieves merchant details and sets them in the event request
+func (a *ApplicationStore) setMerchantDetails(ctx context.Context, event *dto.EventRequest) error {
+	if event.MerchantID == "" {
+		return nil
 	}
 
 	merchant, err := a.merchantService.DetailMiniAppByID(ctx, event.MerchantID)
@@ -71,52 +91,25 @@ func (a *ApplicationStore) CreateEvent(ctx context.Context, event dto.EventReque
 	event.MerchantEmail = merchant.PhoneNumber
 	event.MerchantPhoneNumber = merchant.PhoneNumber
 	event.AccountNumber = merchant.BankAccountNumber
+	return nil
+}
+
+func (a *ApplicationStore) CreateEvent(ctx context.Context, event dto.EventRequest, maker cps_entitites.User) error {
+	if err := a.setMerchantDetails(ctx, &event); err != nil {
+		return err
+	}
 
 	res, err := a.service.CreateEvent(ctx, event)
 	if err != nil {
 		return err
 	}
 
-	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
-		User:          maker,
-		CurData:       res,
-		PrevData:      nil,
-		RequestAction: cps_const.RequestCreateEvent,
-		ActionStatus:  cps_const.ActionPending,
-		ActionType:    cps_const.ActionCreate,
-	})
-
-	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
-
-	return err
+	return a.handleCPSAction(ctx, maker, cps_const.RequestCreateEvent, res, nil, cps_const.ActionCreate)
 }
 
 func (a *ApplicationStore) UpdateEvent(ctx context.Context, id string, event dto.EventRequest, maker cps_entitites.User) error {
-
-	_, err := a.cpsService.CPSActionExists(ctx, cps_entitites.CheckCPSAction{
-		UserCode:      maker.UserCode,
-		FullName:      maker.FullName,
-		Department:    maker.Department,
-		PhoneNumber:   maker.PhoneNumber,
-		RequestAction: string(cps_const.RequestUpdateEvent),
-	})
-	if err != nil {
+	if err := a.setMerchantDetails(ctx, &event); err != nil {
 		return err
-	}
-
-	if event.MerchantID != "" {
-		merchant, err := a.merchantService.DetailMiniAppByID(ctx, event.MerchantID)
-		if err != nil {
-			if err.Error() == common_util.NotFound {
-				return fmt.Errorf("MERCHANT_NOT_FOUND")
-			}
-			return err
-		}
-
-		event.MercahntName = merchant.MerchantName
-		event.MerchantEmail = merchant.PhoneNumber
-		event.MerchantPhoneNumber = merchant.PhoneNumber
-		event.AccountNumber = merchant.BankAccountNumber
 	}
 
 	curAction, prevAction, err := a.service.UpdateEvent(ctx, id, event)
@@ -124,48 +117,32 @@ func (a *ApplicationStore) UpdateEvent(ctx context.Context, id string, event dto
 		return err
 	}
 
-	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
-		User:          maker,
-		CurData:       curAction,
-		PrevData:      prevAction,
-		RequestAction: cps_const.RequestUpdateEvent,
-		ActionStatus:  cps_const.ActionPending,
-		ActionType:    cps_const.ActionUpdate,
-	})
-
-	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
-
-	return err
+	return a.handleCPSAction(ctx, maker, cps_const.RequestUpdateEvent, curAction, prevAction, cps_const.ActionUpdate)
 }
-func (a *ApplicationStore) DeleteEvent(ctx context.Context, id string, maker cps_entitites.User) error {
 
-	_, err := a.cpsService.CPSActionExists(ctx, cps_entitites.CheckCPSAction{
-		UserCode:      maker.UserCode,
-		FullName:      maker.FullName,
-		Department:    maker.Department,
-		PhoneNumber:   maker.PhoneNumber,
-		RequestAction: string(cps_const.RequestDeleteEvent),
-	})
-	if err != nil {
-		return err
-	}
+func (a *ApplicationStore) DeleteEvent(ctx context.Context, id string, maker cps_entitites.User) error {
 	curAction, prevAction, err := a.service.DeleteEvent(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
-		User:          maker,
-		CurData:       curAction,
-		PrevData:      prevAction,
-		RequestAction: cps_const.RequestDeleteEvent,
-		ActionStatus:  cps_const.ActionPending,
-		ActionType:    cps_const.ActionDelete,
-	})
+	return a.handleCPSAction(ctx, maker, cps_const.RequestDeleteEvent, curAction, prevAction, cps_const.ActionDelete)
+}
 
-	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
+func (a *ApplicationStore) EnableDisableEvent(ctx context.Context, id string, maker cps_entitites.User, enable bool) error {
+	curAction, prevAction, err := a.service.EnableDisableEvent(ctx, id, enable)
+	if err != nil {
+		return err
+	}
 
-	return err
+	var action cps_const.RequestAction
+	if enable {
+		action = cps_const.RequestEnableEvent
+	} else {
+		action = cps_const.RequestDisableEvent
+	}
+
+	return a.handleCPSAction(ctx, maker, action, curAction, prevAction, cps_const.ActionUpdate)
 }
 
 func PrettyPrintJSON(data interface{}) error {
@@ -178,47 +155,10 @@ func PrettyPrintJSON(data interface{}) error {
 	return nil
 }
 
-func (a *ApplicationStore) EnableDisableEvent(ctx context.Context, id string, maker cps_entitites.User, enable bool) error {
-
-	curAction, prevAction, err := a.service.EnableDisableEvent(ctx, id, enable)
-	if err != nil {
-		return err
-	}
-
-	var action cps_const.RequestAction
-
-	if enable {
-		action = cps_const.RequestEnableEvent
-	} else {
-		action = cps_const.RequestDisableEvent
-	}
-
-	_, err = a.cpsService.CPSActionExists(ctx, cps_entitites.CheckCPSAction{
-		UserCode:      maker.UserCode,
-		FullName:      maker.FullName,
-		Department:    maker.Department,
-		PhoneNumber:   maker.PhoneNumber,
-		RequestAction: string(action),
-	})
-	if err != nil {
-		return err
-	}
-
-	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
-		User:          maker,
-		CurData:       curAction,
-		PrevData:      prevAction,
-		RequestAction: action,
-		ActionStatus:  cps_const.ActionPending,
-		ActionType:    cps_const.ActionUpdate,
-	})
-	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
-
-	return err
-}
 func (a *ApplicationStore) FetchEventByID(ctx context.Context, id string) (*evententity.Event, error) {
 	return a.service.FetchEventByID(ctx, id)
 }
+
 func (a *ApplicationStore) FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*evententity.Event], error) {
 	return a.service.FetchEvent(ctx, filterParam)
 }

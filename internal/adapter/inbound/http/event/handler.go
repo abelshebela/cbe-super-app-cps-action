@@ -239,11 +239,11 @@ func (h *EventHTTPStore) FetchEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var docs []EventResponse
-	for _, doc := range list.Data {
-		res := ToEventResponse(doc)
-		docs = append(docs, res)
-	}
+   docs := []EventResponse{}
+    for _, doc := range list.Data {
+        res := ToEventResponse(doc)
+        docs = append(docs, res)
+    }
 
 	res := common_util.PaginatedResponse[*[]EventResponse]{
 		Data: &docs,

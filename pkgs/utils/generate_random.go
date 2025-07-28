@@ -64,7 +64,8 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 		code[i] = digits[n.Int64()]
 	}
 
-	// Combine prefix, value, and code
+	value = strings.ReplaceAll(value, " ", "")
+	prefix = strings.ReplaceAll(prefix, " ", "")
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
