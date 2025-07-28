@@ -17,8 +17,8 @@ import (
 
 type BulkService interface {
 	GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*ServiceDetails], error)
-	EnableBulkService(ctx context.Context, service_code string) error
-	DisableBulkService(ctx context.Context, service_code string) error
+	EnableBulkService(ctx context.Context, serviceCodes []string) error
+	DisableBulkService(ctx context.Context, serviceCodes []string) error
 	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 }
 
@@ -35,13 +35,16 @@ func (b *bulkServiceImpl) GetAllBulkServices(ctx context.Context, filterParams *
 	return b.repo.GetAllBulkServices(ctx, filterParams)
 }
 
-func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, service_code string) error {
+func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, serviceCodes []string) error {
 	userPayload := ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
 
-	action := ServiceDetails{
-		ServiceCode: service_code,
-		Enabled:     true,
+	var actions []ServiceDetails
+	for _, code := range serviceCodes {
+		actions = append(actions, ServiceDetails{
+			ServiceCode: code,
+			Enabled:     true,
+		})
 	}
 
 	cpsAction := model.CPSAction{
@@ -56,21 +59,24 @@ func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, service_code st
 		ActionType:       string(model.ActionEnable),
 		RequestAction:    string(model.RequestBulkServiceEnable),
 		PreviousAction:   nil,
-		CurrentAction:    action,
+		CurrentAction:    actions,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
 	}
 
-	return b.repo.EnableOrDisableBulkService(ctx, service_code, cpsAction, model.RequestBulkServiceEnable)
+	return b.repo.EnableOrDisableBulkService(ctx, serviceCodes, cpsAction, model.RequestBulkServiceEnable)
 }
 
-func (b *bulkServiceImpl) DisableBulkService(ctx context.Context, service_code string) error {
+func (b *bulkServiceImpl) DisableBulkService(ctx context.Context, serviceCodes []string) error {
 	userPayload := ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
 
-	action := ServiceDetails{
-		ServiceCode: service_code,
-		Enabled:     false,
+	var actions []ServiceDetails
+	for _, code := range serviceCodes {
+		actions = append(actions, ServiceDetails{
+			ServiceCode: code,
+			Enabled:     true,
+		})
 	}
 
 	cpsAction := model.CPSAction{
@@ -85,12 +91,12 @@ func (b *bulkServiceImpl) DisableBulkService(ctx context.Context, service_code s
 		ActionType:       string(model.ActionDisable),
 		RequestAction:    string(model.RequestBulkServiceDisable),
 		PreviousAction:   nil,
-		CurrentAction:    action,
+		CurrentAction:    actions,
 		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
 	}
 
-	return b.repo.EnableOrDisableBulkService(ctx, service_code, cpsAction, model.RequestBulkServiceDisable)
+	return b.repo.EnableOrDisableBulkService(ctx, serviceCodes, cpsAction, model.RequestBulkServiceDisable)
 }
 
 func (b *bulkServiceImpl) Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {

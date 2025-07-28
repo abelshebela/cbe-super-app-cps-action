@@ -11,7 +11,7 @@ import (
 
 type BulkServiceRespository interface {
 	GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*ServiceDetails], error)
-	EnableOrDisableBulkService(ctx context.Context, serviceCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error
+	EnableOrDisableBulkService(ctx context.Context, serviceCodes []string, cpsAction model.CPSAction, requestActionType model.RequestAction) error
 	AuthorizeBulkServiceEnable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 	AuthorizeBulkServiceDisable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 }

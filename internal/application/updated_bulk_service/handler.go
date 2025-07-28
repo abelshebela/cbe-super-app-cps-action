@@ -2,11 +2,9 @@ package updatedbulkservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
-
-	"github.com/go-chi/chi/v5"
 
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -34,14 +32,18 @@ func (h *BulkServiceApplication) GetAllBulkServices(ctx context.Context, filterP
 }
 
 func (h *BulkServiceApplication) EnableBulkService(ctx context.Context, r *http.Request) error {
-	service_code := strings.TrimSpace(chi.URLParam(r, "service_code"))
+	var req BulkServiceDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("failed to bend service_coce: %v\n", err)
+		return err
+	}
 
-	if service_code == "" {
+	if len(req.ServiceCode) == 0 {
 		h.logger.Errorf("bulk's service_code is required")
 		return fmt.Errorf("BULK_SERVICE_CODE_IS_REQUIRED")
 	}
 
-	err := h.service.EnableBulkService(ctx, service_code)
+	err := h.service.EnableBulkService(ctx, req.ServiceCode)
 	if err != nil {
 		return err
 	}
@@ -50,14 +52,18 @@ func (h *BulkServiceApplication) EnableBulkService(ctx context.Context, r *http.
 }
 
 func (h *BulkServiceApplication) DisableBulkService(ctx context.Context, r *http.Request) error {
-	service_id := strings.TrimSpace(chi.URLParam(r, "service_code"))
+	var req BulkServiceDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("failed to bend service_coce: %v\n", err)
+		return err
+	}
 
-	if service_id == "" {
+	if len(req.ServiceCode) == 0 {
 		h.logger.Errorf("bulk's service_code is required")
 		return fmt.Errorf("BULK_SERVICE_CODE_IS_REQUIRED")
 	}
 
-	err := h.service.DisableBulkService(ctx, service_id)
+	err := h.service.DisableBulkService(ctx, req.ServiceCode)
 	if err != nil {
 		return err
 	}

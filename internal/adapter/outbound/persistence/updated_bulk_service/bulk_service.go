@@ -86,8 +86,8 @@ func (b BulkServicePersistence) GetAllBulkServices(ctx context.Context, filterPa
 	}, nil
 }
 
-func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, serviceCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
-	filter := bson.M{"service_code": serviceCode, "is_deleted": false}
+func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, serviceCodes []string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
+	filter := bson.M{"service_code": bson.M{"$in": serviceCodes}, "is_deleted": false}
 
 	// Check if the service exists
 	_, err := b.mongoDalbulkService.FindOne(ctx, filter, bson.M{})
@@ -125,30 +125,36 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 }
 
 func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-	data, err := common_util.JsonUnmarshal[domain.ServiceDetails](action.CurrentAction)
+	data, err := common_util.JsonUnmarshal[[]domain.ServiceDetails](action.CurrentAction)
 	if err != nil {
 		return nil, err
 	}
-	filter := bson.M{"service_code": data.ServiceCode}
-	update := bson.M{"enabled": true}
-	_, err = b.mongoDalbulkService.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return nil, err
+
+	for _, service := range *data {
+		filter := bson.M{"service_code": service.ServiceCode}
+		update := bson.M{"enabled": true}
+		_, err = b.mongoDalbulkService.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return action, nil
 }
 
 func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-	data, err := common_util.JsonUnmarshal[domain.ServiceDetails](action.CurrentAction)
+	data, err := common_util.JsonUnmarshal[[]domain.ServiceDetails](action.CurrentAction)
 	if err != nil {
 		return nil, err
 	}
-	filter := bson.M{"service_code": data.ServiceCode}
-	update := bson.M{"enabled": false}
-	_, err = b.mongoDalbulkService.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return nil, err
+
+	for _, service := range *data {
+		filter := bson.M{"service_code": service.ServiceCode}
+		update := bson.M{"enabled": false}
+		_, err = b.mongoDalbulkService.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return action, nil

@@ -24,7 +24,7 @@ func RegisterBulkServiceRoutes(router chi.Router, handler inbound.BulkServiceHan
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/disable/{service_code}",
+				Path:    "/disable",
 				Handler: handler.DisableBulkService,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -33,7 +33,7 @@ func RegisterBulkServiceRoutes(router chi.Router, handler inbound.BulkServiceHan
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/enable/{service_code}",
+				Path:    "/enable",
 				Handler: handler.EnableBulkService,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
