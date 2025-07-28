@@ -64,3 +64,12 @@ type CreateCPSAction struct {
 	CurrentData     any                    `json:"current_action,omitempty"`
 	MakerActionTime time.Time              `json:"maker_action_time,omitzero"`
 }
+
+type CreateCPSRequest struct {
+	User          User
+	CurData       *any
+	PrevData      *any
+	RequestAction constant.RequestAction
+	ActionStatus  constant.ActionStatus
+	ActionType    constant.ActionType
+}

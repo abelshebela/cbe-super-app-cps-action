@@ -22,22 +22,10 @@ type Location struct {
 }
 
 type MerchantInformation struct {
-	MerchantID  string
-	Name        string
-	PhoneNumber string
-	Email       string
-}
-
-type Address struct {
-	Zone        string
-	Wereda      string
-	Kebele      string
-	Region      string
-	City        string
-	SubCity     string
-	StreetName  string
-	HouseNumber string
-	Location    Location
+	MerchantID          string
+	MercahntName        string
+	MerchantPhoneNumber string
+	MerchantEmail       string
 }
 
 type Ticket struct {
@@ -61,6 +49,7 @@ type TicketInformation struct {
 }
 
 type EventInformation struct {
+	StartDate   time.Time
 	DueDate     time.Time
 	Description string
 	Cover       string
@@ -75,14 +64,14 @@ type Restriction struct {
 type Event struct {
 	ID                  string
 	EventCode           string
-	Name                string
-	City                string
+	EventName           string
+	EventCity           string
 	AccountNumber       string
 	EventVenue          string
 	RefundPolicy        []string
 	MICSInfo            []string
 	Restriction         Restriction
-	Ticket              Ticket
+	Ticket              []Ticket
 	Status              EventStatus
 	EventInformation    EventInformation
 	TicketStatistics    TicketStatistics

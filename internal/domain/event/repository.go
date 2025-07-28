@@ -2,16 +2,18 @@ package event
 
 import (
 	"context"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+
 )
 
 type EventRepository interface {
-	CreateCpsAction(ctx context.Context, action entity.CPSAction) (*entity.CPSAction, error)
-	UpdateCpsAction(ctx context.Context, action entity.CPSAction) error
-	FetchCpsActionByID(ctx context.Context, actionID string) (*entity.CPSAction, error)
 	CreateEvent(ctx context.Context, event Event) (*Event, error)
-	FetchEventByID(ctx context.Context, eventID string) (*Event, error)
-	FetchEvent(ctx context.Context, limit, offset int) ([]*Event, error)
-	CPSActionExists(ctx context.Context, cpsReq entity.CreateCPSAction) error
+	UpdateEvent(ctx context.Context, event Event) (*Event, error)
+	DeleteEvent(ctx context.Context, id string) (*Event, error)
+	EnableDisableEvent(ctx context.Context, id string, enable bool) (*Event, error)
+
+	FetchEventByID(ctx context.Context, id string) (*Event, error)
+	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Event], error)
 }

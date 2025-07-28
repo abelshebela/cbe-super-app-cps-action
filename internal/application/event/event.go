@@ -3,61 +3,69 @@ package event_application
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+	cps_entitites "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	evententity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
-	MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, maker domain.Maker) (string, error)
-	CheckerCreateEvent(ctx context.Context, actionID string, action bool, checkerID, checkerName, checkerPhone string) error
-	FetchAllEvents(ctx context.Context, limit, offset int) ([]dto.EventResponse, error)
-	FetchEvent(ctx context.Context, event_id string) (dto.EventDTO, error)
+	CreateEvent(ctx context.Context, event dto.EventRequest, maker domain.Maker) error
+	UpdateEvent(ctx context.Context, id string, event dto.EventRequest, maker domain.Maker) error
+	DeleteEvent(ctx context.Context, id string, maker domain.Maker) error
+	EnableDisableEvent(ctx context.Context, id string, maker domain.Maker, enable bool) error
+
+	FetchEventByID(ctx context.Context, id string) (*evententity.Event, error)
+	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*evententity.Event], error)
 }
 type ApplicationStore struct {
-	service domain.EventService
+	service    domain.EventService
+	cpsService cps_service.CPSActionService
+	logger     utils.Logger
 }
 
-func NewEventApplication(service domain.EventService) ApplicationAbstracts {
+func NewEventApplication(service domain.EventService,
+	cpsService cps_service.CPSActionService,
+	logger utils.Logger) ApplicationAbstracts {
 	return &ApplicationStore{
-		service: service,
+		service:    service,
+		cpsService: cpsService,
+		logger:     logger,
 	}
 }
 
-func (a *ApplicationStore) MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, maker domain.Maker) (string, error) {
-	ticketReq := domain.Ticket{}
-	eventReq := domain.Event{}
-
-	// merchant ID
-
-	requestID, err := a.service.CreateEventRequest(ctx, eventReq, ticketReq, maker)
+func (a *ApplicationStore) CreateEvent(ctx context.Context, event dto.EventRequest, maker domain.Maker) error {
+	res, err := a.service.CreateEvent(ctx, event)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return requestID, nil
-}
-func (a *ApplicationStore) CheckerCreateEvent(ctx context.Context, actionId string, action bool, checkerId, checkerName, checkerPhone string) error {
-	return a.service.ApproveEventRequest(ctx, actionId, action, checkerId, checkerName, checkerPhone)
+
+	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
+		User: maker,
+	})
+	return nil
 }
 
-func (a *ApplicationStore) FetchAllEvents(ctx context.Context, limit, offset int) ([]dto.EventResponse, error) {
-	data, err := a.service.FetchEvent(ctx, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	var result []dto.EventResponse
-	for range /* _, d := */ data {
-		result = append(result, dto.EventResponse{})
-	}
-	return result, nil
+func (a *ApplicationStore) UpdateEvent(ctx context.Context, id string, event dto.EventRequest, maker domain.Maker) error {
+
+	return nil
 }
-func (a *ApplicationStore) FetchEvent(ctx context.Context, event_id string) (dto.EventDTO, error) {
-	data, err := a.service.FetchEventByID(ctx, event_id)
-	if err != nil {
-		return dto.EventDTO{}, err
-	}
-	return dto.EventDTO{
-		EventID:   data.ID,
-		EventCode: data.EventCode,
-		EventName: data.Name,
-	}, nil
+func (a *ApplicationStore) DeleteEvent(ctx context.Context, id string, maker domain.Maker) error {
+	return nil
+}
+func (a *ApplicationStore) EnableDisableEvent(ctx context.Context, id string, maker domain.Maker, enable bool) error {
+	return nil
+}
+
+func (a *ApplicationStore) FetchEventByID(ctx context.Context, id string) (*evententity.Event, error) {
+	return nil, nil
+}
+func (a *ApplicationStore) FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*evententity.Event], error) {
+	return nil, nil
 }
