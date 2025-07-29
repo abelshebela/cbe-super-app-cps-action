@@ -32,6 +32,7 @@ func (sa *serviceHandler) GetAllService(w http.ResponseWriter, r *http.Request) 
 	data, err := sa.appService.GetAllService(r.Context(), local_utils.Filter(*filterParams)) // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 
 	local_utils.BaseResponseMaker(data, w, "Successfuly Service retrived", 200)
@@ -47,6 +48,7 @@ func (sa *serviceHandler) GetAllMinimumTransferCap(w http.ResponseWriter, r *htt
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(res, w, "Successfuly Service retrived", 200)
 }
@@ -61,6 +63,7 @@ func (sa *serviceHandler) GetAllMaximumTransferCap(w http.ResponseWriter, r *htt
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(res, w, "Successfuly Service retrived", 200)
 }
@@ -75,6 +78,7 @@ func (sa *serviceHandler) GetAllServiceFee(w http.ResponseWriter, r *http.Reques
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(res, w, "Successfuly Service retrived", 200)
 }
@@ -89,6 +93,7 @@ func (sa *serviceHandler) GetAllTotalTransferCap(w http.ResponseWriter, r *http.
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 	local_utils.BaseResponseMaker(res, w, "Successfuly Service retrived", 200)
 }
@@ -104,6 +109,7 @@ func (sa *serviceHandler) GetServiceFeeDetail(w http.ResponseWriter, r *http.Req
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
 	}
 
 	data, err := local_utils.StructToMap(res)
@@ -130,6 +136,7 @@ func (sa *serviceHandler) UpdateServiceFee(w http.ResponseWriter, r *http.Reques
 		local_utils.SendErrorResponse(w, req.Validate().Error(), 0, nil)
 		return
 	}
+
 	err := sa.appService.UpdateServiceFee(r.Context(), string(service_id), req) // to be continued
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
@@ -151,7 +158,6 @@ func (sa *serviceHandler) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http
 	}
 
 	err := sa.appService.UpdateSingleMaxTransfer(r.Context(), string(service_id), req) // to be continued
-	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return

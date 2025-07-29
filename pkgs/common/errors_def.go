@@ -1058,6 +1058,18 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
+		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
+			Code:    "GEN_177",
+			Message: "Single max transfers can not be less or equal to min_amount",
+		},
+		"ACCOUNT_NUMBER_CAN_NOT_BE_EMPTY": {
+			Code:    "GEN_178",
+			Message: "account number can not be empty",
+		},
+		"USERCODE_CANT_BE_EMPTY": {
+			Code:    "GEN_179",
+			Message: "user code can not be empty",
+		},
 		"FAILED_TO_FIND_USER": {
 			Code:    "GEN_177",
 			Status:  http.StatusNotFound,

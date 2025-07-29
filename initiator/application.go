@@ -4,8 +4,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
-
 	accountvalidation_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_validation"
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
@@ -22,8 +20,6 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
-	service_details_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service_details"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
 	account_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_lookup"
@@ -32,8 +28,8 @@ import (
 	cps_actions_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_action"
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
-	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/check_service"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -41,25 +37,23 @@ import (
 )
 
 type Application struct {
-	AvatarApplication          avatar_app.AvatarApplicationService
-	BankApplication            bank.BankHandlerService
-	AdApplication              ad.ADHandlers
-	WalletApplication          wallet.WalletHandlerAppllication
-	FaydaApplication           faydaaccount.ApplicationService
-	CustomerApplication        customer.ApplicationService
-	FeedbackApplication        feedback.FeedbackService
-	UnlinkApplication          unlink.ApplicationService
+	AvatarApplication   avatar_app.AvatarApplicationService
+	BankApplication     bank.BankHandlerService
+	AdApplication       ad.ADHandlers
+	WalletApplication   wallet.WalletHandlerAppllication
+	FaydaApplication    faydaaccount.ApplicationService
+	CustomerApplication customer.ApplicationService
+	FeedbackApplication feedback.FeedbackService
+	// UnlinkApplication          unlink.ApplicationService
 	BudgetApplication          budget.BudgetService
 	AccountApplication         accountvalidation_app.ApplicationAbstracts
 	BulkServicesApplication    bulkservices_application.ApplicationAbstracts
 	CPSUserApplication         cpsusermaker.ApplicationService
 	PasswordRuleApplication    *passwordrule.PasswordRuleHandler
 	PortalCardApplication      portalcard.PortalCardApplication
-	ServiceDetailApplication   service_details_app.ApplicationAbstracts
 	DepartmentApplication      department.DepartmentService
 	AccountBlockApplication    account_block.ApplicationService
 	HQApplication              hq.ApplicationAbstracts
-	ServiceApplication         service.ServiceApplication
 	PermissionApplication      permission.PermissionService
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 	MiniAppApplication         miniApp_application.ApplicationAbstracts
@@ -79,27 +73,25 @@ type Application struct {
 func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger, cfg *config.VaultConfig) Application {
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
-		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
-		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
-		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
-		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
-		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
-		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
-		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
+		BankApplication:     bank.InitBankHanlder(domain.BankDomain, logger),
+		AdApplication:       ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
+		AvatarApplication:   avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
+		WalletApplication:   wallet.InitWalletApplication(domain.WalletDomain, logger),
+		FaydaApplication:    faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
+		CustomerApplication: customer.InitCustomerHandler(domain.CustomerDomain, logger),
+		FeedbackApplication: feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
+		// UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
 		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
-		ServiceDetailApplication:   service_details_app.NewApplication(domain.ServiceDomain, logger),
 		DepartmentApplication:      department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
 		AccountBlockApplication:    account_block.NewApplicationHandler(domain.AccountBlockDomain),
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
-		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),

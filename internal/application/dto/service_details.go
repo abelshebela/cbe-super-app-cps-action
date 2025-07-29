@@ -6,53 +6,53 @@ import (
 	"time"
 	// "time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	Validation "github.com/go-ozzo/ozzo-validation/v4"
-
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 )
 
-type ServiceDetailsResponse struct {
-	ID                 string               `json:"id"`
-	ServiceID          string               `json:"service_id"`
-	ServiceCode        string               `json:"service_code"`
-	ServiceName        string               `json:"service_name"`
-	ServiceType        string               `json:"service_type"`
-	Key                string               `json:"key"`
-	Cap                service.Cap          `json:"cap"`
-	CBEProductCodes    service.ProductCodes `json:"cbe_product_codes"`
-	CBEIFBProductCodes service.ProductCodes `json:"cbe_ifb_product_codes"`
-	AboveAmount        uint64               `json:"above_amount"`
-	AboveServiceFee    uint64               `json:"above_service_fee"`
-	PaymentType        string               `json:"payment_type"`
-	Tiers              []service.Tier       `json:"tiers"`
-	CBEGLEntry         service.GLEntry      `json:"cbe_gl_entry"`
-	CBEIFBGLEntry      service.GLEntry      `json:"cbe_ifb_gl_entry"`
-	Enabled            bool                 `json:"enabled"`
-	IsDeleted          bool                 `json:"is_deleted"`
-	CreatedAt          time.Time            `json:"created_at"`
-	LastModifiedAt     time.Time            `json:"last_modified_at"`
-	DeletedAt          time.Time            `json:"deleted_at,omitempty"`
-}
+// type ServiceDetailsResponse struct {
+// 	ID                 string               `json:"id"`
+// 	ServiceID          string               `json:"service_id"`
+// 	ServiceCode        string               `json:"service_code"`
+// 	ServiceName        string               `json:"service_name"`
+// 	ServiceType        string               `json:"service_type"`
+// 	Key                string               `json:"key"`
+// 	Cap                service.Cap          `json:"cap"`
+// 	CBEProductCodes    service.ProductCodes `json:"cbe_product_codes"`
+// 	CBEIFBProductCodes service.ProductCodes `json:"cbe_ifb_product_codes"`
+// 	AboveAmount        uint64               `json:"above_amount"`
+// 	AboveServiceFee    uint64               `json:"above_service_fee"`
+// 	PaymentType        string               `json:"payment_type"`
+// 	Tiers              []service.Tier       `json:"tiers"`
+// 	CBEGLEntry         service.GLEntry      `json:"cbe_gl_entry"`
+// 	CBEIFBGLEntry      service.GLEntry      `json:"cbe_ifb_gl_entry"`
+// 	Enabled            bool                 `json:"enabled"`
+// 	IsDeleted          bool                 `json:"is_deleted"`
+// 	CreatedAt          time.Time            `json:"created_at"`
+// 	LastModifiedAt     time.Time            `json:"last_modified_at"`
+// 	DeletedAt          time.Time            `json:"deleted_at,omitempty"`
+// }
 
-type UpdateServiceDetailsRequest struct {
-	ID                 string               `json:"id"`
-	ServiceID          string               `json:"service_id"`
-	ServiceCode        string               `json:"service_code"`
-	ServiceName        string               `json:"service_name"`
-	ServiceType        string               `json:"service_type"`
-	Key                string               `json:"key"`
-	Cap                service.Cap          `json:"cap"`
-	CBEProductCodes    service.ProductCodes `json:"cbe_product_codes"`
-	CBEIFBProductCodes service.ProductCodes `json:"cbe_ifb_product_codes"`
-	AboveAmount        uint64               `json:"above_amount"`
-	AboveServiceFee    uint64               `json:"above_service_fee"`
-	PaymentType        string               `json:"payment_type"`
-	Tiers              []service.Tier       `json:"tiers"`
-	CBEGLEntry         service.GLEntry      `json:"cbe_gl_entry"`
-	CBEIFBGLEntry      service.GLEntry      `json:"cbe_ifb_gl_entry"`
-	Enabled            bool                 `json:"enabled"`
-	MakerID            string               `json:"maker_id"`
-}
+// type UpdateServiceDetailsRequest struct {
+// 	ID                 string               `json:"id"`
+// 	ServiceID          string               `json:"service_id"`
+// 	ServiceCode        string               `json:"service_code"`
+// 	ServiceName        string               `json:"service_name"`
+// 	ServiceType        string               `json:"service_type"`
+// 	Key                string               `json:"key"`
+// 	Cap                service.Cap          `json:"cap"`
+// 	CBEProductCodes    service.ProductCodes `json:"cbe_product_codes"`
+// 	CBEIFBProductCodes service.ProductCodes `json:"cbe_ifb_product_codes"`
+// 	AboveAmount        uint64               `json:"above_amount"`
+// 	AboveServiceFee    uint64               `json:"above_service_fee"`
+// 	PaymentType        string               `json:"payment_type"`
+// 	Tiers              []service.Tier       `json:"tiers"`
+// 	CBEGLEntry         service.GLEntry      `json:"cbe_gl_entry"`
+// 	CBEIFBGLEntry      service.GLEntry      `json:"cbe_ifb_gl_entry"`
+// 	Enabled            bool                 `json:"enabled"`
+// 	MakerID            string               `json:"maker_id"`
+// }
 
 type UpdateServiceDetailsResponse struct {
 	ActionID string `json:"action_id"`
@@ -87,7 +87,7 @@ type Tier struct {
 }
 type ServiceFeeMakerRequest struct {
 	ServiceID string `json:"service_id"`
-	Tries     []service.Tier
+	Tries     []model.Tier
 }
 
 type TotalTransferCapRequest struct {
@@ -136,7 +136,7 @@ const (
 )
 
 type ActionData struct {
-	Tier []service.Tier
+	Tier []model.Tier
 }
 
 // func (a ActionData) Validate() error {
@@ -159,20 +159,20 @@ type ActionData struct {
 // }
 
 type CPSAction struct {
-	ID                string         `json:"id,omitempty"`
-	ActionCode        string         `json:"action_code,omitempty"`
-	CheckerUser       User           `json:"checker_user"`
-	MakerUser         User           `json:"maker_user"`
-	RejectedReason    string         `json:"rejected_reason,omitempty"`
-	Department        string         `json:"department,omitempty"`
-	Status            ActionStatus   `json:"status,omitempty"`
-	RequestAction     RequestAction  `json:"request_action,omitempty"`
-	ActionType        ActionType     `json:"action_type,omitempty"`
-	ActionData        []service.Tier `json:"action_data"`
-	PreviousData      any            `json:"previous_action,omitempty"`
-	CurrentData       any            `json:"current_action,omitempty"`
-	MakerActionTime   time.Time      `json:"maker_action_time,omitzero"`
-	CheckerActionTime time.Time      `json:"checker_action_time,omitzero"`
+	ID                string        `json:"id,omitempty"`
+	ActionCode        string        `json:"action_code,omitempty"`
+	CheckerUser       User          `json:"checker_user"`
+	MakerUser         User          `json:"maker_user"`
+	RejectedReason    string        `json:"rejected_reason,omitempty"`
+	Department        string        `json:"department,omitempty"`
+	Status            ActionStatus  `json:"status,omitempty"`
+	RequestAction     RequestAction `json:"request_action,omitempty"`
+	ActionType        ActionType    `json:"action_type,omitempty"`
+	ActionData        []model.Tier  `json:"action_data"`
+	PreviousData      any           `json:"previous_action,omitempty"`
+	CurrentData       any           `json:"current_action,omitempty"`
+	MakerActionTime   time.Time     `json:"maker_action_time,omitzero"`
+	CheckerActionTime time.Time     `json:"checker_action_time,omitzero"`
 }
 
 type RejectCPSAction struct {

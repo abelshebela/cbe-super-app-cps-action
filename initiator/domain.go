@@ -10,7 +10,6 @@ import (
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	budget_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
-	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
@@ -22,7 +21,7 @@ import (
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
-	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
@@ -30,7 +29,6 @@ import (
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
-	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
@@ -46,11 +44,11 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
 
 	return application.Domain{
-		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
-		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
-		CustomerDomain:        customerDomain,
-		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
-		UnlinkDomain:          unlink_service.NewUnlinkService(persistence.UnlinkPersistence),
+		AdDomain:       ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
+		AvatarDomian:   avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
+		CustomerDomain: customerDomain,
+		FeedbackDomain: feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
+		// UnlinkDomain:          unlink_service.NewUnlinkService(persistence.UnlinkPersistence),
 		BudgetDomain:          budget_service.InitBudgetDomain(persistence.BudgetPersistence, logger),
 		AccountDomain:         account_validation.NewAccountValidationService(persistence.AccountPersistence, persistence.BulkServicesPersistence, logger),
 		CPSUserDomain:         services.NewCPSUserService(persistence.CPSUserPersistence, permissionDomain, persistence.DepartmentPersistence, logger),
@@ -61,7 +59,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		PermissionDomain:      permissionDomain,
 		HQDomain:              hq.NewService(persistence.HQPersistence, persistence.BulkServicesPersistence, logger),
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, logger),
-		ServiceDomain:         service.NewServiceStore(persistence.ServiceDetailsStore, persistence.BulkServicesPersistence, logger),
 		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance),
 		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger, cfg),
