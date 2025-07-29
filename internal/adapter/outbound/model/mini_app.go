@@ -40,7 +40,7 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	ID            string          `bson:"id" json:"id,omitempty"`
+	ID            bson.ObjectID   `bson:"id" json:"id,omitempty"`
 	Environment   EnvironmentType `bson:"environment" json:"environment"`
 	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
 	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
@@ -48,6 +48,9 @@ type CredentialInformation struct {
 	AppSecret     string          `bson:"app_secret" json:"app_secret"`
 	PrivateKey    string          `bson:"private_key" json:"private_key"`
 	PublicKey     string          `bson:"public_key" json:"public_key"`
+	Timestamp     time.Time       `bson:"timestamp" json:"timestamp"`
+	Signature     string          `bson:"signature" json:"-"`
+	MiniAppCode   string          `bson:"mini_app_code" json:"mini_app_code"`
 }
 
 type MiniApp struct {
@@ -59,6 +62,10 @@ type MiniApp struct {
 	MerchantID        string                  `bson:"merchant_id"`
 	ProductCode       []ProductCode           `bson:"product_code"`
 	Credential        []CredentialInformation `bson:"credential"`
+	AppViewType       string                  `bson:"app_view_type"`
+	URL               string                  `bson:"url"`
+	MPAASID           string                  `bson:"mpaas_id"`
+	Stage             string                  `bson:"stage"`
 	IsEventMiniApp    bool                    `bson:"is_event_mini_app"`
 	IsThreeClick      bool                    `bson:"is_three_click"`
 	Enabled           bool                    `bson:"enabled"`

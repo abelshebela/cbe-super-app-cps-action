@@ -138,9 +138,9 @@ type EventDocument struct {
 func (e *EventDocument) toModel() event.Event {
 	return event.Event{
 		ID:                  e.ID.Hex(),
-		Code:                e.Code,
+		EventCode:                e.Code,
 		Name:                e.Name,
-		Address:             e.Address,
+		// Address:             e.Address,
 		AccountNumber:       e.AccountNumber,
 		EventVenue:          e.EventVenue,
 		RefundPolicy:        e.RefundPolicy,
@@ -176,9 +176,9 @@ func ToEventDocument(event event.Event) (*EventDocument, error) {
 
 	return &EventDocument{
 		ID:                  objectID,
-		Code:                event.Code,
+		Code:                event.EventCode,
 		Name:                event.Name,
-		Address:             event.Address,
+		// Address:             event.Address,
 		AccountNumber:       event.AccountNumber,
 		EventVenue:          event.EventVenue,
 		RefundPolicy:        event.RefundPolicy,

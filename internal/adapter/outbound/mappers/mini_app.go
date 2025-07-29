@@ -12,7 +12,7 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 	creds := make([]model.CredentialInformation, len(domain.Credential))
 	for i, cred := range domain.Credential {
 		creds[i] = model.CredentialInformation{
-			ID:            cred.ID,
+			ID:            bson.NewObjectID(),
 			Environment:   model.EnvironmentType(cred.Environment),
 			MerchantAppID: cred.MerchantAppID,
 			FabricAppID:   cred.FabricAppID,
@@ -20,6 +20,9 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 			AppSecret:     cred.AppSecret,
 			PrivateKey:    cred.PrivateKey,
 			PublicKey:     cred.PublicKey,
+			Timestamp:     cred.Timestamp,
+			Signature:     cred.Signature,
+			MiniAppCode:   cred.MiniAppCode,
 		}
 	}
 
@@ -56,6 +59,10 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 		MerchantID:        domain.MerchantID,
 		ProductCode:       productCodes,
 		Credential:        creds,
+		AppViewType:       string(domain.AppViewType),
+		URL:               domain.URL,
+		MPAASID:           domain.MPAASID,
+		Stage:             string(domain.Stage),
 		IsEventMiniApp:    domain.IsEventMiniApp,
 		IsThreeClick:      domain.IsThreeClick,
 		Enabled:           domain.Enabled,
@@ -70,7 +77,7 @@ func ToDomainMiniApp(model model.MiniApp) miniapp.MiniApp {
 	creds := make([]miniapp.CredentialInformation, len(model.Credential))
 	for i, cred := range model.Credential {
 		creds[i] = miniapp.CredentialInformation{
-			ID:            cred.ID,
+			ID:            cred.ID.Hex(),
 			Environment:   miniapp.EnvironmentType(cred.Environment),
 			MerchantAppID: cred.MerchantAppID,
 			FabricAppID:   cred.FabricAppID,
@@ -78,6 +85,9 @@ func ToDomainMiniApp(model model.MiniApp) miniapp.MiniApp {
 			AppSecret:     cred.AppSecret,
 			PrivateKey:    cred.PrivateKey,
 			PublicKey:     cred.PublicKey,
+			MiniAppCode:   cred.MiniAppCode,
+			Signature:     cred.Signature,
+			Timestamp:     cred.Timestamp,
 		}
 	}
 
@@ -101,6 +111,10 @@ func ToDomainMiniApp(model model.MiniApp) miniapp.MiniApp {
 		MerchantID:          model.MerchantID,
 		ProductCode:         productCodes,
 		Credential:          creds,
+		URL:                 model.URL,
+		MPAASID:             model.MPAASID,
+		AppViewType:         miniapp.AppViewType(model.AppViewType),
+		Stage:               miniapp.Stage(model.Stage),
 		IsEventMiniApp:      model.IsEventMiniApp,
 		IsThreeClick:        model.IsThreeClick,
 		Enabled:             model.Enabled,

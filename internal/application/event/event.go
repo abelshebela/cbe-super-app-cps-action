@@ -57,7 +57,7 @@ func (a *ApplicationStore) FetchEvent(ctx context.Context, event_id string) (dto
 	}
 	return dto.EventDTO{
 		EventID:   data.ID,
-		EventCode: data.Code,
+		EventCode: data.EventCode,
 		EventName: data.Name,
 	}, nil
 }
