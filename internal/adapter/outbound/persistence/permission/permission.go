@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	// "reflect"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -27,6 +29,7 @@ import (
 type PermissionPersistence struct {
 	permissionGroupsDal   dal.MongoDal[entities.PermissionGroup, entities.PermissionGroup]
 	permissionCategoryDal dal.MongoDal[entities.PermissionCategory, entities.PermissionCategory]
+	permissionDal         dal.MongoDal[entities.Permission, entities.Permission]
 	cpsdal                dal.MongoDal[model.CPSAction, model.CPSAction]
 	timeout               time.Duration
 	logger                utils.Logger
@@ -40,11 +43,12 @@ func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, 
 	permissionGroupsDal := dal.NewMongoDal[entities.PermissionGroup, entities.PermissionGroup](client, dbName, "permission_groups")
 
 	permissionCategoryDal := dal.NewMongoDal[entities.PermissionCategory, entities.PermissionCategory](client, dbName, "permission_category")
-
+	permissionDal := dal.NewMongoDal[entities.Permission, entities.Permission](client, dbName, "permission")
 	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
 		permissionCategoryDal: permissionCategoryDal,
+		permissionDal:         permissionDal,
 		cpsdal:                cpsdal,
 		timeout:               timeout,
 		logger:                logger,
@@ -76,6 +80,7 @@ func (r *PermissionPersistence) CheckPendingRequest(userCode string, status mode
 }
 
 func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) bool {
+	groupName = strings.ToUpper(groupName)
 	ctx := context.Background()
 
 	filter := bson.M{"group_name": groupName}
@@ -292,7 +297,7 @@ func (r *PermissionPersistence) CreatePermissionGroupFromAction(ctx context.Cont
 		return nil, errors.New("invalid group_name")
 	}
 
-	permissionCategoriesIface, ok := actionData["permission_categories"].([]interface{})
+	permissionCategoriesIface, ok := actionData["permission_category"].([]interface{})
 	if !ok {
 		return nil, errors.New("invalid permission_categories")
 	}
@@ -394,7 +399,7 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(ctx context.Cont
 
 	// 3. Handle permission categories more robustly
 	var permissionCategories []string
-	if pc, ok := actionData["permission_categories"]; ok && pc != nil {
+	if pc, ok := actionData["permission_category"]; ok && pc != nil {
 		switch v := pc.(type) {
 		case []interface{}:
 			permissionCategories = make([]string, 0, len(v))
@@ -431,7 +436,12 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(ctx context.Cont
 
 	}
 
-	oldGroup := actionData["old_group"].(string)
+	oldGroup, ok := actionData["old_group"].(string)
+	if !ok {
+		r.logger.Errorf("missing or invalid old_group")
+		return nil, errors.New("old_group is required and must be a string")
+	}
+
 	// 4. Prepare update document
 	update := bson.M{
 		"group_name":          groupName,
@@ -457,6 +467,7 @@ func (r *PermissionPersistence) UpdatePermissionGroupFromAction(ctx context.Cont
 }
 
 func (r *PermissionPersistence) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
+	groupName = strings.ToUpper(groupName)
 	ctx := context.Background()
 
 	filter := bson.M{"group_name": groupName}
@@ -473,6 +484,7 @@ func (r *PermissionPersistence) UpdatePermissionGroup(groupName string, permissi
 }
 
 func (r *PermissionPersistence) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
+	groupName = strings.ToUpper(groupName)
 	filter := bson.M{"group_name": groupName}
 	result, err := r.permissionGroupsDal.FindOne(context.Background(), filter, bson.M{})
 	if err != nil {
@@ -481,6 +493,39 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (entities.P
 		}
 		return entities.PermissionGroup{}, err
 	}
+
+	// Populate full permission categories
+	var categoryIDs []bson.ObjectID
+	switch v := result.PermissionCategory.(type) {
+	case []bson.ObjectID:
+		categoryIDs = v
+
+	case []string:
+		for _, s := range v {
+			if oid, err := bson.ObjectIDFromHex(s); err == nil {
+				categoryIDs = append(categoryIDs, oid)
+			}
+		}
+
+	case bson.A:
+		for _, raw := range v {
+			switch val := raw.(type) {
+			case bson.ObjectID:
+				categoryIDs = append(categoryIDs, val)
+			case string:
+				if oid, err := bson.ObjectIDFromHex(val); err == nil {
+					categoryIDs = append(categoryIDs, oid)
+				}
+			}
+		}
+	}
+	if len(categoryIDs) > 0 {
+		cats, err := r.permissionCategoryDal.FindAll(context.Background(), bson.M{"_id": bson.M{"$in": categoryIDs}}, bson.M{})
+		if err == nil && len(cats) > 0 {
+			result.PermissionCategory = cats
+		}
+	}
+
 	r.logger.Infof("Permission group found: %v", result)
 	return *result, nil
 }
@@ -509,6 +554,41 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 		return nil, err
 	}
 
+	for _, group := range permissionGroups {
+		fmt.Println("group", group.PermissionCategory)
+		var categoryIDs []bson.ObjectID
+		switch v := group.PermissionCategory.(type) {
+		case []bson.ObjectID:
+			categoryIDs = v
+
+		case []string:
+			for _, s := range v {
+				if oid, err := bson.ObjectIDFromHex(s); err == nil {
+					categoryIDs = append(categoryIDs, oid)
+				}
+			}
+
+		case bson.A:
+			for _, raw := range v {
+				switch val := raw.(type) {
+				case bson.ObjectID:
+					categoryIDs = append(categoryIDs, val)
+				case string:
+					if oid, err := bson.ObjectIDFromHex(val); err == nil {
+						categoryIDs = append(categoryIDs, oid)
+					}
+				}
+			}
+		}
+		fmt.Println("categoryIDs", categoryIDs)
+		if len(categoryIDs) > 0 {
+			cats, err := r.permissionCategoryDal.FindAll(context.Background(), bson.M{"_id": bson.M{"$in": categoryIDs}}, bson.M{})
+			if err == nil && len(cats) > 0 {
+				group.PermissionCategory = cats
+			}
+		}
+	}
+
 	total, err := r.permissionGroupsDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -519,4 +599,55 @@ func (r *PermissionPersistence) GetPermissionGroups(ctx context.Context, filterP
 		Data: permissionGroups,
 		Meta: meta,
 	}, nil
+}
+
+func (r *PermissionPersistence) GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error) {
+	categories, err := r.permissionCategoryDal.FindAll(ctx, bson.M{}, bson.M{})
+	if err != nil {
+		r.logger.Errorf("failed to fetch permission categories: %v", err)
+		return nil, err
+	}
+
+	for i, cat := range categories {
+		// Extract permission IDs from the interface{} field
+		var permIDs []bson.ObjectID
+		switch v := cat.Permissions.(type) {
+		case []bson.ObjectID:
+			permIDs = v
+		case []interface{}:
+			for _, id := range v {
+				if objID, ok := id.(bson.ObjectID); ok {
+					permIDs = append(permIDs, objID)
+				}
+			}
+		case bson.A:
+			for _, id := range v {
+				if objID, ok := id.(bson.ObjectID); ok {
+					permIDs = append(permIDs, objID)
+				}
+			}
+		}
+
+		r.logger.Infof("Raw permissions field type: %T, value: %+v", cat.Permissions, cat.Permissions)
+
+		r.logger.Infof("Category %s has %d permission IDs: %v", cat.CategoryName, len(permIDs), permIDs)
+
+		if len(permIDs) > 0 {
+			r.logger.Infof("Querying permissions collection with IDs: %v", permIDs)
+			perms, err := r.permissionDal.FindAll(ctx, bson.M{"_id": bson.M{"$in": permIDs}}, bson.M{})
+			if err != nil {
+				r.logger.Errorf("failed to fetch permissions for category %s: %v", cat.CategoryName, err)
+			} else {
+				r.logger.Infof("Found %d permissions for category %s: %+v", len(perms), cat.CategoryName, perms)
+				// Convert []*Permission to []Permission and replace the permissions array
+				fullPerms := make([]entities.Permission, len(perms))
+				for j, perm := range perms {
+					fullPerms[j] = *perm
+					r.logger.Infof("Permission %d: ID=%s, Name=%s", j, perm.ID.Hex(), perm.PermissionName)
+				}
+				categories[i].Permissions = fullPerms
+			}
+		}
+	}
+	return categories, nil
 }
