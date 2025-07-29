@@ -135,17 +135,16 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.Application.MakerCreateMiniApp(r.Context(), dto, maker)
+	err = h.Application.CreateMiniApp(r.Context(), dto, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Mini App request successfully created")
+	utils.WriteSuccessResponse(w, nil, "Create Mini App request successfully created")
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
-
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		h.logger.Errorf("missing or invalid parameter 'id'")
@@ -167,7 +166,6 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req, err := h.getValues(r, false)
-
 	if err != nil {
 		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
@@ -177,31 +175,26 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
-
 	dto, err := req.ToMiniAppCreateRequest(false)
 	if err != nil {
 		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
-
 	dto.ID = id
 	if IsEmptyUpdate(dto) {
 		utils.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
 		return
 	}
 
-	// Call domain application logic
-	_, err = h.Application.MakerUpdateMiniApp(r.Context(), dto, maker)
+	 err = h.Application.UpdateMiniApp(r.Context(), dto, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
-	utils.WriteSuccessResponse(w, nil, "Mini App update request created successfully")
+	utils.WriteSuccessResponse(w, nil, "Update Mini App request created successfully")
 }
 
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
-
 	id := chi.URLParam(r, "id")
 	maker, UserErr := h.createUser(r)
 	if UserErr != nil {
@@ -209,12 +202,12 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.Application.MakerDeleteMiniApp(r.Context(), *maker, id)
+	err := h.Application.DeleteMiniApp(r.Context(), *maker, id)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, nil, "successful")
+	utils.WriteSuccessResponse(w, nil, "Mini App deleted  request created successfully")
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +218,7 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	 docs  := []MiniAppResponse{}
+	docs := []MiniAppResponse{}
 	for _, doc := range list.Data {
 		res := ToMiniAppResponse(doc)
 		docs = append(docs, res)
@@ -281,16 +274,14 @@ func (h *HttpStore) enableDisableMiniApp(w http.ResponseWriter, r *http.Request,
 		Department:  makerUser.Department,
 	}
 
-	_, err := h.Application.EnableDisableMiniAppByID(r.Context(), id, enable, maker)
+	err := h.Application.EnableDisableMiniAppByID(r.Context(), id, enable, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
 	action := "disabled"
 	if enable {
 		action = "enabled"
 	}
-
-	utils.WriteSuccessResponse(w, nil, fmt.Sprintf("Mini App request to be %s successfully created", action))
+	utils.WriteSuccessResponse(w, nil, fmt.Sprintf("Mini App %s successfully", action))
 }
