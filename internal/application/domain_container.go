@@ -29,6 +29,7 @@ import (
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
@@ -65,5 +66,5 @@ type Domain struct {
 	ServiceCheckDomain    service_domain.ServiceRepo
 
 	KeyGenService         keyGen_service.KeyGeneratorService
-
+	NotificationService notification_domain.NotificationService
 }

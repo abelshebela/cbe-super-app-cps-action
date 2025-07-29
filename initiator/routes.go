@@ -30,6 +30,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+	notificationhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
@@ -71,5 +72,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		mini_app_merchant_inbound.InitMiniAppMerchantHandlerMaker(sub, adapter.MiniAppMerchantAdapter, authMiddleware, cpsGuard)
 		account_inbound.InitAccountLookUpRoutes(sub, adapter.AccountLookUp, authMiddleware)
 		service_handler.InteServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware)
+		notificationhandler.InitNotificationsHandlerRoutes(sub, adapter.NotificationAdapter, authMiddleware, cpsGuard)
 	})
 }

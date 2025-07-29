@@ -8,8 +8,6 @@ import (
 
 )
 
-
-
 type EventRepository interface {
 	CreateEvent(ctx context.Context, event event.Event) (*event.Event, error)
 	UpdateEvent(ctx context.Context, event event.Event) (*event.Event, error)

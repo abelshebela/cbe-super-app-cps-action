@@ -86,6 +86,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.EventDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Service"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Notification"):
+		return d.app.NotificationService.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

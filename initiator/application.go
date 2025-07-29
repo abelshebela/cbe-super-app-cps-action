@@ -34,6 +34,7 @@ import (
 
 	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/check_service"
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	notification_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/notification"
 
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -73,6 +74,7 @@ type Application struct {
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
 	ServicCheckeApplication    service_application.ApplicationService
 	AccountLookupApplication   account_application.UserSearchService
+	NotificationApplication notification_application.NotificationApplicationAbstracts
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -109,5 +111,6 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
+		NotificationApplication: notification_application.NewNotificationApplication(domain.NotificationService, domain.CPSActionDomain, logger),
 	}
 }

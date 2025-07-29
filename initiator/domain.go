@@ -33,6 +33,7 @@ import (
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -73,5 +74,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
 		// MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger),
 		ServiceCheckDomain: service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
+		NotificationService: notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
 	}
 }
