@@ -19,7 +19,6 @@ type APIErrorResponse struct {
 	Errors        any    `json:"errors,omitempty"`
 }
 
-
 // errorKeyToStatus provides the most appropriate HTTP status code for each error key.
 var errorKeyToStatus = map[string]int{
 	// General
@@ -171,8 +170,7 @@ var errorKeyToStatus = map[string]int{
 	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
 	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
 	"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
-
-
+}
 
 func formatValidationErrors(ve validation.Errors) map[string]string {
 	result := make(map[string]string)

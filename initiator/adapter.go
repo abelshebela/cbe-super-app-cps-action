@@ -40,7 +40,6 @@ import (
 	inboundMiniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 
 	inboundPermission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
-	inboundUnlink "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 	inboundWallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 
 	amountBasedAuth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
@@ -61,8 +60,10 @@ import (
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_handler"
 	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
+	unlink_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink"
 
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	unlink_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
@@ -81,7 +82,7 @@ type Adapter struct {
 	FeedbackAdapter        inboundFeedback.Feedback
 	DepartmentAdapter      inboundDepartment.DepartmentPortHandler
 	PermissionAdapter      inboundPermission.PermissionPortHandler
-	UnlinkAdapter          inboundUnlink.UnlinkPortHandler
+	UnlinkAdapter          unlink_inbound.UnlinkHandler
 	BudgetAdapter          inboundBudget.BudgetPortHandler
 	AccountAdapter         inboundAccount.Inbound
 	BulkServiceAdapter     inboundBulkServices.Inbound
@@ -105,14 +106,14 @@ type Adapter struct {
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
 	return Adapter{
-		AvatarAdapter:   avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
-		BankAdapter:     bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:       ad.InitADAdapter(application.AdApplication, logger),
-		WalletAdapter:   wallet.InitWalletRouter(application.WalletApplication, logger),
-		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
-		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
-		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
-		// UnlinkAdapter:       unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
+		AvatarAdapter:       avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
+		BankAdapter:         bank.InitBankAdapter(application.BankApplication, logger),
+		AdAdapter:           ad.InitADAdapter(application.AdApplication, logger),
+		WalletAdapter:       wallet.InitWalletRouter(application.WalletApplication, logger),
+		FaydaAdapter:        faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
+		CustomerAdapter:     customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
+		FeedbackAdapter:     feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
+		UnlinkAdapter:       unlink_handler.InitAdapterUnlinkService(application.UnlinkApplication, logger),
 		BudgetAdapter:       budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
 		AccountAdapter:      accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
 		BulkServiceAdapter:  bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),

@@ -62,6 +62,7 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 		"linked_branch":       1,
 		"_id":                 1,
 	}
+
 	linkedAccount, err := u.linkedDal.FindAllWithPagination(ctx, filter, projection, 1, 1)
 	if err != nil {
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")

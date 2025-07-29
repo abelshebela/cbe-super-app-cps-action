@@ -29,6 +29,7 @@ import (
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
@@ -44,11 +45,11 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
 
 	return application.Domain{
-		AdDomain:       ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
-		AvatarDomian:   avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
-		CustomerDomain: customerDomain,
-		FeedbackDomain: feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
-		// UnlinkDomain:          unlink_service.NewUnlinkService(persistence.UnlinkPersistence),
+		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
+		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
+		CustomerDomain:        customerDomain,
+		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
+		UnlinkDomain:          unlink_service.NewUnlinkServiceDomain(persistence.UnlinkPersistence, logger),
 		BudgetDomain:          budget_service.InitBudgetDomain(persistence.BudgetPersistence, logger),
 		AccountDomain:         account_validation.NewAccountValidationService(persistence.AccountPersistence, persistence.BulkServicesPersistence, logger),
 		CPSUserDomain:         services.NewCPSUserService(persistence.CPSUserPersistence, permissionDomain, persistence.DepartmentPersistence, logger),

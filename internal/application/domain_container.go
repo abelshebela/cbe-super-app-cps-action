@@ -26,10 +26,10 @@ import (
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
-
 )
 
 type Domain struct {
@@ -54,13 +54,12 @@ type Domain struct {
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service
 	PortalCardDomain      portalcard.PortaCardInterface
-	// UnlinkDomain          *unlink_service.Service
+	UnlinkDomain          unlink_service.UnlinkAccount
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
 	AccountLookup         *account_service.UserSearchService
 
-	ServiceCheckDomain    service_domain.ServiceRepo
+	ServiceCheckDomain service_domain.ServiceRepo
 
-	KeyGenService         keyGen_service.KeyGeneratorService
-
+	KeyGenService keyGen_service.KeyGeneratorService
 }

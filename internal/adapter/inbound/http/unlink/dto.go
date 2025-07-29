@@ -3,7 +3,7 @@ package unlink
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
-type GetUserByAccountRequest {
+type GetUserByAccountRequest struct{
 	AccountNumbers string `json:"account_number"`
 }
 
