@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
@@ -148,6 +147,7 @@ func (sp *servicePersistence) GetAllMinimumTransferCap(ctx context.Context, filt
 		sp.logger.Errorf("failed to count total services for minimum transfer cap: %v", err)
 		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
 	}
+
 	projectedData := ProjectDataArray[model.Service](service, projection)
 	meta := local_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 	var data any = projectedData
@@ -286,15 +286,9 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 		"is_deleted": false,
 	}
 	projection := bson.M{
-		"id":                1,
-		"service_name":      1,
-		"service_code":      1,
-		"service_type":      1,
-		"payment_type":      1,
-		"above_amount":      1,
-		"above_service_fee": 1,
-		"cap.min_amount":    1,
-		"created_at":        1,
+		"id":         1,
+		"total_cap":  1,
+		"created_at": 1,
 	}
 	if filterParams.Search != "" {
 		filter["$or"] = []bson.M{
@@ -315,7 +309,7 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 	limit := filterParams.PerPage
 
 	sp.logger.Infof("Fetching all total transfer caps with filter: %+v, projection: %+v, skip: %d, limit: %d", filter, projection, skip, limit)
-	service, err := sp.serviceDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	service, err := sp.hqDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		sp.logger.Errorf("failed to fetch service: %v", err)
 		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
@@ -326,12 +320,12 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 		return nil, common.DefineError.General["SERVICE_NOT_FOUND"]
 	}
 
-	total, err := sp.serviceDal.TotalCount(ctx, filter)
+	total, err := sp.hqDal.TotalCount(ctx, filter)
 	if err != nil {
 		sp.logger.Errorf("failed to count total services for total transfer cap: %v", err)
 		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
 	}
-	projectedData := ProjectDataArray[model.Service](service, projection)
+	projectedData := ProjectDataArray[model.HQ](service, projection)
 	meta := local_utils.BuildPaginationMeta(total, filterParams.Page, limit)
 	var data any = projectedData
 	sp.logger.Infof("Successfully fetched %d total transfer cap services", len(service))
@@ -426,6 +420,10 @@ func (sp *servicePersistence) UpdateSingleMaxTransfer(ctx context.Context, id st
 	capData, err := local_utils.JsonUnmarshal[model.Cap](req)
 	if err != nil {
 		return err
+	}
+
+	if capData.CorporateDailyCap <= prev.Cap.MinAmount || capData.CorporateSingleCap <= prev.Cap.MinAmount || capData.IDailyCap <= prev.Cap.MinAmount || capData.ISingleCap <= prev.Cap.MinAmount {
+		return fmt.Errorf("SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL")
 	}
 
 	_, err = sp.ValidateMaxTotalCap(ctx, *capData)
@@ -531,8 +529,9 @@ func (sp *servicePersistence) UpdateMinimumTransferCap(ctx context.Context, id s
 		return err
 	}
 	newData := prev.Cap
-	newData.MinAmount = *&reqData.MinAmount
-	err = sp.createCpsAction(ctx, id, prev, newData, string(model.RequestUpdateServiceMinCap))
+	newData.MinAmount = reqData.MinAmount
+	res, _ := local_utils.JsonUnmarshal[model.Cap](newData)
+	err = sp.createCpsAction(ctx, id, prev, bson.M{"cap": res}, string(model.RequestUpdateServiceMinCap))
 	if err != nil {
 		sp.logger.Errorf("error creating CPS action for update minimum transfer cap: %v", err)
 		return err
@@ -879,11 +878,7 @@ func (sp *servicePersistence) ValidateMaxTotalCap(ctx context.Context, cap model
 	hqData := data[0]
 	totalCap := hqData.TotalCap
 
-	totalCapUint, err := strconv.Atoi(totalCap)
-	if err != nil {
-		sp.logger.Errorf("INVALID_TOTAL_CAP_VALUE in ValidateMaxTotalCap: %v", err)
-		return false, fmt.Errorf("INVALID_TOTAL_CAP_VALUE")
-	}
+	totalCapUint := totalCap
 
 	if cap.ISingleCap > uint64(totalCapUint) {
 		sp.logger.Warnf("INDIVIDUAL_SINGLE_CAP_EXCEEDS_TOTAL_CAP: %d > %d", cap.ISingleCap, totalCapUint)
@@ -972,9 +967,7 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 			return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 		}
 		filter := bson.M{"_id": objId, "is_deleted": false}
-		fmt.Println("99999999999999999999")
-		fmt.Println(filter)
-		fmt.Println(update)
+
 		_, err = sp.serviceDal.UpdateOne(ctx, filter, update)
 		fmt.Println(err)
 		if err != nil {

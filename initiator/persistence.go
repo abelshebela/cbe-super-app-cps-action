@@ -14,7 +14,7 @@ import (
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
 
 	feedback_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
-	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
+	// unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
 
@@ -61,9 +61,9 @@ import (
 )
 
 type Persitence struct {
-	CustomerPersistence         outbound.CustomerRepository
-	FeedBackPersistence         *feedback_repo.FeedbackRepo
-	UnlinkPersistence           *unlink_repo.UnlinkRepo
+	CustomerPersistence outbound.CustomerRepository
+	FeedBackPersistence *feedback_repo.FeedbackRepo
+	// UnlinkPersistence           *unlink_repo.UnlinkRepo
 	BudgetPersistence           *budget_repo.BudgetPersistence
 	AccountPersistence          *account_validation.AccountValidationRepo
 	BulkServicesPersistence     bulkOutbound.OutboundInfra
@@ -105,9 +105,9 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		advertPersistence: advert.InitAD(client, databaseName, []string{"adverts", "cps_actions"}, logger),
 		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, []string{"cps_actions", "avatars"}, logger),
 
-		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
-		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
-		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, databaseName, []string{"user", "otp", "cps_actions"}, logger),
+		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
+		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
+		// UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, databaseName, []string{"user", "otp", "cps_actions"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
 		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),

@@ -28,7 +28,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/go-chi/chi/v5"
@@ -49,7 +49,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		feedbackhandler.InitFeedbackRoutes(sub, adapter.FeedbackAdapter)
 		department_handler.InitDepartmentRoutes(sub, adapter.DepartmentAdapter, authMiddleware)
 		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
-		unlink_device_handler.RegisterHTTPUnlinkRoutes(sub, adapter.UnlinkAdapter, authMiddleware)
+		// unlink_device_handler.RegisterHTTPUnlinkRoutes(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)
 		bulkservices_inbound.InitServiceHandlerMaker(sub, adapter.BulkServiceAdapter, authMiddleware)
 		accountvalidation_inbound.InitAccountValidationHandlerMaker(sub, adapter.AccountAdapter, authMiddleware)

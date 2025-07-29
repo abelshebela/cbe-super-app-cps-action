@@ -20,7 +20,6 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/password_rule"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/portal_card"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 
 	account_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_lookup"
@@ -38,14 +37,14 @@ import (
 )
 
 type Application struct {
-	AvatarApplication          avatar_app.AvatarApplicationService
-	BankApplication            bank.BankHandlerService
-	AdApplication              ad.ADHandlers
-	WalletApplication          wallet.WalletHandlerAppllication
-	FaydaApplication           faydaaccount.ApplicationService
-	CustomerApplication        customer.ApplicationService
-	FeedbackApplication        feedback.FeedbackService
-	UnlinkApplication          unlink.ApplicationService
+	AvatarApplication   avatar_app.AvatarApplicationService
+	BankApplication     bank.BankHandlerService
+	AdApplication       ad.ADHandlers
+	WalletApplication   wallet.WalletHandlerAppllication
+	FaydaApplication    faydaaccount.ApplicationService
+	CustomerApplication customer.ApplicationService
+	FeedbackApplication feedback.FeedbackService
+	// UnlinkApplication          unlink.ApplicationService
 	BudgetApplication          budget.BudgetService
 	AccountApplication         accountvalidation_app.ApplicationAbstracts
 	BulkServicesApplication    bulkservices_application.ApplicationAbstracts
@@ -74,14 +73,14 @@ type Application struct {
 func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger, cfg *config.VaultConfig) Application {
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
-		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
-		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
-		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
-		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),
-		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
-		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
-		UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
+		BankApplication:     bank.InitBankHanlder(domain.BankDomain, logger),
+		AdApplication:       ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
+		AvatarApplication:   avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
+		WalletApplication:   wallet.InitWalletApplication(domain.WalletDomain, logger),
+		FaydaApplication:    faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),
+		CustomerApplication: customer.InitCustomerHandler(domain.CustomerDomain, logger),
+		FeedbackApplication: feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
+		// UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
 		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),

@@ -20,7 +20,8 @@ import (
 
 	avatar_adapter "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
+
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	inboudService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
@@ -104,14 +105,14 @@ type Adapter struct {
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
 	return Adapter{
-		AvatarAdapter:       avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
-		BankAdapter:         bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:           ad.InitADAdapter(application.AdApplication, logger),
-		WalletAdapter:       wallet.InitWalletRouter(application.WalletApplication, logger),
-		FaydaAdapter:        faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
-		CustomerAdapter:     customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
-		FeedbackAdapter:     feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
-		UnlinkAdapter:       unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
+		AvatarAdapter:   avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
+		BankAdapter:     bank.InitBankAdapter(application.BankApplication, logger),
+		AdAdapter:       ad.InitADAdapter(application.AdApplication, logger),
+		WalletAdapter:   wallet.InitWalletRouter(application.WalletApplication, logger),
+		FaydaAdapter:    faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
+		CustomerAdapter: customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
+		FeedbackAdapter: feedbackhandler.NewFeedbackHTTPHandler(application.FeedbackApplication, logger),
+		// UnlinkAdapter:       unlink_device_handler.NewHTTPUnlinkHandler(application.UnlinkApplication, logger),
 		BudgetAdapter:       budget_handler.NewBudgetHTTPHandler(application.BudgetApplication, logger),
 		AccountAdapter:      accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
 		BulkServiceAdapter:  bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),
