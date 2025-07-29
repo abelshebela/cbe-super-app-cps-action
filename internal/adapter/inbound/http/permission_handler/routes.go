@@ -33,6 +33,14 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 			},
 			{
 				Method:  http.MethodGet,
+				Path:    "/categories",
+				Handler: permissionHandler.GetAllPermissionCategoriesWithPermissions,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
+			{
+				Method:  http.MethodGet,
 				Path:    "/{group_name}",
 				Handler: permissionHandler.GetPermissionGroup,
 				Middlewares: []func(next http.Handler) http.Handler{
