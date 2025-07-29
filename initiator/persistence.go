@@ -58,7 +58,7 @@ import (
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
 	chec_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
-	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/repository"
+	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
@@ -150,7 +150,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		HQPersistence:              hq_persistence.NewHQPersistence(client, databaseName, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
-		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, []string{"wallets", "cps_actions"}, logger),
+		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, "wallets", logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
 		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, "events", logger),

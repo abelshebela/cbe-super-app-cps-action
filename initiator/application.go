@@ -82,7 +82,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
 		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
 		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
-		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
+		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, domain.CPSActionDomain ,logger),
 		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),

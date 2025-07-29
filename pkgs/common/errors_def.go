@@ -1059,6 +1059,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
+		"INVALID_PAYLOAD": {
+			Code:    "GEN_177",
+			Status:  StatusBadRequest,
+			Message: "invalid payload",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

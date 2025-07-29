@@ -265,6 +265,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateDailyLimit:    {},
 	RequestUpdateDailyLimit:    {},
 	RequestDeleteDailyLimit:    {},
+	RequestCreateWallet:        {},
+	RequestUpdateWallet:        {},
+	RequestDeleteWallet:        {},
 }
 
 func IsValidRequestAction(requestAction string) bool {

@@ -1,15 +1,14 @@
 // Package entity provides domain entities for wallet management.
-package entity
+package wallet
+
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type CheckWallet struct {
-	Name string
-	Code string
+	Name      string
+	Code      string
 	ExcludeID string
 }
 
@@ -23,16 +22,4 @@ type Wallet struct {
 	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
 	LastModifiedAt time.Time  `json:"last_modified_at" bson:"last_modified_at"`
 	DeletedAt      *time.Time `json:"deletd_at,omitempty" bson:"deleted_at"`
-}
-
-type WalletDocument struct {
-	ID             bson.ObjectID `json:"id" bson:"_id"`
-	Name           string        `json:"name" bson:"name"`
-	Code           string        `json:"code" bson:"code"`
-	Avatar         string        `json:"avatar" bson:"avatar"`
-	Enabled        bool          `json:"enabled" bson:"enabled"`
-	IsDeleted      bool          `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
-	LastModifiedAt time.Time     `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt      time.Time     `json:"deletd_at" bson:"deleted_at"`
 }
