@@ -19,7 +19,6 @@ type APIErrorResponse struct {
 	Errors        any    `json:"errors,omitempty"`
 }
 
-
 // errorKeyToStatus provides the most appropriate HTTP status code for each error key.
 var errorKeyToStatus = map[string]int{
 	// General
@@ -167,10 +166,8 @@ var errorKeyToStatus = map[string]int{
 	"MAX_NOT_BE_LESS":                                            http.StatusBadRequest,
 	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
 	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
-		"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
-	}
-
-
+	"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
+}
 
 func formatValidationErrors(ve validation.Errors) map[string]string {
 	result := make(map[string]string)
@@ -250,6 +247,9 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.OTP,
 		common.DefineError.File,
 		common.DefineError.Branch,
+		common.DefineError.Region,
+		common.DefineError.District,
+		common.DefineError.City,
 		common.DefineError.Bank,
 		common.DefineError.Department,
 		common.DefineError.Wallet,

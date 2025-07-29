@@ -22,16 +22,16 @@ type ApplicationServices interface {
 	DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error)
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 
-	EnableRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
+	// EnableRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
 	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
 	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
 	UpdateRegion(ctx context.Context, region action.Region) error
 
-	EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
+	// EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
 	BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
 	GetDistrictByCode(ctx context.Context, districtCode string) (action.District, error)
 
-	EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
+	// EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
 	BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
 	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
 	GetAllCities(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.City], error)
@@ -42,4 +42,21 @@ type ApplicationServices interface {
 	GetUserByPhone(ctx context.Context, phoneNumber string, maker action.CPSAction) (member.User, error)
 	BlockUser(ctx context.Context, userID string, maker action.CPSAction) (string, error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+
+	// Newly added
+	// Branch
+	EnableBranches(ctx context.Context, branchCodes []string) error
+	DisableBranches(ctx context.Context, branchCodes []string) error
+
+	// Region
+	EnableRegion(ctx context.Context, regionsCode []string) error
+	DisableRegion(ctx context.Context, regionsCode []string) error
+
+	// District
+	EnableDistrict(ctx context.Context, districtsCode []string) error
+	DisableDistrict(ctx context.Context, districtsCode []string) error
+
+	// City
+	EnableCity(ctx context.Context, citiesCode []string) error
+	DisableCity(ctx context.Context, citiesCode []string) error
 }
