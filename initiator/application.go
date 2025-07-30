@@ -29,6 +29,7 @@ import (
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	notification_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/notification"
 	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 	unlink_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 
@@ -68,6 +69,7 @@ type Application struct {
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
 	ServicCheckeApplication    service_application.ApplicationService
 	AccountLookupApplication   account_application.UserSearchService
+	NotificationApplication    notification_application.NotificationApplicationAbstracts
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -83,7 +85,8 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		FeedbackApplication: feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
 		// UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
 
-		UnlinkApplication:          unlink_application.NewUnlinkApplication(domain.UnlinkDomain, logger),
+		UnlinkApplication: unlink_application.NewUnlinkApplication(domain.UnlinkDomain, logger),
+
 		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),
@@ -95,8 +98,9 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
+		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
 		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
-		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
+		EventApplication:           event_application.NewEventApplication(domain.EventDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
@@ -104,5 +108,6 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
+		NotificationApplication:    notification_application.NewNotificationApplication(domain.NotificationService, domain.CPSActionDomain, logger),
 	}
 }

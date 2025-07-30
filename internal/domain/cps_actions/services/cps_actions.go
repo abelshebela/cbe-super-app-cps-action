@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -21,6 +22,8 @@ type CPSActionService interface {
 	GetCPSActionsByDepartment(ctx context.Context, department string, status string, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.CPSAction], error)
 	GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error)
+	BuildCPSAction(ctx context.Context, request entities.CreateCPSRequest) *entities.CPSAction
+	HandleMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error)
 }
 
 type cpsActionService struct {
@@ -68,4 +71,31 @@ func (s *cpsActionService) GetCPSActionByID(ctx context.Context, id string) (*en
 func (s *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID string) (*entities.CPSAction, error) {
 	s.logger.Infof("Fetching CPS Action by unique ID: %s", uniqueID)
 	return s.repo.GetCPSActionByActionCode(ctx, uniqueID)
+}
+
+func (a *cpsActionService) HandleMakerAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error) {
+	action, err := buildAction()
+	if err != nil {
+		return nil, err
+	}
+
+	return a.CreateCPSAction(ctx, action)
+}
+
+func (s *cpsActionService) BuildCPSAction(ctx context.Context, request entities.CreateCPSRequest) *entities.CPSAction {
+	return &entities.CPSAction{
+		ActionCode:       utils.RandomGenerator(20),
+		MakerID:          request.User.UserCode,
+		MakerName:        request.User.FullName,
+		MakerPhoneNumber: request.User.PhoneNumber,
+		Department:       request.User.Department,
+		CurrentAction:    request.CurData,
+		PreviousAction:   request.PrevData,
+		RequestAction:    request.RequestAction,
+		ActionStatus:     request.ActionStatus,
+		ActionType:       request.ActionType,
+		MakerActionTime:  time.Now(),
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+	}
 }

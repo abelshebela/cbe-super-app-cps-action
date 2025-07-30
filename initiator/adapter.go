@@ -47,6 +47,7 @@ import (
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
+	notification_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/notification"
 
 	// service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
@@ -61,6 +62,9 @@ import (
 	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 	unlink_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink"
+
+	notification_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
+
 
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 	unlink_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
@@ -102,6 +106,7 @@ type Adapter struct {
 	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
 	AccountLookUp          inboundLookUp.UserSearchAdapter
 	ServiceCheckAdapter    service_inbound.Service
+	NotificationAdapter notification_inbound.NotificationHandler
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -127,11 +132,13 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.MiniAppApplication, logger),
 		EventAdapter:        eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
+		
 		// BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
 		CPSActionAdapter:       cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
 		BudgetCategoryAdapter:  budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 		MiniAppMerchantAdapter: miniapp_merchant_handler.NewMiniAppMerchantAdapter(application.MiniAppMerchantApplication, logger),
 		AccountLookUp:          account_handler.NewMiniAppMerchantAdapter(application.AccountLookupApplication, logger),
 		ServiceCheckAdapter:    service_handler.NewServiceHandler(application.ServicCheckeApplication, logger),
+		NotificationAdapter: notification_handler.NewNotificationHTTPHandler(application.NotificationApplication, logger),
 	}
 }

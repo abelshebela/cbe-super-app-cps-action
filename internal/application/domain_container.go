@@ -4,7 +4,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
+	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
@@ -25,9 +25,10 @@ import (
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
-	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
+	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 )
@@ -61,5 +62,6 @@ type Domain struct {
 
 	ServiceCheckDomain service_domain.ServiceRepo
 
-	KeyGenService keyGen_service.KeyGeneratorService
+	KeyGenService       keyGen_service.KeyGeneratorService
+	NotificationService notification_domain.NotificationService
 }

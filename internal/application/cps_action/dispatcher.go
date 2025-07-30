@@ -39,7 +39,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "AdDomain"):
+	case constants.IsActionInGroup(action, "Advert"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Service"):
@@ -82,8 +82,14 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "Budget"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "CPSUser"):
+		return d.app.CPSUserDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Event"):
+		return d.app.EventDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Service"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Notification"):
+		return d.app.NotificationService.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

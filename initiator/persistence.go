@@ -43,6 +43,8 @@ import (
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
 	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
+	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+
 	miniApp_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app"
 	service_persist "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
@@ -53,11 +55,15 @@ import (
 
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
-	chec_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/repository"
+
+	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
+
 
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+
+	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 )
 
 type Persitence struct {
@@ -72,7 +78,7 @@ type Persitence struct {
 	BankPersistance             bank.BankPersistence
 	DepartmentPersistence       *dept_repo.DepartmentPersistence
 	PermissionPersistence       *perm_repo.PermissionPersistence
-	advertPersistence           ad.ADRepo
+	advertPersistence           ad.ADRepository
 	avatarPersitence            avatar.AvatarOutbound
 	AccountBlockPersistance     account_block.AccountBlockOutboundPort
 	HQPersistence               *hq_persistence.HQPersistence
@@ -81,13 +87,13 @@ type Persitence struct {
 	WalletPersistance           wallet.WalletRepository
 	FaydaPersistence            fayda_account_repo.FaydaRepository
 	miniAppPersistance          miniApp_domain.MiniRepository
-	EventPersistence            *event_persistence.EventPersistence
+	EventPersistence            event_domain.EventRepository
 	CPSActionsPersistance       cps_actions.CPSActionRepository
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
 	AccounLookUp                account_lookup_domain.UserSearchRepository
 	ServicePersistence          chec_service.ServiceRepo
-	// ActionPersistence          *action_repo.ActionRepo
+	NotificationPersisitence    notification_domain.NotificationRepository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -102,7 +108,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		"portal_card",
 	}
 	return Persitence{
-		advertPersistence: advert.InitAD(client, databaseName, []string{"adverts", "cps_actions"}, logger),
+		advertPersistence: advert.InitAD(client, databaseName, "adverts", logger),
 		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, []string{"cps_actions", "avatars"}, logger),
 
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
@@ -142,15 +148,16 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		HQPersistence:              hq_persistence.NewHQPersistence(client, databaseName, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
-		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, []string{"wallets", "cps_actions"}, logger),
+		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, "wallets", logger),
 		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
-		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, []string{"events", "cps_actions"}, logger),
+		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, "events", logger),
 		// BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		CPSActionsPersistance:       cps_Actions_repo.NewOutBoundStore(client, databaseName, "cps_actions", logger),
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
 		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
+		NotificationPersisitence:    notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 	}
 }

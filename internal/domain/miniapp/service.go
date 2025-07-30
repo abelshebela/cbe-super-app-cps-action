@@ -26,14 +26,13 @@ type MiniAppStore struct {
 	keyGenService keyGen.KeyGeneratorService
 }
 type MiniAppService interface {
-	CreateMiniAppAction(ctx context.Context, miniApp MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error)
-	UpdateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error)
-	DeleteMiniAppAction(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error)
-
+	CreateMiniApp(ctx context.Context, miniApp MiniAppCreateRequest, maker entities.User) (*MiniApp, error)
+	UpdateMiniApp(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*MiniApp, *MiniApp, error)
+	DeleteMiniApp(ctx context.Context, maker entities.User, id string) (*MiniApp, *MiniApp, error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
-	EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*entities.CPSAction, error)
+	EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*MiniApp, *MiniApp, error)
 }
 
 func NewService(bucketName string, minioClient config.MinioClientInterface, repository MiniRepository, cfg *config.VaultConfig,
@@ -48,11 +47,8 @@ func NewService(bucketName string, minioClient config.MinioClientInterface, repo
 	}
 }
 
-func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User) (*entities.CPSAction, error) {
-	data := buildMiniAppFromRequest(req, "", true)
-	now := time.Now()
-
-	var URL string
+func (s *MiniAppStore) CreateMiniApp(ctx context.Context, req MiniAppCreateRequest, maker entities.User) (*MiniApp, error) {
+	miniApp := buildMiniAppFromRequest(req, "", true)
 	if req.AppIcon != nil {
 		url, err := common_util.UploadFileToMinio(
 			ctx,
@@ -66,42 +62,30 @@ func (s *MiniAppStore) CreateMiniAppAction(ctx context.Context, req MiniAppCreat
 		if err != nil {
 			return nil, err
 		}
-
-		URL = url
+		miniApp.AppIcon = url
+	}
+	// Generate credentials for all environments
+	envs := []EnvironmentType{DevEnvironment, TestEnvironment, UatEnvironment, ProductionEnvironment}
+	miniApp.Credential = make([]CredentialInformation, 0, len(envs))
+	for _, env := range envs {
+		cred, _, err := s.CredentialInformationGenrator(env)
+		if err != nil {
+			return nil, err
+		}
+		miniApp.Credential = append(miniApp.Credential, *cred)
 	}
 
-	data.AppIcon = URL
-
-	action := entities.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          maker.UserCode,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-		ActionType:       constant.ActionCreate,
-		RequestAction:    constant.RequestCreateMiniApp,
-		ActionStatus:     constant.ActionPending,
-		CurrentAction:    data,
-		MakerActionTime:  now,
-		CreatedAt:        now,
-		LastModifiedAt:   now,
-	}
-
-	return &action, nil
+	return &miniApp, nil
 }
 
-func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*entities.CPSAction, error) {
+func (s *MiniAppStore) UpdateMiniApp(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*MiniApp, *MiniApp, error) {
 	prevData, err := s.repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	data := buildMiniAppFromRequest(req, id, false)
-	now := time.Now()
-
-	var url string
+	miniApp := buildMiniAppFromRequest(req, id, false)
 	if req.AppIcon != nil {
-		url, err = common_util.UploadFileToMinio(
+		url, err := common_util.UploadFileToMinio(
 			ctx,
 			s.minioClient,
 			s.bucketName,
@@ -111,58 +95,27 @@ func (s *MiniAppStore) UpdateMiniAppAction(ctx context.Context, req MiniAppCreat
 			s.logger,
 		)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+		miniApp.AppIcon = url
+	} else {
+		miniApp.AppIcon = prevData.AppIcon
 	}
 
-	data.AppIcon = url
-
-	action := entities.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          maker.UserCode,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-		ActionType:       constant.ActionUpdate,
-		RequestAction:    constant.RequestUpdateMiniApp,
-		ActionStatus:     constant.ActionPending,
-		CurrentAction:    data,
-		PreviousAction:   prevData,
-		MakerActionTime:  now,
-	}
-
-	return &action, nil
+	return &miniApp, prevData, nil
 }
 
-func (s *MiniAppStore) DeleteMiniAppAction(ctx context.Context, maker entities.User, id string) (*entities.CPSAction, error) {
-
+func (s *MiniAppStore) DeleteMiniApp(ctx context.Context, maker entities.User, id string) (*MiniApp, *MiniApp, error) {
 	miniApp, err := s.repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	prev := *miniApp
+	miniApp.IsDeleted = true
+	miniApp.DeletedAt = time.Now()
 
-	currentAction := miniApp
-	currentAction.IsDeleted = true
-
-	now := time.Now()
-	action := entities.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          maker.UserCode,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-		ActionType:       constant.ActionDelete,
-		RequestAction:    constant.RequestDeleteMiniApp,
-		ActionStatus:     constant.ActionPending,
-		PreviousAction:   miniApp,
-		CurrentAction:    currentAction,
-		MakerActionTime:  now,
-		LastModifiedAt:   now,
-	}
-
-	return &action, nil
+	return miniApp, &prev, nil
 }
-
 func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 	requestedAction := action.RequestAction
 	var minApp *MiniApp
@@ -173,29 +126,10 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 		return nil, fmt.Errorf(common_util.InvalidActionData)
 	}
 
-	envs := []EnvironmentType{
-		DevEnvironment,
-		TestEnvironment,
-		UatEnvironment,
-		ProductionEnvironment,
-	}
-
 	var err error
 	switch requestedAction {
 	case constant.RequestCreateMiniApp:
-		minApp.Credential = make([]CredentialInformation, 0, len(envs))
-		for _, env := range envs {
-			uatCred, _, err := s.CredentialInformationGenrator(env)
-			if err != nil {
-				return nil, err
-			}
-			minApp.Credential = append(minApp.Credential, *uatCred)
-		}
 		minApp, err = s.repository.CreateMiniApp(ctx, minApp)
-		if err != nil {
-			return nil, err
-		}
-
 	case constant.RequestUpdateMiniApp:
 		minApp, err = s.repository.UpdateMinApp(ctx, minApp)
 	case constant.RequestDeleteMiniApp:
@@ -216,7 +150,6 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	action.CurrentAction = minApp
 	return action, nil
 }
-
 func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error) {
 	return s.repository.ListMiniApp(ctx, filterParam)
 }
@@ -293,52 +226,22 @@ func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps
 	return miniApp
 }
 
-func (s *MiniAppStore) EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*entities.CPSAction, error) {
-	prevApp, err := s.repository.DetailMiniAppByID(ctx, id)
-
-	fmt.Println(prevApp.Enabled, "prevApp.Enabled")
-	fmt.Println(enabled)
+func (s *MiniAppStore) EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*MiniApp, *MiniApp, error) {
+	miniApp, err := s.repository.DetailMiniAppByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if prevApp.Enabled && enabled {
-		return nil, fmt.Errorf(common_util.ErrAlreadyEnabled)
-
+	prev := *miniApp
+	if miniApp.Enabled && enabled {
+		return nil, &prev, fmt.Errorf(common_util.ErrAlreadyEnabled)
 	}
-
-	if !prevApp.Enabled && !enabled {
-		return nil, fmt.Errorf(common_util.ErrAlreadyDisabled)
-
+	if !miniApp.Enabled && !enabled {
+		return nil, &prev, fmt.Errorf(common_util.ErrAlreadyDisabled)
 	}
-	now := time.Now()
-	var action constant.RequestAction
+	miniApp.Enabled = enabled
+	miniApp.LastModifiedAt = time.Now()
 
-	if enabled {
-		action = constant.RequestEnableMiniApp
-	} else {
-		action = constant.RequestDisableMiniApp
-	}
-
-	currentAction := prevApp
-	currentAction.Enabled = enabled
-
-	cpsAction := entities.CPSAction{
-		ActionCode:       utils.RandomGenerator(20),
-		MakerID:          maker.UserCode,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-		ActionType:       constant.ActionUpdate,
-		ActionStatus:     constant.ActionPending,
-		RequestAction:    action,
-		PreviousAction:   prevApp,
-		CurrentAction:    currentAction,
-		MakerActionTime:  now,
-		CreatedAt:        now,
-		LastModifiedAt:   now,
-	}
-
-	return &cpsAction, nil
+	return miniApp, &prev, nil
 }
 
 func (s *MiniAppStore) CredentialInformationGenrator(envType EnvironmentType) (*CredentialInformation, *string, error) {

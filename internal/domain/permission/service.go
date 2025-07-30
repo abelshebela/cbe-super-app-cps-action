@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -24,6 +25,7 @@ type PermissionDomainService interface {
 	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
 	ValidatePermissionCategories(ids []string) ([]string, error)
 	ValidatePermissionGroups(ids []string) ([]string, error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error)
 }
 
 type Service struct {
@@ -43,6 +45,8 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 }
 
 func (s Service) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+	oldGroupName = strings.ToUpper(oldGroupName)
+	groupName = strings.ToUpper(groupName)
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
 		s.logger.Warnf("Pending request check failed for user %s: %v", cpsAction.MakerID, err)
 		return model.CPSAction{}, fmt.Errorf("PENDING_REQUEST_EXISTS")
@@ -62,18 +66,18 @@ func (s Service) CreatePermissionGroup(oldGroupName, groupName, role string, per
 	cpsAction.ActionCode = utils.RandomGenerator(20)
 	if cpsAction.ActionType == string(entities.ActionUpdate) {
 		cpsAction.CurrentAction = map[string]interface{}{
-			"group_name":            groupName,
-			"permission_categories": validCategories,
-			"role":                  role,
-			"realm":                 "bank",
-			"old_group":             oldGroupName,
+			"group_name":          groupName,
+			"permission_category": validCategories,
+			"role":                role,
+			"realm":               "bank",
+			"old_group":           oldGroupName,
 		}
 	} else {
 		cpsAction.CurrentAction = map[string]interface{}{
-			"group_name":            groupName,
-			"permission_categories": validCategories,
-			"role":                  role,
-			"realm":                 "bank",
+			"group_name":          groupName,
+			"permission_category": validCategories,
+			"role":                role,
+			"realm":               "bank",
 		}
 	}
 
@@ -105,10 +109,12 @@ func (s Service) Authorize(ctx context.Context, action *cps_entities.CPSAction) 
 }
 
 func (s Service) UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error) {
+	groupName = strings.ToUpper(groupName)
 	return s.permissionGroupRepo.UpdatePermissionGroup(groupName, permissionCategoryLists)
 }
 
 func (s Service) GetPermissionGroup(groupName string) (entities.PermissionGroup, error) {
+	groupName = strings.ToUpper(groupName)
 	return s.permissionGroupRepo.GetPermissionGroup(groupName)
 }
 
@@ -127,4 +133,8 @@ func (s Service) ValidatePermissionGroups(ids []string) ([]string, error) {
 		return repo.ValidatePermissionGroups(ids)
 	}
 	return nil, fmt.Errorf("permission group repository does not support ValidatePermissionGroups")
+}
+
+func (s Service) GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error) {
+	return s.permissionCategoryRepo.GetAllPermissionCategoriesWithPermissions(ctx)
 }

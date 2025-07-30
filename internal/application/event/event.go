@@ -2,62 +2,141 @@ package event_application
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	cps_entitites "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	evententity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+	merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ApplicationAbstracts interface {
-	MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, maker domain.Maker) (string, error)
-	CheckerCreateEvent(ctx context.Context, actionID string, action bool, checkerID, checkerName, checkerPhone string) error
-	FetchAllEvents(ctx context.Context, limit, offset int) ([]dto.EventResponse, error)
-	FetchEvent(ctx context.Context, event_id string) (dto.EventDTO, error)
+	CreateEvent(ctx context.Context, event dto.EventRequest, maker cps_entitites.User) error
+	UpdateEvent(ctx context.Context, id string, event dto.EventRequest, maker cps_entitites.User) error
+	DeleteEvent(ctx context.Context, id string, maker cps_entitites.User) error
+	EnableDisableEvent(ctx context.Context, id string, maker cps_entitites.User, enable bool) error
+
+	FetchEventByID(ctx context.Context, id string) (*evententity.Event, error)
+	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*evententity.Event], error)
 }
 type ApplicationStore struct {
-	service domain.EventService
+	service         domain.EventService
+	cpsService      cps_service.CPSActionService
+	merchantService merchant_service.MiniAppMerchantService
+	logger          utils.Logger
 }
 
-func NewEventApplication(service domain.EventService) ApplicationAbstracts {
+func NewEventApplication(service domain.EventService,
+	cpsService cps_service.CPSActionService,
+	merchantService merchant_service.MiniAppMerchantService,
+	logger utils.Logger) ApplicationAbstracts {
 	return &ApplicationStore{
-		service: service,
+		service:         service,
+		cpsService:      cpsService,
+		logger:          logger,
+		merchantService: merchantService,
 	}
 }
 
-func (a *ApplicationStore) MakerCreateEvent(ctx context.Context, event dto.EventCreateRequest, maker domain.Maker) (string, error) {
-	ticketReq := domain.Ticket{}
-	eventReq := domain.Event{}
+// handleCPSAction encapsulates the common CPS action logic
+func (a *ApplicationStore) handleCPSAction(ctx context.Context, maker cps_entitites.User, requestAction cps_const.RequestAction, curData, prevData interface{}, actionType cps_const.ActionType) error {
+	cpsAction := a.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
+		User:          maker,
+		CurData:       curData,
+		PrevData:      prevData,
+		RequestAction: requestAction,
+		ActionStatus:  cps_const.ActionPending,
+		ActionType:    actionType,
+	})
 
-	// merchant ID
+	_, err := a.cpsService.CreateCPSAction(ctx, cpsAction)
+	return err
+}
 
-	requestID, err := a.service.CreateEventRequest(ctx, eventReq, ticketReq, maker)
+// setMerchantDetails retrieves merchant details and sets them in the event request
+func (a *ApplicationStore) setMerchantDetails(ctx context.Context, event *dto.EventRequest) error {
+	if event.MerchantID == "" {
+		return nil
+	}
+
+	merchant, err := a.merchantService.DetailMiniAppByID(ctx, event.MerchantID)
 	if err != nil {
-		return "", err
+		if err.Error() == common_util.NotFound {
+			return fmt.Errorf("MERCHANT_NOT_FOUND")
+		}
+		return err
 	}
-	return requestID, nil
-}
-func (a *ApplicationStore) CheckerCreateEvent(ctx context.Context, actionId string, action bool, checkerId, checkerName, checkerPhone string) error {
-	return a.service.ApproveEventRequest(ctx, actionId, action, checkerId, checkerName, checkerPhone)
+
+	event.MercahntName = merchant.MerchantName
+	event.MerchantEmail = merchant.PhoneNumber
+	event.MerchantPhoneNumber = merchant.PhoneNumber
+	event.AccountNumber = merchant.BankAccountNumber
+	return nil
 }
 
-func (a *ApplicationStore) FetchAllEvents(ctx context.Context, limit, offset int) ([]dto.EventResponse, error) {
-	data, err := a.service.FetchEvent(ctx, limit, offset)
+func (a *ApplicationStore) CreateEvent(ctx context.Context, event dto.EventRequest, maker cps_entitites.User) error {
+	if err := a.setMerchantDetails(ctx, &event); err != nil {
+		return err
+	}
+
+	res, err := a.service.CreateEvent(ctx, event)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	var result []dto.EventResponse
-	for range /* _, d := */ data {
-		result = append(result, dto.EventResponse{})
-	}
-	return result, nil
+
+	return a.handleCPSAction(ctx, maker, cps_const.RequestCreateEvent, res, nil, cps_const.ActionCreate)
 }
-func (a *ApplicationStore) FetchEvent(ctx context.Context, event_id string) (dto.EventDTO, error) {
-	data, err := a.service.FetchEventByID(ctx, event_id)
-	if err != nil {
-		return dto.EventDTO{}, err
+
+func (a *ApplicationStore) UpdateEvent(ctx context.Context, id string, event dto.EventRequest, maker cps_entitites.User) error {
+	if err := a.setMerchantDetails(ctx, &event); err != nil {
+		return err
 	}
-	return dto.EventDTO{
-		EventID:   data.ID,
-		EventCode: data.EventCode,
-		EventName: data.Name,
-	}, nil
+
+	curAction, prevAction, err := a.service.UpdateEvent(ctx, id, event)
+	if err != nil {
+		return err
+	}
+
+	return a.handleCPSAction(ctx, maker, cps_const.RequestUpdateEvent, curAction, prevAction, cps_const.ActionUpdate)
+}
+
+func (a *ApplicationStore) DeleteEvent(ctx context.Context, id string, maker cps_entitites.User) error {
+	curAction, prevAction, err := a.service.DeleteEvent(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return a.handleCPSAction(ctx, maker, cps_const.RequestDeleteEvent, curAction, prevAction, cps_const.ActionDelete)
+}
+
+func (a *ApplicationStore) EnableDisableEvent(ctx context.Context, id string, maker cps_entitites.User, enable bool) error {
+	curAction, prevAction, err := a.service.EnableDisableEvent(ctx, id, enable)
+	if err != nil {
+		return err
+	}
+
+	var action cps_const.RequestAction
+	if enable {
+		action = cps_const.RequestEnableEvent
+	} else {
+		action = cps_const.RequestDisableEvent
+	}
+
+	return a.handleCPSAction(ctx, maker, action, curAction, prevAction, cps_const.ActionUpdate)
+}
+
+func (a *ApplicationStore) FetchEventByID(ctx context.Context, id string) (*evententity.Event, error) {
+	return a.service.FetchEventByID(ctx, id)
+}
+
+func (a *ApplicationStore) FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*evententity.Event], error) {
+	return a.service.FetchEvent(ctx, filterParam)
 }

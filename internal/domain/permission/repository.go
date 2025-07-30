@@ -6,6 +6,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission/entities"
 
 	"context"
+
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
@@ -21,6 +22,7 @@ type PermissionGroupRepository interface {
 
 type PermissionCategoryRepository interface {
 	ValidatePermissionCategories(ids []string) ([]string, error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error)
 }
 
 type CPSActionRepository interface {

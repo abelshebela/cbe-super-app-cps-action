@@ -7,6 +7,7 @@ type PermissionPortHandler interface {
 	GetPermissionGroups(w http.ResponseWriter, r *http.Request)
 	GetPermissionGroup(w http.ResponseWriter, r *http.Request)
 	UpdatePermissionGroup(w http.ResponseWriter, r *http.Request)
+	GetAllPermissionCategoriesWithPermissions(w http.ResponseWriter, r *http.Request)
 	// ApprovePermissionGroup(w http.ResponseWriter, r *http.Request)
 	// RejectPermissionGroup(w http.ResponseWriter, r *http.Request)
 }

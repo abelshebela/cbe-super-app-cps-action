@@ -53,6 +53,7 @@ type ErrorDefinitions struct {
 	AD          ErrorGroup
 	Permission  ErrorGroup
 	MiniApp     ErrorGroup
+	Event       ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -1058,6 +1059,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
+
 		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
 			Code:    "GEN_177",
 			Message: "Single max transfers can not be less or equal to min_amount",
@@ -1083,7 +1085,13 @@ var DefineError = ErrorDefinitions{
 		"FAYDA_USER_ALREADY_DISABLE": {
 			Code:    "GEN_179",
 			Status:  http.StatusConflict,
-			Message: "fayda user already disable",
+			Message: "fayda user already disabled",
+    },
+		"INVALID_PAYLOAD": {
+			Code:    "GEN_177",
+			Status:  StatusBadRequest,
+			Message: "invalid payload",
+
 		},
 	},
 	Auth: ErrorGroup{
@@ -2006,6 +2014,13 @@ var DefineError = ErrorDefinitions{
 			Code:    "MINIAPP_015",
 			Status:  StatusBadRequest,
 			Message: "only one of is_event_mini_app or is_three_click can be true.",
+		},
+	},
+	Event: ErrorGroup{
+		"EVENT_NAME_ALREADY_EXISTS": {
+			Code:    "EVE_001",
+			Message: "Event name already exists",
+			Status:  StatusBadRequest,
 		},
 	},
 }
