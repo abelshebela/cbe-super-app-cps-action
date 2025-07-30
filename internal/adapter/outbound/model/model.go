@@ -96,20 +96,20 @@ type HQ struct {
 	UniqueID             string          `bson:"unique_id" json:"unique_id"`
 	Name                 string          `bson:"name" json:"name"`
 	Address              string          `bson:"address" json:"address"`
-	PhoneNumber          string          `bson:"phoneNumber" json:"phoneNumber"`
+	PhoneNumber          string          `bson:"phone_number" json:"phone_number"`
 	Email                string          `bson:"email" json:"email"`
-	LinkedAccounts       []LinkedAccount `bson:"linkedAccounts" json:"linkedAccounts"`
-	LatestiOSVersion     string          `bson:"latestiOSVersion" json:"latestiOSVersion"`
-	LatestAndroidVersion string          `bson:"latestAndroidVersion" json:"latestAndroidVersion"`
+	LinkedAccounts       []LinkedAccount `bson:"linked_accounts" json:"linked_accounts"`
+	LatestiOSVersion     string          `bson:"latest_ios_version" json:"latest_ios_version"`
+	LatestAndroidVersion string          `bson:"latest_android_version" json:"latest_android_version"`
 	ArchiveExpiry        uint            `json:"archive_expiry" bson:"archive_expiry"`
 	BlockTime            uint            `json:"block_time" bson:"block_time"`
 	BlockTimeStatus      string          `bson:"block_time_status" json:"block_time_status"`
 	ArchiveTime          uint            `bson:"archive_time" json:"archive_time"`
 	ArchiveTimeStatus    string          `bson:"archive_time_status" json:"archive_time_status"`
 	Enabled              bool            `bson:"enabled" json:"enabled"`
-	IsDeleted            bool            `bson:"isDeleted" json:"isDeleted"`
-	CreatedAt            time.Time       `bson:"createdAt" json:"createdAt"`
-	LastModified         time.Time       `bson:"lastModified" json:"lastModified"`
+	IsDeleted            bool            `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt            time.Time       `bson:"created_at" json:"created_at"`
+	LastModified         time.Time       `bson:"last_modified" json:"last_modified"`
 }
 
 type LinkedAccountResponse struct {
@@ -356,8 +356,9 @@ type User struct {
 		KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
 		KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
 		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by"`
-		KYCLevel             uint8               `json:"level" bson:"level"`
 	} `json:"kyc" bson:"kyc"`
+	KYCLevel uint8 `json:"level" bson:"level"`
+
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved"`
 	IsVerified        bool      `json:"is_verfied" bson:"is_verfied"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register"`
@@ -373,14 +374,12 @@ type User struct {
 	LastLogin         time.Time `json:"last_login" bson:"last_login"`
 
 	// move BPS Status and realted field to new collection
-	BPSStatus          BPSStatus `json:"bps_reject_status" bson:"bps_reject_status"`
-	BPSRejectionReason string    `json:"bps_reject_reason" bson:"bps_reject_reason"`
-	BPSRejectionField  []string  `json:"bps_reject_failed" bson:"bps_reject_failed"`
-	LoginPIN           LoginPIN  `json:"login_pin" bson:"login_pin"`
-	Device             struct {
-		DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
-		AppVersion string `json:"app_version" bson:"app_version"`
-	} `json:"device" bson:"device"`
+	BPSStatus             BPSStatus             `json:"bps_reject_status" bson:"bps_reject_status"`
+	BPSRejectionReason    string                `json:"bps_reject_reason" bson:"bps_reject_reason"`
+	BPSRejectionField     []string              `json:"bps_reject_failed" bson:"bps_reject_failed"`
+	LoginPIN              LoginPIN              `json:"login_pin" bson:"login_pin"`
+	DeviceUUID            string                `json:"device_uuid" bson:"device_uuid"`
+	AppVersion            string                `json:"app_version" bson:"app_version"`
 	APPInstallationDate   time.Time             `json:"application_installation_date" bson:"application_installation_date"`
 	CustomerNumber        string                `json:"customer_number" bson:"customer_number"`
 	InitialLinkedDate     time.Time             `json:"initial_linked_date" bson:"initiali_linked_date"`

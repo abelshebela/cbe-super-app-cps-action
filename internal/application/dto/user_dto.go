@@ -140,11 +140,11 @@ type DeviceLookupResponse struct {
 	Email       string    `json:"email,omitempty"`
 	Platform    string    `json:"platform,omitempty"`
 	AppVersion  string    `json:"app_version,omitempty"`
-	IsLatest    bool      `json:"is_latest,omitempty"`
-	UserFound   bool      `json:"user_found"`
+	IsLatest    bool      `json:"is_latest"`
+	UserFound   bool      `json:"user_found,omitempty"`
 	Token       string    `json:"temp_token,omitempty"`
 	TokenType   string    `json:"token_type,omitempty"`
-	TokenExpiry time.Time `json:"token_expiry"`
+	TokenExpiry time.Time `json:"token_expiry,omitempty"`
 	NextStep    string    `json:"next_step,omitempty"`
 	OTPCode     string    `json:"otp_code,omitempty"`
 	OTPFor      string    `json:"otp_for,omitempty"`

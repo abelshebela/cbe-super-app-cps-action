@@ -37,6 +37,7 @@ var errorKeyToStatus = map[string]int{
 	"ACTION_NOT_ALLOWED":               403,
 	"WAIT_FOR_PREVIOUS_OTP_EXPIRATION": 429,
 	"EMPTY_ORG":                        400,
+	"OLDER_DEVICE":                     400,
 	"INVALID_REQ":                      400,
 	"REG_FRST":                         403,
 	"WEAK_PIN":                         400,

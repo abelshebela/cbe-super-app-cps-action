@@ -199,6 +199,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_045",
 			Message: "Failed to generate token",
 		},
+		"OLDER_DEVICE": {
+			Code:    "GEN_046",
+			Message: "You have an older device please update",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

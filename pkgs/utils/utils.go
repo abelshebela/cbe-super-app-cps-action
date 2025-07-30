@@ -162,11 +162,33 @@ func UserContext(ctx context.Context) (entities.User, error) {
 	userPayload.Email = getStr("user_email")
 	userPayload.Realm = enums.Realm(getStr("user_realm"))
 	userPayload.MemberType = enums.MemberType(getStr("ifb_member"))
-	userPayload.Device.DeviceUUID = getStr("device_uuid")
+	userPayload.DeviceUUID = getStr("device_uuid")
 
 	return userPayload, nil
 
 }
+
+func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
+	elapsed := time.Since(lastAttempt)
+	var waiting time.Duration
+	switch {
+	case attempts >= 5:
+		waiting = 10 * time.Minute
+	case attempts == 4:
+		waiting = 5 * time.Minute
+	case attempts == 3:
+		waiting = 2 * time.Minute
+	default:
+		return nil
+	}
+
+	if elapsed < waiting {
+		remaining := waiting - elapsed
+		return fmt.Errorf("Too many login attempts. Please wait %s before trying again.", remaining.Truncate(time.Second))
+	}
+	return nil
+}
+
 func LocalEncryptPassword(password string, dataType string, userSalt string, action string, env *config.VaultConfig) (string, string, error) {
 
 	if env == nil {

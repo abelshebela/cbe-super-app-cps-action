@@ -61,8 +61,9 @@ type User struct {
 		KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
 		KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
 		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by"`
-		KYCLevel             uint8               `json:"level" bson:"level"`
 	} `json:"kyc" bson:"kyc"`
+	KYCLevel uint8 `json:"level" bson:"level"`
+	
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved"`
 	IsVerified        bool      `json:"is_verfied" bson:"is_verfied"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register"`
@@ -81,10 +82,9 @@ type User struct {
 	BPSRejectionReason string                   `json:"bps_reject_reason" bson:"bps_reject_reason"`
 	BPSRejectionField  []string                 `json:"bps_reject_failed" bson:"bps_reject_failed"`
 	LoginPIN           type_definition.LoginPIN `json:"login_pin" bson:"login_pin"`
-	Device             struct {
-		DeviceUUID string `json:"device_uuid" bson:"device_uuid"`
-		AppVersion string `json:"app_version" bson:"app_version"`
-	} `json:"device" bson:"device"`
+	DeviceUUID         string                   `json:"device_uuid" bson:"device_uuid"`
+	AppVersion         string                   `json:"app_version" bson:"app_version"`
+
 	APPInstallationDate   time.Time                   `json:"application_installation_date" bson:"application_installation_date"`
 	CustomerNumber        string                      `json:"customer_number" bson:"customer_number"`
 	InitialLinkedDate     time.Time                   `json:"initial_linked_date" bson:"initiali_linked_date"`

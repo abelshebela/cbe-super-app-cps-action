@@ -202,7 +202,7 @@ func (h UsersHandler) handleUnverifiedUser(ctx context.Context, userData *localM
 		UserRealm:  string(userData.Realm),
 		ExpiresAt:  time.Now().Add(expirationTime),
 		CreatedAt:  time.Now(),
-		DeviceUUID: userData.Device.DeviceUUID,
+		DeviceUUID: userData.DeviceUUID,
 	}
 
 	// Store OTP in database
@@ -327,12 +327,7 @@ func (h UsersHandler) UpdateProfileTheme(ctx context.Context, id string, themeTy
 		FullName:    data.FullName,
 		Avatar:      data.Avatar,
 		PhoneNumber: data.PhoneNumber,
-		Device: struct {
-			DeviceUUID string "json:\"device_uuid\" bson:\"device_uuid\""
-			AppVersion string "json:\"app_version\" bson:\"app_version\""
-		}{
-			DeviceUUID: data.Device.DeviceUUID,
-		},
+		DeviceUUID:  data.DeviceUUID,
 	}
 	return resp, nil
 }
@@ -370,19 +365,17 @@ func (h UsersHandler) DeviceLookup(ctx context.Context, header map[string]interf
 	}
 
 	appVersion, ok := header["app_version"].(string)
-	if !ok {
-		appVersion = ""
+	if !ok || appVersion == "" {
+		return nil, fmt.Errorf("MISSING_APP_VERSION")
 	}
-
-	sourceApp, ok := header["source_app"].(string)
-	if !ok {
-		sourceApp = ""
+	installationData, ok := header["installation_date"].(string)
+	if !ok || installationData == "" {
+		return nil, fmt.Errorf("MISSING_INSTALLATION_DATA")
 	}
-
-	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion, sourceApp)
+	return h.userService.DeviceLookup(ctx, deviceUUID, platform, appVersion, installationData)
 }
 
-func (h UsersHandler) PreLogin(ctx context.Context, header map[string]interface{}, phone string) (*dto.DeviceLookupResponse, error) {
+func (h UsersHandler) PreLogin(ctx context.Context, header map[string]interface{}, phone, installationDate string) (*dto.DeviceLookupResponse, error) {
 	deviceUUID, ok := header["device_uuid"].(string)
 	if !ok || deviceUUID == "" {
 		return nil, fmt.Errorf("MISSING_DEVICE_UUID")
@@ -403,7 +396,7 @@ func (h UsersHandler) PreLogin(ctx context.Context, header map[string]interface{
 		sourceApp = ""
 	}
 
-	return h.userService.PreLogin(ctx, deviceUUID, platform, appVersion, sourceApp, phone)
+	return h.userService.PreLogin(ctx, deviceUUID, platform, appVersion, sourceApp, phone, installationDate)
 }
 
 func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor, action string) (*dto.VerifyOtpResponse, error) {
@@ -411,16 +404,12 @@ func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		return nil, fmt.Errorf("context error: %w", err)
 	}
 
-	if err := h.validateOtpInputs(userID, otp, userRealm, otpFor); err != nil {
-		return nil, err
-	}
-	defer func() { otp = "" }()
 	encOtp, _, err := utils.LocalEncryptPassword(otp, "otp", "", "", h.vaultConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt OTP: %w", err)
 	}
 
-	return h.userService.VerifyOtp(ctx, userID, phone_number, encOtp, deviceUUID, userRealm, otpFor, action)
+	return h.userService.VerifyOtp(ctx, userID, phone_number, encOtp, deviceUUID, otpFor, action)
 }
 
 func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error) {
@@ -432,38 +421,7 @@ func (h UsersHandler) SetPin(ctx context.Context, userID, newPin, deviceUUID str
 		return nil, err
 	}
 
-	return h.userService.SetPin(ctx, userID, newPin, deviceUUID, userRealm)
-}
-func (h UsersHandler) SavePinToHistory(ctx context.Context, userID string, newPin string) ([]string, error) {
-	id, err := bson.ObjectIDFromHex(userID)
-	if err != nil {
-		return []string{}, err
-	}
-	filter := bson.M{
-		"_id":        id,
-		"is_deleted": false,
-	}
-	user, err := h.userService.GetOneUser(ctx, filter)
-	if err != nil {
-		h.logger.Errorf("unable to get user data for Pin history: %v", err)
-		return []string{}, err
-	}
-
-	passHistory := user.LoginPIN.PINHistory[:]
-	// Append the new Pin to the history
-	passHistory = append(passHistory, newPin)
-
-	// Shorten the passHistory to a maximum length of 4
-	if len(passHistory) > 4 {
-		passHistory = passHistory[len(passHistory)-4:]
-	}
-	// Keep only the last 5 Pins (or adjust as needed)
-	const maxHistory = 5
-	if len(passHistory) > maxHistory {
-		passHistory = passHistory[len(passHistory)-maxHistory:]
-	}
-
-	return passHistory, nil
+	return h.userService.SetPin(ctx, userID, newPin, deviceUUID)
 }
 
 // validateOtpInputs validates the input parameters for OTP verification

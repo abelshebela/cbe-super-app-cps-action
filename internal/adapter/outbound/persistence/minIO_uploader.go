@@ -3,12 +3,9 @@ package persistence
 import (
 	"context"
 	"fmt"
-	"mime/multipart"
-	"net/url" // <-- add this
-	"time"    // <-- add this
-
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"mime/multipart"
 )
 
 type MinIOUploaderImpl struct {
@@ -65,15 +62,4 @@ func (u *MinIOUploaderImpl) UploadProfileImage(ctx context.Context, objectName s
 	}
 	url := fmt.Sprintf("%s://%s/%s/%s", protocol, u.Endpoint, u.BucketName, objectName)
 	return url, nil
-}
-
-func GeneratePresignedURL(client *minio.Client, bucketName, objectName string) (string, error) {
-	expiry := time.Minute * 15 // Valid for 15 minutes
-
-	reqParams := make(url.Values)
-	presignedURL, err := client.PresignedGetObject(context.Background(), bucketName, objectName, expiry, reqParams)
-	if err != nil {
-		return "", err
-	}
-	return presignedURL.String(), nil
 }

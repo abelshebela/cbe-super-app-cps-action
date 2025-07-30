@@ -106,7 +106,7 @@ func validateDeviceUUID(deviceUUID string) error {
 func (h UsersAdapter) DeviceLookup(w http.ResponseWriter, r *http.Request) {
 	platform, appVersion, deviceUUID, sourceApp, installationDate, additionalHeaders := utils.HeaderRequirement(r, nil)
 
-	if deviceUUID == "" || platform == "" {
+	if deviceUUID == "" || platform == "" || appVersion == "" || installationDate == "" {
 		utils.BaseResponseMaker(nil, w, "Missing required headers", http.StatusBadRequest)
 		return
 	}
@@ -160,9 +160,17 @@ func (h UsersAdapter) PreLogin(w http.ResponseWriter, r *http.Request) {
 		headerData[key] = value
 	}
 
-	response, err := h.Application.PreLogin(r.Context(), headerData, req.Phone)
+	response, err := h.Application.PreLogin(r.Context(), headerData, req.Phone, installationDate)
 	if err != nil {
-		utils.SendErrorResponse(w, "PHONE_LOOKUP_FAILED", 400, nil)
+
+		if err.Error() == "BLOCK_BY_MULTIPLE_TRIES" {
+			utils.SendErrorResponse(w, "user is blocked by multiple tries contact the nearest branch", 400, nil)
+			return
+		} else if err.Error() == "USER_DISABLED_BLOCKED" {
+			utils.SendErrorResponse(w, "user is blocked or disabled contact nearest branch", 400, nil)
+			return
+		}
+		utils.SendErrorResponse(w, err.Error(), 400, nil)
 		return
 	}
 
@@ -480,7 +488,6 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, "INVALID_OTP_TYPE", http.StatusBadRequest, nil)
 		return
 	}
-
 	data, err := h.Application.VerifyOtp(r.Context(), userID, phoneNumber, req.Otp, deviceUUID, sourceApp, req.OtpFor, action)
 
 	if err != nil {
@@ -750,7 +757,7 @@ func (h UsersAdapter) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 		"next_step":          result.NextStep,
 	}
 
-	utils.BaseResponseMaker(response, w, "OTP sent for PIN reset", http.StatusOK)
+	utils.BaseResponseMaker(response, w, "OTP sent for PIN reset visit the nearest branch", http.StatusOK)
 }
 
 func (h UsersAdapter) validateForgetPinSendOtpRequest(req ForgetPinSendOtpRequest) error {

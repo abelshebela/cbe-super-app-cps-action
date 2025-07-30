@@ -26,7 +26,7 @@ type ApplicationService interface {
 	// CheckDevice(ctx context.Context, header map[string]interface{}) (map[string]interface{}, error)
 	GetOneHQ(ctx context.Context, req map[string]interface{}) (*domainUsers.HQ, error)
 	DeviceLookup(ctx context.Context, header map[string]interface{}) (*dto.DeviceLookupResponse, error)
-	PreLogin(ctx context.Context, header map[string]interface{}, phone string) (*dto.DeviceLookupResponse, error)
+	PreLogin(ctx context.Context, header map[string]interface{}, phone, installationDate string) (*dto.DeviceLookupResponse, error)
 	VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, userRealm, otpFor, action string) (*dto.VerifyOtpResponse, error)
 	SetPin(ctx context.Context, userID, newPin, deviceUUID string, userRealm string) (*dto.SetPinResponse, error)
 	Register(ctx context.Context, phone, full_name, email, deviceUUID, platform string) (*dto.RegisterResponse, error)

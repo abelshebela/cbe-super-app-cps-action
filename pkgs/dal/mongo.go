@@ -15,6 +15,7 @@ type MongoDal[T, K any] interface {
 	FindOne(ctx context.Context, filter, projection bson.M) (*K, error)
 	InsertOne(ctx context.Context, req T) (T, error)
 	UpdateOne(ctx context.Context, filter, update bson.M) (T, error)
+	CustomUpdateOne(ctx context.Context, filter, update bson.M) (T, error)
 	DeleteOne(ctx context.Context, filter bson.M) error
 	DeleteOneHard(ctx context.Context, filter bson.M) error
 }
@@ -81,6 +82,20 @@ func (m *mongoDal[T, K]) UpdateOne(ctx context.Context, filter, update bson.M) (
 		ctx,
 		filter,
 		bson.M{"$set": update},
+		options.FindOneAndUpdate().SetReturnDocument(options.After),
+	).Decode(&result)
+	if err != nil {
+		var zero T
+		return zero, err
+	}
+	return result, nil
+}
+func (m *mongoDal[T, K]) CustomUpdateOne(ctx context.Context, filter, update bson.M) (T, error) {
+	var result T
+	err := m.collection.FindOneAndUpdate(
+		ctx,
+		filter,
+		update,
 		options.FindOneAndUpdate().SetReturnDocument(options.After),
 	).Decode(&result)
 	if err != nil {
