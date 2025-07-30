@@ -135,6 +135,7 @@ func (h CPSUserMakerHandler) DisableUser(w http.ResponseWriter, r *http.Request)
 	local_util.BaseResponseMaker(nil, w, "User disable request submitted successfully", 200)
 }
 
+
 func (h CPSUserMakerHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	err := h.Service.EnableUser(r.Context(), r)
 	if err != nil {

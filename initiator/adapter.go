@@ -68,10 +68,12 @@ import (
 	productcode_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/product_code"
 
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
+	bps_user_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bps_user"
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
+	bps_user "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
 )
 
 type Adapter struct {
@@ -91,6 +93,9 @@ type Adapter struct {
 	AccountAdapter         inboundAccount.Inbound
 	BulkServiceAdapter     inboundBulkServices.Inbound
 	CPSUserAdapter         inbound.CPSUserMakerHandler
+
+	BPSUserAdapter         bps_user.BPSUserHandler
+	
 	PasswordRuleAdapter    inbound.PasswordRuleInbound
 	PortalCardAdapter      inbound.PortalCardBound
 	ServiceDetailAdapter   service_details.ServiceDetailsInbound
@@ -124,6 +129,8 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		AccountAdapter:       accountvalidation_inbound.NewHttpAccountValidation(application.AccountApplication, logger),
 		BulkServiceAdapter:   bulkservices_inbound.NewHttpBulkService(application.BulkServicesApplication, logger),
 		CPSUserAdapter:       cpsmakerhandler.InitCPSUserMakerHandler(application.CPSUserApplication, logger),
+		BPSUserAdapter:       bps_user_handler.InitBPSUserMakerHandler(application.BPSUserApplication, logger),
+
 		PasswordRuleAdapter:  passwordrule.NewPasswordRuleHTTPHandler(application.PasswordRuleApplication),
 		PortalCardAdapter:    portalcard.NewportalCardHandler(application.PortalCardApplication, logger),
 		ServiceDetailAdapter: service_details_inbound.NewHttpServiceDetails(application.ServiceDetailApplication, logger),

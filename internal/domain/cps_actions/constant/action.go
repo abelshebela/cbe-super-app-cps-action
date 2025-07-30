@@ -490,6 +490,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
+	
 	"MiniApp": {
 		RequestCreateMiniApp,
 		RequestUpdateMiniApp,

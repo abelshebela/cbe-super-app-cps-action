@@ -5,25 +5,23 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 )
 
-type Repository interface {
+type BPSUserPersistence interface {
 	// Basic CRUD operations
-	GetBPSUserByUserCode(ctx context.Context, userCode string) (*BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*BPSUser], error)
+	GetBPSUserByUserCode(ctx context.Context, userCode string) (*bps_user.BPSUser, error)
+	GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error)
 
-	// Enable/Disable operations with maker-checker flow
 	EnableBPSUser(ctx context.Context, userCode string) error
 	DisableBPSUser(ctx context.Context, userCode string) error
 	UpdateBPSUserStatus(ctx context.Context, userCode string, enabled bool, updatedAt time.Time) error
-
 	GetCPSActionByID(ctx context.Context, actionID string) (*model.CPSAction, error)
-
+	// UpdateCPSAction(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 	CheckPendingAction(ctx context.Context, requestAction string, department string) (bool, error)
-
-	// Authorization methods
 	AuthorizeBPSUserEnable(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 	AuthorizeBPSUserDisable(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
