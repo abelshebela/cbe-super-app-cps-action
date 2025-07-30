@@ -32,8 +32,9 @@ import (
 	// service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	notificationhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
-
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink"
+	productcodehandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/product_code"
+	bps_userhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bps_user"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/go-chi/chi/v5"
@@ -48,6 +49,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware, cpsGuard)
 		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
+		bps_userhandler.RegisterBPSUserMakerRoutes(sub, adapter.BPSUserAdapter, authMiddleware)
 
 		wallet.InitWalletRoutes(sub, adapter.WalletAdapter, authMiddleware)
 		faydaaccount.InitFaydaRoutes(sub, adapter.FaydaAdapter, authMiddleware)
@@ -72,5 +74,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		account_inbound.InitAccountLookUpRoutes(sub, adapter.AccountLookUp, authMiddleware)
 		service_handler.InteServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware)
 		notificationhandler.InitNotificationsHandlerRoutes(sub, adapter.NotificationAdapter, authMiddleware, cpsGuard)
+		productcodehandler.InitProductCodeHandlerRoutes(sub, adapter.ProductCodeAdapter, authMiddleware, cpsGuard)
 	})
 }

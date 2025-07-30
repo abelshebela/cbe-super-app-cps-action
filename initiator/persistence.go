@@ -9,6 +9,7 @@ import (
 	outboundStore "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	bank_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
+	bps_user_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bps_user"
 	budget_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
 	customer_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
@@ -63,7 +64,9 @@ import (
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 
 	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
+	productcode_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/product_code"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 )
 
 type Persitence struct {
@@ -82,6 +85,7 @@ type Persitence struct {
 	avatarPersitence            avatar.AvatarOutbound
 	AccountBlockPersistance     account_block.AccountBlockOutboundPort
 	HQPersistence               *hq_persistence.HQPersistence
+	BPSUserPersistence          *bps_user_persistence.BpsPersistence
 	AmountBasedAuthPersistence  amount_based_auth.AmountBasedAuthRepo
 	PortalCardPersistance       portalCardRepo.PortaCardInterface
 	WalletPersistance           wallet.WalletRepository
@@ -94,6 +98,7 @@ type Persitence struct {
 	AccounLookUp                account_lookup_domain.UserSearchRepository
 	ServicePersistence          chec_service.ServiceRepo
 	NotificationPersisitence    notification_domain.NotificationRepository
+	ProductCodePersistenct      productcode.Repository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -120,7 +125,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",
-			"BPSUsers",
+			"branch_user",
 			"CPSServices",
 			"portal_cards",
 			"validation_rules",
@@ -146,6 +151,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 			logger,
 		),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, databaseName, 5*time.Second, logger),
+		BPSUserPersistence:         bps_user_persistence.NewBpsPersistence(client, databaseName, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, "wallets", logger),
@@ -159,5 +165,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
 		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
 		NotificationPersisitence:    notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
+		ProductCodePersistenct:      productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
 	}
 }

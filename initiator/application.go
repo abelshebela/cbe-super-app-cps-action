@@ -8,6 +8,7 @@ import (
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
+	
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
 	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user"
@@ -33,6 +34,8 @@ import (
 	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 	unlink_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
 
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/product_code"
+bps_user  "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bps_user"
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -51,6 +54,7 @@ type Application struct {
 	AccountApplication         accountvalidation_app.ApplicationAbstracts
 	BulkServicesApplication    bulkservices_application.ApplicationAbstracts
 	CPSUserApplication         cpsusermaker.ApplicationService
+	BPSUserApplication         bps_user.ApplicationService
 	PasswordRuleApplication    *passwordrule.PasswordRuleHandler
 	PortalCardApplication      portalcard.PortalCardApplication
 	DepartmentApplication      department.DepartmentService
@@ -69,7 +73,8 @@ type Application struct {
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
 	ServicCheckeApplication    service_application.ApplicationService
 	AccountLookupApplication   account_application.UserSearchService
-	NotificationApplication    notification_application.NotificationApplicationAbstracts
+	NotificationApplication notification_application.NotificationApplicationAbstracts
+	ProductCodeApplication productcode.Application
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -91,6 +96,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
+		BPSUserApplication:         bps_user.NewApplicationHandler(domain.BPSUserDomain, logger),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
 		DepartmentApplication:      department.InitDepartmentHandler(&domain.DepartmentDomain, logger),
@@ -108,6 +114,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
-		NotificationApplication:    notification_application.NewNotificationApplication(domain.NotificationService, domain.CPSActionDomain, logger),
+		NotificationApplication: notification_application.NewNotificationApplication(domain.NotificationService, domain.CPSActionDomain, logger),
+		ProductCodeApplication: productcode.NewApplication(domain.ProductCodeService, domain.CPSActionDomain, logger),
 	}
 }

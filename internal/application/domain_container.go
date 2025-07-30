@@ -21,6 +21,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	bps_user_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
@@ -29,6 +30,8 @@ import (
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 )
@@ -41,6 +44,7 @@ type Domain struct {
 	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthDomain
 	AvatarDomian          avatar_domain.AvatarDomainService
 	BankDomain            bank_service.BankService
+	BPSUserDomain         bps_user_service.Service
 	BudgetCategoryDomain  budget_category.BudgetCategoryService
 	BudgetDomain          *budget_service.BudgetService
 	CPSActionDomain       cps_action_service.CPSActionService
@@ -64,4 +68,5 @@ type Domain struct {
 
 	KeyGenService       keyGen_service.KeyGeneratorService
 	NotificationService notification_domain.NotificationService
+	ProductCodeService  productcode.Service
 }
