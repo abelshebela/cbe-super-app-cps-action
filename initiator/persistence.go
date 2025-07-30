@@ -62,6 +62,9 @@ import (
 
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+
+	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 )
 
 type Persitence struct {
@@ -93,7 +96,7 @@ type Persitence struct {
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
 	AccounLookUp                account_lookup_domain.UserSearchRepository
 	ServicePersistence          chec_service.ServiceRepo
-	// ActionPersistence          *action_repo.ActionRepo
+	NotificationPersisitence    notification_domain.NotificationRepository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -160,5 +163,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
 		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
+		NotificationPersisitence:    notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 	}
 }

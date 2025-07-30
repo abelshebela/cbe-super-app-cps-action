@@ -164,6 +164,13 @@ const (
 	RequestCreateDailyLimit RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit RequestAction = "DELETE DAILY LIMIT"
+
+	RequestCreateNotification     RequestAction = "CREATE_NOTIFICATION"
+	RequestUpdateNotification     RequestAction = "UPDATE_NOTIFICATION"
+	RequestDeleteNotification     RequestAction = "DELETE_NOTIFICATION"
+	RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
+	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
+	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -268,6 +275,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateWallet:        {},
 	RequestUpdateWallet:        {},
 	RequestDeleteWallet:        {},
+
+	RequestCreateNotification:     {},
+	RequestUpdateNotification:     {},
+	RequestDeleteNotification:     {},
+	RequestEnableNotification:     {},
+	RequestDisableNotification:    {},
+	RequestMarkNotificationAsSeen: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -480,6 +494,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteMiniApp,
 		RequestEnableMiniApp,
 		RequestDisableMiniApp,
+	},
+	"Notification": {
+		RequestCreateNotification,
+		RequestUpdateNotification,
+		RequestDeleteNotification,
+		RequestEnableNotification,
+		RequestDisableNotification,
+		RequestMarkNotificationAsSeen,
 	},
 }
 
