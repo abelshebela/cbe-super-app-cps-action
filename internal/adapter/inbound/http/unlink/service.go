@@ -3,6 +3,7 @@ package unlink
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
@@ -35,6 +36,7 @@ func (ua *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if req.Validate() != nil {
+		fmt.Println("check")
 		local_util.SendErrorResponse(w, req.Validate().Error(), 0, nil)
 		return
 	}

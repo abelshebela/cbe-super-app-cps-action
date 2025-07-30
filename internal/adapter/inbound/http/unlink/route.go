@@ -14,7 +14,7 @@ func InitUnlinkHanldler(router chi.Router, handler Inbound.UnlinkHandler, authMi
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/fetch/user/byaccount/",
+				Path:    "/fetch/user/byaccount",
 				Handler: handler.GetUserByAccount,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
