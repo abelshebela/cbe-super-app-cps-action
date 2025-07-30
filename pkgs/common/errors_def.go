@@ -1771,6 +1771,17 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Invalid user code.",
 		},
+		"USER_ALREADY_ENABLED": {	
+			Code:    "USR_003",
+			Status:  StatusBadRequest,
+			Message: "User already enabled.",
+		},
+		"USER_ALREADY_DISABLED": {	
+			Code:    "USR_004",
+			Status:  StatusBadRequest,
+			Message: "User already disabled.",
+		},
+		
 		
 	},
 	Wallet: ErrorGroup{
