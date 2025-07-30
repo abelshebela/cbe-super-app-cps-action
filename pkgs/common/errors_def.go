@@ -1059,10 +1059,39 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
+
+		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
+			Code:    "GEN_177",
+			Message: "Single max transfers can not be less or equal to min_amount",
+		},
+		"ACCOUNT_NUMBER_CAN_NOT_BE_EMPTY": {
+			Code:    "GEN_178",
+			Message: "account number can not be empty",
+		},
+		"USERCODE_CANT_BE_EMPTY": {
+			Code:    "GEN_179",
+			Message: "user code can not be empty",
+		},
+		"FAILED_TO_FIND_USER": {
+			Code:    "GEN_177",
+			Status:  http.StatusNotFound,
+			Message: "failed to find user",
+		},
+		"FAYDA_USER_ALREADY_ENABLED": {
+			Code:    "GEN_178",
+			Status:  http.StatusConflict,
+			Message: "fayda user already enabled",
+		},
+		"FAYDA_USER_ALREADY_DISABLE": {
+			Code:    "GEN_179",
+			Status:  http.StatusConflict,
+			Message: "fayda user already disabled",
+    },
 		"INVALID_PAYLOAD": {
 			Code:    "GEN_177",
 			Status:  StatusBadRequest,
 			Message: "invalid payload",
+
 		},
 	},
 	Auth: ErrorGroup{
@@ -1758,6 +1787,18 @@ var DefineError = ErrorDefinitions{
 		"ENABLE_REGION_ACTION_ALREADY_EXISTS": {
 			Code:    "ACT_019",
 			Message: "enabel region action already exists",
+		},
+		"ACTION_CODE_REQUIRED": {
+			Code:    "ACT_020",
+			Message: "action code required",
+		},
+		"USER_IS_NOT_FAYDA_USER": {
+			Code:    "ACT_021",
+			Message: "user in not fayda user",
+		},
+		"FAYDA_USER_ALREADY_DISABLED": {
+			Code:    "ACT_022",
+			Message: "fayida user already disabled",
 		},
 	},
 	User: ErrorGroup{
