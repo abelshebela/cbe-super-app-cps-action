@@ -156,6 +156,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
-		BulkServicePersistence:      bulk_service_repo.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "bulk_services"}, logger),
+		BulkServicePersistence:      bulk_service_repo.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "access_list"}, logger),
 	}
 }

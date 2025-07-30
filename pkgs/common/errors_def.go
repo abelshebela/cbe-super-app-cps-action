@@ -806,6 +806,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_171",
 			Message: "Only Ethiopian numbers in local or international format are acceptable",
 		},
+		"NO_RESOURCE_FOUND": {
+			Code:    "GEN_172",
+			Message: "Resource not found",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1470,7 +1474,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"SURVICE_NOT_FOUND": {
 			Code:    "BULK_002",
-			Message: "Service not found",
+			Message: "One or more service is not found",
 		},
 	},
 }

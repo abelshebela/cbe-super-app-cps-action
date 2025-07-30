@@ -1,5 +1,5 @@
 package updatedbulkservice
 
 type BulkServiceDTO struct {
-	ServiceCode []string `json:"service_code"`
+	Keys []string `json:"keys" bson:"keys"`
 }

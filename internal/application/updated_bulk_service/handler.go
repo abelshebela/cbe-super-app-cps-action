@@ -13,7 +13,7 @@ import (
 )
 
 type Application interface {
-	GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*domain.ServiceDetails], error)
+	GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*domain.APPAccessList], error)
 	EnableBulkService(ctx context.Context, r *http.Request) error
 	DisableBulkService(ctx context.Context, r *http.Request) error
 }
@@ -27,7 +27,7 @@ func NewApplicationHandler(service domain.BulkService, logger utils.Logger) *Bul
 	return &BulkServiceApplication{service: service, logger: logger}
 }
 
-func (h *BulkServiceApplication) GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*domain.ServiceDetails], error) {
+func (h *BulkServiceApplication) GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*domain.APPAccessList], error) {
 	return h.service.GetAllBulkServices(ctx, filterParams)
 }
 
@@ -38,12 +38,12 @@ func (h *BulkServiceApplication) EnableBulkService(ctx context.Context, r *http.
 		return err
 	}
 
-	if len(req.ServiceCode) == 0 {
+	if len(req.Keys) == 0 {
 		h.logger.Errorf("bulk's service_code is required")
 		return fmt.Errorf("BULK_SERVICE_CODE_IS_REQUIRED")
 	}
 
-	err := h.service.EnableBulkService(ctx, req.ServiceCode)
+	err := h.service.EnableBulkService(ctx, req.Keys)
 	if err != nil {
 		return err
 	}
@@ -58,12 +58,12 @@ func (h *BulkServiceApplication) DisableBulkService(ctx context.Context, r *http
 		return err
 	}
 
-	if len(req.ServiceCode) == 0 {
+	if len(req.Keys) == 0 {
 		h.logger.Errorf("bulk's service_code is required")
 		return fmt.Errorf("BULK_SERVICE_CODE_IS_REQUIRED")
 	}
 
-	err := h.service.DisableBulkService(ctx, req.ServiceCode)
+	err := h.service.DisableBulkService(ctx, req.Keys)
 	if err != nil {
 		return err
 	}

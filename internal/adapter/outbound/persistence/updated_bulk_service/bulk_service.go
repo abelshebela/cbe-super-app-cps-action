@@ -20,13 +20,13 @@ import (
 
 type BulkServicePersistence struct {
 	mongoDalCpsAction   dal.MongoDal[model.CPSAction, model.CPSAction]
-	mongoDalbulkService dal.MongoDal[domain.ServiceDetails, domain.ServiceDetails]
+	mongoDalbulkService dal.MongoDal[domain.APPAccessList, domain.APPAccessList]
 	logger              utils.Logger
 }
 
 func InitBulkServicePersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) outbound.BulkServiceRepository {
 	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[0])
-	mongoDalbulkService := dal.NewMongoDal[domain.ServiceDetails, domain.ServiceDetails](client, dbName, collections[1])
+	mongoDalbulkService := dal.NewMongoDal[domain.APPAccessList, domain.APPAccessList](client, dbName, collections[1])
 	return &BulkServicePersistence{
 		mongoDalCpsAction:   mongoDalCpsAction,
 		mongoDalbulkService: mongoDalbulkService,
@@ -34,33 +34,16 @@ func InitBulkServicePersistence(client *mongo.Client, dbName string, collections
 	}
 }
 
-func (b BulkServicePersistence) GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*domain.ServiceDetails], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+func (b BulkServicePersistence) GetAllBulkServices(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*domain.APPAccessList], error) {
+	filter := bson.M{}
 	projection := bson.M{}
 
 	// Add search functionality
 	if filterParams.Search != "" {
-		searchFilter := bson.M{
+		filter = bson.M{
 			"$or": []bson.M{
 				{"key": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"serviceCode": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"serviceName": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"serviceType": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"paymentType": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"prefix": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"productCodes.PRD": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"productCodes.TRXN": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"IFBproductCodes.PRD": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"IFBproductCodes.TRXN": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			},
-		}
-
-		filter = bson.M{
-			"$and": []bson.M{
-				{"is_deleted": false},
-				searchFilter,
+				{"accessListName": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
 	}
@@ -80,24 +63,13 @@ func (b BulkServicePersistence) GetAllBulkServices(ctx context.Context, filterPa
 	}
 	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
-	return &common_util.PaginatedResponse[[]*domain.ServiceDetails]{
+	return &common_util.PaginatedResponse[[]*domain.APPAccessList]{
 		Data: bulkServices,
 		Meta: meta,
 	}, nil
 }
 
-func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, serviceCodes []string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
-	filter := bson.M{"service_code": bson.M{"$in": serviceCodes}, "is_deleted": false}
-
-	// Check if the service exists
-	_, err := b.mongoDalbulkService.FindOne(ctx, filter, bson.M{})
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return fmt.Errorf("SURVICE_NOT_FOUND")
-		}
-		return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
-	}
-
+func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, keys []string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
 	// Check if there is a pending action
 	makerData := ctx_util.ExtractContext(ctx)
 	pendingFilter := bson.M{
@@ -115,6 +87,35 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 		return fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
+	//
+	allAccessLists, err := b.mongoDalbulkService.FindAll(ctx, bson.M{}, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("NO_RESOURCE_FOUND")
+		}
+		return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+
+	validKeys := make(map[string]bool)
+	for _, access := range allAccessLists {
+		validKeys[access.Key] = true
+		for _, sub := range access.SubAccessList {
+			validKeys[sub.Key] = true
+		}
+	}
+
+	// Now validate the incoming keys
+	var notFoundKeys []string
+	for _, key := range keys {
+		if !validKeys[key] {
+			notFoundKeys = append(notFoundKeys, key)
+		}
+	}
+
+	if len(notFoundKeys) > 0 {
+		return fmt.Errorf("SURVICE_NOT_FOUND")
+	}
+
 	// Create the CPS action
 	_, err = b.mongoDalCpsAction.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -125,17 +126,57 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 }
 
 func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-	data, err := common_util.JsonUnmarshal[[]domain.ServiceDetails](action.CurrentAction)
-	if err != nil {
-		return nil, err
+	// Extract keys from CurrentAction
+	m, ok := action.CurrentAction.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid CurrentAction format")
 	}
 
-	for _, service := range *data {
-		filter := bson.M{"service_code": service.ServiceCode}
-		update := bson.M{"enabled": true}
-		_, err = b.mongoDalbulkService.UpdateOne(ctx, filter, update)
+	rawKeys, ok := m["keys"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid keys format")
+	}
+
+	var keys []string
+	for _, v := range rawKeys {
+		if str, ok := v.(string); ok {
+			keys = append(keys, str)
+		}
+	}
+
+	// Process each key
+	for _, key := range keys {
+		// Try updating parent
+		parentFilter := bson.M{"key": key}
+		parentUpdate := bson.M{"enabled": true}
+
+		result, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 		if err != nil {
-			return nil, err
+			// If parent doesn't exist, try updating child
+			if err == mongo.ErrNoDocuments {
+				childFilter := bson.M{"subAccessList.key": key}
+				childUpdate := bson.M{"subAccessList.$.enabled": true}
+
+				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+				if err != nil {
+					return nil, fmt.Errorf("failed to update child %s: %w", key, err)
+				}
+				continue
+			}
+
+			// Other errors
+			return nil, fmt.Errorf("failed to update parent %s: %w", key, err)
+		}
+
+		// Parent exists — now disable all sub-keys
+		for _, sub := range result.SubAccessList {
+			childFilter := bson.M{"subAccessList.key": sub.Key}
+			childUpdate := bson.M{"subAccessList.$.enabled": true}
+
+			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update child %s: %w", sub.Key, err)
+			}
 		}
 	}
 
@@ -143,17 +184,57 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 }
 
 func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-	data, err := common_util.JsonUnmarshal[[]domain.ServiceDetails](action.CurrentAction)
-	if err != nil {
-		return nil, err
+	// Extract keys from CurrentAction
+	m, ok := action.CurrentAction.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid CurrentAction format")
 	}
 
-	for _, service := range *data {
-		filter := bson.M{"service_code": service.ServiceCode}
-		update := bson.M{"enabled": false}
-		_, err = b.mongoDalbulkService.UpdateOne(ctx, filter, update)
+	rawKeys, ok := m["keys"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid keys format")
+	}
+
+	var keys []string
+	for _, v := range rawKeys {
+		if str, ok := v.(string); ok {
+			keys = append(keys, str)
+		}
+	}
+
+	// Process each key
+	for _, key := range keys {
+		// Try updating parent
+		parentFilter := bson.M{"key": key}
+		parentUpdate := bson.M{"enabled": false}
+
+		result, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 		if err != nil {
-			return nil, err
+			// If parent doesn't exist, try updating child
+			if err == mongo.ErrNoDocuments {
+				childFilter := bson.M{"subAccessList.key": key}
+				childUpdate := bson.M{"subAccessList.$.enabled": false}
+
+				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+				if err != nil {
+					return nil, fmt.Errorf("failed to update child %s: %w", key, err)
+				}
+				continue
+			}
+
+			// Other errors
+			return nil, fmt.Errorf("failed to update parent %s: %w", key, err)
+		}
+
+		// Parent exists — now disable all sub-keys
+		for _, sub := range result.SubAccessList {
+			childFilter := bson.M{"subAccessList.key": sub.Key}
+			childUpdate := bson.M{"subAccessList.$.enabled": false}
+
+			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update child %s: %w", sub.Key, err)
+			}
 		}
 	}
 
