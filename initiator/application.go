@@ -10,6 +10,7 @@ import (
 	ad "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/ad"
 	avatar_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bank"
+	
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/budget"
 	bulkservices_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bulk_services"
 	cpsusermaker "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/cps_user"
@@ -36,7 +37,7 @@ import (
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
 	notification_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/notification"
 	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/product_code"
-
+bps_user  "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/bps_user"
 	file "github.com/CBE-Super-App/cbe-super-app-cps-action/utils/file"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -55,6 +56,7 @@ type Application struct {
 	AccountApplication         accountvalidation_app.ApplicationAbstracts
 	BulkServicesApplication    bulkservices_application.ApplicationAbstracts
 	CPSUserApplication         cpsusermaker.ApplicationService
+	BPSUserApplication         bps_user.ApplicationService
 	PasswordRuleApplication    *passwordrule.PasswordRuleHandler
 	PortalCardApplication      portalcard.PortalCardApplication
 	ServiceDetailApplication   service_details_app.ApplicationAbstracts
@@ -95,6 +97,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
 		BulkServicesApplication:    bulkservices_application.NewAttachDetachChecker(domain.ActionDomain, logger),
 		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
+		BPSUserApplication:         bps_user.NewApplicationHandler(domain.BPSUserDomain, logger),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
 		ServiceDetailApplication:   service_details_app.NewApplication(domain.ServiceDomain, logger),

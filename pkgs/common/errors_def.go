@@ -1766,6 +1766,12 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Failed to update user status.",
 		},
+		"INVALID_USER_CODE": {
+			Code:    "USR_002",
+			Status:  StatusBadRequest,
+			Message: "Invalid user code.",
+		},
+		
 	},
 	Wallet: ErrorGroup{
 		"WALLET_NOT_FOUND": {

@@ -28,7 +28,7 @@ import (
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
-
+bps_user_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
@@ -61,6 +61,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		AccountBlockDomain:    account_block.NewAccountService(persistence.AccountBlockPersistance),
 		PermissionDomain:      permissionDomain,
 		HQDomain:              hq.NewService(persistence.HQPersistence, persistence.BulkServicesPersistence, logger),
+		BPSUserDomain:         bps_user_domain.NewBPSUserService(persistence.BPSUserPersistence, persistence.BulkServicesPersistence, logger),
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, logger),
 		ServiceDomain:         service.NewServiceStore(persistence.ServiceDetailsStore, persistence.BulkServicesPersistence, logger),
 		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),

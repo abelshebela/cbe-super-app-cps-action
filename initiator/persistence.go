@@ -9,6 +9,7 @@ import (
 	outboundStore "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	bank_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
+	bps_user_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bps_user"
 	budget_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
 	customer_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
@@ -85,6 +86,7 @@ type Persitence struct {
 	avatarPersitence            avatar.AvatarOutbound
 	AccountBlockPersistance     account_block.AccountBlockOutboundPort
 	HQPersistence               *hq_persistence.HQPersistence
+	BPSUserPersistence          *bps_user_persistence.BpsPersistence
 	AmountBasedAuthPersistence  amount_based_auth.AmountBasedAuthRepo
 	ServiceDetailsStore         service.ServiceRepository
 	ServicePersistance          service_repo.ServiceFeePersistence
@@ -126,7 +128,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",
-			"BPSUsers",
+			"branch_user",
 			"CPSServices",
 			"portal_cards",
 			"validation_rules",
@@ -154,6 +156,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, databaseName, []string{"cps_actions", "service"}, logger),
 		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, databaseName, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, databaseName, 5*time.Second, logger),
+		BPSUserPersistence:         bps_user_persistence.NewBpsPersistence(client, databaseName, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, "wallets", logger),
