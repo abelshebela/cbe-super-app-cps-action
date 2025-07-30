@@ -9,27 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type Service struct {
-	ID                 bson.ObjectID `json:"_id" bson:"_id"`
-	ServiceCode        string        `json:"service_code" bson:"service_code"`
-	ServiceName        string        `json:"service_name" bson:"service_name"`
-	ServiceType        string        `json:"service_type" bson:"service_type"`
-	Key                string        `json:"key" bson:"key"`
-	Cap                Cap           `json:"cap" bson:"cap"`
-	CBEProductCodes    ProductCodes  `json:"cbe_product_codes" bson:"cbe_product_codes"`
-	CBEIFBProductCodes ProductCodes  `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
-	AboveAmount        uint64        `json:"above_amount" bson:"above_amount"`
-	AboveServiceFee    uint64        `json:"above_service_fee" bson:"above_service_fee"`
-	PaymentType        string        `json:"payment_type" bson:"payment_type"`
-	Tiers              []Tier        `json:"tiers" bson:"tiers"`
-	CBEGLEntry         GLEntry       `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
-	CBEIFBGLEntry      GLEntry       `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
-	Enabled            bool          `json:"enabled" bson:"enabled"`
-	IsDeleted          bool          `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt          time.Time     `json:"created_at" bson:"created_at"`
-	LastModifiedAt     time.Time     `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt          time.Time     `json:"deleted_at" bson:"deleted_at"`
-}
+
 type UserType string
 
 const (
@@ -45,12 +25,7 @@ const (
 	ActionRejected ActionStatus = "REJECTED"
 )
 
-type AdvertResponse struct {
-	Page   int       `json:"page"`
-	Advert []*Advert `json:"advert"`
-	Limit  int       `json:"limit"`
-	Total  int64     `json:"total"`
-}
+
 
 type ActionType string
 
@@ -85,12 +60,6 @@ type Bank struct {
 	LastModifiedAt time.Time `json:"last_modified_at,omitzero" bson:"last_modified_at"`
 }
 
-type AdvertFor string
-
-type AdvertDate struct {
-	StartedAt time.Time `json:"started_at" bson:"started_at"`
-	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
-}
 
 type CPSAction struct {
 	ID                 bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
@@ -323,16 +292,6 @@ type CpsActionNormalized struct {
 	CheckerActionTime  time.Time   `bson:"checker_action_time" json:"checker_action_time"`
 }
 
-//	type ProductCode struct {
-//		ID          string     `bson:"id" json:"id,omitempty"`
-//		BranchType  BranchType `bson:"branch_type" json:"branch_type"`
-//		ProductCode string     `bson:"product_code" json:"product_code"`
-//	}
-// type ProductCode struct {
-// 	ID          string     `bson:"id" json:"id,omitempty"`
-// 	BranchType  BranchType `bson:"branch_type" json:"branch_type"`
-// 	ProductCode string     `bson:"product_code" json:"product_code"`
-// }
 
 type Card struct {
 	ID       bson.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -399,46 +358,11 @@ type ValidationRule struct {
 	LastModifiedAt time.Time     `json:"last_modified_at" bson:"last_modified_at"`
 	ServiceID      string        `json:"service_id" bson:"service_id"`
 }
-type KYCLevel string
 
-const (
-	KYCLevelZero KYCLevel = "ZERO"
-	KYCLevelOne  KYCLevel = "ONE"
-	KYCLevelTwo  KYCLevel = "TWO"
-)
 
-type ProductCodes struct {
-	PRD    string `bson:"prd"`
-	VATPRD string `bson:"vatprd"`
-	SFPRD  string `bson:"sfprd"`
-	TRXN   string `bson:"trxn"`
-}
 
-type GLEntry struct {
-	ProductAccount    string `bson:"product_account"`
-	ProductBranchCode string `bson:"product_branch_code"`
-	ServiceAccount    string `bson:"service_account"`
-	ServiceBranchCode string `bson:"service_branch_code"`
-	VatAccount        string `bson:"vat_account"`
-	VatBranchCode     string `bson:"vat_branch_code"`
-}
 
-type Tier struct {
-	ID        bson.ObjectID `bson:"id"`
-	Min       uint64        `bson:"min"`
-	Max       uint64        `bson:"max"`
-	FeeAmount uint64        `bson:"fee_amount"`
-}
 
-type Cap struct {
-	KYCLevel           KYCLevel `bson:"kyc_level"`
-	ISingleCap         uint64   `bson:"individual_single_cap"`
-	IDailyCap          uint64   `bson:"individual_daily_cap"`
-	CorporateSingleCap uint64   `bson:"corporate_single_cap"`
-	CorporateDailyCap  uint64   `bson:"corporate_daily_cap"`
-	MinAmount          uint64   `bson:"min_amount"`
-	MaxAmount          uint64   `bson:"max_amount"`
-}
 
 type ServiceDetails struct {
 	ID                 bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`

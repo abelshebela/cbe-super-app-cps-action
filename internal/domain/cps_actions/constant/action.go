@@ -171,6 +171,7 @@ const (
 	RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
 	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
 	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+	RequestUpdateProductCode RequestAction = "UPDATE_PRODUCT_CODE"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -282,6 +283,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableNotification:     {},
 	RequestDisableNotification:    {},
 	RequestMarkNotificationAsSeen: {},
+	RequestUpdateProductCode:{},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -502,6 +504,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableNotification,
 		RequestDisableNotification,
 		RequestMarkNotificationAsSeen,
+	},
+	"ProductCode": {
+		RequestUpdateProductCode,
 	},
 }
 

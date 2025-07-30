@@ -6,6 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+
+type AdvertFor string
+
+type AdvertDate struct {
+	StartedAt time.Time `json:"started_at" bson:"started_at"`
+	ExpiredAt time.Time `json:"expired_at" bson:"expired_at"`
+}
+
 type Advert struct {
 	ID            bson.ObjectID `json:"id,omitempty" bson:"_id"`
 	Title         string        `json:"title" bson:"title"`

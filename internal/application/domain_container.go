@@ -30,6 +30,7 @@ import (
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
@@ -67,4 +68,5 @@ type Domain struct {
 
 	KeyGenService         keyGen_service.KeyGeneratorService
 	NotificationService notification_domain.NotificationService
+	ProductCodeService  productcode.Service
 }

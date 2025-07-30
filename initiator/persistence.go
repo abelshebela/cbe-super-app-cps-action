@@ -64,7 +64,9 @@ import (
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 
 	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
+	productcode_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/product_code"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 )
 
 type Persitence struct {
@@ -97,6 +99,7 @@ type Persitence struct {
 	AccounLookUp                account_lookup_domain.UserSearchRepository
 	ServicePersistence          chec_service.ServiceRepo
 	NotificationPersisitence    notification_domain.NotificationRepository
+	ProductCodePersistenct      productcode.Repository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -164,5 +167,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
 		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
 		NotificationPersisitence:    notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
+		ProductCodePersistenct:      productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
 	}
 }
