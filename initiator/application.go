@@ -74,13 +74,15 @@ type Application struct {
 func InitApplication(domain application.Domain, minioClient config.MinioClientInterface, logger utils.Logger, cfg *config.VaultConfig) Application {
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
-		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
-		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
-		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
-		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),
-		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
-		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
+		BankApplication:     bank.InitBankHanlder(domain.BankDomain, logger),
+		AdApplication:       ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
+		AvatarApplication:   avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
+		WalletApplication:   wallet.InitWalletApplication(domain.WalletDomain, logger),
+		FaydaApplication:    faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
+		CustomerApplication: customer.InitCustomerHandler(domain.CustomerDomain, logger),
+		FeedbackApplication: feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
+		// UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
+
 		UnlinkApplication:          unlink_application.NewUnlinkApplication(domain.UnlinkDomain, logger),
 		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
 		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),

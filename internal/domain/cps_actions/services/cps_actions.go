@@ -46,6 +46,7 @@ func (s *cpsActionService) CPSActionExists(ctx context.Context, user entities.Ch
 	s.logger.Infof("Checking if CPS Action exists with unique ID: %s", user.UserCode)
 	return s.repo.CPSActionExists(ctx, user)
 }
+
 func (s *cpsActionService) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
 	return s.repo.ApproveCPSAction(ctx, action)
 }

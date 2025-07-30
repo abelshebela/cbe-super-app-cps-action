@@ -170,6 +170,11 @@ var errorKeyToStatus = map[string]int{
 	"METHOD_NOT_ALLOWED":                                         http.StatusMethodNotAllowed,
 	"RESOURCE_INFORMATION_ALREADY_EXISTS":                        http.StatusBadRequest,
 	"MERCHANT_NOT_FOUND":                                         http.StatusBadRequest,
+
+	"FAILED_TO_FIND_USER":         http.StatusNotFound,
+	"USER_IS_NOT_FAYDA_USER":      http.StatusNotFound,
+	"FAYDA_USER_ALREADY_ENABLED":  http.StatusConflict,
+	"FAYDA_USER_ALREADY_DISABLED": http.StatusConflict,
 }
 
 func formatValidationErrors(ve validation.Errors) map[string]string {
