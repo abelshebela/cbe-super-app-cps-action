@@ -50,6 +50,7 @@ import (
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	notification_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/notification"
+	productcode_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/product_code"
 
 	// service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/service_details"
@@ -64,6 +65,7 @@ import (
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_handler"
 	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
 	notification_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
+	productcode_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/product_code"
 
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
@@ -105,6 +107,7 @@ type Adapter struct {
 	AccountLookUp          inboundLookUp.UserSearchAdapter
 	ServiceCheckAdapter    service_inbound.Service
 	NotificationAdapter notification_inbound.NotificationHandler
+	ProductCodeAdapter productcode_inbound.ProductCodeHandler
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -139,5 +142,6 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		AccountLookUp:          account_handler.NewMiniAppMerchantAdapter(application.AccountLookupApplication, logger),
 		ServiceCheckAdapter:    service_handler.NewServiceHandler(application.ServicCheckeApplication, logger),
 		NotificationAdapter: notification_handler.NewNotificationHTTPHandler(application.NotificationApplication, logger),
+		ProductCodeAdapter: productcode_handler.NewProductCodeHTTPHandler(application.ProductCodeApplication, logger),
 	}
 }

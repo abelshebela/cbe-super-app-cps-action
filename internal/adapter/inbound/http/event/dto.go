@@ -27,10 +27,6 @@ type EventRequest struct {
 	Tickets          []evententity.Ticket  `json:"tickets"`
 }
 
-// validateRequiredString creates a required validation rule for a string field
-func validateRequiredString(field *string, name string) *validation.FieldRules {
-	return validation.Field(field, validation.Required.Error(fmt.Sprintf("%s is required", name)))
-}
 
 // validateStartDate ensures start_date is not before today
 func validateStartDate(e EventRequest) validation.RuleFunc {
@@ -147,7 +143,7 @@ func (e EventRequest) Validate(isCreate bool) error {
 			rules = append(rules, validation.Field(&e.TotalTicketCount,
 				validation.Min(uint(1)).Error("total_ticket_count must be at least 1")))
 		}
-		if e.Tickets != nil && len(e.Tickets) > 0 {
+		if len(e.Tickets) > 0 {
 			rules = append(rules, validation.Field(&e.Tickets, validation.By(validateTickets(e, isCreate))))
 		}
 	}

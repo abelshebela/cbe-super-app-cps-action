@@ -30,10 +30,11 @@ import (
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
-	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -43,7 +44,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	cfg *config.VaultConfig) application.Domain {
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
-
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
 
 	return application.Domain{
@@ -72,8 +72,9 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
-		// MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger),
-		ServiceCheckDomain: service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
+		ServiceCheckDomain:  service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
 		NotificationService: notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
+		ProductCodeService:  productcode.NewService(persistence.ProductCodePersistenct, logger),
+		KeyGenService:       keygenService,
 	}
 }
