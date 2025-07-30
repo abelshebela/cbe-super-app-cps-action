@@ -103,6 +103,9 @@ func (s *ServiceStore) EnableBPSUserRequest(ctx context.Context, request EnableB
 		s.logger.Errorf("failed to fetch BPS user: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
+	if originalUser.Enabled==true{
+		return nil, fmt.Errorf("USER_ALREADY_ENABLED")
+	}
 
 	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestEnableBPSUser), request.Department)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
@@ -154,8 +157,12 @@ func (s *ServiceStore) DisableBPSUserRequest(ctx context.Context, request Disabl
 	// Check if user exists
 	originalUser, err := s.repository.GetBPSUserByUserCode(ctx, request.UserCode)
 	if err != nil {
+
 		s.logger.Errorf("failed to fetch BPS user: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
+	}
+	if originalUser.Enabled==false{
+		return nil, fmt.Errorf("USER_ALREADY_DISABLED")
 	}
 
 	// Check for pending actions
