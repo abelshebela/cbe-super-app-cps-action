@@ -1,8 +1,6 @@
 package event
 
 import (
-	"encoding/json"
-	"fmt"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -62,15 +60,6 @@ func (h *EventHTTPStore) extractID(w http.ResponseWriter, r *http.Request) (stri
 		return "", false
 	}
 	return id, true
-}
-func PrettyPrintJSON(data interface{}) error {
-	prettyJSON, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(prettyJSON))
-	return nil
 }
 
 // parseAndValidateEventRequest parses and validates the event request from multipart form.
@@ -238,11 +227,11 @@ func (h *EventHTTPStore) FetchEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-   docs := []EventResponse{}
-    for _, doc := range list.Data {
-        res := ToEventResponse(doc)
-        docs = append(docs, res)
-    }
+	docs := []EventResponse{}
+	for _, doc := range list.Data {
+		res := ToEventResponse(doc)
+		docs = append(docs, res)
+	}
 
 	res := common_util.PaginatedResponse[*[]EventResponse]{
 		Data: &docs,

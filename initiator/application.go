@@ -80,7 +80,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
+		AdApplication:              ad.InitADHandler(domain.AdDomain, domain.CPSActionDomain, logger),
 		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
 		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, domain.CPSActionDomain ,logger),
 		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),

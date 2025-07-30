@@ -76,7 +76,7 @@ type Persitence struct {
 	BankPersistance             bank.BankPersistence
 	DepartmentPersistence       *dept_repo.DepartmentPersistence
 	PermissionPersistence       *perm_repo.PermissionPersistence
-	advertPersistence           ad.ADRepo
+	advertPersistence           ad.ADRepository
 	avatarPersitence            avatar.AvatarOutbound
 	AccountBlockPersistance     account_block.AccountBlockOutboundPort
 	HQPersistence               *hq_persistence.HQPersistence
@@ -108,7 +108,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		"portal_card",
 	}
 	return Persitence{
-		advertPersistence: advert.InitAD(client, databaseName, []string{"adverts", "cps_actions"}, logger),
+		advertPersistence: advert.InitAD(client, databaseName, "adverts", logger),
 		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, []string{"cps_actions", "avatars"}, logger),
 
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),

@@ -43,7 +43,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 	cpsGuard := middleware.NewCPSActionMiddlewareFactory(cpsService)
 
 	r.Route("/api/v1/cbesuperapp/cps_action", func(sub chi.Router) {
-		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware)
+		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware, cpsGuard)
 		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
 
