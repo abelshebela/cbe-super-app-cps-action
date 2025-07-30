@@ -8,10 +8,11 @@ import (
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, authMiddleware middleware.AuthMiddleware) {
+func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/mini-apps", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -22,6 +23,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 					middleware.RequireFormContentType(),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateMiniApp)),
 				},
 			},
 			{
@@ -31,6 +33,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateMiniApp)),
 				},
 			},
 			{
@@ -40,6 +43,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDeleteMiniApp)),
 				},
 			},
 			{
@@ -67,6 +71,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableMiniApp)),
 				},
 			},
 			{
@@ -76,6 +81,7 @@ func InitMiniAppHandlerMaker(router chi.Router, handler Inbound.MiniAppInbound, 
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDisableMiniApp)),
 				},
 			},
 		}

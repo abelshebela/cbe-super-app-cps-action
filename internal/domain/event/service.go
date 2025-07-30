@@ -3,155 +3,293 @@ package event
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
-	common_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type EventService interface {
-	CreateEventRequest(ctx context.Context, event Event, ticket Ticket, maker Maker) (string, error)
-	ApproveEventRequest(ctx context.Context, action_id string, action_taken bool, checkerID, checkerName, checkerPhone string) error
-	FetchEvent(ctx context.Context, limit, offset int) ([]*Event, error)
-	FetchEventByID(ctx context.Context, event_id string) (*Event, error)
+	CreateEvent(ctx context.Context, event EventRequest) (*Event, error)
+	UpdateEvent(ctx context.Context, id string, event EventRequest) (*Event, *Event, error)
+	DeleteEvent(ctx context.Context, id string) (*Event, *Event, error)
+	EnableDisableEvent(ctx context.Context, id string, enable bool) (*Event, *Event, error)
+
+	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+
+	FetchEventByID(ctx context.Context, id string) (*Event, error)
+	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Event], error)
 }
 
 type Service struct {
 	Repository EventRepository
+	logger     shared_utils.Logger
+	minio      config.MinioClientInterface
+	bucketName string
+	cfg        *config.VaultConfig
 }
 
-func NewEventService(repository EventRepository) EventService {
+func NewEventService(repository EventRepository,
+	minio config.MinioClientInterface,
+	bucketName string,
+	cfg *config.VaultConfig,
+	logger shared_utils.Logger,
+) EventService {
 	return &Service{
 		Repository: repository,
+		logger:     logger,
+		minio:      minio,
+		cfg: cfg,
+		bucketName: bucketName,
 	}
 }
 
-func (s *Service) CreateEventRequest(ctx context.Context, event Event, ticket Ticket, maker Maker) (string, error) {
-	actionID := utils.Random(10, &utils.PreSufix{Prefix: "CPS_"})
-
-	a := action.CPSAction{
-		ActionCode:       actionID,
-		MakerID:          maker.ID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		ActionType:       action.ActionCreate,
-		RequestAction:    action.RequestUpdateServiceRule,
-		ActionStatus:     action.ActionPending,
-		Department:       maker.Department,
-		CurrentAction: struct {
-			Ticket Ticket
-			Event  Event
-		}{
-			Ticket: ticket,
-			Event:  event,
-		},
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	}
-	// check if pending action exist
-	err := s.Repository.CPSActionExists(ctx, action.CreateCPSAction{
-		Department:    a.Department,
-		RequestAction: a.RequestAction,
-		MakerUser: action.User{
-			UserID:      a.MakerID,
-			FullName:    a.MakerName,
-			PhoneNumber: a.MakerPhoneNumber,
-			Department:  maker.Department,
-		},
-	})
-	if err != nil {
-		return "", err
-	}
-	data, err := s.Repository.CreateCpsAction(ctx, a)
-	if err != nil {
-		return "", err
-	}
-	return data.ActionCode, nil
-}
-func (s *Service) ApproveEventRequest(ctx context.Context, actionID string, actionTaken bool, checkerID, checkerName, checkerPhone string) error {
-	// Input validation
-	if actionID == "" || checkerID == "" || checkerName == "" || checkerPhone == "" {
-		return errors.New(common_utils.InvalidInput)
-	}
-
-	cpsAction, err := s.Repository.FetchCpsActionByID(ctx, actionID)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	// Update CPSAction status and checker details
-	if actionTaken {
-		cpsAction.ActionStatus = action.ActionApproved
-	} else {
-		cpsAction.ActionStatus = action.ActionRejected
-	}
-	cpsAction.CheckerID = checkerID
-	cpsAction.CheckerName = checkerName
-	cpsAction.CheckerPhoneNumber = checkerPhone
-
-	// Check for nil CurrentAction
-	if cpsAction.CurrentAction == nil {
-		return fmt.Errorf("CurrentAction is nil for actionID %s", actionID)
-	}
-
-	// Type assertion for CurrentAction
-	var e Event
-	switch v := cpsAction.CurrentAction.(type) {
-	case Event:
-		e = v
-	case map[string]interface{}:
-		// Extract the "event" key from the map
-		eventData, ok := v["event"]
-		if !ok {
-			return fmt.Errorf("CurrentAction map does not contain 'event' key for actionID %s; map contents: %+v", actionID, v)
-		}
-		// Convert eventData to JSON and unmarshal into Event struct
-		eventBytes, err := json.Marshal(eventData)
-		if err != nil {
-			return fmt.Errorf("failed to marshal event data to JSON for actionID %s: %w", actionID, err)
-		}
-		if err := json.Unmarshal(eventBytes, &e); err != nil {
-			return fmt.Errorf("failed to unmarshal event data to Event for actionID %s: %w", actionID, err)
-		}
-	default:
-		return fmt.Errorf("failed to assert CurrentAction to Event type for actionID %s; actual type: %T, value: %+v", actionID, cpsAction.CurrentAction, cpsAction.CurrentAction)
-	}
-
-	// Use consistent timestamp
-	now := time.Now()
-	cpsAction.LastModifiedAt = now
-	err = s.Repository.UpdateCpsAction(ctx, *cpsAction)
-	if err != nil {
-		return err
-	}
-
-	e.LastModifiedAt = now
-	e.Enabled = actionTaken // Set Enabled based on actionTaken
-	_, err = s.Repository.CreateEvent(ctx, e)
-	if err != nil {
-		return fmt.Errorf("failed to create Event for actionID %s: %w", actionID, err)
-	}
-
-	return nil
-}
-func (s *Service) FetchEvent(ctx context.Context, limit, offset int) ([]*Event, error) {
-	data, err := s.Repository.FetchEvent(ctx, limit, offset)
+func (e *Service) CreateEvent(ctx context.Context, event EventRequest) (*Event, error) {
+	exist, err := e.Repository.EventNameExists(ctx, event.EventName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+
+	if exist {
+		return nil, fmt.Errorf("EVENT_NAME_ALREADY_EXISTS")
+	}
+
+	code, err := common_util.GeneratePrefixedName("EVE", event.EventName, e.logger)
+	if err != nil {
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
+	}
+
+	if event.CoverImage == nil || e.cfg == nil {
+		return nil, fmt.Errorf("Nill")
+	}
+
+	URL, err := common_util.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.cfg.MinioEndPoint, e.logger)
+	if err != nil {
+		return nil, err
+	}
+	result := Event{
+		EventCode:  code,
+		EventName:  event.EventName,
+		EventCity:  event.EventCity,
+		EventVenue: event.EventVenue,
+		Status:     EventUpcomming,
+		AccountNumber: event.AccountNumber,
+		MerchantInformation: MerchantInformation{
+			MerchantID:          event.MerchantID,
+			MercahntName:        event.MercahntName,
+			MerchantPhoneNumber: event.MerchantPhoneNumber,
+			MerchantEmail:       event.MerchantEmail,
+		},
+		EventInformation: EventInformation{
+			StartDate:   event.StartDate,
+			DueDate:     event.DueDate,
+			Description: event.EventDescription,
+			Cover:       URL,
+		},
+		TicketInformation: TicketInformation{
+			TotalNumberOfTicket: uint64(event.TotalTicketCount),
+			TotalNumberOfAvailableTicket: uint64(event.TotalTicketCount),
+		},
+		Ticket: event.Tickets,
+		CreatedAt: time.Now(),
+		LastModifiedAt: time.Now(),
+	}
+
+	return &result, nil
 }
 
-func (s *Service) FetchEventByID(ctx context.Context, event_id string) (*Event, error) {
-	event, err := s.Repository.FetchEventByID(ctx, event_id)
+// UpdateEvent updates an event, using prevEvent values for empty fields in event
+func (e *Service) UpdateEvent(ctx context.Context, id string, event EventRequest) (*Event, *Event, error) {
+	e.logger.Infof("Updating event", "id", id)
+
+	// Fetch previous event
+	prevEvent, err := e.Repository.FetchEventByID(ctx, id)
 	if err != nil {
-		return nil, nil
+		e.logger.Errorf("Failed to fetch event", "id", id, "error", err)
+		return nil, nil, err
 	}
-	return event, nil
+
+	var URL string
+	if event.CoverImage != nil {
+		URL, err = common_util.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.cfg.MinioEndPoint, e.logger)
+		if err != nil {
+			e.logger.Errorf("Failed to upload cover image to MinIO", "error", err)
+			return nil, nil, err
+		}
+	} else {
+		URL = prevEvent.EventInformation.Cover
+		e.logger.Infof("Using previous cover image", "url", URL)
+	}
+
+	if event.EventName != "" {
+		exist, err := e.Repository.EventNameExists(ctx, event.EventName, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if exist {
+			return nil, nil, fmt.Errorf(common_util.EventNameAlreadyExists)
+		}
+	}
+
+	curAction := Event{
+		ID:         prevEvent.ID,
+		EventCode:  prevEvent.EventCode,
+		EventName:  nonEmptyString(event.EventName, prevEvent.EventName),
+		EventCity:  nonEmptyString(event.EventCity, prevEvent.EventCity),
+		EventVenue: nonEmptyString(event.EventVenue, prevEvent.EventVenue),
+		Status:     EventUpcomming,
+		MerchantInformation: MerchantInformation{
+			MerchantID:          nonEmptyString(event.MerchantID, prevEvent.MerchantInformation.MerchantID),
+			MercahntName:        nonEmptyString(event.MercahntName, prevEvent.MerchantInformation.MercahntName),
+			MerchantPhoneNumber: nonEmptyString(event.MerchantPhoneNumber, prevEvent.MerchantInformation.MerchantPhoneNumber),
+			MerchantEmail:       nonEmptyString(event.MerchantEmail, prevEvent.MerchantInformation.MerchantEmail),
+		},
+		EventInformation: EventInformation{
+			StartDate:   nonZeroTime(event.StartDate, prevEvent.EventInformation.StartDate),
+			DueDate:     nonZeroTime(event.DueDate, prevEvent.EventInformation.DueDate),
+			Description: nonEmptyString(event.EventDescription, prevEvent.EventInformation.Description),
+			Cover:       URL,
+		},
+		TicketInformation: TicketInformation{
+			TotalNumberOfTicket: nonZeroUint64(uint64(event.TotalTicketCount), prevEvent.TicketInformation.TotalNumberOfTicket),
+		},
+		Ticket: nonEmptyTickets(event.Tickets, prevEvent.Ticket),
+		CreatedAt: time.Now(),
+		LastModifiedAt: time.Now(),
+		AccountNumber: nonEmptyString(event.AccountNumber, prevEvent.AccountNumber),
+	}
+
+	e.logger.Infof("Updated event", "id", id, "merchantAppID", curAction.MerchantInformation.MerchantID)
+	return &curAction, generateEvent(*prevEvent), nil
+}
+
+func (e *Service) DeleteEvent(ctx context.Context, id string) (*Event, *Event, error) {
+	e.logger.Infof("Deleting event", "id", id)
+	// Fetch previous event
+	prevEvent, err := e.Repository.FetchEventByID(ctx, id)
+	if err != nil {
+		e.logger.Errorf("Failed to fetch event", "id", id, "error", err)
+		return nil, nil, err
+	}
+
+	curData := generateEvent(*prevEvent)
+	curData.IsDeleted = true
+	curData.DeletedAt = time.Now()
+
+	return curData, generateEvent(*prevEvent), nil
+}
+func (e *Service) EnableDisableEvent(ctx context.Context, id string, enable bool) (*Event, *Event, error) {
+	e.logger.Infof("EnableDisable event", "id", id)
+
+	// Fetch previous event
+	prevEvent, err := e.Repository.FetchEventByID(ctx, id)
+	if err != nil {
+		e.logger.Errorf("Failed to fetch event", "id", id, "error", err)
+		return nil, nil, err
+	}
+
+	if enable && prevEvent.Enabled {
+		return nil, nil, fmt.Errorf(common_util.ErrAlreadyEnabled)
+	}
+
+	if !enable && !prevEvent.Enabled {
+		return nil, nil, fmt.Errorf(common_util.ErrAlreadyDisabled)
+	}
+	curData := generateEvent(*prevEvent)
+	curData.Enabled = enable
+	curData.LastModifiedAt = time.Now()
+
+	return curData, generateEvent(*prevEvent), nil
+}
+
+func (e *Service) FetchEventByID(ctx context.Context, id string) (*Event, error) {
+	e.logger.Infof("FetchEventByID", "id", id)
+	return e.Repository.FetchEventByID(ctx, id)
+}
+func (e *Service) FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Event], error) {
+	return e.Repository.FetchEvent(ctx, filterParam)
+}
+
+func generateEvent(event Event) *Event {
+	return &Event{
+		ID:         event.ID,
+		EventCode:  event.EventCode,
+		EventName:  event.EventName,
+		EventCity:  event.EventCity,
+		EventVenue: event.EventVenue,
+		Status:     EventUpcomming,
+		AccountNumber: event.AccountNumber,
+		MerchantInformation: MerchantInformation{
+			MerchantID:          event.MerchantInformation.MerchantID,
+			MercahntName:        event.MerchantInformation.MercahntName,
+			MerchantPhoneNumber: event.MerchantInformation.MerchantPhoneNumber,
+			MerchantEmail:       event.MerchantInformation.MerchantEmail,
+		},
+		EventInformation: EventInformation{
+			StartDate:   event.EventInformation.StartDate,
+			DueDate:     event.EventInformation.DueDate,
+			Description: event.EventInformation.Description,
+			Cover:       event.EventInformation.Cover,
+		},
+		TicketInformation: TicketInformation{
+			TotalNumberOfTicket: event.TicketInformation.TotalNumberOfTicket,
+		},
+		Ticket: event.Ticket,
+		CreatedAt: event.CreatedAt,
+		LastModifiedAt: event.LastModifiedAt,
+	}
+}
+
+func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	requestedAction := action.RequestAction
+
+	var event *Event
+	var err error
+
+	bindErr := common_util.BindAction(action.CurrentAction, &event)
+	if bindErr != nil {
+		e.logger.Errorf("failed to bind current action to event: %v", bindErr)
+		return nil, fmt.Errorf(common_util.InvalidActionData)
+	}
+
+	switch requestedAction {
+	case cps_const.RequestCreateEvent:
+
+		event, err = e.Repository.CreateEvent(ctx, *event)
+		if err != nil {
+			return nil, err
+		}
+
+	case cps_const.RequestUpdateEvent:
+		event, err = e.Repository.UpdateEvent(ctx, *event)
+		if err != nil {
+			return nil, err
+		}
+	case cps_const.RequestDeleteEvent:
+		event, err = e.Repository.DeleteEvent(ctx, event.ID)
+		if err != nil {
+			return nil, err
+		}
+	case cps_const.RequestEnableEvent:
+		event, err = e.Repository.EnableDisableEvent(ctx, event.ID, true)
+		if err != nil {
+			return nil, err
+		}
+	case cps_const.RequestDisableEvent:
+		event, err = e.Repository.EnableDisableEvent(ctx, event.ID, false)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf(common_util.ErrUnsupported)
+	}
+
+	action.CurrentAction = event
+	return action, nil
 }

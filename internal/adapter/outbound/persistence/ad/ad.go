@@ -2,50 +2,163 @@ package ad
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-
+	
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
+	shared "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-
-	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
-
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
+	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
+// ADPersistence implements ADRepository
 type ADPersistence struct {
 	adDal  dal.MongoDal[model.Advert, model.Advert]
-	cpsDal dal.MongoDal[model.CPSAction, model.CPSAction]
 	logger utils.Logger
 }
 
-var _ ad.ADRepo = (*ADPersistence)(nil)
-
-func InitAD(client *mongo.Client, database string, collections []string, logger utils.Logger) ad.ADRepo {
-	adDal := dal.NewMongoDal[model.Advert, model.Advert](client, database, collections[0])
-	cpsDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collections[1])
+// InitAD initializes the ADPersistence
+func InitAD(client *mongo.Client, database string, collection string, logger utils.Logger) ad.ADRepository {
+	adDal := dal.NewMongoDal[model.Advert, model.Advert](client, database, collection)
 	return &ADPersistence{
 		adDal:  adDal,
-		cpsDal: cpsDal,
 		logger: logger,
 	}
+} 
+
+// CreateAdvert creates a new advert in the database
+func (a *ADPersistence) CreateAdvert(ctx context.Context, advert *entity.Advert) (*entity.Advert, error) {
+	a.logger.Infof("Creating advert, title: %s", advert.Title)
+
+	adDoc, err := mappers.ToAdvertDocument(advert)
+	if err != nil {
+		a.logger.Errorf("Failed to convert advert to document: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBInsertFailed)
+	}
+
+	result, err := a.adDal.InsertOne(ctx, *adDoc)
+	if err != nil {
+		a.logger.Errorf("Failed to insert advert: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBInsertFailed)
+	}
+
+	a.logger.Infof("Advert created successfully, id: %s", result.ID)
+	return mappers.ToAdvertDomain(result), nil
 }
 
-func (a *ADPersistence) GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error) {
+// UpdateAdvert updates an existing advert
+func (a *ADPersistence) UpdateAdvert(ctx context.Context, advert *entity.Advert) (*entity.Advert, error) {
+	a.logger.Infof("Updating advert, id: %s", advert.ID)
+
+	objectID, err := bson.ObjectIDFromHex(advert.ID)
+	if err != nil {
+		a.logger.Errorf("Invalid id provided: %v", err)
+		return nil, fmt.Errorf(shared.InvalidID)
+	}
+
+	update := bson.M{
+		"title":           advert.Title,
+		"description":     advert.Description,
+		"banner_image":    advert.BannerImage,
+		"advert_for":      advert.AdvertFor,
+		"date.started_at": advert.Date.StartedAt,
+		"date.expired_at": advert.Date.ExpiredAt,
+		"enabled":         advert.Enabled,
+		"last_updated_at": advert.LastUpdatedAt,
+	}
+
+	filter := bson.M{"_id": objectID}
+	result, err := a.adDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("Advert not found, id: %s", advert.ID)
+			return nil, fmt.Errorf(shared.NotFound)
+		}
+		a.logger.Errorf("Failed to update advert: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBUpdateFailed)
+	}
+
+	a.logger.Infof("Advert updated successfully, id: %s", advert.ID)
+	return mappers.ToAdvertDomain(result), nil
+}
+
+// DeleteAdvert soft-deletes an advert
+func (a *ADPersistence) DeleteAdvert(ctx context.Context, id string) (*entity.Advert, error) {
+	a.logger.Infof("Deleting advert, id: %s", id)
+
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("invalid id provided", err)
-		return nil, fmt.Errorf("INVALID_ID")
+		a.logger.Errorf("Invalid id provided: %v", err)
+		return nil, fmt.Errorf(shared.InvalidID)
+	}
+
+	filter := bson.M{"_id": objectID}
+	update := bson.M{
+		"is_deleted":      true,
+		"deleted_at":      time.Now(),
+		"last_updated_at": time.Now(),
+	}
+
+	result, err := a.adDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("Advert not found, id: %s", id)
+			return nil, fmt.Errorf(shared.NotFound)
+		}
+		a.logger.Errorf("Failed to delete advert: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBUpdateFailed)
+	}
+
+	a.logger.Infof("Advert deleted successfully, id: %s", id)
+	return mappers.ToAdvertDomain(result), nil
+}
+
+// EnableDisableAdvert enables or disables an advert
+func (a *ADPersistence) EnableDisableAdvert(ctx context.Context, id string, enable bool) (*entity.Advert, error) {
+	a.logger.Infof("EnableDisable advert, id: %s, enable: %v", id, enable)
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("Invalid id provided: %v", err)
+		return nil, fmt.Errorf(shared.InvalidID)
+	}
+
+	filter := bson.M{"_id": objectID}
+	update := bson.M{
+		"enabled":         enable,
+		"last_updated_at": time.Now(),
+	}
+
+	result, err := a.adDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("Advert not found, id: %s", id)
+			return nil, fmt.Errorf(shared.NotFound)
+		}
+		a.logger.Errorf("Failed to update advert enable status: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBUpdateFailed)
+	}
+
+	a.logger.Infof("Advert enable/disable successful, id: %s", id)
+	return mappers.ToAdvertDomain(result), nil
+}
+
+// FetchAdvertByID retrieves an advert by ID
+func (a *ADPersistence) FetchAdvertByID(ctx context.Context, id string) (*entity.Advert, error) {
+	a.logger.Infof("Fetching advert by ID, id: %s", id)
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("Invalid id provided: %v", err)
+		return nil, fmt.Errorf(shared.InvalidID)
 	}
 
 	filter := bson.M{
@@ -57,190 +170,57 @@ func (a *ADPersistence) GetOneAdvert(ctx context.Context, id string) (*entity.Ad
 	advert, err := a.adDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("ad not found", err)
-			return nil, fmt.Errorf("AD_NOT_FOUND")
+			a.logger.Errorf("Advert not found, id: %s", id)
+			return nil, fmt.Errorf(shared.NotFound)
 		}
-		a.logger.Errorf("failed to get ad", err)
-		return nil, fmt.Errorf("AD_NOT_FOUND")
+		a.logger.Errorf("Failed to fetch advert: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBQueryFailed)
 	}
-	return model.ToAdvertDomain(*advert), nil
+
+	a.logger.Infof("Advert fetched successfully, id: %s", id)
+	return mappers.ToAdvertDomain(*advert), nil
 }
 
-func (a *ADPersistence) GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error) {
+// FetchAdverts retrieves adverts with pagination and filtering
+func (a *ADPersistence) FetchAdverts(ctx context.Context, filterParams *util_constant.Filter) (*shared.PaginatedResponse[[]*entity.Advert], error) {
+	a.logger.Infof("Fetching adverts with filter: %v", filterParams)
+
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
+
+	if filterParams.Search != "" {
+		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
+		filter["$or"] = []bson.M{
+			{"title": searchRegex},
+			{"description": searchRegex},
+		}
+	}
 
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit
 
-	var ads []*entity.Advert
-	ad, err := a.adDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	ads, err := a.adDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
-		a.logger.Errorf("failed to get ad data", err)
-		return nil, fmt.Errorf("AD_NOT_FOUND")
-
+		a.logger.Errorf("Failed to fetch adverts: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBQueryFailed)
 	}
 
-	for _, doc := range ad {
-		ads = append(ads, model.ToAdvertDomain(*doc))
+	var result []*entity.Advert
+	for _, doc := range ads {
+		result = append(result, mappers.ToAdvertDomain(*doc))
 	}
 
 	total, err := a.adDal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("failed to get ad total counts", err)
-		return nil, fmt.Errorf("AD_NOT_FOUND")
-
+		a.logger.Errorf("Failed to get advert total count: %v", err)
+		return nil, fmt.Errorf(shared.GeneralDBQueryFailed)
 	}
 
-	meta := common_util.BuildPaginationMeta(total, page, limit)
-
-	return &common_util.PaginatedResponse[[]*entity.Advert]{
-		Data: ads,
+	meta := shared.BuildPaginationMeta(total, page, limit)
+	a.logger.Infof("Adverts fetched successfully, count: %d", len(result))
+	return &shared.PaginatedResponse[[]*entity.Advert]{
+		Data: result,
 		Meta: meta,
 	}, nil
-}
-
-func (a *ADPersistence) HandleAdvertCreate(ctx context.Context, cpsRes *entities.CPSAction) (*entities.CPSAction, error) {
-	var actionData entity.Advert
-
-	bytes, err := json.Marshal(cpsRes.CurrentAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
-	}
-
-	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction into Advert: %w", err)
-	}
-
-	req := entity.Advert{
-		Title:         actionData.Title,
-		Description:   actionData.Description,
-		BannerImage:   actionData.BannerImage,
-		AdvertFor:     actionData.AdvertFor,
-		Date:          actionData.Date,
-		CreatedAt:     time.Now(),
-		LastUpdatedAt: time.Now(),
-	}
-
-	adDoc, err := model.ToAdvertDocument(&req)
-	if err != nil {
-		return nil, err
-	}
-
-	advert, err := a.adDal.InsertOne(ctx, adDoc)
-	if err != nil {
-		a.logger.Errorf("failed to create advert: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_CREATE_ADVERT")
-	}
-
-	cpsRes.CurrentAction = advert
-	return cpsRes, nil
-}
-
-func (a *ADPersistence) HandleAdvertUpdate(ctx context.Context, cpsRes *entities.CPSAction) (*entities.CPSAction, error) {
-	var actionData entity.UpdateAdvert
-
-	bytes, err := json.Marshal(cpsRes.CurrentAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
-	}
-
-	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction into UpdateAdvert: %w", err)
-	}
-	var prevData entity.Advert
-
-	bytes, err = json.Marshal(cpsRes.PreviousAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal PreviousAction: %w", err)
-	}
-
-	if err := json.Unmarshal(bytes, &prevData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal PreviousAction into Advert: %w", err)
-	}
-
-	objId, err := bson.ObjectIDFromHex(prevData.ID)
-
-	fmt.Println(prevData.ID, "id")
-
-	if err != nil {
-		return nil, fmt.Errorf("INVALID_ID")
-	}
-
-	filter := bson.M{"_id": objId}
-	update := bson.M{}
-
-	if actionData.Title != "" {
-		update["title"] = actionData.Title
-	}
-	if actionData.Description != "" {
-		update["description"] = actionData.Description
-	}
-	if actionData.BannerImage != "" {
-		update["banner_image"] = actionData.BannerImage
-	}
-	if !actionData.Date.StartedAt.IsZero() {
-		update["date.started_at"] = actionData.Date.StartedAt
-	}
-	if !actionData.Date.ExpiredAt.IsZero() {
-		update["date.expired_at"] = actionData.Date.ExpiredAt
-	}
-
-	switch cpsRes.RequestAction {
-	case cps_const.RequestEnableAdvert:
-		update["enabled"] = true
-	case cps_const.RequestDisableAdvert:
-		update["enabled"] = false
-	}
-	update["last_updated_at"] = time.Now()
-
-	advert, err := a.adDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("NOT_FOUND")
-		}
-		a.logger.Errorf("failed to update advert: %v", err)
-		return nil, fmt.Errorf("GENERAL_DB_UPDATE_FAILED")
-	}
-
-	cpsRes.CurrentAction = advert
-	return cpsRes, nil
-}
-
-func (a *ADPersistence) HandleAdvertDelete(ctx context.Context, cpsRes *entities.CPSAction) (*entities.CPSAction, error) {
-	var prevData entity.DeletedAdvert
-
-	bytes, err := json.Marshal(cpsRes.PreviousAction)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal PreviousAction: %w", err)
-	}
-
-	if err := json.Unmarshal(bytes, &prevData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal PreviousAction into DeletedAdvert: %w", err)
-	}
-
-	objId, err := bson.ObjectIDFromHex(prevData.ID)
-
-	if err != nil {
-		return nil, fmt.Errorf("INVALID_ID")
-	}
-
-	filter := bson.M{"_id": objId}
-	update := bson.M{
-		"is_deleted": true,
-		"deleted_at": time.Now(),
-	}
-
-	advert, err := a.adDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("NOT_FOUND")
-		}
-		a.logger.Errorf("failed to delete advert: %v", err)
-		return nil, fmt.Errorf("GENERAL_DB_UPDATE_FAILED")
-	}
-
-	cpsRes.CurrentAction = advert
-	return cpsRes, nil
 }

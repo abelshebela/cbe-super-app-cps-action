@@ -45,7 +45,7 @@ func NewMiniAppMerchantHandler(service domain.MiniAppMerchantService, cpsService
 }
 
 func (h *MiniAppMerchantHandlerImpl) CreateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 
 		curData, err := h.service.GetCurrentData(&req)
 		if err != nil {
@@ -66,7 +66,7 @@ func (h *MiniAppMerchantHandlerImpl) CreateOne(ctx context.Context, req entities
 }
 
 func (h *MiniAppMerchantHandlerImpl) UpdateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 		curData, err := h.service.GetCurrentData(&req)
 		if err != nil {
 			return nil, err
@@ -83,19 +83,19 @@ func (h *MiniAppMerchantHandlerImpl) UpdateOne(ctx context.Context, req entities
 }
 
 func (h *MiniAppMerchantHandlerImpl) DeleteOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 		return h.service.DeleteMiniAppMerchant(ctx, id, &req)
 	}, "[MiniAppMerchant.Delete]")
 }
 
 func (h *MiniAppMerchantHandlerImpl) EnableOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 		return h.service.EnableOrDisableMerchant(ctx, id, cps_const.RequestEnableMiniAppMerchant, &req)
 	}, "[MiniAppMerchant.Enable]")
 }
 
 func (h *MiniAppMerchantHandlerImpl) DisableOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.handleAction(ctx, func() (*entities.CPSAction, error) {
+	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
 		return h.service.EnableOrDisableMerchant(ctx, id, cps_const.RequestDisableMiniAppMerchant, &req)
 	}, "[MiniAppMerchant.Disable]")
 }
@@ -106,27 +106,4 @@ func (h *MiniAppMerchantHandlerImpl) List(ctx context.Context, filter *shared_ut
 
 func (h *MiniAppMerchantHandlerImpl) Detail(ctx context.Context, id string) (*domain.MiniAppMerchant, error) {
 	return h.service.DetailMiniAppByID(ctx, id)
-}
-
-func (h *MiniAppMerchantHandlerImpl) handleAction(ctx context.Context, buildAction func() (*entities.CPSAction, error), logPrefix string) (*entities.CPSAction, error) {
-
-	action, err := buildAction()
-	if err != nil {
-		h.logger.Errorf("%s build action failed: %v", logPrefix, err)
-		return nil, err
-	}
-
-	_, err = h.cpsService.CPSActionExists(ctx, entities.CheckCPSAction{
-		UserCode:      action.MakerID,
-		FullName:      action.MakerName,
-		Department:    action.Department,
-		PhoneNumber:   action.MakerPhoneNumber,
-		RequestAction: string(action.RequestAction),
-	})
-	if err != nil {
-		h.logger.Errorf("%s CPSActionExists check failed: %v", logPrefix, err)
-		return nil, err
-	}
-
-	return h.cpsService.CreateCPSAction(ctx, action)
 }

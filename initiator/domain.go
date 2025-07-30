@@ -5,7 +5,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
+	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
@@ -31,7 +31,7 @@ import (
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
-	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
+	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -46,7 +46,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
 
 	return application.Domain{
-		AdDomain:              ad_service.InitADDomian("adverts", minioClient, persistence.advertPersistence, cfg, logger),
+		AdDomain:              ad_service.NewAdvertService(persistence.advertPersistence, minioClient, "adverts", cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
 		CustomerDomain:        customerDomain,
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
@@ -64,10 +64,10 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		ServiceDomain:         service.NewServiceStore(persistence.ServiceDetailsStore, persistence.BulkServicesPersistence, logger),
 		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance),
-		WalletDomain:          wallet_service.InitWalletDomain(persistence.WalletPersistance, minioClient, "wallets", logger, cfg),
+		WalletDomain:          wallet_service.NewWalletService(persistence.WalletPersistance, minioClient, "wallets", cfg, logger),
 		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, keygenService, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
-		EventDomain:           event_domain.NewEventService(persistence.EventPersistence),
+		EventDomain:           event_domain.NewEventService(persistence.EventPersistence, minioClient, "events", cfg, logger),
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),

@@ -102,9 +102,12 @@ const (
 	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
 	RequestCreateEvent              RequestAction = "CREATE_EVENT"
 	RequestUpdateEvent              RequestAction = "UPDATE_EVENT"
-	RequestCreateEventCategory      RequestAction = "CREATE_EVENT_CATEGORY"
-	RequestUpdateEventCategory      RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestDeleteEvent              RequestAction = "DELETE_EVENT"
+	RequestEnableEvent              RequestAction = "ENABLE_EVENT"
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
+
+	RequestCreateEventCategory RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory RequestAction = "UPDATE_EVENT_CATEGORY"
 
 	RequestUpdateBlockTime       RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar          RequestAction = "CREATE_AVATAR"
@@ -250,6 +253,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableMiniApp:          {},
 	RequestDisableMiniApp:         {},
 	RequestDeleteMiniApp:          {},
+	RequestDeleteEvent:            {},
+	RequestEnableEvent:            {},
 
 	RequestUpdateServiceSingle: {},
 	RequestUpdateServiceTotal:  {},
@@ -260,6 +265,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateDailyLimit:    {},
 	RequestUpdateDailyLimit:    {},
 	RequestDeleteDailyLimit:    {},
+	RequestCreateWallet:        {},
+	RequestUpdateWallet:        {},
+	RequestDeleteWallet:        {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -286,12 +294,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"A": {
-		RequestCreateAvatar,
-		RequestDeleteAvatar,
-		RequestDisableAvatar,
-		RequestEnableAvatar,
-		RequestUpdateAvatar,
+	"Event": {
+		RequestCreateEvent,
+		RequestDeleteEvent,
+		RequestDisableEvent,
+		RequestEnableEvent,
+		RequestUpdateEvent,
 	},
 	"AmountBasedAuth": {
 		RequestCreateAmountBasedAuth,
@@ -361,11 +369,6 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Business": {
 		RequestCreateBusiness,
 		RequestUpdateBusiness,
-	},
-	"Event": {
-		RequestCreateEvent,
-		RequestUpdateEvent,
-		RequestDisableEvent,
 	},
 	"EventCategory": {
 		RequestCreateEventCategory,

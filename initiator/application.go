@@ -80,9 +80,9 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 	dispatcher := cps_actions_application.NewDispatcher(domain)
 	return Application{
 		BankApplication:            bank.InitBankHanlder(domain.BankDomain, logger),
-		AdApplication:              ad.InitADHandler(domain.AdDomain, minioClient, "adverts", domain.CPSActionDomain, logger),
+		AdApplication:              ad.InitADHandler(domain.AdDomain, domain.CPSActionDomain, logger),
 		AvatarApplication:          avatar_app.InitAvatarAPP(domain.AvatarDomian, domain.CPSActionDomain, logger),
-		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, logger),
+		WalletApplication:          wallet.InitWalletApplication(domain.WalletDomain, domain.CPSActionDomain ,logger),
 		FaydaApplication:           faydaaccount.InitFaydaHandler(domain.FaydaDomain, domain.CPSActionDomain, logger),
 		CustomerApplication:        customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication:        feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
@@ -100,8 +100,8 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
 		ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
-		EventApplication:           event_application.NewEventApplication(domain.EventDomain),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain ,logger),
+		EventApplication:           event_application.NewEventApplication(domain.EventDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain,logger),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
 		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),

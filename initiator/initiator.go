@@ -63,7 +63,7 @@ func Initiator() {
 	logger.Infof("Chi router initialized")
 
 	logger.Infof("Initializing routes...")
-	InitRoutes(r, adapter, cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
+	InitRoutes(r, adapter, cfg.JwtSecretKey, cfg.Key, cfg.IV, domain.CPSActionDomain ,logger)
 	logger.Infof("Routes initialized")
 
 	server := http.Server{

@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	utils0 "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	gomock "go.uber.org/mock/gomock"

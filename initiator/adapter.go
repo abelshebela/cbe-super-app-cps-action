@@ -108,7 +108,7 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 	return Adapter{
 		AvatarAdapter:        avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
 		BankAdapter:          bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:            ad.InitADAdapter(application.AdApplication, logger),
+		AdAdapter:            ad.NewAdvertHTTPHandler(application.AdApplication, logger),
 		WalletAdapter:        wallet.InitWalletRouter(application.WalletApplication, logger),
 		FaydaAdapter:         faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
 		CustomerAdapter:      customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),

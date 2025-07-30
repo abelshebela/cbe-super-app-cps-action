@@ -53,6 +53,7 @@ type ErrorDefinitions struct {
 	AD          ErrorGroup
 	Permission  ErrorGroup
 	MiniApp     ErrorGroup
+	Event       ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -1058,6 +1059,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
+		"INVALID_PAYLOAD": {
+			Code:    "GEN_177",
+			Status:  StatusBadRequest,
+			Message: "invalid payload",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1967,6 +1973,13 @@ var DefineError = ErrorDefinitions{
 			Code:    "MINIAPP_015",
 			Status:  StatusBadRequest,
 			Message: "only one of is_event_mini_app or is_three_click can be true.",
+		},
+	},
+	Event: ErrorGroup{
+		"EVENT_NAME_ALREADY_EXISTS": {
+			Code:    "EVE_001",
+			Message: "Event name already exists",
+			Status:  StatusBadRequest,
 		},
 	},
 }

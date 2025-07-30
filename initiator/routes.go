@@ -29,6 +29,7 @@ import (
 	permission_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
 	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
+	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink_device_handler"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/wallet"
@@ -37,11 +38,12 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger utils.Logger) {
+func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsService cps_service.CPSActionService, logger utils.Logger) {
 	authMiddleware := middleware.InitAuthMiddleware(secretKey, key, iv, logger)
+	cpsGuard := middleware.NewCPSActionMiddlewareFactory(cpsService)
 
 	r.Route("/api/v1/cbesuperapp/cps_action", func(sub chi.Router) {
-		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware)
+		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware, cpsGuard)
 		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
 
@@ -63,10 +65,10 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, logger
 		service.InitServiceRoutes(sub, adapter.ServiceAdapter, authMiddleware)
 		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware)
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
-		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware)
-		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware)
+		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware, cpsGuard)
+		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware, cpsGuard)
 		cps_action_inbound.InitCPSActionsRoutes(sub, adapter.CPSActionAdapter, authMiddleware)
-		mini_app_merchant_inbound.InitMiniAppMerchantHandlerMaker(sub, adapter.MiniAppMerchantAdapter, authMiddleware)
+		mini_app_merchant_inbound.InitMiniAppMerchantHandlerMaker(sub, adapter.MiniAppMerchantAdapter, authMiddleware, cpsGuard)
 		account_inbound.InitAccountLookUpRoutes(sub, adapter.AccountLookUp, authMiddleware)
 		service_handler.InteServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware)
 	})
