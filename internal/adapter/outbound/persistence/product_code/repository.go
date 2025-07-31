@@ -1,4 +1,4 @@
-package Productcode
+package productcode
 
 import (
 	"context"
@@ -21,13 +21,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-// NotificationPersistence implements the NotificationRepository interface
+// RepositoryImpl implements the ProductCodeRepository interface
 type RepositoryImpl struct {
 	producCodeDal dal.MongoDal[model.Service, model.Service]
 	logger        shared.Logger
 }
 
-// InitNotificationPersistence initializes the notification persistence layer
+// InitProductCodePersistence initializes the product code persistence layer
 func InitProductCodePersistence(client *mongo.Client, dbName string, collection string, logger shared.Logger) product_code_outbound.Repository {
 	return &RepositoryImpl{
 		producCodeDal: dal.NewMongoDal[model.Service, model.Service](client, dbName, collection),

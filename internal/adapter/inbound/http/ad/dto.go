@@ -15,7 +15,6 @@ type AdvertDate struct {
 	ExpiredAt time.Time `form:"expired_at" json:"expired_at"`
 }
 
-// Validate validates the AdvertDate struct
 
 // AdvertResponse represents the response format for an advert
 type AdvertResponse struct {
