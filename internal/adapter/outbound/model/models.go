@@ -281,13 +281,14 @@ type CPSAction struct {
 type RequestAction string
 
 const (
-	RequestUser           RequestAction = "USER"
-	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete  RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable  RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
-
+	RequestUser                     RequestAction = "USER"
+	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
+	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"

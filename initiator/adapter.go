@@ -56,28 +56,23 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_category"
-
 	account_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_lookup"
 	cps_actions_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	miniapp_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_handler"
 	miniapp_merchant_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
+	bulk_service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/updated_bulk_service"
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 	unlink_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink"
-
 	notification_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
 	productcode_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/product_code"
-
-
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
-
 	unlink_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
-
 	bps_user_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bps_user"
-
 
 	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
+	bulk_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/updated_bulk_service"
 	bps_user "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
 )
 
@@ -111,6 +106,11 @@ type Adapter struct {
 	MiniAppAdapter         inboundMiniApp.MiniAppInbound
 	EventAdapter           event_inbound.EventHandler
 	// BudgetCategoryAdapter  budget_category.BudgetCategoryInbound
+	CPSActionAdapter          cps_actions.CPSActionAdapter
+	BudgetCategoryAdapter     inboundBudgetCategory.BudgetCategoryInbound
+	MiniAppMerchantAdapter    inboundMiniAppMerchant.MiniAppMerchantInbound
+	AccountLookUp             inboundLookUp.UserSearchAdapter
+	UpdatedBulkServiceAdapter bulk_service.BulkServiceHandler
 	CPSActionAdapter       cps_actions.CPSActionAdapter
 	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
 	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
@@ -144,8 +144,8 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.MiniAppApplication, logger),
 		EventAdapter:        eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
 		
-		
 		// BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
+		UpdatedBulkServiceAdapter: bulk_service_handler.InitBulkServiceHandler(application.BulkServiceApplication, logger),
 		CPSActionAdapter:       cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
 		BudgetCategoryAdapter:  budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 		MiniAppMerchantAdapter: miniapp_merchant_handler.NewMiniAppMerchantAdapter(application.MiniAppMerchantApplication, logger),

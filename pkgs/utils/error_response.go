@@ -884,7 +884,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "unsupported request action",
 		},
-
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Status:  StatusBadRequest,
@@ -900,7 +899,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "kyc_level must be a number between 0 and 2",
 		},
-
 		"UNEXPECTED_DATABASE_ERROR": {
 			Code:    "GEN_155",
 			Status:  StatusInternalServerError,

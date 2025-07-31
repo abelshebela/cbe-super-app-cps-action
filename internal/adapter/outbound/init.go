@@ -158,6 +158,7 @@ func (p *outboundStore) FindPendingAction(ctx context.Context, requestAction str
 	}
 	return modelToDomainCPSAction(*result), nil
 }
+
 func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {
@@ -1471,13 +1472,13 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	filter := bson.M{
-		// "is_deleted": false,
+		"is_deleted": false,
 	}
 	projection := bson.M{}
 
 	// Add search functionality
 	if filterParams.Search != "" {
-		filter = bson.M{
+		searchFilter := bson.M{
 			"$or": []bson.M{
 				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
@@ -1487,6 +1488,15 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
+
+		// Combile the filter
+		filter = bson.M{
+			"$and": []bson.M{
+				{"is_deleted": false},
+				searchFilter,
+			},
+		}
+
 	}
 
 	// Add filter functionality

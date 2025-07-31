@@ -57,12 +57,11 @@ import (
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 
+	bulk_service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/updated_bulk_service"
+	bulk_outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/updated_bulk_service"
 	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
-
-
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
-
 	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
 	productcode_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/product_code"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
@@ -96,6 +95,7 @@ type Persitence struct {
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
 	AccounLookUp                account_lookup_domain.UserSearchRepository
+	BulkServicePersistence      bulk_outbound.BulkServiceRepository
 	ServicePersistence          chec_service.ServiceRepo
 	NotificationPersisitence    notification_domain.NotificationRepository
 	ProductCodePersistenct      productcode.Repository
@@ -163,6 +163,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
+		BulkServicePersistence:      bulk_service_repo.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "access_list"}, logger),
 		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
 		NotificationPersisitence:    notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 		ProductCodePersistenct:      productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
