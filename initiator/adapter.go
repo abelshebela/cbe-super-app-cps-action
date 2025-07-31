@@ -5,6 +5,7 @@ import (
 	accountblock_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_block"
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
+	bps_user_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bps_user"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
@@ -46,6 +47,7 @@ import (
 	eventhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/event"
 	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/hq"
 	AmountBasedAuthRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/amount_based_auth"
+	bpsRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
 	event_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/event"
 	notification_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/notification"
 	productcode_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/product_code"
@@ -67,18 +69,12 @@ import (
 	notification_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
 	productcode_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/product_code"
 
-
 	service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
 
 	unlink_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/unlink"
 
-	bps_user_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bps_user"
-
-
-	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
-	bps_user "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
 )
 
 type Adapter struct {
@@ -99,32 +95,32 @@ type Adapter struct {
 	BulkServiceAdapter     inboundBulkServices.Inbound
 	CPSUserAdapter         inbound.CPSUserMakerHandler
 
-	BPSUserAdapter         bps_user.BPSUserHandler
-	
-	PasswordRuleAdapter    inbound.PasswordRuleInbound
-	PortalCardAdapter      inbound.PortalCardBound
-	ServiceDetailAdapter   service_details.ServiceDetailsInbound
-	AccountBlockAdapter    accountblock.AccountBlockHandler
-	ServiceAdapter         inboudService.ServiceBound
-	HQAdapter              *hq.HQHTTPHandler
-	AmountBasedAuth        AmountBasedAuthRepo.AmountBasedAuthHandler
-	MiniAppAdapter         inboundMiniApp.MiniAppInbound
-	EventAdapter           event_inbound.EventHandler
+	BPSUserAdapter bpsRepo.BPSUserHandler
+
+	PasswordRuleAdapter  inbound.PasswordRuleInbound
+	PortalCardAdapter    inbound.PortalCardBound
+	ServiceDetailAdapter service_details.ServiceDetailsInbound
+	AccountBlockAdapter  accountblock.AccountBlockHandler
+	ServiceAdapter       inboudService.ServiceBound
+	HQAdapter            *hq.HQHTTPHandler
+	AmountBasedAuth      AmountBasedAuthRepo.AmountBasedAuthHandler
+	MiniAppAdapter       inboundMiniApp.MiniAppInbound
+	EventAdapter         event_inbound.EventHandler
 	// BudgetCategoryAdapter  budget_category.BudgetCategoryInbound
 	CPSActionAdapter       cps_actions.CPSActionAdapter
 	BudgetCategoryAdapter  inboundBudgetCategory.BudgetCategoryInbound
 	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
 	AccountLookUp          inboundLookUp.UserSearchAdapter
 	ServiceCheckAdapter    service_inbound.Service
-	NotificationAdapter notification_inbound.NotificationHandler
-	ProductCodeAdapter productcode_inbound.ProductCodeHandler
+	NotificationAdapter    notification_inbound.NotificationHandler
+	ProductCodeAdapter     productcode_inbound.ProductCodeHandler
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
 	return Adapter{
 		AvatarAdapter:       avatar_adapter.InitAvatarHTTPHandler(application.AvatarApplication, logger),
 		BankAdapter:         bank.InitBankAdapter(application.BankApplication, logger),
-		AdAdapter:           ad.InitADAdapter(application.AdApplication, logger),
+		AdAdapter:           ad.NewAdvertHTTPHandler(application.AdApplication, logger),
 		WalletAdapter:       wallet.InitWalletRouter(application.WalletApplication, logger),
 		FaydaAdapter:        faydaaccount.InitFaydaAdapter(application.FaydaApplication, logger),
 		CustomerAdapter:     customerhandler.NewCustomerHTTPHandler(application.CustomerApplication, logger),
@@ -143,15 +139,14 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		AmountBasedAuth:     amountBasedAuth.NewAmountBasedAuthHandler(application.AmountBasedAuthApplication, logger),
 		MiniAppAdapter:      miniapp_handler.NewMiniAppAdapter(application.MiniAppApplication, logger),
 		EventAdapter:        eventhandler.NewEventHTTPHandler(application.EventApplication, logger),
-		
-		
+		BPSUserAdapter:      bps_user_handler.InitBPSUserMakerHandler(application.BPSUserApplication, logger),
 		// BudgetCategoryAdapter: budget_category_handler.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger),
 		CPSActionAdapter:       cps_actions_handler.InitCPSActionAdapter(application.CPSActionApplication, logger),
 		BudgetCategoryAdapter:  budget_category.InitBudgetCategoryAdapter(application.BudgetCategoryApplication, logger, application.FileService),
 		MiniAppMerchantAdapter: miniapp_merchant_handler.NewMiniAppMerchantAdapter(application.MiniAppMerchantApplication, logger),
 		AccountLookUp:          account_handler.NewMiniAppMerchantAdapter(application.AccountLookupApplication, logger),
 		ServiceCheckAdapter:    service_handler.NewServiceHandler(application.ServicCheckeApplication, logger),
-		NotificationAdapter: notification_handler.NewNotificationHTTPHandler(application.NotificationApplication, logger),
-		ProductCodeAdapter: productcode_handler.NewProductCodeHTTPHandler(application.ProductCodeApplication, logger),
+		NotificationAdapter:    notification_handler.NewNotificationHTTPHandler(application.NotificationApplication, logger),
+		ProductCodeAdapter:     productcode_handler.NewProductCodeHTTPHandler(application.ProductCodeApplication, logger),
 	}
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
@@ -21,14 +22,13 @@ func NewServiceHandler(domain ApplicationService, logger utils.Logger) inbound.S
 		logger:     logger,
 	}
 }
-
 func (sa *serviceHandler) GetAllService(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_utils.ExtractFilterParams(r)
 	if filterParams.Page < 1 || filterParams.PerPage < 1 {
 		local_utils.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
 		return
 	}
-
+	fmt.Println("******************//////////////*********************")
 	data, err := sa.appService.GetAllService(r.Context(), local_utils.Filter(*filterParams)) // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)

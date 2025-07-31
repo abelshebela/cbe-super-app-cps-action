@@ -44,16 +44,6 @@ type GLEntry struct {
 	VatBranchCode     string `bson:"vat_branch_code"`
 }
 
-type Cap struct {
-	KYCLevel           KYCLevel `bson:"kyc_level"`
-	ISingleCap         uint64   `bson:"individual_single_cap"`
-	IDailyCap          uint64   `bson:"individual_daily_cap"`
-	CorporateSingleCap uint64   `bson:"corporate_single_cap"`
-	CorporateDailyCap  uint64   `bson:"corporate_daily_cap"`
-	MinAmount          uint64   `bson:"min_amount"`
-	MaxAmount          uint64   `bson:"max_amount"`
-}
-
 type KYCLevel string
 
 const (
@@ -61,11 +51,3 @@ const (
 	KYCLevelOne  KYCLevel = "ONE"
 	KYCLevelTwo  KYCLevel = "TWO"
 )
-
-
-type Tier struct {
-	ID        bson.ObjectID `bson:"id"`
-	Min       uint64        `bson:"min"`
-	Max       uint64        `bson:"max"`
-	FeeAmount uint64        `bson:"fee_amount"`
-}
