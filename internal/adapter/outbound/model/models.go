@@ -256,7 +256,7 @@ type Bank struct {
 
 type BPSUser struct {
 	ID                bson.ObjectID            `json:"id" bson:"_id,omitempty"`
-	UserCode          string                   `json:"user_code" bons:"user_code"` // generated
+	UserCode          string                   `json:"user_code" bson:"user_code"` // generated
 	FullName          string                   `json:"full_name" bson:"full_name"`
 	UserName          string                   `json:"UserName" bson:"UserName"`
 	PhoneNumber       string                   `json:"phone_number" bson:"phone_number"`
