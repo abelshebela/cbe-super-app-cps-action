@@ -53,7 +53,7 @@ func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, keys []string) 
 		Department:       userPayload.Department,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionEnable),
-		RequestAction:    string(model.RequestBulkServiceEnable),
+		RequestAction:    string(model.RequestBlockCity),
 		PreviousAction:   nil,
 		CurrentAction: currAction{
 			Keys: keys,
