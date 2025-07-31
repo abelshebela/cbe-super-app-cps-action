@@ -3,6 +3,7 @@ package updatedbulkservice
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -87,7 +88,7 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 		return fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
-	//
+	// Check if the keys do exist
 	allAccessLists, err := b.mongoDalbulkService.FindAll(ctx, bson.M{}, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -114,6 +115,47 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 
 	if len(notFoundKeys) > 0 {
 		return fmt.Errorf("SURVICE_NOT_FOUND")
+	}
+
+	// Check if one or more key is already enable or disabled.
+	dupAction := []string{}
+	for _, k := range keys {
+		var boolStatus bool
+		switch strings.ToUpper(cpsAction.ActionType) {
+		case "ENABLE":
+			boolStatus = true
+		case "DISABLE":
+			boolStatus = false
+		}
+
+		// Find the key in the parent
+		pFilter := bson.M{"key": k, "enabled": boolStatus}
+		_, err := b.mongoDalbulkService.FindOne(ctx, pFilter, bson.M{})
+		if err == nil {
+			dupAction = append(dupAction, k)
+		} else if err != mongo.ErrNoDocuments {
+			return fmt.Errorf("db error")
+		}
+
+		cFilter := bson.M{
+			"subAccessList": bson.M{
+				"$elemMatch": bson.M{
+					"key":     k,
+					"enabled": boolStatus,
+				},
+			},
+		}
+		_, subErr := b.mongoDalbulkService.FindOne(ctx, cFilter, bson.M{})
+		if subErr == nil {
+			dupAction = append(dupAction, k)
+			continue
+		} else if subErr != mongo.ErrNoDocuments {
+			return fmt.Errorf("db error")
+		}
+	}
+
+	if len(dupAction) > 0 {
+		return fmt.Errorf("duplicate action for key/s: %v", dupAction)
 	}
 
 	// Create the CPS action
