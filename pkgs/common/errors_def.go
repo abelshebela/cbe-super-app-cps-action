@@ -52,6 +52,7 @@ type ErrorDefinitions struct {
 	Wallet      ErrorGroup
 	AD          ErrorGroup
 	Permission  ErrorGroup
+	BulkService ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
 }
@@ -1030,15 +1031,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "merchant not found",
 		},
-		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
-			Code:    "GEN_172",
-			Status:  StatusBadRequest,
-			Message: "Only Ethiopian numbers in local or international format are acceptable",
-		},
-		"NO_DOC_FOUND": {
-			Code:    "GEN_171	",
-			Message: "mongo: no documents in result",
-		},
 		"INVALID_TOTAL_CAP_VALUE": {
 			Code:    "GEN_172	",
 			Message: "invalid total cap value",
@@ -1073,25 +1065,37 @@ var DefineError = ErrorDefinitions{
 			Message: "user code can not be empty",
 		},
 		"FAILED_TO_FIND_USER": {
-			Code:    "GEN_177",
+			Code:    "GEN_180",
 			Status:  http.StatusNotFound,
 			Message: "failed to find user",
 		},
 		"FAYDA_USER_ALREADY_ENABLED": {
-			Code:    "GEN_178",
+			Code:    "GEN_181",
 			Status:  http.StatusConflict,
 			Message: "fayda user already enabled",
 		},
 		"FAYDA_USER_ALREADY_DISABLE": {
-			Code:    "GEN_179",
+			Code:    "GEN_182",
 			Status:  http.StatusConflict,
 			Message: "fayda user already disabled",
     },
 		"INVALID_PAYLOAD": {
-			Code:    "GEN_177",
+			Code:    "GEN_183",
 			Status:  StatusBadRequest,
 			Message: "invalid payload",
-
+		},
+    		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_184",
+			Status:  StatusBadRequest,
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
+		"NO_RESOURCE_FOUND": {
+			Code:    "GEN_185",
+			Message: "Resource not found",
+    },
+		"NO_DOC_FOUND": {
+			Code:    "GEN_186	",
+			Message: "mongo: no documents in result",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1956,6 +1960,16 @@ var DefineError = ErrorDefinitions{
 			Message: "One or more permission groups not found.",
 		},
 	},
+	BulkService: ErrorGroup{
+		"BULK_SERVICE_CODE_IS_REQUIRED": {
+			Code:    "BULK_001",
+			Message: "Bulk service code is required",
+		},
+		"SURVICE_NOT_FOUND": {
+			Code:    "BULK_002",
+			Message: "One or more service is not found",
+    },
+  },
 	MiniApp: ErrorGroup{
 		"APP_NAME_REQUIRED": {
 			Code:    "MINIAPP_001",

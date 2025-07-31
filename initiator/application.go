@@ -30,6 +30,7 @@ import (
 	mini_app_merchant_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 
 	event_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/event"
+	bulk_service_app "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/updated_bulk_service"
 	notification_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/notification"
 	service_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service"
 	unlink_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/unlink"
@@ -73,8 +74,11 @@ type Application struct {
 	MiniAppMerchantApplication mini_app_merchant_application.MiniAppMerchantApplication
 	ServicCheckeApplication    service_application.ApplicationService
 	AccountLookupApplication   account_application.UserSearchService
-	NotificationApplication    notification_application.NotificationApplicationAbstracts
-	ProductCodeApplication     productcode.Application
+
+	BulkServiceApplication     bulk_service_app.BulkServiceApplication
+	NotificationApplication notification_application.NotificationApplicationAbstracts
+	ProductCodeApplication productcode.Application
+
 }
 
 // InitApplication initializes the application layer with the provided domain, minio client, and logger.
@@ -114,7 +118,10 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
-		NotificationApplication:    notification_application.NewNotificationApplication(domain.NotificationService, domain.CPSActionDomain, logger),
-		ProductCodeApplication:     productcode.NewApplication(domain.ProductCodeService, domain.CPSActionDomain, logger),
+
+		BulkServiceApplication:     *bulk_service_app.NewApplicationHandler(domain.BulkServiceDomain, logger),
+		NotificationApplication: notification_application.NewNotificationApplication(domain.NotificationService, domain.CPSActionDomain, logger),
+		ProductCodeApplication: productcode.NewApplication(domain.ProductCodeService, domain.CPSActionDomain, logger),
+
 	}
 }

@@ -35,6 +35,7 @@ import (
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
+	BulkServiceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -71,9 +72,12 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
-		ServiceCheckDomain:    service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
-		NotificationService:   notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
-		ProductCodeService:    productcode.NewService(persistence.ProductCodePersistenct, logger),
-		KeyGenService:         keygenService,
+
+		BulkServiceDomain:     BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
+		ServiceCheckDomain:  service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
+		NotificationService: notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
+		ProductCodeService:  productcode.NewService(persistence.ProductCodePersistenct, logger),
+		KeyGenService:       keygenService,
+
 	}
 }
