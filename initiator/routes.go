@@ -5,14 +5,12 @@ import (
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
-
-	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
-	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 
 	account_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_lookup"
+	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bank"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/budget_handler"
 	cpsmakerhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps-user"
 	cps_action_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	mini_app_merchant_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/mini_app_merchant"
@@ -27,7 +25,7 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	permission_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
-	service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
+	//service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 	bulk_service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/updated_bulk_service"
 
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
@@ -63,7 +61,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
 		// unlink.InitUnlinkHanldler(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)
-		// bulkservices_inbound.InitServiceHandlerMaker(sub, adapter.BulkServiceAdapter, authMiddleware)
+		bulkservices_inbound.InitServiceHandlerMaker(sub, adapter.BulkServiceAdapter, authMiddleware)
 		accountvalidation_inbound.InitAccountValidationHandlerMaker(sub, adapter.AccountAdapter, authMiddleware)
 		cpsmakerhandler.RegisterCPSUserMakerRoutes(sub, adapter.CPSUserAdapter, authMiddleware)
 		passwordrule.RegisterPasswordRuleRoutes(sub, adapter.PasswordRuleAdapter, authMiddleware)

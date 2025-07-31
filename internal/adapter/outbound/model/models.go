@@ -310,14 +310,13 @@ type CPSAction struct {
 type RequestAction string
 
 const (
-	RequestUser                     RequestAction = "USER"
-	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
-	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
-	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
+	RequestUser           RequestAction = "USER"
+	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete  RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable  RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
+
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
@@ -399,6 +398,8 @@ const (
 	RequestBlockCity                RequestAction = "BLOCK_CITY"
 	RequestEnableCity               RequestAction = "ENABLE_CITY"
 	RequestBlockUser                RequestAction = "BLOCK_USER"
+	RequestBulkServiceEnable        RequestAction = "BULK_SERVICE_ENABLE"
+	RequestBulkServiceDisable       RequestAction = "BULK_SERVICE_DISABLE"
 	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
 	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
