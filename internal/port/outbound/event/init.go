@@ -2,18 +2,19 @@ package event_outbound
 
 import (
 	"context"
-
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
+
 )
 
-type Outbound interface {
-	CreateCpsAction(ctx context.Context, Action action.CPSAction) (action.CPSAction, error)
-	UpdateCpsAction(ctx context.Context, Action action.CPSAction) error
-	FetchCpsActionById(ctx context.Context, Action_Id string) (*entities.CPSAction, error)
-	CreateEvent(ctx context.Context, event event.Event) (event.Event, error)
+type EventRepository interface {
+	CreateEvent(ctx context.Context, event event.Event) (*event.Event, error)
+	UpdateEvent(ctx context.Context, event event.Event) (*event.Event, error)
+	DeleteEvent(ctx context.Context, id string) (*event.Event, error)
+	EnableDisableEvent(ctx context.Context, id string, enable bool) (*event.Event, error)
+	EventNameExists(ctx context.Context, name string, id *string) (bool, error)
 
-	FetchEventById(ctx context.Context, event_id string) (event.Event, error)
-	FetchEvent(ctx context.Context, limit, offset int) ([]event.Event, error)
+	FetchEventByID(ctx context.Context, id string) (*event.Event, error)
+	FetchEvent(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*event.Event], error)
 }

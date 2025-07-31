@@ -1,14 +1,14 @@
 package miniapphandler
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
+	"strings"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
 	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/miniapp"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
@@ -46,78 +46,102 @@ func (h *HttpStore) createUser(r *http.Request) (*entities.User, error) {
 	return maker, nil
 }
 
+func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, error) {
+	var req MiniAppRequest
+
+	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "app_icon", 2<<20)
+	if err != nil && err.Error() != common_util.ErrMissingFile && !isCreate {
+		h.logger.Errorf("error parsing file: %v", err)
+		return nil, err
+	}
+	if file != nil {
+		defer file.Close()
+	}
+
+	get := func(key string) string {
+		return strings.TrimSpace(r.FormValue(key))
+	}
+
+	parseBool := func(key string) (bool, error) {
+		value := strings.ToLower(get(key))
+		switch value {
+		case "true":
+			return true, nil
+		case "false", "":
+			return false, nil
+		default:
+			return false, errors.New("invalid boolean value for " + key)
+		}
+	}
+
+	req.AppName = get("app_name")
+	req.CommissionGLAccount = get("commission_gl_account")
+	req.MerchantID = get("merchant_id")
+	req.AppType = get("app_type")
+	req.URL = get("url")
+	req.MPAASID = get("mpaas_id")
+	req.AppViewType = get("app_view_type")
+
+	req.IFBProductCode = get("ifb_product_code")
+	req.IFBVATCode = get("ifb_vat_code")
+	req.IFBServiceFeeCode = get("ifb_service_fee_code")
+	req.CBProductCode = get("cb_product_code")
+	req.CBVATCode = get("cb_vat_code")
+	req.CBServiceFeeCode = get("cb_service_fee_code")
+
+	isEventMiniApp, err := parseBool("is_event_mini_app")
+	if err != nil {
+		return nil, err
+	}
+	req.IsEventMiniApp = isEventMiniApp
+
+	isThreeClick, err := parseBool("is_three_click")
+	if err != nil {
+		return nil, err
+	}
+	req.IsThreeClick = isThreeClick
+	req.AppIcon = fileHeader
+
+	return &req, nil
+}
+
 func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
-	var req dto.MiniAppCreateRequest
 	makerUser := contexts.ExtractUserContext(r)
 	if makerUser.IsIncomplete() {
-		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, http.StatusBadRequest, nil)
 		return
 	}
 
-	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "app_icon", 10<<20)
+	req, err := h.getValues(r, true)
 	if err != nil {
-		h.logger.Errorf("error parsing file: %v", err)
-		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
-	defer file.Close()
 
-	isEventMiniApp, err := strconv.ParseBool(r.FormValue("is_event_mini_app"))
-	if err != nil {
-		isEventMiniApp = false
-	}
-
-	isThreeClick, err := strconv.ParseBool(r.FormValue("is_three_click"))
-	if err != nil {
-		isThreeClick = false
-	}
-
-	enabled, err := strconv.ParseBool(r.FormValue("enabled"))
-	if err != nil {
-		enabled = false
-	}
-
-	req.AppIcon = fileHeader
-	req.AppName = r.FormValue("app_name")
-	req.CommisonGLAccount = r.FormValue("commison_gl_account")
-	req.MerchantID = r.FormValue("merchant_id")
-	req.IsEventMiniApp = isEventMiniApp
-	req.IsThreeClick = isThreeClick
-	req.Enabled = enabled
-
-	var appType dto.AppType
-	_ = json.Unmarshal([]byte(r.FormValue("app_type")), &appType)
-
-	var productCodes []dto.ProductCode
-	_ = json.Unmarshal([]byte(r.FormValue("product_code")), &productCodes)
-
-	var credentials []dto.CredentialInformation
-	_ = json.Unmarshal([]byte(r.FormValue("credential")), &credentials)
-
-	req.ProductCode = productCodes
-	req.Credential = credentials
-	req.AppType = appType
-
-	fmt.Println(req)
-
-	if err := req.Validate(); err != nil {
-		common_util.SendErrorResponse(w, err, 0, nil)
+	if err := req.Validate(true); err != nil {
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
+
 	var maker entities.User
-
 	maker.FullName = makerUser.FullName
 	maker.UserCode = makerUser.UserCode
 	maker.PhoneNumber = makerUser.PhoneNumber
 	maker.Department = makerUser.Department
 
-	response, err := h.Application.MakerCreateMiniApp(r.Context(), &req, maker)
+	dto, err := req.ToMiniAppCreateRequest(true)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to create mini app")
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
 
-	utils.WriteSuccessResponse(w, response, "mini App request successfully created")
+	err = h.Application.CreateMiniApp(r.Context(), dto, maker)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, nil, "Create Mini App request successfully created")
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -128,74 +152,6 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req dto.MiniAppCreateRequest
-
-	// Try to parse optional file
-	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "app_icon", 10<<20)
-	if err != nil && err.Error() != common_util.ErrMissingFile {
-		h.logger.Errorf("error parsing file: %v", err)
-		common_util.SendErrorResponse(w, common_util.MissingOrInvalidImage, 0, nil)
-		return
-	}
-	if file != nil {
-		defer file.Close()
-		req.AppIcon = fileHeader
-	}
-
-	// Read values from form
-	req.ID = id
-	req.AppName = r.FormValue("app_name")
-	req.CommisonGLAccount = r.FormValue("commison_gl_account")
-	req.MerchantID = r.FormValue("merchant_id")
-
-	// Parse optional bools
-	if val := r.FormValue("is_event_mini_app"); val != "" {
-		if parsed, err := strconv.ParseBool(val); err == nil {
-			req.IsEventMiniApp = parsed
-		}
-	}
-	if val := r.FormValue("is_three_click"); val != "" {
-		if parsed, err := strconv.ParseBool(val); err == nil {
-			req.IsThreeClick = parsed
-		}
-	}
-	if val := r.FormValue("enabled"); val != "" {
-		if parsed, err := strconv.ParseBool(val); err == nil {
-			req.Enabled = parsed
-		}
-	}
-
-	// Parse complex fields if provided
-	if val := r.FormValue("app_type"); val != "" {
-		var appType dto.AppType
-		if err := json.Unmarshal([]byte(val), &appType); err == nil {
-			req.AppType = appType
-		}
-	}
-	if val := r.FormValue("product_code"); val != "" {
-		var productCodes []dto.ProductCode
-		if err := json.Unmarshal([]byte(val), &productCodes); err == nil {
-			req.ProductCode = productCodes
-		}
-	}
-	if val := r.FormValue("credential"); val != "" {
-		var credentials []dto.CredentialInformation
-		if err := json.Unmarshal([]byte(val), &credentials); err == nil {
-			req.Credential = credentials
-		}
-	}
-
-	// Check if at least one field was provided
-	if req.AppName == "" && req.CommisonGLAccount == "" && req.MerchantID == "" &&
-		len(req.ProductCode) == 0 && len(req.Credential) == 0 &&
-		req.AppIcon == nil && req.AppType.UAT == "" && req.AppType.Production == "" &&
-		req.AppType.Test == "" && req.AppType.Dev == "" &&
-		!req.IsEventMiniApp && !req.IsThreeClick && !req.Enabled {
-		common_util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", http.StatusBadRequest, nil)
-		return
-	}
-
-	// Extract user
 	makerUser := contexts.ExtractUserContext(r)
 	if makerUser.IsIncomplete() {
 		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
@@ -209,18 +165,36 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		Department:  makerUser.Department,
 	}
 
-	// Call domain application logic
-	response, err := h.Application.MakerUpdateMiniApp(r.Context(), &req, maker)
+	req, err := h.getValues(r, false)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to update mini app")
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return
 	}
 
-	utils.WriteSuccessResponse(w, response, "Mini App update request created successfully")
+	if err := req.Validate(false); err != nil {
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		return
+	}
+	dto, err := req.ToMiniAppCreateRequest(false)
+	if err != nil {
+		utils.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		return
+	}
+	dto.ID = id
+	if IsEmptyUpdate(dto) {
+		utils.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
+		return
+	}
+
+	 err = h.Application.UpdateMiniApp(r.Context(), dto, maker)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	utils.WriteSuccessResponse(w, nil, "Update Mini App request created successfully")
 }
 
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
-
 	id := chi.URLParam(r, "id")
 	maker, UserErr := h.createUser(r)
 	if UserErr != nil {
@@ -228,12 +202,12 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ActionCode, err := h.Application.MakerDeleteMiniApp(r.Context(), *maker, id)
+	err := h.Application.DeleteMiniApp(r.Context(), *maker, id)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to delete mini app")
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, ActionCode, "successful")
+	utils.WriteSuccessResponse(w, nil, "Mini App deleted  request created successfully")
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -241,22 +215,73 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 
 	list, err := h.Application.ListMiniApp(r.Context(), filterParam)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusNoContent, "Failed to list mini apps")
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, list, "successful")
+	docs := []MiniAppResponse{}
+	for _, doc := range list.Data {
+		res := ToMiniAppResponse(doc)
+		docs = append(docs, res)
+	}
+
+	res := common_util.PaginatedResponse[*[]MiniAppResponse]{
+		Data: &docs,
+		Meta: list.Meta,
+	}
+	utils.WriteSuccessResponse(w, res, "successful")
 }
 
 func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Missing mini app ID")
+		utils.SendErrorResponse(w, common_util.InvalidID, 0, nil)
 		return
 	}
 	detail, err := h.Application.DetailMiniAppByID(r.Context(), id)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get mini app detail")
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 	utils.WriteSuccessResponse(w, detail, "successful feached miniapp by ID")
+}
+
+func (h *HttpStore) EnableMiniAppByID(w http.ResponseWriter, r *http.Request) {
+	h.enableDisableMiniApp(w, r, true)
+}
+
+func (h *HttpStore) DisableMiniAppByID(w http.ResponseWriter, r *http.Request) {
+	h.enableDisableMiniApp(w, r, false)
+}
+
+func (h *HttpStore) enableDisableMiniApp(w http.ResponseWriter, r *http.Request, enable bool) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
+		return
+	}
+
+	makerUser := contexts.ExtractUserContext(r)
+	if makerUser.IsIncomplete() {
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
+		return
+	}
+
+	maker := entities.User{
+		UserCode:    makerUser.UserCode,
+		FullName:    makerUser.FullName,
+		PhoneNumber: makerUser.PhoneNumber,
+		Department:  makerUser.Department,
+	}
+
+	err := h.Application.EnableDisableMiniAppByID(r.Context(), id, enable, maker)
+	if err != nil {
+		utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	action := "disabled"
+	if enable {
+		action = "enabled"
+	}
+	utils.WriteSuccessResponse(w, nil, fmt.Sprintf("Mini App %s successfully", action))
 }

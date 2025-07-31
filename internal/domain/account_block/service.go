@@ -30,6 +30,13 @@ func (s *AccountService) FilterSingleBranches(ctx context.Context, region, distr
 	return s.repo.FilterSingleBranches(ctx, region, district, filterParams)
 }
 
+func (s *AccountService) EnableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
+	if branch.BranchCode == "" {
+		return "", fmt.Errorf("branchCode is required")
+	}
+	return s.repo.EnableSingleBranch(ctx, branch, maker)
+}
+
 func (s *AccountService) DisableSingleBranch(ctx context.Context, branch action.Branch, maker action.User) (string, error) {
 	if branch.BranchCode == "" {
 		return "", fmt.Errorf("branchCode is required")
@@ -43,6 +50,13 @@ func (s *AccountService) FilterMultipleBranches(ctx context.Context, region, dis
 	}
 	return s.repo.FilterMultipleBranches(ctx, region, district, filterParams)
 }
+func (s *AccountService) EnableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
+	if len(branches) == 0 {
+		return "", fmt.Errorf("branches list is empty")
+	}
+	return s.repo.EnableMultipleBranches(ctx, branches, maker)
+}
+
 func (s *AccountService) DisableMultipleBranches(ctx context.Context, branches []action.Branch, maker action.User) (string, error) {
 	if len(branches) == 0 {
 		return "", fmt.Errorf("branches list is empty")
@@ -62,6 +76,17 @@ func (s *AccountService) GetRegionByCode(ctx context.Context, regionCode string)
 	}
 	return s.repo.GetRegionByCode(ctx, regionCode)
 }
+
+func (s *AccountService) EnableRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
+	if regionCode == "" {
+		return "", fmt.Errorf("regionCode is required")
+	}
+	actionCode, err := s.repo.EnableRegion(ctx, regionCode, maker)
+	if err != nil {
+		return "", err
+	}
+	return actionCode, nil
+}
 func (s *AccountService) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
 	if regionCode == "" {
 		return "", fmt.Errorf("regionCode is required")
@@ -79,6 +104,18 @@ func (s *AccountService) UpdateRegion(ctx context.Context, region action.Region)
 	}
 	return s.repo.UpdateRegion(ctx, region)
 }
+
+func (s *AccountService) EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
+	if districtCode == "" {
+		return "", fmt.Errorf("districtCode is required")
+	}
+	actionCode, err := s.repo.EnableDistrict(ctx, districtCode, maker)
+	if err != nil {
+		return "", err
+	}
+	return actionCode, nil
+}
+
 func (s *AccountService) BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
 	if districtCode == "" {
 		return "", fmt.Errorf("districtCode is required")
@@ -94,6 +131,17 @@ func (s *AccountService) GetDistrictByCode(ctx context.Context, districtCode str
 		return action.District{}, fmt.Errorf("districtCode is required")
 	}
 	return s.repo.GetDistrictByCode(ctx, districtCode)
+}
+
+func (s *AccountService) EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
+	if cityCode == "" {
+		return "", fmt.Errorf("cityCode is required")
+	}
+	actionCode, err := s.repo.EnableCity(ctx, cityCode, maker)
+	if err != nil {
+		return "", err
+	}
+	return actionCode, nil
 }
 
 func (s *AccountService) BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
@@ -163,18 +211,29 @@ func (s AccountService) Authorize(ctx context.Context, action *entities.CPSActio
 	switch reqAction {
 	case cps_const.RequestBlockCity:
 		return s.repo.AuthorizeBlockCity(ctx, action)
+	case cps_const.RequestEnableCity:
+		return s.repo.AuthorizeEnableCity(ctx, action)
+
 	case cps_const.RequestBlockDistrict:
 		return s.repo.AuthorizeBlockDistrict(ctx, action)
+	case cps_const.RequestEnableDistrict:
+		return s.repo.AuthorizeEnableDistrict(ctx, action)
+
 	case cps_const.RequestBlockRegion:
 		return s.repo.AuthorizeRegionBlock(ctx, action)
+	case cps_const.RequestEnableRegion:
+		return s.repo.AuthorizeRegionEnable(ctx, action)
+
 	case cps_const.RequestDisableMultiBranches:
 		return s.repo.AuthorizeBulkBranchesDisable(ctx, action)
 	case cps_const.RequestEnableMultiBranches:
 		return s.repo.AuthorizeBulkBranchesEnable(ctx, action)
+
 	case cps_const.RequestDisableSingleBranch:
 		return s.repo.AuthorizeSingleBranchDisable(ctx, action)
 	case cps_const.RequestEnableSingleBranch:
 		return s.repo.AuthorizeSingleBranchEnable(ctx, action)
+
 	case cps_const.RequestBlockUser:
 		return s.repo.AuthorizeBlockUser(ctx, action)
 	default:

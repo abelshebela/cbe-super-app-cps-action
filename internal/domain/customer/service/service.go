@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/repository"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -23,7 +23,7 @@ type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, kycLevel int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*entity.User, error)
 	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
-	CreateUser(ctx context.Context, user *entity.User) (*entity.User, error)
+	CreateUserMiniAppMercahant(ctx context.Context, user *entity.User) (*entity.User, error)
 }
 
 func IntiCustomerDomain(customerRepo domain.CustomerRepository, logger utils.Logger) CustomerService {
@@ -58,17 +58,8 @@ func (c *CustomerDomain) GetBlockedCustomer(ctx context.Context, filerParams *co
 	return customers, nil
 }
 
-func (c *CustomerDomain) CreateUser(ctx context.Context, user *entity.User) (*entity.User, error) {
-	exist, err := c.customerRepo.CheckUserExist(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(exist, err, "Exanfdklsdghsgnl======================================")
-	if exist {
-		return nil, fmt.Errorf(common_util.AuthUserAlreadyExists)
-	}
-
+func (c *CustomerDomain) CreateUserMiniAppMercahant(ctx context.Context, user *entity.User) (*entity.User, error) {
+	user.Realm = member.MerchantRealm
 	user.UserCode = utils.RandomGenerator(10)
 	return c.customerRepo.CreateUser(ctx, user)
 }

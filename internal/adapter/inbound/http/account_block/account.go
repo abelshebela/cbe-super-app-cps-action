@@ -82,6 +82,46 @@ func (h *AccountBlockHandler) GetAllBranches(w http.ResponseWriter, r *http.Requ
 	}
 	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
 }
+func (h *AccountBlockHandler) EnableSingleBranch(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		BranchCode string `json:"branch_code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.BranchCode) == "" {
+		constant_utils.SendErrorResponse(w, "BRANCH_ID_REQUIRED", http.StatusBadRequest, nil)
+		return
+	}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
+		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
+		return
+	}
+
+	branch, err := h.service.GetBranchByCode(r.Context(), req.BranchCode)
+	if err != nil {
+		constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND", http.StatusNotFound, nil)
+		return
+	}
+
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
+	_, err = h.service.EnableSingleBranch(r.Context(), branch, maker)
+	if err != nil {
+		h.logger.Errorf("[Handler.EnableSingleBranch] failed: %v", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Branch enable action created", http.StatusCreated)
+
+}
 func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		BranchCode string `json:"branch_code"`
@@ -209,6 +249,54 @@ func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *h
 	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
 }
 
+func (h *AccountBlockHandler) EnableMultipleBranches(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		BranchCodes []string `json:"branch_codes"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.BranchCodes) == 0 {
+		constant_utils.SendErrorResponse(w, "BRANCH_CODES_REQUIRED", http.StatusBadRequest, nil)
+		return
+	}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+
+	if strings.TrimSpace(userID) == "" ||
+		strings.TrimSpace(fullName) == "" ||
+		strings.TrimSpace(phoneNumber) == "" ||
+		strings.TrimSpace(department) == "" {
+		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
+		return
+	}
+
+	var branches []action.Branch
+	for _, code := range req.BranchCodes {
+		branch, err := h.service.GetBranchByCode(r.Context(), code)
+		if err != nil {
+			constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND: "+code, http.StatusNotFound, nil)
+			return
+		}
+		branches = append(branches, branch)
+	}
+
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
+
+	_, err := h.service.EnableMultipleBranches(r.Context(), branches, maker)
+	if err != nil {
+		h.logger.Errorf("EnableMultipleBranches failed: %v", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Multiple Branch enable CPS action created", http.StatusCreated)
+}
 func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		BranchCodes []string `json:"branch_codes"`
@@ -369,6 +457,48 @@ func (h *AccountBlockHandler) GetAllRegion(w http.ResponseWriter, r *http.Reques
 	}
 	constant_utils.BaseResponseMaker(data, w, "Regions retrieved successfully", http.StatusOK)
 }
+
+func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		RegionCode string `json:"region_code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+		strings.TrimSpace(req.RegionCode) == "" {
+		constant_utils.SendErrorResponse(w, "REGION_CODE_AND_NAME_REQUIRED", http.StatusBadRequest, nil)
+		return
+	}
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	if strings.TrimSpace(department) == "" {
+		constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
+		return
+	}
+
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
+
+	cpsAction := action.CPSAction{
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+	}
+	_, err := h.service.EnabelRegion(r.Context(), req.RegionCode, cpsAction)
+	if err != nil {
+
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+
+		return
+	}
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region enable action created", http.StatusCreated)
+
+}
 func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RegionCode string `json:"region_code"`
@@ -502,6 +632,46 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
 
+func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		DistrictCode string `json:"district_code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+		strings.TrimSpace(req.DistrictCode) == "" {
+		constant_utils.BaseResponseMaker(nil, w, "district_code is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	if strings.TrimSpace(department) == "" {
+		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
+		return
+	}
+
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
+
+	cpsAction := action.CPSAction{
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+	}
+
+	_, err := h.service.EnableDistrict(r.Context(), req.DistrictCode, cpsAction)
+	if err != nil {
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "District enabel action created", http.StatusCreated)
+}
 func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		DistrictCode string `json:"district_code"`
@@ -717,6 +887,45 @@ func (h *AccountBlockHandler) GetAllCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	constant_utils.BaseResponseMaker(data, w, "Cities retrieved successfully", http.StatusOK)
+}
+func (h *AccountBlockHandler) EnableCity(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		CityCode string `json:"city_code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+		strings.TrimSpace(req.CityCode) == "" {
+		constant_utils.BaseResponseMaker(nil, w, "city_code are required", http.StatusBadRequest)
+		return
+	}
+
+	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+	if strings.TrimSpace(department) == "" {
+		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
+		return
+	}
+
+	maker := action.User{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		Department:  department,
+	}
+
+	cpsAction := action.CPSAction{
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		Department:       maker.Department,
+	}
+	_, err := h.service.EnableCity(r.Context(), req.CityCode, cpsAction)
+	if err != nil {
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	constant_utils.BaseResponseMaker(map[string]any{}, w, "City enable action created", http.StatusCreated)
 }
 func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) {
 	var req struct {

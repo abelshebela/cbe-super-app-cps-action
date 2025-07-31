@@ -1,34 +1,31 @@
-// Package unlink implements the use case or business logic for the unlink functionality.
 package unlink
 
 import (
 	"context"
 
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
+	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type ApplicationService interface {
-	UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error)
-	// ApproveOrDecline(ctx context.Context, userCode, decision, reason string, cpsAction entities.CPSAction) error
+type unlinkApplication struct {
+	logger              utils.Logger
+	unlinkServiceDomain UnlinkAccount
 }
 
-type UnlinkHandler struct {
-	service *domain.Service
-}
+func NewUnlinkApplication(domain UnlinkAccount, logger utils.Logger) UnlinkAccount {
 
-func NewUnlinkHandler(service *domain.Service) ApplicationService {
-	return &UnlinkHandler{service: service}
-}
-
-func (h *UnlinkHandler) UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error) {
-	cpsAction.ActionCode = utils.RandomGenerator(20)
-	action_code, err := h.service.UnlinkDevice(ctx, userCode, cpsAction)
-
-	if err != nil {
-		return "", err
+	return &unlinkApplication{
+		logger:              logger,
+		unlinkServiceDomain: domain,
 	}
+}
 
-	return action_code, nil
+func (ua *unlinkApplication) GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error) {
+	return ua.unlinkServiceDomain.GetUserByAccount(ctx, accNumber)
+}
+func (ua *unlinkApplication) UnlinkUserCif(ctx context.Context, userCode string) error {
+	return ua.UnlinkUserCif(ctx, userCode)
+}
+func (ua *unlinkApplication) Authorize(ctx context.Context, cpsAction any) error {
+	return ua.Authorize(ctx, cpsAction)
 }

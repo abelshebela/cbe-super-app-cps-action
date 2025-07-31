@@ -3,17 +3,16 @@ package ad
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/entity"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-type ADRepo interface {
-	GetAllAdvert(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Advert], error)
-	GetOneAdvert(ctx context.Context, id string) (*entity.Advert, error)
-	HandleAdvertCreate(ctx context.Context, cpsRes *entities.CPSAction) (*entities.CPSAction, error)
-	HandleAdvertUpdate(ctx context.Context, cpsRes *entities.CPSAction) (*entities.CPSAction, error)
-	HandleAdvertDelete(ctx context.Context, cpsRes *entities.CPSAction) (*entities.CPSAction, error)
-	
+type ADRepository interface {
+	CreateAdvert(ctx context.Context, advert *entity.Advert) (*entity.Advert, error)
+	UpdateAdvert(ctx context.Context, advert *entity.Advert) (*entity.Advert, error)
+	DeleteAdvert(ctx context.Context, id string) (*entity.Advert, error)
+	EnableDisableAdvert(ctx context.Context, id string, enable bool) (*entity.Advert, error)
+	FetchAdvertByID(ctx context.Context, id string) (*entity.Advert, error)
+	FetchAdverts(ctx context.Context, filterParams *util_constant.Filter) (*utils.PaginatedResponse[[]*entity.Advert], error)
 }

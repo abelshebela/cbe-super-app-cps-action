@@ -135,10 +135,10 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		Department:       userContext.Department,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(entities.ActionUpdate),
-		RequestAction:    string(constants.RequestCreatePermissionGroup),
+		RequestAction:    string(constants.RequestUpdatePermissionGroup),
 	}
 
-	cpsAction, err := h.permissionService.CreatePermissionGroup(oldGroupName, request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	cpsAction, err := h.permissionService.UpdatePermissionGroupRequest(oldGroupName, request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[UpdatePermissionGroup] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -147,4 +147,14 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 
 	h.logger.Infof("[UpdatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
 	common_util.WriteSuccessResponse(w, map[string]string{"action_code": cpsAction.ActionCode}, "group permission Request updated successfully")
+}
+
+func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.ResponseWriter, r *http.Request) {
+	categories, err := h.permissionService.GetAllPermissionCategoriesWithPermissions(r.Context())
+	if err != nil {
+		h.logger.Errorf("[GetAllPermissionCategoriesWithPermissions] service error: %v", err)
+		util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	common_util.WriteSuccessResponse(w, categories, "Permission categories fetched successfully")
 }

@@ -198,4 +198,7 @@ const (
 	WalletLimitExceeded            = "WALLET_LIMIT_EXCEEDED"
 	WalletTransactionNotFound      = "WALLET_TRANSACTION_NOT_FOUND"
 	WalletTransactionAlreadyExists = "WALLET_TRANSACTION_ALREADY_EXISTS"
+
+	// Event
+	EventNameAlreadyExists = "EVENT_NAME_ALREADY_EXISTS"
 )

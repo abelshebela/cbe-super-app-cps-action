@@ -30,9 +30,8 @@ func (c *CBEUserSearchClient) SearchUser(ctx context.Context, number string) (*d
 
 	var wrapper userSearchResponse
 
-	// 1st attempt: Search by phone number
-	phoneURL := c.baseURL + "/bps_banking/core/phone_number"
-	body, err := json.Marshal(map[string]string{"phone_number": number})
+	phoneURL := c.baseURL + "/bps_banking/core/fetch"
+	body, err := json.Marshal(map[string]string{"number": number})
 	if err != nil {
 		return nil, err
 	}
@@ -55,25 +54,6 @@ func (c *CBEUserSearchClient) SearchUser(ctx context.Context, number string) (*d
 		}
 		return &wrapper.Data, nil
 	}
-
-	// 2nd attempt: fallback search by account number
-	accountURL := c.baseURL + "/bps_banking/core/account_number"
-	body, err = json.Marshal(map[string]string{"account_number": number})
-	if err != nil {
-		return nil, err
-	}
-
-	req, err = http.NewRequestWithContext(ctx, http.MethodPost, accountURL, bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err = c.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ACCOUNT_NOT_FOUND")

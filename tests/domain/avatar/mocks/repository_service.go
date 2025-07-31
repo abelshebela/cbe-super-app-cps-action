@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	avatar "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -45,78 +44,49 @@ func (m *MockAvatarRepository) EXPECT() *MockAvatarRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Authorize mocks base method.
-func (m *MockAvatarRepository) Authorize(ctx context.Context, cpsAction *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
+// AuthorizeCreateAvatar mocks base method.
+func (m *MockAvatarRepository) AuthorizeCreateAvatar(ctx context.Context, cpsAction *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Authorize", ctx, cpsAction)
+	ret := m.ctrl.Call(m, "AuthorizeCreateAvatar", ctx, cpsAction)
 	ret0, _ := ret[0].(*cpsactions.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Authorize indicates an expected call of Authorize.
-func (mr *MockAvatarRepositoryMockRecorder) Authorize(ctx, cpsAction any) *gomock.Call {
+// AuthorizeCreateAvatar indicates an expected call of AuthorizeCreateAvatar.
+func (mr *MockAvatarRepositoryMockRecorder) AuthorizeCreateAvatar(ctx, cpsAction any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockAvatarRepository)(nil).Authorize), ctx, cpsAction)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeCreateAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).AuthorizeCreateAvatar), ctx, cpsAction)
 }
 
-// CPSActionExists mocks base method.
-func (m *MockAvatarRepository) CPSActionExists(ctx context.Context, cpsReq model.CreateCPSAction) error {
+// AuthorizeDeleteAvatar mocks base method.
+func (m *MockAvatarRepository) AuthorizeDeleteAvatar(ctx context.Context, cpsAction *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CPSActionExists", ctx, cpsReq)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CPSActionExists indicates an expected call of CPSActionExists.
-func (mr *MockAvatarRepositoryMockRecorder) CPSActionExists(ctx, cpsReq any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CPSActionExists", reflect.TypeOf((*MockAvatarRepository)(nil).CPSActionExists), ctx, cpsReq)
-}
-
-// CreateAvatar mocks base method.
-func (m *MockAvatarRepository) CreateAvatar(ctx context.Context, req model.CreateCPSAction) (*avatar.CPSAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAvatar", ctx, req)
-	ret0, _ := ret[0].(*avatar.CPSAction)
+	ret := m.ctrl.Call(m, "AuthorizeDeleteAvatar", ctx, cpsAction)
+	ret0, _ := ret[0].(*cpsactions.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateAvatar indicates an expected call of CreateAvatar.
-func (mr *MockAvatarRepositoryMockRecorder) CreateAvatar(ctx, req any) *gomock.Call {
+// AuthorizeDeleteAvatar indicates an expected call of AuthorizeDeleteAvatar.
+func (mr *MockAvatarRepositoryMockRecorder) AuthorizeDeleteAvatar(ctx, cpsAction any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).CreateAvatar), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeDeleteAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).AuthorizeDeleteAvatar), ctx, cpsAction)
 }
 
-// DeleteAvatar mocks base method.
-func (m *MockAvatarRepository) DeleteAvatar(ctx context.Context, id string, cpsActionReq model.CreateCPSAction) (*avatar.CPSAction, error) {
+// AuthorizeUpdateAvatar mocks base method.
+func (m *MockAvatarRepository) AuthorizeUpdateAvatar(ctx context.Context, cpsAction *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAvatar", ctx, id, cpsActionReq)
-	ret0, _ := ret[0].(*avatar.CPSAction)
+	ret := m.ctrl.Call(m, "AuthorizeUpdateAvatar", ctx, cpsAction)
+	ret0, _ := ret[0].(*cpsactions.CPSAction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// DeleteAvatar indicates an expected call of DeleteAvatar.
-func (mr *MockAvatarRepositoryMockRecorder) DeleteAvatar(ctx, id, cpsActionReq any) *gomock.Call {
+// AuthorizeUpdateAvatar indicates an expected call of AuthorizeUpdateAvatar.
+func (mr *MockAvatarRepositoryMockRecorder) AuthorizeUpdateAvatar(ctx, cpsAction any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).DeleteAvatar), ctx, id, cpsActionReq)
-}
-
-// EnableOrDisableAvatar mocks base method.
-func (m *MockAvatarRepository) EnableOrDisableAvatar(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*avatar.CPSAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnableOrDisableAvatar", ctx, id, requestAction, cpsReq)
-	ret0, _ := ret[0].(*avatar.CPSAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EnableOrDisableAvatar indicates an expected call of EnableOrDisableAvatar.
-func (mr *MockAvatarRepositoryMockRecorder) EnableOrDisableAvatar(ctx, id, requestAction, cpsReq any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableOrDisableAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).EnableOrDisableAvatar), ctx, id, requestAction, cpsReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeUpdateAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).AuthorizeUpdateAvatar), ctx, cpsAction)
 }
 
 // GetAllAvatar mocks base method.
@@ -147,34 +117,4 @@ func (m *MockAvatarRepository) GetAvatar(ctx context.Context, id string) (*avata
 func (mr *MockAvatarRepositoryMockRecorder) GetAvatar(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).GetAvatar), ctx, id)
-}
-
-// Reject mocks base method.
-func (m *MockAvatarRepository) Reject(ctx context.Context, req model.RejectCPSAction) (*avatar.CPSAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Reject", ctx, req)
-	ret0, _ := ret[0].(*avatar.CPSAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Reject indicates an expected call of Reject.
-func (mr *MockAvatarRepositoryMockRecorder) Reject(ctx, req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reject", reflect.TypeOf((*MockAvatarRepository)(nil).Reject), ctx, req)
-}
-
-// UpdateAvatar mocks base method.
-func (m *MockAvatarRepository) UpdateAvatar(ctx context.Context, id string, req model.CreateCPSAction) (*avatar.CPSAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAvatar", ctx, id, req)
-	ret0, _ := ret[0].(*avatar.CPSAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateAvatar indicates an expected call of UpdateAvatar.
-func (mr *MockAvatarRepositoryMockRecorder) UpdateAvatar(ctx, id, req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockAvatarRepository)(nil).UpdateAvatar), ctx, id, req)
 }

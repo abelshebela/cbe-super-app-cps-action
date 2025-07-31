@@ -83,12 +83,9 @@ const (
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
 	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
 	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
-	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
-	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
-	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
-	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
-	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
+	RequestUpdateServiceSingle      RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal       RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap      RequestAction = "UPDATE_SERVICE_MIN_CAP"
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
@@ -107,9 +104,12 @@ const (
 	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
 	RequestCreateEvent              RequestAction = "CREATE_EVENT"
 	RequestUpdateEvent              RequestAction = "UPDATE_EVENT"
-	RequestCreateEventCategory      RequestAction = "CREATE_EVENT_CATEGORY"
-	RequestUpdateEventCategory      RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestDeleteEvent              RequestAction = "DELETE_EVENT"
+	RequestEnableEvent              RequestAction = "ENABLE_EVENT"
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
+
+	RequestCreateEventCategory RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory RequestAction = "UPDATE_EVENT_CATEGORY"
 
 	RequestUpdateBlockTime       RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar          RequestAction = "CREATE_AVATAR"
@@ -118,7 +118,10 @@ const (
 	RequestDisableAvatar         RequestAction = "DISABLE_AVATAR"
 	RequestUpdateAvatar          RequestAction = "UPDATE_AVATAR"
 	RequestBlockRegion           RequestAction = "BLOCK_REGION"
+	RequestEnableRegion          RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict         RequestAction = "BLOCK_DISTRICT"
+	RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
+	RequestEnableCity            RequestAction = "ENABLE_CITY"
 	RequestBlockCity             RequestAction = "BLOCK_CITY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
@@ -144,12 +147,33 @@ const (
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
 
+	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MINI_APP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINI_APP"
+
 	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
 	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
 	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
 	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
 	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
 	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+
+	RequestCreateServiceFee RequestAction = "CREATE_SERVICE_FEE"
+	RequestUpdateServiceFee RequestAction = "UPDATE_SERVICE_FEE"
+	RequestDeleteServiceFee RequestAction = "DELETE_SERVICE_FEE"
+	RequestCreateDailyLimit RequestAction = "CREATE DAILY LIMIT"
+	RequestUpdateDailyLimit RequestAction = "UPDATE DAILY LIMIT"
+	RequestDeleteDailyLimit RequestAction = "DELETE DAILY LIMIT"
+
+	RequestCreateNotification     RequestAction = "CREATE_NOTIFICATION"
+	RequestUpdateNotification     RequestAction = "UPDATE_NOTIFICATION"
+	RequestDeleteNotification     RequestAction = "DELETE_NOTIFICATION"
+	RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
+	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
+	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+	RequestUpdateProductCode RequestAction = "UPDATE_PRODUCT_CODE"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -197,12 +221,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateValidation:         {},
 	RequestDeleteValidation:         {},
 	RequestUpdateArchiveExpiry:      {},
-	RequestCreateServiceFee:         {},
-	RequestUpdateServiceFee:         {},
-	RequestDeleteServiceFee:         {},
-	RequestCreateDailyLimit:         {},
-	RequestUpdateDailyLimit:         {},
-	RequestDeleteDailyLimit:         {},
 	RequestBudgetColor:              {},
 	RequestBudgetIcon:               {},
 	RequestUpdateProduct:            {},
@@ -213,30 +231,61 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateServiceRule:        {},
 	RequestUpdateTotal:              {},
 	RequestUpdateAccessConfig:       {},
-	RequestEnableSingleBranch:       {},
-	RequestDisableSingleBranch:      {},
-	RequestEnableMultiUsers:         {},
-	RequestDisableMultiUsers:        {},
-	RequestCreateBusiness:           {},
-	RequestUpdateBusiness:           {},
-	RequestCreateEvent:              {},
-	RequestUpdateEvent:              {},
-	RequestCreateEventCategory:      {},
-	RequestUpdateEventCategory:      {},
-	RequestDisableEvent:             {},
-	RequestCreateMiniAppMerchant:    {},
-	RequestUpdateMiniAppMerchant:    {},
-	RequestUpdateBlockTime:          {},
-	RequestDisableFaydaAccount:      {},
-	RequestEnableFaydaAccount:       {},
-	RequestCreateAvatar:             {},
-	RequestDeleteAvatar:             {},
-	RequestDisableAvatar:            {},
-	RequestEnableAvatar:             {},
-	RequestUpdateAvatar:             {},
-	RequestEnableMiniAppMerchant:    {},
-	RequestDisableMiniAppMerchant:   {},
-	RequestDeleteMiniAppMerchant:    {},
+
+	RequestEnableSingleBranch:  {},
+	RequestDisableSingleBranch: {},
+
+	RequestEnableMultiUsers:  {},
+	RequestDisableMultiUsers: {},
+
+	RequestCreateBusiness:         {},
+	RequestUpdateBusiness:         {},
+	RequestCreateEvent:            {},
+	RequestUpdateEvent:            {},
+	RequestCreateEventCategory:    {},
+	RequestUpdateEventCategory:    {},
+	RequestDisableEvent:           {},
+	RequestCreateMiniAppMerchant:  {},
+	RequestUpdateMiniAppMerchant:  {},
+	RequestUpdateBlockTime:        {},
+	RequestDisableFaydaAccount:    {},
+	RequestEnableFaydaAccount:     {},
+	RequestCreateAvatar:           {},
+	RequestDeleteAvatar:           {},
+	RequestDisableAvatar:          {},
+	RequestEnableAvatar:           {},
+	RequestUpdateAvatar:           {},
+	RequestEnableMiniAppMerchant:  {},
+	RequestDisableMiniAppMerchant: {},
+	RequestDeleteMiniAppMerchant:  {},
+	RequestCreateMiniApp:          {},
+	RequestUpdateMiniApp:          {},
+	RequestEnableMiniApp:          {},
+	RequestDisableMiniApp:         {},
+	RequestDeleteMiniApp:          {},
+	RequestDeleteEvent:            {},
+	RequestEnableEvent:            {},
+
+	RequestUpdateServiceSingle: {},
+	RequestUpdateServiceTotal:  {},
+	RequestUpdateServiceMinCap: {},
+	RequestCreateServiceFee:    {},
+	RequestUpdateServiceFee:    {},
+	RequestDeleteServiceFee:    {},
+	RequestCreateDailyLimit:    {},
+	RequestUpdateDailyLimit:    {},
+	RequestDeleteDailyLimit:    {},
+	RequestCreateWallet:        {},
+	RequestUpdateWallet:        {},
+	RequestDeleteWallet:        {},
+
+	RequestCreateNotification:     {},
+	RequestUpdateNotification:     {},
+	RequestDeleteNotification:     {},
+	RequestEnableNotification:     {},
+	RequestDisableNotification:    {},
+	RequestMarkNotificationAsSeen: {},
+	RequestUpdateProductCode:{},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -245,6 +294,17 @@ func IsValidRequestAction(requestAction string) bool {
 }
 
 var RequestActionGroups = map[string][]RequestAction{
+	"Service": {
+		RequestUpdateServiceSingle,
+		RequestUpdateServiceTotal,
+		RequestUpdateServiceMinCap,
+		RequestCreateServiceFee,
+		RequestUpdateServiceFee,
+		RequestDeleteServiceFee,
+		RequestCreateDailyLimit,
+		RequestUpdateDailyLimit,
+		RequestDeleteDailyLimit,
+	},
 	"Account": {
 		RequestUser,
 		RequestEnableUser,
@@ -252,12 +312,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"A": {
-		RequestCreateAvatar,
-		RequestDeleteAvatar,
-		RequestDisableAvatar,
-		RequestEnableAvatar,
-		RequestUpdateAvatar,
+	"Event": {
+		RequestCreateEvent,
+		RequestDeleteEvent,
+		RequestDisableEvent,
+		RequestEnableEvent,
+		RequestUpdateEvent,
 	},
 	"AmountBasedAuth": {
 		RequestCreateAmountBasedAuth,
@@ -328,11 +388,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateBusiness,
 		RequestUpdateBusiness,
 	},
-	"Event": {
-		RequestCreateEvent,
-		RequestUpdateEvent,
-		RequestDisableEvent,
-	},
 	"EventCategory": {
 		RequestCreateEventCategory,
 		RequestUpdateEventCategory,
@@ -402,11 +457,16 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestBlockUser,
 		RequestDisableSingleBranch,
 		RequestEnableSingleBranch,
+
 		RequestDisableMultiBranches,
 		RequestEnableMultiBranches,
+
 		RequestBlockRegion,
+		RequestEnableRegion,
 		RequestBlockDistrict,
+		RequestEnableDistrict,
 		RequestBlockCity,
+		RequestEnableCity,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),
@@ -435,6 +495,24 @@ var RequestActionGroups = map[string][]RequestAction{
 	"BulkService": {
 		RequestBulkServiceEnable,
 		RequestBulkServiceDisable,
+  },
+	"MiniApp": {
+		RequestCreateMiniApp,
+		RequestUpdateMiniApp,
+		RequestDeleteMiniApp,
+		RequestEnableMiniApp,
+		RequestDisableMiniApp,
+	},
+	"Notification": {
+		RequestCreateNotification,
+		RequestUpdateNotification,
+		RequestDeleteNotification,
+		RequestEnableNotification,
+		RequestDisableNotification,
+		RequestMarkNotificationAsSeen,
+	},
+	"ProductCode": {
+		RequestUpdateProductCode,
 	},
 }
 

@@ -91,17 +91,20 @@ type PermissionGroup struct {
 }
 
 type Permission struct {
-	PermissionName string `bson:"permissionName" json:"permissionName"`
+	ID             bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	PermissionName string        `bson:"permission_name" json:"permission_name"`
+	CreatedAt      time.Time     `bson:"created_at,omitempty" json:"created_at,omitempty"`
 }
+
 type PermissionCategory struct {
-	ID           bson.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
-	CategoryName string          `bson:"category_name,omitempty" json:"category_name,omitempty"`
-	Access       string          `bson:"access" json:"access"`
-	Permissions  []bson.ObjectID `bson:"permissions" json:"permissions"`
-	Enabled      bool            `bson:"enabled,omitempty" json:"enabled,omitempty"`
-	IsDeleted    bool            `bson:"isDeleted,omitempty" json:"is_deleted,omitempty"`
-	CreatedAt    time.Time       `bson:"createdAt,omitempty" json:"created_at,omitempty"`
-	UpdatedAt    time.Time       `bson:"updatedAt,omitempty" json:"updated_at,omitempty"`
+	ID           bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	CategoryName string        `bson:"category_name,omitempty" json:"category_name,omitempty"`
+	Access       string        `bson:"access" json:"access"`
+	Permissions  interface{}   `bson:"permissions" json:"permissions"`
+	Enabled      bool          `bson:"enabled,omitempty" json:"enabled,omitempty"`
+	IsDeleted    bool          `bson:"isDeleted,omitempty" json:"is_deleted,omitempty"`
+	CreatedAt    time.Time     `bson:"createdAt,omitempty" json:"created_at,omitempty"`
+	UpdatedAt    time.Time     `bson:"updatedAt,omitempty" json:"updated_at,omitempty"`
 }
 
 const (
