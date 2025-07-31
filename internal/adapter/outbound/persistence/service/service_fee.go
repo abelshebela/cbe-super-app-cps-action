@@ -12,7 +12,6 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -69,7 +68,7 @@ func (s *ServiceFeePersistence) GetOneServiceDetail(ctx context.Context, id stri
 }
 func (s *ServiceFeePersistence) CreateService(ctx context.Context, req service.CPSAction) (*service.CPSAction, error) {
 	cpsAction := service.CPSAction{
-		ID:               primitive.NewObjectID().Hex(),
+		ID:               bson.NewObjectID().Hex(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          req.MakerID,
 		MakerName:        req.MakerName,

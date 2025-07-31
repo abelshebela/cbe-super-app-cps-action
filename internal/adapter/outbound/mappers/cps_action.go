@@ -10,7 +10,6 @@ import (
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -109,7 +108,7 @@ func BSONToMap(i any) any {
 			a[i] = BSONToMap(e)
 		}
 		return a
-	case primitive.DateTime:
+	case bson.DateTime:
 		return v.Time()
 	default:
 		return v

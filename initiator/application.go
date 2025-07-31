@@ -108,7 +108,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		EventApplication:           event_application.NewEventApplication(domain.EventDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain,logger),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
-		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
+		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher, logger),
 		// MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, logger),
 		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantHandler(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
