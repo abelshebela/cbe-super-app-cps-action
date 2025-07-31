@@ -84,6 +84,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "CPSUser"):
 		return d.app.CPSUserDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "BulkService"):
+		return d.app.BulkServiceDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Event"):
 		return d.app.EventDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Service"):

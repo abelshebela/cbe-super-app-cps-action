@@ -26,6 +26,7 @@ import (
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	bulk_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
@@ -64,9 +65,8 @@ type Domain struct {
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
 	AccountLookup         *account_service.UserSearchService
-
+	BulkServiceDomain     bulk_service.BulkService
 	ServiceCheckDomain service_domain.ServiceRepo
-
 	KeyGenService       keyGen_service.KeyGeneratorService
 	NotificationService notification_domain.NotificationService
 	ProductCodeService  productcode.Service

@@ -49,6 +49,8 @@ const (
 	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
 	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
 	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
+	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
@@ -490,7 +492,10 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
-	
+	"BulkService": {
+		RequestBulkServiceEnable,
+		RequestBulkServiceDisable,
+  },
 	"MiniApp": {
 		RequestCreateMiniApp,
 		RequestUpdateMiniApp,
