@@ -176,8 +176,7 @@ func (p *miniAppMerchantPersistence) DeleteMiniAppMerchant(ctx context.Context, 
 func (p *miniAppMerchantPersistence) MiniAppMerchantInfoExists(
 	ctx context.Context,
 	data entities.CheckMiniAppMerchant,
-	opts *entities.MiniAppMerchantExistOptions,
-) (bool, error) {
+	opts *entities.MiniAppMerchantExistOptions,) (bool, error) {
 	filter := bson.M{
 		"is_deleted": false,
 		"$or":        []bson.M{},
@@ -273,7 +272,7 @@ func buildUpdateSet(m *entities.MiniAppMerchant) bson.M {
 	if len(m.MiniAppIDs) > 0 {
 		set["mini_apps"] = m.MiniAppIDs
 	}
-	set["enabled"] = m.Enabled // include enabled even if false, to allow toggling
+	set["enabled"] = m.Enabled 
 
 	return set
 }
