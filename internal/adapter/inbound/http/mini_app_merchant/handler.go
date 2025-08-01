@@ -8,7 +8,6 @@ import (
 	miniapp_application "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/mini_app_merchant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -78,7 +77,7 @@ func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 	}
 
 	if reqDTO.IsEmpty() {
-		utils.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
 		return
 	}
 
