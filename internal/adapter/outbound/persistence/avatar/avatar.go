@@ -232,31 +232,3 @@ func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams *cons
 		Meta: meta,
 	}, nil
 }
-
-func (a *AvatarPersistence) LabelExists(ctx context.Context, label string, id *string) (bool, error) {
-	if label == "" {
-		return false, fmt.Errorf(common_util.InvalidInput)
-	}
-
-	filter := bson.M{
-		"label":      bson.M{"$regex": fmt.Sprintf("^%s$", label), "$options": "i"},
-		"is_deleted": false,
-	}
-
-	if id != nil {
-		objID, err := common_util.ParsePrimitiveObjectID(*id)
-		if err != nil {
-			a.logger.Errorf("Invalid avatar ID: %v", err)
-			return false, fmt.Errorf(common_util.InvalidID)
-		}
-		filter["_id"] = bson.M{"$ne": objID}
-	}
-
-	count, err := a.avatarDal.TotalCount(ctx, filter)
-	if err != nil {
-		a.logger.Warnf("Failed to check label existence for label %s: %v", label, err)
-		return false, fmt.Errorf(common_util.GeneralDBQueryFailed)
-	}
-
-	return count > 0, nil
-}
