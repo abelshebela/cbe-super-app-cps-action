@@ -25,6 +25,15 @@ type Filter struct {
 	Filters string `json:"filters"`
 }
 
+type MongoFilter struct {
+	Page int `json:"page"`
+
+	PerPage int `json:"per_page"`
+
+	Search string `json:"search"`
+	Filters  map[string]interface{}`json:"filters"`
+}
+
 func (e ErrorDefinition) Error() string {
 	return fmt.Sprintf(`{"code": %d ,"message":"%s"}`, e.Code, e.Message)
 }
