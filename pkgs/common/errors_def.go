@@ -1096,6 +1096,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"NO_DOC_FOUND": {
 			Code:    "GEN_186",
+			Status:  StatusNotFound,
 			Message: "mongo: no documents in result",
 		},
 	},
