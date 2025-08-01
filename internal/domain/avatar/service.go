@@ -106,9 +106,10 @@ func (a *AvatarDomain) DeleteAvatar(ctx context.Context, id string) (*Avatar, *A
 		return nil, nil, err
 	}
 
+	now:= time.Now()
 	curData := *existingAvatar
 	curData.IsDeleted = true
-	curData.DeletedAt = &time.Time{}
+	curData.DeletedAt = &now
 	curData.LastModifiedAt = time.Now()
 
 	return &curData, existingAvatar, nil
