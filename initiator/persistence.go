@@ -41,7 +41,7 @@ import (
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
 	service_persist "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/check_service"
@@ -82,7 +82,7 @@ type Persitence struct {
 	DepartmentPersistence       *dept_repo.DepartmentPersistence
 	PermissionPersistence       *perm_repo.PermissionPersistence
 	advertPersistence           ad.ADRepository
-	avatarPersitence            avatar.AvatarOutbound
+	avatarPersitence            avatar.AvatarRepository
 	AccountBlockPersistance     account_block.AccountBlockOutboundPort
 	HQPersistence               *hq_persistence.HQPersistence
 	AmountBasedAuthPersistence  amount_based_auth.AmountBasedAuthRepo
@@ -115,7 +115,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 	}
 	return Persitence{
 		advertPersistence: advert.InitAD(client, databaseName, "adverts", logger),
-		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, []string{"cps_actions", "avatars"}, logger),
+		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, "avatars", logger),
 
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),

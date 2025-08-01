@@ -90,6 +90,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "ProductCode"):
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Avatar"):
+		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

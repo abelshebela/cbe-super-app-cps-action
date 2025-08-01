@@ -1,41 +1,17 @@
-package event
+package mappers
 
 import (
 	"fmt"
-	"time"
 
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	event "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type EventDocument struct {
-	ID                  bson.ObjectID         `bson:"_id,omitempty"`
-	EventCode           string                     `bson:"event_code"`
-	EventName           string                     `bson:"event_name"`
-	EventCity           string                     `bson:"event_city"`
-	AccountNumber       string                     `bson:"account_number"`
-	EventVenue          string                     `bson:"event_venue"`
-	RefundPolicy        []string                   `bson:"refund_policy"`
-	MICSInfo            []string                   `bson:"mics_info"`
-	Restriction         event.Restriction          `bson:"restriction"`
-	Ticket              []event.Ticket             `bson:"ticket"`
-	Status              event.EventStatus          `bson:"status"`
-	EventInformation    event.EventInformation     `bson:"event_information"`
-	TicketStatistics    event.TicketStatistics     `bson:"ticket_statistics"`
-	TicketInformation   event.TicketInformation    `bson:"ticket_information"`
-	MerchantInformation event.MerchantInformation  `bson:"merchant_information"`
-	Enabled             bool                       `bson:"enabled"`
-	IsDeleted           bool                       `bson:"is_deleted"`
-	HasRestriction      bool                       `bson:"has_restriction"`
-	CreatedAt           time.Time                  `bson:"created_at"`
-	DeletedAt           time.Time                  `bson:"deleted_at"`
-	LastModifiedAt      time.Time                  `bson:"last_modified_at"`
-}
-
-func (e *EventDocument) toModel() event.Event {
+func  ToEventModel(e *model.EventDocument) event.Event {
 	return event.Event{
 		ID:                  e.ID.Hex(),
 		EventCode:           e.EventCode,
@@ -61,7 +37,7 @@ func (e *EventDocument) toModel() event.Event {
 	}
 }
 
-func ToEventDocument(event event.Event) (*EventDocument, error) {
+func ToEventDocument(event event.Event) (*model.EventDocument, error) {
 	var objectID bson.ObjectID
 
 	if event.ID == "" {
@@ -74,10 +50,10 @@ func ToEventDocument(event event.Event) (*EventDocument, error) {
 		objectID = id
 	}
 
-	return &EventDocument{
-		ID:        objectID,
-		EventCode: event.EventCode,
-		EventName: event.EventName,
+	return &model.EventDocument{
+		ID:                  objectID,
+		EventCode:           event.EventCode,
+		EventName:           event.EventName,
 		EventCity:           event.EventCity,
 		AccountNumber:       event.AccountNumber,
 		EventVenue:          event.EventVenue,
