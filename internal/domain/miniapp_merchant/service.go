@@ -181,7 +181,7 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 
 	switch cpsAction.RequestAction {
 	case cps_constants.RequestCreateMiniAppMerchant:
-		txCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		txCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
 
 		err = s.repo.RunInTransaction(txCtx, func(ctx context.Context) error {

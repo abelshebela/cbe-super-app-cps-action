@@ -42,7 +42,7 @@ func NewCPSActionApplication(service service.CPSActionService, services applicat
 func (a *cpsActionApplication) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
 	var result *entities.CPSAction
 
-	txCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	txCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	err := a.service.RunInTransaction(txCtx, func(txCtx context.Context) error {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
+	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -20,7 +20,7 @@ import (
 )
 
 type cpsActionStore struct {
-	MongoCPSAction infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
+	MongoCPSAction *infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
 	client         *mongo.Client
 	logger         utils.Logger
 }
