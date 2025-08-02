@@ -82,7 +82,8 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 	projection := bson.M{}
 	pendingAction, err := b.mongoDalCpsAction.FindOne(ctx, pendingFilter, projection)
 	if err != nil && err != mongo.ErrNoDocuments {
-		return fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+		b.logger.Errorf("database error occured while checking a pending action: %v\n", err)
+		return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 	if pendingAction != nil {
 		return fmt.Errorf("PENDING_ACTION_EXISTS")
@@ -92,8 +93,10 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 	allAccessLists, err := b.mongoDalbulkService.FindAll(ctx, bson.M{}, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			b.logger.Errorf("no resource found: %v\n", err)
 			return fmt.Errorf("NO_RESOURCE_FOUND")
 		}
+		b.logger.Errorf("database error occured: %v\n", err)
 		return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
@@ -134,7 +137,8 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 		if err == nil {
 			dupAction = append(dupAction, k)
 		} else if err != mongo.ErrNoDocuments {
-			return fmt.Errorf("db error")
+			b.logger.Errorf("database error occured: %v\n", err)
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 		}
 
 		cFilter := bson.M{
@@ -150,18 +154,21 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 			dupAction = append(dupAction, k)
 			continue
 		} else if subErr != mongo.ErrNoDocuments {
-			return fmt.Errorf("db error")
+			b.logger.Errorf("database error occured: %v\n", err)
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 		}
 	}
 
 	if len(dupAction) > 0 {
-		return fmt.Errorf("duplicate action for key/s: %v", dupAction)
+		b.logger.Errorf("Duplicate action sent for keys: %v\n", dupAction)
+		return fmt.Errorf("DUPLICATE_ACTION: [%v]", strings.Join(dupAction, ", "))
 	}
 
 	// Create the CPS action
 	_, err = b.mongoDalCpsAction.InsertOne(ctx, cpsAction)
 	if err != nil {
-		return fmt.Errorf("database error while creating user request action")
+		b.logger.Errorf("database error occured: %v\n", err)
+		return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
 
 	return nil
@@ -171,12 +178,12 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 	// Extract keys from CurrentAction
 	m, ok := action.CurrentAction.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("invalid CurrentAction format")
+		return nil, fmt.Errorf("INVALID_CURRENT_ACTION")
 	}
 
 	rawKeys, ok := m["keys"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("invalid keys format")
+		return nil, fmt.Errorf("INVALID_KEY_FORMAT")
 	}
 
 	var keys []string
@@ -201,13 +208,15 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 
 				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
-					return nil, fmt.Errorf("failed to update child %s: %w", key, err)
+					b.logger.Errorf("failed to update child: %v\n", err)
+					return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 				}
 				continue
 			}
 
 			// Other errors
-			return nil, fmt.Errorf("failed to update parent %s: %w", key, err)
+			b.logger.Errorf("failed to update parent: %v\n", err)
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_PARENT")
 		}
 
 		// Parent exists — now disable all sub-keys
@@ -217,7 +226,8 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {
-				return nil, fmt.Errorf("failed to update child %s: %w", sub.Key, err)
+				b.logger.Errorf("failed to update child: %v\n", err)
+				return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 			}
 		}
 	}
@@ -229,12 +239,12 @@ func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context,
 	// Extract keys from CurrentAction
 	m, ok := action.CurrentAction.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("invalid CurrentAction format")
+		return nil, fmt.Errorf("INVALID_CURRENT_ACTION")
 	}
 
 	rawKeys, ok := m["keys"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("invalid keys format")
+		return nil, fmt.Errorf("INVALID_KEY_FORMAT")
 	}
 
 	var keys []string
@@ -259,13 +269,15 @@ func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context,
 
 				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
-					return nil, fmt.Errorf("failed to update child %s: %w", key, err)
+					b.logger.Errorf("failed to update child: %v\n", err)
+					return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 				}
 				continue
 			}
 
 			// Other errors
-			return nil, fmt.Errorf("failed to update parent %s: %w", key, err)
+			b.logger.Errorf("failed to update parent: %v\n", err)
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_PARENT")
 		}
 
 		// Parent exists — now disable all sub-keys
@@ -275,7 +287,8 @@ func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context,
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {
-				return nil, fmt.Errorf("failed to update child %s: %w", sub.Key, err)
+				b.logger.Errorf("failed to update child: %v\n", err)
+				return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 			}
 		}
 	}
