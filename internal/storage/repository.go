@@ -14,19 +14,3 @@ type SpendingRepository interface {
 	Update(ctx context.Context, update *dto.Spending) error
 	Delete(ctx context.Context, id string) error
 }
-
-type BudgetRepository interface {
-	Save(ctx context.Context, budget *dto.Budget) error
-	Find(ctx context.Context) ([]dto.Budget, error)
-	FindById(ctx context.Context, filter bson.M) (*dto.Budget, error)
-	Update(ctx context.Context, update *dto.Budget) error
-	Delete(ctx context.Context, id string) error
-}
-
-type BudgetCategoryRepository interface {
-	Save(ctx context.Context, budget *dto.BudgetCategory) error
-	Find(ctx context.Context) ([]dto.BudgetCategory, error)
-	FindById(ctx context.Context, filter bson.M) (*dto.BudgetCategory, error)
-	Update(ctx context.Context, update *dto.BudgetCategory) error
-	Delete(ctx context.Context, id string) error
-}

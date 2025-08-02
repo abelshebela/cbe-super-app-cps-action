@@ -34,8 +34,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer HandlerLayer, 
 		}
 	})
 
-	routing.InitBudget(r, handlerLayer.budget, logger)
-	routing.InitBudgetCategory(r, handlerLayer.budgetCategory, logger)
 	routing.InitSpending(r, handlerLayer.spending, logger)
 
 	router.Mount("/api/v1/cbesuperapp/member", r)
