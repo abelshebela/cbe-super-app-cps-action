@@ -60,7 +60,7 @@ func (p *cpsActionStore) RunInTransaction(ctx context.Context, fn func(ctx conte
 			} else {
 				p.logger.Debugf("Transaction aborted successfully")
 			}
-			return fmt.Errorf(common_util.UnhandledServerError)
+			return err
 		}
 
 		if err := session.CommitTransaction(txCtx); err != nil {

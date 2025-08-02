@@ -59,7 +59,7 @@ func (p *miniAppMerchantPersistence) RunInTransaction(ctx context.Context, fn fu
 			} else {
 				p.logger.Debugf("Transaction aborted successfully")
 			}
-			return fmt.Errorf(common_util.UnhandledServerError)
+			return err
 		}
 
 		if err := session.CommitTransaction(txCtx); err != nil {
