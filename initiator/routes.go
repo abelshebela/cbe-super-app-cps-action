@@ -6,6 +6,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
 	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink"
 
 	account_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_lookup"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/amount_based_auth_handler"
@@ -59,7 +60,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		feedbackhandler.InitFeedbackRoutes(sub, adapter.FeedbackAdapter)
 		department_handler.InitDepartmentRoutes(sub, adapter.DepartmentAdapter, authMiddleware)
 		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
-		// unlink.InitUnlinkHanldler(sub, adapter.UnlinkAdapter, authMiddleware)
+		unlink.InitUnlinkHanldler(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)
 		bulkservices_inbound.InitServiceHandlerMaker(sub, adapter.BulkServiceAdapter, authMiddleware)
 		accountvalidation_inbound.InitAccountValidationHandlerMaker(sub, adapter.AccountAdapter, authMiddleware)

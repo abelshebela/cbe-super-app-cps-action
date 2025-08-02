@@ -40,12 +40,13 @@ func (ua *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request
 		local_util.SendErrorResponse(w, req.Validate().Error(), 0, nil)
 		return
 	}
+
 	user, err := ua.unlinkApp.GetUserByAccount(r.Context(), req.AccountNumbers)
 	if err != nil {
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-
+	fmt.Println(user)
 	local_util.BaseResponseMaker(user, w, "User successfuly retrived", 200)
 }
 
