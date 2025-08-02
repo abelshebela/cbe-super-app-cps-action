@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type OTPRepository interface {
@@ -27,4 +27,8 @@ type DeviceLinkHistoryRepository interface {
 	FindById(ctx context.Context, filter bson.M) (*dto.DeviceLinkHistroy, error)
 	Update(ctx context.Context, update *dto.DeviceLinkHistroy) error
 	Delete(ctx context.Context, id string) error
+}
+
+type HQRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*dto.HQ, error)
 }

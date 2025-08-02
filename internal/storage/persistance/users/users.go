@@ -10,7 +10,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.uber.org/zap"
 )
 
 type userRepository struct {
@@ -27,15 +26,15 @@ func NewUserRepository(client *mongo.Client, dbName string, collection string, l
 
 func (r *userRepository) Save(ctx context.Context, user *dto.User) error {
 	if user == nil {
-		r.logger.Errorf(ctx, "attempted to save nil user")
+		r.logger.Errorf("attempted to save nil user")
 		return errors.ErrTryToSaveEmptyUser
 	}
 	_, err := r.userDal.InsertOne(ctx, *user)
 	if err != nil {
-		r.logger.Errorf(ctx, "failed to insert user", zap.Error(err))
+		r.logger.Errorf("failed to insert user")
 		return errors.ErrUnexpected
 	}
-	r.logger.Info(ctx, "user saved successfully", zap.String("user_id", user.ID.Hex()))
+	r.logger.Infof("user saved successfully")
 	return nil
 }
 
