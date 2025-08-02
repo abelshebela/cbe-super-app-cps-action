@@ -1,9 +1,112 @@
 package constants
 
+import "time"
+
 type ContextKey string
 
 type Realm string
 
 const (
-	User Realm = "user"
+	ELST_REALM     Realm = "ELST"
+	BANK_REALM     Realm = "BANK"
+	DISTRICT_REALM Realm = "DISTRICT"
+	BRANCH_REALM   Realm = "BRANCH"
+	MERCHANT_REALM Realm = "MERCHANT"
+	COMPANY_REALM  Realm = "COMPANY"
+	MEMBER_REALM   Realm = "MEMBER"
+)
+
+type LoginPIN struct {
+	PIN              string    `json:"pin" bson:"pin"`
+	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
+	LastPINCreatedAt time.Time `json:"last_pin_created_at" bson:"last_pin_created_at"`
+}
+
+type Gender string
+
+const (
+	Male   Gender = "MALE"
+	Female Gender = "FEMALE"
+)
+
+type KYCStatus string
+
+const (
+	KYCStatusPending  KYCStatus = "PENDING"
+	KYCStatusApproved KYCStatus = "APPROVED"
+	KYCStatusRejected KYCStatus = "REJECTED"
+)
+
+type BPSStatus string
+
+const (
+	BPSStatusAuthorized BPSStatus = "AUTHORIZED"
+	BPSStatusDenied     BPSStatus = "DENIED"
+	BPSStatusPending    BPSStatus = "PENDING"
+	BPSStatusInitiated  BPSStatus = "INITIATED"
+)
+
+type MaritalStatus string
+
+const (
+	Single   MaritalStatus = "SINGLE"
+	Married  MaritalStatus = "MARRIED"
+	Divorced MaritalStatus = "DIVORCED"
+	Widow    MaritalStatus = "WIDOW"
+)
+
+type DeviceStatus string
+
+const (
+	Linked   DeviceStatus = "LINKED"
+	UnLinked DeviceStatus = "UNLINKED"
+)
+
+type DeviceType string
+
+const (
+	Android DeviceType = "ANDROID"
+	IOS     DeviceType = "IOS"
+)
+
+type AccountStatus string
+
+const (
+	Active   AccountStatus = "ACTIVE"
+	InActive AccountStatus = "INACTIVE"
+)
+
+type MemberType string
+
+const (
+	CBT  MemberType = "CB"
+	IFBT MemberType = "IFB"
+)
+
+type OTPFor string
+
+const (
+	OTPForLogin            OTPFor = "LOGIN"
+	OTPForAddAccount       OTPFor = "ADD_ACCOUNT"
+	OTPForPINSet           OTPFor = "PIN_SET"
+	OTPForTransfer         OTPFor = "TRANSFER"
+	OTPForAcctivateAccount OTPFor = "ACCTIVATE_ACCOUNT"
+	OTPForPINReset         OTPFor = "PIN_RESET"
+	OTPForSignup           OTPFor = "SIGNUP"
+	OTPForAccountLink      OTPFor = "ACCOUNT_LINK"
+	OTPForChangePhone      OTPFor = "CHANGE_PHONE"
+	OTPForDetachPhone      OTPFor = "DETACH_PHONE"
+	OTPForAttachPhone      OTPFor = "ATTACH_PHONE"
+	OTPForEnable           OTPFor = "ENABLE"
+	OTPForTransferLimit    OTPFor = "TRANSFER_LIMIT"
+	OTPForChangeEmail      OTPFor = "CHANGE_EMAIL"
+	OTPForUpgradeLimit     OTPFor = "UPGRADE_LIMIT"
+)
+
+type OTPStatus string
+
+const (
+	Pending  OTPStatus = "PENDING"
+	Verified OTPStatus = "VERIFIED"
+	Denied   OTPStatus = "DENIED"
 )
