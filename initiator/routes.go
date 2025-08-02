@@ -49,7 +49,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 
 	r.Route("/api/v1/cbesuperapp/cps_action", func(sub chi.Router) {
 		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware, cpsGuard)
-		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware)
+		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware, cpsGuard)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
 		bps_userhandler.RegisterBPSUserMakerRoutes(sub, adapter.BPSUserAdapter, authMiddleware)
 

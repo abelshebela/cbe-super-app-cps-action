@@ -1,109 +1,143 @@
-package miniappmerchant
+package miniapp_merchant_application
 
 import (
 	"context"
+	"fmt"
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-
-	account_lookup_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
-
+	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	account_lookup_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	shared_util "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type MiniAppMerchantApplication interface {
-	CreateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error)
-	UpdateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error)
-	DeleteOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error)
-	EnableOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error)
-	DisableOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error)
-	List(ctx context.Context, filter *shared_util.Filter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error)
-	Detail(ctx context.Context, id string) (*domain.MiniAppMerchant, error)
+	CreateMerchant(ctx context.Context, merchant dto.MiniAppMerchantRequest, maker cps_entities.User) error
+	UpdateMerchant(ctx context.Context, id string, merchant dto.MiniAppMerchantRequest, maker cps_entities.User) error
+	DeleteMerchant(ctx context.Context, id string, maker cps_entities.User) error
+	EnableDisableMerchant(ctx context.Context, id string, maker cps_entities.User, enable bool) error
+	FetchMerchantByID(ctx context.Context, id string) (*domain.MiniAppMerchant, error)
+	FetchMerchants(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error)
 }
 
-type MiniAppMerchantHandlerImpl struct {
+type MiniAppMerchantApplicationStore struct {
 	service              domain.MiniAppMerchantService
 	cpsService           cps_service.CPSActionService
 	accountLookUpService account_lookup_service.UserSearchService
 	logger               utils.Logger
 }
 
-func NewMiniAppMerchantHandler(service domain.MiniAppMerchantService, cpsService cps_service.CPSActionService,
-	accountLookUpService account_lookup_service.UserSearchService, logger utils.Logger) MiniAppMerchantApplication {
-	return &MiniAppMerchantHandlerImpl{
+func NewMiniAppMerchantApplication(
+	service domain.MiniAppMerchantService,
+	cpsService cps_service.CPSActionService,
+	accountLookUpService account_lookup_service.UserSearchService,
+	logger utils.Logger,
+) MiniAppMerchantApplication {
+	return &MiniAppMerchantApplicationStore{
 		service:              service,
 		cpsService:           cpsService,
-		logger:               logger,
 		accountLookUpService: accountLookUpService,
+		logger:               logger,
 	}
 }
 
-func (h *MiniAppMerchantHandlerImpl) CreateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
+// handleCPSAction encapsulates the common CPS action logic
+func (a *MiniAppMerchantApplicationStore) handleCPSAction(
+	ctx context.Context,
+	maker cps_entities.User,
+	requestAction cps_const.RequestAction,
+	curData, prevData interface{},
+	actionType cps_const.ActionType,
+) error {
+	cpsAction := a.cpsService.BuildCPSAction(ctx, cps_entities.CreateCPSRequest{
+		User:          maker,
+		CurData:       curData,
+		PrevData:      prevData,
+		RequestAction: requestAction,
+		ActionStatus:  cps_const.ActionPending,
+		ActionType:    actionType,
+	})
 
-		curData, err := h.service.GetCurrentData(&req)
-		if err != nil {
-			return nil, err
+	_, err := a.cpsService.CreateCPSAction(ctx, cpsAction)
+	return err
+}
+
+// validateAccountDetails performs account lookup validation
+func (a *MiniAppMerchantApplicationStore) validateAccountDetails(ctx context.Context, merchant *dto.MiniAppMerchantRequest) error {
+	if merchant.AccountNumber == "" {
+		return nil
+	}
+
+	_, err := a.accountLookUpService.SearchUser(ctx, merchant.AccountNumber)
+	if err != nil {
+		if err.Error() == common_util.NotFound {
+			return fmt.Errorf("ACCOUNT_NOT_FOUND")
 		}
-
-		_, err = h.accountLookUpService.SearchUser(ctx, curData.BankAccountNumber)
-		if err != nil {
-			return nil, err
-		}
-		res, err := h.service.CreateMiniAppMerchant(ctx, &req)
-		if err != nil {
-			return nil, err
-		}
-
-		return res, nil
-	}, "[MiniAppMerchant.Create]")
+		return err
+	}
+	return nil
 }
 
-func (h *MiniAppMerchantHandlerImpl) UpdateOne(ctx context.Context, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
-		curData, err := h.service.GetCurrentData(&req)
-		if err != nil {
-			return nil, err
-		}
+func (a *MiniAppMerchantApplicationStore) CreateMerchant(ctx context.Context, merchant dto.MiniAppMerchantRequest, maker cps_entities.User) error {
+	if err := a.validateAccountDetails(ctx, &merchant); err != nil {
+		return err
+	}
 
-		if curData.BankAccountNumber != "" {
-			_, err = h.accountLookUpService.SearchUser(ctx, curData.BankAccountNumber)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return h.service.UpdateMiniAppMerchant(ctx, &req)
-	}, "[MiniAppMerchant.Update]")
+	res, err := a.service.CreateMiniAppMerchant(ctx, &merchant)
+	if err != nil {
+		return err
+	}
+
+	return a.handleCPSAction(ctx, maker, cps_const.RequestCreateMiniAppMerchant, res, nil, cps_const.ActionCreate)
 }
 
-func (h *MiniAppMerchantHandlerImpl) DeleteOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
-		return h.service.DeleteMiniAppMerchant(ctx, id, &req)
-	}, "[MiniAppMerchant.Delete]")
+func (a *MiniAppMerchantApplicationStore) UpdateMerchant(ctx context.Context, id string, merchant dto.MiniAppMerchantRequest, maker cps_entities.User) error {
+	if err := a.validateAccountDetails(ctx, &merchant); err != nil {
+		return err
+	}
+
+	curAction, prevAction, err := a.service.UpdateMiniAppMerchant(ctx, id, &merchant)
+	if err != nil {
+		return err
+	}
+
+	return a.handleCPSAction(ctx, maker, cps_const.RequestUpdateMiniAppMerchant, curAction, prevAction, cps_const.ActionUpdate)
 }
 
-func (h *MiniAppMerchantHandlerImpl) EnableOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
-		return h.service.EnableOrDisableMerchant(ctx, id, cps_const.RequestEnableMiniAppMerchant, &req)
-	}, "[MiniAppMerchant.Enable]")
+func (a *MiniAppMerchantApplicationStore) DeleteMerchant(ctx context.Context, id string, maker cps_entities.User) error {
+	curAction, prevAction, err := a.service.DeleteMiniAppMerchant(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return a.handleCPSAction(ctx, maker, cps_const.RequestDeleteMiniAppMerchant, curAction, prevAction, cps_const.ActionDelete)
 }
 
-func (h *MiniAppMerchantHandlerImpl) DisableOne(ctx context.Context, id string, req entities.CreateCPSAction) (*entities.CPSAction, error) {
-	return h.cpsService.HandleMakerAction(ctx, func() (*entities.CPSAction, error) {
-		return h.service.EnableOrDisableMerchant(ctx, id, cps_const.RequestDisableMiniAppMerchant, &req)
-	}, "[MiniAppMerchant.Disable]")
+func (a *MiniAppMerchantApplicationStore) EnableDisableMerchant(ctx context.Context, id string, maker cps_entities.User, enable bool) error {
+	curAction, prevAction, err := a.service.EnableOrDisableMerchant(ctx, id, enable)
+	if err != nil {
+		return err
+	}
+
+	var action cps_const.RequestAction
+	if enable {
+		action = cps_const.RequestEnableMiniAppMerchant
+	} else {
+		action = cps_const.RequestDisableMiniAppMerchant
+	}
+
+	return a.handleCPSAction(ctx, maker, action, curAction, prevAction, cps_const.ActionUpdate)
 }
 
-func (h *MiniAppMerchantHandlerImpl) List(ctx context.Context, filter *shared_util.Filter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error) {
-	return h.service.ListMiniAppMerchant(ctx, filter)
+func (a *MiniAppMerchantApplicationStore) FetchMerchantByID(ctx context.Context, id string) (*domain.MiniAppMerchant, error) {
+	return a.service.DetailMiniAppByID(ctx, id)
 }
 
-func (h *MiniAppMerchantHandlerImpl) Detail(ctx context.Context, id string) (*domain.MiniAppMerchant, error) {
-	return h.service.DetailMiniAppByID(ctx, id)
+func (a *MiniAppMerchantApplicationStore) FetchMerchants(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error) {
+	return a.service.ListMiniAppMerchant(ctx, filterParam)
 }

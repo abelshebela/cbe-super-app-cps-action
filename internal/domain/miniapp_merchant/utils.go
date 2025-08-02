@@ -1,8 +1,9 @@
-package event
+package miniappmerchant
+
 
 import "time"
 
-// nonEmptyString returns if non-empty, otherwise fallback
+// nonEmptyString returns s if non-empty, otherwise fallback
 func nonEmptyString(s, fallback string) string {
 	if s != "" {
 		return s
@@ -22,14 +23,6 @@ func nonZeroTime(t, fallback time.Time) time.Time {
 func nonZeroUint64(n, fallback uint64) uint64 {
 	if n != 0 {
 		return n
-	}
-	return fallback
-}
-
-// nonEmptyTickets returns tickets if non-empty, otherwise fallback
-func nonEmptyTickets(tickets, fallback []Ticket) []Ticket {
-	if len(tickets) > 0 {
-		return tickets
 	}
 	return fallback
 }
