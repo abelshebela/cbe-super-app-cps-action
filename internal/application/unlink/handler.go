@@ -2,7 +2,6 @@ package unlink
 
 import (
 	"context"
-
 	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -24,8 +23,8 @@ func (ua *unlinkApplication) GetUserByAccount(ctx context.Context, accNumber str
 	return ua.unlinkServiceDomain.GetUserByAccount(ctx, accNumber)
 }
 func (ua *unlinkApplication) UnlinkUserCif(ctx context.Context, userCode string) error {
-	return ua.UnlinkUserCif(ctx, userCode)
+	return ua.unlinkServiceDomain.UnlinkUserCif(ctx, userCode)
 }
-func (ua *unlinkApplication) Authorize(ctx context.Context, cpsAction any) error {
-	return ua.Authorize(ctx, cpsAction)
+func (ua *unlinkApplication) Authorize(ctx context.Context, cpsAction any) (any, error) {
+	return ua.unlinkServiceDomain.Authorize(ctx, cpsAction)
 }

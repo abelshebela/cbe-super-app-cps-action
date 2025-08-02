@@ -68,8 +68,12 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Permission"):
 		return d.app.PermissionDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "UnlinkDevice"):
-	// 	return d.app.UnlinkDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "UnlinkDevice"):
+		data, err := d.app.UnlinkDomain.Authorize(ctx, cpsAction)
+		if err != nil {
+			return nil, err
+		}
+		return marshalBuilder(data)
 
 	case constants.IsActionInGroup(action, "Wallet"):
 		return d.app.WalletDomain.Authorize(ctx, cpsAction)
@@ -94,7 +98,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "ProductCode"):
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
-		case constants.IsActionInGroup(action, "BPSUser"):
+	case constants.IsActionInGroup(action, "BPSUser"):
 		return d.app.BPSUserDomain.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
