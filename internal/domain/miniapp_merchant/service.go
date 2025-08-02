@@ -70,7 +70,7 @@ func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, 
 				Phone: data.PhoneNumber,
 			},
 		},
-		Branches: []BranchInformation{},
+		Branches:   []BranchInformation{},
 		MiniAppIDs: []string{},
 	}
 
@@ -181,22 +181,29 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 
 	switch cpsAction.RequestAction {
 	case cps_constants.RequestCreateMiniAppMerchant:
-		newMerchant, err = s.repo.CreateMiniAppMerchant(ctx, &currentAction)
+		txCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
 
-		if err != nil {
-			return nil, err
-		}
+		err = s.repo.RunInTransaction(txCtx, func(ctx context.Context) error {
+			newMerchant, err = s.repo.CreateMiniAppMerchant(ctx, &currentAction)
 
-		_, err = s.userService.CreateUserMiniAppMerchant(ctx, &entity.User{
-			FullName:    newMerchant.KYC.Representative.Name,
-			PhoneNumber: newMerchant.KYC.Representative.Phone,
-			Email:       newMerchant.KYC.Representative.Email,
+			if err != nil {
+				return err
+			}
+
+			_, err = s.userService.CreateUserMiniAppMerchant(ctx, &entity.User{
+				FullName:    newMerchant.KYC.Representative.Name,
+				PhoneNumber: newMerchant.KYC.Representative.Phone,
+				Email:       newMerchant.KYC.Representative.Email,
+			})
+
+			if err != nil && err.Error() != common_util.AuthUserAlreadyExists {
+				s.logger.Errorf("error occured on create minin app merchant %s", err.Error())
+				return err
+			}
+
+			return nil
 		})
-
-		if err != nil && err.Error() != common_util.AuthUserAlreadyExists {
-			s.logger.Errorf("error occured on create minin app merchant %s", err.Error())
-			return nil, err
-		}
 
 	case cps_constants.RequestUpdateMiniAppMerchant:
 		newMerchant, err = s.repo.UpdateMiniAppMerchant(ctx, &currentAction)
