@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
-	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/updated_bulk_service"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_service"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -161,7 +161,7 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 
 	if len(dupAction) > 0 {
 		b.logger.Errorf("Duplicate action sent for keys: %v\n", dupAction)
-		return fmt.Errorf("DUPLICATE_ACTION: [%v]", strings.Join(dupAction, ", "))
+		return fmt.Errorf("DUPLICATE_ACTION")
 	}
 
 	// Create the CPS action

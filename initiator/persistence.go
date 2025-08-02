@@ -28,8 +28,6 @@ import (
 	portalCardRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
-	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
-	//servicePersistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	portal_card_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card"
@@ -40,8 +38,8 @@ import (
 	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
-	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
 	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
@@ -57,9 +55,9 @@ import (
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 
-	bulk_service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/updated_bulk_service"
+	bulk_service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bulk_service"
 	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
-	bulk_outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/updated_bulk_service"
+	bulk_outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_service"
 
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
@@ -78,7 +76,6 @@ type Persitence struct {
 	UnlinkPersistence           unlink_repo.UnlinkAccount
 	BudgetPersistence           *budget_repo.BudgetPersistence
 	AccountPersistence          *account_validation.AccountValidationRepo
-	BulkServicesPersistence     bulkOutbound.OutboundInfra
 	CPSUserPersistence          cpsUserOutbound.OutboundInfra
 	PasswordRulesPersistence    cpsUserOutbound.OutboundPasswordRuleInfra
 	BankPersistance             bank.BankPersistence
@@ -109,26 +106,15 @@ type Persitence struct {
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
-	collectionNames := []string{
-		"bps_user",
-		"cps_actions",
-		"cps_users",
-		"service",
-		"member",
-		"linked_account",
-		"mini_app",
-		"portal_card",
-	}
 	return Persitence{
 		advertPersistence: advert.InitAD(client, databaseName, "adverts", logger),
 		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, "avatars", logger),
 
-		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
-		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
-		UnlinkPersistence:       unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
-		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
-		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
-		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),
+		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
+		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
+		UnlinkPersistence:   unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
+		BudgetPersistence:   budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
+		AccountPersistence:  account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
 		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",

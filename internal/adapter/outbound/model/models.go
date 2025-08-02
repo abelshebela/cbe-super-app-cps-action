@@ -393,12 +393,13 @@ const (
 	RequestBlockCity                RequestAction = "BLOCK_CITY"
 	RequestEnableCity               RequestAction = "ENABLE_CITY"
 	RequestBlockUser                RequestAction = "BLOCK_USER"
-	RequestBulkServiceEnable        RequestAction = "BULK_SERVICE_ENABLE"
-	RequestBulkServiceDisable       RequestAction = "BULK_SERVICE_DISABLE"
-	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
-	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
-	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
-	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
+
+	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 )
 
 type RegistrationType string

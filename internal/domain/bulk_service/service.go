@@ -53,7 +53,7 @@ func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, keys []string) 
 		Department:       userPayload.Department,
 		ActionStatus:     string(model.ActionPending),
 		ActionType:       string(model.ActionEnable),
-		RequestAction:    string(model.RequestBlockCity),
+		RequestAction:    string(model.RequestBulkServiceEnable),
 		PreviousAction:   nil,
 		CurrentAction: currAction{
 			Keys: keys,
@@ -107,10 +107,10 @@ func (b *bulkServiceImpl) Authorize(ctx context.Context, action *entity.CPSActio
 	action.MakerActionTime = time.Now()
 	action.LastModifiedAt = time.Now()
 
-	switch action.ActionType {
-	case cps_constant.ActionEnable:
+	switch action.RequestAction {
+	case cps_constant.RequestBulkServiceEnable:
 		return b.repo.AuthorizeBulkServiceEnable(ctx, action)
-	case cps_constant.ActionDisable:
+	case cps_constant.RequestBulkServiceDisable:
 		return b.repo.AuthorizeBulkServiceDisable(ctx, action)
 	default:
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
