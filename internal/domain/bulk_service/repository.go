@@ -1,4 +1,4 @@
-package updatedbulkservice
+package bulkservice
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package updatedbulkservice
+package bulkservice
 
 type SubAccessList struct {
 	Key            string `json:"key" bson:"key"`
