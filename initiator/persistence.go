@@ -9,12 +9,13 @@ import (
 	outboundStore "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	bank_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bank"
+	bps_user_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bps_user"
 	budget_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/budget"
 	customer_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/customer"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/customer"
 
 	feedback_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
-	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/unlink"
+	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/unlink"
 	cpsUserOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
 
@@ -22,13 +23,13 @@ import (
 
 	dept_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/department"
 	perm_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/permission"
-	service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
 	wallet_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
 
 	portalCardRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+	//servicePersistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	portal_card_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/portal_card"
@@ -39,12 +40,10 @@ import (
 	amount_based_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/amount_based_auth"
 	avatarPersitence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/avatar"
 	hq_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/hq"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	amount_based_auth "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/amount_based_auth"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	fayda_account_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/fayda_account"
 
-	service_persist "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/check_service"
 	event_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/event"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 
@@ -56,15 +55,21 @@ import (
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 
 	miniApp_merchant_persistance "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/mini_app_merchant"
-	chec_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
 	miniApp_merchant_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+
+	bulk_service_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/updated_bulk_service"
+	bulk_outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/updated_bulk_service"
 	wallet "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
+
 
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+
 
 	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
 	productcode_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/product_code"
+	servicePersistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 )
@@ -72,7 +77,7 @@ import (
 type Persitence struct {
 	CustomerPersistence         outbound.CustomerRepository
 	FeedBackPersistence         *feedback_repo.FeedbackRepo
-	UnlinkPersistence           *unlink_repo.UnlinkRepo
+	UnlinkPersistence           unlink_repo.UnlinkAccount
 	BudgetPersistence           *budget_repo.BudgetPersistence
 	AccountPersistence          *account_validation.AccountValidationRepo
 	BulkServicesPersistence     bulkOutbound.OutboundInfra
@@ -82,12 +87,11 @@ type Persitence struct {
 	DepartmentPersistence       *dept_repo.DepartmentPersistence
 	PermissionPersistence       *perm_repo.PermissionPersistence
 	advertPersistence           ad.ADRepository
-	avatarPersitence            avatar.AvatarOutbound
+	avatarPersitence            avatar.AvatarRepository
 	AccountBlockPersistance     account_block.AccountBlockOutboundPort
 	HQPersistence               *hq_persistence.HQPersistence
+	BPSUserPersistence          *bps_user_persistence.BpsPersistence
 	AmountBasedAuthPersistence  amount_based_auth.AmountBasedAuthRepo
-	ServiceDetailsStore         service.ServiceRepository
-	ServicePersistance          service_repo.ServiceFeePersistence
 	PortalCardPersistance       portalCardRepo.PortaCardInterface
 	WalletPersistance           wallet.WalletRepository
 	FaydaPersistence            fayda_account_repo.FaydaRepository
@@ -97,7 +101,11 @@ type Persitence struct {
 	BudgetCategoryPersistence   budget_category_repo.BudgetCategoryRepoInterface
 	MiniAppMerchantPersisitenct miniApp_merchant_domain.MiniAppMerchantRepository
 	AccounLookUp                account_lookup_domain.UserSearchRepository
-	ServicePersistence          chec_service.ServiceRepo
+
+	ServicePersistence          serviceDomain.ServiceRepo
+
+	BulkServicePersistence      bulk_outbound.BulkServiceRepository
+
 	NotificationPersisitence    notification_domain.NotificationRepository
 	ProductCodePersistenct      productcode.Repository
 }
@@ -115,18 +123,18 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 	}
 	return Persitence{
 		advertPersistence: advert.InitAD(client, databaseName, "adverts", logger),
-		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, []string{"cps_actions", "avatars"}, logger),
+		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, "avatars", logger),
 
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
-		UnlinkPersistence:       unlink_repo.NewUnlinkInfrastructure(client, databaseName, []string{"user", "otp", "cps_actions"}, logger),
+		UnlinkPersistence:       unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
 		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),
 		CPSUserPersistence: outboundStore.NewCPSUserPersistence(client, databaseName, []string{
 			"cps_users",
 			"cps_actions",
-			"BPSUsers",
+			"branch_user",
 			"CPSServices",
 			"portal_cards",
 			"validation_rules",
@@ -151,9 +159,8 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 			"cities",
 			logger,
 		),
-		ServiceDetailsStore:        outboundStore.NewServiceDetailsPersistence(client, databaseName, []string{"cps_actions", "service"}, logger),
-		ServicePersistance:         *service_repo.NewServiceFeePersistence(client, databaseName, []string{"cps_actions", "service"}, logger),
 		HQPersistence:              hq_persistence.NewHQPersistence(client, databaseName, 5*time.Second, logger),
+		BPSUserPersistence:         bps_user_persistence.NewBpsPersistence(client, databaseName, 5*time.Second, logger),
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, "wallets", logger),
@@ -165,7 +172,12 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		BudgetCategoryPersistence:   budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),
 		MiniAppMerchantPersisitenct: miniApp_merchant_persistance.NewMiniAppMerchantPersistence(client, databaseName, "mini_app_merchant", logger),
 		AccounLookUp:                account_lookup_impl.NewCBEUserSearchClient(cfg.CBEBaseURL),
-		ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
+
+		ServicePersistence:          servicePersistence.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
+
+		BulkServicePersistence:      bulk_service_repo.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "access_list"}, logger),
+		//ServicePersistence:          service_persist.NewServicePersistence(client, databaseName, []string{"cps_actions", "services", "hq"}, logger),
+
 		NotificationPersisitence:    notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 		ProductCodePersistenct:      productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
 	}

@@ -19,3 +19,4 @@ type MiniAppMerchantRepository interface {
 	DeleteMiniAppMerchant(ctx context.Context, id string) (*entities.MiniAppMerchant, error)
 	MiniAppMerchantInfoExists(ctx context.Context, data entities.CheckMiniAppMerchant, opts *entities.MiniAppMerchantExistOptions) (bool, error)
 }
+  

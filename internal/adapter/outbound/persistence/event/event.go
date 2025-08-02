@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	event_outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/event"
 
@@ -18,19 +20,19 @@ import (
 )
 
 type EventPersistence struct {
-	eventDal dal.MongoDal[EventDocument, EventDocument]
+	eventDal dal.MongoDal[model.EventDocument, model.EventDocument]
 	logger   utils.Logger
 }
 
 func InitEventPersistence(client *mongo.Client, dbName string, collections string, logger utils.Logger) event_outbound.EventRepository {
 	return &EventPersistence{
-		eventDal: dal.NewMongoDal[EventDocument, EventDocument](client, dbName, collections),
+		eventDal: dal.NewMongoDal[model.EventDocument, model.EventDocument](client, dbName, collections),
 		logger:   logger,
 	}
 }
 
 func (e *EventPersistence) CreateEvent(ctx context.Context, event event.Event) (*event.Event, error) {
-	eventDoc, err := ToEventDocument(event)
+	eventDoc, err := mappers.ToEventDocument(event)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +41,7 @@ func (e *EventPersistence) CreateEvent(ctx context.Context, event event.Event) (
 	if err != nil {
 		return nil, fmt.Errorf(common_util.GeneralDBInsertFailed)
 	}
-	result := res.toModel()
+	result := mappers.ToEventModel(&res)
 	return &result, nil
 }
 
@@ -58,7 +60,8 @@ func (e *EventPersistence) FetchEventByID(ctx context.Context, id string) (*even
 		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
 	}
 
-	result := eventDoc.toModel()
+	result := mappers.ToEventModel(eventDoc)
+
 	return &result, nil
 }
 
@@ -86,7 +89,7 @@ func (e *EventPersistence) FetchEvent(ctx context.Context, filterParam *constant
 
 	var events []*event.Event
 	for _, doc := range eventDocs {
-		converted := doc.toModel()
+		converted := mappers.ToEventModel(doc)
 		events = append(events, &converted)
 	}
 
@@ -184,7 +187,7 @@ func (e *EventPersistence) UpdateEvent(ctx context.Context, event event.Event) (
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-	result := eventDoc.toModel()
+	result := mappers.ToEventModel(&eventDoc)
 	return &result, nil
 }
 
@@ -205,7 +208,8 @@ func (e *EventPersistence) DeleteEvent(ctx context.Context, id string) (*event.E
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-	result := eventDoc.toModel()
+		result := mappers.ToEventModel(&eventDoc)
+
 	return &result, nil
 }
 
@@ -235,7 +239,8 @@ func (e *EventPersistence) EnableDisableEvent(ctx context.Context, id string, en
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-	result := eventDoc.toModel()
+		result := mappers.ToEventModel(&eventDoc)
+
 	return &result, nil
 }
 

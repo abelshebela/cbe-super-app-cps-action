@@ -1,260 +1,200 @@
 package avatar
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	avatarAPP "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
-	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
-
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/avatar"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type AvatarHTTPHandler struct {
-	avatarHandler avatarAPP.AvatarApplicationService
-	logger        utils.Logger
+	Application avatar.AvatarApplicationService
+	logger      utils.Logger
 }
 
-func InitAvatarHTTPHandler(avatarHandler avatarAPP.AvatarApplicationService, logger utils.Logger) avatar.AvatarInbound {
+func InitAvatarHTTPHandler(app avatar.AvatarApplicationService, logger utils.Logger) *AvatarHTTPHandler {
 	return &AvatarHTTPHandler{
-		avatarHandler: avatarHandler,
-		logger:        logger,
+		Application: app,
+		logger:      logger,
 	}
 }
 
-func (a *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request) {
-	var req dto.CreateAvatar
-
-	file, fileHeader, err := util.ParseMultipartFormFile(r, "avatar", 2<<20)
-	if err != nil {
-		a.logger.Errorf("error parsing file: %v", err)
-		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
-		return
-	}
-	defer file.Close()
-
-	req.Label = r.FormValue("label")
-	req.Avatar = fileHeader
-
-	if err := req.Validate(); err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	var cpsRequest model.CreateCPSAction
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	cpsRequest.CurrentData = req
-	cpsRequest.MakerUser = userData
-	cpsRequest.Department = department
-	cpsRequest.ActionData = req
-
-	_, err = a.avatarHandler.CreateAvatar(r.Context(), cpsRequest)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	util.WriteSuccessResponse(w, nil, "Avatar Create Request Created successfully")
-
-}
-
-func (a *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	var cpsReq model.CreateCPSAction
-
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		a.logger.Errorf("failed to extract department", err)
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	cpsReq.ActionData = dto.Avatar{
-		ID: id,
-	}
-	cpsReq.MakerUser = userData
-	cpsReq.Department = department
-
-	_, err = a.avatarHandler.DeleteAvatar(r.Context(), id, cpsReq)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	util.WriteSuccessResponse(w, nil, "Avatar Delete Request Created successfully")
-
-}
-
-func (a *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-
-		return
-	}
-
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = userData
-	cpsReq.Department = department
-	cpsReq.ActionData = dto.Avatar{
-		ID: id,
-	}
-
-	_, err = a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestDisableAvatar, cpsReq)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	util.WriteSuccessResponse(w, nil, "Avatar Disabled Request Create sucessfully")
-}
-
-func (a *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	var cpsReq model.CreateCPSAction
-
-	cpsReq.MakerUser = userData
-	cpsReq.Department = department
-	cpsReq.ActionData = dto.Avatar{
-		ID: id,
-	}
-
-	_, err = a.avatarHandler.EnableOrDisableAvatar(r.Context(), id, model.RequestEnableAvatar, cpsReq)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	util.WriteSuccessResponse(w, nil, "Avatar Enable Request Create sucessfully")
-
-}
-
-func (a *AvatarHTTPHandler) GetAllAvatar(w http.ResponseWriter, r *http.Request) {
-	filterParams := common_util.ExtractFilterParams(r)
-
-	data, err := a.avatarHandler.GetAllAvatar(r.Context(), *filterParams)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-
-		return
-	}
-
-	util.WriteSuccessResponse(w, data, "Avatar list feached sucessfully")
-
-}
-
-func (a *AvatarHTTPHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	avatar, err := a.avatarHandler.GetAvatar(r.Context(), id)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	util.WriteSuccessResponse(w, avatar, "Avatar list feached sucessfully")
-
-}
-
-func (a *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		a.logger.Errorf("missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, 0, nil)
-		return
-	}
-
-	var req dto.UpdateAvatar
-
-	file, fileHeader, err := util.ParseMultipartFormFile(r, "avatar", 10<<20)
-	if err != nil && err.Error() != common_util.ErrMissingFile {
-		a.logger.Errorf("error parsing file: %v", err)
-		util.SendErrorResponse(w, util.MissingOrInvalidImage, 0, nil)
-		return
-	}
-	if file != nil {
-		defer file.Close()
-		req.Avatar = fileHeader
-	}
-
-	req.Label = r.FormValue("label")
-
-	if req.Label == "" && fileHeader == nil {
-		util.SendErrorResponse(w, "NO_DATA_PROVIDED_FOR_UPDATE", 0, nil)
-		return
-	}
-
-	userData, department, err := a.extractUserFromContext(r)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	updateRequest := model.CreateCPSAction{
-		MakerUser:  userData,
-		Department: department,
-		ActionData: req,
-	}
-
-	_, err = a.avatarHandler.UpdateAvatar(r.Context(), id, updateRequest)
-	if err != nil {
-		util.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	util.WriteSuccessResponse(w, nil, "Avatar Update Request created successfully")
-}
-
-func (a *AvatarHTTPHandler) extractUserFromContext(r *http.Request) (model.User, string, error) {
+func (h *AvatarHTTPHandler) extractUserAndMaker(w http.ResponseWriter, r *http.Request) (entities.User, bool) {
 	userContext := ctx_util.ExtractUserContext(r)
-
 	if userContext.IsIncomplete() {
-		return model.User{}, "", fmt.Errorf(common_util.IncompleteUserInfo)
+		h.logger.Errorf("Incomplete user context")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusUnauthorized, nil)
+		return entities.User{}, false
 	}
-
-	return model.User{
-		UserCode:    userContext.UserCode,
+	maker := entities.User{
+		UserCode:    userContext.UserID,
 		FullName:    userContext.FullName,
 		PhoneNumber: userContext.PhoneNumber,
-	}, userContext.Department, nil
+		Department:  userContext.Department,
+	}
+	return maker, true
+}
+
+func (h *AvatarHTTPHandler) extractID(w http.ResponseWriter, r *http.Request) (string, bool) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok || id == "" {
+		h.logger.Errorf("Missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, http.StatusBadRequest, nil)
+		return "", false
+	}
+	return id, true
+}
+
+func (h *AvatarHTTPHandler) parseAndValidateAvatarRequest(w http.ResponseWriter, r *http.Request, isCreate bool) (AvatarDTO, bool) {
+	req, err := ParseAvatarRequestFromMultipartForm(r, isCreate)
+	if err != nil {
+		h.logger.Errorf("[AvatarHTTPHandler.parseAndValidateAvatarRequest] Failed to parse avatar request: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return AvatarDTO{}, false
+	}
+
+	if err := req.Validate(isCreate); err != nil {
+		h.logger.Errorf("[AvatarHTTPHandler.parseAndValidateAvatarRequest] Validation failed: %v", err)
+		common_util.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		return AvatarDTO{}, false
+	}
+	return req, true
+}
+
+func (h *AvatarHTTPHandler) sendResponse(w http.ResponseWriter, err error, successMessage string, data interface{}) {
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	common_util.WriteSuccessResponse(w, data, successMessage)
+}
+
+func (h *AvatarHTTPHandler) CreateAvatar(w http.ResponseWriter, r *http.Request) {
+	req, ok := h.parseAndValidateAvatarRequest(w, r, true)
+	if !ok {
+		return
+	}
+
+	maker, ok := h.extractUserAndMaker(w, r)
+	if !ok {
+		return
+	}
+
+	domainReq := ToAvatarRequestFromDTO(&req)
+	err := h.Application.CreateAvatar(r.Context(), *domainReq, maker)
+	h.sendResponse(w, err, "Avatar creation request submitted successfully", nil)
+}
+
+func (h *AvatarHTTPHandler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+	id, ok := h.extractID(w, r)
+	if !ok {
+		return
+	}
+
+	req, ok := h.parseAndValidateAvatarRequest(w, r, false)
+	if !ok {
+		return
+	}
+
+	if req.IsEmpty() {
+		h.logger.Errorf("[AvatarHTTPHandler.UpdateAvatar] No data provided for update")
+		common_util.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
+		return
+	}
+
+	maker, ok := h.extractUserAndMaker(w, r)
+	if !ok {
+		return
+	}
+
+	domainReq := ToAvatarRequestFromDTO(&req)
+	err := h.Application.UpdateAvatar(r.Context(), id, *domainReq, maker)
+	h.sendResponse(w, err, "Avatar update request submitted successfully", nil)
+}
+
+func (h *AvatarHTTPHandler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	id, ok := h.extractID(w, r)
+	if !ok {
+		return
+	}
+
+	maker, ok := h.extractUserAndMaker(w, r)
+	if !ok {
+		return
+	}
+
+	err := h.Application.DeleteAvatar(r.Context(), id, maker)
+	h.sendResponse(w, err, "Avatar delete request submitted successfully", nil)
+}
+
+func (h *AvatarHTTPHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	id, ok := h.extractID(w, r)
+	if !ok {
+		return
+	}
+
+	maker, ok := h.extractUserAndMaker(w, r)
+	if !ok {
+		return
+	}
+
+	err := h.Application.EnableOrDisableAvatar(r.Context(), id, maker, true)
+	h.sendResponse(w, err, "Event enable request submitted successfully", nil)
+}
+
+func (h *AvatarHTTPHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	id, ok := h.extractID(w, r)
+	if !ok {
+		return
+	}
+
+	maker, ok := h.extractUserAndMaker(w, r)
+	if !ok {
+		return
+	}
+
+	err := h.Application.EnableOrDisableAvatar(r.Context(), id, maker, false)
+	h.sendResponse(w, err, "Event disable request submitted successfully", nil)
+}
+
+func (h *AvatarHTTPHandler) FetchAvatar(w http.ResponseWriter, r *http.Request) {
+	id, ok := h.extractID(w, r)
+	if !ok {
+		return
+	}
+
+	data, err := h.Application.GetAvatar(r.Context(), id)
+	if err != nil {
+		h.sendResponse(w, err, "", nil)
+		return
+	}
+
+	res := ToAvatarResponseDTO(data)
+	h.sendResponse(w, nil, "Avatar successfully retrieved", res)
+}
+
+func (h *AvatarHTTPHandler) FetchAvatars(w http.ResponseWriter, r *http.Request) {
+	filterParam := common_util.ExtractFilterParams(r)
+
+	list, err := h.Application.GetAllAvatar(r.Context(), filterParam)
+	if err != nil {
+		h.sendResponse(w, err, "", nil)
+		return
+	}
+
+	docs := []AvatarResponseDTO{}
+	for _, doc := range list.Data {
+		res := ToAvatarResponseDTO(doc)
+		docs = append(docs, *res)
+	}
+
+	res := common_util.PaginatedResponse[*[]AvatarResponseDTO]{
+		Data: &docs,
+		Meta: list.Meta,
+	}
+	h.sendResponse(w, nil, "Avatars successfully retrieved", res)
 }

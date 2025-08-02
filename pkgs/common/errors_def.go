@@ -52,6 +52,7 @@ type ErrorDefinitions struct {
 	Wallet      ErrorGroup
 	AD          ErrorGroup
 	Permission  ErrorGroup
+	BulkService ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
 }
@@ -1030,15 +1031,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "merchant not found",
 		},
-		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
-			Code:    "GEN_172",
-			Status:  StatusBadRequest,
-			Message: "Only Ethiopian numbers in local or international format are acceptable",
-		},
-		"NO_DOC_FOUND": {
-			Code:    "GEN_171	",
-			Message: "mongo: no documents in result",
-		},
 		"INVALID_TOTAL_CAP_VALUE": {
 			Code:    "GEN_172	",
 			Message: "invalid total cap value",
@@ -1059,10 +1051,53 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
-		"INVALID_PAYLOAD": {
+
+		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
 			Code:    "GEN_177",
+			Message: "Single max transfers can not be less or equal to min_amount",
+		},
+		"ACCOUNT_NUMBER_CAN_NOT_BE_EMPTY": {
+			Code:    "GEN_178",
+			Message: "account number can not be empty",
+		},
+		"USERCODE_CANT_BE_EMPTY": {
+			Code:    "GEN_179",
+			Message: "user code can not be empty",
+		},
+		"FAILED_TO_FIND_USER": {
+			Code:    "GEN_180",
+			Status:  http.StatusNotFound,
+			Message: "failed to find user",
+		},
+		"FAYDA_USER_ALREADY_ENABLED": {
+			Code:    "GEN_181",
+			Status:  http.StatusConflict,
+			Message: "fayda user already enabled",
+		},
+		"FAYDA_USER_ALREADY_DISABLE": {
+			Code:    "GEN_182",
+			Status:  http.StatusConflict,
+			Message: "fayda user already disabled",
+		},
+		"INVALID_PAYLOAD": {
+			Code:    "GEN_183",
 			Status:  StatusBadRequest,
 			Message: "invalid payload",
+		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_184",
+			Status:  StatusBadRequest,
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
+		"NO_RESOURCE_FOUND": {
+			Code:    "GEN_185",
+			Status:  StatusNotFound,
+			Message: "Resource not found",
+		},
+		"NO_DOC_FOUND": {
+			Code:    "GEN_186",
+			Status:  StatusNotFound,
+			Message: "mongo: no documents in result",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1759,12 +1794,39 @@ var DefineError = ErrorDefinitions{
 			Code:    "ACT_019",
 			Message: "enabel region action already exists",
 		},
+		"ACTION_CODE_REQUIRED": {
+			Code:    "ACT_020",
+			Message: "action code required",
+		},
+		"USER_IS_NOT_FAYDA_USER": {
+			Code:    "ACT_021",
+			Message: "user in not fayda user",
+		},
+		"FAYDA_USER_ALREADY_DISABLED": {
+			Code:    "ACT_022",
+			Message: "fayida user already disabled",
+		},
 	},
 	User: ErrorGroup{
 		"USER_STATUS_UPDATE_FAILED": {
 			Code:    "USR_001",
 			Status:  StatusBadRequest,
 			Message: "Failed to update user status.",
+		},
+		"INVALID_USER_CODE": {
+			Code:    "USR_002",
+			Status:  StatusBadRequest,
+			Message: "Invalid user code.",
+		},
+		"USER_ALREADY_ENABLED": {
+			Code:    "USR_003",
+			Status:  StatusBadRequest,
+			Message: "User already enabled.",
+		},
+		"USER_ALREADY_DISABLED": {
+			Code:    "USR_004",
+			Status:  StatusBadRequest,
+			Message: "User already disabled.",
 		},
 	},
 	Wallet: ErrorGroup{
@@ -1896,6 +1958,43 @@ var DefineError = ErrorDefinitions{
 			Code:    "PERM_006",
 			Status:  StatusBadRequest,
 			Message: "One or more permission groups not found.",
+		},
+	},
+	BulkService: ErrorGroup{
+		"BULK_SERVICE_CODE_IS_REQUIRED": {
+			Code:    "BULK_001",
+			Status:  StatusBadRequest,
+			Message: "Bulk service code is required",
+		},
+		"SURVICE_NOT_FOUND": {
+			Code:    "BULK_002",
+			Status:  StatusNotFound,
+			Message: "One or more service is not found",
+		},
+		"DUPLICATE_ACTION": {
+			Code:    "BULK_003",
+			Status:  StatusConflict,
+			Message: "One or more duplicate action is requested",
+		},
+		"INVALID_CURRENT_ACTION": {
+			Code:    "BULK_004",
+			Status:  StatusBadRequest,
+			Message: "invalid CurrentAction format",
+		},
+		"INVALID_KEY_FORMAT": {
+			Code:    "BULK_005",
+			Status:  StatusBadRequest,
+			Message: "invalid keys format",
+		},
+		"FAILED_TO_UPDATE_CHILD": {
+			Code:    "BULK_006",
+			Status:  StatusInternalServerError,
+			Message: "failed to update child",
+		},
+		"FAILED_TO_UPDATE_PARENT": {
+			Code:    "BULK_007",
+			Status:  StatusInternalServerError,
+			Message: "failed to update parent",
 		},
 	},
 	MiniApp: ErrorGroup{

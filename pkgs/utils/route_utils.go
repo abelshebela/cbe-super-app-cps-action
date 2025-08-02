@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -41,14 +40,14 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 	return file, fileHeader, nil
 }
 
-func UserContextToModel(userContext ctx_util.UserContext) model.User {
-	return model.User{
-		UserCode:    userContext.UserCode,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-		Department:  userContext.Department,
-	}
-}
+// func UserContextToModel(userContext ctx_util.UserContext) model.User {
+// 	return model.User{
+// 		UserCode:    userContext.UserCode,
+// 		FullName:    userContext.FullName,
+// 		PhoneNumber: userContext.PhoneNumber,
+// 		Department:  userContext.Department,
+// 	}
+// }
 
 func ParsePrimitiveObjectID(ID string) (bson.ObjectID, error) {
 	objectID, err := bson.ObjectIDFromHex(ID)

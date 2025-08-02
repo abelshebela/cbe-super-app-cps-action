@@ -120,7 +120,7 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	requestedAction := action.RequestAction
 	var minApp *MiniApp
 
-	bindErr := bindAction(action.CurrentAction, &minApp)
+	bindErr := common_util.BindAction(action.CurrentAction, &minApp)
 	if bindErr != nil {
 		s.logger.Errorf("failed to bind current action to MiniApp: %v", bindErr)
 		return nil, fmt.Errorf(common_util.InvalidActionData)

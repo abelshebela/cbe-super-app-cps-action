@@ -334,3 +334,12 @@ func ValidateStrict(input []byte, target interface{}) StrictValidationResult {
 	}
 	return result
 }
+
+
+// nonEmptyString returns if non-empty, otherwise fallback
+func NonEmptyString(s, fallback string) string {
+	if s != "" {
+		return s
+	}
+	return fallback
+}

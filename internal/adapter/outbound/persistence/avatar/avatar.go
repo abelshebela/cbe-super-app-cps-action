@@ -2,17 +2,17 @@ package avatar
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
 	// "net/http"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
+	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/avatar"
+
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
@@ -24,216 +24,211 @@ import (
 )
 
 type AvatarPersistence struct {
-	cpsActionDal dal.MongoDal[model.CPSAction, model.CPSAction]
-	avatarDal    dal.MongoDal[AvatarDocument, AvatarDocument]
-	logger       utils.Logger
+	avatarDal dal.MongoDal[model.AvatarDocument, model.AvatarDocument]
+	logger    utils.Logger
 }
 
-func InitAvatarPersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) avatar.AvatarOutbound {
-	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[0])
-	avatarDal := dal.NewMongoDal[AvatarDocument, AvatarDocument](client, dbName, collections[1])
+func InitAvatarPersistence(client *mongo.Client, dbName string, collection string, logger utils.Logger) outbound.AvatarRepository {
 	return &AvatarPersistence{
-		cpsActionDal: cpsActionDal,
-		avatarDal:    avatarDal,
-		logger:       logger,
+		avatarDal: dal.NewMongoDal[model.AvatarDocument, model.AvatarDocument](client, dbName, collection),
+		logger:    logger,
 	}
 }
 
-func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams constant.Filter) (*common_util.PaginatedResponse[[]*dto.Avatar], error) {
-	filter := bson.M{"is_deleted": false}
-	projection := bson.M{}
-
-	// Apply enable filter if provided
-	if filterParams.Filters != "" {
-		filter["enable"] = filterParams.Filters == "true"
-	}
-
-	// Apply search filter on avatar and label fields
-	if filterParams.Search != "" {
-		filter["$or"] = []bson.M{
-			{"avatar": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"label": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-		}
-	}
-
-	page := filterParams.Page
-	limit := filterParams.PerPage
-	skip := (page - 1) * limit
-
-	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+func (a *AvatarPersistence) CreateAvatar(ctx context.Context, avatar avatar.Avatar) (*avatar.Avatar, error) {
+	avatarDoc, err := mappers.ToAvatarDocument(avatar)
 	if err != nil {
-		a.logger.Errorf("failed to get avatars: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_GET_AVATARS")
+		a.logger.Errorf("Failed to convert avatar to document: %v", err)
+		return nil, err
 	}
 
-	total, err := a.avatarDal.TotalCount(ctx, filter)
+	res, err := a.avatarDal.InsertOne(ctx, *avatarDoc)
 	if err != nil {
-		a.logger.Errorf("failed to get avatar count: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_GET_COUNT")
+		a.logger.Errorf("Failed to insert avatar: %v", err)
+		return nil, fmt.Errorf(common_util.GeneralDBInsertFailed)
 	}
 
-	avatars := make([]*dto.Avatar, 0, len(avatarDocs))
-	for _, doc := range avatarDocs {
-		converted := doc.toModel()
-		avatars = append(avatars, &converted)
-	}
-
-	meta := common_util.BuildPaginationMeta(total, page, limit)
-	return &common_util.PaginatedResponse[[]*dto.Avatar]{
-		Data: avatars,
-		Meta: meta,
-	}, nil
+	result := mappers.ToAvatarModel(&res)
+	return &result, nil
 }
 
-func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*dto.Avatar, error) {
-	objID, err := bson.ObjectIDFromHex(id)
+func (a *AvatarPersistence) UpdateAvatar(ctx context.Context, avatar avatar.Avatar) (*avatar.Avatar, error) {
+	objID, err := common_util.ParsePrimitiveObjectID(avatar.ID)
 	if err != nil {
-		a.logger.Errorf("invalid object id: %v", err)
-		return nil, fmt.Errorf("INVALID_ID")
+		a.logger.Errorf("Invalid avatar ID: %v", err)
+		return nil, fmt.Errorf(common_util.InvalidID)
 	}
+
 	filter := bson.M{
 		"_id":        objID,
 		"is_deleted": false,
 	}
 
-	projection := bson.M{}
-
-	avatarDoc, err := a.avatarDal.FindOne(ctx, filter, projection)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("avatar not found")
-			return nil, fmt.Errorf("NOT_FOUND")
-		}
-		a.logger.Errorf("failed to get avatar", err)
-
-		return nil, fmt.Errorf("FAILED_TO_GET_AVATER")
-	}
-	avatar := avatarDoc.toModel()
-	return &avatar, nil
-}
-
-func (a *AvatarPersistence) AuthorizeCreateAvatar(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-	actionData, err := getAvatar(cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := ToAvatarDocument(dto.Avatar{
-		Avatar:         actionData.Avatar,
-		Label:          actionData.Label,
-		IsDeleted:      false,
-		Enable:         true,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-	})
-	if err != nil {
-		a.logger.Errorf("failed to convert avatar to document: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_CONVERT_AVATAR_TO_DOCUMENT")
-	}
-
-	avatarDoc, err := a.avatarDal.InsertOne(ctx, *req)
-	if err != nil {
-		a.logger.Errorf("failed to create avatar: %v", err)
-		return nil, fmt.Errorf("FAIL_TO_CREATE_AVATAR")
-	}
-
-	cpsAction.CurrentAction = avatarDoc.toModel()
-	return cpsAction, nil
-}
-
-func (a *AvatarPersistence) AuthorizeUpdateAvatar(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-
-	actionData, err := getAvatar(cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	objId, err := bson.ObjectIDFromHex(actionData.ID)
-	if err != nil {
-		return nil, fmt.Errorf("INVALID_ID")
-	}
-	filter := bson.M{
-		"_id":         objId,
-		"is_deleted": false,
-	}
 	update := bson.M{}
-
-	if actionData.Label != "" {
-		update["label"] = actionData.Label
+	if avatar.Label != "" {
+		update["label"] = avatar.Label
 	}
-	if actionData.Avatar != "" {
-		update["avatar"] = actionData.Avatar
+	if avatar.Avatar != "" {
+		update["avatar"] = avatar.Avatar
 	}
-
-	switch string(cpsAction.RequestAction) {
-	case string(model.RequestEnableAvatar):
-		update["enable"] = true
-	case string(model.RequestDisableAvatar):
-		update["enable"] = false
-	}
-
 	update["last_modified_at"] = time.Now()
+
+	if len(update) == 1 {
+		a.logger.Warnf("No data provided for update on avatar ID %s", avatar.ID)
+		return nil, fmt.Errorf(common_util.NoDataProvidedForUpdate)
+	}
 
 	avatarDoc, err := a.avatarDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("avatar not found: %v", err)
-			return nil, fmt.Errorf("NOT_FOUND")
+			a.logger.Errorf("Avatar with ID %s not found", avatar.ID)
+			return nil, fmt.Errorf(common_util.NotFound)
 		}
-		a.logger.Errorf("failed to update avatar: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_AVATAR")
+		a.logger.Errorf("Failed to update avatar ID %s: %v", avatar.ID, err)
+		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-	cpsAction.CurrentAction = avatarDoc.toModel()
-	return cpsAction, nil
+	result := mappers.ToAvatarModel(&avatarDoc)
+
+	return &result, nil
 }
 
-func (a *AvatarPersistence) AuthorizeDeleteAvatar(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-
-	actionData, err := getAvatar(cpsAction)
+func (a *AvatarPersistence) DeleteAvatar(ctx context.Context, id string) (*avatar.Avatar, error) {
+	objID, err := common_util.ParsePrimitiveObjectID(id)
 	if err != nil {
-		return nil, err
-	}
-
-	objId, err := bson.ObjectIDFromHex(actionData.ID)
-	if err != nil {
-		return nil, fmt.Errorf("INVALID_ID")
+		a.logger.Errorf("Invalid avatar ID: %v", err)
+		return nil, fmt.Errorf(common_util.InvalidID)
 	}
 
 	filter := bson.M{
-		"_id":         objId,
+		"_id":        objID,
 		"is_deleted": false,
 	}
 	update := bson.M{
-		"is_deleted": true,
-		"deleted_at": time.Now(),
+		"is_deleted":       true,
+		"deleted_at":       time.Now(),
+		"last_modified_at": time.Now(),
 	}
 
 	avatarDoc, err := a.avatarDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("avatar not found: %v", err)
-			return nil, fmt.Errorf("NOT_FOUND")
+			a.logger.Errorf("Avatar with ID %s not found", id)
+			return nil, fmt.Errorf(common_util.NotFound)
 		}
-		a.logger.Errorf("failed to delete avatar: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
+		a.logger.Errorf("Failed to delete avatar ID %s: %v", id, err)
+		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-	cpsAction.CurrentAction = avatarDoc
-	return cpsAction, nil
+	result := mappers.ToAvatarModel(&avatarDoc)
+
+	return &result, nil
 }
 
-func getAvatar(cpsAction *entities.CPSAction) (*dto.Avatar, error) {
-	var actionData dto.Avatar
-
-	bytes, err := json.Marshal(cpsAction.CurrentAction)
+func (a *AvatarPersistence) EnableDisableAvatar(ctx context.Context, id string, enable bool) (*avatar.Avatar, error) {
+	objID, err := common_util.ParsePrimitiveObjectID(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
+		a.logger.Errorf("Invalid avatar ID: %v", err)
+		return nil, fmt.Errorf(common_util.InvalidID)
 	}
 
-	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction into Advert: %w", err)
+	filter := bson.M{
+		"_id":        objID,
+		"is_deleted": false,
 	}
 
-	return &actionData, nil
+	update := bson.M{
+		"enable":           enable,
+		"last_modified_at": time.Now(),
+	}
+
+	avatarDoc, err := a.avatarDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("Avatar with ID %s not found for enable/disable", id)
+			return nil, fmt.Errorf(common_util.NotFound)
+		}
+		a.logger.Errorf("Failed to update enabled state for avatar ID %s: %v", id, err)
+		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
+	}
+
+	result := mappers.ToAvatarModel(&avatarDoc)
+
+	return &result, nil
+}
+
+func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*avatar.Avatar, error) {
+	objID, err := common_util.ParsePrimitiveObjectID(id)
+	if err != nil {
+		a.logger.Errorf("Invalid avatar ID: %v", err)
+		return nil, fmt.Errorf(common_util.InvalidID)
+	}
+
+	filter := bson.M{
+		"_id":        objID,
+		"is_deleted": false,
+	}
+
+	avatarDoc, err := a.avatarDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("Avatar with ID %s not found", id)
+			return nil, fmt.Errorf(common_util.NotFound)
+		}
+		a.logger.Errorf("Failed to get avatar ID %s: %v", id, err)
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
+	}
+
+	result := mappers.ToAvatarModel(avatarDoc)
+
+	return &result, nil
+}
+
+func (a *AvatarPersistence) GetAllAvatar(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*avatar.Avatar], error) {
+	filter := bson.M{"is_deleted": false}
+
+	if filterParams != nil {
+		if filterParams.Filters != "" {
+			filter["enable"] = filterParams.Filters == "true"
+		}
+		if filterParams.Search != "" {
+			searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
+			filter["$or"] = []bson.M{
+				{"avatar": searchRegex},
+				{"label": searchRegex},
+			}
+		}
+	}
+
+	page := int64(1)
+	limit := int64(10)
+	if filterParams != nil {
+		page = int64(filterParams.Page)
+		limit = int64(filterParams.PerPage)
+	}
+	skip := (page - 1) * limit
+
+	avatarDocs, err := a.avatarDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
+	if err != nil {
+		a.logger.Errorf("Failed to get avatars: %v", err)
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
+	}
+
+	total, err := a.avatarDal.TotalCount(ctx, filter)
+	if err != nil {
+		a.logger.Errorf("Failed to get avatar count: %v", err)
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
+	}
+
+	avatars := make([]*avatar.Avatar, 0, len(avatarDocs))
+	for _, doc := range avatarDocs {
+		converted := mappers.ToAvatarModel(doc)
+		avatars = append(avatars, &converted)
+	}
+
+	meta := common_util.BuildPaginationMeta(total, filterParams.Page, int(limit))
+	return &common_util.PaginatedResponse[[]*avatar.Avatar]{
+		Data: avatars,
+		Meta: meta,
+	}, nil
 }

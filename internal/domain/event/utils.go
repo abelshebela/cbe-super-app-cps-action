@@ -2,7 +2,7 @@ package event
 
 import "time"
 
-// nonEmptyString returns s if non-empty, otherwise fallback
+// nonEmptyString returns if non-empty, otherwise fallback
 func nonEmptyString(s, fallback string) string {
 	if s != "" {
 		return s
