@@ -63,7 +63,6 @@ type Application struct {
 	AmountBasedAuthApplication amount_based_auth_app.ApplicationService
 	MiniAppApplication         miniApp_application.ApplicationAbstracts
 	EventApplication           event_application.ApplicationAbstracts
-	// BankCategoryApplication    budget_category.BudgetCategoryApplictionService
 	CPSActionApplication  cps_actions_application.CPSActionApplication
 	DispatcherApplication cps_actions_application.Dispatcher
 
@@ -89,7 +88,6 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		FaydaApplication:    faydaaccount.InitFaydaHandler(domain.FaydaDomain, logger),
 		CustomerApplication: customer.InitCustomerHandler(domain.CustomerDomain, logger),
 		FeedbackApplication: feedback.InitFeedbackHandler(domain.FeedbackDomain, logger),
-		// UnlinkApplication:          unlink.NewUnlinkHandler(domain.UnlinkDomain),
 
 		UnlinkApplication: unlink_application.NewUnlinkApplication(domain.UnlinkDomain, logger),
 
@@ -104,12 +102,11 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),
 		AmountBasedAuthApplication: amount_based_auth_app.ApplicationService(domain.AmountBasedAuthDomain),
-		// ServiceApplication:         service.NewServiceApp(domain.ServiceDomain, domain.ActionDomain, logger),
-		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
-		EventApplication:           event_application.NewEventApplication(domain.EventDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain, logger),
+		MiniAppApplication:         miniApp_application.NewApplicationService(domain.MiniAppDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain ,logger),
+		EventApplication:           event_application.NewEventApplication(domain.EventDomain, domain.CPSActionDomain, domain.MiniAppMerchantDomain,logger),
 		BudgetCategoryApplication:  budget_category.InitBudgetCategoryHandler(domain.BudgetCategoryDomain, logger),
 		DispatcherApplication:      *dispatcher,
-		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher),
+		CPSActionApplication:       cps_actions_application.NewCPSActionApplication(domain.CPSActionDomain, domain, *dispatcher, logger),
 		ServicCheckeApplication:    service_application.NewServiceApplication(domain.ServiceCheckDomain, logger),
 		MiniAppMerchantApplication: mini_app_merchant_application.NewMiniAppMerchantApplication(domain.MiniAppMerchantDomain, domain.CPSActionDomain, *domain.AccountLookup, logger),
 		AccountLookupApplication:   *account_application.NewUserSearchService(domain.AccountLookup),
