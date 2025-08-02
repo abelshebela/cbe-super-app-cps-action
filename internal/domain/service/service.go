@@ -33,8 +33,8 @@ func (sd *serviceDomain) GetAllMaximumTransferCap(ctx context.Context, filterPar
 func (sd *serviceDomain) GetAllServiceFee(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error) {
 	return sd.serviceRepo.GetAllServiceFee(ctx, filterParams)
 }
-func (sd *serviceDomain) GetAllTotalTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error) {
-	return sd.serviceRepo.GetAllTotalTransferCap(ctx, filterParams)
+func (sd *serviceDomain) GetAllTotalTransferCap(ctx context.Context) (*any, error) {
+	return sd.serviceRepo.GetAllTotalTransferCap(ctx)
 }
 func (sd *serviceDomain) GetServiceFeeDetail(ctx context.Context, id string) (*any, error) {
 	return sd.serviceRepo.GetServiceFeeDetail(ctx, id)

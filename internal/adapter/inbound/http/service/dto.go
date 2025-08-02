@@ -14,7 +14,7 @@ type ApplicationService interface {
 	GetAllMinimumTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
 	GetAllMaximumTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
 	GetAllServiceFee(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
-	GetAllTotalTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
+	GetAllTotalTransferCap(ctx context.Context) (*any, error)
 	GetServiceFeeDetail(ctx context.Context, id string) (*any, error)
 	UpdateServiceFee(ctx context.Context, id string, req any) error
 	UpdateSingleMaxTransfer(ctx context.Context, id string, req any) error
