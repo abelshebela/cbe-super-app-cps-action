@@ -286,30 +286,13 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 		"is_deleted": false,
 	}
 	projection := bson.M{
-		"id":         1,
+		"_id":        1,
 		"total_cap":  1,
 		"created_at": 1,
 	}
-	if filterParams.Search != "" {
-		filter["$or"] = []bson.M{
-			{"service_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"service_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			{"service_type": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-		}
-	}
 
-	if filterParams.Filters != "" {
-		filter["$or"] = []bson.M{
-			{"service_type": bson.M{"$regex": filterParams.Filters, "$options": "i"}},
-			{"payment_type": bson.M{"$regex": filterParams.Filters, "$options": "i"}},
-		}
-	}
-
-	skip := (filterParams.Page - 1) * filterParams.PerPage
-	limit := filterParams.PerPage
-
-	sp.logger.Infof("Fetching all total transfer caps with filter: %+v, projection: %+v, skip: %d, limit: %d", filter, projection, skip, limit)
-	service, err := sp.hqDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	sp.logger.Infof("Fetching all total transfer caps with filter: %+v, projection: %+v, skip: %d, limit: %d", filter, projection, 0, 0)
+	service, err := sp.hqDal.FindAllWithPagination(ctx, filter, projection, 0, 0)
 	if err != nil {
 		sp.logger.Errorf("failed to fetch service: %v", err)
 		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
@@ -326,7 +309,7 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
 	}
 	projectedData := ProjectDataArray[model.HQ](service, projection)
-	meta := local_utils.BuildPaginationMeta(total, filterParams.Page, limit)
+	meta := local_utils.BuildPaginationMeta(total, filterParams.Page, 0)
 	var data any = projectedData
 	sp.logger.Infof("Successfully fetched %d total transfer cap services", len(service))
 	return &local_utils.PaginatedResponse[*any]{
@@ -485,7 +468,11 @@ func (sp *servicePersistence) UpdateTotalMaxTransferCap(ctx context.Context, id 
 		sp.logger.Warnf("pending request exists for update total max transfer cap, id: %s", id)
 		return fmt.Errorf("PENDING_REQUEST_EXISTS")
 	}
-	prevHQ, err := sp.hqDal.FindAll(ctx, nil, nil)
+	projection := bson.M{
+		"total_cap": 1,
+		"_id":       1,
+	}
+	prevHQ, err := sp.hqDal.FindAll(ctx, nil, projection)
 	if err != nil {
 		sp.logger.Errorf("error fetching HQ data for update total max transfer cap: %v", err)
 		return err
@@ -919,7 +906,7 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 	}
 
 	switch action.RequestAction {
-	case string(model.RequestUpdateServiceFee), string(model.RequestUpdateServiceSingle), string(model.RequestUpdateServiceTotal), string(model.RequestUpdateServiceMinCap):
+	case string(model.RequestUpdateServiceFee), string(model.RequestUpdateServiceSingle), string(model.RequestUpdateServiceMinCap):
 		current, err := castToBsonM(action.CurrentAction)
 		if err != nil {
 			sp.logger.Errorf("invalid currentAction format for update: %v", err)
@@ -1006,7 +993,61 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 			sp.logger.Errorf("failed to authorize service fee delete: %v", err)
 			return nil, fmt.Errorf("FAILED_TO_AUTHORIZE_DELETE")
 		}
+	case string(model.RequestUpdateServiceTotal):
+		current, err := castToBsonM(action.CurrentAction)
+		if err != nil {
+			sp.logger.Errorf("invalid currentAction format for update: %v", err)
+			return nil, fmt.Errorf("INVALID_CURRENT_ACTION_FORMAT")
+		}
+		update := bson.M{}
+		for k, v := range current {
+			switch val := v.(type) {
+			case string:
+				if strings.TrimSpace(val) != "" {
+					update[k] = v
+				}
+			case []interface{}:
+				// Only include non-empty arrays
+				if len(val) > 0 {
+					update[k] = v
+				}
+			case nil:
+				// skip
+			default:
+				update[k] = v
+			}
+		}
 
+		if len(update) == 0 {
+			sp.logger.Errorf("empty update body for service update")
+			return nil, fmt.Errorf("EMPTY_UPDATE_BODY")
+		}
+
+		update["last_modified_at"] = time.Now()
+		prev, err := castToBsonM(action.PreviousAction)
+
+		if err != nil {
+			sp.logger.Errorf("invalid previousAction format for update: %v", err)
+			return nil, fmt.Errorf("INVALID_PREVIOUS_ACTION_FORMAT")
+		}
+
+		id, ok := prev["_id"].(string)
+		if !ok {
+			sp.logger.Errorf("missing _id in previousAction for update")
+			return nil, fmt.Errorf("MISSING_ID")
+		}
+		objId, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		}
+		filter := bson.M{"_id": objId, "is_deleted": false}
+
+		_, err = sp.hqDal.UpdateOne(ctx, filter, update)
+		fmt.Println(err)
+		if err != nil {
+			sp.logger.Errorf("failed to approve service update: %v", err)
+			return nil, fmt.Errorf("SERVICE_UPDATE_FAILED")
+		}
 	default:
 		sp.logger.Errorf("failed to authorize action: unknown request action %s", action.RequestAction)
 		return nil, fmt.Errorf("FAILED_TO_AUTHORIZE")

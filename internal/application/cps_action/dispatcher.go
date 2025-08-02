@@ -68,8 +68,12 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Permission"):
 		return d.app.PermissionDomain.Authorize(ctx, cpsAction)
 
-	// case constants.IsActionInGroup(action, "UnlinkDevice"):
-	// 	return d.app.UnlinkDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "UnlinkDevice"):
+		data, err := d.app.UnlinkDomain.Authorize(ctx, cpsAction)
+		if err != nil {
+			return nil, err
+		}
+		return marshalBuilder(data)
 
 	case constants.IsActionInGroup(action, "Wallet"):
 		return d.app.WalletDomain.Authorize(ctx, cpsAction)

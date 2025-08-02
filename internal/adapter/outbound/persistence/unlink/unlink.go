@@ -28,7 +28,7 @@ type unlinkCustomer struct {
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
-	Authorize(ctx context.Context, cpsAction any) error
+	Authorize(ctx context.Context, cpsAction any) (any, error)
 }
 
 func NewUnlinkPersistence(client *mongo.Client, database string, collection []string, logger utils.Logger) UnlinkAccount {
@@ -37,20 +37,21 @@ func NewUnlinkPersistence(client *mongo.Client, database string, collection []st
 		logger:            logger,
 		userDal:           dal.NewMongoDal[member.User, member.User](client, database, collection[1]),
 		cpsDal:            dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, collection[0]),
+		linkedDal:         dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[4]),
 		archivedUserDal:   dal.NewMongoDal[model.ArchivedUser, model.ArchivedUser](client, database, collection[2]),
 		archivedLinkedDal: dal.NewMongoDal[model.ArchivedLinkedAccount, model.ArchivedLinkedAccount](client, database, collection[3]),
 	}
 }
 
 func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error) {
-
-	if accNumber != "" {
-		return nil, fmt.Errorf("ACCOUNT_NUMBER_CAN_NOT_BE_EMPTY")
+	if accNumber == "" {
+		return nil, fmt.Errorf("ACCOUNT_NUMBER_CANNOT_BE_EMPTY")
 	}
+
+	// Step 1: Fetch linked account(s)
 	filter := bson.M{
 		"account_number": accNumber,
 	}
-
 	projection := bson.M{
 		"account_number":      1,
 		"linked_status":       1,
@@ -63,43 +64,52 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 		"_id":                 1,
 	}
 
-	linkedAccount, err := u.linkedDal.FindAllWithPagination(ctx, filter, projection, 1, 1)
+	linkedAccounts, err := u.linkedDal.FindAllWithPagination(ctx, filter, projection, 0, 0)
 	if err != nil {
-		return nil, err
+		u.logger.Errorf("failed to fetch linked accounts: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_FETCH_LINKED_ACCOUNTS")
+	}
+	if len(linkedAccounts) == 0 {
+		u.logger.Warnf("no linked account found for account number: %s", accNumber)
+		return nil, fmt.Errorf("NO_DOCUMENT_FOUND")
 	}
 
-	if len(linkedAccount) == 0 {
-		u.logger.Warnf("no data found for minimum transfer cap with filter: %+v", filter)
-		return nil, fmt.Errorf("NO_DOC_FOUND")
-	}
-	total, err := u.linkedDal.TotalCount(ctx, filter)
-	meta := local_util.BuildPaginationMeta(total, 1, 1)
-	if err != nil {
-		return nil, fmt.Errorf("NO_DOC_FOUND")
-	}
-
+	// Step 2: Fetch user by customer number
+	customerNumber := linkedAccounts[0].CustomerNumber
 	filter = bson.M{
-		"customer_code": linkedAccount[0].CustomerNumber,
+		"customer_number": customerNumber,
 	}
 	projection = bson.M{
 		"full_name": 1,
 		"user_code": 1,
 		"_id":       1,
 	}
-	user, err := u.userDal.FindOne(ctx, filter, projection)
+
+	userDoc, err := u.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
-			return nil, fmt.Errorf("NO_DOC_FOUND")
+			u.logger.Warnf("user not found for customer number: %s", customerNumber)
+			return nil, fmt.Errorf("NO_DOCUMENT_FOUND")
 		}
-		return nil, fmt.Errorf("")
-	}
-
-	userData, err := local_util.JsonUnmarshal[bson.M](user)
-	if err != nil {
+		u.logger.Errorf("error fetching user: %v", err)
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
 	}
 
-	(*userData)["linked_account"] = linkedAccount
+	// Step 3: Unmarshal user and attach linked account
+	userData, err := local_util.JsonUnmarshal[bson.M](userDoc)
+	if err != nil {
+		u.logger.Errorf("failed to unmarshal user document: %v", err)
+		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
+	}
+	(*userData)["linked_account"] = linkedAccounts
+
+	// Step 4: Get total count and build pagination meta
+	total, err := u.linkedDal.TotalCount(ctx, bson.M{"account_number": accNumber})
+	if err != nil {
+		u.logger.Errorf("failed to get total count: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_FETCH_TOTAL_COUNT")
+	}
+	meta := local_util.BuildPaginationMeta(total, 1, 1)
 
 	var data any = userData
 	return &local_util.PaginatedResponse[*any]{
@@ -107,6 +117,7 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 		Meta: meta,
 	}, nil
 }
+
 func (u *unlinkCustomer) UnlinkUserCif(ctx context.Context, userCode string) error {
 	u.logger.Infof("Unlinking the user from the system requsting: %s", userCode)
 	actionExist, err := u.checkPendingAction(ctx, string(model.RequestUnlinkUser))
@@ -122,7 +133,7 @@ func (u *unlinkCustomer) UnlinkUserCif(ctx context.Context, userCode string) err
 		return fmt.Errorf("PENDING_REQUEST_EXISTS")
 	}
 
-	prev, err := u.userDal.FindOne(ctx, bson.M{"user_code": userCode, "is_deleted": false}, nil)
+	prev, err := u.userDal.FindOne(ctx, bson.M{"user_code": userCode}, nil)
 	if err != nil {
 		return err
 	}
@@ -133,60 +144,67 @@ func (u *unlinkCustomer) UnlinkUserCif(ctx context.Context, userCode string) err
 	}
 	return nil
 }
-func (u *unlinkCustomer) Authorize(ctx context.Context, cpsAction any) error {
+func (u *unlinkCustomer) Authorize(ctx context.Context, cpsAction any) (any, error) {
 
-	current, err := local_util.JsonUnmarshal[model.CPSAction](cpsAction)
+	cpsActionData, err := local_util.JsonUnmarshal[model.CPSAction](cpsAction)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	userCode := current.UniqueId
+	userCode := cpsActionData.UniqueId
 	if userCode == "" {
-		return fmt.Errorf("USERCODE_CANT_BE_EMPTY")
+		return nil, fmt.Errorf("USERCODE_CANT_BE_EMPTY")
 	}
 	filter := bson.M{
 		"user_code": userCode,
 	}
 	user, err := u.userDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	filter = bson.M{
 		"customer_number": user.CustomerNumber,
 	}
 	linkedAccount, err := u.linkedDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	archivedUser, err := local_util.JsonUnmarshal[model.ArchivedUser](user)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	_, err = u.archivedUserDal.InsertOne(ctx, *archivedUser)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	archivedLinkedAccount, err := local_util.JsonUnmarshal[model.ArchivedLinkedAccount](linkedAccount)
-	if err != nil {
-		return err
+	var archivedLinkedAccount []*model.ArchivedLinkedAccount
+	for _, account := range linkedAccount {
+		acc, err := local_util.JsonUnmarshal[model.ArchivedLinkedAccount](account)
+		if err != nil {
+			return nil, err
+		}
+		archivedLinkedAccount = append(archivedLinkedAccount, acc)
 	}
 
-	_, err = u.archivedLinkedDal.InsertOne(ctx, *archivedLinkedAccount)
-	if err != nil {
-		return err
+	for _, account := range archivedLinkedAccount {
+		_, err = u.archivedLinkedDal.InsertOne(ctx, *account)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = u.userDal.DeleteOne(ctx, bson.M{"user_code": user.UserCode})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = u.linkedDal.DeleteOne(ctx, bson.M{"customer_number": user.CustomerNumber})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return cpsActionData, nil
 }
 
 func (u *unlinkCustomer) createCpsAction(ctx context.Context, id string, previousAction any, currentAction any, requestAction string) error {

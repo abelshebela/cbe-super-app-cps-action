@@ -139,6 +139,7 @@ const (
 	RequestDeleteBudgetCategory   RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
+	RequestUnlinkUser             RequestAction = "UNLINK_USER"
 	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime    RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
@@ -173,7 +174,7 @@ const (
 	RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
 	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
 	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
-	RequestUpdateProductCode RequestAction = "UPDATE_PRODUCT_CODE"
+	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -285,7 +286,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableNotification:     {},
 	RequestDisableNotification:    {},
 	RequestMarkNotificationAsSeen: {},
-	RequestUpdateProductCode:{},
+	RequestUpdateProductCode:      {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -475,6 +476,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"UnlinkDevice": {
 		RequestUnlinkDevice,
+		RequestUnlinkUser,
 	},
 	"HQ": {
 		RequestUpdateHQBlockTime,
@@ -495,7 +497,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	"BulkService": {
 		RequestBulkServiceEnable,
 		RequestBulkServiceDisable,
-  },
+	},
 	"MiniApp": {
 		RequestCreateMiniApp,
 		RequestUpdateMiniApp,
