@@ -1,1 +1,129 @@
 package users
+
+import (
+	"context"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.uber.org/zap"
+)
+
+type userRepository struct {
+	userDal dal.MongoDal[dto.User, dto.User]
+	logger  utils.Logger
+}
+
+func NewUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.UserRepository {
+	return &userRepository{
+		userDal: dal.NewMongoDal[dto.User, dto.User](client, dbName, collection),
+		logger:  logger,
+	}
+}
+
+func (r *userRepository) Save(ctx context.Context, user *dto.User) error {
+	if user == nil {
+		r.logger.Errorf(ctx, "attempted to save nil user")
+		return errors.ErrTryToSaveEmptyUser
+	}
+	_, err := r.userDal.InsertOne(ctx, *user)
+	if err != nil {
+		r.logger.Errorf(ctx, "failed to insert user", zap.Error(err))
+		return errors.ErrUnexpected
+	}
+	r.logger.Info(ctx, "user saved successfully", zap.String("user_id", user.ID.Hex()))
+	return nil
+}
+
+func (r *userRepository) FindById(ctx context.Context, id string) (*dto.User, error) {
+	projection := UserProjection()
+	filter := bson.M{}
+	err := UserIdFilterAttachMent(id, filter)
+	if err != nil {
+		r.logger.Errorf("invalid user id for FindById")
+		return nil, err
+	}
+
+	user, err := r.userDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if err == errors.ErrNoMongoDocument {
+			r.logger.Warnf("no user found for the provided id")
+			return nil, errors.ErrUserNotFound
+		}
+		r.logger.Errorf("unexpected error during FindById")
+		return nil, errors.ErrUnexpected
+	}
+
+	r.logger.Infof("user found by id")
+	return user, nil
+}
+
+func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*dto.User, error) {
+	if phoneNumber == "" {
+		r.logger.Errorf("phone number is empty in FindByPhoneNumber")
+		return nil, errors.ErrPhoneNumberCanNotBeEmpty
+	}
+
+	projection := UserProjection()
+	filter := bson.M{}
+	UserPhoneFilterAttachment(phoneNumber, filter)
+
+	user, err := r.userDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		r.logger.Errorf("failed to find user by phone number")
+		return nil, err
+	}
+	r.logger.Infof("user found by phone number")
+	return user, nil
+}
+
+func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*dto.User, error) {
+	if deviceUUID == "" {
+		r.logger.Errorf("deviceUUID is empty in FindByDeviceUUID")
+		return nil, errors.ErrDeviceUUIDCanNotBeNull
+	}
+
+	projection := UserProjection()
+	filter := bson.M{}
+	UserDeviceUUIDAttachment(deviceUUID, filter)
+
+	user, err := r.userDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if err == errors.ErrNoMongoDocument {
+			r.logger.Warnf("no user found for the provided deviceUUID")
+			return nil, errors.ErrUserNotFound
+		}
+		r.logger.Errorf("unexpected error during FindByDeviceUUID")
+		return nil, errors.ErrUnexpected
+	}
+
+	r.logger.Infof("user found by deviceUUID")
+	return user, nil
+}
+
+func (r *userRepository) Update(ctx context.Context, id string, update *dto.User) error {
+	if update == nil {
+		r.logger.Errorf("attempted to update with nil user")
+		return errors.ErrTryToSaveEmptyUser
+	}
+	var req, filter bson.M
+	err := UserIdFilterAttachMent(id, filter)
+	if err != nil {
+		r.logger.Errorf("invalid user id for Update")
+		return err
+	}
+	UserBuilder(*update, req)
+
+	_, err = r.userDal.UpdateOne(ctx, filter, req)
+	if err != nil {
+		r.logger.Errorf("failed to update user")
+		return err
+	}
+
+	r.logger.Infof("user updated successfully")
+	return nil
+}

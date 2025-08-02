@@ -1,0 +1,124 @@
+package errors
+
+import (
+	"errors"
+	"net/http"
+)
+
+var (
+	ErrIdEmpty                      = errors.New("id can not be empty")
+	ErrUnexpected                   = errors.New("unexpected error")
+	ErrInternalServerError          = errors.New("internal server error")
+	ErrRequestTimeout               = errors.New("request timeout")
+	ErrAccountNotFound              = errors.New("account not found")
+	ErrBadRequest                   = errors.New("bad request")
+	ErrInvalidData                  = errors.New("invalid data")
+	ErrUnauthorized                 = errors.New("unauthorized")
+	ErrActionNotAllowed             = errors.New("action not allowed")
+	ErrMoneyRequestNotFound         = errors.New("money request not found")
+	ErrDeviceMismatch               = errors.New("device mismatch")
+	ErrTimeout                      = errors.New("request timeout")
+	ErrDonationNotFound             = errors.New("donation not found")
+	ErrUserNotFound                 = errors.New("user not found")
+	ErrOTPNotFound                  = errors.New("otp not found")
+	ErrFileTooLarge                 = errors.New("file too large")
+	ErrInvalidFileType              = errors.New("invalid file type")
+	ErrBranchNotFound               = errors.New("branch not found")
+	ErrPhoneNumberAlreadyExists     = errors.New("phone number already exists")
+	ErrRequestFailed                = errors.New("request failed")
+	ErrUserAccountBlocked           = errors.New("account is blocked")
+	ErrDeviceNotFound               = errors.New("device not found")
+	ErrDeviceIDRequired             = errors.New("device id is required")
+	ErrInvalidFormData              = errors.New("invalid form data")
+	ErrHQDataNotFound               = errors.New("hq data not found")
+	ErrPINMismatch                  = errors.New("old pin mismatch")
+	ErrInvalidPIN                   = errors.New("invalid pin")
+	ErrPINOnlyDigit                 = errors.New("pin only digit")
+	ErrWeakPIN                      = errors.New("weak pin")
+	ErrPINRedundant                 = errors.New("pin redundant")
+	ErrPINSeq                       = errors.New("pin seq")
+	ErrPinInHistory                 = errors.New("pin in history")
+	ErrSamePIN                      = errors.New("same pin")
+	ErrPINLength                    = errors.New(" PIN must be exactly 6 digits")
+	ErrOtpExpired                   = errors.New("otp expired")
+	ErrInvalidOTP                   = errors.New("invalid otp")
+	ErrRegistrationExpired          = errors.New("registration expired")
+	ErrInvalidRegistrationStatus    = errors.New("invalid registration status")
+	ErrSessionNotFound              = errors.New("session not found")
+	ErrPinResetAlreadyInProgress    = errors.New("pin reset already in progress")
+	ErrUserAlreadyEmail             = errors.New("user already has email")
+	ErrEmailInuse                   = errors.New("email in use")
+	ErrWaitForPreviousOTPExpiration = errors.New("wait for previous otp expiration")
+	ErrTooManyLoginAttempts         = errors.New("too many login attempts")
+	ErrUserAlreadyExists            = errors.New("user already exists")
+	ErrDeviceAleadyExists           = errors.New("device already exists")
+	ErrRegistrationInProgress       = errors.New("registration already in progress")
+	ErrSessionExpired               = errors.New("session expired")
+	ErrInvalidSession               = errors.New("invalid session")
+	ErrTooManyResetAttempts         = errors.New("too many reset attempts")
+	ErrNoLinkedDevices              = errors.New("no linked devices")
+	ErrSMSSendFailure               = errors.New("sms send failure")
+	ErrInvalidPassword              = errors.New("invalid password")
+	ErrEmptyFilterParam             = errors.New("empty filter param")
+	ErrTryToSaveEmptyUser           = errors.New("error saving empty user data")
+	ErrNoMongoDocument              = errors.New("mongo: no documents in result")
+	ErrPhoneNumberCanNotBeEmpty     = errors.New("phone number can not be empty")
+	ErrDeviceUUIDCanNotBeNull       = errors.New("device uuid can not be null")
+)
+
+var ErrorMap = map[error]int{
+	ErrUnexpected:                   http.StatusInternalServerError,
+	ErrInternalServerError:          http.StatusInternalServerError,
+	ErrRequestTimeout:               http.StatusRequestTimeout,
+	ErrAccountNotFound:              http.StatusNotFound,
+	ErrNoMongoDocument:              http.StatusNotFound,
+	ErrDeviceUUIDCanNotBeNull:       http.StatusBadRequest,
+	ErrIdEmpty:                      http.StatusBadRequest,
+	ErrBadRequest:                   http.StatusBadRequest,
+	ErrPhoneNumberCanNotBeEmpty:     http.StatusBadRequest,
+	ErrTryToSaveEmptyUser:           http.StatusBadRequest,
+	ErrInvalidData:                  http.StatusBadRequest,
+	ErrUnauthorized:                 http.StatusUnauthorized,
+	ErrActionNotAllowed:             http.StatusForbidden,
+	ErrMoneyRequestNotFound:         http.StatusNotFound,
+	ErrDeviceMismatch:               http.StatusConflict,
+	ErrTimeout:                      http.StatusGatewayTimeout,
+	ErrDonationNotFound:             http.StatusNotFound,
+	ErrUserNotFound:                 http.StatusNotFound,
+	ErrOTPNotFound:                  http.StatusNotFound,
+	ErrFileTooLarge:                 http.StatusRequestEntityTooLarge,
+	ErrInvalidFileType:              http.StatusBadRequest,
+	ErrBranchNotFound:               http.StatusNotFound,
+	ErrPhoneNumberAlreadyExists:     http.StatusBadRequest,
+	ErrRequestFailed:                http.StatusBadRequest,
+	ErrUserAccountBlocked:           http.StatusBadRequest,
+	ErrDeviceNotFound:               http.StatusNotFound,
+	ErrDeviceIDRequired:             http.StatusBadRequest,
+	ErrHQDataNotFound:               http.StatusNotFound,
+	ErrPINMismatch:                  http.StatusBadRequest,
+	ErrInvalidPIN:                   http.StatusBadRequest,
+	ErrPINOnlyDigit:                 http.StatusBadRequest,
+	ErrWeakPIN:                      http.StatusBadRequest,
+	ErrPINSeq:                       http.StatusBadRequest,
+	ErrPinInHistory:                 http.StatusBadRequest,
+	ErrSamePIN:                      http.StatusBadRequest,
+	ErrPINLength:                    http.StatusBadRequest,
+	ErrOtpExpired:                   http.StatusBadRequest,
+	ErrInvalidOTP:                   http.StatusBadRequest,
+	ErrRegistrationExpired:          http.StatusBadRequest,
+	ErrSessionNotFound:              http.StatusNotFound,
+	ErrPinResetAlreadyInProgress:    http.StatusBadRequest,
+	ErrUserAlreadyEmail:             http.StatusBadRequest,
+	ErrEmailInuse:                   http.StatusBadRequest,
+	ErrWaitForPreviousOTPExpiration: http.StatusBadRequest,
+	ErrTooManyLoginAttempts:         http.StatusBadRequest,
+	ErrUserAlreadyExists:            http.StatusBadRequest,
+	ErrDeviceAleadyExists:           http.StatusBadRequest,
+	ErrRegistrationInProgress:       http.StatusBadRequest,
+	ErrSessionExpired:               http.StatusBadRequest,
+	ErrInvalidSession:               http.StatusBadRequest,
+	ErrTooManyResetAttempts:         http.StatusBadRequest,
+	ErrNoLinkedDevices:              http.StatusBadRequest,
+	ErrInvalidPassword:              http.StatusBadRequest,
+	ErrEmptyFilterParam:             http.StatusBadRequest,
+}
