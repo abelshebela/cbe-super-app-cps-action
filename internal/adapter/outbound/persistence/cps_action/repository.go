@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/cps_actions"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -21,6 +21,7 @@ import (
 
 type cpsActionStore struct {
 	MongoCPSAction *infra_mongo.MongoDal[model.CPSAction, model.CPSAction]
+	client         *mongo.Client
 	logger         utils.Logger
 }
 
@@ -29,7 +30,47 @@ func NewOutBoundStore(client *mongo.Client, dbName string, collectionName string
 	return &cpsActionStore{
 		MongoCPSAction: MongoCPSAction,
 		logger:         logger,
+		client:         client,
 	}
+}
+
+func (p *cpsActionStore) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	p.logger.Debugf("Starting MongoDB session for transaction")
+
+	session, err := p.client.StartSession()
+	if err != nil {
+		p.logger.Errorf("failed to start MongoDB session: %v", err)
+		return fmt.Errorf(common_util.UnhandledServerError)
+	}
+	defer session.EndSession(ctx)
+
+	return mongo.WithSession(ctx, session, func(txCtx context.Context) error {
+		p.logger.Debugf("Starting MongoDB transaction")
+
+		if err := session.StartTransaction(); err != nil {
+			p.logger.Errorf("failed to start transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		err := fn(txCtx)
+		if err != nil {
+			p.logger.Errorf("transaction logic failed: %v", err)
+			if abortErr := session.AbortTransaction(txCtx); abortErr != nil {
+				p.logger.Errorf("failed to abort transaction: %v", abortErr)
+			} else {
+				p.logger.Debugf("Transaction aborted successfully")
+			}
+			return err
+		}
+
+		if err := session.CommitTransaction(txCtx); err != nil {
+			p.logger.Errorf("failed to commit transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		p.logger.Debugf("Transaction committed successfully")
+		return nil
+	})
 }
 
 func (a *cpsActionStore) CPSActionExists(ctx context.Context, user entity.CheckCPSAction) (bool, error) {
@@ -79,7 +120,7 @@ func (o *cpsActionStore) UpdateCPSAction(ctx context.Context, action *entity.CPS
 		o.logger.Errorf("Domain to Model conversion failed: %v", err)
 		return nil, err
 	}
-	
+
 	filter := bson.M{"action_code": modelAction.ActionCode}
 	update := mappers.BuildCPSActionUpdate(modelAction)
 	res, err := o.MongoCPSAction.UpdateOne(ctx, filter, update)
@@ -94,7 +135,6 @@ func (o *cpsActionStore) UpdateCPSAction(ctx context.Context, action *entity.CPS
 	o.logger.Infof("CPSAction updated successfully: %s", modelAction.ActionCode)
 	return mappers.ModelToDomainCPSAction(res), nil
 }
-
 
 func (o *cpsActionStore) ApproveCPSAction(ctx context.Context, action *entity.AuthorizeCPSAction) (*entity.CPSAction, error) {
 	o.logger.Infof("Approving CPSAction with ActionCode: %s", action.ActionCode)

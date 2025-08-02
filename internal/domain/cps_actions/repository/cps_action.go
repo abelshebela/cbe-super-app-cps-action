@@ -9,6 +9,7 @@ import (
 )
 
 type CPSActionRepository interface {
+	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	CreateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	UpdateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	CPSActionExists(ctx context.Context, user entities.CheckCPSAction) (bool, error)

@@ -14,6 +14,7 @@ import (
 )
 
 type CPSActionService interface {
+	RunInTransaction(ctx context.Context, fn func(txCtx context.Context) error) error
 	CreateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	UpdateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	CPSActionExists(ctx context.Context, user entities.CheckCPSAction) (bool, error)
@@ -37,6 +38,11 @@ func NewCPSActionService(repo repo.CPSActionRepository, logger utils.Logger) CPS
 		logger: logger,
 	}
 }
+
+func (s *cpsActionService) RunInTransaction(ctx context.Context, fn func(txCtx context.Context) error) error {
+	return s.repo.RunInTransaction(ctx, fn)
+}
+
 func (s *cpsActionService) CreateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 	s.logger.Infof("Creating CPS Action with unique ID: %s", action.UniqueID)
 	return s.repo.CreateCPSAction(ctx, action)

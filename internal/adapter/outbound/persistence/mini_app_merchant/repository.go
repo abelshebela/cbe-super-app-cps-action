@@ -22,13 +22,54 @@ import (
 type miniAppMerchantPersistence struct {
 	MongoDalMiniApp dal.MongoDal[model.MiniAppMerchant, model.MiniAppMerchant]
 	logger          utils.Logger
+	client          *mongo.Client
 }
 
 func NewMiniAppMerchantPersistence(client *mongo.Client, DB_name string, collection string, logger utils.Logger) miniApp.MiniAppMerchantRepository {
 	return &miniAppMerchantPersistence{
 		MongoDalMiniApp: dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, DB_name, collection),
 		logger:          logger,
+		client:          client,
 	}
+}
+
+func (p *miniAppMerchantPersistence) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	p.logger.Debugf("Starting MongoDB session for transaction")
+
+	session, err := p.client.StartSession()
+	if err != nil {
+		p.logger.Errorf("failed to start MongoDB session: %v", err)
+		return fmt.Errorf(common_util.UnhandledServerError)
+	}
+	defer session.EndSession(ctx)
+
+	return mongo.WithSession(ctx, session, func(txCtx context.Context) error {
+		p.logger.Debugf("Starting MongoDB transaction")
+
+		if err := session.StartTransaction(); err != nil {
+			p.logger.Errorf("failed to start transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		err := fn(txCtx)
+		if err != nil {
+			p.logger.Errorf("transaction logic failed: %v", err)
+			if abortErr := session.AbortTransaction(txCtx); abortErr != nil {
+				p.logger.Errorf("failed to abort transaction: %v", abortErr)
+			} else {
+				p.logger.Debugf("Transaction aborted successfully")
+			}
+			return err
+		}
+
+		if err := session.CommitTransaction(txCtx); err != nil {
+			p.logger.Errorf("failed to commit transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		p.logger.Debugf("Transaction committed successfully")
+		return nil
+	})
 }
 
 func (p *miniAppMerchantPersistence) CreateMiniAppMerchant(ctx context.Context, merchant *entities.MiniAppMerchant) (*entities.MiniAppMerchant, error) {
