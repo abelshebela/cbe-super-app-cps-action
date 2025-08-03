@@ -24,8 +24,11 @@ type VaultConfig struct {
 	IdleTimeout           uint8  `mapstructure:"IDLE_TIMEOUT"`
 	MenuServicePort       string `mapstructure:"cbe-super-app-budget_PORT"`
 	ServerPublicKey       string `mapstructure:"SERVER_PUBLIC_KEY"`
+	JWTSecretKey          string `mapstructure:"JWT_SECRET_KEY"`
 	ServerTimeout         int    `mapstructure:"SERVER_TIMEOUT"`
 	RedisConfig           RedisConfig
+	Key                   string `mapstructure:"KEY`
+	IV                    string `mapstructure:"IV`
 }
 
 func LoadVault(logger logger.Logger) (*VaultConfig, error) {

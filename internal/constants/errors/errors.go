@@ -6,6 +6,8 @@ import (
 )
 
 var (
+	ErrAccBlocked                   = errors.New("Account is blocked")
+	ErrOldDevice                    = errors.New("your device app is older version")
 	ErrIdEmpty                      = errors.New("id can not be empty")
 	ErrUnexpected                   = errors.New("unexpected error")
 	ErrInternalServerError          = errors.New("internal server error")
@@ -64,14 +66,32 @@ var (
 	ErrNoMongoDocument              = errors.New("mongo: no documents in result")
 	ErrPhoneNumberCanNotBeEmpty     = errors.New("phone number can not be empty")
 	ErrDeviceUUIDCanNotBeNull       = errors.New("device uuid can not be null")
+	ErrDeviceDiffInstallationDate   = errors.New("Device have difference installation date")
+	ErrUserBlockedByCps             = errors.New("User is blocked by cps")
+	ErrUserAccountBlockedByCps      = errors.New("User account is blocked")
+	ErrInvalidKey                   = errors.New("invalid key or IV size")
+	ErrInvalidEncData               = errors.New("invalid encrypted data length")
+	ErrInvalidPadding               = errors.New("invalid padding")
+	ErrFailedOtpCreation            = errors.New("Failed to create OTP record")
+	ErrOTPAlreadyExist              = errors.New("Otp Already exists wait until it expires")
 )
 
 var ErrorMap = map[error]int{
+	ErrUserAccountBlockedByCps:      http.StatusBadRequest,
+	ErrFailedOtpCreation:            http.StatusBadRequest,
+	ErrOTPAlreadyExist:              http.StatusBadRequest,
+	ErrInvalidPadding:               http.StatusBadRequest,
+	ErrInvalidEncData:               http.StatusBadRequest,
+	ErrInvalidKey:                   http.StatusBadRequest,
+	ErrUserBlockedByCps:             http.StatusBadRequest,
+	ErrDeviceDiffInstallationDate:   http.StatusBadRequest,
 	ErrUnexpected:                   http.StatusInternalServerError,
 	ErrInternalServerError:          http.StatusInternalServerError,
 	ErrRequestTimeout:               http.StatusRequestTimeout,
 	ErrAccountNotFound:              http.StatusNotFound,
 	ErrNoMongoDocument:              http.StatusNotFound,
+	ErrAccBlocked:                   http.StatusBadRequest,
+	ErrOldDevice:                    http.StatusBadRequest,
 	ErrDeviceUUIDCanNotBeNull:       http.StatusBadRequest,
 	ErrIdEmpty:                      http.StatusBadRequest,
 	ErrBadRequest:                   http.StatusBadRequest,

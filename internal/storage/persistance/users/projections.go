@@ -16,6 +16,7 @@ func UserProjection() bson.M {
 		"is_account_blocked":            1,
 		"phone_number":                  1,
 		"avatar":                        1,
+		"blocked_on_cps":                1,
 		"profile_theme_type":            1,
 		"kyc_level":                     1,
 		"is_verified":                   1,

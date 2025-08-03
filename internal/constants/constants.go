@@ -7,8 +7,24 @@ const (
 	MaxImageSize = 2 >> 20 // 2MB
 )
 const (
-	Android Platform = "ANDROID"
-	Ios     Platform = "IOS"
+	// MESSAGE GROUP
+	UpdateApp             = "Update your app"
+	DeviceFound           = "Device Successfuly Found"
+	Android      Platform = "ANDROID"
+	Ios          Platform = "IOS"
+	Prelogin              = "pre_login"
+	OTPLength             = 20
+	DEV                   = "dev"
+	UAT                   = "uat"
+	Password              = "password"
+	Login                 = "login"
+	Change                = "change"
+	Permanent             = "permanent"
+	TokenType             = "token_type"
+	Token                 = "token"
+	OTP                   = "otp"
+	VerifyOtp             = "verify_otp"
+	DeviceLookUp          = "device_lookup"
 )
 
 type Realm string
