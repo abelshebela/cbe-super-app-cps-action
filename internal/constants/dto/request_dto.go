@@ -83,3 +83,42 @@ type VerifyForgetPinOtpRequest struct {
 	DeviceUUID     string `json:"device_uuid" validate:"required"`
 	OTP            string `json:"otp" validate:"required,min=6,max=6"`
 }
+
+type PhoneLoginRequest struct {
+	Phone string `json:"phone,omitempty" validate:"required"`
+}
+
+type PinStrengthRequest struct {
+	NewPin int `json:"new_pin" bson:"new_pin"`
+}
+
+type CompleteRegistrationRequest struct {
+	RegistrationID string `json:"registration_id" validate:"required"`
+	Phone          string `json:"phone" validate:"required"`
+	DeviceUUID     string `json:"device_uuid" validate:"required"`
+	Platform       string `json:"platform" validate:"required,oneof=android ios web"`
+	FullName       string `json:"full_name" validate:"required"`
+	OTP            string `json:"otp" validate:"required,min=6,max=6"`
+}
+
+type ForgetPinSendOtpRequest struct {
+	Phone string `json:"phone"`
+}
+
+type OTPRequest struct {
+	UserID string `json:"user_id"`
+	Email  string `json:"email"`
+}
+
+type ResetPinWithTokenRequest struct {
+	ResetSessionID string `json:"reset_session_id" validate:"required"`
+	Phone          string `json:"phone" validate:"required"`
+	DeviceUUID     string `json:"device_uuid" validate:"required"`
+	NewPin         string `json:"new_pin" validate:"required,min=6,max=6"`
+}
+
+type OTPVerification struct {
+	UserID string `json:"user_id" bson:"user_id"`
+	Email  string `json:"email" bson:"email"`
+	OTP    string `json:"otp" bson:"otp"`
+}

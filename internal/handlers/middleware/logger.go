@@ -1,17 +1,29 @@
 package middleware
 
 import (
-	"cbe-super-app-budget/internal/constants"
-	"cbe-super-app-budget/platform/logger"
 	"context"
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+
+	constant "github.com/CBE-Super-App/cbe-super-app-member-auth/platform/utils"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+// Wraps http.ResponseWriter to capture status code
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
 
 func ChiLogger(log logger.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -19,34 +31,30 @@ func ChiLogger(log logger.Logger) func(next http.Handler) http.Handler {
 			start := time.Now()
 			path := r.URL.Path
 			query := r.URL.RawQuery
-
-			ctx := context.WithValue(r.Context(), constants.ContextKey("request-start-time"), start)
-
-			requestID := r.Context().Value(middleware.RequestIDKey)
-			if requestID == "" {
-				ctx = context.WithValue(ctx, middleware.RequestIDKey, uuid.New().String())
+			if query != "" {
+				path = path + "?" + query
 			}
+			id := uuid.New().String()
+			ctx := context.WithValue(r.Context(), constant.ContextKey("x-request-id"), id)
+			ctx = context.WithValue(ctx, constant.ContextKey("request-start-time"), start)
 
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+			ww := &responseWriter{ResponseWriter: w}
 
-			r = r.WithContext(ctx)
-			next.ServeHTTP(ww, r)
+			next.ServeHTTP(ww, r.WithContext(ctx))
 
-			latency := time.Since(start)
+			end := time.Now()
+			latency := end.Sub(start)
 
 			fields := []zapcore.Field{
-				zap.Int("status", ww.Status()),
+				zap.Int("status", ww.statusCode),
 				zap.String("method", r.Method),
 				zap.String("path", path),
 				zap.String("query", query),
-				zap.String("id", r.RemoteAddr),
-				zap.String("ip", r.RemoteAddr),
+				zap.Int64("request-latency(ms)", latency.Milliseconds()),
 				zap.String("user-agent", r.UserAgent()),
-				zap.Int64("request-latency", latency.Milliseconds()),
+				zap.String("ip", r.RemoteAddr),
 			}
-
-			log.Info(r.Context(), "HTTP", fields...)
-
+			log.Info(ctx, "request completed", fields...)
 		})
 	}
 }

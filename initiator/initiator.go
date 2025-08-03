@@ -54,7 +54,7 @@ func Init(ctx context.Context) {
 	serviceLayer := InitServiceLayer(persistanceLayer, redisStorageLayer, log)
 
 	log.Info(ctx, "initialize handler layer")
-	handlerLayer := InitHandlerLayer(serviceLayer, log)
+	handlerLayer := InitHandler(serviceLayer, log)
 
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, log)

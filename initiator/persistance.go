@@ -1,19 +1,21 @@
 package initiator
 
 import (
-	"cbe-super-app-budget/internal/storage"
-	"cbe-super-app-budget/internal/storage/persistance/spending"
-	"cbe-super-app-budget/platform/logger"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/persistance/users"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type PersistanceLayer struct {
-	spending storage.SpendingRepository
+type Persistence struct {
+	UserPersistence storage.UserRepository
+	HQPersistence   storage.HQRepository
+	OTPPersistence  storage.OTPRepository
 }
 
-func InitPersistanceLayer(db *mongo.Database, logger logger.Logger) PersistanceLayer {
-	return PersistanceLayer{
-		spending: spending.NewSpendingRepository(db, logger.Named("spending_persistance")),
+func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) Persistence {
+	return Persistence{
+		UserPersistence: users.NewUserRepository(client, dbName, "users", logger),
 	}
 }

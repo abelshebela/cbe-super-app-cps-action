@@ -1,11 +1,12 @@
 package routing
 
 import (
-	"cbe-super-app-budget/internal/constants"
-	"cbe-super-app-budget/internal/glue"
-	"cbe-super-app-budget/internal/handlers/rest"
-	"cbe-super-app-budget/platform/logger"
 	"net/http"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/glue"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 
 	"github.com/go-chi/chi/v5"
 )

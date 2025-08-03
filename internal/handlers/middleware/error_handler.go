@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"cbe-super-app-budget/platform/logger"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"

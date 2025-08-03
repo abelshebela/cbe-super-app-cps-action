@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer HandlerLayer, logger logger.Logger) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger logger.Logger) {
 	r := chi.NewRouter()
 
 	router.Use(middleware.RequestID)

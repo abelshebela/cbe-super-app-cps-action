@@ -1,20 +1,19 @@
 package initiator
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/storage"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/users"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/spending"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/redis"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type ServiceLayer struct {
-	spending service.SpendingService
-	redis    *redis.RedisStorageFactory
+	UserService storage.UserRepository
 }
 
-func InitServiceLayer(persistnace PersistanceLayer, redisStorage *redis.RedisStorageFactory, logger logger.Logger) ServiceLayer {
+func InitService(persistence Persistence, redisStorage *redis.RedisStorageFactory, logger utils.Logger) ServiceLayer {
 	return ServiceLayer{
-		spending: spending.NewSpendingService(persistnace.spending, logger.Named("spending_service")),
-		redis:    redisStorage,
+		UserService: users.NewUserService()
 	}
 }

@@ -25,6 +25,7 @@ const (
 	OTP                   = "otp"
 	VerifyOtp             = "verify_otp"
 	DeviceLookUp          = "device_lookup"
+	Web          Platform = "WEB"
 )
 
 type Realm string
