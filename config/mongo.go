@@ -1,9 +1,10 @@
 package config
 
 import (
-	"cbe-super-app-budget/platform/logger"
 	"context"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

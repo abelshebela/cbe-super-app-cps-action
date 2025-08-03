@@ -1,8 +1,15 @@
 package constants
 
-import "time"
-
 type ContextKey string
+type Platform string
+
+const (
+	MaxImageSize = 2 >> 20 // 2MB
+)
+const (
+	Android Platform = "ANDROID"
+	Ios     Platform = "IOS"
+)
 
 type Realm string
 
@@ -15,12 +22,6 @@ const (
 	COMPANY_REALM  Realm = "COMPANY"
 	MEMBER_REALM   Realm = "MEMBER"
 )
-
-type LoginPIN struct {
-	PIN              string    `json:"pin" bson:"pin"`
-	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
-	LastPINCreatedAt time.Time `json:"last_pin_created_at" bson:"last_pin_created_at"`
-}
 
 type Gender string
 
@@ -60,13 +61,6 @@ type DeviceStatus string
 const (
 	Linked   DeviceStatus = "LINKED"
 	UnLinked DeviceStatus = "UNLINKED"
-)
-
-type DeviceType string
-
-const (
-	Android DeviceType = "ANDROID"
-	IOS     DeviceType = "IOS"
 )
 
 type AccountStatus string

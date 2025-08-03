@@ -3,8 +3,8 @@ package otp
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -13,18 +13,18 @@ import (
 )
 
 type OTPRepository struct {
-	otpDal dal.MongoDal[dto.OTP, dto.OTP]
+	otpDal dal.MongoDal[model.OTP, model.OTP]
 	logger utils.Logger
 }
 
 func NewOtpRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.OTPRepository {
 	return &OTPRepository{
-		otpDal: dal.NewMongoDal[dto.OTP, dto.OTP](client, dbName, collection),
+		otpDal: dal.NewMongoDal[model.OTP, model.OTP](client, dbName, collection),
 		logger: logger,
 	}
 }
 
-func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*dto.OTP, error) {
+func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*model.OTP, error) {
 	if filter != nil {
 		o.logger.Errorf("Find OTP failed: filter is not nil. filter=%+v", filter)
 		return nil, errors.ErrEmptyFilterParam
@@ -43,7 +43,7 @@ func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*dto.OTP, erro
 	return otp, nil
 }
 
-func (o *OTPRepository) Save(ctx context.Context, otp *dto.OTP) error {
+func (o *OTPRepository) Save(ctx context.Context, otp *model.OTP) error {
 	if otp == nil {
 		o.logger.Errorf("Save OTP failed: otp is nil")
 		return errors.ErrInvalidOTP

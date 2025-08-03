@@ -3,8 +3,8 @@ package users
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -13,18 +13,18 @@ import (
 )
 
 type userRepository struct {
-	userDal dal.MongoDal[dto.User, dto.User]
+	userDal dal.MongoDal[model.User, model.User]
 	logger  utils.Logger
 }
 
 func NewUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.UserRepository {
 	return &userRepository{
-		userDal: dal.NewMongoDal[dto.User, dto.User](client, dbName, collection),
+		userDal: dal.NewMongoDal[model.User, model.User](client, dbName, collection),
 		logger:  logger,
 	}
 }
 
-func (r *userRepository) Save(ctx context.Context, user *dto.User) error {
+func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 	if user == nil {
 		r.logger.Errorf("attempted to save nil user")
 		return errors.ErrTryToSaveEmptyUser
@@ -38,7 +38,7 @@ func (r *userRepository) Save(ctx context.Context, user *dto.User) error {
 	return nil
 }
 
-func (r *userRepository) FindById(ctx context.Context, id string) (*dto.User, error) {
+func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
 	projection := UserProjection()
 	filter := bson.M{}
 	err := UserIdFilterAttachMent(id, filter)
@@ -61,7 +61,7 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*dto.User, er
 	return user, nil
 }
 
-func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*dto.User, error) {
+func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error) {
 	if phoneNumber == "" {
 		r.logger.Errorf("phone number is empty in FindByPhoneNumber")
 		return nil, errors.ErrPhoneNumberCanNotBeEmpty
@@ -80,7 +80,7 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 	return user, nil
 }
 
-func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*dto.User, error) {
+func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error) {
 	if deviceUUID == "" {
 		r.logger.Errorf("deviceUUID is empty in FindByDeviceUUID")
 		return nil, errors.ErrDeviceUUIDCanNotBeNull
@@ -104,7 +104,7 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 	return user, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, id string, update *dto.User) error {
+func (r *userRepository) Update(ctx context.Context, id string, update *model.User) error {
 	if update == nil {
 		r.logger.Errorf("attempted to update with nil user")
 		return errors.ErrTryToSaveEmptyUser

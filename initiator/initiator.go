@@ -1,14 +1,15 @@
 package initiator
 
 import (
-	"cbe-super-app-budget/cmd/server"
-	local "cbe-super-app-budget/config"
-	"cbe-super-app-budget/platform/logger"
 	"context"
 	"fmt"
 	"log"
 	"runtime"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/cmd/server"
+	local "github.com/CBE-Super-App/cbe-super-app-member-auth/config"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -35,11 +36,22 @@ func Init(ctx context.Context) {
 
 	defer local.DisconnectMongo(ctx, client, log)
 
+	// Initialize Redis connection
+	redisClient, err := local.ConnectRedis(log, env)
+	if err != nil {
+		log.Fatal(ctx, "failed to connect to Redis", zap.Error(err))
+	}
+
+	defer local.DisconnectRedis(ctx, redisClient, log)
+
 	log.Info(ctx, "initialize persistance layer")
 	persistanceLayer := InitPersistanceLayer(db, log)
 
+	log.Info(ctx, "initialize Redis storage layer")
+	redisStorageLayer := InitRedisStorageLayer(redisClient, log)
+
 	log.Info(ctx, "initialize service layer")
-	serviceLayer := InitServiceLayer(persistanceLayer, log)
+	serviceLayer := InitServiceLayer(persistanceLayer, redisStorageLayer, log)
 
 	log.Info(ctx, "initialize handler layer")
 	handlerLayer := InitHandlerLayer(serviceLayer, log)

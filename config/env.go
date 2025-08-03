@@ -1,8 +1,9 @@
 package config
 
 import (
-	"cbe-super-app-budget/platform/logger"
 	"fmt"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/hashicorp/vault/api"
@@ -24,6 +25,7 @@ type VaultConfig struct {
 	MenuServicePort       string `mapstructure:"cbe-super-app-budget_PORT"`
 	ServerPublicKey       string `mapstructure:"SERVER_PUBLIC_KEY"`
 	ServerTimeout         int    `mapstructure:"SERVER_TIMEOUT"`
+	RedisConfig           RedisConfig
 }
 
 func LoadVault(logger logger.Logger) (*VaultConfig, error) {

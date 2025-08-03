@@ -1,8 +1,8 @@
 package users
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -50,7 +50,7 @@ func UserDeviceUUIDAttachment(deviceUUID string, filter bson.M) {
 	}
 }
 
-func UserBuilder(update dto.User, data bson.M) {
+func UserBuilder(update model.User, data bson.M) {
 
 	if update.FullName != "" {
 		data["full_name"] = update.FullName
