@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -36,4 +37,23 @@ type ResetSessionRepository interface {
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.PinResetSession, error)
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.PinResetSession, error)
 	Update(ctx context.Context, id string, update *model.PinResetSession) error
+}
+
+type ExternalCallRepository interface {
+	Save(ctx context.Context, externalCall *model.ExternalCall) error
+	FindById(ctx context.Context, id string) (*model.ExternalCall, error)
+	FindByURL(ctx context.Context, url string) ([]*model.ExternalCall, error)
+	FindByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*model.ExternalCall, error)
+	Update(ctx context.Context, id string, update *model.ExternalCall) error
+	Delete(ctx context.Context, id string) error
+}
+
+type SMSRepository interface {
+	Save(ctx context.Context, sms *model.SMS) error
+	FindById(ctx context.Context, id string) (*model.SMS, error)
+	FindByRecipient(ctx context.Context, recipient string) ([]*model.SMS, error)
+	FindByStatus(ctx context.Context, status string) ([]*model.SMS, error)
+	FindByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*model.SMS, error)
+	Update(ctx context.Context, id string, update *model.SMS) error
+	Delete(ctx context.Context, id string) error
 }

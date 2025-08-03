@@ -8,8 +8,11 @@ const (
 )
 const (
 	// MESSAGE GROUP
-	UpdateApp             = "Update your app"
-	DeviceFound           = "Device Successfuly Found"
+	UpdateApp   = "Update your app"
+	DeviceFound = "Device Successfuly Found"
+	OTPMessage  = "Your device lookup OTP is: %s. Valid for %d minutes."
+	PhoneFound  = "Phone successfuly found"
+	// constant
 	Android      Platform = "ANDROID"
 	Ios          Platform = "IOS"
 	Prelogin              = "pre_login"
@@ -25,6 +28,8 @@ const (
 	OTP                   = "otp"
 	VerifyOtp             = "verify_otp"
 	DeviceLookUp          = "device_lookup"
+	Register              = "REGISTER"
+	Empty                 = ""
 )
 
 type Realm string

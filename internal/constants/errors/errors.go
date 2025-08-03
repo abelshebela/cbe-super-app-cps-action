@@ -74,9 +74,14 @@ var (
 	ErrInvalidPadding               = errors.New("invalid padding")
 	ErrFailedOtpCreation            = errors.New("Failed to create OTP record")
 	ErrOTPAlreadyExist              = errors.New("Otp Already exists wait until it expires")
+	ErrFailedToPrepareOTP           = errors.New("failed to prepare SMS payload: %w")
+	ErrFailedSMSApiCall             = errors.New("SMS API call failed: %w")
+	ErrFailedHttpCall               = errors.New("failed to create HTTP request: %w")
+	ErrPhoneNotFound                = errors.New("Phone number not found")
 )
 
 var ErrorMap = map[error]int{
+	ErrPhoneNotFound:                http.StatusBadRequest,
 	ErrUserAccountBlockedByCps:      http.StatusBadRequest,
 	ErrFailedOtpCreation:            http.StatusBadRequest,
 	ErrOTPAlreadyExist:              http.StatusBadRequest,
@@ -85,6 +90,9 @@ var ErrorMap = map[error]int{
 	ErrInvalidKey:                   http.StatusBadRequest,
 	ErrUserBlockedByCps:             http.StatusBadRequest,
 	ErrDeviceDiffInstallationDate:   http.StatusBadRequest,
+	ErrFailedHttpCall:               http.StatusInternalServerError,
+	ErrFailedSMSApiCall:             http.StatusInternalServerError,
+	ErrFailedToPrepareOTP:           http.StatusInternalServerError,
 	ErrUnexpected:                   http.StatusInternalServerError,
 	ErrInternalServerError:          http.StatusInternalServerError,
 	ErrRequestTimeout:               http.StatusRequestTimeout,

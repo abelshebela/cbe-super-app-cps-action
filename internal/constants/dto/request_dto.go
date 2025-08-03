@@ -83,3 +83,9 @@ type VerifyForgetPinOtpRequest struct {
 	DeviceUUID     string `json:"device_uuid" validate:"required"`
 	OTP            string `json:"otp" validate:"required,min=6,max=6"`
 }
+
+// SMSRequest represents the request for sending SMS
+type SMSRequest struct {
+	Recipient   string `json:"recipient" validate:"required"`
+	MessageBody string `json:"message_body" validate:"required"`
+}

@@ -129,7 +129,65 @@ func ExistinOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user mo
 		return false, err
 	}
 
-	if data != nil {
-		return true, nil
+	if data == nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func BuildOTPRecord(user model.User, encOtpCode, deviceUUID string, expirationTime time.Duration, otpFor string) model.OTP {
+	return model.OTP{
+		UserCode:    user.ID.Hex(),
+		OTPCode:     encOtpCode,
+		PhoneNumber: user.PhoneNumber,
+		OTPFor:      constants.OTPFor(otpFor),
+		UserRealm:   constants.MEMBER_REALM,
+		ExpiresAt:   time.Now().Add(expirationTime),
+		CreatedAt:   time.Now(),
+		DeviceUUID:  &deviceUUID,
+	}
+}
+
+func PhoneNotFoundResponse() *dto.DeviceLookupResponse {
+	return &dto.DeviceLookupResponse{
+		DeviceUUID: constants.Empty,
+		NextStep:   constants.Register,
+		IsLatest:   true,
+		Message:    errors.ErrPhoneNotFound.Error(),
+		Status:     404,
+	}
+}
+
+func BuildPhoneLookupResponse(deviceUUID string, user model.User, isLatest bool, token, nextStep string) *dto.DeviceLookupResponse {
+	return &dto.DeviceLookupResponse{
+		DeviceUUID:  deviceUUID,
+		UserID:      user.ID.Hex(),
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		PhoneNumber: user.PhoneNumber,
+		IsLatest:    isLatest,
+		Token:       token,
+		TokenExpiry: time.Now().Add(5 * time.Minute),
+		NextStep:    nextStep,
+		Message:     constants.PhoneFound,
+		Status:      200,
+	}
+}
+
+func PhoneFoundButNotVerifiedPreparation(cfg config.VaultConfig, response dto.DeviceLookupResponse) {
+
+	otpCode := local_util.OTPGenerator(constants.OTPLength)
+	if cfg.GoEnv == constants.DEV || cfg.GoEnv == constants.UAT {
+		response.OTPCode = otpCode
+		response.OTPFor = string(constants.OTPForPINSet)
+	}
+
+}
+
+func PhoneLookupAdditionalBuilder(platform string, userFound bool, nextStep string) map[string]interface{} {
+	return map[string]interface{}{
+		"platform":   platform,
+		"token_type": "pre_login",
+		"next_step":  nextStep,
 	}
 }
