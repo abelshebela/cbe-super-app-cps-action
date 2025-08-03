@@ -6,8 +6,10 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	// "go.mongodb.org/mongo-driver/v2/mongo"
 	"go.uber.org/zap"
 )
 

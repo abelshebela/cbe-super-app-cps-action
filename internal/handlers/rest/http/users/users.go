@@ -9,7 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/response"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
-	serviceUser "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/user"
+	service "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 	common "github.com/CBE-Super-App/cbe-super-app-member-auth/platform/utils"
 
@@ -24,11 +24,11 @@ const (
 )
 
 type user struct {
-	userService serviceUser.UsersService
+	userService service.UserService
 	logger      logger.Logger
 }
 
-func Init(userService serviceUser.UsersService, logger logger.Logger) rest.Users {
+func Init(userService service.UserService, logger logger.Logger) rest.Users {
 	return &user{
 		userService: userService,
 		logger:      logger,

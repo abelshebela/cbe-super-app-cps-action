@@ -1,19 +1,27 @@
 package initiator
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/storage"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/users"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/spending"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/config"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/user"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/redis"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 )
 
 type ServiceLayer struct {
-	UserService storage.UserRepository
+	UserService service.UserService
 }
 
-func InitService(persistence Persistence, redisStorage *redis.RedisStorageFactory, logger utils.Logger) ServiceLayer {
+func InitServiceLayer(persistence Persistence, redisStorage *redis.RedisStorageFactory, logger logger.Logger, cfg *config.VaultConfig) ServiceLayer {
 	return ServiceLayer{
-		UserService: users.NewUserService()
+		UserService: user.NewUserService(persistence.UserPersistence,
+			persistence.OTPPersistence,
+			persistence.HQPersistence,
+			redisStorage,
+			logger,
+			cfg,
+		),
 	}
 }

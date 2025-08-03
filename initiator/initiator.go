@@ -10,6 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/cmd/server"
 	local "github.com/CBE-Super-App/cbe-super-app-member-auth/config"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+	vaultConfig "gitlab.com/bersufekadgetachew/cbe-super-app-shared/config"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -17,6 +18,8 @@ import (
 
 func Init(ctx context.Context) {
 	config := zap.NewProductionConfig()
+	cfg := vaultConfig.LoadVault()
+
 	build, err := config.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		log.Fatalf("failed to initialize logger: %v", err)
@@ -45,13 +48,13 @@ func Init(ctx context.Context) {
 	defer local.DisconnectRedis(ctx, redisClient, log)
 
 	log.Info(ctx, "initialize persistance layer")
-	persistanceLayer := InitPersistanceLayer(db, log)
+	persistanceLayer := InitPersistanceLayer(client, db, log)
 
 	log.Info(ctx, "initialize Redis storage layer")
 	redisStorageLayer := InitRedisStorageLayer(redisClient, log)
 
 	log.Info(ctx, "initialize service layer")
-	serviceLayer := InitServiceLayer(persistanceLayer, redisStorageLayer, log)
+	serviceLayer := InitServiceLayer(persistanceLayer, redisStorageLayer, log, cfg)
 
 	log.Info(ctx, "initialize handler layer")
 	handlerLayer := InitHandler(serviceLayer, log)
