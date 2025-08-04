@@ -1557,6 +1557,10 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 		Status:      200,
 	}
 
+	fmt.Println("**********************")
+	fmt.Println(user.IsVerified)
+	fmt.Println("**********************")
+
 	if !user.IsVerified {
 
 		otpCode := utils.OTPGenerator(6)
