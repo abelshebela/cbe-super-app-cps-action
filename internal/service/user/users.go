@@ -25,19 +25,17 @@ type UsersService struct {
 	userRepo     storage.UserRepository
 	otpRepo      storage.OTPRepository
 	hqRepo       storage.HQRepository
-	redisFactory storage.RedisRepository
 	logger       utils.Logger
 	Cfg          config.VaultConfig
 }
 
-func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, redisFactory storage.RedisRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
+func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
 	return &UsersService{
 		smsService:   smsService,
 		TokenService: tokenService,
 		userRepo:     userRepo,
 		otpRepo:      otpRepo,
 		hqRepo:       hqRepo,
-		redisFactory: redisFactory,
 		logger:       logger,
 		Cfg:          config,
 	}

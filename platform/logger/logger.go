@@ -1,9 +1,10 @@
 package logger
 
 import (
-	"cbe-super-app-budget/internal/constants"
 	"context"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"cbe-super-app-budget/initiator"
 	"context"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/initiator"
 )
 
 func main() {

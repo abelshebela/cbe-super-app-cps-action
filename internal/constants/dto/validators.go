@@ -14,11 +14,9 @@ import (
 )
 
 func isWeakPin(pin string) bool {
-	// Check for repeated digits
 	if strings.Count(pin, string(pin[0])) == len(pin) {
 		return true
 	}
-	// Check for sequential patterns
 	isAscending := true
 	isDescending := true
 	for i := 1; i < len(pin); i++ {
@@ -212,7 +210,7 @@ func (c CompleteRegistrationRequest) Validate() error {
 		})),
 		validation.Field(&c.FullName, validation.Required),
 		validation.Field(&c.OTP, validation.Required),
-		validation.Field(&c.Platform, validation.Required, validation.In(constants.Android, constants.Ios, constants.Web)),
+		validation.Field(&c.Platform, validation.Required, validation.In(constants.Android, constants.Ios)),
 		validation.Field(&c.DeviceUUID, validation.Required, validation.Min(10)),
 	)
 

@@ -1,16 +1,16 @@
 package initiator
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/redis"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+	redis_store "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/redis"
 	"github.com/redis/go-redis/v9"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // InitRedisStorageLayer initializes the Redis storage layer
-func InitRedisStorageLayer(client *redis.Client, log logger.Logger) *redis.RedisStorageFactory {
-	redisFactory := redis.NewRedisStorageFactory(client, log)
+func InitRedisStorageLayer(client *redis.Client, log utils.Logger) *redis_store.RedisStorageFactory {
+	redisFactory := redis_store.NewRedisStorageFactory(client, log)
 	redisFactory.Initialize()
 
-	log.Info(nil, "Redis storage layer initialized successfully")
+	log.Infof("Redis storage layer initialized successfully")
 	return redisFactory
 }

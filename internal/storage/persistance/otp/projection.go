@@ -1,7 +1,7 @@
 package otp
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -18,7 +18,7 @@ func OtpProjection() bson.M {
 	}
 }
 
-func OtpDataBuilder(o dto.OTP, data bson.M) {
+func OtpDataBuilder(o model.OTP, data bson.M) {
 	if o.PhoneNumber != "" {
 		data["phone_number"] = o.PhoneNumber
 	}

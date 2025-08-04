@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
-
-	constant "github.com/CBE-Super-App/cbe-super-app-member-auth/platform/utils"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -25,7 +24,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func ChiLogger(log logger.Logger) func(next http.Handler) http.Handler {
+func ChiLogger(log utils.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -35,8 +34,8 @@ func ChiLogger(log logger.Logger) func(next http.Handler) http.Handler {
 				path = path + "?" + query
 			}
 			id := uuid.New().String()
-			ctx := context.WithValue(r.Context(), constant.ContextKey("x-request-id"), id)
-			ctx = context.WithValue(ctx, constant.ContextKey("request-start-time"), start)
+			ctx := context.WithValue(r.Context(), constants.ContextKey("x-request-id"), id)
+			ctx = context.WithValue(ctx, constants.ContextKey("request-start-time"), start)
 
 			ww := &responseWriter{ResponseWriter: w}
 
@@ -54,7 +53,7 @@ func ChiLogger(log logger.Logger) func(next http.Handler) http.Handler {
 				zap.String("user-agent", r.UserAgent()),
 				zap.String("ip", r.RemoteAddr),
 			}
-			log.Info(ctx, "request completed", fields...)
+			log.Infof("request completed", fields)
 		})
 	}
 }

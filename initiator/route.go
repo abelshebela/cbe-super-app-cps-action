@@ -8,17 +8,17 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/glue/routing/users"
 	customeMiddleware "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/middleware"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
-	vaultConfig "gitlab.com/bersufekadgetachew/cbe-super-app-shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger logger.Logger) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger) {
 	r := chi.NewRouter()
-	cfg := vaultConfig.LoadVault()
+	cfg, _ := config.Load()
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -32,7 +32,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(map[string]string{"status": "It's Working!"}); err != nil {
-			logger.Error(ctx, "Failed to write health check response", zap.Error(err))
+			logger.Errorf("Failed to write health check response", zap.Error(err))
 		}
 	})
 

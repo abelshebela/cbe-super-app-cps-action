@@ -12,15 +12,13 @@ import (
 	"strings"
 
 	"github.com/go-chi/cors"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/golang-jwt/jwt/v5"
-	"go.uber.org/zap"
 
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	customErr "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/response"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
-
-	constant "github.com/CBE-Super-App/cbe-super-app-member-auth/platform/utils"
 )
 
 func CORS() func(http.Handler) http.Handler {
@@ -70,7 +68,7 @@ type UserPayload struct {
 }
 
 type authMiddleware struct {
-	logger       logger.Logger
+	logger       utils.Logger
 	JWTSecretKey string
 	Key          string
 	IV           string
@@ -81,7 +79,7 @@ type AuthMiddleware interface {
 	AuthenticateTempToken(next http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(secretKey, key, iv string, logger logger.Logger) AuthMiddleware {
+func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
 		JWTSecretKey: secretKey,
 		Key:          key,
@@ -97,14 +95,14 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, bearer) {
-			a.logger.Warn(r.Context(), "bearer token is not provided")
+			a.logger.Warnf("bearer token is not provided")
 			response.SendErrorResponse(w, customErr.ErrUnauthorized)
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, bearer)
 		if tokenString == "" {
-			a.logger.Warn(r.Context(), "empty token string provided")
+			a.logger.Warnf("empty token string provided")
 			response.SendErrorResponse(w, customErr.ErrUnauthorized)
 			return
 		}
@@ -135,7 +133,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		bearer := "Bearer "
 
 		if !strings.HasPrefix(authHeader, bearer) {
-			a.logger.Warn(r.Context(), "bearer token is not present")
+			a.logger.Warnf("bearer token is not present")
 			response.SendErrorResponse(w, customErr.ErrUnauthorized)
 			return
 		}
@@ -143,7 +141,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		tokenString := authHeader[len(bearer):]
 
 		if tokenString == "" {
-			a.logger.Warn(r.Context(), "empty token string provided")
+			a.logger.Warnf("empty token string provided")
 			response.SendErrorResponse(w, customErr.ErrUnauthorized)
 			return
 		}
@@ -172,26 +170,26 @@ func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) 
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			a.logger.Error(ctx, "unexpected signing method used")
+			a.logger.Errorf("unexpected signing method used")
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return jwtSecret, nil
 	})
 
 	if err != nil || !token.Valid {
-		a.logger.Error(ctx, "invalid or expired token", zap.Error(err))
+		a.logger.Errorf("invalid or expired token: %v", err)
 		return "", customErr.ErrUnauthorized
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		a.logger.Error(ctx, "failed to cast to map claims")
+		a.logger.Errorf("failed to cast to map claims")
 		return "", customErr.ErrUnauthorized
 	}
 
 	data, ok := claims["data"].(string)
 	if !ok || data == "" {
-		a.logger.Error(ctx, "invalid token or data not present")
+		a.logger.Errorf("invalid token or data not present")
 		return "", customErr.ErrUnauthorized
 	}
 
@@ -207,7 +205,7 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 	var userPayload UserPayload
 	err = json.Unmarshal([]byte(decryptedUser), &userPayload)
 	if err != nil {
-		a.logger.Error(ctx, "failed to unmarshal user payload", zap.Error(err))
+		a.logger.Errorf("failed to unmarshal user payload: %v", err)
 		return UserPayload{}, customErr.ErrUnauthorized
 	}
 
@@ -215,14 +213,14 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 }
 
 func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPayload) context.Context {
-	ctx = context.WithValue(ctx, constant.ContextKey("branch_code"), userPayload.BranchCode)
-	ctx = context.WithValue(ctx, constant.ContextKey("user_role"), userPayload.UserRole)
-	ctx = context.WithValue(ctx, constant.ContextKey("user_id"), userPayload.UserID)
-	ctx = context.WithValue(ctx, constant.ContextKey("phone_number"), userPayload.PhoneNumber)
-	ctx = context.WithValue(ctx, constant.ContextKey("user_code"), userPayload.UserCode)
-	ctx = context.WithValue(ctx, constant.ContextKey("full_name"), userPayload.FullName)
-	ctx = context.WithValue(ctx, constant.ContextKey("department"), userPayload.Department)
-	ctx = context.WithValue(ctx, constant.ContextKey("next_step"), userPayload.NextStep)
+	ctx = context.WithValue(ctx, constants.ContextKey("branch_code"), userPayload.BranchCode)
+	ctx = context.WithValue(ctx, constants.ContextKey("user_role"), userPayload.UserRole)
+	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), userPayload.UserID)
+	ctx = context.WithValue(ctx, constants.ContextKey("phone_number"), userPayload.PhoneNumber)
+	ctx = context.WithValue(ctx, constants.ContextKey("user_code"), userPayload.UserCode)
+	ctx = context.WithValue(ctx, constants.ContextKey("full_name"), userPayload.FullName)
+	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
+	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
 	return ctx
 }
 
@@ -231,23 +229,23 @@ func (a *authMiddleware) decryptUserData(ctx context.Context, data string) (stri
 	ivByte := []byte(a.IV)
 
 	if len(keyByte) != 32 {
-		a.logger.Warn(ctx, "invalid key byte provided")
+		a.logger.Warnf("invalid key byte provided")
 		return "", errors.New("key must be 32 bytes for AES-256")
 	}
 	if len(ivByte) != aes.BlockSize {
-		a.logger.Warn(ctx, "invalid iv bytes provided must be 16 bytes")
+		a.logger.Warnf("invalid iv bytes provided must be 16 bytes")
 		return "", errors.New("IV must be 16 bytes for AES-256-CBC")
 	}
 
 	ciphertext, err := hex.DecodeString(data)
 	if err != nil {
-		a.logger.Error(ctx, "failed to decode hex", zap.Error(err))
+		a.logger.Errorf("failed to decode hex: %v", err)
 		return "", fmt.Errorf("hex decode failed: %w", err)
 	}
 
 	block, err := aes.NewCipher(keyByte)
 	if err != nil {
-		a.logger.Error(ctx, "new cipher failed", zap.Error(err))
+		a.logger.Errorf("new cipher failed: %v", err)
 		return "", fmt.Errorf("NewCipher failed: %w", err)
 	}
 
@@ -267,21 +265,21 @@ func (a *authMiddleware) decryptUserData(ctx context.Context, data string) (stri
 
 func (a *authMiddleware) pkcs7Unpad(ctx context.Context, data []byte, blockSize int) ([]byte, error) {
 	if len(data) == 0 {
-		a.logger.Warn(ctx, "input data is empty")
+		a.logger.Warnf("input data is empty")
 		return nil, errors.New("input data is empty")
 	}
 	if len(data)%blockSize != 0 {
-		a.logger.Warn(ctx, "input length is not multiple of block size")
+		a.logger.Warnf("input length is not multiple of block size")
 		return nil, errors.New("input length is not a multiple of block size")
 	}
 	padding := int(data[len(data)-1])
 	if padding == 0 || padding > blockSize {
-		a.logger.Warn(ctx, "invalid padding")
+		a.logger.Warnf("invalid padding")
 		return nil, errors.New("invalid padding")
 	}
 	for i := len(data) - padding; i < len(data); i++ {
 		if int(data[i]) != padding {
-			a.logger.Warn(ctx, "invalid padding bytes")
+			a.logger.Warnf("invalid padding bytes")
 			return nil, errors.New("invalid padding bytes")
 		}
 	}
