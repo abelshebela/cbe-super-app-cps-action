@@ -560,6 +560,7 @@ func (r *MongoRepository) FindUserByPhone(ctx context.Context, phone string) (*u
 	}
 
 	userEntity, err := r.userDal.FindOne(ctx, filter, nil)
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, ErrNotFound
@@ -702,7 +703,8 @@ func (r *MongoRepository) mapUserEntityToDomain(userEntity *entities.User) *user
 		LastLogin:         userEntity.LastLogin,
 		DeviceUUID:        userEntity.DeviceUUID,
 		AppVersion:        userEntity.AppVersion,
-
+		Enabled:           userEntity.Enabled,
+		IsBlocked:         userEntity.IsBlocked,
 		KYC: struct {
 			KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
 			KYCStatus            enums.KYCStatus     `json:"kyc_status" bson:"kyc_status"`

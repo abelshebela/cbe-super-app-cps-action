@@ -969,6 +969,7 @@ func (s *UserService) Login(ctx context.Context, phone, deviceUUID, pin string) 
 		s.logger.Errorf("Failed to find user with phone %s: %v", phone, err)
 		return nil, ErrUserNotFound
 	}
+
 	if err := checkValidation(userData); err != nil {
 		return nil, err
 	}
@@ -982,7 +983,6 @@ func (s *UserService) Login(ctx context.Context, phone, deviceUUID, pin string) 
 	if err := utils.CheckLoginThrottle(userData.LoginAttemptCount, userData.LastLoginAttempt); err != nil {
 		return nil, err
 	}
-
 	user, err := s.repository.FindUserByPhoneForLogin(ctx, phone, encryptedPin)
 	if user == nil {
 		s.incrementLoginAttempts(ctx, userData.ID.Hex())
@@ -1614,12 +1614,15 @@ func userEntityMap(user *User, deviceUUID, appVersion string) entities.User {
 	}
 }
 func checkValidation(user *User) error {
+
 	if user.LoginAttemptCount >= 5 {
 		return errors.New("BLOCK_BY_MULTIPLE_TRIES")
 	}
 	if user.IsBlocked || !user.Enabled {
+
 		return errors.New("USER_DISABLED_BLOCKED")
 	}
+
 	return nil
 }
 func (s *UserService) PreLogin(ctx context.Context, deviceUUID, platform, appVersion, sourceApp, phoneNumber, installationDate string) (*dto.DeviceLookupResponse, error) {

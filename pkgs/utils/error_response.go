@@ -17,6 +17,7 @@ type APIErrorResponse struct {
 var errorKeyToStatus = map[string]int{
 	// General
 	"CONFLICT_KEY":                     409,
+	"USER_DISABLED_BLOCKED":            409,
 	"INVALID_ID":                       400,
 	"INVALID_JSON_PAYLOAD":             400,
 	"UNHANDLED_SERVER_ERROR":           500,
