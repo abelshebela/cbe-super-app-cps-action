@@ -294,7 +294,7 @@ func BuildVerifyOtpResponse(userID, phone, token, nextStep string) *dto.VerifyOt
 
 func PinValidator(userPin, inputPin string) error {
 	if subtle.ConstantTimeCompare([]byte(userPin), []byte(inputPin)) == 0 {
-		return errors.ErrInvalidOTP
+		return errors.ErrInvalidPIN
 	}
 	return nil
 }
@@ -358,26 +358,11 @@ func OtpProvider(tokenService token.TokenService) (*string, *string, error) {
 	return &otpCode, &encOtpCode, nil
 }
 
-type RegistrationRecord struct {
-	ID          string
-	PhoneNumber string
-	DeviceUUID  string
-	Platform    string
-	FullName    string
-	OTP         string
-	OTPFor      string
-	Status      string
-	ExpiresAt   time.Time
-	CreatedAt   time.Time
-	Attempts    int
-	MaxAttempts int
-}
-
-func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) RegistrationRecord {
+func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) types.RegistrationRecord {
 	registrationID := uuid.New().String()
 	expirationTime := 10 * time.Minute
 
-	return RegistrationRecord{
+	return types.RegistrationRecord{
 		ID:          registrationID,
 		PhoneNumber: req.Phone,
 		DeviceUUID:  req.DeviceUUID,
@@ -393,7 +378,7 @@ func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) Registr
 	}
 }
 
-func BuildOTPFromRegistration(registration RegistrationRecord) model.OTP {
+func BuildOTPFromRegistration(registration types.RegistrationRecord) model.OTP {
 	return model.OTP{
 		PhoneNumber: registration.PhoneNumber,
 		DeviceUUID:  &registration.DeviceUUID,
@@ -424,5 +409,125 @@ func BuildRegisterResponse(registrationID string, req dto.RegisterRequest, env s
 		TokenExpiry:        time.Now().Add(24 * time.Hour),
 		NextStep:           constants.VerifyOtp,
 		RegistrationStatus: constants.Incomplete,
+	}
+}
+
+func BuildPinResetSession(user model.User, encOtpCode string, expirationTime time.Duration) model.PinResetSession {
+
+	return model.PinResetSession{
+		ID:               bson.NewObjectID(),
+		UserID:           user.ID.Hex(),
+		PhoneNumber:      user.PhoneNumber,
+		DeviceUUID:       user.DeviceUUID,
+		OTP:              encOtpCode,
+		OTPFor:           string(constants.OTPForPINReset),
+		Status:           string(constants.Pending),
+		ExpiresAt:        time.Now().Add(expirationTime + 5*time.Minute),
+		CreatedAt:        time.Now(),
+		Attempts:         0,
+		Enabled:          false,
+		MaxAttempts:      3,
+		AccessRestricted: true,
+	}
+}
+
+func ResetPinAdditionalBuilder(sessionID string) map[string]interface{} {
+	return map[string]interface{}{
+		"reset_session_id": sessionID,
+		"token_type":       constants.OTPForForgetPin,
+		"next_step":        constants.ForgetPinVerifyOtp,
+	}
+}
+
+func BuildForgetPinSendOtpResponse(formattedPhone, deviceUUID, sessionID, token, otp, env string, wait int) *dto.ForgetPinSendOtpResponse {
+	otpCode := ""
+	if env == constants.DEV || env == constants.UAT {
+		otpCode = otp
+	}
+	return &dto.ForgetPinSendOtpResponse{
+		PhoneNumber:      formattedPhone,
+		DeviceUUID:       deviceUUID,
+		OTPSent:          true,
+		OTPExpiryMinutes: wait,
+		ResetSessionID:   sessionID,
+		Token:            token,
+		TokenType:        string(constants.OTPForForgetPin),
+		TokenExpiry:      time.Now().Add(10 * time.Minute),
+		NextStep:         constants.ForgetPinVerifyOtp,
+		OTP:              otpCode,
+	}
+}
+
+func ValidatePinResetSession(session *model.PinResetSession, req dto.VerifyForgetPinOtpRequest) error {
+
+	if session.DeviceUUID != req.DeviceUUID || session.PhoneNumber != req.Phone {
+		return errors.ErrPinResetDeviceMismatch
+	}
+
+	if !session.Enabled {
+		return errors.ErrPinNeedActivation
+	}
+
+	if session.Status != string(constants.Pending) {
+		return errors.ErrPinResetSessionInvalid
+	}
+
+	if session.Attempts >= session.MaxAttempts {
+		return errors.ErrTooManyResetAttempts
+	}
+
+	return nil
+}
+
+func BuildResetPinVerifyOtpResponse(id, phone, token string) *dto.VerifyOtpResponse {
+	return &dto.VerifyOtpResponse{
+		UserID:      id,
+		PhoneNumber: phone,
+		OTPVerified: true,
+		Token:       token,
+		TokenType:   constants.ResetPin,
+		TokenExpiry: time.Now().Add(24 * time.Hour),
+		NextStep:    constants.ResetPin,
+	}
+}
+
+func ValidatePinResetSessionToken(session *model.PinResetSession, req dto.ResetPinRequest) error {
+
+	if time.Now().After(session.ExpiresAt) {
+		return errors.ErrPinResetSessionExpired
+	}
+	if session.DeviceUUID != req.DeviceUUID || session.PhoneNumber != req.Phone {
+		return errors.ErrPinResetDeviceMismatch
+	}
+
+	if !session.Enabled {
+		return errors.ErrPinNeedActivation
+	}
+
+	if session.Status != string(constants.Pending) {
+		return errors.ErrPinResetSessionInvalid
+	}
+
+	if session.Attempts >= session.MaxAttempts {
+		return errors.ErrTooManyResetAttempts
+	}
+
+	return nil
+}
+
+func BuildResetPinResponse(user *model.User, session *model.PinResetSession, token string) *dto.ResetPinResponse {
+	return &dto.ResetPinResponse{
+		UserID:           user.ID.Hex(),
+		UserCode:         user.UserCode,
+		FullName:         user.FullName,
+		PhoneNumber:      user.PhoneNumber,
+		PinReset:         true,
+		ResetTime:        time.Now(),
+		AccessRestricted: session.AccessRestricted,
+		Restrictions:     session.Restrictions,
+		Token:            token,
+		TokenType:        constants.Permanent,
+		TokenExpiry:      time.Now().Add(24 * time.Hour),
+		NextStep:         "login_with_new_pin",
 	}
 }

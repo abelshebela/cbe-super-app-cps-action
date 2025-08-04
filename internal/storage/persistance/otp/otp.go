@@ -6,6 +6,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -63,7 +64,7 @@ func (o *OTPRepository) Delete(ctx context.Context, id string) error {
 		o.logger.Errorf("Delete OTP failed: id is empty")
 		return errors.ErrIdEmpty
 	}
-	filter, err := FilterIdForOtp(id)
+	filter, err := local_util.FilterIdFor(id)
 	if err != nil {
 		o.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
 		return err

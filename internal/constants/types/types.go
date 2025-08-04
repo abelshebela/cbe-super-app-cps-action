@@ -18,3 +18,18 @@ type LoginPIN struct {
 	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
 	LastPINCreatedAt time.Time `json:"last_pin_created_at" bson:"last_pin_created_at"`
 }
+
+type RegistrationRecord struct {
+	ID          string
+	PhoneNumber string
+	DeviceUUID  string
+	Platform    string
+	FullName    string
+	OTP         string
+	OTPFor      string
+	Status      string
+	ExpiresAt   time.Time
+	CreatedAt   time.Time
+	Attempts    int
+	MaxAttempts int
+}

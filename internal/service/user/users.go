@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
@@ -19,27 +20,30 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
 )
 
 type UsersService struct {
-	smsService   external_call.SMSPersistence
-	TokenService token.TokenService
-	userRepo     storage.UserRepository
-	otpRepo      storage.OTPRepository
-	hqRepo       storage.HQRepository
-	logger       utils.Logger
-	Cfg          config.VaultConfig
+	smsService        external_call.SMSPersistence
+	TokenService      token.TokenService
+	userRepo          storage.UserRepository
+	otpRepo           storage.OTPRepository
+	hqRepo            storage.HQRepository
+	ressetSessionRepo storage.ResetSessionRepository
+	logger            utils.Logger
+	Cfg               config.VaultConfig
 }
 
-func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
+func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, resetSession storage.ResetSessionRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
 	return &UsersService{
-		smsService:   smsService,
-		TokenService: tokenService,
-		userRepo:     userRepo,
-		otpRepo:      otpRepo,
-		hqRepo:       hqRepo,
-		logger:       logger,
-		Cfg:          config,
+		smsService:        smsService,
+		TokenService:      tokenService,
+		userRepo:          userRepo,
+		otpRepo:           otpRepo,
+		hqRepo:            hqRepo,
+		ressetSessionRepo: resetSession,
+		logger:            logger,
+		Cfg:               config,
 	}
 }
 
@@ -332,18 +336,180 @@ func (us *UsersService) NotVerifiedUser(ctx context.Context, user *model.User, o
 	return nil
 }
 
-// func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) (*dto.ForgetPinSendOtpResponse, error) {
-// }
-// func (us *UsersService) VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error) {
-// }
-// func (us *UsersService) ResetPin(ctx context.Context, req dto.ResetPinRequest) (*dto.ResetPinResponse, error) {
-// }
+func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) (*dto.ForgetPinSendOtpResponse, error) {
+	user, err := us.userRepo.FindByPhoneNumber(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
 
-// func (us *UsersService) ChangePin(ctx context.Context, req dto.ChangePinRequest) error {
-// 	return nil
-// }
+	if err := core.ValidUserChecker(user, user.APPInstallationDate.String()); err != nil {
+		return nil, err
+	}
+
+	if strings.TrimSpace(user.DeviceUUID) != strings.TrimSpace(deviceUUID) {
+		return nil, errors.ErrPinResetDeviceMismatch
+	}
+
+	existingSession, err := us.ressetSessionRepo.FindByPhoneNumber(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
+
+	if existingSession != nil {
+		if time.Now().Before(existingSession.ExpiresAt) && existingSession.Status == string(constants.Pending) {
+			return nil, errors.ErrRegistrationInProgress
+		}
+		if err := us.ressetSessionRepo.Delete(ctx, user.ID.String()); err != nil {
+			return nil, err
+		}
+	}
+
+	otp, encOtp, err := core.OtpProvider(us.TokenService)
+	if err != nil {
+		return nil, errors.ErrPinResetFailed
+	}
+
+	expirationTime := 10 * time.Minute // 10 minutes expiry
+	wait := int(expirationTime.Minutes())
+	pinResetSession := core.BuildPinResetSession(*user, *encOtp, expirationTime)
+
+	if err := us.ressetSessionRepo.Save(ctx, &pinResetSession); err != nil {
+		return nil, err
+	}
+
+	go func() {
+		if err := us.smsService.SendOTP(ctx, user.PhoneNumber, *otp, wait); err != nil {
+			us.logger.Errorf("Unbale to send otp %v", err)
+		}
+	}()
+
+	userEntity := core.BuildUserData(user.FullName, user.PhoneNumber, user.DeviceUUID)
+
+	additional := core.ResetPinAdditionalBuilder(pinResetSession.ID.Hex())
+
+	token, err := us.TokenService.TempTokenMaker(userEntity, additional, string(constants.OTPForForgetPin))
+	if err != nil {
+		return nil, err
+	}
+
+	response := core.BuildForgetPinSendOtpResponse(user.PhoneNumber, user.DeviceUUID, pinResetSession.ID.Hex(), token, *otp, us.Cfg.GoEnv, wait)
+
+	return response, nil
+}
+
+func (us *UsersService) VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error) {
+	session, err := us.ressetSessionRepo.FindById(ctx, req.ResetSessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := core.ValidatePinResetSession(session, req); err != nil {
+		return nil, err
+	}
+
+	encOtp, _, err := us.TokenService.LocalEncryptPassword(req.OTP, constants.OTP, constants.OTP, constants.OTP)
+	if err != nil {
+		return nil, errors.ErrPinResetFailed
+	}
+
+	if err := core.PinValidator(session.OTP, encOtp); err != nil {
+		return nil, err
+	}
+	objId, objErr := bson.ObjectIDFromHex(req.UserId)
+	token, err := us.TokenService.TempTokenMaker(&model.User{ID: objId, FullName: req.FullName, PhoneNumber: req.Phone, DeviceUUID: req.DeviceUUID}, nil, constants.ResetPin)
+	if err != nil || objErr != nil {
+		return nil, err
+	}
+
+	response := core.BuildResetPinVerifyOtpResponse(req.UserId, req.Phone, token)
+
+	return response, nil
+}
+
+func (us *UsersService) ResetPin(ctx context.Context, req dto.ResetPinRequest) (*dto.ResetPinResponse, error) {
+
+	session, err := us.ressetSessionRepo.FindById(ctx, req.ResetSessionID)
+	if err != nil {
+		return nil, errors.ErrPinResetSessionNotFound
+	}
+
+	if err := core.ValidatePinResetSessionToken(session, req); err != nil {
+		return nil, err
+	}
+
+	user, err := us.userRepo.FindByPhoneNumber(ctx, req.Phone)
+	if err != nil {
+		return nil, errors.ErrUserNotFound
+	}
+
+	hashedNewPin, _, _ := us.TokenService.LocalEncryptPassword(req.NewPin, constants.Empty, constants.Empty, constants.Empty)
+
+	if err := us.userRepo.Update(ctx, user.ID.Hex(), &model.User{LoginPIN: types.LoginPIN{PIN: hashedNewPin, LastPINCreatedAt: time.Now()}}); err != nil {
+		return nil, errors.ErrPinResetFailed
+	}
+
+	session.Status = string(constants.Completed)
+	now := time.Now()
+	session.VerifiedAt = &now
+	session.CompletedAt = &now
+
+	if err := us.ressetSessionRepo.Update(ctx, req.ResetSessionID, session); err != nil {
+		return nil, err
+	}
+
+	token, err := us.TokenService.TokenMaker(&model.User{ID: user.ID, FullName: user.FullName, PhoneNumber: user.FullName, DeviceUUID: user.DeviceUUID}, &us.Cfg, constants.Permanent)
+	if err != nil {
+		return nil, err
+	}
+
+	response := core.BuildResetPinResponse(user, session, token)
+
+	return response, nil
+}
+
+func (us *UsersService) ChangePin(ctx context.Context, req dto.ChangePinRequest) error {
+
+	user, err := us.userRepo.FindById(ctx, req.UserID)
+	if err != nil {
+		return err
+	}
+
+	encryptedOldPIn, _, err := us.TokenService.LocalEncryptPassword(req.OldPin, constants.Pin, constants.Pin, constants.Pin)
+	if err != nil {
+		return err
+	}
+
+	if err := core.PinValidator(user.LoginPIN.PIN, encryptedOldPIn); err != nil {
+		return errors.ErrOldPinMismatch
+	}
+
+	if core.CheckPinInHistory(user.LoginPIN.PINHistory[:], req.NewPin) {
+		return errors.ErrPinInHistory
+	}
+
+	encryptedPin, _, err := us.TokenService.LocalEncryptPassword(req.NewPin, constants.Pin, constants.Pin, constants.Pin)
+	if err != nil {
+		return err
+	}
+
+	// Consider old and new pin
+	if err := core.PinValidator(encryptedOldPIn, encryptedPin); err != nil {
+		return errors.ErrSamePIN
+	}
+
+	loginHistory := core.SetPinHistory(user, encryptedPin)
+	if err := us.userRepo.Update(ctx, req.UserID, &model.User{LoginPIN: loginHistory}); err != nil {
+		return err
+	}
+
+	return nil
+}
+func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, themeType string) error {
+	if err := us.userRepo.Update(ctx, id, &model.User{ProfileThemeType: themeType}); err != nil {
+		return err
+	}
+	return nil
+}
 
 // func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) (string, error) {
-// }
-// func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, themeType string) (*dto.User, error) {
 // }

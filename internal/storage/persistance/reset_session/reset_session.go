@@ -6,6 +6,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -151,5 +152,23 @@ func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *
 		return errors.ErrUnexpected
 	}
 	r.logger.Infof("Reset session updated successfully. id=%s", id)
+	return nil
+}
+
+func (r *ResetSessionRepository) Delete(ctx context.Context, id string) error {
+	if id == "" {
+		r.logger.Errorf("Delete OTP failed: id is empty")
+		return errors.ErrIdEmpty
+	}
+	filter, err := local_util.FilterIdFor(id)
+	if err != nil {
+		r.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
+		return err
+	}
+	if err := r.resetSessionDal.DeleteOne(ctx, filter); err != nil {
+		r.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
+		return err
+	}
+	r.logger.Infof("OTP deleted successfully. id=%s", id)
 	return nil
 }

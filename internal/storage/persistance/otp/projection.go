@@ -45,13 +45,3 @@ func OtpDataBuilder(o model.OTP, data bson.M) {
 	}
 
 }
-
-func FilterIdForOtp(id string) (bson.M, error) {
-	objId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	return bson.M{
-		"_id": objId,
-	}, nil
-}

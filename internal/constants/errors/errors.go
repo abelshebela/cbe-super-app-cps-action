@@ -79,10 +79,24 @@ var (
 	ErrFailedHttpCall               = errors.New("failed to create HTTP request: %w")
 	ErrPhoneNotFound                = errors.New("Phone number not found")
 	ErrRegistrationFailedExpired    = errors.New("Registration Failed")
+	ErrPinResetDeviceMismatch       = errors.New("Pin reset device mismatch")
+	ErrPinResetFailed               = errors.New("Pin reset Failed")
+	ErrPinNeedActivation            = errors.New("PIN reset session %s is not verified please visit nearest branch")
+	ErrPinResetSessionInvalid       = errors.New("invalid pin reset session")
+	ErrPinResetSessionNotFound      = errors.New("Pin reset session not found")
+	ErrPinResetSessionExpired       = errors.New("Pin reset session Expired")
+	ErrOldPinMismatch               = errors.New("Old Pin Mismatch")
 )
 
 var ErrorMap = map[error]int{
+	ErrOldPinMismatch:               http.StatusBadRequest,
+	ErrPinResetSessionExpired:       http.StatusBadRequest,
+	ErrPinResetSessionNotFound:      http.StatusBadRequest,
+	ErrPinResetSessionInvalid:       http.StatusBadRequest,
+	ErrPinNeedActivation:            http.StatusBadRequest,
 	ErrPhoneNotFound:                http.StatusBadRequest,
+	ErrPinResetFailed:               http.StatusBadRequest,
+	ErrPinResetDeviceMismatch:       http.StatusBadRequest,
 	ErrUserAccountBlockedByCps:      http.StatusBadRequest,
 	ErrFailedOtpCreation:            http.StatusBadRequest,
 	ErrOTPAlreadyExist:              http.StatusBadRequest,

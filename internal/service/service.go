@@ -26,5 +26,5 @@ type UserService interface {
 	// SetPin(ctx context.Context, req dto.SetPinRequest) (*dto.SetPinResponse, error)
 	// VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error)
 	// UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) (string, error)
-	// UpdateProfileTheme(ctx context.Context, id string, themeType string) (*dto.User, error)
+	// UpdateProfileTheme(ctx context.Context, id string, themeType string) error
 }

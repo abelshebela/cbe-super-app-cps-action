@@ -79,6 +79,8 @@ func (r LoginRequest) Validate() error {
 }
 
 type VerifyForgetPinOtpRequest struct {
+	UserId         string `json:"user_id"`
+	FullName       string `json:"full_name"`
 	ResetSessionID string `json:"reset_session_id" validate:"required"`
 	Phone          string `json:"phone" validate:"required"`
 	DeviceUUID     string `json:"device_uuid" validate:"required"`

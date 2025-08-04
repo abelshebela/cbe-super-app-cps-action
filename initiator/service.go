@@ -19,6 +19,7 @@ func InitServiceLayer(persistence Persistence, logger utils.Logger, cfg *config.
 			persistence.SMSSenderApi,
 			persistence.OTPPersistence,
 			persistence.HQPersistence,
+			persistence.ResetSessionPersistence,
 			*token.NewTokenService(cfg),
 			logger,
 			*cfg,

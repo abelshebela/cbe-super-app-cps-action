@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func IsWeakPin(pin string) bool {
@@ -150,4 +152,14 @@ func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
 	}
 
 	return nil
+}
+
+func FilterIdFor(id string) (bson.M, error) {
+	objId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	return bson.M{
+		"_id": objId,
+	}, nil
 }

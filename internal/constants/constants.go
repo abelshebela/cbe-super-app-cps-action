@@ -34,6 +34,9 @@ const (
 	Pin                         = "pin"
 	OTPForRegistration          = "REGISTRATION"
 	Incomplete                  = "incomplete"
+	ForgetPinVerifyOtp          = "forget_pin_verify_otp"
+	ResetPin                    = "reset_pin"
+	Completed                   = "completed"
 )
 
 type Realm string
@@ -120,6 +123,7 @@ const (
 	OTPForTransferLimit    OTPFor = "TRANSFER_LIMIT"
 	OTPForChangeEmail      OTPFor = "CHANGE_EMAIL"
 	OTPForUpgradeLimit     OTPFor = "UPGRADE_LIMIT"
+	OTPForForgetPin        OTPFor = "FORGET_PIN"
 )
 
 type OTPStatus string

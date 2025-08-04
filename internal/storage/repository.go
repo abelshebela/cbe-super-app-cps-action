@@ -36,4 +36,5 @@ type ResetSessionRepository interface {
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.PinResetSession, error)
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.PinResetSession, error)
 	Update(ctx context.Context, id string, update *model.PinResetSession) error
+	Delete(ctx context.Context, id string) error
 }
