@@ -1,17 +1,18 @@
 package initiator
 
 import (
-	"cbe-super-app-budget/internal/handlers/rest"
-	"cbe-super-app-budget/internal/handlers/rest/spending"
-	"cbe-super-app-budget/platform/logger"
+	inbound "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
+	userHandler "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest/http/users"
+	service "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
 )
 
-type HandlerLayer struct {
-	spending rest.SpendingHandler
+type Handler struct {
+	UserHandler inbound.Users
 }
 
-func InitHandlerLayer(serviceLayer ServiceLayer, logger logger.Logger) HandlerLayer {
-	return HandlerLayer{
-		spending: spending.NewSpendingService(serviceLayer.spending, logger.Named("spending_service")),
+func InitHandler(serviceLayer service.UserService, logger logger.Logger) Handler {
+	return Handler{
+		UserHandler: userHandler.Init(serviceLayer, logger),
 	}
 }

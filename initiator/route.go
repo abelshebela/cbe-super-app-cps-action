@@ -1,22 +1,24 @@
 package initiator
 
 import (
-	"cbe-super-app-budget/internal/glue/routing"
-	customeMiddleware "cbe-super-app-budget/internal/handlers/middleware"
-
-	"cbe-super-app-budget/platform/logger"
 	"context"
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/glue/routing/users"
+	customeMiddleware "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/middleware"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+	vaultConfig "gitlab.com/bersufekadgetachew/cbe-super-app-shared/config"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer HandlerLayer, logger logger.Logger) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger logger.Logger) {
 	r := chi.NewRouter()
+	cfg := vaultConfig.LoadVault()
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -34,7 +36,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer HandlerLayer, 
 		}
 	})
 
-	routing.InitSpending(r, handlerLayer.spending, logger)
+	users.Init(r, handlerLayer.UserHandler, customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger))
 
 	router.Mount("/api/v1/cbesuperapp/member", r)
 }
