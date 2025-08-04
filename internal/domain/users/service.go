@@ -468,8 +468,6 @@ func (s *UserService) CreateOtp(ctx context.Context, otp OTPRecord) error {
 
 func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, otpFor, action string) (*dto.VerifyOtpResponse, error) {
 
-	fmt.Print("-----------------//////////----------------")
-
 	var phone, fullName string
 	var nextStep string
 	nextStep = "set_pin"
@@ -479,7 +477,7 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		s.logger.Errorf("OTP verification failed: %v", err)
 		return nil, err
 	}
-	fmt.Print("---------------------------------")
+	fmt.Println("*************out***********")
 	if otpFor == "REGISTRATION" {
 
 		userEntity := &User{
@@ -502,7 +500,6 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		nextStep = "set_pin"
 
 	}
-	fmt.Println("=================Checkpoint===================")
 	user, err := s.FindUserByPhone(ctx, phone_number)
 
 	if err == nil && user != nil {
@@ -537,11 +534,12 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		req := make(map[string]interface{})
 
 		filter["phone_number"] = user.PhoneNumber
-		req["device.device_uuid"] = deviceUUID
+		req["device_uuid"] = deviceUUID
 		err := s.repository.UpdateOneUser(ctx, filter, req)
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
 	permissions := []string{"verify_otp", "set_pin"}
@@ -583,6 +581,7 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 			s.logger.Errorf("Failed to find registration record: %v", err, phone, deviceUUID)
 			return "", fmt.Errorf("OTP_NOT_FOUND")
 		}
+		fmt.Println("*************out***********")
 
 		if time.Now().After(registration.ExpiresAt) {
 			if err := s.repository.DeleteOtpHard(ctx, registration.ID); err != nil {
@@ -603,8 +602,6 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 		return registration.FullName, nil
 	}
 
-	fmt.Println("userId***************", userID)
-	fmt.Println("otpFor***************", otpFor)
 	// For other flows (e.g., pin_set, login, etc.)
 	otpRecord, err := s.repository.FindOTP(ctx, userID, otpFor)
 	if err != nil {

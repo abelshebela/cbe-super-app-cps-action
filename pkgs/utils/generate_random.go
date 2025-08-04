@@ -18,7 +18,14 @@ func GenerateRandom(digit int) string {
 	if digit == 1 {
 		min = 0
 	}
-	generatedNumber := min + rand.Intn(max-min+1)
+
+	// Ensure the range is valid and non-negative for rand.Intn
+	rangeSize := max - min + 1
+	if rangeSize <= 0 {
+		return ""
+	}
+
+	generatedNumber := min + rand.Intn(rangeSize)
 	result := strconv.Itoa(generatedNumber)
 	return result
 }
