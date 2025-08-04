@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -10,15 +9,18 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/user/core"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/external_call"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/token"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
 )
 
 type UsersService struct {
+	smsService   external_call.SMSPersistence
 	TokenService token.TokenService
 	userRepo     storage.UserRepository
 	otpRepo      storage.OTPRepository
@@ -28,8 +30,9 @@ type UsersService struct {
 	Cfg          config.VaultConfig
 }
 
-func NewUserService(userRepo storage.UserRepository, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, redisFactory storage.RedisRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
+func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, redisFactory storage.RedisRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
 	return &UsersService{
+		smsService:   smsService,
 		TokenService: tokenService,
 		userRepo:     userRepo,
 		otpRepo:      otpRepo,
@@ -61,9 +64,10 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 		return nil, err
 	}
 
-	if !user.IsVerified {
+	if user.IsVerified {
 		nextStep = constants.Login
 	}
+
 	additional := core.DeviceLookupAdditionalBuilder(string(req.Platform), true, nextStep)
 	token, err := us.TokenService.TempTokenMaker(user, additional, constants.DeviceLookUp)
 	if err != nil {
@@ -76,83 +80,101 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 
 	response = core.BuildDeviceLookupResponse(req.DeviceUUID, *user, true, token, nextStep)
 	if !user.IsVerified {
-		existingOtp, err := core.ExistinOTPCheck(ctx, us.otpRepo, *user)
-		if err != nil {
-			return nil, err
-		}
-
-		if existingOtp {
-			return nil, errors.ErrOTPAlreadyExist
-		}
-
 		core.DeviceFoundButNotVerifiedPreparation(us.Cfg, *response)
-
-		encOtpCode, _, err := us.TokenService.LocalEncryptPassword(response.OTPCode, constants.OTP, constants.OTP, constants.OTP)
-		if err != nil {
+		if err := us.NotVerifiedUser(ctx, user, response.OTPCode, response.OTPFor); err != nil {
 			return nil, err
 		}
-
-		wait, err := strconv.Atoi(us.Cfg.OtpWaitingTime)
-		if err != nil {
-			wait = 10
-		}
-
-		expirationTime := time.Duration(wait) * time.Minute
-		if err := s.otpCreator(ctx, response.UserID, encOtpCode, deviceUUID, expirationTime); err != nil {
-			return nil, err
-		}
-
 	}
 
+	return response, nil
 }
-func (us *UsersService) PreLogin(ctx context.Context, header dto.Address, phone string) (*dto.DeviceLookupResponse, error) {
-}
-func (us *UsersService) ChangePin(ctx context.Context, req dto.ChangePinRequest) error {}
-func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
-}
-func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) (*dto.ForgetPinSendOtpResponse, error) {
-}
-func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
-}
-func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.RegisterResponse, error) {
-}
-func (us *UsersService) ResetPin(ctx context.Context, req dto.ResetPinRequest) (*dto.ResetPinResponse, error) {
-}
-func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto.SetPinResponse, error) {
-}
-func (us *UsersService) VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error) {
-}
-func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) (string, error) {
-}
-func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, themeType string) (*dto.User, error) {
-}
-func (s *UserService) otpCreator(ctx context.Context, userId, encOtpCode, deviceUUID string, expirationTime time.Duration) error {
-	now := time.Now().UTC()
-	otpData, err := s.repository.GetOtpByUserID(ctx, userId)
+func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.DeviceLookupResponse, error) {
+	var response *dto.DeviceLookupResponse
+	nextStep := constants.VerifyOtp
+
+	user, err := us.userRepo.FindByPhoneNumber(ctx, phone)
 	if err != nil {
-		if err.Error() != "mongo: no documents in result" {
-			s.logger.Errorf("Failed to get otp data: %v", err)
-			return err
+		if err.Error() != errors.ErrUnexpected.Error() {
+			return core.PhoneNotFoundResponse(), nil
 		}
-	} else if now.After(otpData.ExpiresAt) {
-		s.repository.DeleteOtpHard(ctx, otpData.ID)
-	} else {
-		return fmt.Errorf("Time remaining:", otpData.ExpiresAt.Sub(now).Round(time.Second))
+		return nil, err
 	}
 
-	otpRecord := OTPRecord{
-		UserCode:   userId,
-		OTP:        encOtpCode,
-		OTPFor:     string(enums.OTP_FOR_PIN_SET), // Using enum for "pin_set"
-		UserRealm:  "member",                      // Using sourceApp as user_realm
-		ExpiresAt:  time.Now().Add(expirationTime),
-		CreatedAt:  time.Now(),
-		DeviceUUID: deviceUUID,
+	additional := core.PhoneLookupAdditionalBuilder(string(user.Platform), true, nextStep)
+	token, err := us.TokenService.TempTokenMaker(user, additional, constants.DeviceLookUp)
+	if err != nil {
+		return nil, err
 	}
 
-	// Store OTP in database
-	if err := s.CreateOtp(ctx, otpRecord); err != nil {
-		return errors.ErrFailedOtpCreation
+	if err := core.ValidUserChecker(user, user.APPInstallationDate.GoString()); err != nil {
+		return nil, err
 	}
+
+	response = core.BuildPhoneLookupResponse(user.DeviceUUID, *user, true, token, nextStep)
+
+	core.PhoneFoundButNotVerifiedPreparation(us.Cfg, *response)
+	if err := us.NotVerifiedUser(ctx, user, response.OTPCode, response.OTPFor); err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (us *UsersService) ChangePin(ctx context.Context, req dto.ChangePinRequest) error {
+
+	return nil
+}
+
+// func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
+// }
+// func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) (*dto.ForgetPinSendOtpResponse, error) {
+// }
+// func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
+// }
+// func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.RegisterResponse, error) {
+// }
+// func (us *UsersService) ResetPin(ctx context.Context, req dto.ResetPinRequest) (*dto.ResetPinResponse, error) {
+// }
+// func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto.SetPinResponse, error) {
+// }
+// func (us *UsersService) VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error) {
+// }
+// func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) (string, error) {
+// }
+// func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, themeType string) (*dto.User, error) {
+// }
+func (us *UsersService) NotVerifiedUser(ctx context.Context, user *model.User, otpCode string, otpFor string) error {
+	existingOtp, err := core.ExistinOTPCheck(ctx, us.otpRepo, *user)
+	if err != nil {
+		return err
+	}
+
+	if existingOtp {
+		return errors.ErrOTPAlreadyExist
+	}
+
+	encOtpCode, _, err := us.TokenService.LocalEncryptPassword(otpCode, constants.OTP, constants.OTP, constants.OTP)
+	if err != nil {
+		return err
+	}
+
+	wait, err := strconv.Atoi(us.Cfg.OtpWaitingTime)
+	if err != nil {
+		wait = 10
+	}
+
+	expirationTime := time.Duration(wait) * time.Minute
+	otpRecord := core.BuildOTPRecord(*user, encOtpCode, user.DeviceUUID, expirationTime, otpFor)
+
+	if err := us.otpRepo.Save(ctx, &otpRecord); err != nil {
+		return err
+	}
+
+	go func() {
+		if err := us.smsService.SendOTP(ctx, user.PhoneNumber, otpCode, int(expirationTime)); err != nil {
+			us.logger.Errorf(err.Error())
+		}
+
+	}()
 	return nil
 }
