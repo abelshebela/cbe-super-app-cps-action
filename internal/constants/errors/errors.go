@@ -39,7 +39,7 @@ var (
 	ErrWeakPIN                      = errors.New("weak pin")
 	ErrPINRedundant                 = errors.New("pin redundant")
 	ErrPINSeq                       = errors.New("pin seq")
-	ErrPinInHistory                 = errors.New("pin in history")
+	ErrPinInHistory                 = errors.New("The pin you use is recently used")
 	ErrSamePIN                      = errors.New("same pin")
 	ErrPINLength                    = errors.New(" PIN must be exactly 6 digits")
 	ErrOtpExpired                   = errors.New("otp expired")
@@ -78,6 +78,7 @@ var (
 	ErrFailedSMSApiCall             = errors.New("SMS API call failed: %w")
 	ErrFailedHttpCall               = errors.New("failed to create HTTP request: %w")
 	ErrPhoneNotFound                = errors.New("Phone number not found")
+	ErrRegistrationFailedExpired    = errors.New("Registration Failed")
 )
 
 var ErrorMap = map[error]int{
@@ -134,6 +135,7 @@ var ErrorMap = map[error]int{
 	ErrOtpExpired:                   http.StatusBadRequest,
 	ErrInvalidOTP:                   http.StatusBadRequest,
 	ErrRegistrationExpired:          http.StatusBadRequest,
+	ErrRegistrationFailedExpired:    http.StatusBadRequest,
 	ErrSessionNotFound:              http.StatusNotFound,
 	ErrPinResetAlreadyInProgress:    http.StatusBadRequest,
 	ErrUserAlreadyEmail:             http.StatusBadRequest,

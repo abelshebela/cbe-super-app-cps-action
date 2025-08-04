@@ -9,6 +9,7 @@ import (
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -78,6 +79,35 @@ func OTPGenerator(length uint8) string {
 	return string(result)
 }
 
+func GenerateRandom(digit int) string {
+	if digit <= 0 {
+		return ""
+	}
+
+	min := intPow(10, digit-1)
+	max := intPow(10, digit) - 1
+	if digit == 1 {
+		min = 0
+	}
+
+	// Ensure the range is valid and non-negative for rand.Intn
+	rangeSize := max - min + 1
+	if rangeSize <= 0 {
+		return ""
+	}
+
+	generatedNumber := min + rand.Intn(rangeSize)
+	result := strconv.Itoa(generatedNumber)
+	return result
+}
+
+func intPow(a, b int) int {
+	result := 1
+	for i := 0; i < b; i++ {
+		result *= a
+	}
+	return result
+}
 func GenerateSalt(length int) (string, error) {
 	bytes := make([]byte, length)
 	_, err := rand.Read(bytes)
@@ -97,4 +127,27 @@ func SignWithHS256(data string, saltHex string) (string, error) {
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
+	elapsed := time.Since(lastAttempt)
+	var waitDuration time.Duration
+
+	switch {
+	case attempts >= 5:
+		waitDuration = 10 * time.Minute
+	case attempts == 4:
+		waitDuration = 5 * time.Minute
+	case attempts == 3:
+		waitDuration = 2 * time.Minute
+	default:
+		return nil
+	}
+
+	if elapsed < waitDuration {
+		remaining := waitDuration - elapsed
+		return fmt.Errorf("Too many login attempts. Please wait %s before trying again.", remaining.Truncate(time.Second))
+	}
+
+	return nil
 }

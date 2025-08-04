@@ -10,6 +10,7 @@ import (
 type OTP struct {
 	ID          bson.ObjectID       `json:"id,omitempty" bson:"_id,omitempty"`
 	PhoneNumber string              `json:"phone_number" bson:"phone_number"`
+	FullName    string              `json:"full_name" bson:"full_name"`
 	UserRealm   constants.Realm     `json:"user_realm" bson:"user_realm"`
 	Email       string              `json:"email" bson:"email"`
 	UserCode    string              `json:"user_code" bson:"user_code"`

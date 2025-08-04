@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"crypto/subtle"
 	"strconv"
 	"time"
 
@@ -9,8 +10,12 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/token"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	"github.com/google/uuid"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -189,5 +194,235 @@ func PhoneLookupAdditionalBuilder(platform string, userFound bool, nextStep stri
 		"platform":   platform,
 		"token_type": "pre_login",
 		"next_step":  nextStep,
+	}
+}
+
+func VerifyOtpAdditionalBuilder(otpFor string, userFound bool, nextStep string) map[string]interface{} {
+	return map[string]interface{}{
+		"otp_for":    otpFor,
+		"token_type": "verify_otp",
+		"next_step":  nextStep,
+	}
+}
+
+func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.VerifyOTPRequest) (string, error) {
+
+	if req.OtpFor == constants.OTPForRegistration && req.DeviceUUID != "" {
+		filter := bson.M{
+			"devide_uuid":  req.DeviceUUID,
+			"phone_number": req.PhoneNumber,
+		}
+		regisration, err := otpRepo.Find(ctx, filter)
+		if err != nil {
+			{
+				return constants.Empty, err
+			}
+		}
+
+		if time.Now().After(regisration.ExpiresAt) {
+			if err := otpRepo.Delete(ctx, regisration.ID.Hex()); err != nil {
+				return constants.Empty, err
+			}
+
+			return constants.Empty, errors.ErrOtpExpired
+		}
+
+		if subtle.ConstantTimeCompare([]byte(regisration.OTPCode), []byte(req.OTP)) == 0 {
+			return constants.Empty, errors.ErrInvalidOTP
+		}
+
+		if err := otpRepo.Delete(ctx, regisration.ID.Hex()); err != nil {
+			return constants.Empty, errors.ErrOTPNotFound
+		}
+
+		return regisration.FullName, nil
+	}
+
+	filter := bson.M{
+		"user_code": req.UserID,
+		"otp_for":   req.OtpFor,
+	}
+	otpRecord, err := otpRepo.Find(ctx, filter)
+	if err != nil {
+		return constants.Empty, err
+	}
+
+	if time.Now().After(otpRecord.ExpiresAt) {
+		if err := otpRepo.Delete(ctx, otpRecord.ID.Hex()); err != nil {
+			return constants.Empty, err
+		}
+
+		return constants.Empty, errors.ErrOtpExpired
+	}
+
+	if subtle.ConstantTimeCompare([]byte(otpRecord.OTPCode), []byte(req.OTP)) == 0 {
+		return constants.Empty, errors.ErrInvalidOTP
+	}
+
+	if err := otpRepo.Delete(ctx, otpRecord.ID.Hex()); err != nil {
+		return constants.Empty, errors.ErrOTPNotFound
+	}
+
+	return otpRecord.FullName, nil
+}
+
+func BuildUserData(fullName, phoneNumber, deviceUUID string) *model.User {
+	return &model.User{
+		Realm:       constants.MEMBER_REALM,
+		UserCode:    utils.GenerateRandom(20),
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+		KYCLevel:    0,
+		DeviceUUID:  deviceUUID,
+		IsVerified:  true,
+		IsBlocked:   false,
+		Enabled:     true,
+	}
+}
+
+func BuildVerifyOtpResponse(userID, phone, token, nextStep string) *dto.VerifyOtpResponse {
+	return &dto.VerifyOtpResponse{
+		UserID:      userID,
+		PhoneNumber: phone,
+		OTPVerified: true,
+		Token:       token,
+		TokenType:   "verify_otp",
+		TokenExpiry: time.Now().Add(10 * time.Minute),
+		NextStep:    nextStep,
+	}
+}
+
+func PinValidator(userPin, inputPin string) error {
+	if subtle.ConstantTimeCompare([]byte(userPin), []byte(inputPin)) == 0 {
+		return errors.ErrInvalidOTP
+	}
+	return nil
+}
+
+func BuildLoginResponse(user *model.User, token, deviceUUID string, sessionExpires time.Time) *dto.LoginResponse {
+	return &dto.LoginResponse{
+		Token:          token,
+		UserID:         user.ID.Hex(),
+		UserCode:       user.UserCode,
+		FullName:       user.FullName,
+		PhoneNumber:    user.PhoneNumber,
+		KYCLevel:       user.KYCLevel,
+		IsVerified:     user.IsVerified,
+		DeviceUUID:     deviceUUID,
+		LoginTime:      time.Now(),
+		SessionExpires: sessionExpires,
+		LastLogin:      user.LastLogin,
+		LoginAttempts:  int(user.LoginAttemptCount),
+	}
+}
+
+func CheckPinInHistory(pinHistory []string, newPin string) bool {
+	for _, pin := range pinHistory {
+		if pin == newPin {
+			return true
+		}
+	}
+	return false
+}
+
+func SetPinHistory(user *model.User, newPin string) types.LoginPIN {
+	var newHistory [4]string
+	copy(newHistory[1:], user.LoginPIN.PINHistory[:3])
+	newHistory[0] = user.LoginPIN.PIN
+
+	return types.LoginPIN{
+		PIN:              newPin,
+		PINHistory:       newHistory,
+		LastPINCreatedAt: time.Now(),
+	}
+}
+
+func BuildSetPinResponse(userID, token string) *dto.SetPinResponse {
+	return &dto.SetPinResponse{
+		UserID:      userID,
+		PinSet:      true,
+		Token:       token,
+		TokenType:   "set_pin",
+		TokenExpiry: time.Now().Add(24 * time.Hour),
+	}
+}
+
+func OtpProvider(tokenService token.TokenService) (*string, *string, error) {
+	otpCode := utils.GenerateRandom(6)
+
+	encOtpCode, _, err := tokenService.LocalEncryptPassword(otpCode, constants.OTP, constants.OTP, constants.OTP)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &otpCode, &encOtpCode, nil
+}
+
+type RegistrationRecord struct {
+	ID          string
+	PhoneNumber string
+	DeviceUUID  string
+	Platform    string
+	FullName    string
+	OTP         string
+	OTPFor      string
+	Status      string
+	ExpiresAt   time.Time
+	CreatedAt   time.Time
+	Attempts    int
+	MaxAttempts int
+}
+
+func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) RegistrationRecord {
+	registrationID := uuid.New().String()
+	expirationTime := 10 * time.Minute
+
+	return RegistrationRecord{
+		ID:          registrationID,
+		PhoneNumber: req.Phone,
+		DeviceUUID:  req.DeviceUUID,
+		Platform:    string(req.Platform),
+		FullName:    req.FullName,
+		OTP:         encOtpCode,
+		OTPFor:      constants.OTPForRegistration,
+		Status:      string(constants.Pending),
+		ExpiresAt:   time.Now().Add(expirationTime),
+		CreatedAt:   time.Now(),
+		Attempts:    0,
+		MaxAttempts: 3,
+	}
+}
+
+func BuildOTPFromRegistration(registration RegistrationRecord) model.OTP {
+	return model.OTP{
+		PhoneNumber: registration.PhoneNumber,
+		DeviceUUID:  &registration.DeviceUUID,
+		OTPCode:     registration.OTP,
+		FullName:    registration.FullName,
+		OTPFor:      constants.OTPFor(registration.OTPFor),
+		Status:      constants.OTPStatus(registration.Status),
+		ExpiresAt:   registration.ExpiresAt,
+		CreatedAt:   registration.CreatedAt,
+	}
+}
+
+func BuildRegisterResponse(registrationID string, req dto.RegisterRequest, env string, otp string, wait int, token string) *dto.RegisterResponse {
+	otpCode := constants.Empty
+	if env == constants.DEV || env == constants.UAT {
+		otpCode = otp
+	}
+	return &dto.RegisterResponse{
+		RegistrationID:     registrationID,
+		PhoneNumber:        req.Phone,
+		DeviceUUID:         req.DeviceUUID,
+		Platform:           string(req.Platform),
+		Otp:                otpCode,
+		OTPSent:            true,
+		OTPExpiryMinutes:   wait,
+		Token:              token,
+		TokenType:          constants.Permanent,
+		TokenExpiry:        time.Now().Add(24 * time.Hour),
+		NextStep:           constants.VerifyOtp,
+		RegistrationStatus: constants.Incomplete,
 	}
 }
