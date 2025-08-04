@@ -62,6 +62,6 @@ type OTPVerification struct {
 
 type ChangePinRequest struct {
 	UserID string
-	OldPin string
-	NewPin string
+	OldPin string `json:"old_pin"`
+	NewPin string `json:"new_pin"`
 }

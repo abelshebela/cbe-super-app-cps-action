@@ -488,15 +488,22 @@ func (h UsersAdapter) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, "INVALID_OTP_TYPE", http.StatusBadRequest, nil)
 		return
 	}
+	fmt.Println("===========checkpoint 1==========")
 	data, err := h.Application.VerifyOtp(r.Context(), userID, phoneNumber, req.Otp, deviceUUID, sourceApp, req.OtpFor, action)
 
+	fmt.Println("***************************")
+	fmt.Println(err)
+	fmt.Println("***************************")
+	fmt.Println(data)
 	if err != nil {
+
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "OTP verification failed", 500)
 		return
 	}
 
 	dataResponse, err := utils.StructToMap(data)
 	if err != nil {
+
 		utils.BaseResponseMaker(map[string]interface{}{}, w, "OTP verification failed", 500)
 		return
 	}

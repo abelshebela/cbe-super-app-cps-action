@@ -408,6 +408,7 @@ func (h UsersHandler) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt OTP: %w", err)
 	}
+	fmt.Println("===========checkpoint 2==========")
 
 	return h.userService.VerifyOtp(ctx, userID, phone_number, encOtp, deviceUUID, otpFor, action)
 }

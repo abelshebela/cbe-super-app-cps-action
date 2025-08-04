@@ -468,15 +468,18 @@ func (s *UserService) CreateOtp(ctx context.Context, otp OTPRecord) error {
 
 func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp string, deviceUUID string, otpFor, action string) (*dto.VerifyOtpResponse, error) {
 
+	fmt.Print("-----------------//////////----------------")
+
 	var phone, fullName string
 	var nextStep string
 	nextStep = "set_pin"
+
 	fullName, err := s.verifyOtpInternal(ctx, userID, phone_number, otp, deviceUUID, otpFor)
 	if err != nil {
 		s.logger.Errorf("OTP verification failed: %v", err)
 		return nil, err
 	}
-
+	fmt.Print("---------------------------------")
 	if otpFor == "REGISTRATION" {
 
 		userEntity := &User{
@@ -499,7 +502,7 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 		nextStep = "set_pin"
 
 	}
-
+	fmt.Println("=================Checkpoint===================")
 	user, err := s.FindUserByPhone(ctx, phone_number)
 
 	if err == nil && user != nil {
@@ -597,11 +600,11 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 		if err := s.repository.DeleteOtpHard(ctx, registration.ID); err != nil {
 			return "", fmt.Errorf("OTP_NOT_FOUND")
 		}
-		fmt.Println("99/////////////////999999999999999999999")
-
 		return registration.FullName, nil
 	}
 
+	fmt.Println("userId***************", userID)
+	fmt.Println("otpFor***************", otpFor)
 	// For other flows (e.g., pin_set, login, etc.)
 	otpRecord, err := s.repository.FindOTP(ctx, userID, otpFor)
 	if err != nil {
@@ -1563,7 +1566,7 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 
 		if s.cfg.GoEnv == "dev" || s.cfg.GoEnv == "uat" {
 			response.OTPCode = otpCode
-			response.OTPFor = "ENABLE"
+			response.OTPFor = "PIN_SET"
 		}
 
 		encOtpCode, _, err := utils.LocalEncryptPassword(otpCode, "otp", "", "", s.cfg)
@@ -1576,6 +1579,7 @@ func (s *UserService) DeviceLookup(ctx context.Context, deviceUUID, platform, ap
 		if err != nil {
 			wait = 10
 		}
+
 		expirationTime := time.Duration(wait) * time.Minute
 		if err := s.otpCreator(ctx, response.UserID, encOtpCode, deviceUUID, expirationTime); err != nil {
 			s.logger.Errorf("Failed to create OTP record: %v", err)
