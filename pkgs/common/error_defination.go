@@ -204,9 +204,9 @@ var DefineError = ErrorDefinitions{
 			Message: "You have an older device please update",
 		},
 		"USER_DISABLED_BLOCKED": {
-			Code: "GEN_047",
+			Code:    "GEN_047",
 			Message: "User disabled or blocked",
-		}
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
