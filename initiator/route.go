@@ -38,5 +38,5 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 
 	users.Init(r, handlerLayer.UserHandler, customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger))
 
-	router.Mount("/api/v1/cbesuperapp/member", r)
+	router.Mount("/api/v1/cbesuperapp/member_auth", r)
 }
