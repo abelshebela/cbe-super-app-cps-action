@@ -120,13 +120,16 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 	return response, nil
 }
 
-func (us *UsersService) ChangePin(ctx context.Context, req dto.ChangePinRequest) error {
+// func (us *UsersService) ChangePin(ctx context.Context, req dto.ChangePinRequest) error {
 
-	return nil
+// 	return nil
+// }
+
+func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
+
+	return nil, nil
 }
 
-// func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
-// }
 // func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID string) (*dto.ForgetPinSendOtpResponse, error) {
 // }
 // func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {

@@ -2,7 +2,7 @@ package dto
 
 import "time"
 
-type DeviceLookupRespons struct {
+type DeviceLookupResponse struct {
 	DeviceUUID  string    `json:"device_uuid,omitempty"`
 	UserID      string    `json:"user_id,omitempty"`
 	UserCode    string    `json:"user_code,omitempty"`
