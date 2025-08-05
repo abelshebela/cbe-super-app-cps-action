@@ -1,8 +1,8 @@
 package dto
 
-import (
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service/dto"
-)
+import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+
+// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service/dto"
 
 type UpdateServiceFeeRequest struct {
 	ServiceType       string     `json:"serviceType"`
@@ -14,7 +14,7 @@ type UpdateServiceFeeRequest struct {
 	SingleCapLevelOne float64    `json:"singleCapLevelOne"`
 	CBglEntry         *GLEntry   `json:"CBglEntry"`
 	IFBglEntry        *GLEntry   `json:"IFBglEntry"`
-	Tiers             []dto.Tier `json:"tiers" validate:"required,min=1,dive"`
+	Tiers             []action.Tier `json:"tiers" validate:"required,min=1,dive"`
 }
 
 type GLEntry struct {
