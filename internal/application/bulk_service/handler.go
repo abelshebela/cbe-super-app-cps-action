@@ -1,4 +1,4 @@
-package updatedbulkservice
+package bulkservice
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
+	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

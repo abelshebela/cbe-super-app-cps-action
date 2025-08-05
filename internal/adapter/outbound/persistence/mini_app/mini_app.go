@@ -135,6 +135,9 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 	if miniApp.AppIcon != "" {
 		update["app_icon"] = miniApp.AppIcon
 	}
+	if miniApp.BannerImage != "" {
+		update["banner_image"] = miniApp.BannerImage
+	}
 	if miniApp.CommissionGLAccount != "" {
 		update["commison_gl_account"] = miniApp.CommissionGLAccount
 	}

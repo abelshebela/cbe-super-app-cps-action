@@ -1,11 +1,11 @@
-package updatedbulkservice
+package bulkservice
 
 import (
 	"context"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	bulk_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	bulk_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )

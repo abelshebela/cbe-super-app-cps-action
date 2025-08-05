@@ -35,6 +35,7 @@ const (
 type MiniAppRequest struct {
 	AppName             string                `form:"app_name"`
 	AppIcon             *multipart.FileHeader `form:"app_icon"`
+	BannerImage         *multipart.FileHeader `form:"banner_image"`
 	CommissionGLAccount string                `form:"commission_gl_account"`
 	MerchantID          string                `form:"merchant_id"`
 	IsEventMiniApp      bool                  `form:"is_event_mini_app"`
@@ -63,6 +64,7 @@ type MiniAppResponse struct {
 	ID                string                                `json:"id"`
 	AppName           string                                `json:"app_name"`
 	AppIcon           string                                `json:"app_icon"`
+	BannerImage       string                                `json:"banner_image"`
 	CommisonGLAccount string                                `json:"commison_gl_account,omitempty"`
 	AppType           miniappentity.AppType                 `json:"app_type"`
 	MerchantID        string                                `json:"merchant_id"`
@@ -89,10 +91,12 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 			validation.Field(&r.AppIcon, validation.Required, validation.By(validateFile)),
 			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required")),
 			validation.Field(&r.AppType, validation.Required.Error("app_type is required")),
+			validation.Field(&r.BannerImage, validation.Required.Error("banner_image is required"), validation.By(validateFile)),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.AppIcon, validation.By(validateFile)),
+			validation.Field(&r.BannerImage, validation.By(validateFile)),
 		}
 	}
 
@@ -105,19 +109,41 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 		validation.By(validateAppType(r)),
 		validation.By(validateProductCodes(r, isCreate)),
 		validation.By(validateExclusiveAppFlags(r)),
-		validation.By(validateAppViewType(r)),
+		validation.By(validateAppViewType(r, isCreate)),
 	)
 }
 
-// validateFile validates the file upload
-func validateFile(value interface{}) error {
-	file, ok := value.(*multipart.FileHeader)
-	if !ok || file == nil {
-		return nil
+const MaxAvatarSize = 2 * 1024 * 1024
+
+// isImageFormat checks if the content type is an allowed image
+func isImageFormat(fileHeader *multipart.FileHeader) bool {
+	if fileHeader == nil {
+		return false
 	}
-	if file.Size > (2 << 20) {
-		return errors.New("FILE_TOO_LARGE")
+	contentType := fileHeader.Header.Get("Content-Type")
+	switch contentType {
+	case "image/jpeg", "image/png", "image/gif":
+		return true
+	default:
+		return false
 	}
+}
+
+// validateAvatarFile checks the size and format of the uploaded image
+func validateFile(value any) error {
+	fileHeader, ok := value.(*multipart.FileHeader)
+	if !ok || fileHeader == nil {
+		return nil // Nothing to validate
+	}
+
+	if fileHeader.Size > MaxAvatarSize {
+		return validation.NewError("file_too_large", "image must not exceed 2MB")
+	}
+
+	if !isImageFormat(fileHeader) {
+		return validation.NewError("invalid_image_format", "image must be a valid image (jpeg, png, gif)")
+	}
+
 	return nil
 }
 
@@ -203,19 +229,22 @@ func validateProductCodes(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 	}
 }
 
-// validateAppViewType ensures app_view_type is one of the allowed values
-func validateAppViewType(r MiniAppRequest) validation.RuleFunc {
+func validateAppViewType(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 	return func(value any) error {
 		viewType := strings.TrimSpace(r.AppViewType)
 		if viewType == "" {
-			return errors.New("APP_VIEW_TYPE_INVALID_OR_MISSING")
+			if isCreate {
+				return errors.New("APP_VIEW_TYPE_INVALID_OR_MISSING")
+			}
+			return nil
 		}
 
-		// Validate against allowed enum values
+		// Validate allowed enum values
 		switch viewType {
-		case string(miniappentity.AppViewTypeBoth), string(miniappentity.AppViewTypeCB), string(miniappentity.AppViewTypeIFB):
+		case string(miniappentity.AppViewTypeBoth),
+			string(miniappentity.AppViewTypeCB),
+			string(miniappentity.AppViewTypeIFB):
 			return nil
-
 		default:
 			return errors.New("INVALID_APP_VIEW_TYPE")
 		}
@@ -259,5 +288,6 @@ func IsEmptyUpdate(dto *miniappentity.MiniAppCreateRequest) bool {
 		len(dto.ProductCode) == 0 &&
 		len(dto.Credential) == 0 &&
 		!dto.IsEventMiniApp &&
-		!dto.IsThreeClick
+		!dto.IsThreeClick &&
+		dto.BannerImage == nil
 }

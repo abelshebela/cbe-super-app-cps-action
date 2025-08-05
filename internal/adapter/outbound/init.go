@@ -19,7 +19,6 @@ import (
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -38,7 +37,6 @@ import (
 	// serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
@@ -82,45 +80,6 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 		MongoDalAccountValidation: mongoDalAccountValidation,
 		MongoDalServiceDetails:    mongoDalServiceDetails,
 		MongoDalPortalCard:        mongoDalPortalCard,
-	}
-}
-
-/*
-	collectionNames := []string{
-		"bps_user",
-		"cps_actions",
-		"cps_users",
-		"service",
-		"member",
-		"linked_account",
-		"mini_app",
-		"portal_card",
-	}
-*/
-func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger, cfg *config.VaultConfig) outbound.OutboundInfra {
-
-	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[0])
-	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
-	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[2])
-	mongoDalService := infra_mongo.NewMongoDal[model.Service, model.Service](client, dbName, collectionNames[3])
-	mongoDalMember := infra_mongo.NewMongoDal[member.User, member.User](client, dbName, collectionNames[4])
-	mongoDalAccounts := infra_mongo.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collectionNames[5])
-	mongoDalMiniApp := infra_mongo.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collectionNames[6])
-	mongoDalServiceDetail := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collectionNames[3])
-	MongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, collectionNames[7])
-
-	return &outboundStore{
-		MongoDalCPSAction:      mongoDalCPSAction,
-		MongoDalBPSUser:        mongoDalBPSUser,
-		MongoDalServices:       mongoDalService,
-		MongoDalMember:         mongoDalMember,
-		MongoDalAccounts:       mongoDalAccounts,
-		BpsCalls:               bpscalls.NewBpsCalls(cfg, logger),
-		MongoDalMiniApp:        mongoDalMiniApp,
-		MongoDalCPSUser:        mongoDalCPSUser,
-		MongoDalServiceDetails: mongoDalServiceDetail,
-
-		MongoDalPortalCard: MongoDalPortalCard,
 	}
 }
 

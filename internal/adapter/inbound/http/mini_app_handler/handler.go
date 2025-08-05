@@ -57,6 +57,14 @@ func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, 
 	if file != nil {
 		defer file.Close()
 	}
+	banner_image_file, banner_image_fileHeader, err := common_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
+	if err != nil && err.Error() != common_util.ErrMissingFile && !isCreate {
+		h.logger.Errorf("error parsing file: %v", err)
+		return nil, err
+	}
+	if banner_image_file != nil {
+		defer banner_image_file.Close()
+	}
 
 	get := func(key string) string {
 		return strings.TrimSpace(r.FormValue(key))
@@ -101,6 +109,7 @@ func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, 
 	}
 	req.IsThreeClick = isThreeClick
 	req.AppIcon = fileHeader
+	req.BannerImage = banner_image_fileHeader
 
 	return &req, nil
 }
@@ -186,7 +195,7 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	 err = h.Application.UpdateMiniApp(r.Context(), dto, maker)
+	err = h.Application.UpdateMiniApp(r.Context(), dto, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return

@@ -1,11 +1,11 @@
-package updatedbulkservice
+package bulkservice
 
 import (
 	"net/http"
 
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/updated_bulk_service"
+	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_service"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"github.com/go-chi/chi/v5"
 )
