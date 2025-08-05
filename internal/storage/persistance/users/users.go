@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
@@ -87,8 +88,9 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 	}
 
 	projection := UserProjection()
-	filter := bson.M{}
-	UserDeviceUUIDAttachment(deviceUUID, filter)
+
+	filter := UserDeviceUUIDAttachment(deviceUUID)
+	fmt.Println(filter)
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
@@ -96,7 +98,7 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 			r.logger.Warnf("no user found for the provided deviceUUID")
 			return nil, errors.ErrUserNotFound
 		}
-		r.logger.Errorf("unexpected error during FindByDeviceUUID")
+		r.logger.Errorf("unexpected error during FindByDeviceUUID: %v", err)
 		return nil, errors.ErrUnexpected
 	}
 

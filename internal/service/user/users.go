@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -81,6 +82,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 	if err := core.ValidUserChecker(user, req.ApplicationInstallationDate.String()); err != nil {
 		return nil, err
 	}
+	fmt.Print("3=========")
 
 	response = core.BuildDeviceLookupResponse(req.DeviceUUID, *user, true, token, nextStep)
 	if !user.IsVerified {
