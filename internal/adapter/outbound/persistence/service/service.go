@@ -30,7 +30,7 @@ type ServiceRepository interface {
 	GetAllMinimumTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
 	GetAllMaximumTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
 	GetAllServiceFee(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
-	GetAllTotalTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error)
+	GetAllTotalTransferCap(ctx context.Context) (*any, error)
 	GetServiceFeeDetail(ctx context.Context, id string) (*any, error)
 	UpdateServiceFee(ctx context.Context, id string, req any) error
 	UpdateSingleMaxTransfer(ctx context.Context, id string, req any) error
@@ -281,7 +281,7 @@ func (sp *servicePersistence) GetAllServiceFee(ctx context.Context, filterParams
 	}, nil
 }
 
-func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error) {
+func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context) (*any, error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -292,7 +292,7 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 	}
 
 	sp.logger.Infof("Fetching all total transfer caps with filter: %+v, projection: %+v, skip: %d, limit: %d", filter, projection, 0, 0)
-	service, err := sp.hqDal.FindAllWithPagination(ctx, filter, projection, 0, 0)
+	service, err := sp.hqDal.FindAll(ctx, filter, projection)
 	if err != nil {
 		sp.logger.Errorf("failed to fetch service: %v", err)
 		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
@@ -303,19 +303,10 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context, filter
 		return nil, common.DefineError.General["SERVICE_NOT_FOUND"]
 	}
 
-	total, err := sp.hqDal.TotalCount(ctx, filter)
-	if err != nil {
-		sp.logger.Errorf("failed to count total services for total transfer cap: %v", err)
-		return nil, common.DefineError.General["UNHANDLED_SERVER_ERROR"]
-	}
 	projectedData := ProjectDataArray[model.HQ](service, projection)
-	meta := local_utils.BuildPaginationMeta(total, filterParams.Page, 0)
 	var data any = projectedData
 	sp.logger.Infof("Successfully fetched %d total transfer cap services", len(service))
-	return &local_utils.PaginatedResponse[*any]{
-		Data: &data,
-		Meta: meta,
-	}, nil
+	return &data, nil
 }
 
 func (sp *servicePersistence) GetServiceFeeDetail(ctx context.Context, id string) (*any, error) {

@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound"
@@ -28,7 +27,6 @@ func (sa *serviceHandler) GetAllService(w http.ResponseWriter, r *http.Request) 
 		local_utils.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
 		return
 	}
-	fmt.Println("******************//////////////*********************")
 	data, err := sa.appService.GetAllService(r.Context(), local_utils.Filter(*filterParams)) // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)
@@ -83,13 +81,7 @@ func (sa *serviceHandler) GetAllServiceFee(w http.ResponseWriter, r *http.Reques
 	local_utils.BaseResponseMaker(res, w, "Successfuly Service retrived", 200)
 }
 func (sa *serviceHandler) GetAllTotalTransferCap(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_utils.ExtractFilterParams(r)
-	if filterParams.Page < 1 || filterParams.PerPage < 1 {
-		local_utils.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
-		return
-	}
-
-	res, err := sa.appService.GetAllTotalTransferCap(r.Context(), local_utils.Filter(*filterParams)) // to be continued
+	res, err := sa.appService.GetAllTotalTransferCap(r.Context()) // to be continued
 	// res,err := sa.appService.  // to be continued
 	if err != nil {
 		local_utils.SendErrorResponse(w, err.Error(), 0, nil)

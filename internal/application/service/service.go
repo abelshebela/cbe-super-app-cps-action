@@ -51,8 +51,8 @@ func (sa *serviceApplication) GetAllServiceFee(ctx context.Context, filterParams
 
 	return data, nil
 }
-func (sa *serviceApplication) GetAllTotalTransferCap(ctx context.Context, filterParams local_utils.Filter) (*local_utils.PaginatedResponse[*any], error) {
-	data, err := sa.serviceDomain.GetAllTotalTransferCap(ctx, filterParams)
+func (sa *serviceApplication) GetAllTotalTransferCap(ctx context.Context) (*any, error) {
+	data, err := sa.serviceDomain.GetAllTotalTransferCap(ctx)
 	if err != nil {
 		return nil, err
 	}
