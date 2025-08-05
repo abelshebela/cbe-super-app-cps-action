@@ -581,7 +581,6 @@ func (s *UserService) verifyOtpInternal(ctx context.Context, userID, phone, otp 
 			s.logger.Errorf("Failed to find registration record: %v", err, phone, deviceUUID)
 			return "", fmt.Errorf("OTP_NOT_FOUND")
 		}
-		fmt.Println("*************out***********")
 
 		if time.Now().After(registration.ExpiresAt) {
 			if err := s.repository.DeleteOtpHard(ctx, registration.ID); err != nil {
