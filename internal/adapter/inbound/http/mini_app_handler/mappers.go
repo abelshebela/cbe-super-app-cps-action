@@ -22,6 +22,7 @@ func (r MiniAppRequest) ToMiniAppCreateRequest(isCreate bool) (*miniappentity.Mi
 	result := miniappentity.MiniAppCreateRequest{
 		AppName:             r.AppName,
 		AppIcon:             r.AppIcon,
+		BannerImage:         r.BannerImage,
 		CommissionGLAccount: r.CommissionGLAccount,
 		MerchantID:          r.MerchantID,
 		IsEventMiniApp:      r.IsEventMiniApp,
@@ -63,6 +64,7 @@ func ToMiniAppResponse(m *miniappentity.MiniApp) MiniAppResponse {
 		ID:                m.ID,
 		AppName:           m.AppName,
 		AppIcon:           m.AppIcon,
+		BannerImage:       m.BannerImage,
 		CommisonGLAccount: m.CommissionGLAccount,
 		AppType:           m.AppType,
 		MerchantID:        m.MerchantID,

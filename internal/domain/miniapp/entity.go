@@ -24,8 +24,8 @@ const (
 type AppType string
 
 const (
-	URL        AppType = "URL"
-	MPAASID    AppType = "MPAAS_ID"
+	URL     AppType = "URL"
+	MPAASID AppType = "MPAAS_ID"
 )
 
 type Stage string
@@ -38,12 +38,12 @@ type AppViewType string
 
 const (
 	AppViewTypeBoth AppViewType = "BOTH"
-	AppViewTypeCB  AppViewType = "CB"
-	AppViewTypeIFB AppViewType = "IFB"
+	AppViewTypeCB   AppViewType = "CB"
+	AppViewTypeIFB  AppViewType = "IFB"
 )
 
 type ProductCode struct {
-	ID             string     `bson:"id" json:"id"`
+	ID             string     `bson:"id" json:"id,omitempty"`
 	BranchType     BranchType `bson:"branch_type" json:"branch_type"`
 	ProductCode    string     `bson:"product_code" json:"product_code"`
 	VATCode        string     `bson:"vat_code" json:"vat_code"`
@@ -51,7 +51,7 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	ID            string          `bson:"id" json:"id"`
+	ID            string          `bson:"id" json:"id,omitempty"`
 	Environment   EnvironmentType `bson:"environment" json:"environment"`
 	MerchantAppID string          `bson:"merchant_app_id" json:"merchant_app_id"`
 	FabricAppID   string          `bson:"fabric_app_id" json:"fabric_app_id"`
@@ -68,6 +68,7 @@ type MiniApp struct {
 	ID                  string                  `bson:"_id" json:"id,omitempty"`
 	AppName             string                  `bson:"app_name" json:"app_name"`
 	AppIcon             string                  `bson:"app_icon" json:"app_icon"`
+	BannerImage         string                  `bson:"banner_image" json:"banner_image"`
 	CommissionGLAccount string                  `bson:"commison_gl_account" json:"commison_gl_account,omitempty"`
 	AppType             AppType                 `bson:"app_type" json:"app_type"`
 	MerchantID          string                  `bson:"merchant_id" json:"merchant_id"`
@@ -90,6 +91,7 @@ type MiniAppCreateRequest struct {
 	ID                  string                  `json:"id"`
 	AppName             string                  `json:"app_name"`
 	AppIcon             *multipart.FileHeader   `json:"app_icon"`
+	BannerImage         *multipart.FileHeader   `json:"banner_image"`
 	CommissionGLAccount string                  `json:"commison_gl_account"`
 	AppType             AppType                 `json:"app_type"`
 	MerchantID          string                  `json:"merchant_id"`
