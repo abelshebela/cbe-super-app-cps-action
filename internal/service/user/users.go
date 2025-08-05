@@ -89,7 +89,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 
 	response = core.BuildDeviceLookupResponse(req.DeviceUUID, *user, true, token, nextStep)
 	if !user.IsVerified {
-		core.DeviceFoundButNotVerifiedPreparation(us.Cfg, *response)
+		core.DeviceFoundButNotVerifiedPreparation(us.Cfg, response)
 		if err := us.NotVerifiedUser(ctx, user, response.OTPCode, response.OTPFor); err != nil {
 			return nil, err
 		}

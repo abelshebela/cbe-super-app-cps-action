@@ -428,7 +428,7 @@ func (u *user) UpdateProfileTheme(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.SendSuccessResponse(w, http.StatusOK, "Profile theme set successfuly", nil, nil)
+	response.SendSuccessResponse(w, http.StatusOK, constants.ProfileUploadSucess, nil, nil)
 }
 
 func (u *user) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
@@ -472,5 +472,5 @@ func (u *user) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.SendSuccessResponse(w, http.StatusOK, "OTP verified for PIN reset", res, nil)
+	response.SendSuccessResponse(w, http.StatusOK, constants.PINResetSuccess, res, nil)
 }
