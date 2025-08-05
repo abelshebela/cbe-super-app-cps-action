@@ -12,12 +12,12 @@ import (
 
 func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
-		// {
-		// 	Method:      http.MethodPost,
-		// 	Path:        "/register",
-		// 	Handler:     handler.Register,
-		// 	Middlewares: []func(next http.Handler) http.Handler{},
-		// },
+		{
+			Method:      http.MethodPost,
+			Path:        "/register",
+			Handler:     handler.Register,
+			Middlewares: []func(next http.Handler) http.Handler{},
+		},
 		// {
 		// 	Method:  http.MethodPost,
 		// 	Path:    "/sms/verify_otp",
@@ -26,14 +26,14 @@ func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthM
 		// 		authMiddleware.AuthenticateTempToken,
 		// 	},
 		// },
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/set_pin",
-		// 	Handler: handler.SetPin,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateTempToken,
-		// 	},
-		// },
+		{
+			Method:  http.MethodPost,
+			Path:    "/set_pin",
+			Handler: handler.SetPin,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTempToken,
+			},
+		},
 		{
 			Method:      http.MethodGet,
 			Path:        "/device_lookup",
@@ -56,14 +56,14 @@ func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthM
 		// 		authMiddleware.AuthenticateToken,
 		// 	},
 		// },
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/forget_pin",
-		// 	Handler: handler.ForgetPinSendOtp,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateTempToken,
-		// 	},
-		// },
+		{
+			Method:  http.MethodPost,
+			Path:    "/forget_pin",
+			Handler: handler.ForgetPinSendOtp,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTempToken,
+			},
+		},
 		// {
 		// 	Method:  http.MethodPost,
 		// 	Path:    "/forget_pin/verify_otp",

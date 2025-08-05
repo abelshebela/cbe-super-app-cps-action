@@ -9,7 +9,6 @@ import (
 )
 
 func ExtractHeader(r *http.Request) dto.DeviceLookupRequest {
-	// installationDate := utils.ParseTime(r.Header.Get("application_installation_date"))
 	installationDate := utils.ParseTime(r.Header.Get("application_installation_date"))
 	return dto.DeviceLookupRequest{
 		Platform:                    constants.Platform(r.Header.Get("platform")),
