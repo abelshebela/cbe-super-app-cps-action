@@ -13,7 +13,7 @@ type ServiceLayer struct {
 	UserService service.UserService
 }
 
-func InitServiceLayer(persistence Persistence, logger utils.Logger, cfg *config.VaultConfig) ServiceLayer {
+func InitServiceLayer(persistence Persistence, logger utils.Logger, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 	return ServiceLayer{
 		UserService: user.NewUserService(persistence.UserPersistence,
 			persistence.SMSSenderApi,
@@ -21,6 +21,7 @@ func InitServiceLayer(persistence Persistence, logger utils.Logger, cfg *config.
 			persistence.HQPersistence,
 			persistence.ResetSessionPersistence,
 			*token.NewTokenService(cfg),
+			minioClient,
 			logger,
 			*cfg,
 		),

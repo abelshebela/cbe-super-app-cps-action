@@ -27,8 +27,8 @@ type VaultConfig struct {
 	JWTSecretKey          string `mapstructure:"JWT_SECRET_KEY"`
 	ServerTimeout         int    `mapstructure:"SERVER_TIMEOUT"`
 	RedisConfig           RedisConfig
-	Key                   string `mapstructure:"KEY`
-	IV                    string `mapstructure:"IV`
+	Key                   string `mapstructure:"KEY"`
+	IV                    string `mapstructure:"IV"`
 }
 
 func LoadVault(logger logger.Logger) (*VaultConfig, error) {

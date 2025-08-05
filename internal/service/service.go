@@ -6,14 +6,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 )
 
-type SpendingService interface {
-	// Get(ctx context.Context) ([]dto.Spending, error)
-	// GetOne(ctx context.Context, id string) (*dto.Spending, error)
-	// Add(ctx context.Context, req dto.SpendingRequest) (*dto.Spending, error)
-	// Modify(ctx context.Context, req dto.SpendingRequest) error
-	// Remove(ctx context.Context, id string) error
-}
-
 type UserService interface {
 	DeviceLookup(ctx context.Context, req dto.DeviceLookupRequest) (*dto.DeviceLookupResponse, error)
 	PreLogin(ctx context.Context, phone string) (*dto.DeviceLookupResponse, error)
@@ -25,6 +17,6 @@ type UserService interface {
 	ResetPin(ctx context.Context, req dto.ResetPinRequest) (*dto.ResetPinResponse, error)
 	SetPin(ctx context.Context, req dto.SetPinRequest) (*dto.SetPinResponse, error)
 	VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error)
-	UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) (string, error)
+	UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) error
 	UpdateProfileTheme(ctx context.Context, id string, themeType string) error
 }
