@@ -886,6 +886,7 @@ func (r *MongoRepository) CreateUser(ctx context.Context, user *userPort.User) e
 		},
 		CreatedAt:      user.CreatedAt,
 		LastModifiedAt: user.LastModifiedAt,
+		Enabled:        true,
 	}
 
 	_, err := r.userDal.InsertOne(ctx, userEntity)
