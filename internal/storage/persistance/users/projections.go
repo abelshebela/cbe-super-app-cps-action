@@ -45,8 +45,8 @@ func UserPhoneFilterAttachment(phone string, filter bson.M) {
 	}
 }
 
-func UserDeviceUUIDAttachment(deviceUUID string, filter bson.M) {
-	filter = bson.M{
+func UserDeviceUUIDAttachment(deviceUUID string) bson.M {
+	return bson.M{
 		"device_uuid": deviceUUID,
 	}
 }

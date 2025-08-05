@@ -103,7 +103,7 @@ func (d DeviceLookupRequest) Validate() error {
 			validation.Length(10, 100).Error("device uuid length between 10 and 100")),
 		validation.Field(&d.Platform,
 			validation.Required.Error("platform is required"),
-			validation.In(constants.Android, constants.Ios).Error("platform value should be android, ios or web")),
+			validation.In(constants.Android, constants.Ios).Error("platform value should be 'ANDROID', or 'IOS'")),
 		validation.Field(&d.AppVersion, validation.Required.Error("app version is required")),
 		validation.Field(&d.SourceApp, validation.Required.Error("source app is required")),
 		validation.Field(&d.ApplicationInstallationDate, validation.Required.Error("application installation date is required")),

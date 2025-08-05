@@ -3,8 +3,9 @@ package core
 import (
 	"context"
 	"crypto/subtle"
-	"strconv"
 	"time"
+
+	"github.com/hashicorp/go-version"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
@@ -21,25 +22,27 @@ import (
 )
 
 func IsAppVersionLatest(platform, appVersion string, hqData *model.HQ) bool {
-	deviceApp, err := strconv.ParseFloat(appVersion, 32)
+	deviceVer, err := version.NewVersion(appVersion)
 	if err != nil {
 		return false
 	}
 
-	hqAndroidVersion, androidErr := strconv.ParseFloat(hqData.LatestAndroidVersion, 32)
-	hqIosVersion, iosErr := strconv.ParseFloat(hqData.LatestiOSVersion, 32)
-	if androidErr != nil || iosErr != nil {
-		return false
-	}
+	var latestVersion *version.Version
 
 	switch platform {
 	case string(constants.Android):
-		return deviceApp >= hqAndroidVersion
+		latestVersion, err = version.NewVersion(hqData.LatestAndroidVersion)
 	case string(constants.Ios):
-		return deviceApp >= hqIosVersion
+		latestVersion, err = version.NewVersion(hqData.LatestiOSVersion)
 	default:
 		return false
 	}
+
+	if err != nil {
+		return false
+	}
+
+	return deviceVer.GreaterThanOrEqual(latestVersion)
 }
 
 func DeviceLookupResponseOldDevice() *dto.DeviceLookupResponse {
@@ -61,10 +64,15 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 }
 
 func ValidUserChecker(userData *model.User, installationData string) error {
-
 	deviceAppDate, err := time.Parse(time.RFC3339, installationData)
+	if err != nil {
+		deviceAppDate, err = time.Parse("2006-01-02", installationData)
+		if err != nil {
+			return err
+		}
+	}
+	// deviceAppDate, err := time.Parse(time.RFC3339, installationData)
 	duration := userData.APPInstallationDate.Sub(deviceAppDate)
-
 	dParsed, err := time.ParseDuration(duration.String())
 	if err != nil {
 		return err

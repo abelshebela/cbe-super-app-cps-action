@@ -87,8 +87,8 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 	}
 
 	projection := UserProjection()
-	filter := bson.M{}
-	UserDeviceUUIDAttachment(deviceUUID, filter)
+
+	filter := UserDeviceUUIDAttachment(deviceUUID)
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
@@ -96,7 +96,7 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 			r.logger.Warnf("no user found for the provided deviceUUID")
 			return nil, errors.ErrUserNotFound
 		}
-		r.logger.Errorf("unexpected error during FindByDeviceUUID")
+		r.logger.Errorf("unexpected error during FindByDeviceUUID: %v", err)
 		return nil, errors.ErrUnexpected
 	}
 
