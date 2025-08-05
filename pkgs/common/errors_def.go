@@ -884,7 +884,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "unsupported request action",
 		},
-
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Status:  StatusBadRequest,
