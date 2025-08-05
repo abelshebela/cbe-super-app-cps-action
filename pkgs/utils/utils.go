@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -13,8 +14,17 @@ import (
 	"strings"
 	"time"
 
+	customErr "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+type ContextKey string
+type UserInfo struct {
+	UserID      string
+	FullName    string
+	PhoneNumber string
+}
 
 func IsWeakPin(pin string) bool {
 	// Check for repeated digits
@@ -162,4 +172,39 @@ func FilterIdFor(id string) (bson.M, error) {
 	return bson.M{
 		"_id": objId,
 	}, nil
+}
+
+func ExtractUserInfo(ctx context.Context, log utils.Logger) (*UserInfo, error) {
+	userID, ok := ctx.Value(ContextKey("user_id")).(string)
+	if !ok {
+		log.Errorf("failed to fet user id from context: %v", ok)
+		return nil, customErr.ErrBadRequest
+	}
+
+	fullName, ok := ctx.Value(ContextKey("full_name")).(string)
+	if !ok {
+		log.Errorf("failed to get full name from context: %v", ok)
+		return nil, customErr.ErrBadRequest
+	}
+
+	phoneNumber, ok := ctx.Value(ContextKey("phone_number")).(string)
+	if !ok {
+		log.Errorf("failed to get full name from context", ok)
+		return nil, customErr.ErrBadRequest
+	}
+
+	return &UserInfo{
+		UserID:      userID,
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+	}, nil
+}
+
+func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
+	step, ok := ctx.Value(ContextKey("next_step")).(string)
+	if !ok {
+		log.Errorf("faile to get next step from context")
+		return "", customErr.ErrBadRequest
+	}
+	return step, nil
 }

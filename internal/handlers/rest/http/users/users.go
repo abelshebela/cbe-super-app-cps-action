@@ -1,8 +1,10 @@
 package users
 
 import (
+	constants "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 
-	// constants "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
+	"encoding/json"
+	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
@@ -10,10 +12,8 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest/http/users/core"
 	service "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
+	common "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
-	"encoding/json"
-	"net/http"
 )
 
 const (
@@ -36,79 +36,79 @@ func (u *user) Healthcheck(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, http.StatusOK, "🚀 Member auth service is running", nil, nil)
 }
 
-// func (u *user) Register(w http.ResponseWriter, r *http.Request) {
-// 	header := common.ExtractHeader(r)
-// 	var req dto.RegisterRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		u.logger.Errorf("failed to decode register request: %v", err)
-// 		response.SendErrorResponse(w, errors.ErrInvalidData)
-// 		return
-// 	}
-// 	req.DeviceUUID = header.DeviceUUID
-// 	req.Platform = header.Platform
-// 	req.AppVersion = header.AppVersion
-// 	req.SourceApp = header.SourceApp
-// 	req.APPInstallationDate = header.ApplicationInstallationDate
+func (u *user) Register(w http.ResponseWriter, r *http.Request) {
+	header := core.ExtractHeader(r)
+	var req dto.RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		u.logger.Errorf("failed to decode register request: %v", err)
+		response.SendErrorResponse(w, errors.ErrInvalidData)
+		return
+	}
+	req.DeviceUUID = header.DeviceUUID
+	req.Platform = header.Platform
+	req.AppVersion = header.AppVersion
+	req.SourceApp = header.SourceApp
+	req.APPInstallationDate = header.ApplicationInstallationDate
 
-// 	if err := req.Validate(); err != nil {
-// 		u.logger.Errorf("invalid input provided to register request: %v", err)
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := req.Validate(); err != nil {
+		u.logger.Errorf("invalid input provided to register request: %v", err)
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	// Call application service for registration
-// 	res, err := u.userService.Register(r.Context(), req)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	// Call application service for registration
+	res, err := u.userService.Register(r.Context(), req)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	response.SendSuccessResponse(w, http.StatusOK, "User Successfully registerd", res, nil)
-// }
+	response.SendSuccessResponse(w, http.StatusOK, "User Successfully registerd", res, nil)
+}
 
-// func (u *user) VerifyOtp(w http.ResponseWriter, r *http.Request) {
-// 	header := common.ExtractHeader(r)
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+func (u *user) VerifyOtp(w http.ResponseWriter, r *http.Request) {
+	header := core.ExtractHeader(r)
+	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	if nextStep != "verify_otp" {
-// 		response.SendErrorResponse(w, errors.ErrUnauthorized)
-// 		return
-// 	}
+	if nextStep != "verify_otp" {
+		response.SendErrorResponse(w, errors.ErrUnauthorized)
+		return
+	}
 
-// 	var req dto.VerifyOTPRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		response.SendErrorResponse(w, errors.ErrInvalidData)
-// 		return
-// 	}
-// 	req.UserID = userInfo.UserID
-// 	req.PhoneNumber = userInfo.PhoneNumber
-// 	req.DeviceUUID = header.DeviceUUID
-// 	req.UserRealm = string(constants.MEMBER_REALM)
-// 	req.Action = userInfo.UserID
+	var req dto.VerifyOTPRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.SendErrorResponse(w, errors.ErrInvalidData)
+		return
+	}
+	req.UserID = userInfo.UserID
+	req.PhoneNumber = userInfo.PhoneNumber
+	req.DeviceUUID = header.DeviceUUID
+	req.UserRealm = string(constants.MEMBER_REALM)
+	req.Action = userInfo.UserID
 
-// 	if err := req.Validate(); err != nil {
-// 		u.logger.Errorf("invalid input provided to verify otp request: %v", err)
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := req.Validate(); err != nil {
+		u.logger.Errorf("invalid input provided to verify otp request: %v", err)
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	data, err := u.userService.VerifyOtp(r.Context(), req)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
-// 	response.SendSuccessResponse(w, http.StatusOK, "OTP verified successfully", data, nil)
-// }
+	data, err := u.userService.VerifyOtp(r.Context(), req)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
+	response.SendSuccessResponse(w, http.StatusOK, "OTP verified successfully", data, nil)
+}
 
 func (u *user) DeviceLookup(w http.ResponseWriter, r *http.Request) {
 	header := core.ExtractHeader(r)
@@ -162,7 +162,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 // func (u *user) ForgetPin(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -178,7 +178,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) ChangePin(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -268,7 +268,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 		return
 // 	}
 
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -306,7 +306,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) FetchLinkedAccounts(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -321,32 +321,32 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 	response.SendSuccessResponse(w, http.StatusOK, "linked accounts succesfully fetched", res, nil)
 // }
 
-// func (u *user) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
-// 	var req dto.ForgetPinSendOtpRequest
-// 	header := common.ExtractHeader(r)
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		u.logger.Errorf("failed to decode forget pin request: %v", err)
-// 		response.SendErrorResponse(w, errors.ErrInvalidData)
-// 		return
-// 	}
+func (u *user) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
+	var req dto.ForgetPinSendOtpRequest
+	header := core.ExtractHeader(r)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		u.logger.Errorf("failed to decode forget pin request: %v", err)
+		response.SendErrorResponse(w, errors.ErrInvalidData)
+		return
+	}
 
-// 	if err := req.Validate(); err != nil {
-// 		u.logger.Errorf("invalid input for forget pin provided: %v", err)
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := req.Validate(); err != nil {
+		u.logger.Errorf("invalid input for forget pin provided: %v", err)
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	result, err := u.userService.ForgetPinSendOtp(r.Context(), req.Phone, header.DeviceUUID)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	result, err := u.userService.ForgetPinSendOtp(r.Context(), req.Phone, header.DeviceUUID)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	response.SendSuccessResponse(w, http.StatusOK, "OTP sent for PIN reset", result, nil)
-// }
+	response.SendSuccessResponse(w, http.StatusOK, "OTP sent for PIN reset", result, nil)
+}
 
 // func (u *user) GenerateEmailOTP(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -369,7 +369,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) Login(w http.ResponseWriter, r *http.Request) {
-// 	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
+// 	nextStep, err := core.ExtractNextStep(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -380,7 +380,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 		return
 // 	}
 
-// 	header := common.ExtractHeader(r)
+// 	header := core.ExtractHeader(r)
 
 // 	if header.DeviceUUID == "" {
 // 		u.logger.Errorf("device UUID is required")
@@ -411,7 +411,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
-// 	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
+// 	nextStep, err := core.ExtractNextStep(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -422,13 +422,13 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 		return
 // 	}
 
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
 // 	}
 
-// 	header := common.ExtractHeader(r)
+// 	header := core.ExtractHeader(r)
 
 // 	var req dto.ResetPinRequest
 // 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -453,8 +453,8 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) ResetPinWithToken(w http.ResponseWriter, r *http.Request) {
-// 	header := common.ExtractHeader(r)
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	header := core.ExtractHeader(r)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -484,57 +484,57 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 	response.SendSuccessResponse(w, http.StatusOK, "PIN reset successful", resp, nil)
 // }
 
-// func (u *user) SetPin(w http.ResponseWriter, r *http.Request) {
-// 	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
-// 	if nextStep != "set_pin" {
-// 		response.SendErrorResponse(w, errors.ErrUnauthorized)
-// 		return
-// 	}
+func (u *user) SetPin(w http.ResponseWriter, r *http.Request) {
+	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
+	if nextStep != "set_pin" {
+		response.SendErrorResponse(w, errors.ErrUnauthorized)
+		return
+	}
 
-// 	header := common.ExtractHeader(r)
-// 	user, err := common.ExtractUserInfo(r.Context(), u.logger)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	header := core.ExtractHeader(r)
+	user, err := common.ExtractUserInfo(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	var req dto.SetPinRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		u.logger.Errorf("failed to decode set pin request: %v", err)
-// 		response.SendErrorResponse(w, errors.ErrInvalidData)
-// 		return
-// 	}
-// 	req.UserID = user.UserID
-// 	req.DeviceUUID = header.DeviceUUID
-// 	req.Realm = constants.MEMBER_REALM
+	var req dto.SetPinRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		u.logger.Errorf("failed to decode set pin request: %v", err)
+		response.SendErrorResponse(w, errors.ErrInvalidData)
+		return
+	}
+	req.UserID = user.UserID
+	req.DeviceUUID = header.DeviceUUID
+	req.Realm = constants.MEMBER_REALM
 
-// 	if err := req.Validate(); err != nil {
-// 		u.logger.Errorf("invalid input provided to set pin request: %v", err)
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := req.Validate(); err != nil {
+		u.logger.Errorf("invalid input provided to set pin request: %v", err)
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	res, err := u.userService.SetPin(r.Context(), req)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	res, err := u.userService.SetPin(r.Context(), req)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	response.SendSuccessResponse(w, http.StatusOK, "PIN set Successfully", res, nil)
-// }
+	response.SendSuccessResponse(w, http.StatusOK, "PIN set Successfully", res, nil)
+}
 
 // func (u *user) UnlinkDevice(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
 // 	}
 
-// 	header := common.ExtractHeader(r)
+// 	header := core.ExtractHeader(r)
 // 	if header.DeviceUUID == "" {
 // 		response.SendErrorResponse(w, errors.ErrDeviceIDRequired)
 // 		return
@@ -556,7 +556,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 
 // func (u *user) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
 // 	var req dto.UpdateProfilePicture
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -594,7 +594,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) UpdateProfileTheme(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -622,7 +622,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) VerifyEmailOTP(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -645,8 +645,8 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // }
 
 // func (u *user) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
-// 	header := common.ExtractHeader(r)
-// 	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
+// 	header := core.ExtractHeader(r)
+// 	nextStep, err := core.ExtractNextStep(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
@@ -657,7 +657,7 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 		return
 // 	}
 
-// 	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
 // 	if err != nil {
 // 		response.SendErrorResponse(w, err)
 // 		return
