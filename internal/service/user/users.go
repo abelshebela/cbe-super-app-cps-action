@@ -2,6 +2,10 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -30,11 +34,12 @@ type UsersService struct {
 	otpRepo           storage.OTPRepository
 	hqRepo            storage.HQRepository
 	ressetSessionRepo storage.ResetSessionRepository
+	minioServer       config.MinioClientInterface
 	logger            utils.Logger
 	Cfg               config.VaultConfig
 }
 
-func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, resetSession storage.ResetSessionRepository, tokenService token.TokenService, logger utils.Logger, config config.VaultConfig) service.UserService {
+func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, resetSession storage.ResetSessionRepository, tokenService token.TokenService, minioServer config.MinioClientInterface, logger utils.Logger, config config.VaultConfig) service.UserService {
 	return &UsersService{
 		smsService:        smsService,
 		TokenService:      tokenService,
@@ -42,6 +47,7 @@ func NewUserService(userRepo storage.UserRepository, smsService external_call.SM
 		otpRepo:           otpRepo,
 		hqRepo:            hqRepo,
 		ressetSessionRepo: resetSession,
+		minioServer:       minioServer,
 		logger:            logger,
 		Cfg:               config,
 	}
@@ -511,5 +517,50 @@ func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, theme
 	return nil
 }
 
-// func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) (string, error) {
-// }
+func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) error {
+	var success bool
+	if _, err := us.userRepo.FindById(ctx, req.UserId); err != nil {
+		return err
+	}
+
+	tempFile, err := os.CreateTemp(constants.Empty, constants.ProfileTemp)
+	if err != nil {
+		return errors.ErrFailedToCreateTemp
+	}
+
+	defer func() {
+		if err := tempFile.Close(); err != nil {
+			us.logger.Warnf("Failed to close temp file: %v", err)
+		}
+		if !success {
+			if err := os.Remove(tempFile.Name()); err != nil {
+				us.logger.Warnf("Failed to remove temp file: %v", err)
+			}
+		}
+	}()
+
+	if _, err := io.Copy(tempFile, req.File); err != nil {
+		us.logger.Errorf("Failed to copy file content to temp file: %v", err)
+		return errors.ErrFailedToUpload
+	}
+
+	objectName := fmt.Sprintf("profile-pictures/%s/%s", req.UserId, filepath.Base(req.ProfilePicture.Filename))
+
+	ProfileUrl, err := core.FileBucketUploader(ctx, us.minioServer, constants.BucketUserProfilePicture, objectName, filepath.Base(req.ProfilePicture.Filename))
+	if err != nil {
+		return err
+	}
+
+	if err := os.Remove(tempFile.Name()); err != nil {
+		us.logger.Warnf("Failed to remove temp file after successful upload error: %v", err)
+	}
+
+	// this is usefull for defer func()
+	success = true
+
+	if err := us.userRepo.Update(ctx, req.UserId, &model.User{Avatar: ProfileUrl}); err != nil {
+		return errors.ErrProfileSet
+	}
+
+	return nil
+}
