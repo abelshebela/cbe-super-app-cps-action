@@ -983,6 +983,7 @@ func (r *MongoRepository) FindPinResetSession(ctx context.Context, sessionID str
 		session.Restrictions = convertToStringSlice(v)
 	}
 
+	// Handle optional time fields
 	if verifiedAt, ok := doc["verified_at"]; ok && verifiedAt != nil {
 		session.VerifiedAt = verifiedAt.(bson.DateTime).Time()
 	}
