@@ -65,7 +65,9 @@ type ResetPinRequest struct {
 }
 
 type UpdateProfilePicture struct {
+	UserId         string
 	ProfilePicture *multipart.FileHeader `form:"profile_picture"`
+	File           multipart.File
 }
 
 type LoginRequest struct {

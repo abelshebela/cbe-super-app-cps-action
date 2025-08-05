@@ -26,6 +26,10 @@ func Init(ctx context.Context) {
 	mongoClient := InitMongo(cfg.MongoDBURI, logger)
 	logger.Infof("MongoDB client initialized")
 
+	logger.Infof("Initializing Minio client...")
+	minioClient := InitMinio(cfg.MinioEndPoint, cfg.MinioAccessKey, cfg.MinioSecretKey, logger)
+	logger.Infof("Minio client initialized")
+
 	logger.Infof("Initializing persistence...")
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
@@ -33,7 +37,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(persitence, logger, cfg)
+	serviceLayer := InitServiceLayer(persitence, logger, cfg, minioClient)
 
 	logger.Infof("initialize handler layer")
 	handlerLayer := InitHandler(serviceLayer.UserService, logger)

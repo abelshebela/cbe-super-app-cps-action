@@ -539,3 +539,27 @@ func BuildResetPinResponse(user *model.User, session *model.PinResetSession, tok
 		NextStep:         "login_with_new_pin",
 	}
 }
+
+func FileBucketUploader(ctx context.Context, minioServer config.MinioClientInterface, bucketName, objectName, filePath string) (string, error) {
+	exists, err := minioServer.BucketExist(ctx, bucketName)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		if _, err = minioServer.MakeBucket(ctx, bucketName); err != nil {
+			return "", errors.ErrFailedToUpload
+		}
+	}
+
+	bucketResp, err := minioServer.SaveObject(ctx, config.SaveObjectBody{
+		BucketName:  bucketName,
+		ObjectName:  objectName,
+		File:        filePath,
+		ContentType: "jpeg",
+	})
+	if err != nil {
+		return "", errors.ErrFailedToUpload
+	}
+
+	return bucketResp.Key, nil
+}

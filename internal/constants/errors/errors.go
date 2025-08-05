@@ -86,9 +86,15 @@ var (
 	ErrPinResetSessionNotFound      = errors.New("Pin reset session not found")
 	ErrPinResetSessionExpired       = errors.New("Pin reset session Expired")
 	ErrOldPinMismatch               = errors.New("Old Pin Mismatch")
+	ErrFailedToCreateTemp           = errors.New("Failed to create temp file")
+	ErrFailedToUpload               = errors.New("Failed to upload file")
+	ErrProfileSet                   = errors.New("Failed To Set Profile on user")
 )
 
 var ErrorMap = map[error]int{
+	ErrProfileSet:                   http.StatusInternalServerError,
+	ErrFailedToUpload:               http.StatusInternalServerError,
+	ErrFailedToCreateTemp:           http.StatusInternalServerError,
 	ErrOldPinMismatch:               http.StatusBadRequest,
 	ErrPinResetSessionExpired:       http.StatusBadRequest,
 	ErrPinResetSessionNotFound:      http.StatusBadRequest,
