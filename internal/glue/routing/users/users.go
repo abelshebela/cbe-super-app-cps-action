@@ -18,14 +18,14 @@ func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthM
 			Handler:     handler.Register,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/sms/verify_otp",
-		// 	Handler: handler.VerifyOtp,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateTempToken,
-		// 	},
-		// },
+		{
+			Method:  http.MethodPost,
+			Path:    "/sms/verify_otp",
+			Handler: handler.VerifyOtp,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTempToken,
+			},
+		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/set_pin",
@@ -40,14 +40,14 @@ func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthM
 			Handler:     handler.DeviceLookup,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/login",
-		// 	Handler: handler.Login,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateTempToken,
-		// 	},
-		// },
+		{
+			Method:  http.MethodPost,
+			Path:    "/login",
+			Handler: handler.Login,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTempToken,
+			},
+		},
 		// {
 		// 	Method:  http.MethodPost,
 		// 	Path:    "/change_pin",

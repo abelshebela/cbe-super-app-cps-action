@@ -177,33 +177,33 @@ func (u *user) PreLogin(w http.ResponseWriter, r *http.Request) {
 // 	response.SendSuccessResponse(w, http.StatusOK, "successful forget pin", res, nil)
 // }
 
-// func (u *user) ChangePin(w http.ResponseWriter, r *http.Request) {
-// 	userInfo, err := core.ExtractUserInfo(r.Context(), u.logger)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+func (u *user) ChangePin(w http.ResponseWriter, r *http.Request) {
+	userInfo, err := common.ExtractUserInfo(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	var req dto.ChangePinRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		response.SendErrorResponse(w, errors.ErrInvalidData)
-// 		return
-// 	}
-// 	req.UserID = userInfo.UserID
+	var req dto.ChangePinRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.SendErrorResponse(w, errors.ErrInvalidData)
+		return
+	}
+	req.UserID = userInfo.UserID
 
-// 	if err := req.Validate(); err != nil {
-// 		u.logger.Errorf("invalid input provided to change pin: %v", err)
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := req.Validate(); err != nil {
+		u.logger.Errorf("invalid input provided to change pin: %v", err)
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	if err := u.userService.ChangePin(r.Context(), req); err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := u.userService.ChangePin(r.Context(), req); err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	response.SendSuccessResponse(w, http.StatusOK, "PIN changed successfully", nil, nil)
-// }
+	response.SendSuccessResponse(w, http.StatusOK, "PIN changed successfully", nil, nil)
+}
 
 // func (u *user) CheckPin(w http.ResponseWriter, r *http.Request) {
 // 	var req dto.PinStrengthRequest
@@ -368,47 +368,47 @@ func (u *user) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 // 	response.SendSuccessResponse(w, http.StatusOK, "OTP generated and sent for email", res, nil)
 // }
 
-// func (u *user) Login(w http.ResponseWriter, r *http.Request) {
-// 	nextStep, err := core.ExtractNextStep(r.Context(), u.logger)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+func (u *user) Login(w http.ResponseWriter, r *http.Request) {
+	nextStep, err := common.ExtractNextStep(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	if nextStep != "login" {
-// 		response.SendErrorResponse(w, errors.ErrUnauthorized)
-// 		return
-// 	}
+	if nextStep != "login" {
+		response.SendErrorResponse(w, errors.ErrUnauthorized)
+		return
+	}
 
-// 	header := core.ExtractHeader(r)
+	header := core.ExtractHeader(r)
 
-// 	if header.DeviceUUID == "" {
-// 		u.logger.Errorf("device UUID is required")
-// 		response.SendErrorResponse(w, errors.ErrBadRequest)
-// 		return
-// 	}
+	if header.DeviceUUID == "" {
+		u.logger.Errorf("device UUID is required")
+		response.SendErrorResponse(w, errors.ErrBadRequest)
+		return
+	}
 
-// 	var req dto.LoginRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		u.logger.Errorf("failed to decode login request: %v", err)
-// 		response.SendErrorResponse(w, errors.ErrInvalidData)
-// 		return
-// 	}
+	var req dto.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		u.logger.Errorf("failed to decode login request: %v", err)
+		response.SendErrorResponse(w, errors.ErrInvalidData)
+		return
+	}
 
-// 	if err := req.Validate(); err != nil {
-// 		u.logger.Errorf("invalid input provided to login request: %v", err)
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	if err := req.Validate(); err != nil {
+		u.logger.Errorf("invalid input provided to login request: %v", err)
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	loginResult, err := u.userService.Login(r.Context(), req)
-// 	if err != nil {
-// 		response.SendErrorResponse(w, err)
-// 		return
-// 	}
+	loginResult, err := u.userService.Login(r.Context(), req)
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 
-// 	response.SendSuccessResponse(w, http.StatusOK, "Login successful", loginResult, nil)
-// }
+	response.SendSuccessResponse(w, http.StatusOK, "Login successful", loginResult, nil)
+}
 
 // func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 // 	nextStep, err := core.ExtractNextStep(r.Context(), u.logger)

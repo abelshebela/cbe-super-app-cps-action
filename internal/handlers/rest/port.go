@@ -12,9 +12,9 @@ type SpendingHandler interface {
 
 type Users interface {
 	Register(w http.ResponseWriter, r *http.Request)
-	// Login(w http.ResponseWriter, r *http.Request)
+	Login(w http.ResponseWriter, r *http.Request)
 	// ChangePin(w http.ResponseWriter, r *http.Request)
-	// VerifyOtp(w http.ResponseWriter, r *http.Request)
+	VerifyOtp(w http.ResponseWriter, r *http.Request)
 	SetPin(w http.ResponseWriter, r *http.Request)
 	// UpdateProfilePicture(w http.ResponseWriter, r *http.Request)
 	// UpdateProfileTheme(w http.ResponseWriter, r *http.Request)
