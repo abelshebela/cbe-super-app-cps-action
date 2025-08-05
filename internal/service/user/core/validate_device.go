@@ -119,7 +119,7 @@ func DeviceLookupAdditionalBuilder(platform string, userFound bool, nextStep str
 	}
 }
 
-func DeviceFoundButNotVerifiedPreparation(cfg config.VaultConfig, response dto.DeviceLookupResponse) {
+func DeviceFoundButNotVerifiedPreparation(cfg config.VaultConfig, response *dto.DeviceLookupResponse) {
 
 	otpCode := local_util.OTPGenerator(constants.OTPLength)
 	if cfg.GoEnv == constants.DEV || cfg.GoEnv == constants.UAT {

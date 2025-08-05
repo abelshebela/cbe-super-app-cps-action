@@ -2,7 +2,6 @@ package dto
 
 import (
 	"mime/multipart"
-	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -53,7 +52,7 @@ type RegisterRequest struct {
 	Email               string             `json:"email,omitempty"`
 	AppVersion          string             `json:"app_version"`
 	SourceApp           string             `json:"source_app"`
-	APPInstallationDate time.Time          `json:"application_installation_date"`
+	APPInstallationDate string             `json:"application_installation_date"`
 }
 
 type ResetPinRequest struct {

@@ -8,10 +8,12 @@ const (
 )
 const (
 	// MESSAGE GROUP
-	UpdateApp   = "Update your app"
-	DeviceFound = "Device Successfuly Found"
-	OTPMessage  = "Your device lookup OTP is: %s. Valid for %d minutes."
-	PhoneFound  = "Phone successfuly found"
+	UpdateApp          = "Update your app"
+	DeviceFound        = "Device Successfuly Found"
+	OTPMessage         = "Your device lookup OTP is: %s. Valid for %d minutes."
+	PhoneFound         = "Phone successfuly found"
+	ImageUploadSuccess = "image uploaded successfully"
+
 	// constant
 	Android                  Platform = "ANDROID"
 	Ios                      Platform = "IOS"
