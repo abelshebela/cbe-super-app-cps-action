@@ -105,7 +105,6 @@ func (d DeviceLookupRequest) Validate() error {
 			validation.Required.Error("platform is required"),
 			validation.In(constants.Android, constants.Ios).Error("platform value should be 'ANDROID', or 'IOS'")),
 		validation.Field(&d.AppVersion, validation.Required.Error("app version is required")),
-		validation.Field(&d.SourceApp, validation.Required.Error("source app is required")),
 		validation.Field(&d.ApplicationInstallationDate, validation.Required.Error("application installation date is required")),
 	)
 }
