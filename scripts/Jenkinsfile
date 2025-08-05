@@ -13,6 +13,8 @@ pipeline {
         SONAR_HOST_URL=credentials("SONAR_HOST_URL")
         SONAR_TOKEN=credentials("SONAR_TOKEN")
         SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
+        SHARED_GITHLAB_USER = credentials("SHARED_GITLAB_USER")
+        SHARED_GITLAB_PAT = credentials("SHARED_GITLAB_PAT")
     }
 
     stages {
