@@ -187,6 +187,7 @@ func (u *user) ForgetPin(w http.ResponseWriter, r *http.Request) {
 
 func (u *user) ChangePin(w http.ResponseWriter, r *http.Request) {
 	userInfo, err := local_util.ExtractUserInfo(r.Context(), u.logger)
+
 	if err != nil {
 		response.SendErrorResponse(w, err)
 		return
@@ -279,6 +280,7 @@ func (u *user) Login(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, http.StatusOK, "Login successful", loginResult, nil)
 }
 
+
 func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 	nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
 	if err != nil {
@@ -320,7 +322,6 @@ func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 	}
 	response.SendSuccessResponse(w, http.StatusOK, "PIN reset successful", res, nil)
 }
-
 func (u *user) SetPin(w http.ResponseWriter, r *http.Request) {
 	nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
 	if err != nil {

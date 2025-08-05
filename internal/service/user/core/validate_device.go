@@ -63,20 +63,32 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 	}
 }
 
-func ValidUserChecker(userData *model.User, installationData string) error {
-	deviceAppDate, err := time.Parse(time.RFC3339, installationData)
+func ValidUserChecker(userData *model.User, installationDate string) error {
+	deviceAppDate, err := time.Parse("2006-01-02", installationDate)
 	if err != nil {
 		return err
 	}
-	duration := userData.APPInstallationDate.Sub(deviceAppDate)
-	dParsed, err := time.ParseDuration(duration.String())
-	if err != nil {
-		return err
-	}
+	// duration := userData.APPInstallationDate.Sub(deviceAppDate)
 
-	if dParsed != 0 {
+	if !userData.APPInstallationDate.Equal(deviceAppDate) {
 		return errors.ErrDeviceDiffInstallationDate
 	}
+	// incomingDate, err := time.Parse(time.RFC3339, userData.APPInstallationDate)
+	// if err != nil {
+	// 	return err
+	// }
+	// if deviceAppDate != incomingDate {
+	// 	return errors.ErrDeviceDiffInstallationDate
+	// }
+
+	// dParsed, err := time.ParseDuration(duration.String())
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if dParsed != 0 {
+	// 	return errors.ErrDeviceDiffInstallationDate
+	// }
 
 	if userData.IsAccountBlocked {
 		return errors.ErrAccBlocked
