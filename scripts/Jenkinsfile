@@ -144,7 +144,7 @@ pipeline {
 
 
                 script {
-                    docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}", "-f ${env.DOCKER_FILE_PATH} .")
+                    docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}", "-f ${env.DOCKER_FILE_PATH} --build-arg  GITLAB_USER=${env.SHARED_GITLAB_USER} --build-arg  GITLAB_PAT=${env.SHARED_GITLAB_PAT} .")
                 }
             }
         }
