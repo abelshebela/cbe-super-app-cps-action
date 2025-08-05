@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
@@ -90,7 +89,6 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 	projection := UserProjection()
 
 	filter := UserDeviceUUIDAttachment(deviceUUID)
-	fmt.Println(filter)
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {

@@ -33,7 +33,7 @@ func IsAppVersionLatest(platform, appVersion string, hqData *model.HQ) bool {
 	case string(constants.Android):
 		latestVersion, err = version.NewVersion(hqData.LatestAndroidVersion)
 	case string(constants.Ios):
-		latestVersion, err = version.NewVersion(hqData.LatestAndroidVersion)
+		latestVersion, err = version.NewVersion(hqData.LatestiOSVersion)
 	default:
 		return false
 	}
