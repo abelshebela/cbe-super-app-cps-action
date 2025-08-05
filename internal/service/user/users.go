@@ -62,7 +62,6 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 		return nil, err
 	}
 	if !core.IsAppVersionLatest(string(req.Platform), req.AppVersion, hqData) {
-
 		return core.DeviceLookupResponseOldDevice(), nil
 	}
 
@@ -84,7 +83,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 		return nil, err
 	}
 
-	if err := core.ValidUserChecker(user, req.ApplicationInstallationDate.String()); err != nil {
+	if err := core.ValidUserChecker(user, req.ApplicationInstallationDate); err != nil {
 		return nil, err
 	}
 

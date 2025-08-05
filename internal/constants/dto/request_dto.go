@@ -15,7 +15,7 @@ type DeviceLookupRequest struct {
 	AppVersion                  string             `json:"app_version"`
 	DeviceUUID                  string             `json:"device_uuid"`
 	SourceApp                   string             `json:"source_app"`
-	ApplicationInstallationDate time.Time          `json:"application_installation_date"`
+	ApplicationInstallationDate string             `json:"installation_date"`
 }
 
 type ChangePinRequest struct {

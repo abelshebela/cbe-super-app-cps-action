@@ -66,12 +66,8 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 func ValidUserChecker(userData *model.User, installationData string) error {
 	deviceAppDate, err := time.Parse(time.RFC3339, installationData)
 	if err != nil {
-		deviceAppDate, err = time.Parse("2006-01-02", installationData)
-		if err != nil {
-			return err
-		}
+		return err
 	}
-	// deviceAppDate, err := time.Parse(time.RFC3339, installationData)
 	duration := userData.APPInstallationDate.Sub(deviceAppDate)
 	dParsed, err := time.ParseDuration(duration.String())
 	if err != nil {
