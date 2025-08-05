@@ -9,3 +9,5 @@ aiso/env
 # for running using Air package
 .air.toml
 tracer.go
+KAFKA_FEEDBACK_IMPLEMENTATION.md
+docker-compose.kafka.yml
