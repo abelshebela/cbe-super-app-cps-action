@@ -63,32 +63,20 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 	}
 }
 
-func ValidUserChecker(userData *model.User, installationDate string) error {
-	deviceAppDate, err := time.Parse("2006-01-02", installationDate)
+func ValidUserChecker(userData *model.User, installationData string) error {
+	deviceAppDate, err := time.Parse(time.RFC3339, installationData)
 	if err != nil {
 		return err
 	}
-	// duration := userData.APPInstallationDate.Sub(deviceAppDate)
+	duration := userData.APPInstallationDate.Sub(deviceAppDate)
+	dParsed, err := time.ParseDuration(duration.String())
+	if err != nil {
+		return err
+	}
 
-	if !userData.APPInstallationDate.Equal(deviceAppDate) {
+	if dParsed != 0 {
 		return errors.ErrDeviceDiffInstallationDate
 	}
-	// incomingDate, err := time.Parse(time.RFC3339, userData.APPInstallationDate)
-	// if err != nil {
-	// 	return err
-	// }
-	// if deviceAppDate != incomingDate {
-	// 	return errors.ErrDeviceDiffInstallationDate
-	// }
-
-	// dParsed, err := time.ParseDuration(duration.String())
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if dParsed != 0 {
-	// 	return errors.ErrDeviceDiffInstallationDate
-	// }
 
 	if userData.IsAccountBlocked {
 		return errors.ErrAccBlocked
@@ -138,7 +126,6 @@ func DeviceFoundButNotVerifiedPreparation(cfg config.VaultConfig, response *dto.
 		response.OTPCode = otpCode
 		response.OTPFor = string(constants.OTPForEnable)
 	}
-
 }
 
 func ExistinOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user model.User) (bool, error) {
@@ -553,6 +540,7 @@ func FileBucketUploader(ctx context.Context, minioServer config.MinioClientInter
 	if err != nil {
 		return "", err
 	}
+
 	if !exists {
 		if _, err = minioServer.MakeBucket(ctx, bucketName); err != nil {
 			return "", errors.ErrFailedToUpload
