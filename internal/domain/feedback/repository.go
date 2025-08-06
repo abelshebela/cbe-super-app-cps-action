@@ -11,4 +11,5 @@ import (
 type FeedbackRepository interface {
 	GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Feedback], error)
 	GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error)
+	CreateFeedback(ctx context.Context, req entity.FeedbackRequest, userID string) (*entity.Feedback, error)
 }
