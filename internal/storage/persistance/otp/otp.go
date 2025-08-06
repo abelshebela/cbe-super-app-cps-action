@@ -26,14 +26,15 @@ func NewOtpRepository(client *mongo.Client, dbName string, collection string, lo
 }
 
 func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*model.OTP, error) {
-	if filter != nil {
+	if filter == nil {
 		o.logger.Errorf("Find OTP failed: filter is not nil. filter=%+v", filter)
 		return nil, errors.ErrEmptyFilterParam
 	}
+
 	projection := OtpProjection()
 	otp, err := o.otpDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == errors.ErrOTPNotFound {
+		if err == mongo.ErrNoDocuments {
 			o.logger.Errorf("OTP not found. filter=%+v", filter)
 			return nil, errors.ErrOTPNotFound
 		}

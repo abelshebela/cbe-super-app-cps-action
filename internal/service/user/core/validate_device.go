@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"crypto/subtle"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -64,17 +65,39 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 }
 
 func ValidUserChecker(userData *model.User, installationData string) error {
-	deviceAppDate, err := time.Parse(time.RFC3339, installationData)
-	if err != nil {
-		return err
-	}
-	duration := userData.APPInstallationDate.Sub(deviceAppDate)
-	dParsed, err := time.ParseDuration(duration.String())
-	if err != nil {
-		return err
+	possibleFormats := []string{
+		"2006-01-02",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02 15:04:05 -0700",
 	}
 
-	if dParsed != 0 {
+	var deviceAppDate time.Time
+	var err error
+
+	for _, format := range possibleFormats {
+		deviceAppDate, err = time.Parse(format, installationData)
+		if err == nil {
+			break
+		}
+	}
+
+	if err != nil {
+		fmt.Printf("Device: failed to parse date %v\n", installationData)
+		return errors.ErrInvalidDateFormat
+	}
+	// duration := userData.APPInstallationDate.Sub(deviceAppDate)
+
+	deviceAppDate = deviceAppDate.UTC()
+	dbAppDate := userData.APPInstallationDate.UTC()
+
+	deviceTimeStamp := deviceAppDate.Unix()
+	dbTimeStamp := dbAppDate.Unix()
+
+	const allowedDrift = 1
+
+	if diff := dbTimeStamp - deviceTimeStamp; diff > allowedDrift || diff < -allowedDrift {
+
 		return errors.ErrDeviceDiffInstallationDate
 	}
 
@@ -128,13 +151,16 @@ func DeviceFoundButNotVerifiedPreparation(cfg config.VaultConfig, response *dto.
 	}
 }
 
-func ExistinOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user model.User) (bool, error) {
+func ExistingOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user model.User) (bool, error) {
 	filter := bson.M{
 		"phone_number": user.PhoneNumber,
 	}
 	data, err := otpRepo.Find(ctx, filter)
 	if err != nil {
-		return false, err
+		if err == errors.ErrUnexpected {
+			return false, err
+		}
+		return false, nil
 	}
 
 	if data == nil {
