@@ -97,6 +97,7 @@ func ValidUserChecker(userData *model.User, installationData, types string) erro
 		const allowedDrift = 1
 
 		if diff := dbTimeStamp - deviceTimeStamp; diff > allowedDrift || diff < -allowedDrift {
+			fmt.Printf("Device: have different date ")
 
 			return errors.ErrDeviceDiffInstallationDate
 		}

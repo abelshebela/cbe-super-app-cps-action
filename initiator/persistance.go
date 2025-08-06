@@ -27,7 +27,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
 		DeviceLinkHistoryPersistence: device_history.NewDeviceLinkHistoryRepository(client, dbName, "member_device_history", logger),
-		ResetSessionPersistence:      reset_session.NewResetSessionRepository(client, dbName, "pin_reset_session", logger),
+		ResetSessionPersistence:      reset_session.NewResetSessionRepository(client, dbName, "pin_reset_sessions", logger),
 		SMSSenderApi:                 *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
 	}
 }

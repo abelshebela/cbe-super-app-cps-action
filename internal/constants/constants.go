@@ -23,8 +23,8 @@ const (
 	Ios                      Platform = "IOS"
 	Prelogin                          = "PRE_LOGIN"
 	OTPLength                         = 6
-	DEV                               = "DEV"
-	UAT                               = "UAT"
+	DEV                               = "dev"
+	UAT                               = "uat"
 	Password                          = "PASSWORD"
 	Login                             = "LOGIN"
 	Change                            = "CHANGE"

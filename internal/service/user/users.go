@@ -141,8 +141,6 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 	}
 	req.OTP = encOtpCode
 
-	fmt.Println("**************Check Point 3*********")
-
 	fullName, err = core.OtpValidator(ctx, us.otpRepo, req)
 	if err != nil {
 		return nil, err
@@ -156,7 +154,6 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 		}
 		nextStep = constants.SetPin
 	}
-	fmt.Println("**************Check Point 4*********")
 	user, err := us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
 	if err != nil {
 		return nil, err
@@ -361,6 +358,7 @@ func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID 
 	}
 
 	if err := core.ValidUserChecker(user, user.APPInstallationDate.String(), constants.ForgetPinVerifyOtp); err != nil {
+
 		return nil, err
 	}
 
@@ -370,9 +368,10 @@ func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID 
 
 	existingSession, err := us.ressetSessionRepo.FindByPhoneNumber(ctx, phone)
 	if err != nil {
-		return nil, err
+		if err != errors.ErrNoResetSession {
+			return nil, err
+		}
 	}
-
 	if existingSession != nil {
 		if time.Now().Before(existingSession.ExpiresAt) && existingSession.Status == string(constants.Pending) {
 			return nil, errors.ErrRegistrationInProgress
