@@ -92,9 +92,11 @@ var (
 	ErrProfileSet                 = errors.New("failed To Set Profile on user")
 	ErrInvalidDateFormat          = errors.New("invalid date format sent from the client")
 	ErrDeviceDiffInstallationDate = errors.New("the divice have different installation date")
+	ErrNoResetSession             = errors.New("no reset session found")
 )
 
 var ErrorMap = map[error]int{
+	ErrNoResetSession:               http.StatusNoContent,
 	ErrProfileSet:                   http.StatusInternalServerError,
 	ErrFailedToUpload:               http.StatusInternalServerError,
 	ErrFailedToCreateTemp:           http.StatusInternalServerError,

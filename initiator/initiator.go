@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/cmd/server"
 	local "github.com/CBE-Super-App/cbe-super-app-member-auth/config"
@@ -46,9 +45,7 @@ func Init(ctx context.Context) {
 	InitRoute(ctx, r, handlerLayer, logger)
 
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	time.Sleep(5 * time.Second)
 	go func() {
-		time.Sleep(5 * time.Second)
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	}()
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())

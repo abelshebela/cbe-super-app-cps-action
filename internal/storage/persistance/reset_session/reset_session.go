@@ -56,9 +56,9 @@ func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*mode
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == errors.ErrNoMongoDocument {
+		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("No reset session found for the provided id")
-			return nil, errors.ErrUnexpected
+			return nil, errors.ErrNoResetSession
 		}
 		r.logger.Errorf("Unexpected error while finding reset session by id. error=%v, id=%s", err, id)
 		return nil, errors.ErrUnexpected

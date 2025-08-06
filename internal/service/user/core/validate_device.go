@@ -64,43 +64,44 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 	}
 }
 
-func ValidUserChecker(userData *model.User, installationData string) error {
-	possibleFormats := []string{
-		"2006-01-02",
-		"2006-01-02 15:04:05",
-		"2006-01-02T15:04:05Z07:00",
-		"2006-01-02 15:04:05 -0700",
-	}
+func ValidUserChecker(userData *model.User, installationData, types string) error {
+	if types == constants.DeviceLookUp {
+		possibleFormats := []string{
+			"2006-01-02",
+			"2006-01-02 15:04:05",
+			"2006-01-02T15:04:05Z07:00",
+			"2006-01-02 15:04:05 -0700",
+		}
 
-	var deviceAppDate time.Time
-	var err error
+		var deviceAppDate time.Time
+		var err error
 
-	for _, format := range possibleFormats {
-		deviceAppDate, err = time.Parse(format, installationData)
-		if err == nil {
-			break
+		for _, format := range possibleFormats {
+			deviceAppDate, err = time.Parse(format, installationData)
+			if err == nil {
+				break
+			}
+		}
+
+		if err != nil {
+			fmt.Printf("Device: failed to parse date %v\n", installationData)
+			return errors.ErrInvalidDateFormat
+		}
+		// duration := userData.APPInstallationDate.Sub(deviceAppDate)
+
+		deviceAppDate = deviceAppDate.UTC()
+		dbAppDate := userData.APPInstallationDate.UTC()
+
+		deviceTimeStamp := deviceAppDate.Unix()
+		dbTimeStamp := dbAppDate.Unix()
+
+		const allowedDrift = 1
+
+		if diff := dbTimeStamp - deviceTimeStamp; diff > allowedDrift || diff < -allowedDrift {
+
+			return errors.ErrDeviceDiffInstallationDate
 		}
 	}
-
-	if err != nil {
-		fmt.Printf("Device: failed to parse date %v\n", installationData)
-		return errors.ErrInvalidDateFormat
-	}
-	// duration := userData.APPInstallationDate.Sub(deviceAppDate)
-
-	deviceAppDate = deviceAppDate.UTC()
-	dbAppDate := userData.APPInstallationDate.UTC()
-
-	deviceTimeStamp := deviceAppDate.Unix()
-	dbTimeStamp := dbAppDate.Unix()
-
-	const allowedDrift = 1
-
-	if diff := dbTimeStamp - deviceTimeStamp; diff > allowedDrift || diff < -allowedDrift {
-
-		return errors.ErrDeviceDiffInstallationDate
-	}
-
 	if userData.IsAccountBlocked {
 		return errors.ErrAccBlocked
 	}

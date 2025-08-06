@@ -92,7 +92,7 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == errors.ErrNoMongoDocument {
+		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("no user found for the provided deviceUUID")
 			return nil, errors.ErrUserNotFound
 		}

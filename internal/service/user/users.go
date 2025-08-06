@@ -67,7 +67,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 
 	user, err := us.userRepo.FindByDeviceUUID(ctx, req.DeviceUUID)
 	if err != nil {
-		if err.Error() != errors.ErrUnexpected.Error() {
+		if err == errors.ErrUserNotFound {
 			return core.DeviceNotFoundResponse(), nil
 		}
 		return nil, err
@@ -83,7 +83,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 		return nil, err
 	}
 
-	if err := core.ValidUserChecker(user, req.ApplicationInstallationDate); err != nil {
+	if err := core.ValidUserChecker(user, req.ApplicationInstallationDate, constants.DeviceLookUp); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 
 	user, err := us.userRepo.FindByPhoneNumber(ctx, phone)
 	if err != nil {
-		if err.Error() != errors.ErrUnexpected.Error() {
+		if err == errors.ErrUserNotFound {
 			return core.PhoneNotFoundResponse(), nil
 		}
 		return nil, err
@@ -116,7 +116,7 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 		return nil, err
 	}
 
-	if err := core.ValidUserChecker(user, user.APPInstallationDate.GoString()); err != nil {
+	if err := core.ValidUserChecker(user, constants.Empty, constants.Prelogin); err != nil {
 		return nil, err
 	}
 
@@ -184,8 +184,7 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	if err != nil {
 		return nil, err
 	}
-
-	if err := core.ValidUserChecker(user, user.APPInstallationDate.String()); err != nil {
+	if err := core.ValidUserChecker(user, user.APPInstallationDate.String(), constants.Login); err != nil {
 		return nil, err
 	}
 
@@ -356,7 +355,7 @@ func (us *UsersService) ForgetPinSendOtp(ctx context.Context, phone, deviceUUID 
 		return nil, err
 	}
 
-	if err := core.ValidUserChecker(user, user.APPInstallationDate.String()); err != nil {
+	if err := core.ValidUserChecker(user, user.APPInstallationDate.String(), constants.ForgetPinVerifyOtp); err != nil {
 		return nil, err
 	}
 
