@@ -74,14 +74,14 @@ func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNum
 	}
 
 	projection := ResetSessionProjection()
-	filter := bson.M{}
-	ResetSessionPhoneFilterAttachment(phoneNumber, filter)
+	filter := ResetSessionPhoneFilterAttachment(phoneNumber)
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == errors.ErrNoMongoDocument {
+
+		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("No reset session found for the provided phone number")
-			return nil, errors.ErrUnexpected
+			return nil, errors.ErrNoResetSession
 		}
 		r.logger.Errorf("Unexpected error while finding reset session by phone number. error=%v, phoneNumber=%s", err, phoneNumber)
 		return nil, errors.ErrUnexpected

@@ -1,8 +1,6 @@
 package users
 
 import (
-	"fmt"
-
 	constants "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 
@@ -98,8 +96,6 @@ func (u *user) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 	req.DeviceUUID = header.DeviceUUID
 	req.UserRealm = string(constants.MEMBER_REALM)
 	req.Action = userInfo.Action
-
-	fmt.Println("999999999///999999999")
 
 	if err := req.Validate(); err != nil {
 		u.logger.Errorf("invalid input provided to verify otp request: %v", err)

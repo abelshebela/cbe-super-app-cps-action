@@ -35,8 +35,8 @@ func ResetSessionIdFilterAttachment(id string, filter bson.M) error {
 	return nil
 }
 
-func ResetSessionPhoneFilterAttachment(phoneNumber string, filter bson.M) {
-	filter["phone_number"] = phoneNumber
+func ResetSessionPhoneFilterAttachment(phoneNumber string) bson.M {
+	return bson.M{"phone_number": phoneNumber}
 }
 
 func ResetSessionDeviceUUIDFilterAttachment(deviceUUID string, filter bson.M) {
