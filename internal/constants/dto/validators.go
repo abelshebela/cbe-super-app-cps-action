@@ -84,14 +84,9 @@ func (r RegisterRequest) Validate() error {
 				}
 				return nil
 			})),
-		validation.Field(&r.DeviceUUID, validation.Required.Error("device uuid is required"), validation.Length(10, 100)),
-		validation.Field(&r.Platform, validation.Required.Error("platform is required"),
-			validation.In(constants.Android, constants.Ios).Error("platform value should be android, ios or web")),
 		validation.Field(&r.FullName, validation.Required, validation.By(utils.ValidateFullName)),
 		validation.Field(&r.Email, validation.When(r.Email != "", is.Email)),
 		validation.Field(&r.AppVersion, validation.Required.Error("app version is required")),
-		validation.Field(&r.SourceApp, validation.Required.Error("source app is required")),
-		validation.Field(&r.APPInstallationDate, validation.Required.Error("installation date is required")),
 	)
 }
 

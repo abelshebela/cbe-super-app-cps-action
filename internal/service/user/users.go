@@ -221,39 +221,36 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 }
 
 func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.RegisterResponse, error) {
+
 	existing, err := us.userRepo.FindByPhoneNumber(ctx, req.Phone)
 	existingWithDevice, DeviceErr := us.userRepo.FindByDeviceUUID(ctx, req.DeviceUUID)
 	if err != nil || DeviceErr != nil {
-		return nil, err
+		if err == errors.ErrUnexpected || DeviceErr == errors.ErrUnexpected {
+			return nil, err
+		}
 	}
 	if existing != nil || existingWithDevice != nil {
-		return nil, core.ErrorType(err, DeviceErr)
+		return nil, errors.ErrDeviceDataExist
 	}
 
 	expirationTime := 10 * time.Minute
 	wait := int(expirationTime.Minutes())
 
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		return nil, errors.ErrPhoneNumberAlreadyExists
-	}
-
 	pendingRegistration, err := us.otpRepo.Find(ctx, bson.M{"phone_number": req.Phone, "device_uuid": req.DeviceUUID, "otp_for": constants.OTPForRegistration})
 	if err != nil {
-		return nil, err
+		if err != errors.ErrOTPNotFound {
+			return nil, err
+		}
 	}
 
 	if pendingRegistration != nil {
-		return nil, errors.ErrPinResetAlreadyInProgress
+		return nil, errors.ErrRegistrationInProgress
 	}
 
 	otp, encOtp, err := core.OtpProvider(us.TokenService)
 	if err != nil {
 		return nil, err
 	}
-
 	registration := core.BuildRegistrationRecord(req, *encOtp)
 
 	otpRecord := core.BuildOTPFromRegistration(registration)
@@ -278,7 +275,6 @@ func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (
 	}
 
 	response := core.BuildRegisterResponse(registration.ID, req, us.Cfg.GoEnv, *otp, wait, token)
-
 	return response, nil
 }
 

@@ -93,13 +93,17 @@ var (
 	ErrInvalidDateFormat          = errors.New("invalid date format sent from the client")
 	ErrDeviceDiffInstallationDate = errors.New("the divice have different installation date")
 	ErrNoResetSession             = errors.New("no reset session found")
+	ErrDeviceUUidExist            = errors.New("device uuid already exist")
+	ErrDeviceDataExist            = errors.New("data already exist")
 )
 
 var ErrorMap = map[error]int{
+	ErrDeviceDataExist:              http.StatusBadRequest,
 	ErrNoResetSession:               http.StatusNoContent,
 	ErrProfileSet:                   http.StatusInternalServerError,
 	ErrFailedToUpload:               http.StatusInternalServerError,
 	ErrFailedToCreateTemp:           http.StatusInternalServerError,
+	ErrDeviceUUidExist:              http.StatusBadRequest,
 	ErrOldPinMismatch:               http.StatusBadRequest,
 	ErrPinResetSessionExpired:       http.StatusBadRequest,
 	ErrPinResetSessionNotFound:      http.StatusBadRequest,
