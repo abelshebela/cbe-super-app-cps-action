@@ -280,7 +280,6 @@ func (u *user) Login(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, http.StatusOK, "Login successful", loginResult, nil)
 }
 
-
 func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 	nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
 	if err != nil {

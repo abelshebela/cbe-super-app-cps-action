@@ -39,8 +39,8 @@ func UserIdFilterAttachMent(id string, filter bson.M) error {
 	return nil
 }
 
-func UserPhoneFilterAttachment(phone string, filter bson.M) {
-	filter = bson.M{
+func UserPhoneFilterAttachment(phone string) bson.M {
+	return bson.M{
 		"phone_number": phone,
 	}
 }

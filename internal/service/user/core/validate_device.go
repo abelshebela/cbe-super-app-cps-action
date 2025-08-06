@@ -167,6 +167,9 @@ func ExistingOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user m
 	if data == nil {
 		return false, nil
 	}
+
+	fmt.Printf("Date: %v\n", data)
+
 	return true, nil
 }
 
