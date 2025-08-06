@@ -66,7 +66,7 @@ var (
 	ErrNoMongoDocument              = errors.New("mongo: no documents in result")
 	ErrPhoneNumberCanNotBeEmpty     = errors.New("phone number can not be empty")
 	ErrDeviceUUIDCanNotBeNull       = errors.New("device uuid can not be null")
-	ErrDeviceDiffInstallationDate   = errors.New("device have difference installation date")
+
 	ErrUserBlockedByCps             = errors.New("user is blocked by cps")
 	ErrUserAccountBlockedByCps      = errors.New("user account is blocked")
 	ErrInvalidKey                   = errors.New("invalid key or IV size")
@@ -78,9 +78,10 @@ var (
 	ErrFailedSMSApiCall             = errors.New("SMS API call failed: %w")
 	ErrFailedHttpCall               = errors.New("failed to create HTTP request: %w")
 	ErrPhoneNotFound                = errors.New("phone number not found")
-	ErrRegistrationFailedExpired    = errors.New("registration Failed")
+	ErrRegistrationFailedExpired    = errors.New("registration failed")
 	ErrPinResetDeviceMismatch       = errors.New("pin reset device mismatch")
-	ErrPinResetFailed               = errors.New("pin reset Failed")
+	ErrPinResetFailed               = errors.New("pin reset failed")
+
 	ErrPinNeedActivation            = errors.New("pin reset session %s is not verified please visit nearest branch")
 	ErrPinResetSessionInvalid       = errors.New("invalid pin reset session")
 	ErrPinResetSessionNotFound      = errors.New("pin reset session not found")
@@ -90,6 +91,7 @@ var (
 	ErrFailedToUpload               = errors.New("failed to upload file")
 	ErrProfileSet                   = errors.New("failed To Set Profile on user")
 	ErrInvalidDateFormat            = errors.New("invalid date format sent from the client")
+
 )
 
 var ErrorMap = map[error]int{

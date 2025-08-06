@@ -64,6 +64,7 @@ func DeviceNotFoundResponse() *dto.DeviceLookupResponse {
 	}
 }
 
+
 func ValidUserChecker(userData *model.User, installationData string) error {
 	possibleFormats := []string{
 		"2006-01-02",
@@ -81,10 +82,13 @@ func ValidUserChecker(userData *model.User, installationData string) error {
 			break
 		}
 	}
+
 	if err != nil {
 		fmt.Printf("Device: failed to parse date %v\n", installationData)
 		return errors.ErrInvalidDateFormat
 	}
+	// duration := userData.APPInstallationDate.Sub(deviceAppDate)
+
 
 	deviceAppDate = deviceAppDate.UTC()
 	dbAppDate := userData.APPInstallationDate.UTC()
@@ -95,8 +99,25 @@ func ValidUserChecker(userData *model.User, installationData string) error {
 	const allowedDrift = 1
 
 	if diff := dbTimeStamp - deviceTimeStamp; diff > allowedDrift || diff < -allowedDrift {
+
 		return errors.ErrDeviceDiffInstallationDate
 	}
+	// incomingDate, err := time.Parse(time.RFC3339, userData.APPInstallationDate)
+	// if err != nil {
+	// 	return err
+	// }
+	// if deviceAppDate != incomingDate {
+	// 	return errors.ErrDeviceDiffInstallationDate
+	// }
+
+	// dParsed, err := time.ParseDuration(duration.String())
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if dParsed != 0 {
+	// 	return errors.ErrDeviceDiffInstallationDate
+	// }
 
 	if userData.IsAccountBlocked {
 		return errors.ErrAccBlocked
