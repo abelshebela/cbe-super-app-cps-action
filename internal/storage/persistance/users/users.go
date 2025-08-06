@@ -69,7 +69,6 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 
 	projection := UserProjection()
 	filter := UserPhoneFilterAttachment(phoneNumber)
-
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -78,6 +77,10 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 		r.logger.Errorf("failed to find user by phone number")
 		return nil, err
 	}
+	if user == nil {
+		return nil, errors.ErrUserNotFound
+	}
+
 	r.logger.Infof("user found by phone number")
 	return user, nil
 }

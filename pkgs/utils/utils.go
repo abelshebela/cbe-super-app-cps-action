@@ -177,7 +177,7 @@ func FilterIdFor(id string) (bson.M, error) {
 func ExtractUserInfo(ctx context.Context, log utils.Logger) (*UserInfo, error) {
 	userID, ok := ctx.Value(ContextKey("user_id")).(string)
 	if !ok {
-		log.Errorf("failed to fet user id from context: %v", ok)
+		log.Errorf("failed to fetch user id from context: %v", ok)
 		return nil, customErr.ErrBadRequest
 	}
 
