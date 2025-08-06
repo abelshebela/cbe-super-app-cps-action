@@ -9,6 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/config"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/kafka"
+	"github.com/IBM/sarama"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -35,6 +36,23 @@ func (m *MockFeedbackRepository) CreateFeedback(ctx context.Context, req entity.
 	return feedback, nil
 }
 
+// MockDeadLetterQueue implements DeadLetterQueue for testing
+type MockDeadLetterQueue struct {
+	messages []*kafka.DeadLetterMessage
+}
+
+func (m *MockDeadLetterQueue) SendToDeadLetterQueue(topic string, message *sarama.ConsumerMessage, err error) error {
+	// Mock implementation - just store the message
+	deadLetterMsg := &kafka.DeadLetterMessage{
+		OriginalTopic: topic,
+		Error:         err.Error(),
+		FailedAt:      time.Now(),
+		RetryCount:    3,
+	}
+	m.messages = append(m.messages, deadLetterMsg)
+	return nil
+}
+
 // MockLogger implements utils.Logger for testing
 type MockLogger struct{}
 
@@ -49,6 +67,7 @@ func TestFeedbackConsumer_ProcessValidMessage(t *testing.T) {
 	// Setup
 	mockRepo := &MockFeedbackRepository{}
 	mockLogger := &MockLogger{}
+	mockDeadLetterQ := &MockDeadLetterQueue{}
 
 	cfg := config.KafkaConfig{
 		Brokers:           "localhost:9092",
@@ -60,7 +79,7 @@ func TestFeedbackConsumer_ProcessValidMessage(t *testing.T) {
 		HeartbeatInterval: 3000,
 	}
 
-	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo)
+	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo, mockDeadLetterQ)
 	if err != nil {
 		t.Fatalf("Failed to create consumer: %v", err)
 	}
@@ -75,6 +94,7 @@ func TestFeedbackConsumer_ProcessInvalidMessage(t *testing.T) {
 	// Setup
 	mockRepo := &MockFeedbackRepository{}
 	mockLogger := &MockLogger{}
+	mockDeadLetterQ := &MockDeadLetterQueue{}
 
 	cfg := config.KafkaConfig{
 		Brokers:           "localhost:9092",
@@ -86,7 +106,7 @@ func TestFeedbackConsumer_ProcessInvalidMessage(t *testing.T) {
 		HeartbeatInterval: 3000,
 	}
 
-	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo)
+	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo, mockDeadLetterQ)
 	if err != nil {
 		t.Fatalf("Failed to create consumer: %v", err)
 	}
@@ -103,6 +123,7 @@ func TestFeedbackConsumer_DatabaseError(t *testing.T) {
 		createErr: fmt.Errorf("database connection failed"),
 	}
 	mockLogger := &MockLogger{}
+	mockDeadLetterQ := &MockDeadLetterQueue{}
 
 	cfg := config.KafkaConfig{
 		Brokers:           "localhost:9092",
@@ -114,7 +135,7 @@ func TestFeedbackConsumer_DatabaseError(t *testing.T) {
 		HeartbeatInterval: 3000,
 	}
 
-	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo)
+	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo, mockDeadLetterQ)
 	if err != nil {
 		t.Fatalf("Failed to create consumer: %v", err)
 	}
@@ -129,6 +150,7 @@ func TestFeedbackConsumer_ValidationError(t *testing.T) {
 	// Setup
 	mockRepo := &MockFeedbackRepository{}
 	mockLogger := &MockLogger{}
+	mockDeadLetterQ := &MockDeadLetterQueue{}
 
 	cfg := config.KafkaConfig{
 		Brokers:           "localhost:9092",
@@ -140,7 +162,7 @@ func TestFeedbackConsumer_ValidationError(t *testing.T) {
 		HeartbeatInterval: 3000,
 	}
 
-	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo)
+	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo, mockDeadLetterQ)
 	if err != nil {
 		t.Fatalf("Failed to create consumer: %v", err)
 	}

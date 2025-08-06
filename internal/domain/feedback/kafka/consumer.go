@@ -18,19 +18,26 @@ type FeedbackRepository interface {
 	CreateFeedback(ctx context.Context, req entity.FeedbackRequest, userID string) (*entity.Feedback, error)
 }
 
+// DeadLetterQueue interface for handling failed messages
+type DeadLetterQueue interface {
+	SendToDeadLetterQueue(topic string, message *sarama.ConsumerMessage, error error) error
+}
+
 type FeedbackConsumer struct {
 	consumerGroup sarama.ConsumerGroup
 	logger        utils.Logger
 	config        config.KafkaConfig
 	feedbackRepo  FeedbackRepository
+	deadLetterQ   DeadLetterQueue
+	maxRetries    int
 }
 
 // NewFeedbackConsumer creates a new Kafka consumer for feedback
-func NewFeedbackConsumer(cfg config.KafkaConfig, logger utils.Logger, feedbackRepo FeedbackRepository) (*FeedbackConsumer, error) {
+func NewFeedbackConsumer(cfg config.KafkaConfig, logger utils.Logger, feedbackRepo FeedbackRepository, deadLetterQ DeadLetterQueue) (*FeedbackConsumer, error) {
 	// Configure Sarama consumer group
 	config := sarama.NewConfig()
 	config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
-	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Offsets.Initial = sarama.OffsetNewest // Changed to OffsetNewest for production
 	config.Consumer.Group.Session.Timeout = time.Duration(cfg.SessionTimeout) * time.Millisecond
 	config.Consumer.Group.Heartbeat.Interval = time.Duration(cfg.HeartbeatInterval) * time.Millisecond
 	config.Version = sarama.V2_6_0_0
@@ -51,6 +58,8 @@ func NewFeedbackConsumer(cfg config.KafkaConfig, logger utils.Logger, feedbackRe
 		logger:        logger,
 		config:        cfg,
 		feedbackRepo:  feedbackRepo,
+		deadLetterQ:   deadLetterQ,
+		maxRetries:    3, // Configurable retry count
 	}, nil
 }
 
@@ -83,8 +92,8 @@ func (fc *FeedbackConsumer) Stop() error {
 	return fc.consumerGroup.Close()
 }
 
-// handleFeedbackMessage processes a feedback message from Kafka
-func (fc *FeedbackConsumer) handleFeedbackMessage(message *sarama.ConsumerMessage) error {
+// handleFeedbackMessage processes a feedback message from Kafka with retry logic
+func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *sarama.ConsumerMessage) error {
 	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
 		message.Topic, message.Partition, message.Offset)
 
@@ -92,16 +101,13 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(message *sarama.ConsumerMessag
 	var feedbackMsg entity.FeedbackKafkaMessage
 	if err := json.Unmarshal(message.Value, &feedbackMsg); err != nil {
 		fc.logger.Errorf("Failed to unmarshal feedback message: %v", err)
-		return err
+		return fmt.Errorf("invalid message format: %w", err)
 	}
 
 	// Validate the message
-	if feedbackMsg.UserID == "" {
-		return fmt.Errorf("invalid feedback message: user_id is required")
-	}
-
-	if len(feedbackMsg.Responses) == 0 {
-		return fmt.Errorf("invalid feedback message: responses are required")
+	if err := fc.validateFeedbackMessage(&feedbackMsg); err != nil {
+		fc.logger.Errorf("Message validation failed: %v", err)
+		return fmt.Errorf("message validation failed: %w", err)
 	}
 
 	fc.logger.Infof("Processing feedback message - UserID: %s, FeedbackID: %s",
@@ -117,15 +123,63 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(message *sarama.ConsumerMessag
 		return fmt.Errorf("invalid feedback request: %w", err)
 	}
 
-	// Save to database using the feedback repository
-	ctx := context.Background()
-	feedback, err := fc.feedbackRepo.CreateFeedback(ctx, feedbackRequest, feedbackMsg.UserID)
-	if err != nil {
-		fc.logger.Errorf("Failed to save feedback to database: %v", err)
-		return err
+	// Save to database using the feedback repository with retry logic
+	var lastErr error
+	for retry := 0; retry < fc.maxRetries; retry++ {
+		feedback, err := fc.feedbackRepo.CreateFeedback(ctx, feedbackRequest, feedbackMsg.UserID)
+		if err != nil {
+			lastErr = err
+			fc.logger.Errorf("Failed to save feedback to database (attempt %d/%d): %v", retry+1, fc.maxRetries, err)
+
+			// If this is the last retry, break and handle as permanent failure
+			if retry == fc.maxRetries-1 {
+				break
+			}
+
+			// Wait before retry with exponential backoff
+			backoff := time.Duration(retry+1) * time.Second
+			time.Sleep(backoff)
+			continue
+		}
+
+		fc.logger.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
+		return nil
 	}
 
-	fc.logger.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
+	// If all retries failed, send to dead letter queue
+	if fc.deadLetterQ != nil {
+		if err := fc.deadLetterQ.SendToDeadLetterQueue(message.Topic, message, lastErr); err != nil {
+			fc.logger.Errorf("Failed to send message to dead letter queue: %v", err)
+		}
+	}
+
+	return fmt.Errorf("failed to process message after %d retries: %w", fc.maxRetries, lastErr)
+}
+
+// validateFeedbackMessage validates the feedback message structure
+func (fc *FeedbackConsumer) validateFeedbackMessage(msg *entity.FeedbackKafkaMessage) error {
+	if msg == nil {
+		return fmt.Errorf("message is nil")
+	}
+
+	if msg.UserID == "" {
+		return fmt.Errorf("user_id is required")
+	}
+
+	if len(msg.Responses) == 0 {
+		return fmt.Errorf("responses are required")
+	}
+
+	// Validate each response
+	for key, response := range msg.Responses {
+		if response.Question == "" {
+			return fmt.Errorf("question is required for response key: %s", key)
+		}
+		if response.Answer == nil {
+			return fmt.Errorf("answer is required for response key: %s", key)
+		}
+	}
+
 	return nil
 }
 
@@ -152,13 +206,14 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 		h.consumer.logger.Infof("Processing message: topic=%s partition=%d offset=%d",
 			message.Topic, message.Partition, message.Offset)
 
-		if err := h.consumer.handleFeedbackMessage(message); err != nil {
+		// Use session context instead of Background
+		if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
 			h.consumer.logger.Errorf("Failed to process message: %v", err)
-			// Continue processing other messages
+			// Continue processing other messages but don't mark as processed
 			continue
 		}
 
-		// Mark message as processed
+		// Mark message as processed only if successful
 		session.MarkMessage(message, "")
 	}
 

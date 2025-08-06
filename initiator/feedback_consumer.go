@@ -15,7 +15,7 @@ import (
 )
 
 func InitFeedbackConsumer(mongoClient *mongo.Client, cfg *config.VaultConfig, logger utils.Logger) error {
-	kafkaConfig := feedbackConfig.LoadKafkaConfig()
+	kafkaConfig := feedbackConfig.LoadKafkaConfig(cfg)
 	if kafkaConfig.Brokers == "" {
 		logger.Infof("Kafka brokers not configured, skipping feedback consumer")
 		return nil
@@ -23,7 +23,10 @@ func InitFeedbackConsumer(mongoClient *mongo.Client, cfg *config.VaultConfig, lo
 
 	feedbackRepository := feedbackRepo.InitFeedback(mongoClient, cfg.MongoDBDatabase, "feedbacks", logger)
 
-	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, feedbackRepository)
+	// Create dead letter queue
+	deadLetterQueue := kafka.NewSimpleDeadLetterQueue(logger)
+
+	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, feedbackRepository, deadLetterQueue)
 	if err != nil {
 		logger.Errorf("Failed to create Kafka consumer: %v", err)
 		return err
