@@ -72,7 +72,6 @@ func ValidUserChecker(userData *model.User, installationData, types string) erro
 			"2006-01-02T15:04:05Z07:00",
 			"2006-01-02 15:04:05 -0700",
 		}
-
 		var deviceAppDate time.Time
 		var err error
 
@@ -212,14 +211,14 @@ func BuildPhoneLookupResponse(deviceUUID string, user model.User, isLatest bool,
 	}
 }
 
-func PhoneFoundButNotVerifiedPreparation(cfg config.VaultConfig, response dto.DeviceLookupResponse) {
+func PhoneFoundButNotVerifiedPreparation(cfg config.VaultConfig, response dto.DeviceLookupResponse) *dto.DeviceLookupResponse {
 
 	otpCode := local_util.OTPGenerator(constants.OTPLength)
 	if cfg.GoEnv == constants.DEV || cfg.GoEnv == constants.UAT {
 		response.OTPCode = otpCode
 		response.OTPFor = string(constants.OTPForPINSet)
 	}
-
+	return &response
 }
 
 func PhoneLookupAdditionalBuilder(platform string, userFound bool, nextStep string) map[string]interface{} {

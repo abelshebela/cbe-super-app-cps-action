@@ -65,6 +65,7 @@ type UserPayload struct {
 	FullName    string   `json:"full_name,omitempty"`
 	Department  string   `json:"department,omitempty"`
 	NextStep    string   `json:"next_step,omitempty"`
+	Action      string   `json:"action"`
 }
 
 type authMiddleware struct {
@@ -119,6 +120,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 			return
 		}
 
+		fmt.Println("===============", userPayload)
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
 
@@ -221,6 +223,7 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("full_name"), userPayload.FullName)
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
+	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)
 	return ctx
 }
 

@@ -71,6 +71,7 @@ func (u *user) Register(w http.ResponseWriter, r *http.Request) {
 func (u *user) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 	header := core.ExtractHeader(r)
 	userInfo, err := local_util.ExtractUserInfo(r.Context(), u.logger)
+
 	if err != nil {
 		response.SendErrorResponse(w, err)
 		return
@@ -82,7 +83,7 @@ func (u *user) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if nextStep != "verify_otp" {
+	if nextStep != constants.VerifyOtp {
 		response.SendErrorResponse(w, errors.ErrUnauthorized)
 		return
 	}
@@ -92,11 +93,14 @@ func (u *user) VerifyOtp(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, errors.ErrInvalidData)
 		return
 	}
+
 	req.UserID = userInfo.UserID
 	req.PhoneNumber = userInfo.PhoneNumber
 	req.DeviceUUID = header.DeviceUUID
 	req.UserRealm = string(constants.MEMBER_REALM)
-	req.Action = userInfo.UserID
+	req.Action = userInfo.Action
+
+	fmt.Println("999999999///999999999")
 
 	if err := req.Validate(); err != nil {
 		u.logger.Errorf("invalid input provided to verify otp request: %v", err)
@@ -247,7 +251,7 @@ func (u *user) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if nextStep != "login" {
+	if nextStep != constants.Login {
 		response.SendErrorResponse(w, errors.ErrUnauthorized)
 		return
 	}
@@ -289,7 +293,7 @@ func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if nextStep != "reset_pin" {
+	if nextStep != constants.ResetPin {
 		response.SendErrorResponse(w, errors.ErrUnauthorized)
 		return
 	}
@@ -329,7 +333,7 @@ func (u *user) SetPin(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, err)
 		return
 	}
-	if nextStep != "set_pin" {
+	if nextStep != constants.SetPin {
 		response.SendErrorResponse(w, errors.ErrUnauthorized)
 		return
 	}
@@ -441,7 +445,7 @@ func (u *user) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if nextStep != "forget_pin_verify_otp" {
+	if nextStep != constants.ForgetPinVerifyOtp {
 		response.SendErrorResponse(w, errors.ErrUnauthorized)
 		return
 	}

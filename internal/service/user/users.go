@@ -84,7 +84,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 	}
 
 	if err := core.ValidUserChecker(user, req.ApplicationInstallationDate, constants.DeviceLookUp); err != nil {
-		return nil, err
+		return core.DeviceNotFoundResponse(), nil
 	}
 
 	response = core.BuildDeviceLookupResponse(req.DeviceUUID, *user, true, token, nextStep)
@@ -122,7 +122,7 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 
 	response = core.BuildPhoneLookupResponse(user.DeviceUUID, *user, true, token, nextStep)
 
-	core.PhoneFoundButNotVerifiedPreparation(us.Cfg, *response)
+	response = core.PhoneFoundButNotVerifiedPreparation(us.Cfg, *response)
 	if err := us.NotVerifiedUser(ctx, user, response.OTPCode, response.OTPFor); err != nil {
 		return nil, err
 	}
@@ -135,7 +135,15 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 	var phone, fullName string
 	nextStep := constants.SetPin
 
-	fullName, err := core.OtpValidator(ctx, us.otpRepo, req)
+	encOtpCode, _, err := us.TokenService.LocalEncryptPassword(req.OTP, constants.OTP, constants.OTP, constants.OTP)
+	if err != nil {
+		return nil, err
+	}
+	req.OTP = encOtpCode
+
+	fmt.Println("**************Check Point 3*********")
+
+	fullName, err = core.OtpValidator(ctx, us.otpRepo, req)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +156,7 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 		}
 		nextStep = constants.SetPin
 	}
-
+	fmt.Println("**************Check Point 4*********")
 	user, err := us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
 	if err != nil {
 		return nil, err

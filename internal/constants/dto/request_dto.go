@@ -37,7 +37,7 @@ type SetProfileThemeRequest struct {
 type VerifyOTPRequest struct {
 	UserID      string `json:"user_id"`
 	PhoneNumber string `json:"phone_number"`
-	OTP         string `json:"otp"`
+	OTP         string `json:"otp_code"`
 	DeviceUUID  string `json:"device_uuid"`
 	UserRealm   string `json:"user_realm"`
 	OtpFor      string `json:"otp_for"`

@@ -14,17 +14,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	customErr "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
-
-type ContextKey string
-type UserInfo struct {
-	UserID      string
-	FullName    string
-	PhoneNumber string
-}
 
 func IsWeakPin(pin string) bool {
 	// Check for repeated digits
@@ -174,34 +169,41 @@ func FilterIdFor(id string) (bson.M, error) {
 	}, nil
 }
 
-func ExtractUserInfo(ctx context.Context, log utils.Logger) (*UserInfo, error) {
-	userID, ok := ctx.Value(ContextKey("user_id")).(string)
+func ExtractUserInfo(ctx context.Context, log utils.Logger) (*types.UserInfo, error) {
+	userID, ok := ctx.Value(constants.ContextKey("user_id")).(string)
 	if !ok {
 		log.Errorf("failed to fetch user id from context: %v", ok)
 		return nil, customErr.ErrBadRequest
 	}
 
-	fullName, ok := ctx.Value(ContextKey("full_name")).(string)
+	fullName, ok := ctx.Value(constants.ContextKey("full_name")).(string)
 	if !ok {
 		log.Errorf("failed to get full name from context: %v", ok)
 		return nil, customErr.ErrBadRequest
 	}
 
-	phoneNumber, ok := ctx.Value(ContextKey("phone_number")).(string)
+	phoneNumber, ok := ctx.Value(constants.ContextKey("phone_number")).(string)
 	if !ok {
 		log.Errorf("failed to get full name from context", ok)
 		return nil, customErr.ErrBadRequest
 	}
 
-	return &UserInfo{
+	action, ok := ctx.Value(constants.ContextKey("action")).(string)
+	if !ok {
+		log.Errorf("failed to get action from context", ok)
+		return nil, customErr.ErrBadRequest
+	}
+
+	return &types.UserInfo{
 		UserID:      userID,
 		FullName:    fullName,
 		PhoneNumber: phoneNumber,
+		Action:      action,
 	}, nil
 }
 
 func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
-	step, ok := ctx.Value(ContextKey("next_step")).(string)
+	step, ok := ctx.Value(constants.ContextKey("next_step")).(string)
 	if !ok {
 		log.Errorf("faile to get next step from context")
 		return "", customErr.ErrBadRequest

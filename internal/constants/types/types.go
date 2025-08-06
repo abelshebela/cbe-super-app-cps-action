@@ -33,3 +33,10 @@ type RegistrationRecord struct {
 	Attempts    int
 	MaxAttempts int
 }
+
+type UserInfo struct {
+	UserID      string
+	FullName    string
+	PhoneNumber string
+	Action      string
+}
