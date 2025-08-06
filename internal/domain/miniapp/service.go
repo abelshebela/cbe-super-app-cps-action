@@ -11,20 +11,21 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 	keyGen "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-
 	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type MiniAppStore struct {
-	repository    MiniRepository
-	logger        utils.Logger
-	cfg           *config.VaultConfig
-	bucketName    string
-	minioClient   config.MinioClientInterface
-	keyGenService keyGen.KeyGeneratorService
+	repository      MiniRepository
+	logger          utils.Logger
+	cfg             *config.VaultConfig
+	bucketName      string
+	minioClient     config.MinioClientInterface
+	keyGenService   keyGen.KeyGeneratorService
+	merchantService merchant_service.MiniAppMerchantService
 }
 type MiniAppService interface {
 	CreateMiniApp(ctx context.Context, miniApp MiniAppCreateRequest, maker entities.User) (*MiniApp, error)
@@ -37,15 +38,18 @@ type MiniAppService interface {
 }
 
 func NewService(bucketName string, minioClient config.MinioClientInterface, repository MiniRepository, cfg *config.VaultConfig,
-	keyGenService keyGen.KeyGeneratorService, logger utils.Logger) MiniAppService {
+	keyGenService keyGen.KeyGeneratorService,
+	merchantService merchant_service.MiniAppMerchantService,
+	logger utils.Logger) MiniAppService {
 	logger.Infof("Initializing MiniAppStore with bucketName: %s", bucketName)
 	return &MiniAppStore{
-		repository:    repository,
-		logger:        logger,
-		cfg:           cfg,
-		bucketName:    bucketName,
-		minioClient:   minioClient,
-		keyGenService: keyGenService,
+		repository:      repository,
+		logger:          logger,
+		cfg:             cfg,
+		bucketName:      bucketName,
+		minioClient:     minioClient,
+		keyGenService:   keyGenService,
+		merchantService: merchantService,
 	}
 }
 
@@ -69,21 +73,14 @@ func (s *MiniAppStore) CreateMiniApp(ctx context.Context, req MiniAppCreateReque
 	s.logger.Infof("Uploaded banner image to URL: %s", url)
 	miniApp.BannerImage = url
 
-	// Generate credentials for all environments
-	envs := []EnvironmentType{DevEnvironment, TestEnvironment, UatEnvironment, ProductionEnvironment}
-	miniApp.Credential = make([]CredentialInformation, 0, len(envs))
-	for _, env := range envs {
-		s.logger.Debugf("Generating credentials for environment: %v", env)
-		cred, _, err := s.CredentialInformationGenrator(env)
-		if err != nil {
-			s.logger.Errorf("Failed to generate credentials for environment %v: %v", env, err)
-			return nil, err
-		}
-		s.logger.Debugf("Generated credentials for environment %v: %+v", env, cred)
-		miniApp.Credential = append(miniApp.Credential, *cred)
+	cred, _, err := s.CredentialInformationGenrator(UatEnvironment)
+	if err != nil {
+		s.logger.Errorf("Failed to generate credentials for environment %v: %v", UatEnvironment, err)
+		return nil, err
 	}
 
-	s.logger.Infof("MiniApp created successfully: %+v", miniApp)
+	miniApp.Credential = *cred
+
 	return &miniApp, nil
 }
 
@@ -97,7 +94,6 @@ func (s *MiniAppStore) UpdateMiniApp(ctx context.Context, req MiniAppCreateReque
 	s.logger.Debugf("Fetched previous MiniApp data: %+v", prevData)
 
 	miniApp := buildMiniAppFromRequest(req, id, false)
-	s.logger.Debugf("Built updated MiniApp from request: %+v", miniApp)
 
 	miniApp.AppIcon, err = s.uploadOrFallback(ctx, req.AppIcon, "app-icon", s.cfg.MinioEndPoint, prevData.AppIcon)
 	if err != nil {
@@ -113,7 +109,6 @@ func (s *MiniAppStore) UpdateMiniApp(ctx context.Context, req MiniAppCreateReque
 	}
 	s.logger.Infof("Updated banner image to URL: %s", miniApp.BannerImage)
 
-	s.logger.Infof("MiniApp %s updated successfully", id)
 	return &miniApp, prevData, nil
 }
 
@@ -124,12 +119,10 @@ func (s *MiniAppStore) DeleteMiniApp(ctx context.Context, maker entities.User, i
 		s.logger.Errorf("Failed to fetch MiniApp with ID %s: %v", id, err)
 		return nil, nil, err
 	}
-	s.logger.Debugf("Fetched MiniApp for deletion: %+v", miniApp)
 
 	prev := *miniApp
 	miniApp.IsDeleted = true
 	miniApp.DeletedAt = time.Now()
-	s.logger.Infof("MiniApp %s marked as deleted at %v", id, miniApp.DeletedAt)
 
 	return miniApp, &prev, nil
 }
@@ -143,25 +136,78 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 		s.logger.Errorf("Failed to bind current action to MiniApp: %v", bindErr)
 		return nil, fmt.Errorf(common_util.InvalidActionData)
 	}
-	s.logger.Debugf("Bound action to MiniApp: %+v", minApp)
 
 	var err error
 	switch requestedAction := action.RequestAction; requestedAction {
 	case constant.RequestCreateMiniApp:
-		s.logger.Debugf("Processing CreateMiniApp for MiniApp: %+v", minApp)
-		minApp, err = s.repository.CreateMiniApp(ctx, minApp)
+		err = s.repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			minApp, err = s.repository.CreateMiniApp(ctx, minApp)
+			if err != nil {
+				return err
+			}
+			err := s.merchantService.AddMiniApp(ctx, minApp.MerchantID, merchant_service.MiniApps{
+				ID:        minApp.ID,
+				Enabled:   minApp.Enabled,
+				IsDeleted: minApp.IsDeleted,
+			})
+
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 	case constant.RequestUpdateMiniApp:
-		s.logger.Debugf("Processing UpdateMiniApp for MiniApp: %+v", minApp)
 		minApp, err = s.repository.UpdateMinApp(ctx, minApp)
 	case constant.RequestDeleteMiniApp:
-		s.logger.Debugf("Processing DeleteMiniApp for MiniApp: %+v", minApp)
-		minApp, err = s.repository.DeleteMiniAppAction(ctx, minApp)
+		err = s.repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			minApp, err = s.repository.DeleteMiniAppAction(ctx, minApp)
+			if err != nil {
+				s.logger.Errorf("Failed to DeleteMiniAppAction repo mini app: %v", err)
+
+				return err
+			}
+
+			err := s.merchantService.SoftDeleteMiniApp(ctx, minApp.MerchantID, minApp.ID)
+			if err != nil {
+				s.logger.Errorf("Failed to delete mini app: %v", err)
+				return err
+			}
+			return nil
+		})
 	case constant.RequestEnableMiniApp:
-		s.logger.Debugf("Processing EnableMiniApp for ID: %s", minApp.ID)
-		minApp, err = s.repository.EnableDisableMiniApp(ctx, minApp.ID, true)
+		err = s.repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			s.logger.Debugf("Processing EnableMiniApp for ID: %s", minApp.ID)
+			minApp, err = s.repository.EnableDisableMiniApp(ctx, minApp.ID, true)
+			if err != nil {
+				s.logger.Errorf("Failed to EnableDisableMiniApp repo mini app: %v", err)
+				return err
+			}
+
+			err := s.merchantService.UpdateMiniAppEnabledState(ctx, minApp.MerchantID, minApp.ID, true)
+			if err != nil {
+				s.logger.Errorf("Failed to enable mini app: %v", err)
+				return err
+			}
+			return nil
+		})
 	case constant.RequestDisableMiniApp:
-		s.logger.Debugf("Processing DisableMiniApp for ID: %s", minApp.ID)
-		minApp, err = s.repository.EnableDisableMiniApp(ctx, minApp.ID, false)
+
+		err = s.repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			s.logger.Debugf("Processing DisableMiniApp for ID: %s", minApp.ID)
+			minApp, err = s.repository.EnableDisableMiniApp(ctx, minApp.ID, false)
+			if err != nil {
+				s.logger.Errorf("Failed to EnableDisableMiniApp repo mini app: %v", err)
+				return err
+			}
+
+			err := s.merchantService.UpdateMiniAppEnabledState(ctx, minApp.MerchantID, minApp.ID, false)
+			if err != nil {
+				s.logger.Errorf("Failed to disable mini app: %v", err)
+				return err
+			}
+			return nil
+		})
 	default:
 		s.logger.Errorf("Unsupported action: %s", requestedAction)
 		return nil, fmt.Errorf(common_util.ErrUnsupported)
@@ -169,11 +215,10 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 
 	if err != nil {
 		s.logger.Errorf("Failed to process action %s: %v", action.RequestAction, err)
-		fmt.Printf("error from domain check miniapp to %s: %v", action.RequestAction, err)
+		s.logger.Debugf("error from domain check miniapp to %s: %v", action.RequestAction, err)
 		return nil, err
 	}
 
-	s.logger.Infof("Action %s processed successfully for MiniApp: %+v", action.RequestAction, minApp)
 	action.CurrentAction = minApp
 	return action, nil
 }
@@ -185,7 +230,6 @@ func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_consta
 		s.logger.Errorf("Failed to list MiniApps: %v", err)
 		return nil, err
 	}
-	s.logger.Infof("Successfully listed %d MiniApps", len(result.Data))
 	return result, nil
 }
 
@@ -196,28 +240,20 @@ func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniA
 		s.logger.Errorf("Failed to fetch MiniApp with ID %s: %v", id, err)
 		return nil, err
 	}
-	s.logger.Debugf("Fetched MiniApp: %+v", miniApp)
 
-	for _, cred := range miniApp.Credential {
-		s.logger.Debugf("Decrypting AppSecret for MiniApp ID %s, Environment: %v", id, cred.Environment)
-		decryptedSecret, err := s.keyGenService.DecryptAppSecret(cred.AppSecret)
-		if err != nil {
-			s.logger.Errorf("Failed to decrypt AppSecret for MiniApp %s, Environment %v: %v", id, cred.Environment, err)
-			return nil, err
-		}
-		cred.AppSecret = decryptedSecret
-		s.logger.Debugf("Decrypted AppSecret for MiniApp %s, Environment: %v", id, cred.Environment)
+	decryptedSecret, err := s.keyGenService.DecryptAppSecret(miniApp.Credential.AppSecret)
+	if err != nil {
+		s.logger.Errorf("Failed to decrypt AppSecret for MiniApp %s, Environment %v: %v", id, UatEnvironment, err)
+		return nil, err
 	}
 
+	miniApp.Credential.AppSecret = decryptedSecret
 	s.logger.Infof("Successfully fetched MiniApp details for ID: %s", id)
 	return miniApp, nil
 }
 
 func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps bool) MiniApp {
 	now := time.Now()
-	// Note: No logging added here as it's a pure function and logging would require a logger instance.
-	// If logging is desired, consider passing logger or refactoring to a method.
-
 	productCodes := make([]ProductCode, 0, len(req.ProductCode))
 	for _, pc := range req.ProductCode {
 		productCodes = append(productCodes, ProductCode{
@@ -229,18 +265,15 @@ func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps
 		})
 	}
 
-	credentials := make([]CredentialInformation, 0, len(req.Credential))
-	for _, cred := range req.Credential {
-		credentials = append(credentials, CredentialInformation{
-			ID:            utils.RandomGenerator(20),
-			Environment:   EnvironmentType(cred.Environment),
-			MerchantAppID: cred.MerchantAppID,
-			FabricAppID:   cred.FabricAppID,
-			ShortCode:     cred.ShortCode,
-			AppSecret:     cred.AppSecret,
-			PrivateKey:    cred.PrivateKey,
-			PublicKey:     cred.PublicKey,
-		})
+	credentials := CredentialInformation{
+		ID:            utils.RandomGenerator(20),
+		Environment:   UatEnvironment,
+		MerchantAppID: req.Credential.MerchantAppID,
+		FabricAppID:   req.Credential.FabricAppID,
+		ShortCode:     req.Credential.ShortCode,
+		AppSecret:     req.Credential.AppSecret,
+		PrivateKey:    req.Credential.PrivateKey,
+		PublicKey:     req.Credential.PublicKey,
 	}
 
 	miniApp := MiniApp{
@@ -254,7 +287,6 @@ func buildMiniAppFromRequest(req MiniAppCreateRequest, id string, withTimestamps
 		IsEventMiniApp:      req.IsEventMiniApp,
 		IsThreeClick:        req.IsThreeClick,
 		URL:                 req.URL,
-		MPAASID:             req.MPAASID,
 		Stage:               req.Stage,
 		AppViewType:         req.AppViewType,
 	}
@@ -277,7 +309,6 @@ func (s *MiniAppStore) EnableDisableMiniApp(ctx context.Context, maker entities.
 		s.logger.Errorf("Failed to fetch MiniApp with ID %s: %v", id, err)
 		return nil, nil, err
 	}
-	s.logger.Debugf("Fetched MiniApp: %+v", miniApp)
 
 	prev := *miniApp
 	if miniApp.Enabled && enabled {
@@ -368,13 +399,7 @@ func (s *MiniAppStore) CredentialInformationGenrator(envType EnvironmentType) (*
 	return &res, &rawSecret, nil
 }
 
-func (s *MiniAppStore) uploadOrFallback(
-	ctx context.Context,
-	file *multipart.FileHeader,
-	folder string,
-	minioEndpoint string,
-	prevURL string,
-) (string, error) {
+func (s *MiniAppStore) uploadOrFallback(ctx context.Context, file *multipart.FileHeader, folder string, minioEndpoint string, prevURL string) (string, error) {
 	if file == nil {
 		s.logger.Debugf("No file provided for %s, using previous URL: %s", folder, prevURL)
 		return prevURL, nil

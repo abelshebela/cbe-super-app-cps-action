@@ -22,6 +22,9 @@ type MiniAppMerchantService interface {
 	DeleteMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, *MiniAppMerchant, error)
 	EnableOrDisableMerchant(ctx context.Context, id string, enable bool) (*MiniAppMerchant, *MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 }
 type MiniAppMerchantServiceImpl struct {
 	repo        MiniAppMerchantRepository
@@ -70,8 +73,8 @@ func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, 
 				Phone: data.PhoneNumber,
 			},
 		},
-		Branches:   []BranchInformation{},
-		MiniAppIDs: []string{},
+		Branches: []BranchInformation{},
+		MiniApps: []MiniApps{},
 	}
 
 	return res, nil
@@ -236,4 +239,14 @@ func (s *MiniAppMerchantServiceImpl) ListMiniAppMerchant(ctx context.Context, fi
 
 func (s *MiniAppMerchantServiceImpl) DetailMiniAppByID(ctx context.Context, id string) (*MiniAppMerchant, error) {
 	return s.repo.DetailMiniAppByID(ctx, id)
+}
+
+func (s *MiniAppMerchantServiceImpl) AddMiniApp(ctx context.Context, merchantID string, miniApp MiniApps) error {
+	return s.repo.AddMiniApp(ctx, merchantID, miniApp)
+}
+func (s *MiniAppMerchantServiceImpl) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
+	return s.repo.UpdateMiniAppEnabledState(ctx, merchantID, miniAppID, enabled)
+}
+func (s *MiniAppMerchantServiceImpl) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
+	return s.repo.SoftDeleteMiniApp(ctx, merchantID, miniAppID)
 }

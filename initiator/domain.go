@@ -40,6 +40,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
+	miniAppMerchantDomain := mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger)
 
 	return application.Domain{
 		AdDomain:              ad_service.NewAdvertService(persistence.advertPersistence, minioClient, "adverts", cfg, logger),
@@ -57,11 +58,11 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance),
 		WalletDomain:          wallet_service.NewWalletService(persistence.WalletPersistance, minioClient, "wallets", cfg, logger),
-		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, keygenService, logger),
+		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, keygenService,miniAppMerchantDomain, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence, minioClient, "events", cfg, logger),
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
-		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
+		MiniAppMerchantDomain: miniAppMerchantDomain,
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
 
 		BulkServiceDomain:   BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
