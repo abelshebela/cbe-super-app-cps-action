@@ -487,7 +487,7 @@ func (s *UserService) VerifyOtp(ctx context.Context, userID, phone_number, otp s
 			PhoneNumber: phone_number,
 			KYCLevel:    0,
 			DeviceUUID:  deviceUUID,
-			IsVerified:  true,
+			IsVerified:  false,
 			IsBlocked:   false,
 			Enabled:     true,
 		}

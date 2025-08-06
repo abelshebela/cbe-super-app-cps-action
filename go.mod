@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/minio/minio-go/v7 v7.0.94
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.24
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/zap v1.27.0
 )
