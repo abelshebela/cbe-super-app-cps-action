@@ -299,6 +299,7 @@ func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto
 	}
 
 	loginHistory := core.SetPinHistory(user, encryptedPin)
+
 	if err := us.userRepo.Update(ctx, req.UserID, &model.User{LoginPIN: loginHistory}); err != nil {
 		return nil, err
 	}

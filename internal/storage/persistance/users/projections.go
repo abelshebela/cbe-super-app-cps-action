@@ -28,15 +28,14 @@ func UserProjection() bson.M {
 	}
 }
 
-func UserIdFilterAttachMent(id string, filter bson.M) error {
+func UserIdFilterAttachMent(id string) (bson.M, error) {
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.ErrUnexpected
+		return nil, errors.ErrUnexpected
 	}
-	filter = bson.M{
+	return bson.M{
 		"_id": objId,
-	}
-	return nil
+	}, nil
 }
 
 func UserPhoneFilterAttachment(phone string) bson.M {
@@ -51,8 +50,8 @@ func UserDeviceUUIDAttachment(deviceUUID string) bson.M {
 	}
 }
 
-func UserBuilder(update model.User, data bson.M) {
-
+func UserBuilder(update model.User) bson.M {
+	data := bson.M{}
 	if update.FullName != "" {
 		data["full_name"] = update.FullName
 	}
@@ -90,5 +89,5 @@ func UserBuilder(update model.User, data bson.M) {
 	if update.IsSelfRegister {
 		data["is_self_register"] = true
 	}
-
+	return data
 }

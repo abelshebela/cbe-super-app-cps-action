@@ -41,7 +41,7 @@ func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
 	projection := UserProjection()
 	filter := bson.M{}
-	err := UserIdFilterAttachMent(id, filter)
+	_, err := UserIdFilterAttachMent(id)
 	if err != nil {
 		r.logger.Errorf("invalid user id for FindById")
 		return nil, err
@@ -114,15 +114,10 @@ func (r *userRepository) Update(ctx context.Context, id string, update *model.Us
 		r.logger.Errorf("attempted to update with nil user")
 		return errors.ErrTryToSaveEmptyUser
 	}
-	var req, filter bson.M
-	err := UserIdFilterAttachMent(id, filter)
-	if err != nil {
-		r.logger.Errorf("invalid user id for Update")
-		return err
-	}
-	UserBuilder(*update, req)
+	filter, _ := UserIdFilterAttachMent(id)
+	req := UserBuilder(*update)
 
-	_, err = r.userDal.UpdateOne(ctx, filter, req)
+	_, err := r.userDal.UpdateOne(ctx, filter, req)
 	if err != nil {
 		r.logger.Errorf("failed to update user")
 		return err
