@@ -1,8 +1,6 @@
 package users
 
 import (
-	"fmt"
-
 	constants "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 
@@ -64,7 +62,6 @@ func (u *user) Register(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, err)
 		return
 	}
-	fmt.Println(res)
 	response.SendSuccessResponse(w, http.StatusOK, "User Successfully registerd", res, nil)
 }
 
