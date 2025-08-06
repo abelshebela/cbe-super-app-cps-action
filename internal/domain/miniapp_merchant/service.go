@@ -7,8 +7,6 @@ import (
 
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
-	user_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -27,16 +25,14 @@ type MiniAppMerchantService interface {
 	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 }
 type MiniAppMerchantServiceImpl struct {
-	repo        MiniAppMerchantRepository
-	logger      shared_utils.Logger
-	userService user_service.CustomerService
+	repo   MiniAppMerchantRepository
+	logger shared_utils.Logger
 }
 
-func NewMiniAppMerchantService(repo MiniAppMerchantRepository, userService user_service.CustomerService, logger shared_utils.Logger) MiniAppMerchantService {
+func NewMiniAppMerchantService(repo MiniAppMerchantRepository, logger shared_utils.Logger) MiniAppMerchantService {
 	return &MiniAppMerchantServiceImpl{
-		logger:      logger,
-		repo:        repo,
-		userService: userService,
+		logger: logger,
+		repo:   repo,
 	}
 }
 
@@ -184,30 +180,7 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 
 	switch cpsAction.RequestAction {
 	case cps_constants.RequestCreateMiniAppMerchant:
-		txCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-		defer cancel()
-
-		err = s.repo.RunInTransaction(txCtx, func(ctx context.Context) error {
-			newMerchant, err = s.repo.CreateMiniAppMerchant(ctx, &currentAction)
-
-			if err != nil {
-				return err
-			}
-
-			_, err = s.userService.CreateUserMiniAppMerchant(ctx, &entity.User{
-				FullName:    newMerchant.KYC.Representative.Name,
-				PhoneNumber: newMerchant.KYC.Representative.Phone,
-				Email:       newMerchant.KYC.Representative.Email,
-			})
-
-			if err != nil && err.Error() != common_util.AuthUserAlreadyExists {
-				s.logger.Errorf("error occured on create minin app merchant %s", err.Error())
-				return err
-			}
-
-			return nil
-		})
-
+		newMerchant, err = s.repo.CreateMiniAppMerchant(ctx, &currentAction)
 	case cps_constants.RequestUpdateMiniAppMerchant:
 		newMerchant, err = s.repo.UpdateMiniAppMerchant(ctx, &currentAction)
 

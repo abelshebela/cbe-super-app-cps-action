@@ -40,7 +40,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
-	miniAppMerchantDomain := mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger)
+	miniAppMerchantDomain := mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger)
 
 	return application.Domain{
 		AdDomain:              ad_service.NewAdvertService(persistence.advertPersistence, minioClient, "adverts", cfg, logger),
