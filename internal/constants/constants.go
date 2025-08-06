@@ -20,7 +20,7 @@ const (
 	Android                  Platform = "ANDROID"
 	Ios                      Platform = "IOS"
 	Prelogin                          = "pre_login"
-	OTPLength                         = 20
+	OTPLength                         = 6
 	DEV                               = "dev"
 	UAT                               = "uat"
 	Password                          = "password"

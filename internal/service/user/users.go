@@ -91,6 +91,7 @@ func (us *UsersService) DeviceLookup(ctx context.Context, req dto.DeviceLookupRe
 	if !user.IsVerified {
 		core.DeviceFoundButNotVerifiedPreparation(us.Cfg, response)
 		if err := us.NotVerifiedUser(ctx, user, response.OTPCode, response.OTPFor); err != nil {
+			us.logger.Errorf("User verification failed: %v\n", err)
 			return nil, err
 		}
 	}
@@ -222,6 +223,13 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 
 func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.RegisterResponse, error) {
 	existing, err := us.userRepo.FindByPhoneNumber(ctx, req.Phone)
+	if err != nil {
+		return nil, err
+	}
+	if existing == nil {
+		return nil, errors.ErrPhoneNotFound
+	}
+
 	expirationTime := 10 * time.Minute
 	wait := int(expirationTime.Minutes())
 
@@ -306,7 +314,8 @@ func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto
 	return response, nil
 }
 func (us *UsersService) NotVerifiedUser(ctx context.Context, user *model.User, otpCode string, otpFor string) error {
-	existingOtp, err := core.ExistinOTPCheck(ctx, us.otpRepo, *user)
+	existingOtp, err := core.ExistingOTPCheck(ctx, us.otpRepo, *user)
+
 	if err != nil {
 		return err
 	}

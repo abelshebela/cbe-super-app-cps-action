@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrAccBlocked                   = errors.New("Account is blocked")
+	ErrAccBlocked                   = errors.New("account is blocked")
 	ErrOldDevice                    = errors.New("your device app is older version")
 	ErrIdEmpty                      = errors.New("id can not be empty")
 	ErrUnexpected                   = errors.New("unexpected error")
@@ -39,7 +39,7 @@ var (
 	ErrWeakPIN                      = errors.New("weak pin")
 	ErrPINRedundant                 = errors.New("pin redundant")
 	ErrPINSeq                       = errors.New("pin seq")
-	ErrPinInHistory                 = errors.New("The pin you use is recently used")
+	ErrPinInHistory                 = errors.New("the pin you use is recently used")
 	ErrSamePIN                      = errors.New("same pin")
 	ErrPINLength                    = errors.New(" PIN must be exactly 6 digits")
 	ErrOtpExpired                   = errors.New("otp expired")
@@ -66,7 +66,7 @@ var (
 	ErrNoMongoDocument              = errors.New("mongo: no documents in result")
 	ErrPhoneNumberCanNotBeEmpty     = errors.New("phone number can not be empty")
 	ErrDeviceUUIDCanNotBeNull       = errors.New("device uuid can not be null")
-	ErrDeviceDiffInstallationDate   = errors.New("device have different installation date")
+
 	ErrUserBlockedByCps             = errors.New("user is blocked by cps")
 	ErrUserAccountBlockedByCps      = errors.New("user account is blocked")
 	ErrInvalidKey                   = errors.New("invalid key or IV size")
@@ -81,6 +81,7 @@ var (
 	ErrRegistrationFailedExpired    = errors.New("registration failed")
 	ErrPinResetDeviceMismatch       = errors.New("pin reset device mismatch")
 	ErrPinResetFailed               = errors.New("pin reset failed")
+
 	ErrPinNeedActivation            = errors.New("pin reset session %s is not verified please visit nearest branch")
 	ErrPinResetSessionInvalid       = errors.New("invalid pin reset session")
 	ErrPinResetSessionNotFound      = errors.New("pin reset session not found")
@@ -89,6 +90,8 @@ var (
 	ErrFailedToCreateTemp           = errors.New("failed to create temp file")
 	ErrFailedToUpload               = errors.New("failed to upload file")
 	ErrProfileSet                   = errors.New("failed To Set Profile on user")
+	ErrInvalidDateFormat            = errors.New("invalid date format sent from the client")
+
 )
 
 var ErrorMap = map[error]int{
