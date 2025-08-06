@@ -156,7 +156,6 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 		}
 		nextStep = constants.SetPin
 	}
-	fmt.Println("**************Check Point 4*********")
 	user, err := us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
 	if err != nil {
 		return nil, err
@@ -302,6 +301,7 @@ func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto
 	}
 
 	loginHistory := core.SetPinHistory(user, encryptedPin)
+
 	if err := us.userRepo.Update(ctx, req.UserID, &model.User{LoginPIN: loginHistory}); err != nil {
 		return nil, err
 	}
