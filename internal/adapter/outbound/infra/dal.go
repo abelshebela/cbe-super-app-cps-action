@@ -18,6 +18,7 @@ type MongoDal[T, K any] interface {
 	UpdateOne(ctx context.Context, filter, update bson.M) (T, error)
 	DeleteOne(ctx context.Context, filter bson.M) error
 	Collection() *mongo.Collection
+	PushToArray(ctx context.Context, filter bson.M, arrayField string, value any) (T, error)
 }
 
 type mongoDal[T any, K any] struct {
@@ -90,6 +91,24 @@ func (m *mongoDal[T, K]) UpdateOne(ctx context.Context, filter, update bson.M) (
 		bson.M{"$set": update},
 		options.FindOneAndUpdate().SetReturnDocument(options.After),
 	).Decode(&result)
+	if err != nil {
+		var zero T
+		return zero, err
+	}
+	return result, nil
+}
+
+func (m *mongoDal[T, K]) PushToArray(ctx context.Context, filter bson.M, arrayField string, value any) (T, error) {
+	var result T
+	update := bson.M{"$push": bson.M{arrayField: value}}
+
+	err := m.collection.FindOneAndUpdate(
+		ctx,
+		filter,
+		update,
+		options.FindOneAndUpdate().SetReturnDocument(options.After),
+	).Decode(&result)
+
 	if err != nil {
 		var zero T
 		return zero, err

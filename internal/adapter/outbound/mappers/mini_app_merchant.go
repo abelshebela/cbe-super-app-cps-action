@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-
 func ToMiniAppMerchantModel(domain *domain.MiniAppMerchant) (*model.MiniAppMerchant, error) {
 	var objectID bson.ObjectID
 	if domain.ID != "" {
@@ -17,6 +16,22 @@ func ToMiniAppMerchantModel(domain *domain.MiniAppMerchant) (*model.MiniAppMerch
 			return nil, fmt.Errorf("INVALID_ID")
 		}
 		objectID = objID
+	}
+
+	miniApps := []model.MiniApps{}
+	for _, app := range domain.MiniApps {
+		objID, err := bson.ObjectIDFromHex(app.ID)
+		if err != nil {
+			return nil, fmt.Errorf("INVALID_ID")
+		}
+
+		res := model.MiniApps{
+			ID:        objID,
+			Enabled:   app.Enabled,
+			IsDeleted: app.IsDeleted,
+		}
+
+		miniApps = append(miniApps, res)
 	}
 
 	return &model.MiniAppMerchant{
@@ -36,7 +51,7 @@ func ToMiniAppMerchantModel(domain *domain.MiniAppMerchant) (*model.MiniAppMerch
 		Branches:          convertBranchesDomainToModel(domain.Branches),
 		Email:             domain.Email,
 		PhoneNumber:       domain.PhoneNumber,
-		MiniAppIDs:        domain.MiniAppIDs,
+		MiniApps:          miniApps,
 		Enabled:           domain.Enabled,
 		IsDeleted:         domain.IsDeleted,
 		CreatedAt:         domain.CreatedAt,
@@ -46,6 +61,18 @@ func ToMiniAppMerchantModel(domain *domain.MiniAppMerchant) (*model.MiniAppMerch
 }
 
 func ToMiniAppMerchantDomain(model *model.MiniAppMerchant) *domain.MiniAppMerchant {
+
+	miniApps := []domain.MiniApps{}
+	for _, app := range model.MiniApps {
+
+		res := domain.MiniApps{
+			ID:        app.ID.Hex(),
+			Enabled:   app.Enabled,
+			IsDeleted: app.IsDeleted,
+		}
+
+		miniApps = append(miniApps, res)
+	}
 	return &domain.MiniAppMerchant{
 		ID:           model.ID.Hex(),
 		Code:         model.Code,
@@ -63,7 +90,7 @@ func ToMiniAppMerchantDomain(model *model.MiniAppMerchant) *domain.MiniAppMercha
 		Branches:          convertBranchesModelToDomain(model.Branches),
 		Email:             model.Email,
 		PhoneNumber:       model.PhoneNumber,
-		MiniAppIDs:        model.MiniAppIDs,
+		MiniApps:          miniApps,
 		Enabled:           model.Enabled,
 		IsDeleted:         model.IsDeleted,
 		CreatedAt:         model.CreatedAt,

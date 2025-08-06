@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -23,12 +24,14 @@ import (
 type MiniAppPersistence struct {
 	MongoDalMiniApp dal.MongoDal[model.MiniApp, model.MiniApp]
 	logger          utils.Logger
+	client          *mongo.Client
 }
 
 func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.MiniRepository {
 	return &MiniAppPersistence{
 		MongoDalMiniApp: dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
 		logger:          logger,
+		client:          client,
 	}
 }
 
@@ -147,7 +150,7 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 	if len(miniApp.ProductCode) > 0 {
 		update["product_code"] = miniApp.ProductCode
 	}
-	if len(miniApp.Credential) > 0 {
+	if !reflect.DeepEqual(miniApp.Credential, miniApp_domain.CredentialInformation{}) {
 		update["credential"] = miniApp.Credential
 	}
 
@@ -218,4 +221,43 @@ func (o *MiniAppPersistence) EnableDisableMiniApp(ctx context.Context, id string
 
 	res := mappers.ToDomainMiniApp(miniApp)
 	return &res, nil
+}
+
+func (p *MiniAppPersistence) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	p.logger.Debugf("Starting MongoDB session for transaction")
+
+	session, err := p.client.StartSession()
+	if err != nil {
+		p.logger.Errorf("failed to start MongoDB session: %v", err)
+		return fmt.Errorf(common_util.UnhandledServerError)
+	}
+	defer session.EndSession(ctx)
+
+	return mongo.WithSession(ctx, session, func(txCtx context.Context) error {
+		p.logger.Debugf("Starting MongoDB transaction")
+
+		if err := session.StartTransaction(); err != nil {
+			p.logger.Errorf("failed to start transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		err := fn(txCtx)
+		if err != nil {
+			p.logger.Errorf("transaction logic failed: %v", err)
+			if abortErr := session.AbortTransaction(txCtx); abortErr != nil {
+				p.logger.Errorf("failed to abort transaction: %v", abortErr)
+			} else {
+				p.logger.Debugf("Transaction aborted successfully")
+			}
+			return err
+		}
+
+		if err := session.CommitTransaction(txCtx); err != nil {
+			p.logger.Errorf("failed to commit transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		p.logger.Debugf("Transaction committed successfully")
+		return nil
+	})
 }

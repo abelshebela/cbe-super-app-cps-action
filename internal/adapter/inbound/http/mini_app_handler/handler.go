@@ -85,9 +85,7 @@ func (h *HttpStore) getValues(r *http.Request, isCreate bool) (*MiniAppRequest, 
 	req.AppName = get("app_name")
 	req.CommissionGLAccount = get("commission_gl_account")
 	req.MerchantID = get("merchant_id")
-	req.AppType = get("app_type")
 	req.URL = get("url")
-	req.MPAASID = get("mpaas_id")
 	req.AppViewType = get("app_view_type")
 
 	req.IFBProductCode = get("ifb_product_code")

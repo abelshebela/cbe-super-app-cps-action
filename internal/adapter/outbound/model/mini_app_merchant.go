@@ -35,10 +35,16 @@ type MiniAppMerchant struct {
 	Branches          []BranchInformation `bson:"branches"`
 	Email             string              `bson:"email"`
 	PhoneNumber       string              `bson:"phone_number"`
-	MiniAppIDs        []string            `bson:"mini_apps"`
+	MiniApps          []MiniApps          `bson:"mini_apps"`
 	Enabled           bool                `bson:"enabled"`
 	IsDeleted         bool                `bson:"is_deleted"`
 	CreatedAt         time.Time           `bson:"created_at"`
 	LastUpdatedAt     time.Time           `bson:"last_updated_at"`
 	DeletedAt         time.Time           `bson:"deleted_at,omitempty"`
+}
+
+type MiniApps struct {
+	ID        bson.ObjectID `bson:"id"`
+	Enabled   bool          `bson:"enabled"`
+	IsDeleted bool          `bson:"is_deleted"`
 }

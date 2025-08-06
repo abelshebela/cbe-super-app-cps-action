@@ -15,4 +15,5 @@ type MiniRepository interface {
 	UpdateMinApp(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error)
 	DeleteMiniAppAction(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error)
 	EnableDisableMiniApp(ctx context.Context, id string, enabled bool) (*miniApp_domain.MiniApp, error)
+	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 }

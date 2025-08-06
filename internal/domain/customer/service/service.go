@@ -7,7 +7,6 @@ import (
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/repository"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -23,7 +22,6 @@ type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, kycLevel int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*entity.User, error)
 	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
-	CreateUserMiniAppMerchant(ctx context.Context, user *entity.User) (*entity.User, error)
 }
 
 func IntiCustomerDomain(customerRepo domain.CustomerRepository, logger utils.Logger) CustomerService {
@@ -56,10 +54,4 @@ func (c *CustomerDomain) GetBlockedCustomer(ctx context.Context, filerParams *co
 		return nil, err
 	}
 	return customers, nil
-}
-
-func (c *CustomerDomain) CreateUserMiniAppMerchant(ctx context.Context, user *entity.User) (*entity.User, error) {
-	user.Realm = member.MerchantRealm
-	user.UserCode = utils.RandomGenerator(10)
-	return c.customerRepo.CreateUser(ctx, user)
 }

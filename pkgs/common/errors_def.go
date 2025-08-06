@@ -2032,11 +2032,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "invalid url.",
 		},
-		"MPAAS_ID_REQUIRED": {
-			Code:    "MINIAPP_008",
-			Status:  StatusBadRequest,
-			Message: "mpaas_id is required.",
-		},
 		"INCOMPLETE_BRANCH_PRODUCT_CODES": {
 			Code:    "MINIAPP_009",
 			Status:  StatusBadRequest,
