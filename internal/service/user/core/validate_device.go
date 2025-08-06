@@ -586,3 +586,12 @@ func FileBucketUploader(ctx context.Context, minioServer config.MinioClientInter
 
 	return bucketResp.Key, nil
 }
+
+func ErrorType(phoneErr, deviceErr error) error {
+	if phoneErr != nil {
+		return errors.ErrPhoneNumberAlreadyExists
+	} else if deviceErr != nil {
+		return errors.ErrDeviceAleadyExists
+	}
+	return nil
+}

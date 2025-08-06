@@ -222,11 +222,12 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 
 func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.RegisterResponse, error) {
 	existing, err := us.userRepo.FindByPhoneNumber(ctx, req.Phone)
-	if err != nil {
+	existingWithDevice, DeviceErr := us.userRepo.FindByDeviceUUID(ctx, req.DeviceUUID)
+	if err != nil || DeviceErr != nil {
 		return nil, err
 	}
-	if existing == nil {
-		return nil, errors.ErrPhoneNotFound
+	if existing != nil || existingWithDevice != nil {
+		return nil, core.ErrorType(err, DeviceErr)
 	}
 
 	expirationTime := 10 * time.Minute
