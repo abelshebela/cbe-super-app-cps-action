@@ -68,8 +68,7 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 	}
 
 	projection := UserProjection()
-	filter := bson.M{}
-	UserPhoneFilterAttachment(phoneNumber, filter)
+	filter := UserPhoneFilterAttachment(phoneNumber)
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {

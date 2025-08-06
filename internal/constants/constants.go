@@ -1,5 +1,7 @@
 package constants
 
+import "time"
+
 type ContextKey string
 type Platform string
 
@@ -43,6 +45,7 @@ const (
 	Completed                         = "completed"
 	ProfileTemp                       = "profile-*.tmp"
 	BucketUserProfilePicture          = "user-profile-pictures"
+	OtpExpirationTime                 = 3 * time.Minute
 )
 
 type Realm string

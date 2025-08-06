@@ -390,7 +390,7 @@ func OtpProvider(tokenService token.TokenService) (*string, *string, error) {
 
 func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) types.RegistrationRecord {
 	registrationID := uuid.New().String()
-	expirationTime := 10 * time.Minute
+	expirationTime := constants.OtpExpirationTime
 
 	return types.RegistrationRecord{
 		ID:          registrationID,
@@ -435,7 +435,7 @@ func BuildRegisterResponse(registrationID string, req dto.RegisterRequest, env s
 		OTPSent:            true,
 		OTPExpiryMinutes:   wait,
 		Token:              token,
-		TokenType:          constants.Permanent,
+		TokenType:          constants.Register,
 		TokenExpiry:        time.Now().Add(24 * time.Hour),
 		NextStep:           constants.VerifyOtp,
 		RegistrationStatus: constants.Incomplete,
@@ -585,13 +585,4 @@ func FileBucketUploader(ctx context.Context, minioServer config.MinioClientInter
 	}
 
 	return bucketResp.Key, nil
-}
-
-func ErrorType(phoneErr, deviceErr error) error {
-	if phoneErr != nil {
-		return errors.ErrPhoneNumberAlreadyExists
-	} else if deviceErr != nil {
-		return errors.ErrDeviceAleadyExists
-	}
-	return nil
 }

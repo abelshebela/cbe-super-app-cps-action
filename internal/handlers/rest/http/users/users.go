@@ -1,6 +1,8 @@
 package users
 
 import (
+	"fmt"
+
 	constants "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
 	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 
@@ -62,7 +64,7 @@ func (u *user) Register(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, err)
 		return
 	}
-
+	fmt.Println(res)
 	response.SendSuccessResponse(w, http.StatusOK, "User Successfully registerd", res, nil)
 }
 
@@ -279,7 +281,6 @@ func (u *user) Login(w http.ResponseWriter, r *http.Request) {
 
 	response.SendSuccessResponse(w, http.StatusOK, "Login successful", loginResult, nil)
 }
-
 
 func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 	nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
