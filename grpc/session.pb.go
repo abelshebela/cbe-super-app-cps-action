@@ -7,11 +7,12 @@
 package session
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -48,7 +49,7 @@ func (x *CreateSessionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateSessionRequest) ProtoMessage() {}
+// func (*CreateSessionRequest) ProtoMessage() {}
 
 func (x *CreateSessionRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[0]
@@ -160,7 +161,7 @@ func (x *CreateSessionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateSessionResponse) ProtoMessage() {}
+// func (*CreateSessionResponse) ProtoMessage() {}
 
 func (x *CreateSessionResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[1]
@@ -283,7 +284,7 @@ func (x *UpdateSessionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateSessionRequest) ProtoMessage() {}
+// func (*UpdateSessionRequest) ProtoMessage() {}
 
 func (x *UpdateSessionRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[2]
@@ -337,7 +338,7 @@ func (x *UpdateSessionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateSessionResponse) ProtoMessage() {}
+// func (*UpdateSessionResponse) ProtoMessage() {}
 
 func (x *UpdateSessionResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[3]
@@ -396,7 +397,7 @@ func (x *GetSessionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetSessionRequest) ProtoMessage() {}
+// func (*GetSessionRequest) ProtoMessage() {}
 
 func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[4]
@@ -451,7 +452,7 @@ func (x *GetSessionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetSessionResponse) ProtoMessage() {}
+// func (*GetSessionResponse) ProtoMessage() {}
 
 func (x *GetSessionResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[5]
@@ -565,7 +566,7 @@ func (x *HealthCheckRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HealthCheckRequest) ProtoMessage() {}
+// func (*HealthCheckRequest) ProtoMessage() {}
 
 func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[6]
@@ -604,7 +605,7 @@ func (x *HealthCheckResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HealthCheckResponse) ProtoMessage() {}
+// func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[7]
@@ -674,7 +675,7 @@ func (x *ServiceConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ServiceConfig) ProtoMessage() {}
+// func (*ServiceConfig) ProtoMessage() {}
 
 func (x *ServiceConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[8]
@@ -851,7 +852,7 @@ func (x *AuthTier) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthTier) ProtoMessage() {}
+// func (*AuthTier) ProtoMessage() {}
 
 func (x *AuthTier) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[9]
@@ -943,7 +944,7 @@ func (x *Cap) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Cap) ProtoMessage() {}
+// func (*Cap) ProtoMessage() {}
 
 func (x *Cap) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[10]
@@ -1026,7 +1027,7 @@ func (x *ProductCodes) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProductCodes) ProtoMessage() {}
+// func (*ProductCodes) ProtoMessage() {}
 
 func (x *ProductCodes) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[11]
@@ -1094,7 +1095,7 @@ func (x *Tier) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Tier) ProtoMessage() {}
+// func (*Tier) ProtoMessage() {}
 
 func (x *Tier) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[12]
@@ -1158,7 +1159,7 @@ func (x *GLEntry) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GLEntry) ProtoMessage() {}
+// func (*GLEntry) ProtoMessage() {}
 
 func (x *GLEntry) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_session_proto_msgTypes[13]

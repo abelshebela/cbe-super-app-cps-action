@@ -171,7 +171,7 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 
 	if strings.ToUpper(req.Action) == constants.Prelogin {
 
-		nextStep = constants.Login
+		nextStep = constants.SetPin
 		if err := us.userRepo.Update(ctx, req.UserID, userEntity); err != nil {
 			return nil, err
 		}
