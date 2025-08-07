@@ -89,5 +89,8 @@ func UserBuilder(update model.User) bson.M {
 	if update.IsSelfRegister {
 		data["is_self_register"] = true
 	}
+	if update.LoginPIN.PIN != "" || len(update.LoginPIN.PINHistory) > 0 || !update.LoginPIN.LastPINCreatedAt.IsZero() {
+		data["login_pin"] = update.LoginPIN
+	}
 	return data
 }
