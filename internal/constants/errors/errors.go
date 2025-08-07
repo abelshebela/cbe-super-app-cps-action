@@ -97,9 +97,11 @@ var (
 	ErrDeviceDataExist            = errors.New("data already exist")
 	ErrEmptyEmptyData             = errors.New("trying to update empty data")
 	ErrTooManyAttempt             = errors.New("too many login attempts. Please try again later")
+	ErrGotoBranchToEnable         = errors.New("you have to go branch to enable this action")
 )
 
 var ErrorMap = map[error]int{
+	ErrGotoBranchToEnable:           http.StatusBadRequest,
 	ErrTooManyAttempt:               http.StatusBadRequest,
 	ErrEmptyEmptyData:               http.StatusBadRequest,
 	ErrDeviceDataExist:              http.StatusBadRequest,

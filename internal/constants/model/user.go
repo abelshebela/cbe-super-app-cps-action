@@ -91,4 +91,5 @@ type User struct {
 	InitialiLinkedAt    time.Time              `json:"initial_linked_at" bson:"initial_linked_at"`
 	CreatedAt           time.Time              `json:"created_at" bson:"created_at"`
 	LastModifiedAt      time.Time              `json:"last_modified_at" bson:"last_modified_at"`
+	IsDeleted           bool                   `json:"is_deleted" bson:"is_deleted"`
 }

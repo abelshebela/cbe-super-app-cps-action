@@ -25,18 +25,18 @@ func NewUserRepository(client *mongo.Client, dbName string, collection string, l
 	}
 }
 
-func (r *userRepository) Save(ctx context.Context, user *model.User) (*model.User, error) {
+func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 	if user == nil {
 		r.logger.Errorf("attempted to save nil user")
-		return nil, errors.ErrTryToSaveEmptyUser
+		return errors.ErrTryToSaveEmptyUser
 	}
-	userData, err := r.userDal.InsertOne(ctx, *user)
-	if err != nil {
+
+	if _, err := r.userDal.InsertOne(ctx, *user); err != nil {
 		r.logger.Errorf("failed to insert user")
-		return nil, errors.ErrUnexpected
+		return errors.ErrUnexpected
 	}
 	r.logger.Infof("user saved successfully")
-	return &userData, nil
+	return nil
 }
 
 func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
@@ -49,7 +49,7 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, 
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == errors.ErrNoMongoDocument {
+		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("no user found for the provided id")
 			return nil, errors.ErrUserNotFound
 		}
@@ -69,9 +69,12 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 
 	projection := UserProjection()
 	filter := UserPhoneFilterAttachment(phoneNumber)
+
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			r.logger.Errorf("failed to find user by phone number", err)
+
 			return nil, errors.ErrUserNotFound
 		}
 		r.logger.Errorf("failed to find user by phone number")
@@ -129,6 +132,7 @@ func (r *userRepository) Update(ctx context.Context, id string, update *model.Us
 
 func (r *userRepository) UpdateLoginAttemp(ctx context.Context, id string, update bson.M) error {
 	if update == nil {
+
 		return errors.ErrEmptyEmptyData
 	}
 

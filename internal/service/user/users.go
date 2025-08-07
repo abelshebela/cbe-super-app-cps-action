@@ -112,7 +112,7 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 	}
 
 	additional := core.PhoneLookupAdditionalBuilder(string(user.Platform), true, nextStep)
-	token, err := us.TokenService.TempTokenMaker(user, additional, constants.DeviceLookUp)
+	token, err := us.TokenService.TempTokenMaker(user, additional, constants.Prelogin)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,6 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
 
 	var phone, fullName string
-	var userData *model.User
 	nextStep := constants.SetPin
 
 	encOtpCode, _, err := us.TokenService.LocalEncryptPassword(req.OTP, constants.OTP, constants.OTP, constants.OTP)
@@ -149,25 +148,24 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 	}
 	if strings.ToUpper(req.OtpFor) == constants.OTPForRegistration {
 		userEntity := core.BuildUserData(fullName, req.PhoneNumber, req.DeviceUUID)
-		userData, err = us.userRepo.Save(ctx, userEntity)
-		if err != nil {
+		if err := us.userRepo.Save(ctx, userEntity); err != nil {
 			return nil, errors.ErrRegistrationExpired
 		}
 		nextStep = constants.SetPin
-	} else {
-		userData, err = us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
-		if err != nil {
+	}
 
-			return nil, err
-		}
+	user, err := us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
+	if err != nil {
+		return nil, err
 	}
 
 	phone = req.PhoneNumber
-	fullName = userData.FullName
+	fullName = user.FullName
 
 	userEntity := core.BuildUserData(fullName, phone, req.DeviceUUID)
 
 	if strings.ToUpper(req.Action) == constants.Prelogin {
+
 		nextStep = constants.Login
 		if err := us.userRepo.Update(ctx, req.UserID, userEntity); err != nil {
 			return nil, err
@@ -175,14 +173,14 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 
 	}
 
-	additional := core.PhoneLookupAdditionalBuilder(string(userData.Platform), true, nextStep)
+	additional := core.PhoneLookupAdditionalBuilder(string(user.Platform), true, nextStep)
 
-	token, err := us.TokenService.TempTokenMaker(userData, additional, req.Action)
+	token, err := us.TokenService.TempTokenMaker(user, additional, req.Action)
 	if err != nil {
 		return nil, err
 	}
 
-	response := core.BuildVerifyOtpResponse(userData.ID.Hex(), req.PhoneNumber, token, nextStep)
+	response := core.BuildVerifyOtpResponse(user.ID.Hex(), req.PhoneNumber, token, nextStep)
 
 	return response, nil
 }
@@ -211,22 +209,12 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	}
 
 	if err := core.PinValidator(user.LoginPIN.PIN, encryptedPIn); err != nil {
-		updatedField := bson.M{
-			"login_attempt_count": int(user.LoginAttemptCount) + 1,
-			"last_login_attempt":  time.Now(),
-		}
-
-		if err := us.userRepo.UpdateLoginAttemp(ctx, user.ID.Hex(), updatedField); err != nil {
-			us.logger.Errorf("failed to update login attempt", err)
-		}
-
 		return nil, errors.ErrInvalidPIN
 	}
 
-	updatedField := bson.M{
-		"login_attempt_count": 0,
+	if err := us.userRepo.Update(ctx, user.ID.Hex(), &model.User{LoginAttemptCount: 0, LastLoginAttempt: time.Now()}); err != nil {
+		return nil, err
 	}
-	_ = us.userRepo.UpdateLoginAttemp(ctx, user.ID.Hex(), updatedField)
 
 	userEntity := core.BuildUserData(user.FullName, user.PhoneNumber, user.PhoneNumber)
 

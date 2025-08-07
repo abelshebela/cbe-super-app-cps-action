@@ -289,6 +289,9 @@ func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.Ve
 		return constants.Empty, err
 	}
 
+	if req.Action == constants.Prelogin && otpRecord.Status != constants.Verified {
+		return constants.Empty, errors.ErrGotoBranchToEnable
+	}
 	if time.Now().After(otpRecord.ExpiresAt) {
 		if err := otpRepo.Delete(ctx, otpRecord.ID.Hex()); err != nil {
 			return constants.Empty, err
@@ -316,11 +319,12 @@ func BuildUserData(fullName, phoneNumber, deviceUUID string) *model.User {
 		PhoneNumber:    phoneNumber,
 		KYCLevel:       0,
 		DeviceUUID:     deviceUUID,
-		IsVerified:     true,
+		IsVerified:     false,
 		IsBlocked:      false,
 		Enabled:        true,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
+		IsDeleted:      false,
 		IsSelfRegister: true,
 		Username:       utils.GenerateUsername(fullName),
 	}

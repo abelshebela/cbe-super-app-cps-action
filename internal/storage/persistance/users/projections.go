@@ -98,6 +98,9 @@ func UserBuilder(update model.User) bson.M {
 	if update.IsVerified {
 		data["is_verified"] = update.IsVerified
 	}
+	if update.DeviceUUID != "" {
+		data["device_uuid"] = update.DeviceUUID
+	}
 	if update.LoginPIN.PIN != "" || len(update.LoginPIN.PINHistory) > 0 || !update.LoginPIN.LastPINCreatedAt.IsZero() {
 		data["login_pin"] = update.LoginPIN
 	}
