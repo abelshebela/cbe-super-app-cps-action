@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -534,7 +535,7 @@ func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, theme
 	return nil
 }
 
-func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) error {
+func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture, file multipart.File) error {
 	var success bool
 	if _, err := us.userRepo.FindById(ctx, userID); err != nil {
 		return err
@@ -556,11 +557,10 @@ func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string,
 		}
 	}()
 
-	if _, err := io.Copy(tempFile, req.File); err != nil {
+	if _, err := io.Copy(tempFile, file); err != nil {
 		us.logger.Errorf("Failed to copy file content to temp file: %v", err)
 		return errors.ErrFailedToUpload
 	}
-
 	objectName := fmt.Sprintf("profile-pictures/%s/%s", userID, filepath.Base(req.ProfilePicture.Filename))
 
 	ProfileUrl, err := core.FileBucketUploader(ctx, us.minioServer, constants.BucketUserProfilePicture, objectName, filepath.Base(req.ProfilePicture.Filename))
