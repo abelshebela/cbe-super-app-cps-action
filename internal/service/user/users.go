@@ -211,12 +211,22 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	}
 
 	if err := core.PinValidator(user.LoginPIN.PIN, encryptedPIn); err != nil {
+		updatedField := bson.M{
+			"login_attempt_count": int(user.LoginAttemptCount) + 1,
+			"last_login_attempt":  time.Now(),
+		}
+
+		if err := us.userRepo.UpdateLoginAttemp(ctx, user.ID.Hex(), updatedField); err != nil {
+			us.logger.Errorf("failed to update login attempt", err)
+		}
+
 		return nil, errors.ErrInvalidPIN
 	}
 
-	if err := us.userRepo.Update(ctx, user.ID.Hex(), &model.User{LoginAttemptCount: 0, LastLoginAttempt: time.Now()}); err != nil {
-		return nil, err
+	updatedField := bson.M{
+		"login_attempt_count": 0,
 	}
+	_ = us.userRepo.UpdateLoginAttemp(ctx, user.ID.Hex(), updatedField)
 
 	userEntity := core.BuildUserData(user.FullName, user.PhoneNumber, user.PhoneNumber)
 

@@ -189,8 +189,9 @@ func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
 	}
 
 	if elapsed < waitDuration {
-		remaining := waitDuration - elapsed
-		return fmt.Errorf("Too many login attempts. Please wait %s before trying again.", remaining.Truncate(time.Second))
+		// remaining := waitDuration - elapsed
+		// minutes := int(remaining.Minutes())
+		return customErr.ErrTooManyAttempt
 	}
 
 	return nil

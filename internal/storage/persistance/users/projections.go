@@ -22,6 +22,8 @@ func UserProjection() bson.M {
 		"kyc_level":                     1,
 		"is_verified":                   1,
 		"application_installation_date": 1,
+		"login_attempt_count":           1,
+		"last_login_attempt":            1,
 		"device_status":                 1,
 		"enabled":                       1,
 		"first_pin_set":                 1,
