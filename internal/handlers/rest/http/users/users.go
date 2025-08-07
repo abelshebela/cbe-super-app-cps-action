@@ -1,15 +1,16 @@
 package users
 
 import (
-	constants "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	constants "cbe-super-app-member-auth/internal/constants"
+	local_util "cbe-super-app-member-auth/pkgs/utils"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/response"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest/http/users/core"
-	service "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
+	"cbe-super-app-member-auth/internal/constants/dto"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/response"
+	"cbe-super-app-member-auth/internal/handlers/rest"
+	"cbe-super-app-member-auth/internal/handlers/rest/http/users/core"
+	service "cbe-super-app-member-auth/internal/service"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"encoding/json"
@@ -240,26 +241,29 @@ func (u *user) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *user) Login(w http.ResponseWriter, r *http.Request) {
-	// nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
-	// if err != nil {
-
-	// 	response.SendErrorResponse(w, err)
-	// 	return
-	// }
-
-	// if nextStep != constants.Login {
-	// 	response.SendErrorResponse(w, errors.ErrUnauthorized)
-	// 	return
-	// }
-
-	header := core.ExtractHeader(r)
-
-	if header.DeviceUUID == "" {
-		u.logger.Errorf("device UUID is required")
-		response.SendErrorResponse(w, errors.ErrBadRequest)
+	nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
+	if err != nil {
+		response.SendErrorResponse(w, err)
 		return
 	}
 
+	if nextStep != constants.Login {
+		response.SendErrorResponse(w, errors.ErrUnauthorized)
+		return
+	}
+
+	header := core.ExtractHeader(r)
+	userInfo, err := local_util.ExtractUserInfo(r.Context(), u.logger)
+
+	if err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
+
+	if err := header.Validate(); err != nil {
+		response.SendErrorResponse(w, err)
+		return
+	}
 	var req dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		u.logger.Errorf("failed to decode login request: %v", err)
@@ -273,6 +277,8 @@ func (u *user) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Phone = userInfo.PhoneNumber
+	req.DeviceUUID = header.DeviceUUID
 	loginResult, err := u.userService.Login(r.Context(), req)
 	if err != nil {
 		response.SendErrorResponse(w, err)

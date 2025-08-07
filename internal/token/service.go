@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/pkgs/utils"
+
 	"github.com/golang-jwt/jwt/v5"
 
 	"crypto/aes"

@@ -3,7 +3,8 @@ package model
 import (
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -21,4 +22,5 @@ type OTP struct {
 	Status      constants.OTPStatus `json:"status" bson:"status"`
 	ExpiresAt   time.Time           `json:"expires_at" bson:"expires_at"`
 	CreatedAt   time.Time           `json:"created_at" bson:"created_at"`
+	IsDeleted   bool                `json:"is_deleted" bson:"is_deleted"`
 }

@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+	"cbe-super-app-member-auth/platform/logger"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/hashicorp/vault/api"

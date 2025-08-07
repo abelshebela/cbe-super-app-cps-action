@@ -14,9 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	customErr "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
+	"cbe-super-app-member-auth/internal/constants"
+	customErr "cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/types"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

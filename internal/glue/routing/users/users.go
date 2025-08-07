@@ -3,9 +3,9 @@ package users
 import (
 	"net/http"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/glue"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/middleware"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
+	"cbe-super-app-member-auth/internal/glue"
+	"cbe-super-app-member-auth/internal/handlers/middleware"
+	"cbe-super-app-member-auth/internal/handlers/rest"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -44,9 +44,9 @@ func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthM
 			Method:  http.MethodPost,
 			Path:    "/login",
 			Handler: handler.Login,
-			// Middlewares: []func(next http.Handler) http.Handler{
-			// 	authMiddleware.AuthenticateTempToken,
-			// },
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTempToken,
+			},
 		},
 		{
 			Method:  http.MethodPost,

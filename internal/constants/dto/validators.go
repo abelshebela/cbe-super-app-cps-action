@@ -7,8 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/pkgs/utils"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )

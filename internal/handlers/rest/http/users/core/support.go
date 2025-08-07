@@ -3,8 +3,8 @@ package core
 import (
 	"net/http"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants/dto"
 )
 
 func ExtractHeader(r *http.Request) dto.DeviceLookupRequest {

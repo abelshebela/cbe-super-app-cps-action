@@ -3,10 +3,11 @@ package reset_session
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
-	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/storage"
+	local_util "cbe-super-app-member-auth/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

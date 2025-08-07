@@ -1,9 +1,10 @@
 package initiator
 
 import (
-	inbound "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest"
-	userHandler "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/rest/http/users"
-	service "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
+	inbound "cbe-super-app-member-auth/internal/handlers/rest"
+	userHandler "cbe-super-app-member-auth/internal/handlers/rest/http/users"
+	service "cbe-super-app-member-auth/internal/service"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

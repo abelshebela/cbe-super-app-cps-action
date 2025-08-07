@@ -3,8 +3,9 @@ package model
 import (
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants/types"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -60,7 +61,7 @@ type User struct {
 	KYCLevel uint8 `json:"level" bson:"level"`
 
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved"`
-	IsVerified        bool      `json:"is_verfied" bson:"is_verfied"`
+	IsVerified        bool      `json:"is_verified" bson:"is_verified"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register"`
 	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps"` // default: false
 	IsBlocked         bool      `json:"is_blocked" bson:"is_blocked"`         // default: false

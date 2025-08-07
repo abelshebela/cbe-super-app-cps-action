@@ -1,7 +1,8 @@
 package device_history
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/errors"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

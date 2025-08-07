@@ -29,7 +29,8 @@ func ResetSessionIdFilterAttachment(id string) bson.M {
 	objId, _ := bson.ObjectIDFromHex(id)
 
 	return bson.M{
-		"_id": objId,
+		"_id":        objId,
+		"is_deleted": false,
 	}
 }
 

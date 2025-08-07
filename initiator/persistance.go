@@ -1,13 +1,14 @@
 package initiator
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/external_call"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/persistance/device_history"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/persistance/hq"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/persistance/otp"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/persistance/reset_session"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/persistance/users"
+	"cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/storage/external_call"
+	"cbe-super-app-member-auth/internal/storage/persistance/device_history"
+	"cbe-super-app-member-auth/internal/storage/persistance/hq"
+	"cbe-super-app-member-auth/internal/storage/persistance/otp"
+	"cbe-super-app-member-auth/internal/storage/persistance/reset_session"
+	"cbe-super-app-member-auth/internal/storage/persistance/users"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )

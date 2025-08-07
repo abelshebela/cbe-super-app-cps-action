@@ -1,7 +1,8 @@
 package otp
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -11,7 +12,10 @@ func OtpProjection() bson.M {
 		"otp_code":     1,
 		"otp_for":      1,
 		"status":       1,
+		"email":        1,
+		"full_name":    1,
 		"user_code":    1,
+		"user_realm":   1,
 		"device_uuid":  1,
 		"phone_number": 1,
 		"expires_at":   1,

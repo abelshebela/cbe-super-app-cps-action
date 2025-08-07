@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/storage"
+
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

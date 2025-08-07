@@ -3,7 +3,8 @@ package storage
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
