@@ -32,6 +32,7 @@ type RegistrationRecord struct {
 	CreatedAt   time.Time
 	Attempts    int
 	MaxAttempts int
+	Email       string
 }
 
 type UserInfo struct {

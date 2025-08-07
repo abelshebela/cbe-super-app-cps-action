@@ -16,9 +16,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	customErr "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/response"
+	"cbe-super-app-member-auth/internal/constants"
+	customErr "cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/response"
 )
 
 func CORS() func(http.Handler) http.Handler {

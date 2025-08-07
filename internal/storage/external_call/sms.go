@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/dto"
+	"cbe-super-app-member-auth/internal/constants/errors"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

@@ -1,8 +1,9 @@
 package users
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -36,19 +37,22 @@ func UserIdFilterAttachMent(id string) (bson.M, error) {
 		return nil, errors.ErrUnexpected
 	}
 	return bson.M{
-		"_id": objId,
+		"_id":        objId,
+		"is_deleted": false,
 	}, nil
 }
 
 func UserPhoneFilterAttachment(phone string) bson.M {
 	return bson.M{
 		"phone_number": phone,
+		"is_deleted":   false,
 	}
 }
 
 func UserDeviceUUIDAttachment(deviceUUID string) bson.M {
 	return bson.M{
 		"device_uuid": deviceUUID,
+		"is_deleted":  false,
 	}
 }
 
@@ -90,6 +94,9 @@ func UserBuilder(update model.User) bson.M {
 	}
 	if update.IsSelfRegister {
 		data["is_self_register"] = true
+	}
+	if update.IsVerified {
+		data["is_verified"] = update.IsVerified
 	}
 	if update.LoginPIN.PIN != "" || len(update.LoginPIN.PINHistory) > 0 || !update.LoginPIN.LastPINCreatedAt.IsZero() {
 		data["login_pin"] = update.LoginPIN

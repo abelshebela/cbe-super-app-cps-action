@@ -3,7 +3,8 @@ package dto
 import (
 	"mime/multipart"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
@@ -71,8 +72,9 @@ type UpdateProfilePicture struct {
 }
 
 type LoginRequest struct {
-	Phone string `json:"phone"`
-	Pin   string `json:"pin"`
+	DeviceUUID string
+	Phone      string `json:"phone"`
+	Pin        string `json:"pin"`
 }
 
 func (r LoginRequest) Validate() error {

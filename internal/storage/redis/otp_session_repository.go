@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/storage"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

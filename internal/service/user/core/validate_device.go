@@ -9,15 +9,16 @@ import (
 
 	"github.com/hashicorp/go-version"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/token"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
-	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants/dto"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants/types"
+	"cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/token"
+	"cbe-super-app-member-auth/pkgs/utils"
+	local_util "cbe-super-app-member-auth/pkgs/utils"
+
 	"github.com/google/uuid"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -103,6 +104,7 @@ func ValidUserChecker(userData *model.User, installationData, types string) erro
 			return errors.ErrDeviceDiffInstallationDate
 		}
 	}
+
 	if userData.IsAccountBlocked {
 		return errors.ErrAccBlocked
 	}
@@ -153,9 +155,11 @@ func DeviceFoundButNotVerifiedPreparation(cfg config.VaultConfig, response *dto.
 	}
 }
 
-func ExistingOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user model.User) (bool, error) {
+func ExistingOTPCheck(ctx context.Context, otpRepo storage.OTPRepository, user model.User, otpFor string) (bool, error) {
 	filter := bson.M{
 		"phone_number": user.PhoneNumber,
+		"otp_for":      otpFor,
+		"is_deleted":   false,
 	}
 	data, err := otpRepo.Find(ctx, filter)
 	if err != nil {
@@ -179,10 +183,13 @@ func BuildOTPRecord(user model.User, encOtpCode, deviceUUID string, expirationTi
 		UserCode:    user.ID.Hex(),
 		OTPCode:     encOtpCode,
 		PhoneNumber: user.PhoneNumber,
+		FullName:    user.FullName,
 		OTPFor:      constants.OTPFor(otpFor),
 		UserRealm:   constants.MEMBER_REALM,
 		ExpiresAt:   time.Now().Add(expirationTime),
 		CreatedAt:   time.Now(),
+		Status:      constants.OTPStatus(constants.Pending),
+		IsDeleted:   false,
 		DeviceUUID:  &deviceUUID,
 	}
 }
@@ -244,6 +251,7 @@ func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.Ve
 		filter := bson.M{
 			"device_uuid":  req.DeviceUUID,
 			"phone_number": req.PhoneNumber,
+			"is_deleted":   false,
 		}
 		regisration, err := otpRepo.Find(ctx, filter)
 		if err != nil {
@@ -272,8 +280,9 @@ func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.Ve
 	}
 
 	filter := bson.M{
-		"user_code": req.UserID,
-		"otp_for":   req.OtpFor,
+		"user_code":  req.UserID,
+		"otp_for":    req.OtpFor,
+		"is_deleted": false,
 	}
 	otpRecord, err := otpRepo.Find(ctx, filter)
 	if err != nil {
@@ -301,15 +310,19 @@ func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.Ve
 
 func BuildUserData(fullName, phoneNumber, deviceUUID string) *model.User {
 	return &model.User{
-		Realm:       constants.MEMBER_REALM,
-		UserCode:    utils.GenerateRandom(20),
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		KYCLevel:    0,
-		DeviceUUID:  deviceUUID,
-		IsVerified:  true,
-		IsBlocked:   false,
-		Enabled:     true,
+		Realm:          constants.MEMBER_REALM,
+		UserCode:       utils.GenerateUserCode(),
+		FullName:       fullName,
+		PhoneNumber:    phoneNumber,
+		KYCLevel:       0,
+		DeviceUUID:     deviceUUID,
+		IsVerified:     true,
+		IsBlocked:      false,
+		Enabled:        true,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+		IsSelfRegister: true,
+		Username:       utils.GenerateUsername(fullName),
 	}
 }
 
@@ -319,7 +332,7 @@ func BuildVerifyOtpResponse(userID, phone, token, nextStep string) *dto.VerifyOt
 		PhoneNumber: phone,
 		OTPVerified: true,
 		Token:       token,
-		TokenType:   "verify_otp",
+		TokenType:   constants.VerifyOtp,
 		TokenExpiry: time.Now().Add(10 * time.Minute),
 		NextStep:    nextStep,
 	}
@@ -406,6 +419,7 @@ func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) types.R
 		Status:      string(constants.Pending),
 		ExpiresAt:   time.Now().Add(expirationTime),
 		CreatedAt:   time.Now(),
+		Email:       req.Email,
 		Attempts:    0,
 		MaxAttempts: 3,
 	}
@@ -419,6 +433,9 @@ func BuildOTPFromRegistration(registration types.RegistrationRecord) model.OTP {
 		FullName:    registration.FullName,
 		OTPFor:      constants.OTPFor(registration.OTPFor),
 		Status:      constants.OTPStatus(registration.Status),
+		IsDeleted:   false,
+		UserRealm:   constants.MEMBER_REALM,
+		Email:       registration.Email,
 		ExpiresAt:   registration.ExpiresAt,
 		CreatedAt:   registration.CreatedAt,
 	}

@@ -1,7 +1,8 @@
 package initiator
 
 import (
-	redis_store "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/redis"
+	redis_store "cbe-super-app-member-auth/internal/storage/redis"
+
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

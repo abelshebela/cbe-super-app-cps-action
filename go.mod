@@ -1,6 +1,6 @@
-module github.com/CBE-Super-App/cbe-super-app-member-auth
+module cbe-super-app-member-auth
 
-go 1.24.4
+go 1.24.5
 
 require (
 	github.com/go-chi/chi/v5 v5.2.2
@@ -8,16 +8,17 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-viper/mapstructure/v2 v2.4.0
-	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/vault/api v1.20.0
-	github.com/redis/go-redis/v9 v9.11.0
+	github.com/redis/go-redis/v9 v9.12.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.20.1
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
 	go.mongodb.org/mongo-driver v1.17.4
-	go.mongodb.org/mongo-driver/v2 v2.2.2
+
+	go.mongodb.org/mongo-driver/v2 v2.2.3
 	go.uber.org/zap v1.27.0
 )
 

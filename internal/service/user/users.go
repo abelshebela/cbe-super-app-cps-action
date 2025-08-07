@@ -10,21 +10,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/service/user/core"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage/external_call"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/token"
-	local_util "github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/service"
+	"cbe-super-app-member-auth/internal/service/user/core"
+	"cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/storage/external_call"
+	"cbe-super-app-member-auth/internal/token"
+	local_util "cbe-super-app-member-auth/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/dto"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/types"
+	"cbe-super-app-member-auth/internal/constants/dto"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants/types"
 )
 
 type UsersService struct {
@@ -133,6 +134,7 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
 
 	var phone, fullName string
+	var userData *model.User
 	nextStep := constants.SetPin
 
 	encOtpCode, _, err := us.TokenService.LocalEncryptPassword(req.OTP, constants.OTP, constants.OTP, constants.OTP)
@@ -145,21 +147,23 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 	if err != nil {
 		return nil, err
 	}
-
 	if strings.ToUpper(req.OtpFor) == constants.OTPForRegistration {
 		userEntity := core.BuildUserData(fullName, req.PhoneNumber, req.DeviceUUID)
-		if err := us.userRepo.Save(ctx, userEntity); err != nil {
+		userData, err = us.userRepo.Save(ctx, userEntity)
+		if err != nil {
 			return nil, errors.ErrRegistrationExpired
 		}
 		nextStep = constants.SetPin
-	}
-	user, err := us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
-	if err != nil {
-		return nil, err
+	} else {
+		userData, err = us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
+		if err != nil {
+
+			return nil, err
+		}
 	}
 
 	phone = req.PhoneNumber
-	fullName = user.FullName
+	fullName = userData.FullName
 
 	userEntity := core.BuildUserData(fullName, phone, req.DeviceUUID)
 
@@ -171,14 +175,14 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 
 	}
 
-	additional := core.PhoneLookupAdditionalBuilder(string(user.Platform), true, nextStep)
+	additional := core.PhoneLookupAdditionalBuilder(string(userData.Platform), true, nextStep)
 
-	token, err := us.TokenService.TempTokenMaker(user, additional, req.Action)
+	token, err := us.TokenService.TempTokenMaker(userData, additional, req.Action)
 	if err != nil {
 		return nil, err
 	}
 
-	response := core.BuildVerifyOtpResponse(user.ID.Hex(), req.PhoneNumber, token, nextStep)
+	response := core.BuildVerifyOtpResponse(userData.ID.Hex(), req.PhoneNumber, token, nextStep)
 
 	return response, nil
 }
@@ -188,6 +192,11 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 	if err != nil {
 		return nil, err
 	}
+
+	if user.DeviceUUID != req.DeviceUUID {
+		return nil, errors.ErrDeviceMismatch
+	}
+
 	if err := core.ValidUserChecker(user, user.APPInstallationDate.String(), constants.Login); err != nil {
 		return nil, err
 	}
@@ -250,7 +259,7 @@ func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (
 	expirationTime := 10 * time.Minute
 	wait := int(expirationTime.Minutes())
 
-	pendingRegistration, err := us.otpRepo.Find(ctx, bson.M{"phone_number": req.Phone, "device_uuid": req.DeviceUUID, "otp_for": constants.OTPForRegistration})
+	pendingRegistration, err := us.otpRepo.Find(ctx, bson.M{"phone_number": req.Phone, "device_uuid": req.DeviceUUID, "otp_for": constants.OTPForRegistration, "is_deleted": false})
 	if err != nil {
 		if err != errors.ErrOTPNotFound {
 			return nil, err
@@ -309,7 +318,7 @@ func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto
 
 	loginHistory := core.SetPinHistory(user, encryptedPin)
 
-	if err := us.userRepo.Update(ctx, req.UserID, &model.User{LoginPIN: loginHistory}); err != nil {
+	if err := us.userRepo.Update(ctx, req.UserID, &model.User{LoginPIN: loginHistory, IsVerified: true}); err != nil {
 		return nil, err
 	}
 
@@ -325,7 +334,7 @@ func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto
 	return response, nil
 }
 func (us *UsersService) NotVerifiedUser(ctx context.Context, user *model.User, otpCode string, otpFor string) error {
-	existingOtp, err := core.ExistingOTPCheck(ctx, us.otpRepo, *user)
+	existingOtp, err := core.ExistingOTPCheck(ctx, us.otpRepo, *user, otpFor)
 
 	if err != nil {
 		return err
@@ -342,7 +351,7 @@ func (us *UsersService) NotVerifiedUser(ctx context.Context, user *model.User, o
 
 	wait, err := strconv.Atoi(us.Cfg.OtpWaitingTime)
 	if err != nil {
-		wait = 10
+		wait = 3
 	}
 
 	expirationTime := time.Duration(wait) * time.Minute

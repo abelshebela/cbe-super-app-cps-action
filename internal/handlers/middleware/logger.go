@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/google/uuid"

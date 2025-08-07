@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	// "github.com/CBE-Super-App/cbe-super-app-member-auth/config"
+	// "cbe-super-app-member-auth/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/cmd/server"
-	local "github.com/CBE-Super-App/cbe-super-app-member-auth/config"
+	"cbe-super-app-member-auth/cmd/server"
+	local "cbe-super-app-member-auth/config"
 
-	// "github.com/CBE-Super-App/cbe-super-app-member-auth/platform/logger"
+	// "cbe-super-app-member-auth/platform/logger"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

@@ -3,12 +3,12 @@ package users
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/storage"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -24,24 +24,23 @@ func NewUserRepository(client *mongo.Client, dbName string, collection string, l
 	}
 }
 
-func (r *userRepository) Save(ctx context.Context, user *model.User) error {
+func (r *userRepository) Save(ctx context.Context, user *model.User) (*model.User, error) {
 	if user == nil {
 		r.logger.Errorf("attempted to save nil user")
-		return errors.ErrTryToSaveEmptyUser
+		return nil, errors.ErrTryToSaveEmptyUser
 	}
-	_, err := r.userDal.InsertOne(ctx, *user)
+	userData, err := r.userDal.InsertOne(ctx, *user)
 	if err != nil {
 		r.logger.Errorf("failed to insert user")
-		return errors.ErrUnexpected
+		return nil, errors.ErrUnexpected
 	}
 	r.logger.Infof("user saved successfully")
-	return nil
+	return &userData, nil
 }
 
 func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
 	projection := UserProjection()
-	filter := bson.M{}
-	_, err := UserIdFilterAttachMent(id)
+	filter, err := UserIdFilterAttachMent(id)
 	if err != nil {
 		r.logger.Errorf("invalid user id for FindById")
 		return nil, err

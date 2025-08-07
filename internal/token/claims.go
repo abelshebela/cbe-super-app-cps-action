@@ -1,8 +1,8 @@
 package token
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-member-auth/internal/constants/model"
 )
 
 func ClaimBuilder(user *model.User, sessionExpiry interface{}, action interface{}, additional map[string]interface{}) map[string]interface{} {

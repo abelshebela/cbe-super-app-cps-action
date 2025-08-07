@@ -3,8 +3,9 @@ package hq
 import (
 	"context"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/model"
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/storage"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

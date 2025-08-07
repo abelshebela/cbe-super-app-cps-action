@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/glue/routing/users"
-	customeMiddleware "github.com/CBE-Super-App/cbe-super-app-member-auth/internal/handlers/middleware"
+	"cbe-super-app-member-auth/internal/glue/routing/users"
+	customeMiddleware "cbe-super-app-member-auth/internal/handlers/middleware"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
