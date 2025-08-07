@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"mime/multipart"
 
 	"cbe-super-app-member-auth/internal/constants/dto"
 )
@@ -17,6 +18,6 @@ type UserService interface {
 	ResetPin(ctx context.Context, req dto.ResetPinRequest) (*dto.ResetPinResponse, error)
 	SetPin(ctx context.Context, req dto.SetPinRequest) (*dto.SetPinResponse, error)
 	VerifyForgetPinOtp(ctx context.Context, req dto.VerifyForgetPinOtpRequest) (*dto.VerifyOtpResponse, error)
-	UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) error
+	UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture, file multipart.File) error
 	UpdateProfileTheme(ctx context.Context, id string, themeType string) error
 }

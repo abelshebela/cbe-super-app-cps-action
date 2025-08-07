@@ -386,6 +386,12 @@ func (u *user) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
 	}
 
 	file, fileHeader, err := r.FormFile("profile_picture")
+	if file == nil {
+		u.logger.Errorf("req.File is nil")
+		response.SendErrorResponse(w, errors.ErrFailedToUpload)
+		return
+	}
+
 	if err != nil {
 		u.logger.Errorf("failed to get profile picture: %v", err)
 		response.SendErrorResponse(w, errors.ErrInvalidData)
@@ -400,7 +406,7 @@ func (u *user) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, errors.ErrInvalidData)
 		return
 	}
-	err = u.userService.UpdateProfilePicture(r.Context(), userInfo.UserID, req)
+	err = u.userService.UpdateProfilePicture(r.Context(), userInfo.UserID, req, file)
 	if err != nil {
 		response.SendErrorResponse(w, err)
 		return
