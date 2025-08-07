@@ -7,6 +7,7 @@ import (
 
 	"cbe-super-app-member-auth/cmd/server"
 	local "cbe-super-app-member-auth/config"
+	"cbe-super-app-member-auth/internal/storage/api"
 
 	// "cbe-super-app-member-auth/platform/logger"
 
@@ -33,10 +34,18 @@ func Init(ctx context.Context) {
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
 
+	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
+	}
+	defer func() {
+		clientStore.Close()
+	}()
+
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(persitence, logger, cfg, minioClient)
+	serviceLayer := InitServiceLayer(persitence, logger, sessionGRPCClient, cfg, minioClient)
 
 	logger.Infof("initialize handler layer")
 	handlerLayer := InitHandler(serviceLayer.UserService, logger)

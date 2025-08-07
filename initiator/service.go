@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	session "cbe-super-app-member-auth/grpc"
 	"cbe-super-app-member-auth/internal/service"
 	"cbe-super-app-member-auth/internal/service/user"
 	"cbe-super-app-member-auth/internal/token"
@@ -14,7 +15,7 @@ type ServiceLayer struct {
 	UserService service.UserService
 }
 
-func InitServiceLayer(persistence Persistence, logger utils.Logger, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
+func InitServiceLayer(persistence Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 	return ServiceLayer{
 		UserService: user.NewUserService(persistence.UserPersistence,
 			persistence.SMSSenderApi,
@@ -23,6 +24,7 @@ func InitServiceLayer(persistence Persistence, logger utils.Logger, cfg *config.
 			persistence.ResetSessionPersistence,
 			*token.NewTokenService(cfg),
 			minioClient,
+			sessionGRPCClient,
 			logger,
 			*cfg,
 		),

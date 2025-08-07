@@ -3,9 +3,11 @@ package storage
 import (
 	"context"
 
+	session "cbe-super-app-member-auth/grpc"
 	"cbe-super-app-member-auth/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"google.golang.org/grpc"
 )
 
 type OTPRepository interface {
@@ -38,4 +40,16 @@ type ResetSessionRepository interface {
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.PinResetSession, error)
 	Update(ctx context.Context, id string, update *model.PinResetSession) error
 	Delete(ctx context.Context, id string) error
+}
+
+type SessionGRPCPort interface {
+	CreateSession(ctx context.Context, request *session.CreateSessionRequest, opts ...grpc.CallOption) (*session.CreateSessionResponse, error)
+	UpdateSession(ctx context.Context, request *session.UpdateSessionRequest, opts ...grpc.CallOption) (*session.UpdateSessionResponse, error)
+	GetSession(ctx context.Context, request *session.GetSessionRequest, opts ...grpc.CallOption) (*session.GetSessionResponse, error)
+	HealthCheck(ctx context.Context, opts ...grpc.CallOption) (*session.HealthCheckResponse, error)
+	Close() error
+}
+
+type AccountAPIPort interface {
+	LookupAccountByPhone(ctx context.Context, phoneNumber string, PhoneLookupUrl string) (bool, error)
 }

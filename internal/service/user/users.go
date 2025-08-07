@@ -18,6 +18,8 @@ import (
 	"cbe-super-app-member-auth/internal/token"
 	local_util "cbe-super-app-member-auth/pkgs/utils"
 
+	session "cbe-super-app-member-auth/grpc"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -38,9 +40,10 @@ type UsersService struct {
 	minioServer       config.MinioClientInterface
 	logger            utils.Logger
 	Cfg               config.VaultConfig
+	sessionGRPC       session.SessionServiceClient
 }
 
-func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, resetSession storage.ResetSessionRepository, tokenService token.TokenService, minioServer config.MinioClientInterface, logger utils.Logger, config config.VaultConfig) service.UserService {
+func NewUserService(userRepo storage.UserRepository, smsService external_call.SMSPersistence, otpRepo storage.OTPRepository, hqRepo storage.HQRepository, resetSession storage.ResetSessionRepository, tokenService token.TokenService, minioServer config.MinioClientInterface, sessionGRPCClient session.SessionServiceClient, logger utils.Logger, config config.VaultConfig) service.UserService {
 	return &UsersService{
 		smsService:        smsService,
 		TokenService:      tokenService,
@@ -48,6 +51,7 @@ func NewUserService(userRepo storage.UserRepository, smsService external_call.SM
 		otpRepo:           otpRepo,
 		hqRepo:            hqRepo,
 		ressetSessionRepo: resetSession,
+		sessionGRPC:       sessionGRPCClient,
 		minioServer:       minioServer,
 		logger:            logger,
 		Cfg:               config,
@@ -575,5 +579,28 @@ func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string,
 		return errors.ErrProfileSet
 	}
 
+	return nil
+}
+
+// updateSessionViaGRPC updates the session via gRPC call
+func (us *UsersService) updateSessionViaGRPC(ctx context.Context, dataToken, action string) error {
+	sessionID := dataToken
+
+	request := &session.UpdateSessionRequest{
+		SessionId: sessionID,
+		Action:    action,
+	}
+
+	if us.sessionGRPC != nil {
+		_, err := us.sessionGRPC.UpdateSession(ctx, request)
+		if err != nil {
+			us.logger.Errorf("Failed to update session via gRPC: %v", err)
+			return fmt.Errorf("GRPC_SESSION_UPDATE_FAILED: %v", err)
+		}
+		us.logger.Infof("Successfully updated session %s with action %s", sessionID, action)
+		return nil
+	}
+
+	us.logger.Warnf("gRPC client not available, skipping session update for session %s", sessionID)
 	return nil
 }
