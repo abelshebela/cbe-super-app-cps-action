@@ -64,7 +64,7 @@ type ResetPinResponse struct {
 	ResetTime        time.Time `json:"reset_time,omitempty"`
 	AccessRestricted bool      `json:"access_restricted,omitempty"`
 	Restrictions     []string  `json:"restrictions,omitempty"`
-	Token            string    `json:"token,omitempty"`
+	Token            string    `json:"access_token,omitempty"`
 	TokenType        string    `json:"token_type,omitempty"`
 	TokenExpiry      time.Time `json:"token_expiry,omitempty"`
 	NextStep         string    `json:"next_step,omitempty"`

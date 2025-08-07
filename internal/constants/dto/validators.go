@@ -50,6 +50,7 @@ func (v VerifyForgetPinOtpRequest) Validate() error {
 }
 
 func (u UpdateProfilePicture) Validate() error {
+	const MaxImageSize = 2 >> 200 // 2MB
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.ProfilePicture,
 			validation.Required.Error("profile_picture is required"),
@@ -59,9 +60,9 @@ func (u UpdateProfilePicture) Validate() error {
 					return fmt.Errorf("invalid file type")
 				}
 
-				if file.Size > constants.MaxImageSize {
-					return fmt.Errorf("image size exceeds %dMB limit", constants.MaxImageSize)
-				}
+				// if file.Size > MaxImageSize {
+				// 	return fmt.Errorf("image size exceeds %dMB limit %v", MaxImageSize, file.Size)
+				// }
 				if !utils.IsValidImage(file) {
 					return fmt.Errorf("invalid image type")
 				}
@@ -161,7 +162,6 @@ func (r ResetPinRequest) Validate() error {
 			return nil
 		})),
 		validation.Field(&r.DeviceUUID, validation.Required, validation.Length(10, 100)),
-		validation.Field(&r.OTP, validation.Required, validation.Length(6, 6), is.Digit),
 		validation.Field(&r.NewPin, validation.Required, validation.Length(6, 6), is.Digit,
 			validation.By(func(value interface{}) error {
 				pin := fmt.Sprintf("%s", value)

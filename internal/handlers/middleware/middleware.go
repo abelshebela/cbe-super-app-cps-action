@@ -120,7 +120,6 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 			return
 		}
 
-		fmt.Println("===============", userPayload)
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
 

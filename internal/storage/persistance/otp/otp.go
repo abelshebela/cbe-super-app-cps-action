@@ -65,6 +65,7 @@ func (o *OTPRepository) Delete(ctx context.Context, id string) error {
 		o.logger.Errorf("Delete OTP failed: id is empty")
 		return errors.ErrIdEmpty
 	}
+
 	filter, err := local_util.FilterIdFor(id)
 	if err != nil {
 		o.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)

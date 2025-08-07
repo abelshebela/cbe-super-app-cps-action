@@ -425,22 +425,14 @@ func (us *UsersService) VerifyForgetPinOtp(ctx context.Context, req dto.VerifyFo
 		return nil, err
 	}
 
-	encOtp, _, err := us.TokenService.LocalEncryptPassword(req.OTP, constants.OTP, constants.OTP, constants.OTP)
-	if err != nil {
-		return nil, errors.ErrPinResetFailed
-	}
-
-	if err := core.PinValidator(session.OTP, encOtp); err != nil {
-		return nil, err
-	}
-	objId, objErr := bson.ObjectIDFromHex(req.UserId)
-	token, err := us.TokenService.TempTokenMaker(&model.User{ID: objId, FullName: req.FullName, PhoneNumber: req.Phone, DeviceUUID: req.DeviceUUID}, nil, constants.ResetPin)
+	objId, objErr := bson.ObjectIDFromHex(session.UserID)
+	additional := core.ResetPinFinishAdditionalBuilder(req.ResetSessionID)
+	token, err := us.TokenService.TempTokenMaker(&model.User{ID: objId, FullName: req.FullName, PhoneNumber: req.Phone, DeviceUUID: req.DeviceUUID}, additional, constants.ResetPin)
 	if err != nil || objErr != nil {
 		return nil, err
 	}
 
-	response := core.BuildResetPinVerifyOtpResponse(req.UserId, req.Phone, token)
-
+	response := core.BuildResetPinVerifyOtpResponse(session.UserID, req.Phone, token)
 	return response, nil
 }
 
@@ -457,7 +449,10 @@ func (us *UsersService) ResetPin(ctx context.Context, req dto.ResetPinRequest) (
 
 	user, err := us.userRepo.FindByPhoneNumber(ctx, req.Phone)
 	if err != nil {
-		return nil, errors.ErrUserNotFound
+		if err == errors.ErrUserNotFound {
+			return nil, errors.ErrUserNotFound
+		}
+		return nil, err
 	}
 
 	hashedNewPin, _, _ := us.TokenService.LocalEncryptPassword(req.NewPin, constants.Empty, constants.Empty, constants.Empty)
@@ -531,7 +526,7 @@ func (us *UsersService) UpdateProfileTheme(ctx context.Context, id string, theme
 
 func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string, req dto.UpdateProfilePicture) error {
 	var success bool
-	if _, err := us.userRepo.FindById(ctx, req.UserId); err != nil {
+	if _, err := us.userRepo.FindById(ctx, userID); err != nil {
 		return err
 	}
 
@@ -556,7 +551,7 @@ func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string,
 		return errors.ErrFailedToUpload
 	}
 
-	objectName := fmt.Sprintf("profile-pictures/%s/%s", req.UserId, filepath.Base(req.ProfilePicture.Filename))
+	objectName := fmt.Sprintf("profile-pictures/%s/%s", userID, filepath.Base(req.ProfilePicture.Filename))
 
 	ProfileUrl, err := core.FileBucketUploader(ctx, us.minioServer, constants.BucketUserProfilePicture, objectName, filepath.Base(req.ProfilePicture.Filename))
 	if err != nil {
@@ -570,7 +565,7 @@ func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string,
 	// this is usefull for defer func()
 	success = true
 
-	if err := us.userRepo.Update(ctx, req.UserId, &model.User{Avatar: ProfileUrl}); err != nil {
+	if err := us.userRepo.Update(ctx, userID, &model.User{Avatar: ProfileUrl}); err != nil {
 		return errors.ErrProfileSet
 	}
 

@@ -61,6 +61,7 @@ type ResetPinRequest struct {
 	DeviceUUID     string `json:"device_uuid" validate:"required"`
 	OTP            string `json:"otp" validate:"required,min=6,max=6"`
 	NewPin         string `json:"new_pin" validate:"required,min=6,max=6"`
+	UserID         string `json:"user_id"`
 }
 
 type UpdateProfilePicture struct {

@@ -47,12 +47,7 @@ func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*mode
 	}
 
 	projection := ResetSessionProjection()
-	filter := bson.M{}
-	err := ResetSessionIdFilterAttachment(id, filter)
-	if err != nil {
-		r.logger.Errorf("FindById reset session failed: error creating filter. error=%v, id=%s", err, id)
-		return nil, err
-	}
+	filter := ResetSessionIdFilterAttachment(id)
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
@@ -119,34 +114,27 @@ func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *
 		return errors.ErrUnexpected
 	}
 
-	filter := bson.M{}
-	err := ResetSessionIdFilterAttachment(id, filter)
-	if err != nil {
-		r.logger.Errorf("Update reset session failed: error creating filter. error=%v, id=%s", err, id)
-		return err
-	}
+	filter := ResetSessionIdFilterAttachment(id)
 
 	updateDoc := bson.M{
-		"$set": bson.M{
-			"user_id":           update.UserID,
-			"phone_number":      update.PhoneNumber,
-			"device_uuid":       update.DeviceUUID,
-			"expires_at":        update.ExpiresAt,
-			"created_at":        update.CreatedAt,
-			"attempts":          update.Attempts,
-			"max_attempts":      update.MaxAttempts,
-			"otp":               update.OTP,
-			"otp_for":           update.OTPFor,
-			"verified_at":       update.VerifiedAt,
-			"completed_at":      update.CompletedAt,
-			"enabled":           update.Enabled,
-			"access_restricted": update.AccessRestricted,
-			"status":            update.Status,
-			"restrictions":      update.Restrictions,
-		},
+		"user_id":           update.UserID,
+		"phone_number":      update.PhoneNumber,
+		"device_uuid":       update.DeviceUUID,
+		"expires_at":        update.ExpiresAt,
+		"created_at":        update.CreatedAt,
+		"attempts":          update.Attempts,
+		"max_attempts":      update.MaxAttempts,
+		"otp":               update.OTP,
+		"otp_for":           update.OTPFor,
+		"verified_at":       update.VerifiedAt,
+		"completed_at":      update.CompletedAt,
+		"enabled":           update.Enabled,
+		"access_restricted": update.AccessRestricted,
+		"status":            update.Status,
+		"restrictions":      update.Restrictions,
 	}
 
-	_, err = r.resetSessionDal.UpdateOne(ctx, filter, updateDoc)
+	_, err := r.resetSessionDal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
 		r.logger.Errorf("Unexpected error while updating reset session. error=%v, id=%s", err, id)
 		return errors.ErrUnexpected
@@ -156,11 +144,9 @@ func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *
 }
 
 func (r *ResetSessionRepository) Delete(ctx context.Context, id string) error {
-	if id == "" {
-		r.logger.Errorf("Delete OTP failed: id is empty")
-		return errors.ErrIdEmpty
-	}
+
 	filter, err := local_util.FilterIdFor(id)
+
 	if err != nil {
 		r.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
 		return err

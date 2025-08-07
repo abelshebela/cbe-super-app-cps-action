@@ -12,8 +12,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-member-auth/pkgs/utils"
 	"github.com/golang-jwt/jwt/v5"
 
-	// ===================================
-
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"

@@ -472,6 +472,14 @@ func ResetPinAdditionalBuilder(sessionID string) map[string]interface{} {
 	}
 }
 
+func ResetPinFinishAdditionalBuilder(sessionID string) map[string]interface{} {
+	return map[string]interface{}{
+		"reset_session_id": sessionID,
+		"token_type":       constants.ForgetPinVerifyOtp,
+		"next_step":        constants.ResetPin,
+	}
+}
+
 func BuildForgetPinSendOtpResponse(formattedPhone, deviceUUID, sessionID, token, otp, env string, wait int) *dto.ForgetPinSendOtpResponse {
 	otpCode := ""
 	if env == constants.DEV || env == constants.UAT {

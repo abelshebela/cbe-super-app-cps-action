@@ -1,7 +1,6 @@
 package reset_session
 
 import (
-	"github.com/CBE-Super-App/cbe-super-app-member-auth/internal/constants/errors"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -26,13 +25,12 @@ func ResetSessionProjection() bson.M {
 	}
 }
 
-func ResetSessionIdFilterAttachment(id string, filter bson.M) error {
-	objId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.ErrUnexpected
+func ResetSessionIdFilterAttachment(id string) bson.M {
+	objId, _ := bson.ObjectIDFromHex(id)
+
+	return bson.M{
+		"_id": objId,
 	}
-	filter["_id"] = objId
-	return nil
 }
 
 func ResetSessionPhoneFilterAttachment(phoneNumber string) bson.M {

@@ -287,7 +287,6 @@ func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, err)
 		return
 	}
-
 	if nextStep != constants.ResetPin {
 		response.SendErrorResponse(w, errors.ErrUnauthorized)
 		return
@@ -308,7 +307,7 @@ func (u *user) ResetPin(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Phone = userInfo.PhoneNumber
 	req.DeviceUUID = header.DeviceUUID
-
+	req.UserID = userInfo.UserID
 	if err := req.Validate(); err != nil {
 		u.logger.Errorf("invalid input provided to reset pin request: %v", err)
 		response.SendErrorResponse(w, err)
@@ -394,7 +393,6 @@ func (u *user) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, errors.ErrInvalidData)
 		return
 	}
-
 	err = u.userService.UpdateProfilePicture(r.Context(), userInfo.UserID, req)
 	if err != nil {
 		response.SendErrorResponse(w, err)
@@ -454,7 +452,7 @@ func (u *user) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
 	var req dto.VerifyForgetPinOtpRequest
 	req.Phone = userInfo.PhoneNumber
 	req.DeviceUUID = header.DeviceUUID
-
+	req.UserId = userInfo.UserID
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		u.logger.Errorf("failed to decode verify foget pin request: %v", err)
 		response.SendErrorResponse(w, errors.ErrBadRequest)
@@ -472,6 +470,5 @@ func (u *user) VerifyForgetPinOtp(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, err)
 		return
 	}
-
-	response.SendSuccessResponse(w, http.StatusOK, constants.PINResetSuccess, res, nil)
+	response.SendSuccessResponse(w, http.StatusOK, constants.PINResetSuccess, &res, nil)
 }

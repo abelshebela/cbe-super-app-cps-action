@@ -23,4 +23,5 @@ type PinResetSession struct {
 	AccessRestricted bool          `bson:"access_restricted" json:"access_restricted"`
 	Status           string        `bson:"status" json:"status"`
 	Restrictions     []string      `bson:"restrictions" json:"restrictions"`
+	IsDeleted        bool          `bson:"is_deleted" json:"is_deleted"`
 }

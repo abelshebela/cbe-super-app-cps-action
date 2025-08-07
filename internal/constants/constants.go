@@ -6,9 +6,6 @@ type ContextKey string
 type Platform string
 
 const (
-	MaxImageSize = 2 >> 20 // 2MB
-)
-const (
 	// MESSAGE GROUP
 	UpdateApp           = "Update your app"
 	DeviceFound         = "Device Successfuly Found"

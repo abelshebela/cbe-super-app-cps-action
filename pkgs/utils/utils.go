@@ -160,6 +160,9 @@ func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
 }
 
 func FilterIdFor(id string) (bson.M, error) {
+	if strings.HasPrefix(id, "ObjectID(\"") && strings.HasSuffix(id, "\")") {
+		id = id[len("ObjectID(\"") : len(id)-2]
+	}
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
