@@ -17,7 +17,6 @@ require (
 	github.com/spf13/viper v1.20.1
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
 	go.mongodb.org/mongo-driver v1.17.4
-
 	go.mongodb.org/mongo-driver/v2 v2.2.3
 	go.uber.org/zap v1.27.0
 )
