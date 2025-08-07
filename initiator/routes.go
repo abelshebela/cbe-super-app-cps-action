@@ -33,6 +33,7 @@ import (
 
 	// service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service_details"
 	bps_userhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bps_user"
+	donationhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/donation"
 	notificationhandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/notification"
 	productcodehandler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/product_code"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
@@ -78,5 +79,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		service_handler.InteServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware)
 		notificationhandler.InitNotificationsHandlerRoutes(sub, adapter.NotificationAdapter, authMiddleware, cpsGuard)
 		productcodehandler.InitProductCodeHandlerRoutes(sub, adapter.ProductCodeAdapter, authMiddleware, cpsGuard)
+		donationhandler.InitDonationHandlers(sub, adapter.DonationAdapter, authMiddleware, cpsGuard)
 	})
 }

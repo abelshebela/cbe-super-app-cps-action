@@ -55,6 +55,7 @@ type ErrorDefinitions struct {
 	BulkService ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
+	Donation    ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -2078,6 +2079,43 @@ var DefineError = ErrorDefinitions{
 			Code:    "EVE_001",
 			Message: "Event name already exists",
 			Status:  StatusBadRequest,
+		},
+	},
+	Donation: ErrorGroup{
+		"CATEGORY_NAME_ALREADY_EXISTS": {
+			Code:    "DON_001",
+			Message: "Ctegory name already exists",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_ICON": {
+			Code:    "DON_002",
+			Message: "Failed to upload icon",
+			Status:  StatusBadRequest,
+		},
+		"ICON_IS_REQUIRED": {
+			Code:    "DON_003",
+			Message: "Icon is required",
+			Status:  StatusBadRequest,
+		},
+		"MINIO_TIME_SYNC_ERROR": {
+			Code:    "DON_004",
+			Message: "MinIO time synchronization error",
+			Status:  StatusInternalServerError,
+		},
+		"MINIO_BUCKET_ERROR": {
+			Code:    "DON_005",
+			Message: "MinIO bucket operation failed",
+			Status:  StatusInternalServerError,
+		},
+		"MINIO_CLIENT_NOT_CONFIGURED": {
+			Code:    "DON_006",
+			Message: "MinIO client is not configured",
+			Status:  StatusInternalServerError,
+		},
+		"CONFIGURATION_NOT_LOADED": {
+			Code:    "DON_007",
+			Message: "Configuration is not loaded",
+			Status:  StatusInternalServerError,
 		},
 	},
 }

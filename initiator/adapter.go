@@ -79,7 +79,11 @@ import (
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	bulk_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bulk_service"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
+
 	//bps_user "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
+
+	donation_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/donation"
+	donation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/donation"
 )
 
 type Adapter struct {
@@ -120,6 +124,7 @@ type Adapter struct {
 	ServiceCheckAdapter service_inbound.Service
 	NotificationAdapter notification_inbound.NotificationHandler
 	ProductCodeAdapter  productcode_inbound.ProductCodeHandler
+	DonationAdapter     donation_inbound.DonationHandler
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger) Adapter {
@@ -156,5 +161,6 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		ServiceCheckAdapter:    service_handler.NewServiceHandler(application.ServicCheckeApplication, logger),
 		NotificationAdapter:    notification_handler.NewNotificationHTTPHandler(application.NotificationApplication, logger),
 		ProductCodeAdapter:     productcode_handler.NewProductCodeHTTPHandler(application.ProductCodeApplication, logger),
+		DonationAdapter:        donation_handler.NewDonationHTTPHandler(application.DonationApplication, logger),
 	}
 }

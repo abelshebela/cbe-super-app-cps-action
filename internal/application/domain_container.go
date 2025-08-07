@@ -33,6 +33,7 @@ import (
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 
 	// notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
@@ -70,4 +71,5 @@ type Domain struct {
 	KeyGenService         keyGen_service.KeyGeneratorService
 	NotificationService   notification_domain.NotificationService
 	ProductCodeService    productcode.Service
+	DonationDomain        donation_domain.DonationService
 }
