@@ -119,10 +119,24 @@ func (r *userRepository) Update(ctx context.Context, id string, update *model.Us
 
 	_, err := r.userDal.UpdateOne(ctx, filter, req)
 	if err != nil {
-		r.logger.Errorf("failed to update user", err)
+		r.logger.Errorf("failed to update user")
 		return err
 	}
 
 	r.logger.Infof("user updated successfully")
+	return nil
+}
+
+func (r *userRepository) UpdateLoginAttemp(ctx context.Context, id string, update bson.M) error {
+	if update == nil {
+		return errors.ErrEmptyEmptyData
+	}
+
+	filter, _ := UserIdFilterAttachMent(id)
+	_, err := r.userDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

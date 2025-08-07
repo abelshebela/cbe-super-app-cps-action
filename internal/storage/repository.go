@@ -19,6 +19,7 @@ type UserRepository interface {
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error)
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error)
 	Update(ctx context.Context, id string, update *model.User) error
+	UpdateLoginAttemp(ctx context.Context, id string, update bson.M) error
 }
 
 type HQRepository interface {

@@ -95,9 +95,13 @@ var (
 	ErrNoResetSession             = errors.New("no reset session found")
 	ErrDeviceUUidExist            = errors.New("device uuid already exist")
 	ErrDeviceDataExist            = errors.New("data already exist")
+	ErrEmptyEmptyData             = errors.New("trying to update empty data")
+	ErrTooManyAttempt             = errors.New("too many login attempts. Please try again later")
 )
 
 var ErrorMap = map[error]int{
+	ErrTooManyAttempt:               http.StatusBadRequest,
+	ErrEmptyEmptyData:               http.StatusBadRequest,
 	ErrDeviceDataExist:              http.StatusBadRequest,
 	ErrNoResetSession:               http.StatusNoContent,
 	ErrProfileSet:                   http.StatusInternalServerError,
