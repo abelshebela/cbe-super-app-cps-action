@@ -563,7 +563,7 @@ func (us *UsersService) UpdateProfilePicture(ctx context.Context, userID string,
 	}
 	objectName := fmt.Sprintf("profile-pictures/%s/%s", userID, filepath.Base(req.ProfilePicture.Filename))
 
-	ProfileUrl, err := core.FileBucketUploader(ctx, us.minioServer, constants.BucketUserProfilePicture, objectName, filepath.Base(req.ProfilePicture.Filename))
+	ProfileUrl, err := core.FileBucketUploader(ctx, us.minioServer, objectName, tempFile.Name())
 	if err != nil {
 		return err
 	}
