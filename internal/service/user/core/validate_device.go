@@ -310,15 +310,19 @@ func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.Ve
 
 func BuildUserData(fullName, phoneNumber, deviceUUID string) *model.User {
 	return &model.User{
-		Realm:       constants.MEMBER_REALM,
-		UserCode:    utils.GenerateRandom(20),
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		KYCLevel:    0,
-		DeviceUUID:  deviceUUID,
-		IsVerified:  true,
-		IsBlocked:   false,
-		Enabled:     true,
+		Realm:          constants.MEMBER_REALM,
+		UserCode:       utils.GenerateUserCode(),
+		FullName:       fullName,
+		PhoneNumber:    phoneNumber,
+		KYCLevel:       0,
+		DeviceUUID:     deviceUUID,
+		IsVerified:     true,
+		IsBlocked:      false,
+		Enabled:        true,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+		IsSelfRegister: true,
+		Username:       utils.GenerateUsername(fullName),
 	}
 }
 
@@ -328,7 +332,7 @@ func BuildVerifyOtpResponse(userID, phone, token, nextStep string) *dto.VerifyOt
 		PhoneNumber: phone,
 		OTPVerified: true,
 		Token:       token,
-		TokenType:   "verify_otp",
+		TokenType:   constants.VerifyOtp,
 		TokenExpiry: time.Now().Add(10 * time.Minute),
 		NextStep:    nextStep,
 	}
@@ -415,6 +419,7 @@ func BuildRegistrationRecord(req dto.RegisterRequest, encOtpCode string) types.R
 		Status:      string(constants.Pending),
 		ExpiresAt:   time.Now().Add(expirationTime),
 		CreatedAt:   time.Now(),
+		Email:       req.Email,
 		Attempts:    0,
 		MaxAttempts: 3,
 	}
@@ -428,6 +433,9 @@ func BuildOTPFromRegistration(registration types.RegistrationRecord) model.OTP {
 		FullName:    registration.FullName,
 		OTPFor:      constants.OTPFor(registration.OTPFor),
 		Status:      constants.OTPStatus(registration.Status),
+		IsDeleted:   false,
+		UserRealm:   constants.MEMBER_REALM,
+		Email:       registration.Email,
 		ExpiresAt:   registration.ExpiresAt,
 		CreatedAt:   registration.CreatedAt,
 	}

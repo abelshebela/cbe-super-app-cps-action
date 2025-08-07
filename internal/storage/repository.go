@@ -15,7 +15,7 @@ type OTPRepository interface {
 }
 
 type UserRepository interface {
-	Save(ctx context.Context, user *model.User) error
+	Save(ctx context.Context, user *model.User) (*model.User, error)
 	FindById(ctx context.Context, id string) (*model.User, error)
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error)
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error)

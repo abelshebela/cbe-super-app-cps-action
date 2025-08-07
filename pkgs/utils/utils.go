@@ -87,6 +87,42 @@ func OTPGenerator(length uint8) string {
 	return string(result)
 }
 
+func GenerateUsername(fullName string) string {
+	fullName = strings.TrimSpace(fullName)
+	parts := strings.Fields(fullName)
+	if len(parts) < 2 {
+		return strings.ToLower(strings.ReplaceAll(fullName, " ", ""))
+	}
+	first := strings.ToLower(parts[0])
+	last := strings.ToLower(parts[len(parts)-1])
+	clean := func(s string) string {
+		var b strings.Builder
+		for _, r := range s {
+			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+				b.WriteRune(r)
+			}
+		}
+		return b.String()
+	}
+	first = clean(first)
+	last = clean(last)
+	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
+	num := r.Intn(900) + 100 // 100-999
+	return fmt.Sprintf("%s.%s%d", first, last, num)
+}
+
+func GenerateUserCode() string {
+	const prefix = "CBEUSR-"
+	const codeLength = 12
+
+	// Generate a random number between 0 and 999999999999
+	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
+	number := r.Int63n(1000000000000) // 12 digits
+
+	// Format with leading zeros to ensure 12 digits
+	return fmt.Sprintf("%s%012d", prefix, number)
+}
+
 func GenerateRandom(digit int) string {
 	if digit <= 0 {
 		return ""

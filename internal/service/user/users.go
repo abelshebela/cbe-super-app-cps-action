@@ -134,6 +134,7 @@ func (us *UsersService) PreLogin(ctx context.Context, phone string) (*dto.Device
 func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest) (*dto.VerifyOtpResponse, error) {
 
 	var phone, fullName string
+	var userData *model.User
 	nextStep := constants.SetPin
 
 	encOtpCode, _, err := us.TokenService.LocalEncryptPassword(req.OTP, constants.OTP, constants.OTP, constants.OTP)
@@ -148,19 +149,21 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 	}
 	if strings.ToUpper(req.OtpFor) == constants.OTPForRegistration {
 		userEntity := core.BuildUserData(fullName, req.PhoneNumber, req.DeviceUUID)
-		if err := us.userRepo.Save(ctx, userEntity); err != nil {
+		userData, err = us.userRepo.Save(ctx, userEntity)
+		if err != nil {
 			return nil, errors.ErrRegistrationExpired
 		}
 		nextStep = constants.SetPin
-	}
+	} else {
+		userData, err = us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
+		if err != nil {
 
-	user, err := us.userRepo.FindByPhoneNumber(ctx, req.PhoneNumber)
-	if err != nil {
-		return nil, err
+			return nil, err
+		}
 	}
 
 	phone = req.PhoneNumber
-	fullName = user.FullName
+	fullName = userData.FullName
 
 	userEntity := core.BuildUserData(fullName, phone, req.DeviceUUID)
 
@@ -172,14 +175,14 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 
 	}
 
-	additional := core.PhoneLookupAdditionalBuilder(string(user.Platform), true, nextStep)
+	additional := core.PhoneLookupAdditionalBuilder(string(userData.Platform), true, nextStep)
 
-	token, err := us.TokenService.TempTokenMaker(user, additional, req.Action)
+	token, err := us.TokenService.TempTokenMaker(userData, additional, req.Action)
 	if err != nil {
 		return nil, err
 	}
 
-	response := core.BuildVerifyOtpResponse(user.ID.Hex(), req.PhoneNumber, token, nextStep)
+	response := core.BuildVerifyOtpResponse(userData.ID.Hex(), req.PhoneNumber, token, nextStep)
 
 	return response, nil
 }
@@ -246,7 +249,7 @@ func (us *UsersService) Register(ctx context.Context, req dto.RegisterRequest) (
 	expirationTime := 10 * time.Minute
 	wait := int(expirationTime.Minutes())
 
-	pendingRegistration, err := us.otpRepo.Find(ctx, bson.M{"phone_number": req.Phone, "device_uuid": req.DeviceUUID, "otp_for": constants.OTPForRegistration})
+	pendingRegistration, err := us.otpRepo.Find(ctx, bson.M{"phone_number": req.Phone, "device_uuid": req.DeviceUUID, "otp_for": constants.OTPForRegistration, "is_deleted": false})
 	if err != nil {
 		if err != errors.ErrOTPNotFound {
 			return nil, err
