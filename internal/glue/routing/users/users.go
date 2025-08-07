@@ -44,9 +44,9 @@ func Init(router chi.Router, handler rest.Users, authMiddleware middleware.AuthM
 			Method:  http.MethodPost,
 			Path:    "/login",
 			Handler: handler.Login,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateTempToken,
-			},
+			// Middlewares: []func(next http.Handler) http.Handler{
+			// 	authMiddleware.AuthenticateTempToken,
+			// },
 		},
 		{
 			Method:  http.MethodPost,

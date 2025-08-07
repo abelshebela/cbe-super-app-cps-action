@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -239,10 +240,9 @@ func VerifyOtpAdditionalBuilder(otpFor string, userFound bool, nextStep string) 
 }
 
 func OtpValidator(ctx context.Context, otpRepo storage.OTPRepository, req dto.VerifyOTPRequest) (string, error) {
-
-	if req.OtpFor == constants.OTPForRegistration && req.DeviceUUID != "" {
+	if strings.ToUpper(req.OtpFor) == constants.OTPForRegistration && req.DeviceUUID != "" {
 		filter := bson.M{
-			"devide_uuid":  req.DeviceUUID,
+			"device_uuid":  req.DeviceUUID,
 			"phone_number": req.PhoneNumber,
 		}
 		regisration, err := otpRepo.Find(ctx, filter)

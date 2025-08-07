@@ -146,9 +146,8 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 		return nil, err
 	}
 
-	if req.OtpFor == constants.OTPForRegistration {
+	if strings.ToUpper(req.OtpFor) == constants.OTPForRegistration {
 		userEntity := core.BuildUserData(fullName, req.PhoneNumber, req.DeviceUUID)
-
 		if err := us.userRepo.Save(ctx, userEntity); err != nil {
 			return nil, errors.ErrRegistrationExpired
 		}
@@ -164,7 +163,7 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 
 	userEntity := core.BuildUserData(fullName, phone, req.DeviceUUID)
 
-	if req.Action == constants.Prelogin {
+	if strings.ToUpper(req.Action) == constants.Prelogin {
 		nextStep = constants.Login
 		if err := us.userRepo.Update(ctx, req.UserID, userEntity); err != nil {
 			return nil, err
@@ -179,7 +178,7 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 		return nil, err
 	}
 
-	response := core.BuildVerifyOtpResponse(req.UserID, req.PhoneNumber, token, nextStep)
+	response := core.BuildVerifyOtpResponse(user.ID.Hex(), req.PhoneNumber, token, nextStep)
 
 	return response, nil
 }

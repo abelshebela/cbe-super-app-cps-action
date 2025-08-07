@@ -240,16 +240,17 @@ func (u *user) ForgetPinSendOtp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *user) Login(w http.ResponseWriter, r *http.Request) {
-	nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
-	if err != nil {
-		response.SendErrorResponse(w, err)
-		return
-	}
+	// nextStep, err := local_util.ExtractNextStep(r.Context(), u.logger)
+	// if err != nil {
 
-	if nextStep != constants.Login {
-		response.SendErrorResponse(w, errors.ErrUnauthorized)
-		return
-	}
+	// 	response.SendErrorResponse(w, err)
+	// 	return
+	// }
+
+	// if nextStep != constants.Login {
+	// 	response.SendErrorResponse(w, errors.ErrUnauthorized)
+	// 	return
+	// }
 
 	header := core.ExtractHeader(r)
 
