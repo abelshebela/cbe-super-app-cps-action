@@ -110,13 +110,13 @@ type SingleMaxTransferRequest struct {
 }
 
 type TotalMaxTransferUpdateRequest struct {
-	TotalTransferLimit uint64 `json:"total_cap"`
+	TotalTransferLimit uint `json:"total_cap"`
 }
 
 func (r *TotalMaxTransferUpdateRequest) Validate() error {
 	err := validation.ValidateStruct(
 		r,
-		validation.Field(&r.TotalTransferLimit, validation.Required, validation.Match(regexp.MustCompile(`^\d+$`))),
+		validation.Field(&r.TotalTransferLimit, validation.Required),
 	)
 	if err != nil {
 		return err
