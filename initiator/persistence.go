@@ -117,9 +117,9 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		BulkServicesPersistence: bulk_service_persistence.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "access_list"}, logger),
 		avatarPersitence:        avatarPersitence.InitAvatarPersistence(client, databaseName, "avatars", logger),
 
-		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
+		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "users", logger),
 		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
-		UnlinkPersistence:   unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
+		UnlinkPersistence:   unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "users", "archived_users", "archived_linked_account", "linked_account"}, logger),
 		BudgetPersistence:   budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:  account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
 
@@ -156,7 +156,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		AmountBasedAuthPersistence: amount_based_persistence.InitAmountBasedAuth(client, databaseName, []string{"auth_tier", "cps_actions"}, logger),
 		PortalCardPersistance:      portal_card_persistence.InitPortalCardPersistence(client, databaseName, "portal_cards", logger),
 		WalletPersistance:          wallet_repo.InitWalletPersistence(client, databaseName, "wallets", logger),
-		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "user"}, logger),
+		FaydaPersistence:           faydaaccount.InitFaydaAccountPersistence(client, databaseName, []string{"cps_actions", "users"}, logger),
 		miniAppPersistance:         miniApp_persistance.InitMiniAppPersistence(client, databaseName, []string{"mini_app", "cps_actions"}, logger),
 		EventPersistence:           event_persistence.InitEventPersistence(client, databaseName, "events", logger),
 		// BudgetCategoryPersistence:  budget_category_repo.NewBudgetCategoryRepo(client, databaseName, logger),

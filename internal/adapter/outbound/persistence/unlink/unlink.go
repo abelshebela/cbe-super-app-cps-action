@@ -79,7 +79,7 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 
 	if linkedAccounts.CustomerNumber == "" {
 		u.logger.Warnf("no linked account found for account number: %s", accNumber)
-		return nil, fmt.Errorf("NO_DOCUMENT_FOUND")
+		return nil, fmt.Errorf("NO_DOC_FOUND")
 	}
 	// Step 2: Fetch user by customer number
 	customerNumber := linkedAccounts.CustomerNumber
@@ -87,12 +87,12 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 		"customer_number": customerNumber,
 	}
 	projection = bson.M{}
-
+	fmt.Println("=====================filter", filter)
 	userDoc, err := u.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			u.logger.Warnf("user not found for customer number: %s", customerNumber)
-			return nil, fmt.Errorf("NO_DOCUMENT_FOUND")
+			return nil, fmt.Errorf("NO_DOC_FOUND")
 		}
 		u.logger.Errorf("error fetching user: %v", err)
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
@@ -268,7 +268,7 @@ func (u *unlinkCustomer) HardDeleteByID(ctx context.Context, client *mongo.Clien
 	}
 	if res.DeletedCount == 0 {
 		u.logger.Warnf("no document found to delete in %s with id: %v", collectionName, id)
-		return fmt.Errorf("NO_DOCUMENT_FOUND")
+		return fmt.Errorf("NO_DOC_FOUND")
 	}
 	u.logger.Infof("Successfully hard deleted document from %s with id: %v", collectionName, id)
 	return nil
