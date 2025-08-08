@@ -3,6 +3,7 @@ package users
 import (
 	"cbe-super-app-member-auth/internal/constants/errors"
 	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-member-auth/internal/constants/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -101,8 +102,18 @@ func UserBuilder(update model.User) bson.M {
 	if update.DeviceUUID != "" {
 		data["device_uuid"] = update.DeviceUUID
 	}
-	if update.LoginPIN.PIN != "" || len(update.LoginPIN.PINHistory) > 0 || !update.LoginPIN.LastPINCreatedAt.IsZero() {
+	if update.LoginPIN != (types.LoginPIN{}) {
 		data["login_pin"] = update.LoginPIN
 	}
+	if update.ProfileThemeType != "" {
+		data["profile_theme_type"] = update.ProfileThemeType
+	}
+	if update.Avatar != "" {
+		data["avatar"] = update.Avatar
+	}
+	if update.IsBlocked {
+		data["is_blocked"] = update.IsBlocked
+	}
+
 	return data
 }

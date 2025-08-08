@@ -170,12 +170,10 @@ func (us *UsersService) VerifyOtp(ctx context.Context, req dto.VerifyOTPRequest)
 	userEntity := core.BuildUserData(fullName, phone, req.DeviceUUID)
 
 	if strings.ToUpper(req.Action) == constants.Prelogin {
-
 		nextStep = constants.SetPin
 		if err := us.userRepo.Update(ctx, req.UserID, userEntity); err != nil {
 			return nil, err
 		}
-
 	}
 
 	additional := core.PhoneLookupAdditionalBuilder(string(user.Platform), true, nextStep)
@@ -221,7 +219,7 @@ func (us *UsersService) Login(ctx context.Context, req dto.LoginRequest) (*dto.L
 		return nil, err
 	}
 
-	userEntity := core.BuildUserData(user.FullName, user.PhoneNumber, user.PhoneNumber)
+	userEntity := core.BuildUserDataForAccess(user.ID, user.FullName, user.PhoneNumber, user.PhoneNumber)
 
 	token, err := us.TokenService.TokenMaker(userEntity, &us.Cfg, constants.Permanent)
 	if err != nil {
@@ -315,7 +313,7 @@ func (us *UsersService) SetPin(ctx context.Context, req dto.SetPinRequest) (*dto
 		return nil, err
 	}
 
-	userEnntity := core.BuildUserData(user.FullName, user.PhoneNumber, user.DeviceUUID)
+	userEnntity := core.BuildUserDataForAccess(user.ID, user.FullName, user.PhoneNumber, user.DeviceUUID)
 
 	token, err := us.TokenService.TokenMaker(userEnntity, &us.Cfg, constants.Permanent)
 	if err != nil {

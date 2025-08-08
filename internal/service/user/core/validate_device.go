@@ -330,6 +330,26 @@ func BuildUserData(fullName, phoneNumber, deviceUUID string) *model.User {
 	}
 }
 
+func BuildUserDataForAccess(userID bson.ObjectID, fullName, phoneNumber, deviceUUID string) *model.User {
+	return &model.User{
+		ID:             userID,
+		Realm:          constants.MEMBER_REALM,
+		UserCode:       utils.GenerateUserCode(),
+		FullName:       fullName,
+		PhoneNumber:    phoneNumber,
+		KYCLevel:       0,
+		DeviceUUID:     deviceUUID,
+		IsVerified:     false,
+		IsBlocked:      false,
+		Enabled:        true,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+		IsDeleted:      false,
+		IsSelfRegister: true,
+		Username:       utils.GenerateUsername(fullName),
+	}
+}
+
 func BuildVerifyOtpResponse(userID, phone, token, nextStep string) *dto.VerifyOtpResponse {
 	return &dto.VerifyOtpResponse{
 		UserID:      userID,

@@ -119,7 +119,6 @@ func (r *userRepository) Update(ctx context.Context, id string, update *model.Us
 	}
 	filter, _ := UserIdFilterAttachMent(id)
 	req := UserBuilder(*update)
-
 	_, err := r.userDal.UpdateOne(ctx, filter, req)
 	if err != nil {
 		r.logger.Errorf("failed to update user")
