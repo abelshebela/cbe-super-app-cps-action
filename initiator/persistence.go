@@ -29,6 +29,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	bulkOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
+
 	//servicePersistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
@@ -125,7 +126,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 
 		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
-		UnlinkPersistence:       unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
+		UnlinkPersistence:       unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "users", "archived_users", "archived_linked_account", "linked_account"}, logger),
 		BudgetPersistence:       budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:      account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
 		BulkServicesPersistence: outboundStore.NewOutBoundStore(client, databaseName, collectionNames, logger, cfg),

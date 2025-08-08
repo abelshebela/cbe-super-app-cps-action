@@ -2,7 +2,7 @@ package unlink
 
 import (
 	"context"
-	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -19,7 +19,7 @@ func NewUnlinkApplication(domain UnlinkAccount, logger utils.Logger) UnlinkAccou
 	}
 }
 
-func (ua *unlinkApplication) GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error) {
+func (ua *unlinkApplication) GetUserByAccount(ctx context.Context, accNumber string) (*any, error) {
 	return ua.unlinkServiceDomain.GetUserByAccount(ctx, accNumber)
 }
 func (ua *unlinkApplication) UnlinkUserCif(ctx context.Context, userCode string) error {

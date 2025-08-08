@@ -13,7 +13,7 @@ import (
 )
 
 type UnlinkAccount interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 }
 
