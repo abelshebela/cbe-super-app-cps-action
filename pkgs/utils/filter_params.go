@@ -5,9 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	bsonv2 "go.mongodb.org/mongo-driver/bson"
-
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // ExtractFilterParams extracts pagination and filter params from the HTTP request query.
@@ -71,12 +70,12 @@ func ExtractMongoFilterParams(r *http.Request) *constant.MongoFilter {
 
 
 
-func BuildMongoFilter(input map[string]interface{}) bsonv2.M {
+func BuildMongoFilter(input map[string]interface{}) bson.M {
 	return BuildMongoFilterWithValidation(input, nil)
 }
 
-func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []string) bsonv2.M {
-	filter := bsonv2.M{}
+func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []string) bson.M {
+	filter := bson.M{}
 	
 	var validKeysMap map[string]bool
 	if validKeys != nil {
@@ -97,10 +96,10 @@ func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []st
 
 		switch v := value.(type) {
 		case string:
-			filter[key] = bsonv2.M{"$regex": v, "$options": "i"}
+			filter[key] = bson.M{"$regex": v, "$options": "i"}
 
 		case []interface{}:
-			filter[key] = bsonv2.M{"$in": v}
+			filter[key] = bson.M{"$in": v}
 
 		case map[string]interface{}:
 			nested := BuildMongoFilterWithValidation(v, validKeys)

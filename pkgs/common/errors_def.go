@@ -884,7 +884,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "unsupported request action",
 		},
-
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Status:  StatusBadRequest,
@@ -1078,23 +1077,25 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_182",
 			Status:  http.StatusConflict,
 			Message: "fayda user already disabled",
-    },
+		},
 		"INVALID_PAYLOAD": {
 			Code:    "GEN_183",
 			Status:  StatusBadRequest,
 			Message: "invalid payload",
 		},
-    		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
 			Code:    "GEN_184",
 			Status:  StatusBadRequest,
 			Message: "Only Ethiopian numbers in local or international format are acceptable",
 		},
 		"NO_RESOURCE_FOUND": {
 			Code:    "GEN_185",
+			Status:  StatusNotFound,
 			Message: "Resource not found",
-    },
+		},
 		"NO_DOC_FOUND": {
-			Code:    "GEN_186	",
+			Code:    "GEN_186",
+			Status:  StatusNotFound,
 			Message: "mongo: no documents in result",
 		},
 	},
@@ -1816,18 +1817,16 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Invalid user code.",
 		},
-		"USER_ALREADY_ENABLED": {	
+		"USER_ALREADY_ENABLED": {
 			Code:    "USR_003",
 			Status:  StatusBadRequest,
 			Message: "User already enabled.",
 		},
-		"USER_ALREADY_DISABLED": {	
+		"USER_ALREADY_DISABLED": {
 			Code:    "USR_004",
 			Status:  StatusBadRequest,
 			Message: "User already disabled.",
 		},
-		
-		
 	},
 	Wallet: ErrorGroup{
 		"WALLET_NOT_FOUND": {
@@ -1963,13 +1962,40 @@ var DefineError = ErrorDefinitions{
 	BulkService: ErrorGroup{
 		"BULK_SERVICE_CODE_IS_REQUIRED": {
 			Code:    "BULK_001",
+			Status:  StatusBadRequest,
 			Message: "Bulk service code is required",
 		},
 		"SURVICE_NOT_FOUND": {
 			Code:    "BULK_002",
+			Status:  StatusNotFound,
 			Message: "One or more service is not found",
-    },
-  },
+		},
+		"DUPLICATE_ACTION": {
+			Code:    "BULK_003",
+			Status:  StatusConflict,
+			Message: "One or more duplicate action is requested",
+		},
+		"INVALID_CURRENT_ACTION": {
+			Code:    "BULK_004",
+			Status:  StatusBadRequest,
+			Message: "invalid CurrentAction format",
+		},
+		"INVALID_KEY_FORMAT": {
+			Code:    "BULK_005",
+			Status:  StatusBadRequest,
+			Message: "invalid keys format",
+		},
+		"FAILED_TO_UPDATE_CHILD": {
+			Code:    "BULK_006",
+			Status:  StatusInternalServerError,
+			Message: "failed to update child",
+		},
+		"FAILED_TO_UPDATE_PARENT": {
+			Code:    "BULK_007",
+			Status:  StatusInternalServerError,
+			Message: "failed to update parent",
+		},
+	},
 	MiniApp: ErrorGroup{
 		"APP_NAME_REQUIRED": {
 			Code:    "MINIAPP_001",
@@ -2005,11 +2031,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "MINIAPP_007",
 			Status:  StatusBadRequest,
 			Message: "invalid url.",
-		},
-		"MPAAS_ID_REQUIRED": {
-			Code:    "MINIAPP_008",
-			Status:  StatusBadRequest,
-			Message: "mpaas_id is required.",
 		},
 		"INCOMPLETE_BRANCH_PRODUCT_CODES": {
 			Code:    "MINIAPP_009",

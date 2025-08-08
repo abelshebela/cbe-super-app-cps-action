@@ -13,6 +13,11 @@ func InitFeedbackRoutes(router chi.Router, feedbackHandler inbound.Feedback) {
 	router.Route("/feedback", func(r chi.Router) {
 		routes := []route.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/create",
+				Handler: feedbackHandler.CreateFeedback,
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/",
 				Handler: feedbackHandler.GetFeedbacks,

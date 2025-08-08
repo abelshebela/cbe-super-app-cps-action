@@ -39,3 +39,12 @@ func (f *FeedbackDomain) GetFeedbackByID(ctx context.Context, id string) (*entit
 
 	return feedback, nil
 }
+
+func (f *FeedbackDomain) CreateFeedback(ctx context.Context, req entity.FeedbackRequest, userID string) (*entity.Feedback, error) {
+	feedback, err := f.feedbackService.CreateFeedback(ctx, req, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return feedback, nil
+}

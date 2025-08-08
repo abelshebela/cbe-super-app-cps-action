@@ -5,7 +5,6 @@ import (
 	accountvalidation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/ad"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/avatar"
-	bulkservices_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/unlink"
 
 	account_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/account_lookup"
@@ -26,8 +25,9 @@ import (
 	passwordrule "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/password_rule"
 	permission_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/permission_handler"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/portal_card"
+
 	//service_details_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
-	bulk_service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/updated_bulk_service"
+	bulk_service_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/bulk_service"
 
 	service_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/service"
 
@@ -50,7 +50,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 
 	r.Route("/api/v1/cbesuperapp/cps_action", func(sub chi.Router) {
 		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware, cpsGuard)
-		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware)
+		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware, cpsGuard)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
 		bps_userhandler.RegisterBPSUserMakerRoutes(sub, adapter.BPSUserAdapter, authMiddleware)
 
@@ -62,7 +62,6 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
 		unlink.InitUnlinkHanldler(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)
-		bulkservices_inbound.InitServiceHandlerMaker(sub, adapter.BulkServiceAdapter, authMiddleware)
 		accountvalidation_inbound.InitAccountValidationHandlerMaker(sub, adapter.AccountAdapter, authMiddleware)
 		cpsmakerhandler.RegisterCPSUserMakerRoutes(sub, adapter.CPSUserAdapter, authMiddleware)
 		passwordrule.RegisterPasswordRuleRoutes(sub, adapter.PasswordRuleAdapter, authMiddleware)
@@ -75,7 +74,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		cps_action_inbound.InitCPSActionsRoutes(sub, adapter.CPSActionAdapter, authMiddleware)
 		mini_app_merchant_inbound.InitMiniAppMerchantHandlerMaker(sub, adapter.MiniAppMerchantAdapter, authMiddleware, cpsGuard)
 		account_inbound.InitAccountLookUpRoutes(sub, adapter.AccountLookUp, authMiddleware)
-		bulk_service_inbound.RegisterBulkServiceRoutes(sub, adapter.UpdatedBulkServiceAdapter, authMiddleware)
+		bulk_service_inbound.RegisterBulkServiceRoutes(sub, adapter.BulkServiceAdapter, authMiddleware)
 		service_handler.InteServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware)
 		notificationhandler.InitNotificationsHandlerRoutes(sub, adapter.NotificationAdapter, authMiddleware, cpsGuard)
 		productcodehandler.InitProductCodeHandlerRoutes(sub, adapter.ProductCodeAdapter, authMiddleware, cpsGuard)

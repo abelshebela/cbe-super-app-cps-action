@@ -12,6 +12,5 @@ type CustomerRepository interface {
 	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*entity.User, error)
-	CreateUser(ctx context.Context, user *entity.User) (*entity.User, error)
 	CheckUserExist(ctx context.Context, user *entity.User) (bool, error)
 }

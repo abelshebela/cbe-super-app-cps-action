@@ -7,7 +7,7 @@ type AvatarInbound interface {
 	DeleteAvatar(w http.ResponseWriter, r *http.Request)
 	Enable(w http.ResponseWriter, r *http.Request)
 	Disable(w http.ResponseWriter, r *http.Request)
-	GetAvatar(w http.ResponseWriter, r *http.Request)
-	GetAllAvatar(w http.ResponseWriter, r *http.Request)
+	FetchAvatar(w http.ResponseWriter, r *http.Request)
+	FetchAvatars(w http.ResponseWriter, r *http.Request)
 	UpdateAvatar(w http.ResponseWriter, r *http.Request)
 }

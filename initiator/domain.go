@@ -3,8 +3,6 @@ package initiator
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
@@ -15,7 +13,6 @@ import (
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
-	hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
 	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
@@ -23,9 +20,7 @@ import (
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
-	// budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
-	bps_user_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
@@ -35,7 +30,7 @@ import (
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
 
-	BulkServiceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/updated_bulk_service"
+	BulkServiceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -45,6 +40,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	permissionDomain := permission.InitPermissionDomain(persistence.PermissionPersistence, persistence.PermissionPersistence, persistence.PermissionPersistence, logger)
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
+	miniAppMerchantDomain := mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger)
 
 	return application.Domain{
 		AdDomain:              ad_service.NewAdvertService(persistence.advertPersistence, minioClient, "adverts", cfg, logger),
@@ -53,31 +49,26 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
 		UnlinkDomain:          unlink_service.NewUnlinkServiceDomain(persistence.UnlinkPersistence, logger),
 		BudgetDomain:          budget_service.InitBudgetDomain(persistence.BudgetPersistence, logger),
-		AccountDomain:         account_validation.NewAccountValidationService(persistence.AccountPersistence, persistence.BulkServicesPersistence, logger),
 		CPSUserDomain:         services.NewCPSUserService(persistence.CPSUserPersistence, permissionDomain, persistence.DepartmentPersistence, logger),
 		PasswordRuleDomain:    password_service.NewPasswordRuleService(persistence.PasswordRulesPersistence.(password_rule_repo.PasswordRuleRepository)),
 		BankDomain:            bank_service.InitBankDomain(persistence.BankPersistance, minioClient, "banks", logger, cfg),
 		DepartmentDomain:      *department.InitDepartmentDomain(persistence.DepartmentPersistence, persistence.DepartmentPersistence, permissionDomain, logger),
 		AccountBlockDomain:    account_block.NewAccountService(persistence.AccountBlockPersistance),
 		PermissionDomain:      permissionDomain,
-		HQDomain:              hq.NewService(persistence.HQPersistence, persistence.BulkServicesPersistence, logger),
-		BPSUserDomain:         bps_user_domain.NewBPSUserService(persistence.BPSUserPersistence, persistence.BulkServicesPersistence, logger),
 		AmountBasedAuthDomain: amount_based_auth_domain.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, logger),
-		ActionDomain:          action.NewService(persistence.BulkServicesPersistence, logger),
 		PortalCardDomain:      portalcard.NewPortalCardDomain(persistence.PortalCardPersistance),
 		WalletDomain:          wallet_service.NewWalletService(persistence.WalletPersistance, minioClient, "wallets", cfg, logger),
-		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, keygenService, logger),
+		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, keygenService,miniAppMerchantDomain, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence, minioClient, "events", cfg, logger),
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
-		MiniAppMerchantDomain: mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, customerDomain, logger),
+		MiniAppMerchantDomain: miniAppMerchantDomain,
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
 
-		BulkServiceDomain:     BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
+		BulkServiceDomain:   BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
 		ServiceCheckDomain:  service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
 		NotificationService: notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
 		ProductCodeService:  productcode.NewService(persistence.ProductCodePersistenct, logger),
 		KeyGenService:       keygenService,
-
 	}
 }

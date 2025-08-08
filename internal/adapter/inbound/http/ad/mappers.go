@@ -55,7 +55,3 @@ func ToAdvertResponses(adverts []*entity.Advert) []*AdvertResponse {
 	return responses
 }
 
-// isValidAdvertFor checks if the AdvertFor value is valid
-func isValidAdvertFor(advertFor entity.AdvertFor) bool {
-	return advertFor == entity.Both || advertFor == entity.IFB || advertFor == entity.CB
-}

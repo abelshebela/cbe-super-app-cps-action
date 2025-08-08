@@ -14,6 +14,7 @@ import (
 type FeedbackService interface {
 	GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Feedback], error)
 	GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error)
+	CreateFeedback(ctx context.Context, req entity.FeedbackRequest, userID string) (*entity.Feedback, error)
 }
 
 type FeedbackHandler struct {
@@ -39,6 +40,14 @@ func (f FeedbackHandler) GetFeedbacks(ctx context.Context, filterParams *constan
 
 func (f FeedbackHandler) GetFeedbackByID(ctx context.Context, id string) (*entity.Feedback, error) {
 	feedback, err := f.domain.GetFeedbackByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return feedback, nil
+}
+
+func (f FeedbackHandler) CreateFeedback(ctx context.Context, req entity.FeedbackRequest, userID string) (*entity.Feedback, error) {
+	feedback, err := f.domain.CreateFeedback(ctx, req, userID)
 	if err != nil {
 		return nil, err
 	}

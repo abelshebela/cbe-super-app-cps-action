@@ -2,71 +2,43 @@ package miniappmerchant
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/entity"
-	user_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type MiniAppMerchantService interface {
-	CreateMiniAppMerchant(ctx context.Context, cpsAction *entities.CreateCPSAction) (*entities.CPSAction, error)
-	UpdateMiniAppMerchant(ctx context.Context, cpsAction *entities.CreateCPSAction) (*entities.CPSAction, error)
+	CreateMiniAppMerchant(ctx context.Context, data *MiniAppMerchantRequest) (*MiniAppMerchant, error)
+	UpdateMiniAppMerchant(ctx context.Context, id string, data *MiniAppMerchantRequest) (*MiniAppMerchant, *MiniAppMerchant, error)
 	ListMiniAppMerchant(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*MiniAppMerchant], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniAppMerchant, error)
-	DeleteMiniAppMerchant(ctx context.Context, id string, req *entities.CreateCPSAction) (*entities.CPSAction, error)
-	EnableOrDisableMerchant(ctx context.Context, id string, requestAction cps_constants.RequestAction, req *entities.CreateCPSAction) (*entities.CPSAction, error)
+	DeleteMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, *MiniAppMerchant, error)
+	EnableOrDisableMerchant(ctx context.Context, id string, enable bool) (*MiniAppMerchant, *MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error)
-	GetCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 }
 type MiniAppMerchantServiceImpl struct {
-	repo        MiniAppMerchantRepository
-	logger      shared_utils.Logger
-	userService user_service.CustomerService
+	repo   MiniAppMerchantRepository
+	logger shared_utils.Logger
 }
 
-func NewMiniAppMerchantService(repo MiniAppMerchantRepository,
-	userService user_service.CustomerService,
-	logger shared_utils.Logger,
-) MiniAppMerchantService {
+func NewMiniAppMerchantService(repo MiniAppMerchantRepository, logger shared_utils.Logger) MiniAppMerchantService {
 	return &MiniAppMerchantServiceImpl{
-		logger:      logger,
-		repo:        repo,
-		userService: userService,
+		logger: logger,
+		repo:   repo,
 	}
 }
 
-func (s *MiniAppMerchantServiceImpl) GetCurrentData(req *entities.CreateCPSAction) (*MiniAppMerchant, error) {
-
-	// This works even if ActionData is map[string]interface{} or *MiniAppMerchant serialized from HTTP
-	bytes, err := json.Marshal(req.ActionData)
-	if err != nil {
-		s.logger.Errorf("failed to marshal ActionData: %v", err)
-		return nil, fmt.Errorf("MARSHAL_ERROR")
-	}
-
-	var merchant MiniAppMerchant
-	if err := json.Unmarshal(bytes, &merchant); err != nil {
-		s.logger.Errorf("failed to unmarshal ActionData into MiniAppMerchant: %v", err)
-		return nil, fmt.Errorf("UNMARSHAL_ERROR")
-	}
-
-	return &merchant, nil
-}
-
-func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
-	data, err := s.GetCurrentData(req)
-	if err != nil {
-		return nil, err
-	}
+func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, data *MiniAppMerchantRequest) (*MiniAppMerchant, error) {
 	exist, err := s.repo.MiniAppMerchantInfoExists(ctx, CheckMiniAppMerchant{
-		BankAccountNumber: data.BankAccountNumber,
+		BankAccountNumber: data.AccountNumber,
 		Email:             data.Email,
 		PhoneNumber:       data.PhoneNumber,
 	}, nil)
@@ -80,208 +52,124 @@ func (s *MiniAppMerchantServiceImpl) CreateMiniAppMerchant(ctx context.Context, 
 	}
 
 	now := time.Now()
-	cps := &entities.CPSAction{
-		ActionCode:       shared_utils.RandomGenerator(20),
-		MakerID:          req.MakerUser.UserCode,
-		MakerName:        req.MakerUser.FullName,
-		MakerPhoneNumber: req.MakerUser.PhoneNumber,
-		Department:       req.MakerUser.Department,
-		CurrentAction: MiniAppMerchant{
-			Code:              shared_utils.RandomGenerator(10), // merchantCode
-			MerchantName:      data.MerchantName,
-			MerchantType:      data.MerchantType,
-			PhoneNumber:       data.PhoneNumber,
-			Email:             data.Email,
-			BankAccountNumber: data.BankAccountNumber,
-			MiniAppIDs:        data.MiniAppIDs,
-			Enabled:           false,
-			IsDeleted:         false,
-			CreatedAt:         now,
-			LastModifiedAt:    now,
-			KYC: KYC{
-				Status: KYCStatusComplete,
-				Representative: KYCInformation{
-					Name:  data.MerchantName,
-					Email: data.Email,
-					Phone: data.PhoneNumber,
-				},
-			},
-			Branches: []BranchInformation{},
-		},
-		RequestAction:   cps_constants.RequestCreateMiniAppMerchant,
-		ActionStatus:    cps_constants.ActionPending,
-		ActionType:      cps_constants.ActionCreate,
-		MakerActionTime: now,
-		CreatedAt:       now,
-		LastModifiedAt:  now,
-	}
-
-	return cps, nil
-}
-
-func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
-	data, err := s.GetCurrentData(req)
-	if err != nil {
-		return nil, err
-	}
-
-	old, err := s.repo.DetailMiniAppByID(ctx, data.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	exist, err := s.repo.MiniAppMerchantInfoExists(ctx, CheckMiniAppMerchant{
-		BankAccountNumber: data.BankAccountNumber,
-		Email:             data.Email,
+	res := &MiniAppMerchant{
+		Code:              shared_utils.RandomGenerator(10),
+		MerchantName:      data.MerchantName,
+		MerchantType:      data.Type,
 		PhoneNumber:       data.PhoneNumber,
-	}, &MiniAppMerchantExistOptions{
-		ExcludeID: data.ID,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if exist {
-		return nil, fmt.Errorf(common_util.InformationAlreadyExistst)
-	}
-
-	now := time.Now()
-	cps := &entities.CPSAction{
-		ActionCode:       shared_utils.RandomGenerator(20),
-		MakerID:          req.MakerUser.UserCode,
-		MakerName:        req.MakerUser.FullName,
-		MakerPhoneNumber: req.MakerUser.PhoneNumber,
-		Department:       req.MakerUser.Department,
-		CurrentAction: MiniAppMerchant{
-			ID:                old.ID,
-			Code:              old.Code, // keep existing code
-			MerchantName:      data.MerchantName,
-			MerchantType:      data.MerchantType,
-			PhoneNumber:       data.PhoneNumber,
-			Email:             data.Email,
-			BankAccountNumber: data.BankAccountNumber,
-			MiniAppIDs:        data.MiniAppIDs,
-			Enabled:           old.Enabled,
-			IsDeleted:         old.IsDeleted,
-			CreatedAt:         old.CreatedAt,
-			LastModifiedAt:    now,
-			KYC: KYC{
-				Status: data.KYC.Status,
-				Representative: KYCInformation{
-					Name:  data.KYC.Representative.Name,
-					Email: data.KYC.Representative.Email,
-					Phone: data.KYC.Representative.Phone,
-				},
+		Email:             data.Email,
+		BankAccountNumber: data.AccountNumber,
+		CreatedAt:         now,
+		LastModifiedAt:    now,
+		KYC: KYC{
+			Status: KYCStatusComplete,
+			Representative: KYCInformation{
+				Name:  data.MerchantName,
+				Email: data.Email,
+				Phone: data.PhoneNumber,
 			},
-			Branches: data.Branches,
 		},
-		PreviousAction:  *old,
-		ActionType:      cps_constants.ActionUpdate,
-		ActionStatus:    cps_constants.ActionPending,
-		RequestAction:   cps_constants.RequestUpdateMiniAppMerchant,
-		MakerActionTime: now,
-		CreatedAt:       now,
-		LastModifiedAt:  now,
+		Branches: []BranchInformation{},
+		MiniApps: []MiniApps{},
 	}
 
-	return cps, nil
+	return res, nil
 }
 
-func (s *MiniAppMerchantServiceImpl) DeleteMiniAppMerchant(ctx context.Context, id string, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
+func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, id string, data *MiniAppMerchantRequest) (*MiniAppMerchant, *MiniAppMerchant, error) {
 
 	old, err := s.repo.DetailMiniAppByID(ctx, id)
 	if err != nil {
-		return nil, err
-	}
-	now := time.Now()
-	cps := &entities.CPSAction{
-		ActionCode:       shared_utils.RandomGenerator(20),
-		MakerID:          req.MakerUser.UserCode,
-		MakerName:        req.MakerUser.FullName,
-		MakerPhoneNumber: req.MakerUser.PhoneNumber,
-		Department:       req.MakerUser.Department,
-		CurrentAction: MiniAppMerchant{
-			ID:             old.ID,
-			IsDeleted:      true,
-			LastModifiedAt: now,
-			DeletedAt:      now,
-		},
-		PreviousAction:  *old,
-		ActionType:      cps_constants.ActionDelete,
-		ActionStatus:    cps_constants.ActionPending,
-		RequestAction:   cps_constants.RequestDeleteMiniAppMerchant,
-		MakerActionTime: now,
-		CreatedAt:       now,
-		LastModifiedAt:  now,
+		return nil, nil, err
 	}
 
-	return cps, nil
+	exist, err := s.repo.MiniAppMerchantInfoExists(ctx,
+		CheckMiniAppMerchant{
+			BankAccountNumber: data.AccountNumber,
+			Email:             data.Email,
+			PhoneNumber:       data.PhoneNumber,
+		}, &MiniAppMerchantExistOptions{
+			ExcludeID: id,
+		})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if exist {
+		return nil, nil, fmt.Errorf(common_util.InformationAlreadyExistst)
+	}
+
+	now := time.Now()
+	cps := &MiniAppMerchant{
+		ID:                old.ID,
+		Code:              old.Code,
+		MerchantName:      nonEmptyString(data.MerchantName, old.MerchantName),
+		MerchantType:      nonEmptyString(data.Type, old.MerchantType),
+		PhoneNumber:       nonEmptyString(data.PhoneNumber, old.PhoneNumber),
+		Email:             nonEmptyString(data.Email, old.Email),
+		BankAccountNumber: nonEmptyString(data.AccountNumber, old.BankAccountNumber),
+		Enabled:           old.Enabled,
+		IsDeleted:         old.IsDeleted,
+		CreatedAt:         old.CreatedAt,
+		LastModifiedAt:    now,
+		KYC: KYC{
+			Status: old.KYC.Status,
+			Representative: KYCInformation{
+				Name:  nonEmptyString(data.MerchantRepresentativeName, old.KYC.Representative.Name),
+				Email: nonEmptyString(data.Email, old.KYC.Representative.Email),
+				Phone: nonEmptyString(data.PhoneNumber, old.KYC.Representative.Phone),
+			},
+		},
+		Branches: old.Branches,
+	}
+
+	return cps, old, nil
 }
 
-func (s *MiniAppMerchantServiceImpl) EnableOrDisableMerchant(ctx context.Context, id string, requestAction cps_constants.RequestAction, req *entities.CreateCPSAction) (*entities.CPSAction, error) {
+func (s *MiniAppMerchantServiceImpl) DeleteMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, *MiniAppMerchant, error) {
+
+	old, err := s.repo.DetailMiniAppByID(ctx, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	now := time.Now()
+	cur := *old
+
+	cur.DeletedAt = now
+	cur.LastModifiedAt = now
+	cur.IsDeleted = true
+	return &cur, old, nil
+}
+
+func (s *MiniAppMerchantServiceImpl) EnableOrDisableMerchant(ctx context.Context, id string, enabled bool) (*MiniAppMerchant, *MiniAppMerchant, error) {
 	existingMerchant, err := s.repo.DetailMiniAppByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	enable := requestAction == cps_constants.RequestEnableMiniAppMerchant
-	if enable && existingMerchant.Enabled {
-		return nil, fmt.Errorf(common_util.ErrAlreadyEnabled)
+	if existingMerchant.Enabled && enabled {
+		return nil, existingMerchant, fmt.Errorf(common_util.ErrAlreadyEnabled)
 	}
-	if !enable && !existingMerchant.Enabled {
-		return nil, fmt.Errorf(common_util.ErrAlreadyDisabled)
+	if !existingMerchant.Enabled && !enabled {
+		return nil, existingMerchant, fmt.Errorf(common_util.ErrAlreadyDisabled)
 	}
 
 	now := time.Now()
-	cpsAction := &entities.CPSAction{
-		ActionCode:       shared_utils.RandomGenerator(20),
-		MakerID:          req.MakerUser.UserCode,
-		MakerName:        req.MakerUser.FullName,
-		MakerPhoneNumber: req.MakerUser.PhoneNumber,
-		Department:       req.MakerUser.Department,
-		ActionStatus:     cps_constants.ActionPending,
-		ActionType:       cps_constants.ActionUpdate,
-		RequestAction:    requestAction,
-		CurrentAction: MiniAppMerchant{
-			ID:                existingMerchant.ID,
-			Code:              existingMerchant.Code,
-			MerchantName:      existingMerchant.MerchantName,
-			MerchantType:      existingMerchant.MerchantType,
-			PhoneNumber:       existingMerchant.PhoneNumber,
-			Email:             existingMerchant.Email,
-			BankAccountNumber: existingMerchant.BankAccountNumber,
-			MiniAppIDs:        existingMerchant.MiniAppIDs,
-			Enabled:           enable,
-			IsDeleted:         existingMerchant.IsDeleted,
-			CreatedAt:         existingMerchant.CreatedAt,
-			LastModifiedAt:    now,
-			DeletedAt:         existingMerchant.DeletedAt,
-			KYC:               existingMerchant.KYC,
-			Branches:          existingMerchant.Branches,
-		},
-		PreviousAction:  *existingMerchant,
-		MakerActionTime: now,
-		CreatedAt:       now,
-		LastModifiedAt:  now,
-	}
+	cur := *existingMerchant
+	cur.Enabled = enabled
+	cur.LastModifiedAt = now
 
-	return cpsAction, nil
+	return &cur, existingMerchant, nil
 }
 
 func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 
 	var currentAction MiniAppMerchant
-	raw := cpsAction.CurrentAction
-	tmpJSON, errr := json.Marshal(raw)
-	if errr != nil {
-		s.logger.Errorf("failed to marshal current action: %v", errr)
-		return nil, fmt.Errorf(common_util.InvalidActionData)
-	}
 
-	errr = json.Unmarshal(tmpJSON, &currentAction)
-	if errr != nil {
-		s.logger.Errorf("failed to unmarshal current action to MiniAppMerchant: %v", errr)
+	bindErr := common_util.BindAction(cpsAction.CurrentAction, &currentAction)
+	if bindErr != nil {
+		s.logger.Errorf("failed to bind current action to MiniApp: %v", bindErr)
 		return nil, fmt.Errorf(common_util.InvalidActionData)
 	}
 
@@ -293,22 +181,6 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 	switch cpsAction.RequestAction {
 	case cps_constants.RequestCreateMiniAppMerchant:
 		newMerchant, err = s.repo.CreateMiniAppMerchant(ctx, &currentAction)
-
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = s.userService.CreateUserMiniAppMercahant(ctx, &entity.User{
-			FullName:    newMerchant.KYC.Representative.Name,
-			PhoneNumber: newMerchant.KYC.Representative.Phone,
-			Email:       newMerchant.KYC.Representative.Email,
-		})
-
-		if err != nil && err.Error() != common_util.AuthUserAlreadyExists {
-			s.logger.Errorf("error occured on create minin app merchant %s", err.Error())
-			return nil, err
-		}
-
 	case cps_constants.RequestUpdateMiniAppMerchant:
 		newMerchant, err = s.repo.UpdateMiniAppMerchant(ctx, &currentAction)
 
@@ -340,4 +212,14 @@ func (s *MiniAppMerchantServiceImpl) ListMiniAppMerchant(ctx context.Context, fi
 
 func (s *MiniAppMerchantServiceImpl) DetailMiniAppByID(ctx context.Context, id string) (*MiniAppMerchant, error) {
 	return s.repo.DetailMiniAppByID(ctx, id)
+}
+
+func (s *MiniAppMerchantServiceImpl) AddMiniApp(ctx context.Context, merchantID string, miniApp MiniApps) error {
+	return s.repo.AddMiniApp(ctx, merchantID, miniApp)
+}
+func (s *MiniAppMerchantServiceImpl) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
+	return s.repo.UpdateMiniAppEnabledState(ctx, merchantID, miniAppID, enabled)
+}
+func (s *MiniAppMerchantServiceImpl) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
+	return s.repo.SoftDeleteMiniApp(ctx, merchantID, miniAppID)
 }

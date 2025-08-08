@@ -14,7 +14,7 @@ import (
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Service interface {

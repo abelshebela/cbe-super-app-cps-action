@@ -7,11 +7,12 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/avatar"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddleware middleware.AuthMiddleware) {
+func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/avatar", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -22,6 +23,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
 					middleware.RequireFormContentType(),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateAvatar)),
 				},
 			},
 			{
@@ -31,6 +33,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDeleteAvatar)),
 				},
 			},
 
@@ -41,6 +44,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDisableAvatar)),
 				},
 			},
 			{
@@ -50,12 +54,13 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableAvatar)),
 				},
 			},
 			{
 				Method:  http.MethodGet,
 				Path:    "/",
-				Handler: handler.GetAllAvatar,
+				Handler: handler.FetchAvatars,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
@@ -64,7 +69,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 			{
 				Method:  http.MethodGet,
 				Path:    "/{id}",
-				Handler: handler.GetAvatar,
+				Handler: handler.FetchAvatar,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
@@ -78,6 +83,7 @@ func InitAvatarRoutes(router chi.Router, handler avatar.AvatarInbound, authMiddl
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateAvatar)),
 				},
 			},
 		}
