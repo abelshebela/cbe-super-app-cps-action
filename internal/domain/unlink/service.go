@@ -1,32 +1,30 @@
-// Package unlink provides the implementation for the service for unlink functionality.
 package unlink
 
 import (
 	"context"
 
-	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink/entities"
-	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/unlink"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type Service struct {
-	repository outbound.UnlinkRepository
+type unlinkService struct {
+	logger            utils.Logger
+	unlinkPersistence UnlinkAccount
 }
 
-func NewUnlinkService(repo outbound.UnlinkRepository) *Service {
-	return &Service{
-		repository: repo,
+func NewUnlinkServiceDomain(persistence UnlinkAccount, logger utils.Logger) UnlinkAccount {
+
+	return &unlinkService{
+		logger:            logger,
+		unlinkPersistence: persistence,
 	}
 }
 
-func (s *Service) UnlinkDevice(ctx context.Context, userCode string, cpsAction entities.CPSAction) (string, error) {
-	action_code, err := s.repository.UnlinkDevice(ctx, userCode, cpsAction)
-	if err != nil {
-		return "", err
-	}
-	return action_code, nil
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*any, error) {
+	return u.unlinkPersistence.GetUserByAccount(ctx, accNumber)
 }
-
-func (s *Service) Authorize(ctx context.Context, cpsAction *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
-	return s.repository.Authorize(ctx, cpsAction)
+func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
+	return u.unlinkPersistence.UnlinkUserCif(ctx, userCode)
+}
+func (u *unlinkService) Authorize(ctx context.Context, cpsAction any) (any, error) {
+	return u.unlinkPersistence.Authorize(ctx, cpsAction)
 }

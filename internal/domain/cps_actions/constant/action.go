@@ -49,6 +49,8 @@ const (
 	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
 	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
 	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
+	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
@@ -102,8 +104,8 @@ const (
 	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
 	RequestCreateEvent              RequestAction = "CREATE_EVENT"
 	RequestUpdateEvent              RequestAction = "UPDATE_EVENT"
-	RequestCreateEventCategory      RequestAction = "CREATE_EVENT_CATEGORY"
-	RequestUpdateEventCategory      RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestDeleteEvent              RequestAction = "DELETE_EVENT"
+	RequestEnableEvent              RequestAction = "ENABLE_EVENT"
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 
 	RequestUpdateBlockTime RequestAction = "UPDATE_BLOCK_TIME"
@@ -135,6 +137,8 @@ const (
 	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
 	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
 
+	RequestCreateEventCategory RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory RequestAction = "UPDATE_EVENT_CATEGORY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
@@ -151,6 +155,7 @@ const (
 	RequestDeleteBudgetCategory   RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
+	RequestUnlinkUser             RequestAction = "UNLINK_USER"
 	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime    RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
@@ -178,6 +183,14 @@ const (
 	RequestCreateDailyLimit RequestAction = "CREATE DAILY LIMIT"
 	RequestUpdateDailyLimit RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit RequestAction = "DELETE DAILY LIMIT"
+
+	RequestCreateNotification     RequestAction = "CREATE_NOTIFICATION"
+	RequestUpdateNotification     RequestAction = "UPDATE_NOTIFICATION"
+	RequestDeleteNotification     RequestAction = "DELETE_NOTIFICATION"
+	RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
+	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
+	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -267,6 +280,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableMiniApp:          {},
 	RequestDisableMiniApp:         {},
 	RequestDeleteMiniApp:          {},
+	RequestDeleteEvent:            {},
+	RequestEnableEvent:            {},
 
 	RequestUpdateServiceSingle: {},
 	RequestUpdateServiceTotal:  {},
@@ -277,6 +292,17 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateDailyLimit:    {},
 	RequestUpdateDailyLimit:    {},
 	RequestDeleteDailyLimit:    {},
+	RequestCreateWallet:        {},
+	RequestUpdateWallet:        {},
+	RequestDeleteWallet:        {},
+
+	RequestCreateNotification:     {},
+	RequestUpdateNotification:     {},
+	RequestDeleteNotification:     {},
+	RequestEnableNotification:     {},
+	RequestDisableNotification:    {},
+	RequestMarkNotificationAsSeen: {},
+	RequestUpdateProductCode:      {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -303,12 +329,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"A": {
-		RequestCreateAvatar,
-		RequestDeleteAvatar,
-		RequestDisableAvatar,
-		RequestEnableAvatar,
-		RequestUpdateAvatar,
+	"Event": {
+		RequestCreateEvent,
+		RequestDeleteEvent,
+		RequestDisableEvent,
+		RequestEnableEvent,
+		RequestUpdateEvent,
 	},
 	"AmountBasedAuth": {
 		RequestCreateAmountBasedAuth,
@@ -378,11 +404,6 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Business": {
 		RequestCreateBusiness,
 		RequestUpdateBusiness,
-	},
-	"Event": {
-		RequestCreateEvent,
-		RequestUpdateEvent,
-		RequestDisableEvent,
 	},
 	"EventCategory": {
 		RequestCreateEventCategory,
@@ -487,6 +508,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"UnlinkDevice": {
 		RequestUnlinkDevice,
+		RequestUnlinkUser,
 	},
 	"HQ": {
 		RequestUpdateHQBlockTime,
@@ -504,12 +526,27 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
+	"BulkService": {
+		RequestBulkServiceEnable,
+		RequestBulkServiceDisable,
+	},
 	"MiniApp": {
 		RequestCreateMiniApp,
 		RequestUpdateMiniApp,
 		RequestDeleteMiniApp,
 		RequestEnableMiniApp,
 		RequestDisableMiniApp,
+	},
+	"Notification": {
+		RequestCreateNotification,
+		RequestUpdateNotification,
+		RequestDeleteNotification,
+		RequestEnableNotification,
+		RequestDisableNotification,
+		RequestMarkNotificationAsSeen,
+	},
+	"ProductCode": {
+		RequestUpdateProductCode,
 	},
 }
 

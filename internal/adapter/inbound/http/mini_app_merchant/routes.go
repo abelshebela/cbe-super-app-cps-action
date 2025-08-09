@@ -7,11 +7,12 @@ import (
 
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	Inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/mini_app_merchant"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppMerchantInbound, authMiddleware middleware.AuthMiddleware) {
+func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppMerchantInbound, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/mini-app-merchants", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -21,6 +22,7 @@ func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppM
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateMiniAppMerchant)),
 				},
 			},
 			{
@@ -30,6 +32,7 @@ func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppM
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateMiniAppMerchant)),
 				},
 			},
 			{
@@ -39,6 +42,7 @@ func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppM
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDeleteMiniAppMerchant)),
 				},
 			},
 			{
@@ -66,6 +70,7 @@ func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppM
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableMiniAppMerchant)),
 				},
 			},
 			{
@@ -75,6 +80,7 @@ func InitMiniAppMerchantHandlerMaker(router chi.Router, handler Inbound.MiniAppM
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDisableMiniAppMerchant)),
 				},
 			},
 		}

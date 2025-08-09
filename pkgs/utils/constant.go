@@ -1,7 +1,5 @@
 package utils
 
-import "fmt"
-
 const (
 	DefaultPage    = 1
 	DefaultPerPage = 10
@@ -16,10 +14,10 @@ const (
 
 type ContextKey string
 
-type ErrorDefinition struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
+//type ErrorDefinition struct {
+//	Code    int    `json:"code"`
+//	Message string `json:"message"`
+//}
 
 type Filter struct {
 	// page specifies the page number
@@ -32,6 +30,6 @@ type Filter struct {
 	Filters string `json:"filters"`
 }
 
-func (e ErrorDefinition) Error() string {
-	return fmt.Sprintf(`{"code": %d ,"message":"%s"}`, e.Code, e.Message)
-}
+//func (e ErrorDefinition) Error() string {
+//	return fmt.Sprintf(`{"code": %d ,"message":"%s"}`, e.Code, e.Message)
+//}

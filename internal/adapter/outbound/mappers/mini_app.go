@@ -9,21 +9,18 @@ import (
 )
 
 func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
-	creds := make([]model.CredentialInformation, len(domain.Credential))
-	for i, cred := range domain.Credential {
-		creds[i] = model.CredentialInformation{
-			ID:            bson.NewObjectID(),
-			Environment:   model.EnvironmentType(cred.Environment),
-			MerchantAppID: cred.MerchantAppID,
-			FabricAppID:   cred.FabricAppID,
-			ShortCode:     cred.ShortCode,
-			AppSecret:     cred.AppSecret,
-			PrivateKey:    cred.PrivateKey,
-			PublicKey:     cred.PublicKey,
-			Timestamp:     cred.Timestamp,
-			Signature:     cred.Signature,
-			MiniAppCode:   cred.MiniAppCode,
-		}
+	cred := model.CredentialInformation{
+		ID:            bson.NewObjectID(),
+		Environment:   model.UatEnvironment,
+		MerchantAppID: domain.Credential.MerchantAppID,
+		FabricAppID:   domain.Credential.FabricAppID,
+		ShortCode:     domain.Credential.ShortCode,
+		AppSecret:     domain.Credential.AppSecret,
+		PrivateKey:    domain.Credential.PrivateKey,
+		PublicKey:     domain.Credential.PublicKey,
+		Timestamp:     domain.Credential.Timestamp,
+		Signature:     domain.Credential.Signature,
+		MiniAppCode:   domain.Credential.MiniAppCode,
 	}
 
 	productCodes := make([]model.ProductCode, len(domain.ProductCode))
@@ -54,14 +51,14 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 		ID:                objectID,
 		AppName:           domain.AppName,
 		AppIcon:           domain.AppIcon,
+		BannerImage:       domain.BannerImage,
 		CommisonGLAccount: domain.CommissionGLAccount,
 		AppType:           string(domain.AppType),
 		MerchantID:        domain.MerchantID,
 		ProductCode:       productCodes,
-		Credential:        creds,
+		Credential:        cred,
 		AppViewType:       string(domain.AppViewType),
 		URL:               domain.URL,
-		MPAASID:           domain.MPAASID,
 		Stage:             string(domain.Stage),
 		IsEventMiniApp:    domain.IsEventMiniApp,
 		IsThreeClick:      domain.IsThreeClick,
@@ -74,23 +71,19 @@ func ToModelMiniApp(domain *miniapp.MiniApp) (*model.MiniApp, error) {
 }
 
 func ToDomainMiniApp(model model.MiniApp) miniapp.MiniApp {
-	creds := make([]miniapp.CredentialInformation, len(model.Credential))
-	for i, cred := range model.Credential {
-		creds[i] = miniapp.CredentialInformation{
-			ID:            cred.ID.Hex(),
-			Environment:   miniapp.EnvironmentType(cred.Environment),
-			MerchantAppID: cred.MerchantAppID,
-			FabricAppID:   cred.FabricAppID,
-			ShortCode:     cred.ShortCode,
-			AppSecret:     cred.AppSecret,
-			PrivateKey:    cred.PrivateKey,
-			PublicKey:     cred.PublicKey,
-			MiniAppCode:   cred.MiniAppCode,
-			Signature:     cred.Signature,
-			Timestamp:     cred.Timestamp,
-		}
+	creds := miniapp.CredentialInformation{
+		ID:            model.Credential.ID.Hex(),
+		Environment:   miniapp.UatEnvironment,
+		MerchantAppID: model.Credential.MerchantAppID,
+		FabricAppID:   model.Credential.FabricAppID,
+		ShortCode:     model.Credential.ShortCode,
+		AppSecret:     model.Credential.AppSecret,
+		PrivateKey:    model.Credential.PrivateKey,
+		PublicKey:     model.Credential.PublicKey,
+		MiniAppCode:   model.Credential.MiniAppCode,
+		Signature:     model.Credential.Signature,
+		Timestamp:     model.Credential.Timestamp,
 	}
-
 	productCodes := make([]miniapp.ProductCode, len(model.ProductCode))
 	for i, pc := range model.ProductCode {
 		productCodes[i] = miniapp.ProductCode{
@@ -106,13 +99,13 @@ func ToDomainMiniApp(model model.MiniApp) miniapp.MiniApp {
 		ID:                  model.ID.Hex(),
 		AppName:             model.AppName,
 		AppIcon:             model.AppIcon,
+		BannerImage:         model.BannerImage,
 		CommissionGLAccount: model.CommisonGLAccount,
 		AppType:             miniapp.AppType(model.AppType),
 		MerchantID:          model.MerchantID,
 		ProductCode:         productCodes,
 		Credential:          creds,
 		URL:                 model.URL,
-		MPAASID:             model.MPAASID,
 		AppViewType:         miniapp.AppViewType(model.AppViewType),
 		Stage:               miniapp.Stage(model.Stage),
 		IsEventMiniApp:      model.IsEventMiniApp,

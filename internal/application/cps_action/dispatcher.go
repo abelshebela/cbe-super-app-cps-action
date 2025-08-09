@@ -39,24 +39,25 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "Account"):
 		return d.app.AccountDomain.Authorize(ctx, cpsAction)
 
-	case constants.IsActionInGroup(action, "AdDomain"):
+	case constants.IsActionInGroup(action, "Advert"):
 		return d.app.AdDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "Service"):
-		fmt.Println("*********IsActionInGroup*********")
+		// fmt.Println("*********IsActionInGroup*********")
 		data, err := d.app.ServiceCheckDomain.Authorize(ctx, cpsAction)
 		if err != nil {
 			return nil, err
 		}
 		return marshalBuilder(data)
 	case constants.IsActionInGroup(action, "Fayda"):
+
 		return d.app.FaydaDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "MiniAppMerchant"):
 		return d.app.MiniAppMerchantDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "MiniApp"):
 		return d.app.MiniAppDomain.Authorize(ctx, cpsAction)
-		return d.app.MiniAppDomain.Authorize(ctx, cpsAction)
+		// return d.app.MiniAppDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "HQ"):
 		return d.app.HQDomain.Authorize(ctx, cpsAction)
@@ -68,7 +69,11 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.PermissionDomain.Authorize(ctx, cpsAction)
 
 	case constants.IsActionInGroup(action, "UnlinkDevice"):
-		return d.app.UnlinkDomain.Authorize(ctx, cpsAction)
+		data, err := d.app.UnlinkDomain.Authorize(ctx, cpsAction)
+		if err != nil {
+			return nil, err
+		}
+		return marshalBuilder(data)
 
 	case constants.IsActionInGroup(action, "Wallet"):
 		return d.app.WalletDomain.Authorize(ctx, cpsAction)
@@ -81,8 +86,22 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 
 	case constants.IsActionInGroup(action, "Budget"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "CPSUser"):
+		return d.app.CPSUserDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "BulkService"):
+		return d.app.BulkServiceDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Event"):
+		return d.app.EventDomain.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Service"):
 		return d.app.BudgetDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Notification"):
+		return d.app.NotificationService.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "ProductCode"):
+		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "BPSUser"):
+		return d.app.BPSUserDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Avatar"):
+		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

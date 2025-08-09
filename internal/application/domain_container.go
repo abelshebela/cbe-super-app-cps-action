@@ -4,7 +4,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
-	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/service"
+	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
@@ -19,19 +19,23 @@ import (
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
-	service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	bps_user_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 	budget_category "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget_category"
-	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/check_service"
+	bulk_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
-	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet/service"
+	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
+
+	// notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
+	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
-
 )
 
 type Domain struct {
@@ -42,6 +46,7 @@ type Domain struct {
 	AmountBasedAuthDomain amount_based_auth_domain.AmountBasedAuthDomain
 	AvatarDomian          avatar_domain.AvatarDomainService
 	BankDomain            bank_service.BankService
+	BPSUserDomain         bps_user_service.Service
 	BudgetCategoryDomain  budget_category.BudgetCategoryService
 	BudgetDomain          *budget_service.BudgetService
 	CPSActionDomain       cps_action_service.CPSActionService
@@ -56,14 +61,13 @@ type Domain struct {
 	PasswordRuleDomain    password_service.PasswordRuleService
 	PermissionDomain      permission.Service
 	PortalCardDomain      portalcard.PortaCardInterface
-	ServiceDomain         service.ServiceInterface // not done
-	UnlinkDomain          *unlink_service.Service
+	UnlinkDomain          unlink_service.UnlinkAccount
 	WalletDomain          wallet_service.WalletService
 	MiniAppMerchantDomain mini_app_merchant_service.MiniAppMerchantService
 	AccountLookup         *account_service.UserSearchService
-
+	BulkServiceDomain     bulk_service.BulkService
 	ServiceCheckDomain    service_domain.ServiceRepo
-
 	KeyGenService         keyGen_service.KeyGeneratorService
-
+	NotificationService   notification_domain.NotificationService
+	ProductCodeService    productcode.Service
 }

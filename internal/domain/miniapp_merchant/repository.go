@@ -8,6 +8,7 @@ import (
 )
 
 type MiniAppMerchantRepository interface {
+	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	CreateMiniAppMerchant(ctx context.Context, marchant *MiniAppMerchant) (*MiniAppMerchant, error)
 	UpdateMiniAppMerchant(ctx context.Context, marchant *MiniAppMerchant) (*MiniAppMerchant, error)
 	ListMiniAppMerchant(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*MiniAppMerchant], error)
@@ -16,4 +17,7 @@ type MiniAppMerchantRepository interface {
 	DisableMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, error)
 	DeleteMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, error)
 	MiniAppMerchantInfoExists(ctx context.Context, data CheckMiniAppMerchant, opts *MiniAppMerchantExistOptions) (bool, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 }

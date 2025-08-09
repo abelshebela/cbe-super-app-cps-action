@@ -14,11 +14,11 @@ import (
 	cps_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	dep_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+
+	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -34,10 +34,9 @@ import (
 
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 
-	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
+	// serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
-	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/bulk_services"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
@@ -84,45 +83,6 @@ func NewCPSUserPersistence(client *mongo.Client, dbName string, collectionNames 
 	}
 }
 
-/*
-	collectionNames := []string{
-		"bps_user",
-		"cps_actions",
-		"cps_users",
-		"service",
-		"member",
-		"linked_account",
-		"mini_app",
-		"portal_card",
-	}
-*/
-func NewOutBoundStore(client *mongo.Client, dbName string, collectionNames []string, logger utils.Logger, cfg *config.VaultConfig) outbound.OutboundInfra {
-
-	mongoDalBPSUser := infra_mongo.NewMongoDal[bps.BPSUser, bps.BPSUser](client, dbName, collectionNames[0])
-	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
-	mongoDalCPSUser := infra_mongo.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collectionNames[2])
-	mongoDalService := infra_mongo.NewMongoDal[model.Service, model.Service](client, dbName, collectionNames[3])
-	mongoDalMember := infra_mongo.NewMongoDal[member.User, member.User](client, dbName, collectionNames[4])
-	mongoDalAccounts := infra_mongo.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collectionNames[5])
-	mongoDalMiniApp := infra_mongo.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collectionNames[6])
-	mongoDalServiceDetail := infra_mongo.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collectionNames[3])
-	MongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, dbName, collectionNames[7])
-
-	return &outboundStore{
-		MongoDalCPSAction:      mongoDalCPSAction,
-		MongoDalBPSUser:        mongoDalBPSUser,
-		MongoDalServices:       mongoDalService,
-		MongoDalMember:         mongoDalMember,
-		MongoDalAccounts:       mongoDalAccounts,
-		BpsCalls:               bpscalls.NewBpsCalls(cfg, logger),
-		MongoDalMiniApp:        mongoDalMiniApp,
-		MongoDalCPSUser:        mongoDalCPSUser,
-		MongoDalServiceDetails: mongoDalServiceDetail,
-
-		MongoDalPortalCard: MongoDalPortalCard,
-	}
-}
-
 func NewPortalCardPersistence(client *mongo.Client, dbName string, logger utils.Logger) *outboundStore {
 	mongoDalPortalCard := infra_mongo.NewMongoDal[model.Card, model.Card](client, "cbe", "portal_cards")
 
@@ -157,6 +117,7 @@ func (p *outboundStore) FindPendingAction(ctx context.Context, requestAction str
 	}
 	return modelToDomainCPSAction(*result), nil
 }
+
 func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceDetails, error) {
 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
 	if err != nil {
@@ -1470,13 +1431,13 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 
 func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	filter := bson.M{
-		// "is_deleted": false,
+		"is_deleted": false,
 	}
 	projection := bson.M{}
 
 	// Add search functionality
 	if filterParams.Search != "" {
-		filter = bson.M{
+		searchFilter := bson.M{
 			"$or": []bson.M{
 				{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 				{"full_name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
@@ -1486,6 +1447,15 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
+
+		// Combile the filter
+		filter = bson.M{
+			"$and": []bson.M{
+				{"is_deleted": false},
+				searchFilter,
+			},
+		}
+
 	}
 
 	// Add filter functionality
@@ -1522,350 +1492,350 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 	}, nil
 }
 
-func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
-	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
-	if err != nil {
-		return nil, err
-	}
+// func (o *outboundStore) GetAllServiceDetails(ctx context.Context) ([]*serviceDomain.Service, error) {
+// 	data, err := o.MongoDalServiceDetails.FindAll(ctx, nil, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	result := make([]*serviceDomain.Service, len(data))
-	for i, s := range data {
-		if s == nil {
-			continue
-		}
-		result[i] = &serviceDomain.Service{
-			ID:                 s.ID.Hex(),
-			ServiceCode:        s.ServiceCode,
-			ServiceName:        s.ServiceName,
-			ServiceType:        s.ServiceType,
-			Key:                s.Key,
-			Cap:                convertToServiceCap(s.Cap),
-			CBEProductCodes:    convertToServiceProductCodes(s.CBEProductCodes),
-			CBEIFBProductCodes: convertToServiceProductCodes(s.CBEIFBProductCodes),
-			AboveAmount:        s.AboveAmount,
-			AboveServiceFee:    s.AboveServiceFee,
-			PaymentType:        s.PaymentType,
-			Tiers:              convertTiers(s.Tiers),
-			CBEGLEntry:         convertToServiceGLEntry(s.CBEGLEntry),
-			CBEIFBGLEntry:      convertToServiceGLEntry(s.CBEIFBGLEntry),
-			Enabled:            s.Enabled,
-			IsDeleted:          s.IsDeleted,
-			CreatedAt:          s.CreatedAt,
-			LastModifiedAt:     s.LastModifiedAt,
-			DeletedAt:          s.DeletedAt,
-		}
-	}
-	return result, nil
-}
+// 	result := make([]*serviceDomain.Service, len(data))
+// 	for i, s := range data {
+// 		if s == nil {
+// 			continue
+// 		}
+// 		result[i] = &serviceDomain.Service{
+// 			ID:                 s.ID.Hex(),
+// 			ServiceCode:        s.ServiceCode,
+// 			ServiceName:        s.ServiceName,
+// 			ServiceType:        s.ServiceType,
+// 			Key:                s.Key,
+// 			Cap:                convertToServiceCap(s.Cap),
+// 			CBEProductCodes:    convertToServiceProductCodes(s.CBEProductCodes),
+// 			CBEIFBProductCodes: convertToServiceProductCodes(s.CBEIFBProductCodes),
+// 			AboveAmount:        s.AboveAmount,
+// 			AboveServiceFee:    s.AboveServiceFee,
+// 			PaymentType:        s.PaymentType,
+// 			Tiers:              convertTiers(s.Tiers),
+// 			CBEGLEntry:         convertToServiceGLEntry(s.CBEGLEntry),
+// 			CBEIFBGLEntry:      convertToServiceGLEntry(s.CBEIFBGLEntry),
+// 			Enabled:            s.Enabled,
+// 			IsDeleted:          s.IsDeleted,
+// 			CreatedAt:          s.CreatedAt,
+// 			LastModifiedAt:     s.LastModifiedAt,
+// 			DeletedAt:          s.DeletedAt,
+// 		}
+// 	}
+// 	return result, nil
+// }
 
-func (o *outboundStore) GetOneServiceDetail(ctx context.Context, id string) (serviceDomain.Service, error) {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return serviceDomain.Service{}, err
-	}
+// func (o *outboundStore) GetOneServiceDetail(ctx context.Context, id string) (serviceDomain.Service, error) {
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		return serviceDomain.Service{}, err
+// 	}
 
-	filter := bson.M{"_id": objID}
+// 	filter := bson.M{"_id": objID}
 
-	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
+// 	data, err := o.MongoDalServiceDetails.FindOne(ctx, filter, nil)
 
-	if err != nil {
-		return serviceDomain.Service{}, err
-	}
+// 	if err != nil {
+// 		return serviceDomain.Service{}, err
+// 	}
 
-	return serviceDomain.Service{
-		ID:                 data.ID.Hex(),
-		ServiceCode:        data.ServiceCode,
-		ServiceName:        data.ServiceName,
-		ServiceType:        data.ServiceType,
-		Key:                data.Key,
-		Cap:                convertToServiceCap(data.Cap),
-		CBEProductCodes:    convertToServiceProductCodes(data.CBEProductCodes),
-		CBEIFBProductCodes: convertToServiceProductCodes(data.CBEIFBProductCodes),
-		AboveAmount:        data.AboveAmount,
-		AboveServiceFee:    data.AboveServiceFee,
-		PaymentType:        data.PaymentType,
-		Tiers:              convertTiers(data.Tiers),
-		CBEGLEntry:         convertToServiceGLEntry(data.CBEGLEntry),
-		CBEIFBGLEntry:      convertToServiceGLEntry(data.CBEIFBGLEntry),
-		Enabled:            data.Enabled,
-		IsDeleted:          data.IsDeleted,
-		CreatedAt:          data.CreatedAt,
-		LastModifiedAt:     data.LastModifiedAt,
-		DeletedAt:          data.DeletedAt,
-	}, nil
-}
+// 	return serviceDomain.Service{
+// 		ID:                 data.ID.Hex(),
+// 		ServiceCode:        data.ServiceCode,
+// 		ServiceName:        data.ServiceName,
+// 		ServiceType:        data.ServiceType,
+// 		Key:                data.Key,
+// 		Cap:                convertToServiceCap(data.Cap),
+// 		CBEProductCodes:    convertToServiceProductCodes(data.CBEProductCodes),
+// 		CBEIFBProductCodes: convertToServiceProductCodes(data.CBEIFBProductCodes),
+// 		AboveAmount:        data.AboveAmount,
+// 		AboveServiceFee:    data.AboveServiceFee,
+// 		PaymentType:        data.PaymentType,
+// 		Tiers:              convertTiers(data.Tiers),
+// 		CBEGLEntry:         convertToServiceGLEntry(data.CBEGLEntry),
+// 		CBEIFBGLEntry:      convertToServiceGLEntry(data.CBEIFBGLEntry),
+// 		Enabled:            data.Enabled,
+// 		IsDeleted:          data.IsDeleted,
+// 		CreatedAt:          data.CreatedAt,
+// 		LastModifiedAt:     data.LastModifiedAt,
+// 		DeletedAt:          data.DeletedAt,
+// 	}, nil
+// }
 
-func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, update serviceDomain.Service) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
+// func (o *outboundStore) UpdateOneServiceDetail(ctx context.Context, id string, update serviceDomain.Service) error {
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	filter := map[string]interface{}{"_id": objID}
-	updateDoc := map[string]interface{}{
+// 	filter := map[string]interface{}{"_id": objID}
+// 	updateDoc := map[string]interface{}{
 
-		"serviceCode":        update.ServiceCode,
-		"serviceName":        update.ServiceName,
-		"serviceType":        update.ServiceType,
-		"key":                update.Key,
-		"cap":                convertToModelCap(update.Cap),
-		"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
-		"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
-		"aboveAmount":        update.AboveAmount,
-		"aboveServiceFee":    update.AboveServiceFee,
-		"paymentType":        update.PaymentType,
-		"tiers":              convertToModelTiers(update.Tiers),
-		"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
-		"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
-		"enabled":            update.Enabled,
-		"isDeleted":          update.IsDeleted,
-		"lastModifiedAt":     update.LastModifiedAt,
-		"deletedAt":          update.DeletedAt,
-	}
+// 		"serviceCode":        update.ServiceCode,
+// 		"serviceName":        update.ServiceName,
+// 		"serviceType":        update.ServiceType,
+// 		"key":                update.Key,
+// 		"cap":                convertToModelCap(update.Cap),
+// 		"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
+// 		"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
+// 		"aboveAmount":        update.AboveAmount,
+// 		"aboveServiceFee":    update.AboveServiceFee,
+// 		"paymentType":        update.PaymentType,
+// 		"tiers":              convertToModelTiers(update.Tiers),
+// 		"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
+// 		"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
+// 		"enabled":            update.Enabled,
+// 		"isDeleted":          update.IsDeleted,
+// 		"lastModifiedAt":     update.LastModifiedAt,
+// 		"deletedAt":          update.DeletedAt,
+// 	}
 
-	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
-	return err
-}
+// 	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
+// 	return err
+// }
 
-func convertToServiceCap(c model.Cap) serviceDomain.Cap {
-	return serviceDomain.Cap{
-		KYCLevel:  serviceDomain.KYCLevel(c.KYCLevel),
-		SingleCap: c.ISingleCap,
-		DailyCap:  c.IDailyCap,
-		MinAmount: c.MinAmount,
-	}
-}
+// func convertToServiceCap(c model.Cap) serviceDomain.Cap {
+// 	return serviceDomain.Cap{
+// 		KYCLevel:  serviceDomain.KYCLevel(c.KYCLevel),
+// 		SingleCap: c.ISingleCap,
+// 		DailyCap:  c.IDailyCap,
+// 		MinAmount: c.MinAmount,
+// 	}
+// }
 
-func convertToModelCap(c serviceDomain.Cap) model.Cap {
-	return model.Cap{
-		KYCLevel:   model.KYCLevel(c.KYCLevel),
-		ISingleCap: c.SingleCap,
-		IDailyCap:  c.DailyCap,
-		MinAmount:  c.MinAmount,
-	}
-}
+// func convertToModelCap(c serviceDomain.Cap) model.Cap {
+// 	return model.Cap{
+// 		KYCLevel:   model.KYCLevel(c.KYCLevel),
+// 		ISingleCap: c.SingleCap,
+// 		IDailyCap:  c.DailyCap,
+// 		MinAmount:  c.MinAmount,
+// 	}
+// }
 
-func convertToServiceProductCodes(p model.ProductCodes) serviceDomain.ProductCodes {
-	return serviceDomain.ProductCodes{
-		PRD:    p.PRD,
-		VATPRD: p.VATPRD,
-		SFPRD:  p.SFPRD,
-		TRXN:   p.TRXN,
-	}
-}
+// func convertToServiceProductCodes(p model.ProductCodes) serviceDomain.ProductCodes {
+// 	return serviceDomain.ProductCodes{
+// 		PRD:    p.PRD,
+// 		VATPRD: p.VATPRD,
+// 		SFPRD:  p.SFPRD,
+// 		TRXN:   p.TRXN,
+// 	}
+// }
 
-func convertToModelProductCodes(p serviceDomain.ProductCodes) model.ProductCodes {
-	return model.ProductCodes{
-		PRD:    p.PRD,
-		VATPRD: p.VATPRD,
-		SFPRD:  p.SFPRD,
-		TRXN:   p.TRXN,
-	}
-}
+// func convertToModelProductCodes(p serviceDomain.ProductCodes) model.ProductCodes {
+// 	return model.ProductCodes{
+// 		PRD:    p.PRD,
+// 		VATPRD: p.VATPRD,
+// 		SFPRD:  p.SFPRD,
+// 		TRXN:   p.TRXN,
+// 	}
+// }
 
-func convertTiers(tiers []model.Tier) []serviceDomain.Tier {
-	result := make([]serviceDomain.Tier, len(tiers))
-	for i, t := range tiers {
-		result[i] = serviceDomain.Tier{
-			ID:        t.ID.Hex(),
-			Min:       t.Min,
-			Max:       t.Max,
-			FeeAmount: t.FeeAmount,
-		}
-	}
-	return result
-}
+// func convertTiers(tiers []model.Tier) []serviceDomain.Tier {
+// 	result := make([]serviceDomain.Tier, len(tiers))
+// 	for i, t := range tiers {
+// 		result[i] = serviceDomain.Tier{
+// 			ID:        t.ID.Hex(),
+// 			Min:       t.Min,
+// 			Max:       t.Max,
+// 			FeeAmount: t.FeeAmount,
+// 		}
+// 	}
+// 	return result
+// }
 
-func convertToModelTiers(tiers []serviceDomain.Tier) []model.Tier {
-	result := make([]model.Tier, len(tiers))
-	for i, t := range tiers {
-		objID, _ := bson.ObjectIDFromHex(t.ID)
-		result[i] = model.Tier{
-			ID:        objID,
-			Min:       t.Min,
-			Max:       t.Max,
-			FeeAmount: t.FeeAmount,
-		}
-	}
-	return result
-}
+// func convertToModelTiers(tiers []serviceDomain.Tier) []model.Tier {
+// 	result := make([]model.Tier, len(tiers))
+// 	for i, t := range tiers {
+// 		objID, _ := bson.ObjectIDFromHex(t.ID)
+// 		result[i] = model.Tier{
+// 			ID:        objID,
+// 			Min:       t.Min,
+// 			Max:       t.Max,
+// 			FeeAmount: t.FeeAmount,
+// 		}
+// 	}
+// 	return result
+// }
 
-func convertToServiceGLEntry(g model.GLEntry) serviceDomain.GLEntry {
-	return serviceDomain.GLEntry{
-		ProductAccount:    g.ProductAccount,
-		ProductBranchCode: g.ProductBranchCode,
-		ServiceAccount:    g.ServiceAccount,
-		ServiceBranchCode: g.ServiceBranchCode,
-		VatAccount:        g.VatAccount,
-		VatBranchCode:     g.VatBranchCode,
-	}
-}
+// func convertToServiceGLEntry(g model.GLEntry) serviceDomain.GLEntry {
+// 	return serviceDomain.GLEntry{
+// 		ProductAccount:    g.ProductAccount,
+// 		ProductBranchCode: g.ProductBranchCode,
+// 		ServiceAccount:    g.ServiceAccount,
+// 		ServiceBranchCode: g.ServiceBranchCode,
+// 		VatAccount:        g.VatAccount,
+// 		VatBranchCode:     g.VatBranchCode,
+// 	}
+// }
 
-func convertToModelGLEntry(g serviceDomain.GLEntry) model.GLEntry {
-	return model.GLEntry{
-		ProductAccount:    g.ProductAccount,
-		ProductBranchCode: g.ProductBranchCode,
-		ServiceAccount:    g.ServiceAccount,
-		ServiceBranchCode: g.ServiceBranchCode,
-		VatAccount:        g.VatAccount,
-		VatBranchCode:     g.VatBranchCode,
-	}
-}
+// func convertToModelGLEntry(g serviceDomain.GLEntry) model.GLEntry {
+// 	return model.GLEntry{
+// 		ProductAccount:    g.ProductAccount,
+// 		ProductBranchCode: g.ProductBranchCode,
+// 		ServiceAccount:    g.ServiceAccount,
+// 		ServiceBranchCode: g.ServiceBranchCode,
+// 		VatAccount:        g.VatAccount,
+// 		VatBranchCode:     g.VatBranchCode,
+// 	}
+// }
 
-func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
-	filter := bson.M{
-		"maker_id":      req.MakerID,
-		"action_status": "PENDING",
-		"department":    req.Department,
-	}
-	projection := bson.M{}
-	FindAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err != nil && err != mongo.ErrNoDocuments {
-		err = fmt.Errorf("failed to get cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return service.UpdateServiceDetailsResponse{}, err
-	}
-	if FindAction != nil {
-		err = fmt.Errorf("pending cps action present %w", constant.ErrorDefinition{
-			Code:    http.StatusBadRequest,
-			Message: "pending cps action present",
-		})
-		return service.UpdateServiceDetailsResponse{}, err
-	}
+// func (o *outboundStore) InitiateServiceFeeUpdate(ctx context.Context, req service.CPSAction) (service.UpdateServiceDetailsResponse, error) {
+// 	filter := bson.M{
+// 		"maker_id":      req.MakerID,
+// 		"action_status": "PENDING",
+// 		"department":    req.Department,
+// 	}
+// 	projection := bson.M{}
+// 	FindAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+// 	if err != nil && err != mongo.ErrNoDocuments {
+// 		err = fmt.Errorf("failed to get cps action %w", constant.ErrorDefinition{
+// 			Code:    http.StatusInternalServerError,
+// 			Message: "internal server error",
+// 		})
+// 		return service.UpdateServiceDetailsResponse{}, err
+// 	}
+// 	if FindAction != nil {
+// 		err = fmt.Errorf("pending cps action present %w", constant.ErrorDefinition{
+// 			Code:    http.StatusBadRequest,
+// 			Message: "pending cps action present",
+// 		})
+// 		return service.UpdateServiceDetailsResponse{}, err
+// 	}
 
-	serviceFilter := bson.M{
-		"action_code": req.ActionCode,
-	}
-	serviceProjection := bson.M{}
-	serviceFee, err := o.MongoDalServices.FindOne(ctx, serviceFilter, serviceProjection)
-	if err != nil {
-		err = fmt.Errorf("failed to get service %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return service.UpdateServiceDetailsResponse{}, err
-	}
-	if serviceFee == nil {
-		err = fmt.Errorf("service not found: %w", constant.ErrorDefinition{
-			Code:    http.StatusNotFound,
-			Message: "service not found",
-		})
-		return service.UpdateServiceDetailsResponse{}, err
-	}
+// 	serviceFilter := bson.M{
+// 		"action_code": req.ActionCode,
+// 	}
+// 	serviceProjection := bson.M{}
+// 	serviceFee, err := o.MongoDalServices.FindOne(ctx, serviceFilter, serviceProjection)
+// 	if err != nil {
+// 		err = fmt.Errorf("failed to get service %w", constant.ErrorDefinition{
+// 			Code:    http.StatusInternalServerError,
+// 			Message: "internal server error",
+// 		})
+// 		return service.UpdateServiceDetailsResponse{}, err
+// 	}
+// 	if serviceFee == nil {
+// 		err = fmt.Errorf("service not found: %w", constant.ErrorDefinition{
+// 			Code:    http.StatusNotFound,
+// 			Message: "service not found",
+// 		})
+// 		return service.UpdateServiceDetailsResponse{}, err
+// 	}
 
-	cpsAction := model.CPSAction{
-		ActionCode:         req.ActionCode,
-		MakerID:            req.MakerID,
-		MakerName:          req.MakerName,
-		MakerPhoneNumber:   req.MakerPhoneNumber,
-		CheckerID:          req.CheckerID,
-		CheckerName:        req.CheckerName,
-		CheckerPhoneNumber: req.CheckerPhoneNumber,
-		UniqueId:           req.UniqueId, // feature/entity ID
-		Department:         req.Department,
-		ActionStatus:       "PENDING",
-		ActionType:         "UPDATE_SERVICE_FEE",
-		RequestAction:      "UPDATE",
-		PreviousAction:     req.PreviousAction,
-		CurrentAction:      req.CurrentAction,
-		CreatedAt:          time.Now(),
-		LastModifiedAt:     time.Now(),
-	}
-	cpsActionResult, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
-	if err != nil {
-		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
-			Code:    http.StatusInternalServerError,
-			Message: "internal server error",
-		})
-		return service.UpdateServiceDetailsResponse{}, err
-	}
-	return service.UpdateServiceDetailsResponse{
-		ActionID: cpsActionResult.ActionCode,
-	}, nil
-}
+// 	cpsAction := model.CPSAction{
+// 		ActionCode:         req.ActionCode,
+// 		MakerID:            req.MakerID,
+// 		MakerName:          req.MakerName,
+// 		MakerPhoneNumber:   req.MakerPhoneNumber,
+// 		CheckerID:          req.CheckerID,
+// 		CheckerName:        req.CheckerName,
+// 		CheckerPhoneNumber: req.CheckerPhoneNumber,
+// 		UniqueId:           req.UniqueId, // feature/entity ID
+// 		Department:         req.Department,
+// 		ActionStatus:       "PENDING",
+// 		ActionType:         "UPDATE_SERVICE_FEE",
+// 		RequestAction:      "UPDATE",
+// 		PreviousAction:     req.PreviousAction,
+// 		CurrentAction:      req.CurrentAction,
+// 		CreatedAt:          time.Now(),
+// 		LastModifiedAt:     time.Now(),
+// 	}
+// 	cpsActionResult, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+// 	if err != nil {
+// 		err = fmt.Errorf("failed to create cps action %w", constant.ErrorDefinition{
+// 			Code:    http.StatusInternalServerError,
+// 			Message: "internal server error",
+// 		})
+// 		return service.UpdateServiceDetailsResponse{}, err
+// 	}
+// 	return service.UpdateServiceDetailsResponse{
+// 		ActionID: cpsActionResult.ActionCode,
+// 	}, nil
+// }
 
-func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code string) error {
-	filter := bson.M{
-		"action_code":   action_code,
-		"action_status": "PENDING",
-	}
+// func (o *outboundStore) ApproveServiceFeeUpdate(ctx context.Context, action_code string) error {
+// 	filter := bson.M{
+// 		"action_code":   action_code,
+// 		"action_status": "PENDING",
+// 	}
 
-	update := bson.M{
-		"action_status": "APPROVED",
-	}
+// 	update := bson.M{
+// 		"action_status": "APPROVED",
+// 	}
 
-	projection := bson.M{}
-	cpsAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err != nil {
-		err = fmt.Errorf("failed to find cps action")
-		return err
-	}
+// 	projection := bson.M{}
+// 	cpsAction, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
+// 	if err != nil {
+// 		err = fmt.Errorf("failed to find cps action")
+// 		return err
+// 	}
 
-	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
-	if err != nil {
-		err = fmt.Errorf("failed to find cps action")
-		return err
-	}
+// 	_, err = o.MongoDalCPSAction.UpdateOne(ctx, filter, update)
+// 	if err != nil {
+// 		err = fmt.Errorf("failed to find cps action")
+// 		return err
+// 	}
 
-	switch cpsAction.RequestAction {
-	case "CREATE_SERVICE_FEE":
-		// Convert CurrentAction to model.Service
-		serviceDataMap := cpsAction.CurrentAction
+// 	switch cpsAction.RequestAction {
+// 	case "CREATE_SERVICE_FEE":
+// 		// Convert CurrentAction to model.Service
+// 		serviceDataMap := cpsAction.CurrentAction
 
-		svc := make(map[string]interface{})
-		b, err := json.Marshal(serviceDataMap)
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(b, &svc); err != nil {
-			return fmt.Errorf("failed to unmarshal service data")
-		}
-		serviceData := o.serviceMapper(svc)
+// 		svc := make(map[string]interface{})
+// 		b, err := json.Marshal(serviceDataMap)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if err := json.Unmarshal(b, &svc); err != nil {
+// 			return fmt.Errorf("failed to unmarshal service data")
+// 		}
+// 		serviceData := o.serviceMapper(svc)
 
-		fmt.Println("Service Data", serviceData)
+// 		fmt.Println("Service Data", serviceData)
 
-		_, err = o.MongoDalServices.InsertOne(ctx, serviceData)
+// 		_, err = o.MongoDalServices.InsertOne(ctx, serviceData)
 
-		if err != nil {
-			return fmt.Errorf("failed to create service")
-		}
-	case "UPDATE_SERVICE_FEE":
-		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
-		if !ok {
-			return errors.New("invalid service data for update")
-		}
-		serviceCode, ok := serviceData["service_code"].(string)
-		if !ok {
-			return errors.New("invalid service_code in current action")
-		}
-		serviceFilter := bson.M{"service_code": serviceCode}
-		serviceUpdate := bson.M{"$set": serviceData}
-		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
-		if err != nil {
-			return fmt.Errorf("failed to update service fee: %w", err)
-		}
-	case "DELETE_SERVICE_FEE":
-		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
-		if !ok {
-			return errors.New("invalid service data for delete")
-		}
-		serviceCode, ok := serviceData["service_code"].(string)
-		if !ok {
-			return errors.New("invalid service_code in current action for delete")
-		}
-		serviceFilter := bson.M{"service_code": serviceCode}
-		serviceUpdate := bson.M{"is_deleted": true, "deleted_at": time.Now(), "last_modified_at": time.Now()}
-		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
-		if err != nil {
-			return fmt.Errorf("failed to delete service: %w", err)
-		}
-	default:
-		return errors.New("unsupported request action")
-	}
-	return nil
-}
+// 		if err != nil {
+// 			return fmt.Errorf("failed to create service")
+// 		}
+// 	case "UPDATE_SERVICE_FEE":
+// 		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
+// 		if !ok {
+// 			return errors.New("invalid service data for update")
+// 		}
+// 		serviceCode, ok := serviceData["service_code"].(string)
+// 		if !ok {
+// 			return errors.New("invalid service_code in current action")
+// 		}
+// 		serviceFilter := bson.M{"service_code": serviceCode}
+// 		serviceUpdate := bson.M{"$set": serviceData}
+// 		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+// 		if err != nil {
+// 			return fmt.Errorf("failed to update service fee: %w", err)
+// 		}
+// 	case "DELETE_SERVICE_FEE":
+// 		serviceData, ok := cpsAction.CurrentAction.(map[string]interface{})
+// 		if !ok {
+// 			return errors.New("invalid service data for delete")
+// 		}
+// 		serviceCode, ok := serviceData["service_code"].(string)
+// 		if !ok {
+// 			return errors.New("invalid service_code in current action for delete")
+// 		}
+// 		serviceFilter := bson.M{"service_code": serviceCode}
+// 		serviceUpdate := bson.M{"is_deleted": true, "deleted_at": time.Now(), "last_modified_at": time.Now()}
+// 		_, err := o.MongoDalServices.UpdateOne(ctx, serviceFilter, serviceUpdate)
+// 		if err != nil {
+// 			return fmt.Errorf("failed to delete service: %w", err)
+// 		}
+// 	default:
+// 		return errors.New("unsupported request action")
+// 	}
+// 	return nil
+// }
 
 func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service {
 	// Helper for safe string from map
@@ -1896,7 +1866,6 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 			ISingleCap: safeUint64FromMap(capMap, "single_cap"),
 			IDailyCap:  safeUint64FromMap(capMap, "daily_cap"),
 			MinAmount:  safeUint64FromMap(capMap, "min_amount"),
-			MaxAmount:  safeUint64FromMap(capMap, "max_amount"),
 		}
 	}
 	// Helper for ProductCodes
@@ -2044,37 +2013,37 @@ func (o *outboundStore) RejectServiceFeeUpdate(ctx context.Context, action_code 
 	return nil
 }
 
-func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id string, update serviceDomain.Service) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
+// func (o *outboundStore) UpdateOneServiceDetailRequest(ctx context.Context, id string, update serviceDomain.Service) error {
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	filter := map[string]interface{}{"_id": objID}
-	updateDoc := map[string]interface{}{
+// 	filter := map[string]interface{}{"_id": objID}
+// 	updateDoc := map[string]interface{}{
 
-		"serviceCode":        update.ServiceCode,
-		"serviceName":        update.ServiceName,
-		"serviceType":        update.ServiceType,
-		"key":                update.Key,
-		"cap":                convertToModelCap(update.Cap),
-		"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
-		"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
-		"aboveAmount":        update.AboveAmount,
-		"aboveServiceFee":    update.AboveServiceFee,
-		"paymentType":        update.PaymentType,
-		"tiers":              convertToModelTiers(update.Tiers),
-		"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
-		"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
-		"enabled":            update.Enabled,
-		"isDeleted":          update.IsDeleted,
-		"lastModifiedAt":     update.LastModifiedAt,
-		"deletedAt":          update.DeletedAt,
-	}
+// 		"serviceCode":        update.ServiceCode,
+// 		"serviceName":        update.ServiceName,
+// 		"serviceType":        update.ServiceType,
+// 		"key":                update.Key,
+// 		"cap":                convertToModelCap(update.Cap),
+// 		"cbeProductCodes":    convertToModelProductCodes(update.CBEProductCodes),
+// 		"cbeIfbProductCodes": convertToModelProductCodes(update.CBEIFBProductCodes),
+// 		"aboveAmount":        update.AboveAmount,
+// 		"aboveServiceFee":    update.AboveServiceFee,
+// 		"paymentType":        update.PaymentType,
+// 		"tiers":              convertToModelTiers(update.Tiers),
+// 		"cbeGLEntry":         convertToModelGLEntry(update.CBEGLEntry),
+// 		"cbeIfbGLEntry":      convertToModelGLEntry(update.CBEIFBGLEntry),
+// 		"enabled":            update.Enabled,
+// 		"isDeleted":          update.IsDeleted,
+// 		"lastModifiedAt":     update.LastModifiedAt,
+// 		"deletedAt":          update.DeletedAt,
+// 	}
 
-	_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
-	return err
-}
+//		_, err = o.MongoDalServiceDetails.UpdateOne(ctx, filter, updateDoc)
+//		return err
+//	}
 func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAmount uint64) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -2090,45 +2059,45 @@ func (o *outboundStore) UpdateCapMinAmount(ctx context.Context, id string, minAm
 	return err
 }
 
-func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error {
-	action, err := o.FetchCpsActionById(ctx, actionID)
-	if err != nil {
-		return err
-	}
+// func (o *outboundStore) ApproveServiceDetails(ctx context.Context, actionID string, approve bool, checkerID string, rejectionReason string) error {
+// 	action, err := o.FetchCpsActionById(ctx, actionID)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if action.ActionStatus != domain.ActionPending {
-		return errors.New("action is not in pending status")
-	}
-	now := time.Now()
-	action.CheckerID = checkerID
-	action.CheckerActionTime = &now
-	action.LastModifiedAt = time.Now()
+// 	if action.ActionStatus != domain.ActionPending {
+// 		return errors.New("action is not in pending status")
+// 	}
+// 	now := time.Now()
+// 	action.CheckerID = checkerID
+// 	action.CheckerActionTime = &now
+// 	action.LastModifiedAt = time.Now()
 
-	if approve {
-		action.ActionStatus = domain.ActionApproved
-		var serviceData serviceDomain.Service
-		if b, ok := action.CurrentAction.([]byte); ok {
-			if err := json.Unmarshal(b, &serviceData); err != nil {
-				return errors.New("invalid service data in action")
-			}
-		} else {
-			return errors.New("invalid service data in action")
-		}
-		if err := o.UpdateOneServiceDetail(ctx, action.UniqueId, serviceData); err != nil {
-			return err
-		}
-	} else {
-		action.ActionStatus = domain.ActionRejected
-		if rejectionReason != "" {
-			action.RejectionReason = &rejectionReason
-		} else {
-			defaultReason := "Rejected by checker"
-			action.RejectionReason = &defaultReason
-		}
-	}
+// 	if approve {
+// 		action.ActionStatus = domain.ActionApproved
+// 		var serviceData serviceDomain.Service
+// 		if b, ok := action.CurrentAction.([]byte); ok {
+// 			if err := json.Unmarshal(b, &serviceData); err != nil {
+// 				return errors.New("invalid service data in action")
+// 			}
+// 		} else {
+// 			return errors.New("invalid service data in action")
+// 		}
+// 		if err := o.UpdateOneServiceDetail(ctx, action.UniqueId, serviceData); err != nil {
+// 			return err
+// 		}
+// 	} else {
+// 		action.ActionStatus = domain.ActionRejected
+// 		if rejectionReason != "" {
+// 			action.RejectionReason = &rejectionReason
+// 		} else {
+// 			defaultReason := "Rejected by checker"
+// 			action.RejectionReason = &defaultReason
+// 		}
+// 	}
 
-	return o.UpdateCpsAction(ctx, action)
-}
+// 	return o.UpdateCpsAction(ctx, action)
+// }
 
 func (o *outboundStore) GetAllPasswordRules(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*action.PasswordRule], error) {
 	filter := bson.M{

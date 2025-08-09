@@ -47,6 +47,13 @@ func Initiator() {
 	adapter := InitAdapter(application, minioClient, logger)
 	logger.Infof("Adapter services initialized")
 
+	logger.Infof("Initializing feedback consumer...")
+	if err := InitFeedbackConsumer(mongoClient, cfg, logger); err != nil {
+		logger.Errorf("Failed to initialize feedback consumer: %v", err)
+	} else {
+		logger.Infof("Feedback consumer initialized")
+	}
+
 	logger.Infof("Initializing Chi router.....")
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -63,7 +70,7 @@ func Initiator() {
 	logger.Infof("Chi router initialized")
 
 	logger.Infof("Initializing routes...")
-	InitRoutes(r, adapter, cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
+	InitRoutes(r, adapter, cfg.JwtSecretKey, cfg.Key, cfg.IV, domain.CPSActionDomain, logger)
 	logger.Infof("Routes initialized")
 
 	server := http.Server{

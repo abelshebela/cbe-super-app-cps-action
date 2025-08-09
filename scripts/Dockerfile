@@ -4,6 +4,13 @@ FROM golang:1.24 AS builder
 
 WORKDIR /app
 
+ARG GITLAB_USER
+ARG GITLAB_PAT
+
+RUN git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".insteadOf "https://gitlab.com/"
+
+ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
+
 COPY . .
 
 COPY go.mod .

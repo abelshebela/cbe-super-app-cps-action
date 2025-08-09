@@ -253,10 +253,12 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Bank,
 		common.DefineError.Department,
 		common.DefineError.Wallet,
+		common.DefineError.BulkService,
 		common.DefineError.Action,
 		common.DefineError.AD,
 		common.DefineError.Permission,
 		common.DefineError.MiniApp,
+		common.DefineError.Event,
 	}
 
 	for _, group := range errorGroups {

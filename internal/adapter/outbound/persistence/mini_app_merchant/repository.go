@@ -22,13 +22,54 @@ import (
 type miniAppMerchantPersistence struct {
 	MongoDalMiniApp dal.MongoDal[model.MiniAppMerchant, model.MiniAppMerchant]
 	logger          utils.Logger
+	client          *mongo.Client
 }
 
 func NewMiniAppMerchantPersistence(client *mongo.Client, DB_name string, collection string, logger utils.Logger) miniApp.MiniAppMerchantRepository {
 	return &miniAppMerchantPersistence{
 		MongoDalMiniApp: dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, DB_name, collection),
 		logger:          logger,
+		client:          client,
 	}
+}
+
+func (p *miniAppMerchantPersistence) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	p.logger.Debugf("Starting MongoDB session for transaction")
+
+	session, err := p.client.StartSession()
+	if err != nil {
+		p.logger.Errorf("failed to start MongoDB session: %v", err)
+		return fmt.Errorf(common_util.UnhandledServerError)
+	}
+	defer session.EndSession(ctx)
+
+	return mongo.WithSession(ctx, session, func(txCtx context.Context) error {
+		p.logger.Debugf("Starting MongoDB transaction")
+
+		if err := session.StartTransaction(); err != nil {
+			p.logger.Errorf("failed to start transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		err := fn(txCtx)
+		if err != nil {
+			p.logger.Errorf("transaction logic failed: %v", err)
+			if abortErr := session.AbortTransaction(txCtx); abortErr != nil {
+				p.logger.Errorf("failed to abort transaction: %v", abortErr)
+			} else {
+				p.logger.Debugf("Transaction aborted successfully")
+			}
+			return err
+		}
+
+		if err := session.CommitTransaction(txCtx); err != nil {
+			p.logger.Errorf("failed to commit transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		p.logger.Debugf("Transaction committed successfully")
+		return nil
+	})
 }
 
 func (p *miniAppMerchantPersistence) CreateMiniAppMerchant(ctx context.Context, merchant *entities.MiniAppMerchant) (*entities.MiniAppMerchant, error) {
@@ -176,8 +217,7 @@ func (p *miniAppMerchantPersistence) DeleteMiniAppMerchant(ctx context.Context, 
 func (p *miniAppMerchantPersistence) MiniAppMerchantInfoExists(
 	ctx context.Context,
 	data entities.CheckMiniAppMerchant,
-	opts *entities.MiniAppMerchantExistOptions,
-) (bool, error) {
+	opts *entities.MiniAppMerchantExistOptions) (bool, error) {
 	filter := bson.M{
 		"is_deleted": false,
 		"$or":        []bson.M{},
@@ -236,44 +276,89 @@ func (p *miniAppMerchantPersistence) updateMerchantState(ctx context.Context, id
 	return mappers.ToMiniAppMerchantDomain(&result), nil
 }
 
-func buildUpdateSet(m *entities.MiniAppMerchant) bson.M {
-	set := bson.M{}
+func (p *miniAppMerchantPersistence) AddMiniApp(ctx context.Context, merchantID string, miniApp entities.MiniApps) error {
+	p.logger.Infof("AddMiniApp: merchant_id=%s, mini_app_id=%s", merchantID, miniApp.ID)
 
-	if m.MerchantType != "" {
-		set["merchant_type"] = m.MerchantType
+	objID, err := mappers.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Warnf("AddMiniApp: invalid merchant_id=%s, error=%v", merchantID, err)
+		return err
 	}
-	if m.MerchantName != "" {
-		set["merchant_name"] = m.MerchantName
-	}
-	// Update KYC fields if present
-	if m.KYC.Status != "" {
-		set["kyc.status"] = m.KYC.Status
-	}
-	if m.KYC.Representative.Name != "" {
-		set["kyc.representative.name"] = m.KYC.Representative.Name
-	}
-	if m.KYC.Representative.Email != "" {
-		set["kyc.representative.email"] = m.KYC.Representative.Email
-	}
-	if m.KYC.Representative.Phone != "" {
-		set["kyc.representative.phone"] = m.KYC.Representative.Phone
-	}
-	if m.PhoneNumber != "" {
-		set["phone_number"] = m.PhoneNumber
-	}
-	if m.Email != "" {
-		set["email"] = m.Email
-	}
-	if m.BankAccountNumber != "" {
-		set["bank_account_number"] = m.BankAccountNumber
-	}
-	if len(m.Branches) > 0 {
-		set["branches"] = m.Branches
-	}
-	if len(m.MiniAppIDs) > 0 {
-		set["mini_apps"] = m.MiniAppIDs
-	}
-	set["enabled"] = m.Enabled // include enabled even if false, to allow toggling
 
-	return set
+	filter := bson.M{"_id": objID, "is_deleted": false}
+
+	_, err = p.MongoDalMiniApp.PushToArray(ctx, filter, "mini_apps", miniApp)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("AddMiniApp: merchant not found, merchant_id=%s", merchantID)
+			return fmt.Errorf(common_util.NotFound)
+		}
+		p.logger.Warnf("AddMiniApp: failed to add mini app, merchant_id=%s, mini_app_id=%s, error=%v", merchantID, miniApp.ID, err)
+		return fmt.Errorf(common_util.GeneralDBUpdateFailed)
+	}
+
+	p.logger.Infof("AddMiniApp: successfully added mini app, merchant_id=%s, mini_app_id=%s", merchantID, miniApp.ID)
+	return nil
+}
+
+func (p *miniAppMerchantPersistence) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
+	p.logger.Infof("UpdateMiniAppEnabledState: merchant_id=%s, mini_app_id=%s, enabled=%v", merchantID, miniAppID, enabled)
+
+	objID, err := mappers.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Warnf("UpdateMiniAppEnabledState: invalid merchant_id=%s, error=%v", merchantID, err)
+		return err
+	}
+
+	filter := bson.M{
+		"_id":                  objID,
+		"mini_apps.id":         miniAppID,
+		"mini_apps.is_deleted": false,
+		"is_deleted":           false,
+	}
+	update := bson.M{"mini_apps.$.enabled": enabled}
+
+	_, err = p.MongoDalMiniApp.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("UpdateMiniAppEnabledState: mini app not found, merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+			return fmt.Errorf(common_util.NotFound)
+		}
+		p.logger.Warnf("UpdateMiniAppEnabledState: failed to update enabled state, merchant_id=%s, mini_app_id=%s, error=%v", merchantID, miniAppID, err)
+		return fmt.Errorf(common_util.GeneralDBUpdateFailed)
+	}
+
+	p.logger.Infof("UpdateMiniAppEnabledState: successfully updated enabled=%v, merchant_id=%s, mini_app_id=%s", enabled, merchantID, miniAppID)
+	return nil
+}
+
+func (p *miniAppMerchantPersistence) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
+	p.logger.Infof("SoftDeleteMiniApp: merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+
+	objID, err := mappers.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Warnf("SoftDeleteMiniApp: invalid merchant_id=%s, error=%v", merchantID, err)
+		return err
+	}
+
+	filter := bson.M{
+		"_id":                  objID,
+		"mini_apps.id":         miniAppID,
+		"mini_apps.is_deleted": false,
+		"is_deleted":           false,
+	}
+	update := bson.M{"mini_apps.$.is_deleted": true}
+
+	_, err = p.MongoDalMiniApp.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("SoftDeleteMiniApp: mini app not found, merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+			return fmt.Errorf(common_util.NotFound)
+		}
+		p.logger.Warnf("SoftDeleteMiniApp: failed to soft delete mini app, merchant_id=%s, mini_app_id=%s, error=%v", merchantID, miniAppID, err)
+		return fmt.Errorf(common_util.GeneralDBUpdateFailed)
+	}
+
+	p.logger.Infof("SoftDeleteMiniApp: successfully soft deleted mini app, merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+	return nil
 }

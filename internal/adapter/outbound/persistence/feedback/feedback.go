@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	// "net/http"
+	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/entity"
 	outbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/feedback"
@@ -37,6 +36,23 @@ func InitFeedback(client *mongo.Client, database string, collection string, logg
 	}
 }
 
+func (c *FeedbackRepo) CreateFeedback(ctx context.Context, req entity.FeedbackRequest, userID string) (*entity.Feedback, error) {
+	var feedback entity.Feedback
+	feedback.ID = bson.NewObjectID()
+	feedback.UserID = userID
+	feedback.Responses = req.Responses
+	feedback.CreatedAt = time.Now()
+	feedback.UpdatedAt = time.Now()
+
+	response, err := c.mongoDal.InsertOne(ctx, feedback)
+	if err != nil {
+		c.logger.Errorf("failed to insert feedback: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_CREATE_FEEDBACK")
+	}
+
+	return &response, nil
+}
+
 func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Feedback], error) {
 	filter := bson.M{}
 	projection := bson.M{}
@@ -44,13 +60,9 @@ func (c *FeedbackRepo) GetFeedbacks(ctx context.Context, filterParams *constant.
 	if filterParams.Search != "" {
 		filter = bson.M{
 			"$or": []bson.M{
-				{"name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"user_id": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
-	}
-
-	if filterParams.Filters != "" {
-		filter["rating"] = filterParams.Filters
 	}
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
@@ -96,18 +108,16 @@ func (c *FeedbackRepo) GetFeedbackByID(ctx context.Context, id string) (*entity.
 
 	if feedbackID.IsZero() {
 		c.logger.Errorf("invalid id provided", err)
-
 		return nil, fmt.Errorf("INVALID_ID")
 	}
 
 	filter := bson.M{"_id": feedbackID}
 	projection := bson.M{}
-	// fmt.Println(filter, projection,"dataaaaaaa")
+
 	feedback, err := c.mongoDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			c.logger.Errorf("feedback not found", err)
-
 			return nil, fmt.Errorf("FAILED_TO_GET_FEEDBACK_DATA")
 		}
 		c.logger.Errorf("failed to get feedback", err)

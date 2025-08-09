@@ -1,10 +1,17 @@
 package unlink
 
 import (
+	"context"
 	"regexp"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
+
+type UnlinkAccount interface {
+	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
+	UnlinkUserCif(ctx context.Context, userCode string) error
+	Authorize(ctx context.Context, cpsAction any) (any, error)
+}
 
 var noSpecialChars = validation.Match(regexp.MustCompile(`^[A-Za-z0-9]+$`)).Error("userCode must not contain special characters")
 

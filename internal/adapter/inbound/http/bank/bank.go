@@ -29,6 +29,14 @@ func InitBankAdapter(bankHandler bank.BankHandlerService, logger utils.Logger) i
 	}
 }
 
+func UserContextToModel(userContext ctx_util.UserContext) model.User {
+	return model.User{
+		UserCode:    userContext.UserCode,
+		FullName:    userContext.FullName,
+		PhoneNumber: userContext.PhoneNumber,
+		Department:  userContext.Department,
+	}
+}
 func createCPSUserForReject(r *http.Request) (*model.RejectCPSAction, error) {
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
@@ -36,7 +44,7 @@ func createCPSUserForReject(r *http.Request) (*model.RejectCPSAction, error) {
 	}
 
 	v := &model.RejectCPSAction{
-		CheckerUser: common_util.UserContextToModel(userContext),
+		CheckerUser: UserContextToModel(userContext),
 	}
 
 	v.Department = userContext.Department
@@ -50,7 +58,7 @@ func createCPSUserForCreate(r *http.Request) (*model.CreateCPSAction, error) {
 		return nil, fmt.Errorf(common_util.IncompleteUserInfo)
 	}
 	return &model.CreateCPSAction{
-		MakerUser:  common_util.UserContextToModel(userContext),
+		MakerUser:  UserContextToModel(userContext),
 		Department: userContext.Department,
 	}, nil
 }
