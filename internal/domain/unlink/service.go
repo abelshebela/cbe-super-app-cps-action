@@ -23,7 +23,7 @@ func NewUnlinkServiceDomain(persistence UnlinkAccount, logger utils.Logger) Unli
 func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*any, error) {
 	return u.unlinkPersistence.GetUserByAccount(ctx, accNumber)
 }
-func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams string) (*local_util.PaginatedResponse[*any], error) {
+func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error) {
 	return u.unlinkPersistence.GetAllArchivedUser(ctx, filterParams)
 }
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {

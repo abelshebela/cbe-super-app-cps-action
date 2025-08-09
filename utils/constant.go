@@ -23,10 +23,6 @@ type Filter struct {
 	Search string `json:"search"`
 	// filters user using status
 	Filters string `json:"filters"`
-	// filter using sort
-	SortBy    string `json:"sort_by"`
-	SortOrder string `json:"sort_order"`
-	// Add more fields as needed
 }
 
 type MongoFilter struct {

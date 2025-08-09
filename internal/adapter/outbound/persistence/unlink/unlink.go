@@ -9,7 +9,6 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	constant_util "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -31,6 +30,7 @@ type unlinkCustomer struct {
 
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
+	GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction any) (any, error)
 }
@@ -50,7 +50,7 @@ func NewUnlinkPersistence(client *mongo.Client, database string, collection []st
 	}
 }
 
-func (u *unlinkCustomer) GetAllArchivedUser(ctx context.Context, filterParams *constant_util.Filter) (*local_util.PaginatedResponse[*any], error) {
+func (u *unlinkCustomer) GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error) {
 	// Validate filterParams
 	if filterParams == nil {
 		return nil, fmt.Errorf("FILTER_PARAMS_CANNOT_BE_NIL")
@@ -65,15 +65,9 @@ func (u *unlinkCustomer) GetAllArchivedUser(ctx context.Context, filterParams *c
 		}
 	}
 
-	// Pagination
 	page := filterParams.Page
-	if page < 1 {
-		page = 1
-	}
+
 	limit := filterParams.PerPage
-	if limit < 1 {
-		limit = 10
-	}
 	skip := int64((page - 1) * limit)
 	limit64 := int64(limit)
 
