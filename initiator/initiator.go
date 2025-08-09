@@ -44,7 +44,7 @@ func Initiator() {
 	logger.Infof("Application services initialized")
 
 	logger.Infof("Initializing adapter services...")
-	adapter := InitAdapter(application, minioClient, logger)
+	adapter := InitAdapter(application, minioClient, logger, cfg)
 	logger.Infof("Adapter services initialized")
 
 	logger.Infof("Initializing feedback consumer...")

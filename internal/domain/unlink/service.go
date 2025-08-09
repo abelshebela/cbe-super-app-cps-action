@@ -3,6 +3,7 @@ package unlink
 import (
 	"context"
 
+	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -21,6 +22,9 @@ func NewUnlinkServiceDomain(persistence UnlinkAccount, logger utils.Logger) Unli
 
 func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*any, error) {
 	return u.unlinkPersistence.GetUserByAccount(ctx, accNumber)
+}
+func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams string) (*local_util.PaginatedResponse[*any], error) {
+	return u.unlinkPersistence.GetAllArchivedUser(ctx, filterParams)
 }
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
 	return u.unlinkPersistence.UnlinkUserCif(ctx, userCode)
