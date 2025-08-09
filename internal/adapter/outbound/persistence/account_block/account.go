@@ -19,6 +19,7 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/account_block"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
+	ctx_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -1714,4 +1715,225 @@ func (o *outboundAccountBlockStore) GetAllBranches(ctx context.Context, filterPa
 		Data: branches,
 		Meta: meta,
 	}, nil
+}
+
+// Newly added
+func (o *outboundAccountBlockStore) EnableOrDisable(ctx context.Context, blockType string, codes []string, cpsAction model.CPSAction, requestType model.RequestAction) error {
+	var filter bson.M
+
+	switch blockType {
+	case "BRANCH":
+		filter = bson.M{"branch_code": bson.M{"$in": codes}}
+
+		_, err := o.MongoDalBranch.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return fmt.Errorf("BRANCH_NOT_FOUND")
+			}
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		}
+
+	case "REGION":
+		filter = bson.M{"region_code": bson.M{"$in": codes}}
+
+		_, err := o.MongoDalRegion.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return fmt.Errorf("REGION_NOT_FOUND")
+			}
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		}
+	case "DISTRICT":
+		filter = bson.M{"district_code": bson.M{"$in": codes}}
+
+		_, err := o.MongoDalDistrict.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return fmt.Errorf("DISTRICT_NOT_FOUND")
+			}
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		}
+	case "CITY":
+		filter = bson.M{"district_code": bson.M{"$in": codes}}
+
+		_, err := o.MongoDalCity.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return fmt.Errorf("CITY_NOT_FOUND")
+			}
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		}
+	}
+
+	// Check for any pending action
+	maker := ctx_utils.ExtractContext(ctx)
+	pendingFilter := bson.M{
+		"maker_id":       maker.UserID,
+		"department":     maker.Department,
+		"action_status":  "PENDING",
+		"request_action": requestType,
+	}
+
+	pendingAction, err := o.MongoDalCPSAction.FindOne(ctx, pendingFilter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
+		return fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
+	if err != nil {
+		return fmt.Errorf("database errorwhile creating CPS action")
+	}
+
+	return nil
+}
+
+// Branch
+func (o *outboundAccountBlockStore) AuthorizeEnableBranches(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.Branch](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"branch_code": service.BranchCode}
+		update := bson.M{"enabled": true}
+		_, err = o.MongoDalBranch.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (o *outboundAccountBlockStore) AuthorizeDisableBranches(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.Branch](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"branch_code": service.BranchCode}
+		update := bson.M{"enabled": false}
+		_, err = o.MongoDalBranch.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+// Region
+func (o *outboundAccountBlockStore) AuthorizeEnableRegions(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.Region](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"region_code": service.RegionCode}
+		update := bson.M{"enabled": true}
+		_, err = o.MongoDalRegion.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (o *outboundAccountBlockStore) AuthorizeDisableRegions(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.Region](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"region_code": service.RegionCode}
+		update := bson.M{"enabled": false}
+		_, err = o.MongoDalRegion.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+// District
+func (o *outboundAccountBlockStore) AuthorizeEnableDistricts(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.District](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"district_code": service.DistrictCode}
+		update := bson.M{"enabled": true}
+		_, err = o.MongoDalDistrict.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (o *outboundAccountBlockStore) AuthorizeDisableDistrict(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.District](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"district_code": service.DistrictCode}
+		update := bson.M{"enabled": false}
+		_, err = o.MongoDalDistrict.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+// City
+func (o *outboundAccountBlockStore) AuthorizeEnableCities(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.City](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"city_code": service.CityCode}
+		update := bson.M{"enabled": true}
+		_, err = o.MongoDalCity.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (o *outboundAccountBlockStore) AuthorizeDisableCities(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	data, err := constant_utils.JsonUnmarshal[[]model.City](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"city_code": service.CityCode}
+		update := bson.M{"enabled": false}
+		_, err = o.MongoDalCity.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
 }

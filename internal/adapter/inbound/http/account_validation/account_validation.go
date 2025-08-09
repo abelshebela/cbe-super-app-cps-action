@@ -2,7 +2,6 @@ package accountvalidation_inbound
 
 import (
 	"encoding/json"
-	
 
 	// "fmt"
 	"net/http"
@@ -80,7 +79,6 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 		utils.SendErrorResponse(w, "INVALID_JSON_PAYLOAD", 0, nil)
 		return
 	}
-
 
 	if req.MinLength > req.MaxLength {
 		utils.SendErrorResponse(w, "MAX_NOT_BE_LESS", 0, nil)

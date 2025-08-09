@@ -30,6 +30,7 @@ type unlinkCustomer struct {
 
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
+	GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction any) (any, error)
 }
@@ -49,6 +50,51 @@ func NewUnlinkPersistence(client *mongo.Client, database string, collection []st
 	}
 }
 
+func (u *unlinkCustomer) GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error) {
+	// Validate filterParams
+	if filterParams == nil {
+		return nil, fmt.Errorf("FILTER_PARAMS_CANNOT_BE_NIL")
+	}
+
+	// Build MongoDB filter
+	filter := bson.M{}
+	if filterParams.Search != "" {
+		filter["$or"] = []bson.M{
+			{"customer_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+		}
+	}
+
+	page := filterParams.Page
+
+	limit := filterParams.PerPage
+	skip := int64((page - 1) * limit)
+	limit64 := int64(limit)
+
+	archivedUsers, err := u.archivedUserDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit64)
+	if err != nil {
+		u.logger.Errorf("failed to fetch archived users: %v", err)
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("NO_DOC_FOUND")
+		}
+		return nil, fmt.Errorf("FAILED_TO_FETCH_ARCHIVED_USERS")
+	}
+
+	total, err := u.archivedUserDal.TotalCount(ctx, filter)
+	if err != nil {
+		u.logger.Errorf("failed to count archived users: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_COUNT_ARCHIVED_USERS")
+	}
+
+	meta := local_util.BuildPaginationMeta(total, page, limit)
+	var data any = archivedUsers
+	resp := &local_util.PaginatedResponse[*any]{
+		Data: &data,
+		Meta: meta,
+	}
+
+	return resp, nil
+}
 func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string) (*any, error) {
 	if accNumber == "" {
 		return nil, fmt.Errorf("ACCOUNT_NUMBER_CANNOT_BE_EMPTY")

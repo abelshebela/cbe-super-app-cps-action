@@ -46,13 +46,14 @@ type ErrorDefinitions struct {
 	File        ErrorGroup
 	Branch      ErrorGroup
 	Region      ErrorGroup
+	District    ErrorGroup
+	City        ErrorGroup
 	Department  ErrorGroup
 	Bank        ErrorGroup
 	Action      ErrorGroup
 	Wallet      ErrorGroup
 	AD          ErrorGroup
 	Permission  ErrorGroup
-	BulkService ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
 }
@@ -884,6 +885,7 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "unsupported request action",
 		},
+
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Status:  StatusBadRequest,
@@ -1030,6 +1032,15 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "merchant not found",
 		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_172",
+			Status:  StatusBadRequest,
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
+		"NO_DOC_FOUND": {
+			Code:    "GEN_171	",
+			Message: "mongo: no documents in result",
+		},
 		"INVALID_TOTAL_CAP_VALUE": {
 			Code:    "GEN_172	",
 			Message: "invalid total cap value",
@@ -1050,7 +1061,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
-
+		"DATABASE_ERROR_CHECKING_PENDING_ACTION": {
+			Code:    "GEN_177",
+			Message: "An error occured while checking pending action",
+		},
 		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
 			Code:    "GEN_177",
 			Message: "Single max transfers can not be less or equal to min_amount",
@@ -1064,39 +1078,29 @@ var DefineError = ErrorDefinitions{
 			Message: "user code can not be empty",
 		},
 		"FAILED_TO_FIND_USER": {
-			Code:    "GEN_180",
+			Code:    "GEN_177",
 			Status:  http.StatusNotFound,
 			Message: "failed to find user",
 		},
 		"FAYDA_USER_ALREADY_ENABLED": {
-			Code:    "GEN_181",
+			Code:    "GEN_178",
 			Status:  http.StatusConflict,
 			Message: "fayda user already enabled",
 		},
 		"FAYDA_USER_ALREADY_DISABLE": {
-			Code:    "GEN_182",
+			Code:    "GEN_179",
 			Status:  http.StatusConflict,
-			Message: "fayda user already disabled",
+			Message: "fayda user already disable",
 		},
-		"INVALID_PAYLOAD": {
-			Code:    "GEN_183",
-			Status:  StatusBadRequest,
-			Message: "invalid payload",
+		"PLEASE_ADD_VALID_PAGE_OR_PERPAGE": {
+			Code:    "GEN_180",
+			Status:  http.StatusConflict,
+			Message: "please add valid page or per page",
 		},
-		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
-			Code:    "GEN_184",
-			Status:  StatusBadRequest,
-			Message: "Only Ethiopian numbers in local or international format are acceptable",
-		},
-		"NO_RESOURCE_FOUND": {
-			Code:    "GEN_185",
-			Status:  StatusNotFound,
-			Message: "Resource not found",
-		},
-		"NO_DOC_FOUND": {
-			Code:    "GEN_186",
-			Status:  StatusNotFound,
-			Message: "mongo: no documents in result",
+		"FAILED_TO_FETCH_ARCHIVED_USERS": {
+			Code:    "GEN_181",
+			Status:  http.StatusConflict,
+			Message: "Failed to fetch archived users",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1398,7 +1402,7 @@ var DefineError = ErrorDefinitions{
 		"BRANCH_NOT_FOUND": {
 			Code:    "BRN_001",
 			Status:  StatusBadRequest,
-			Message: "No branch found for the given region and district",
+			Message: "No branch found",
 		},
 		"UNHANDLED_SERVER_ERROR": {
 			Code:    "GEN_004",
@@ -1594,6 +1598,32 @@ var DefineError = ErrorDefinitions{
 		"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": {
 			Code:    "BRN_015",
 			Message: "multiple branch enable list have  already enabled branch.",
+		},
+		"BRANCH_CODE_IS_REQUIRED": {
+			Code:    "BRN_016",
+			Status:  StatusBadRequest,
+			Message: "One or more branch code is required",
+		},
+	},
+	Region: ErrorGroup{
+		"REGION_CODE_IS_REQUIRED": {
+			Code:    "REG_001",
+			Status:  StatusBadRequest,
+			Message: "One or more region code is required",
+		},
+	},
+	District: ErrorGroup{
+		"DISTRICT_CODE_IS_REQUIRED": {
+			Code:    "DIST_001",
+			Status:  StatusBadRequest,
+			Message: "One or more district code is required",
+		},
+	},
+	City: ErrorGroup{
+		"CITY_CODE_IS_REQUIRED": {
+			Code:    "DIST_001",
+			Status:  StatusBadRequest,
+			Message: "One or more city code is required",
 		},
 	},
 	Department: ErrorGroup{
@@ -1812,21 +1842,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Failed to update user status.",
 		},
-		"INVALID_USER_CODE": {
-			Code:    "USR_002",
-			Status:  StatusBadRequest,
-			Message: "Invalid user code.",
-		},
-		"USER_ALREADY_ENABLED": {
-			Code:    "USR_003",
-			Status:  StatusBadRequest,
-			Message: "User already enabled.",
-		},
-		"USER_ALREADY_DISABLED": {
-			Code:    "USR_004",
-			Status:  StatusBadRequest,
-			Message: "User already disabled.",
-		},
 	},
 	Wallet: ErrorGroup{
 		"WALLET_NOT_FOUND": {
@@ -1959,43 +1974,6 @@ var DefineError = ErrorDefinitions{
 			Message: "One or more permission groups not found.",
 		},
 	},
-	BulkService: ErrorGroup{
-		"BULK_SERVICE_CODE_IS_REQUIRED": {
-			Code:    "BULK_001",
-			Status:  StatusBadRequest,
-			Message: "Bulk service code is required",
-		},
-		"SURVICE_NOT_FOUND": {
-			Code:    "BULK_002",
-			Status:  StatusNotFound,
-			Message: "One or more service is not found",
-		},
-		"DUPLICATE_ACTION": {
-			Code:    "BULK_003",
-			Status:  StatusConflict,
-			Message: "One or more duplicate action is requested",
-		},
-		"INVALID_CURRENT_ACTION": {
-			Code:    "BULK_004",
-			Status:  StatusBadRequest,
-			Message: "invalid CurrentAction format",
-		},
-		"INVALID_KEY_FORMAT": {
-			Code:    "BULK_005",
-			Status:  StatusBadRequest,
-			Message: "invalid keys format",
-		},
-		"FAILED_TO_UPDATE_CHILD": {
-			Code:    "BULK_006",
-			Status:  StatusInternalServerError,
-			Message: "failed to update child",
-		},
-		"FAILED_TO_UPDATE_PARENT": {
-			Code:    "BULK_007",
-			Status:  StatusInternalServerError,
-			Message: "failed to update parent",
-		},
-	},
 	MiniApp: ErrorGroup{
 		"APP_NAME_REQUIRED": {
 			Code:    "MINIAPP_001",
@@ -2032,6 +2010,11 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "invalid url.",
 		},
+		"MPAAS_ID_REQUIRED": {
+			Code:    "MINIAPP_008",
+			Status:  StatusBadRequest,
+			Message: "mpaas_id is required.",
+		},
 		"INCOMPLETE_BRANCH_PRODUCT_CODES": {
 			Code:    "MINIAPP_009",
 			Status:  StatusBadRequest,
@@ -2066,13 +2049,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "MINIAPP_015",
 			Status:  StatusBadRequest,
 			Message: "only one of is_event_mini_app or is_three_click can be true.",
-		},
-	},
-	Event: ErrorGroup{
-		"EVENT_NAME_ALREADY_EXISTS": {
-			Code:    "EVE_001",
-			Message: "Event name already exists",
-			Status:  StatusBadRequest,
 		},
 	},
 }

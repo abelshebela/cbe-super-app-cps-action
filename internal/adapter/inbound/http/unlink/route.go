@@ -22,6 +22,15 @@ func InitUnlinkHanldler(router chi.Router, handler Inbound.UnlinkHandler, authMi
 				},
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/fetch/archived/users",
+				Handler: handler.GetArchivedUser,
+				Middlewares: []func(next http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{"maker", "checker"}),
+				},
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/request",
 				Handler: handler.UnlinkUserCif,

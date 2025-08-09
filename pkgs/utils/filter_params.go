@@ -17,7 +17,6 @@ func ExtractFilterParams(r *http.Request) *constant.Filter {
 	if pageInt, err := strconv.Atoi(query.Get("page")); err == nil && pageInt > 0 {
 		page = pageInt
 	}
-
 	perPage := constant.DefaultPerPage
 	if perPageInt, err := strconv.Atoi(query.Get("per_page")); err == nil &&
 		perPageInt > 0 {
@@ -33,7 +32,7 @@ func ExtractFilterParams(r *http.Request) *constant.Filter {
 }
 
 // BuildMongoFilter constructs a MongoDB filter from the provided input map.
-//MongoFilter
+// MongoFilter
 func ExtractMongoFilterParams(r *http.Request) *constant.MongoFilter {
 	query := r.URL.Query()
 
@@ -68,15 +67,13 @@ func ExtractMongoFilterParams(r *http.Request) *constant.MongoFilter {
 	}
 }
 
-
-
 func BuildMongoFilter(input map[string]interface{}) bson.M {
 	return BuildMongoFilterWithValidation(input, nil)
 }
 
 func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []string) bson.M {
 	filter := bson.M{}
-	
+
 	var validKeysMap map[string]bool
 	if validKeys != nil {
 		validKeysMap = make(map[string]bool, len(validKeys))
@@ -89,7 +86,7 @@ func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []st
 		if value == nil || value == "" {
 			continue
 		}
-		
+
 		if validKeysMap != nil && !validKeysMap[key] {
 			continue
 		}
@@ -114,4 +111,3 @@ func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []st
 
 	return filter
 }
-

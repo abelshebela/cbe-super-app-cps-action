@@ -30,8 +30,8 @@ type MongoFilter struct {
 
 	PerPage int `json:"per_page"`
 
-	Search string `json:"search"`
-	Filters  map[string]interface{}`json:"filters"`
+	Search  string                 `json:"search"`
+	Filters map[string]interface{} `json:"filters"`
 }
 
 func (e ErrorDefinition) Error() string {
