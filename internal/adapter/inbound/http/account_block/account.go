@@ -1205,7 +1205,7 @@ func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	constant_utils.BaseResponseMaker(nil, w, "Request to enable region/es submitted successfully", 200)
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable region/s submitted successfully", 200)
 }
 
 func (h *AccountBlockHandler) DisableRegion(w http.ResponseWriter, r *http.Request) {
@@ -1216,7 +1216,7 @@ func (h *AccountBlockHandler) DisableRegion(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	constant_utils.BaseResponseMaker(nil, w, "Request to disable region/es submitted successfully", 200)
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable region/s submitted successfully", 200)
 }
 
 // District
@@ -1228,7 +1228,7 @@ func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	constant_utils.BaseResponseMaker(nil, w, "Request to enable district/es submitted successfully", 200)
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable district/s submitted successfully", 200)
 }
 
 func (h *AccountBlockHandler) DisableDistrict(w http.ResponseWriter, r *http.Request) {
@@ -1239,7 +1239,7 @@ func (h *AccountBlockHandler) DisableDistrict(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	constant_utils.BaseResponseMaker(nil, w, "Request to disable district/es submitted successfully", 200)
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable district/s submitted successfully", 200)
 }
 
 // City
@@ -1251,7 +1251,7 @@ func (h *AccountBlockHandler) EnableCity(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	constant_utils.BaseResponseMaker(nil, w, "Request to enable city/es submitted successfully", 200)
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable city or cities submitted successfully", 200)
 }
 
 func (h *AccountBlockHandler) DisableCity(w http.ResponseWriter, r *http.Request) {
@@ -1262,5 +1262,5 @@ func (h *AccountBlockHandler) DisableCity(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	constant_utils.BaseResponseMaker(nil, w, "Request to disable city/es submitted successfully", 200)
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable city or cities submitted successfully", 200)
 }
