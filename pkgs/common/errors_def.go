@@ -46,6 +46,8 @@ type ErrorDefinitions struct {
 	File        ErrorGroup
 	Branch      ErrorGroup
 	Region      ErrorGroup
+	District    ErrorGroup
+	City        ErrorGroup
 	Department  ErrorGroup
 	Bank        ErrorGroup
 	Action      ErrorGroup
@@ -1059,6 +1061,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
+		"DATABASE_ERROR_CHECKING_PENDING_ACTION": {
+			Code:    "GEN_177",
+			Message: "An error occured while checking pending action",
+		},
 		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
 			Code:    "GEN_177",
 			Message: "Single max transfers can not be less or equal to min_amount",
@@ -1396,7 +1402,7 @@ var DefineError = ErrorDefinitions{
 		"BRANCH_NOT_FOUND": {
 			Code:    "BRN_001",
 			Status:  StatusBadRequest,
-			Message: "No branch found for the given region and district",
+			Message: "No branch found",
 		},
 		"UNHANDLED_SERVER_ERROR": {
 			Code:    "GEN_004",
@@ -1592,6 +1598,32 @@ var DefineError = ErrorDefinitions{
 		"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": {
 			Code:    "BRN_015",
 			Message: "multiple branch enable list have  already enabled branch.",
+		},
+		"BRANCH_CODE_IS_REQUIRED": {
+			Code:    "BRN_016",
+			Status:  StatusBadRequest,
+			Message: "One or more branch code is required",
+		},
+	},
+	Region: ErrorGroup{
+		"REGION_CODE_IS_REQUIRED": {
+			Code:    "REG_001",
+			Status:  StatusBadRequest,
+			Message: "One or more region code is required",
+		},
+	},
+	District: ErrorGroup{
+		"DISTRICT_CODE_IS_REQUIRED": {
+			Code:    "DIST_001",
+			Status:  StatusBadRequest,
+			Message: "One or more district code is required",
+		},
+	},
+	City: ErrorGroup{
+		"CITY_CODE_IS_REQUIRED": {
+			Code:    "DIST_001",
+			Status:  StatusBadRequest,
+			Message: "One or more city code is required",
 		},
 	},
 	Department: ErrorGroup{
