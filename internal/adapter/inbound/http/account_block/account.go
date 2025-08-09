@@ -458,47 +458,48 @@ func (h *AccountBlockHandler) GetAllRegion(w http.ResponseWriter, r *http.Reques
 	constant_utils.BaseResponseMaker(data, w, "Regions retrieved successfully", http.StatusOK)
 }
 
-func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		RegionCode string `json:"region_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.RegionCode) == "" {
-		constant_utils.SendErrorResponse(w, "REGION_CODE_AND_NAME_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
-		return
-	}
+// func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Request) {
+// 	var req struct {
+// 		RegionCode string `json:"region_code"`
+// 	}
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+// 		strings.TrimSpace(req.RegionCode) == "" {
+// 		constant_utils.SendErrorResponse(w, "REGION_CODE_AND_NAME_REQUIRED", http.StatusBadRequest, nil)
+// 		return
+// 	}
+// 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+// 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+// 	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+// 	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+// 	if strings.TrimSpace(department) == "" {
+// 		constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
+// 		return
+// 	}
 
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
+// 	maker := action.User{
+// 		UserID:      userID,
+// 		FullName:    fullName,
+// 		PhoneNumber: phoneNumber,
+// 		Department:  department,
+// 	}
 
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-	_, err := h.service.EnabelRegion(r.Context(), req.RegionCode, cpsAction)
-	if err != nil {
+// 	cpsAction := action.CPSAction{
+// 		MakerID:          maker.UserID,
+// 		MakerName:        maker.FullName,
+// 		MakerPhoneNumber: maker.PhoneNumber,
+// 		Department:       maker.Department,
+// 	}
+// 	_, err := h.service.EnabelRegion(r.Context(), req.RegionCode, cpsAction)
+// 	if err != nil {
 
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+// 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
 
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region enable action created", http.StatusCreated)
+// 		return
+// 	}
+// 	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region enable action created", http.StatusCreated)
 
-}
+// }
+
 func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RegionCode string `json:"region_code"`
@@ -632,46 +633,47 @@ func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
 }
 
-func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		DistrictCode string `json:"district_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.DistrictCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "district_code is required", http.StatusBadRequest)
-		return
-	}
+// func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Request) {
+// 	var req struct {
+// 		DistrictCode string `json:"district_code"`
+// 	}
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+// 		strings.TrimSpace(req.DistrictCode) == "" {
+// 		constant_utils.BaseResponseMaker(nil, w, "district_code is required", http.StatusBadRequest)
+// 		return
+// 	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
-		return
-	}
+// 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+// 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+// 	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+// 	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+// 	if strings.TrimSpace(department) == "" {
+// 		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
+// 		return
+// 	}
 
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
+// 	maker := action.User{
+// 		UserID:      userID,
+// 		FullName:    fullName,
+// 		PhoneNumber: phoneNumber,
+// 		Department:  department,
+// 	}
 
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
+// 	cpsAction := action.CPSAction{
+// 		MakerID:          maker.UserID,
+// 		MakerName:        maker.FullName,
+// 		MakerPhoneNumber: maker.PhoneNumber,
+// 		Department:       maker.Department,
+// 	}
 
-	_, err := h.service.EnableDistrict(r.Context(), req.DistrictCode, cpsAction)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "District enabel action created", http.StatusCreated)
-}
+// 	_, err := h.service.EnableDistrict(r.Context(), req.DistrictCode, cpsAction)
+// 	if err != nil {
+// 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
+// 	constant_utils.BaseResponseMaker(map[string]any{}, w, "District enabel action created", http.StatusCreated)
+// }
+
 func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		DistrictCode string `json:"district_code"`
@@ -888,45 +890,47 @@ func (h *AccountBlockHandler) GetAllCities(w http.ResponseWriter, r *http.Reques
 	}
 	constant_utils.BaseResponseMaker(data, w, "Cities retrieved successfully", http.StatusOK)
 }
-func (h *AccountBlockHandler) EnableCity(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		CityCode string `json:"city_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.CityCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "city_code are required", http.StatusBadRequest)
-		return
-	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
-		return
-	}
+// func (h *AccountBlockHandler) EnableCity(w http.ResponseWriter, r *http.Request) {
+// 	var req struct {
+// 		CityCode string `json:"city_code"`
+// 	}
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
+// 		strings.TrimSpace(req.CityCode) == "" {
+// 		constant_utils.BaseResponseMaker(nil, w, "city_code are required", http.StatusBadRequest)
+// 		return
+// 	}
 
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
+// 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
+// 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
+// 	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
+// 	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
+// 	if strings.TrimSpace(department) == "" {
+// 		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
+// 		return
+// 	}
 
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-	_, err := h.service.EnableCity(r.Context(), req.CityCode, cpsAction)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "City enable action created", http.StatusCreated)
-}
+// 	maker := action.User{
+// 		UserID:      userID,
+// 		FullName:    fullName,
+// 		PhoneNumber: phoneNumber,
+// 		Department:  department,
+// 	}
+
+// 	cpsAction := action.CPSAction{
+// 		MakerID:          maker.UserID,
+// 		MakerName:        maker.FullName,
+// 		MakerPhoneNumber: maker.PhoneNumber,
+// 		Department:       maker.Department,
+// 	}
+// 	_, err := h.service.EnableCity(r.Context(), req.CityCode, cpsAction)
+// 	if err != nil {
+// 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+// 		return
+// 	}
+// 	constant_utils.BaseResponseMaker(map[string]any{}, w, "City enable action created", http.StatusCreated)
+// }
+
 func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		CityCode string `json:"city_code"`
@@ -1167,4 +1171,96 @@ func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Re
 		"message": "Action processed successfully",
 	}
 	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
+}
+
+// Region
+func (h *AccountBlockHandler) EnableBranches(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableBranches(r)
+	if err != nil {
+		h.logger.Errorf("Enable branch/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable branch/es submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableBranches(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableBranches(r)
+	if err != nil {
+		h.logger.Errorf("Disable branch/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable branch/es submitted successfully", 200)
+}
+
+// Region
+func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableRegion(r)
+	if err != nil {
+		h.logger.Errorf("Enable region/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable region/es submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableRegion(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableRegion(r)
+	if err != nil {
+		h.logger.Errorf("Disable region/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable region/es submitted successfully", 200)
+}
+
+// District
+func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableDistrict(r)
+	if err != nil {
+		h.logger.Errorf("Enable district/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable district/es submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableDistrict(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableDistrict(r)
+	if err != nil {
+		h.logger.Errorf("Disable district/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable district/es submitted successfully", 200)
+}
+
+// City
+func (h *AccountBlockHandler) EnableCity(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableCity(r)
+	if err != nil {
+		h.logger.Errorf("Enable city/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable city/es submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableCity(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableCity(r)
+	if err != nil {
+		h.logger.Errorf("Disable city/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable city/es submitted successfully", 200)
 }
