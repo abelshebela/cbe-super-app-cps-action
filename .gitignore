@@ -18,3 +18,5 @@ scripts/README_DOCKER.md
 DONATION_FEATURE_ANALYSIS.md
 main
 main
+FILTER_USAGE_EXAMPLES.md
+pkgs/utils/filter_params_test.go

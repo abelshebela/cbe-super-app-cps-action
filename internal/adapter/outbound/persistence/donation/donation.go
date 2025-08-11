@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -89,14 +90,27 @@ func (d *DonationPersistence) CreateDonationCategoryWithURL(ctx context.Context,
 
 func (d *DonationPersistence) FetchDonationCategory(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*dto.DonationCategoryListResponse], error) {
 	filter := bson.M{"is_deleted": false}
-
+// here incase if we want to filter by is deleted the following implementation works just comment the above line
 	if filterParams.Search != "" {
 		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
 		filter["category_name"] = searchRegex
 	}
 
 	if filterParams.Filters != nil {
-		for key, value := range filterParams.Filters {
+		allowedKeys := []string{"category_name", "is_deleted", "created_at", "last_modified_at"}
+		handlers := map[string]func(interface{}) interface{}{
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
 			filter[key] = value
 		}
 	}
@@ -159,12 +173,11 @@ func (d *DonationPersistence) UpdateDonationCategory(ctx context.Context, id str
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{
-	"$set": bson.M{
-		"category_name":    donation.CategoryName,
-		"last_modified_at": time.Now(),
-	},
-}
-
+		"$set": bson.M{
+			"category_name":    donation.CategoryName,
+			"last_modified_at": time.Now(),
+		},
+	}
 
 	_, err = d.donationCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -230,7 +243,20 @@ func (d *DonationPersistence) FetchDonationCompany(ctx context.Context, filterPa
 	}
 
 	if filterParams.Filters != nil {
-		for key, value := range filterParams.Filters {
+		allowedKeys := []string{"company_name", "account_number", "is_deleted", "created_at", "last_modified_at"}
+		handlers := map[string]func(interface{}) interface{}{
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
 			filter[key] = value
 		}
 	}
@@ -294,10 +320,10 @@ func (d *DonationPersistence) UpdateDonationCompany(ctx context.Context, id stri
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{
 		"$set": bson.M{
-		"company_name":     company.CompanyName,
-		"account_number":   company.AccountNumber,
-		"last_modified_at": time.Now(),
-	}}
+			"company_name":     company.CompanyName,
+			"account_number":   company.AccountNumber,
+			"last_modified_at": time.Now(),
+		}}
 
 	_, err = d.donationCompanyDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -456,21 +482,53 @@ func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *c
 	}
 
 	if filterParams.Filters != nil {
-		for key, value := range filterParams.Filters {
-			// Handle ObjectID conversion for foreign keys
-			if key == "company_id" || key == "category_id" {
+		allowedKeys := []string{"company_id", "category_id", "is_featured", "target", "title", "start_date", "end_date", "created_at", "last_modified_at","is_deleted"}
+		handlers := map[string]func(interface{}) interface{}{
+			"company_id": func(value interface{}) interface{} {
 				if strValue, ok := value.(string); ok {
-					objID, err := common_util.ParsePrimitiveObjectID(strValue)
-					if err != nil {
-						return nil, fmt.Errorf("invalid %s format: %v", key, err)
+					if objID, err := common_util.ParsePrimitiveObjectID(strValue); err == nil {
+						return objID
 					}
-					filter[key] = objID
-				} else {
-					filter[key] = value
 				}
-			} else {
-				filter[key] = value
-			}
+				return value
+			},
+			"category_id": func(value interface{}) interface{} {
+				if strValue, ok := value.(string); ok {
+					if objID, err := common_util.ParsePrimitiveObjectID(strValue); err == nil {
+						return objID
+					}
+				}
+				return value
+			},
+			"is_featured": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+			"target": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.Atoi(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			filter[key] = value
 		}
 	}
 
@@ -488,7 +546,6 @@ func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *c
 		return nil, fmt.Errorf("failed to decode donations: %v", err)
 	}
 
-	// Get total count
 	total, err := d.donationDal.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count donations: %v", err)
@@ -496,7 +553,6 @@ func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *c
 
 	var result []*dto.DonationListResponse
 	for _, donation := range donations {
-		// Fetch related Company using ObjectID
 		var company model.DonationCompany
 		companyFilter := bson.M{"_id": donation.CompanyID}
 		err = d.donationCompanyDal.FindOne(ctx, companyFilter).Decode(&company)
@@ -504,7 +560,6 @@ func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *c
 			return nil, fmt.Errorf("failed to fetch company: %v", err)
 		}
 
-		// Fetch related Category using ObjectID
 		var category model.DonationCategory
 		categoryFilter := bson.M{"_id": donation.CategoryID}
 		err = d.donationCategoryDal.FindOne(ctx, categoryFilter).Decode(&category)
