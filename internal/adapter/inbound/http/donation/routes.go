@@ -39,7 +39,7 @@ func InitDonationHandlers(router chi.Router, handler donation_inbound.DonationHa
 			Handler: handler.FetchDonationCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker,role.Checker}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 		{
@@ -48,7 +48,83 @@ func InitDonationHandlers(router chi.Router, handler donation_inbound.DonationHa
 			Handler: handler.FetchDonationCategoryByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker,role.Checker}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/donation_company",
+			Handler: handler.CreateDonationCompany,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateDonationCompany)),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/donation_company/{id}",
+			Handler: handler.UpdateDonationCompany,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateDonationCompany)),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/donation_company",
+			Handler: handler.FetchDonationCompany,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/donation_company/{id}",
+			Handler: handler.FetchDonationCompanyByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/donation",
+			Handler: handler.CreateDonation,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateDonation)),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/donation/{id}",
+			Handler: handler.UpdateDonation,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateDonation)),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/donation",
+			Handler: handler.FetchDonation,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/donation/{id}",
+			Handler: handler.FetchDonationByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 	}

@@ -11,27 +11,53 @@ import (
 )
 
 type DonationCategoryRequest struct {
-	CategoryName string                `json:"category_name"`
-	Icon         *multipart.FileHeader `json:"donation_icon,omitempty"`
+	CategoryName string                `json:"category_name" bson:"category_name"`
+	Icon         *multipart.FileHeader `json:"donation_icon,omitempty" bson:"donation_icon,omitempty"`
 }
 
 type DonationCategoryResponse struct {
-	CategoryName string `json:"category_name"`
-	Icon         string `json:"donation_icon"`
+	CategoryName string `json:"category_name" bson:"category_name"`
+	Icon         string `json:"donation_icon" bson:"donation_icon"`
 }
 
 type DonationCategoryListResponse struct {
-	CategoryName   string `json:"category_name"`
-	Icon           string `json:"donation_icon"`
-	IsDeleted      bool   `json:"is_deleted"`
-	CreatedAt      string `json:"created_at"`
-	LastModifiedAt string `json:"last_modified_at"`
+	CategoryName   string `json:"category_name" bson:"category_name"`
+	Icon           string `json:"donation_icon" bson:"donation_icon"`
+	IsDeleted      bool   `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt      string `json:"created_at" bson:"created_at"`
+	LastModifiedAt string `json:"last_modified_at" bson:"last_modified_at"`
 }
 
 // DonationCategoryCPSRequest is used for CPS actions where icon is a URL string
 type DonationCategoryCPSRequest struct {
-	CategoryName string `json:"category_name"`
-	Icon         string `json:"donation_icon,omitempty"`
+	ID           string `json:"id,omitempty" bson:"id,omitempty"`
+	CategoryName string `json:"category_name" bson:"category_name"`
+	Icon         string `json:"donation_icon,omitempty" bson:"donation_icon,omitempty"`
+}
+
+// DonationCompanyResponse is used for service layer responses
+type DonationCompanyResponse struct {
+	CompanyName   string `json:"company_name" bson:"company_name"`
+	CompanyLogo   string `json:"company_logo" bson:"company_logo"`
+	AccountNumber string `json:"account_number" bson:"account_number"`
+}
+
+// DonationCompanyListResponse is used for fetching donation companies
+type DonationCompanyListResponse struct {
+	CompanyName    string `json:"company_name" bson:"company_name"`
+	CompanyLogo    string `json:"company_logo" bson:"company_logo"`
+	AccountNumber  string `json:"account_number" bson:"account_number"`
+	IsDeleted      bool   `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt      string `json:"created_at" bson:"created_at"`
+	LastModifiedAt string `json:"last_modified_at" bson:"last_modified_at"`
+}
+
+// DonationCompanyCPSRequest is used for CPS actions where logo is a URL string
+type DonationCompanyCPSRequest struct {
+	ID            string `json:"id,omitempty" bson:"id,omitempty"`
+	CompanyName   string `json:"company_name" bson:"company_name"`
+	CompanyLogo   string `json:"company_logo,omitempty" bson:"company_logo,omitempty"`
+	AccountNumber string `json:"account_number" bson:"account_number"`
 }
 
 func (d DonationCategoryRequest) Validate() error {
@@ -62,9 +88,9 @@ func (d DonationCategoryRequest) ValidateForUpdate() error {
 }
 
 type DonationCompanyRequest struct {
-	CompanyName   string                `json:"company_name"`
-	CompanyLogo   *multipart.FileHeader `json:"company_logo"`
-	AccountNumber string                `json:"account_number"`
+	CompanyName   string                `json:"company_name" bson:"company_name"`
+	CompanyLogo   *multipart.FileHeader `json:"company_logo" bson:"company_logo"`
+	AccountNumber string                `json:"account_number" bson:"account_number"`
 }
 
 func (d DonationCompanyRequest) Validate() error {
@@ -86,27 +112,89 @@ func (d DonationCompanyRequest) Validate() error {
 	)
 }
 
+func (d DonationCompanyRequest) ValidateForUpdate() error {
+	return validation.ValidateStruct(&d,
+		validation.Field(&d.CompanyName,
+			validation.Required.Error("company name is required"),
+			validation.Length(2, 200).Error("company name must be between 2 and 200 characters"),
+			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-&.]+$`)).Error("company name can only contain letters, numbers, spaces, hyphens, periods, and ampersands"),
+		),
+		validation.Field(&d.CompanyLogo,
+			validation.When(d.CompanyLogo != nil, validation.By(validateLogo)),
+		),
+		validation.Field(&d.AccountNumber,
+			validation.Required.Error("account number is required"),
+			validation.Length(8, 50).Error("account number must be between 8 and 50 characters"),
+			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)).Error("account number can only contain letters, numbers, and hyphens"),
+		),
+	)
+}
+
+// DonationResponse is used for service layer responses
+type DonationResponse struct {
+	DonationCode        string   `json:"donation_code" bson:"donation_code"`
+	CompanyID           string   `json:"company_id" bson:"company_id"`
+	CategoryID          string   `json:"category_id" bson:"category_id"`
+	Title               string   `json:"title" bson:"title"`
+	IsFeatured          bool     `json:"is_featured" bson:"is_featured"`
+	Target              int      `json:"target" bson:"target"`
+	DonationDescription string   `json:"donation_description" bson:"donation_description"`
+	DonationImages      []string `json:"donation_images" bson:"donation_images"`
+	EndDate             string   `json:"end_date" bson:"end_date"`
+	StartDate           string   `json:"start_date" bson:"start_date"`
+}
+
+// DonationListResponse is used for fetching donations
+type DonationListResponse struct {
+	DonationCode        string `json:"donation_code" bson:"donation_code"`
+	Company             DonationCompanyCPSRequest
+	Category            DonationCategoryCPSRequest
+	Title               string   `json:"title" bson:"title"`
+	IsFeatured          bool     `json:"is_featured" bson:"is_featured"`
+	Target              int      `json:"target" bson:"target"`
+	DonationDescription string   `json:"donation_description" bson:"donation_description"`
+	DonationImages      []string `json:"donation_images" bson:"donation_images"`
+	EndDate             string   `json:"end_date" bson:"end_date"`
+	StartDate           string   `json:"start_date" bson:"start_date"`
+	IsDeleted           bool     `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt           string   `json:"created_at" bson:"created_at"`
+	LastModifiedAt      string   `json:"last_modified_at" bson:"last_modified_at"`
+}
+
+// DonationCPSRequest is used for CPS actions where images are URL strings
+type DonationCPSRequest struct {
+	DonationCode        string   `json:"donation_code,omitempty" bson:"donation_code,omitempty"`
+	CompanyID           string   `json:"company_id" bson:"company_id"`
+	CategoryID          string   `json:"category_id" bson:"category_id"`
+	Title               string   `json:"title" bson:"title"`
+	IsFeatured          bool     `json:"is_featured" bson:"is_featured"`
+	Target              int      `json:"target" bson:"target"`
+	DonationDescription string   `json:"donation_description" bson:"donation_description"`
+	DonationImages      []string `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
+	EndDate             string   `json:"end_date" bson:"end_date"`
+	StartDate           string   `json:"start_date" bson:"start_date"`
+}
+
 type DonationRequest struct {
-	CompanyID           string                  `json:"company_id"`
-	CategoryID          string                  `json:"category_id"`
-	Title               string                  `json:"title"`
-	IsFeatured          bool                    `json:"is_featured"`
-	Target              float64                 `json:"donation_amount"`
-	DonationDescription string                  `json:"donation_description"`
-	DonationImages      []*multipart.FileHeader `json:"donation_images"`
-	EndDate             time.Time               `json:"end_date"`
-	StartDate           time.Time               `json:"start_date"`
+	DonationCode        string                  `json:"donation_code,omitempty" bson:"donation_code,omitempty"`
+	CompanyID           string                  `json:"company_id" bson:"company_id"`
+	CategoryID          string                  `json:"category_id" bson:"category_id"`
+	Title               string                  `json:"title" bson:"title"`
+	IsFeatured          bool                    `json:"is_featured" bson:"is_featured"`
+	Target              int                     `json:"target" bson:"target"`
+	DonationDescription string                  `json:"donation_description" bson:"donation_description"`
+	DonationImages      []*multipart.FileHeader `json:"donation_images" bson:"donation_images"`
+	EndDate             time.Time               `json:"end_date" bson:"end_date"`
+	StartDate           time.Time               `json:"start_date" bson:"start_date"`
 }
 
 func (d DonationRequest) Validate() error {
 	return validation.ValidateStruct(&d,
 		validation.Field(&d.CompanyID,
 			validation.Required.Error("company ID is required"),
-			is.UUID.Error("company ID must be a valid UUID"),
 		),
 		validation.Field(&d.CategoryID,
 			validation.Required.Error("category ID is required"),
-			is.UUID.Error("category ID must be a valid UUID"),
 		),
 		validation.Field(&d.Title,
 			validation.Required.Error("title is required"),
@@ -115,21 +203,14 @@ func (d DonationRequest) Validate() error {
 		),
 		validation.Field(&d.Target,
 			validation.Required.Error("donation amount is required"),
-			validation.Min(1.0).Error("donation amount must be at least 1"),
-			validation.Max(100000000.0).Error("donation amount must not exceed 100,000,000"),
+			validation.By(validateDonationAmount),
 		),
 		validation.Field(&d.DonationDescription,
 			validation.Required.Error("donation description is required"),
-			validation.Length(10, 5000).Error("description must be between 10 and 5000 characters"),
 		),
-		validation.Field(&d.DonationImages,
-			validation.Required.Error("at least one donation image is required"),
-			validation.Length(1, 10).Error("must provide between 1 and 10 images"),
-			validation.Each(validation.By(validateDonationImage)),
-		),
+
 		validation.Field(&d.StartDate,
-			validation.Required.Error("start date is required"),
-			validation.By(validateStartDate),
+			validation.When(!d.StartDate.IsZero(), validation.By(validateStartDate)),
 		),
 		validation.Field(&d.EndDate,
 			validation.Required.Error("end date is required"),
@@ -137,6 +218,39 @@ func (d DonationRequest) Validate() error {
 		),
 	)
 }
+
+func (d DonationRequest) ValidateForUpdate() error {
+	return validation.ValidateStruct(&d,
+		validation.Field(&d.CompanyID,
+			validation.When(d.CompanyID != "", validation.Required.Error("company ID is required"),
+				is.UUID.Error("company ID must be a valid UUID")),
+		),
+		validation.Field(&d.CategoryID,
+			validation.When(d.CategoryID != "", validation.Required.Error("category ID is required"),
+				is.UUID.Error("category ID must be a valid UUID")),
+		),
+		validation.Field(&d.Title,
+			validation.When(d.Title != "", validation.Required.Error("title is required"),
+				validation.Length(5, 200).Error("title must be between 5 and 200 characters"),
+				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-!?.&]+$`)).Error("title can only contain letters, numbers, spaces, and basic punctuation")),
+		),
+		validation.Field(&d.Target,
+			validation.When(d.Target > 0, validation.By(validateDonationAmount)),
+		),
+		validation.Field(&d.DonationDescription,
+			validation.When(d.DonationDescription != "", validation.Required.Error("donation description is required")),
+		),
+
+		validation.Field(&d.StartDate,
+			validation.When(!d.StartDate.IsZero(), validation.By(validateStartDate)),
+		),
+		validation.Field(&d.EndDate,
+			validation.When(!d.EndDate.IsZero(), validation.Required.Error("end date is required"),
+				validation.By(validateEndDate(d.StartDate))),
+		),
+	)
+}
+
 func validateDonationIcon(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
 	if !ok {
@@ -170,12 +284,17 @@ func validateDonationImage(value interface{}) error {
 	if !ok {
 		return validation.NewError("validation_image_invalid", "invalid image file")
 	}
+
+	// Check file size
 	if file.Size > 10*1024*1024 {
 		return validation.NewError("validation_image_size", "each image file size must not exceed 10MB")
 	}
-	if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png"}) {
-		return validation.NewError("validation_image_format", "each image must be JPG, JPEG, or PNG")
+
+	// Check file extension
+	if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
+		return validation.NewError("validation_logo_format", "logo must be JPG, JPEG, PNG, or GIF")
 	}
+
 	return nil
 }
 
@@ -206,10 +325,31 @@ func validateEndDate(startDate time.Time) validation.RuleFunc {
 	}
 }
 
+func validateDonationAmount(value interface{}) error {
+	amount, ok := value.(int)
+	if !ok {
+		return validation.NewError("validation_amount_invalid", "invalid donation amount")
+	}
+
+	if amount <= 0 {
+		return validation.NewError("validation_amount_zero", "donation amount must be greater than zero")
+	}
+
+	if amount > 100000000 {
+		return validation.NewError("validation_amount_too_large", "donation amount must not exceed 100,000,000")
+	}
+
+	return nil
+}
+
 func hasAllowedExtension(filename string, allowed []string) bool {
-	filename = strings.ToLower(filename)
+	if filename == "" {
+		return false
+	}
+
+	filename = strings.ToLower(strings.TrimSpace(filename))
 	for _, ext := range allowed {
-		if strings.HasSuffix(filename, ext) {
+		if strings.HasSuffix(filename, strings.ToLower(ext)) {
 			return true
 		}
 	}

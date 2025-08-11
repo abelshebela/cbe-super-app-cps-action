@@ -114,7 +114,7 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		avatarPersitence:  avatarPersitence.InitAvatarPersistence(client, databaseName, "avatars", logger),
 
 		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
-		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
+		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedback", logger),
 		UnlinkPersistence:   unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
 		BudgetPersistence:   budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:  account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
