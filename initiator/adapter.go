@@ -124,7 +124,7 @@ type Adapter struct {
 	MiniAppMerchantAdapter inboundMiniAppMerchant.MiniAppMerchantInbound
 	AccountLookUp          inboundLookUp.UserSearchAdapter
 
-	BulkServiceAdapter     bulk_service.BulkServiceHandler
+	// BulkServiceAdapter     bulk_service.BulkServiceHandler
 
 	ServiceCheckAdapter service_inbound.Service
 	NotificationAdapter notification_inbound.NotificationHandler
