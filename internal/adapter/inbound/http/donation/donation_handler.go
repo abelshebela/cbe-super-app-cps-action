@@ -217,7 +217,7 @@ func (h *DonationHttpStore) CreateDonationCategory(w http.ResponseWriter, r *htt
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Donation category created successfully")
+	utils.WriteSuccessResponse(w, nil, "Donation category create request sent  successfully")
 }
 
 func (h *DonationHttpStore) FetchDonationCategory(w http.ResponseWriter, r *http.Request) {
@@ -331,7 +331,7 @@ func (h *DonationHttpStore) CreateDonationCompany(w http.ResponseWriter, r *http
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Donation company created successfully")
+	utils.WriteSuccessResponse(w, nil, "Donation company create request sent  successfully")
 }
 
 func (h *DonationHttpStore) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
@@ -592,5 +592,5 @@ func (h *DonationHttpStore) UpdateDonation(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Donation updated successfully")
+	utils.WriteSuccessResponse(w, nil, "Donation update request sent successfully")
 }
