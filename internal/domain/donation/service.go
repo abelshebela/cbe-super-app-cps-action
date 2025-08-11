@@ -18,7 +18,6 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type DonationService interface {
@@ -215,16 +214,6 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 	requestedAction := action.RequestAction
 	var err error
 
-	castToBsonM := func(input interface{}) (bson.M, error) {
-		raw, err := bson.Marshal(input)
-		if err != nil {
-			return nil, err
-		}
-		var out bson.M
-		err = bson.Unmarshal(raw, &out)
-		return out, err
-	}
-
 	switch requestedAction {
 	case cps_const.RequestCreateDonationCategory:
 		var donationCPS *dto.DonationCategoryCPSRequest
@@ -246,27 +235,22 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		}
 
 	case cps_const.RequestUpdateDonationCategory:
-		if action.PreviousAction == nil {
-			e.logger.Errorf("previous action is required for update")
-			return nil, fmt.Errorf("PREVIOUS_ACTION_REQUIRED")
+		// Extract donation category ID from unique ID (format: "{id}")
+		categoryID := ""
+		if action.UniqueID != "" {
+			categoryID = action.UniqueID
+		} else {
+			// Fallback to previous action ID if unique ID is not set
+			if prevData, ok := action.PreviousAction.(map[string]interface{}); ok {
+				if id, exists := prevData["id"].(string); exists {
+					categoryID = id
+				}
+			}
 		}
 
-		prevAction, err := castToBsonM(action.PreviousAction)
-		if err != nil {
-			e.logger.Errorf("invalid previous action format: %v", err)
-			return nil, fmt.Errorf("INVALID_PREVIOUS_ACTION_FORMAT")
-		}
-
-		id, exists := prevAction["id"]
-		if !exists {
-			e.logger.Errorf("id not found in previous action")
-			return nil, fmt.Errorf("ID_NOT_FOUND")
-		}
-
-		idStr, ok := id.(string)
-		if !ok {
-			e.logger.Errorf("invalid id format")
-			return nil, fmt.Errorf("INVALID_ID_FORMAT")
+		if categoryID == "" {
+			e.logger.Errorf("donation category ID not found in unique ID or previous action")
+			return nil, fmt.Errorf(common_util.InvalidActionData)
 		}
 
 		var donationCPS *dto.DonationCategoryCPSRequest
@@ -276,12 +260,16 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			return nil, fmt.Errorf(common_util.InvalidActionData)
 		}
 
-		updateRequest := dto.DonationCategoryRequest{
-			CategoryName: donationCPS.CategoryName,
-			Icon:         nil,
-		}
+		// Build patch request with only non-empty fields to avoid overwriting existing data
+		updateRequest := dto.DonationCategoryRequest{}
 
-		_, err = e.Repository.UpdateDonationCategory(ctx, idStr, updateRequest)
+		// Only include fields that are actually being updated (not empty)
+		if donationCPS.CategoryName != "" {
+			updateRequest.CategoryName = donationCPS.CategoryName
+		}
+		// Icon is handled separately and will be nil in the update request
+
+		_, err := e.Repository.UpdateDonationCategory(ctx, categoryID, updateRequest)
 		if err != nil {
 			e.logger.Errorf("failed to update donation category: %v", err)
 			return nil, err
@@ -311,27 +299,22 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		}
 
 	case cps_const.RequestUpdateDonationCompany:
-		if action.PreviousAction == nil {
-			e.logger.Errorf("previous action is required for update")
-			return nil, fmt.Errorf("PREVIOUS_ACTION_REQUIRED")
+		// Extract donation company ID from unique ID (format: "{id}")
+		companyID := ""
+		if action.UniqueID != "" {
+			companyID = action.UniqueID
+		} else {
+			// Fallback to previous action ID if unique ID is not set
+			if prevData, ok := action.PreviousAction.(map[string]interface{}); ok {
+				if id, exists := prevData["id"].(string); exists {
+					companyID = id
+				}
+			}
 		}
 
-		prevAction, err := castToBsonM(action.PreviousAction)
-		if err != nil {
-			e.logger.Errorf("invalid previous action format: %v", err)
-			return nil, fmt.Errorf("INVALID_PREVIOUS_ACTION_FORMAT")
-		}
-
-		id, exists := prevAction["id"]
-		if !exists {
-			e.logger.Errorf("id not found in previous action")
-			return nil, fmt.Errorf("ID_NOT_FOUND")
-		}
-
-		idStr, ok := id.(string)
-		if !ok {
-			e.logger.Errorf("invalid id format")
-			return nil, fmt.Errorf("INVALID_ID_FORMAT")
+		if companyID == "" {
+			e.logger.Errorf("donation company ID not found in unique ID or previous action")
+			return nil, fmt.Errorf(common_util.InvalidActionData)
 		}
 
 		var companyCPS *dto.DonationCompanyCPSRequest
@@ -347,13 +330,19 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			}
 		}
 
-		updateRequest := dto.DonationCompanyRequest{
-			CompanyName:   companyCPS.CompanyName,
-			CompanyLogo:   nil,
-			AccountNumber: companyCPS.AccountNumber,
-		}
+		// Build patch request with only non-empty fields to avoid overwriting existing data
+		updateRequest := dto.DonationCompanyRequest{}
 
-		_, err = e.Repository.UpdateDonationCompany(ctx, idStr, updateRequest)
+		// Only include fields that are actually being updated (not empty)
+		if companyCPS.CompanyName != "" {
+			updateRequest.CompanyName = companyCPS.CompanyName
+		}
+		if companyCPS.AccountNumber != "" {
+			updateRequest.AccountNumber = companyCPS.AccountNumber
+		}
+		// Logo is handled separately and will be nil in the update request
+
+		_, err := e.Repository.UpdateDonationCompany(ctx, companyID, updateRequest)
 		if err != nil {
 			e.logger.Errorf("failed to update donation company: %v", err)
 			return nil, err
@@ -394,10 +383,10 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			return nil, fmt.Errorf(common_util.InvalidActionData)
 		}
 
-		// Extract donation ID from unique ID (format: "DONATION-{id}")
+		// Extract donation ID from unique ID (format: "{id}")
 		donationID := ""
-		if strings.HasPrefix(action.UniqueID, "DONATION-") {
-			donationID = strings.TrimPrefix(action.UniqueID, "DONATION-")
+		if action.UniqueID != "" {
+			donationID = action.UniqueID
 		} else {
 			// Fallback to previous action ID if unique ID is not set
 			if prevData, ok := action.PreviousAction.(map[string]interface{}); ok {
@@ -425,17 +414,31 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		}
 
 		// Create update request with only changed fields
-		updateRequest := dto.DonationRequest{
-			CompanyID:           donationCPS.CompanyID,
-			CategoryID:          donationCPS.CategoryID,
-			Title:               donationCPS.Title,
-			IsFeatured:          donationCPS.IsFeatured,
-			Target:              donationCPS.Target,
-			DonationDescription: donationCPS.DonationDescription,
-			DonationImages:      nil, // Images are handled separately
-		}
+		// Build patch request with only non-empty fields to avoid overwriting existing data
+		updateRequest := dto.DonationRequest{}
 
-		// Parse dates
+		// Only include fields that are actually being updated (not empty)
+		if donationCPS.CompanyID != "" {
+			updateRequest.CompanyID = donationCPS.CompanyID
+		}
+		if donationCPS.CategoryID != "" {
+			updateRequest.CategoryID = donationCPS.CategoryID
+		}
+		if donationCPS.Title != "" {
+			updateRequest.Title = donationCPS.Title
+		}
+		// Always include boolean fields as they can be false
+		updateRequest.IsFeatured = donationCPS.IsFeatured
+		if donationCPS.Target > 0 {
+			updateRequest.Target = donationCPS.Target
+		}
+		if donationCPS.DonationDescription != "" {
+			updateRequest.DonationDescription = donationCPS.DonationDescription
+		}
+		// Images are handled separately
+		updateRequest.DonationImages = nil
+
+		// Parse dates only if provided
 		if donationCPS.StartDate != "" {
 			if startDate, err := time.Parse("2006-01-02T15:04:05Z07:00", donationCPS.StartDate); err == nil {
 				updateRequest.StartDate = startDate

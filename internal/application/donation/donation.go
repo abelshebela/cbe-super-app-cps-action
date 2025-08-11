@@ -140,24 +140,45 @@ func (a *DonationStore) FetchDonationCategoryByID(ctx context.Context, id string
 }
 
 func (a *DonationStore) UpdateDonationCategory(ctx context.Context, id string, donation dto.DonationCategoryRequest, maker cps_entities.User) error {
+	// Validate ID format first
+	if _, err := common_util.ParsePrimitiveObjectID(id); err != nil {
+		a.logger.Errorf("invalid ID format: %v", err)
+		return fmt.Errorf("INVALID_ID_FORMAT")
+	}
+
+	// First, fetch the existing donation category to get current data
+	existingCategory, err := a.service.FetchDonationCategoryByID(ctx, id)
+	if err != nil {
+		a.logger.Errorf("failed to fetch existing donation category: %v", err)
+		return err
+	}
+
 	var iconURL string
-	var err error
+	var err2 error
 
 	if donation.Icon != nil {
-		iconURL, err = a.service.UploadIcon(ctx, donation.Icon)
-		if err != nil {
-			a.logger.Errorf("failed to upload icon: %v", err)
-			return err
+		iconURL, err2 = a.service.UploadIcon(ctx, donation.Icon)
+		if err2 != nil {
+			a.logger.Errorf("failed to upload icon: %v", err2)
+			return err2
 		}
 	}
 
+	// Create CPS request with only the changed data
 	cpsRequest := dto.DonationCategoryCPSRequest{
 		CategoryName: donation.CategoryName,
 		Icon:         iconURL,
 	}
 
-	prevData := map[string]interface{}{"id": id}
-	if err := a.handleCPSAction(ctx, maker, cps_const.RequestUpdateDonationCategory, cpsRequest, prevData, cps_const.ActionUpdate, ""); err != nil {
+	// Create previous data from existing category
+	prevData := map[string]interface{}{
+		"id":            id,
+		"category_name": existingCategory.CategoryName,
+		"icon":          existingCategory.Icon,
+	}
+
+	uniqueID := id
+	if err := a.handleCPSAction(ctx, maker, cps_const.RequestUpdateDonationCategory, cpsRequest, prevData, cps_const.ActionUpdate, uniqueID); err != nil {
 		return err
 	}
 	return nil
@@ -237,6 +258,12 @@ func (a *DonationStore) FetchDonationCompanyByID(ctx context.Context, id string)
 }
 
 func (a *DonationStore) UpdateDonationCompany(ctx context.Context, id string, company dto.DonationCompanyRequest, maker cps_entities.User) error {
+	// Validate ID format first
+	if _, err := common_util.ParsePrimitiveObjectID(id); err != nil {
+		a.logger.Errorf("invalid ID format: %v", err)
+		return fmt.Errorf("INVALID_ID_FORMAT")
+	}
+
 	// First, fetch the existing donation company to get current data
 	existingCompany, err := a.service.FetchDonationCompanyByID(ctx, id)
 	if err != nil {
@@ -291,7 +318,14 @@ func (a *DonationStore) UpdateDonationCompany(ctx context.Context, id string, co
 		AccountNumber: company.AccountNumber,
 	}
 
-	prevData := map[string]interface{}{"id": id}
+	// Create previous data from existing company
+	prevData := map[string]interface{}{
+		"id":             id,
+		"company_name":   existingCompany.CompanyName,
+		"company_logo":   existingCompany.CompanyLogo,
+		"account_number": existingCompany.AccountNumber,
+	}
+
 	if err := a.handleCPSAction(ctx, maker, cps_const.RequestUpdateDonationCompany, cpsRequest, prevData, cps_const.ActionUpdate, id); err != nil {
 		return err
 	}
@@ -379,6 +413,12 @@ func (a *DonationStore) FetchDonationByID(ctx context.Context, id string) (*dto.
 }
 
 func (a *DonationStore) UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest, maker cps_entities.User) error {
+	// Validate ID format first
+	if _, err := common_util.ParsePrimitiveObjectID(id); err != nil {
+		a.logger.Errorf("invalid ID format: %v", err)
+		return fmt.Errorf("INVALID_ID_FORMAT")
+	}
+
 	// First, fetch the existing donation to get current data
 	existingDonation, err := a.service.FetchDonationByID(ctx, id)
 	if err != nil {
@@ -431,16 +471,35 @@ func (a *DonationStore) UpdateDonation(ctx context.Context, id string, donation 
 	}
 
 	// Create CPS request with only the changed data
-	cpsRequest := dto.DonationCPSRequest{
-		CompanyID:           donation.CompanyID,
-		CategoryID:          donation.CategoryID,
-		Title:               donation.Title,
-		IsFeatured:          donation.IsFeatured,
-		Target:              donation.Target,
-		DonationDescription: donation.DonationDescription,
-		DonationImages:      imageURLs,
-		EndDate:             donation.EndDate.Format("2006-01-02T15:04:05Z07:00"),
-		StartDate:           startDate.Format("2006-01-02T15:04:05Z07:00"),
+	// Build patch request with only non-empty fields to avoid overwriting existing data
+	cpsRequest := dto.DonationCPSRequest{}
+
+	// Only include fields that are actually being updated (not empty)
+	if donation.CompanyID != "" {
+		cpsRequest.CompanyID = donation.CompanyID
+	}
+	if donation.CategoryID != "" {
+		cpsRequest.CategoryID = donation.CategoryID
+	}
+	if donation.Title != "" {
+		cpsRequest.Title = donation.Title
+	}
+	// Always include boolean fields as they can be false
+	cpsRequest.IsFeatured = donation.IsFeatured
+	if donation.Target > 0 {
+		cpsRequest.Target = donation.Target
+	}
+	if donation.DonationDescription != "" {
+		cpsRequest.DonationDescription = donation.DonationDescription
+	}
+	if len(imageURLs) > 0 {
+		cpsRequest.DonationImages = imageURLs
+	}
+	if !donation.EndDate.IsZero() {
+		cpsRequest.EndDate = donation.EndDate.Format("2006-01-02T15:04:05Z07:00")
+	}
+	if !donation.StartDate.IsZero() {
+		cpsRequest.StartDate = startDate.Format("2006-01-02T15:04:05Z07:00")
 	}
 
 	// Create previous data from existing donation
@@ -457,8 +516,7 @@ func (a *DonationStore) UpdateDonation(ctx context.Context, id string, donation 
 		"start_date":           existingDonation.StartDate,
 	}
 
-	// Store donation ID in unique ID field for easy retrieval
-	uniqueID := fmt.Sprintf("DONATION-%s", id)
+	uniqueID := id
 
 	if err := a.handleCPSAction(ctx, maker, cps_const.RequestUpdateDonation, cpsRequest, prevData, cps_const.ActionUpdate, uniqueID); err != nil {
 		a.logger.Errorf("failed to create CPS action: %v", err)

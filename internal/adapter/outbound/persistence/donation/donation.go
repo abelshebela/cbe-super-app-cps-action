@@ -159,9 +159,12 @@ func (d *DonationPersistence) UpdateDonationCategory(ctx context.Context, id str
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{
+	"$set": bson.M{
 		"category_name":    donation.CategoryName,
 		"last_modified_at": time.Now(),
-	}
+	},
+}
+
 
 	_, err = d.donationCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -290,10 +293,11 @@ func (d *DonationPersistence) UpdateDonationCompany(ctx context.Context, id stri
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{
+		"$set": bson.M{
 		"company_name":     company.CompanyName,
 		"account_number":   company.AccountNumber,
 		"last_modified_at": time.Now(),
-	}
+	}}
 
 	_, err = d.donationCompanyDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -586,25 +590,64 @@ func (d *DonationPersistence) FetchDonationByCode(ctx context.Context, donationC
 func (d *DonationPersistence) UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) (*dto.DonationRequest, error) {
 	objID, err := common_util.ParsePrimitiveObjectID(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid ID format: %v", err)
+		return nil, fmt.Errorf("INVALID_ID_FORMAT")
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{
-		"company_id":           donation.CompanyID,
-		"category_id":          donation.CategoryID,
-		"title":                donation.Title,
-		"is_featured":          donation.IsFeatured,
-		"target":               donation.Target,
-		"donation_description": donation.DonationDescription,
-		"end_date":             donation.EndDate,
-		"start_date":           donation.StartDate,
-		"last_modified_at":     time.Now(),
+
+	// Build update document with $set operator
+	setUpdate := bson.M{
+		"last_modified_at": time.Now(),
 	}
+
+	// Only update fields that are provided and not empty
+	if donation.CompanyID != "" {
+		// Convert string ID to ObjectID
+		companyObjID, err := common_util.ParsePrimitiveObjectID(donation.CompanyID)
+		if err != nil {
+			return nil, fmt.Errorf("INVALID_COMPANY_ID_FORMAT")
+		}
+		setUpdate["company_id"] = companyObjID
+	}
+
+	if donation.CategoryID != "" {
+		// Convert string ID to ObjectID
+		categoryObjID, err := common_util.ParsePrimitiveObjectID(donation.CategoryID)
+		if err != nil {
+			return nil, fmt.Errorf("INVALID_CATEGORY_ID_FORMAT")
+		}
+		setUpdate["category_id"] = categoryObjID
+	}
+
+	if donation.Title != "" {
+		setUpdate["title"] = donation.Title
+	}
+
+	// Always update is_featured as it's a boolean
+	setUpdate["is_featured"] = donation.IsFeatured
+
+	if donation.Target > 0 {
+		setUpdate["target"] = donation.Target
+	}
+
+	if donation.DonationDescription != "" {
+		setUpdate["donation_description"] = donation.DonationDescription
+	}
+
+	if !donation.EndDate.IsZero() {
+		setUpdate["end_date"] = donation.EndDate
+	}
+
+	if !donation.StartDate.IsZero() {
+		setUpdate["start_date"] = donation.StartDate
+	}
+
+	// Use $set operator for proper MongoDB update syntax
+	update := bson.M{"$set": setUpdate}
 
 	_, err = d.donationDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update donation: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_DONATION")
 	}
 
 	return &donation, nil
@@ -613,44 +656,68 @@ func (d *DonationPersistence) UpdateDonation(ctx context.Context, id string, don
 func (d *DonationPersistence) UpdateDonationWithImageURLs(ctx context.Context, id string, donation dto.DonationRequest, imageURLs []string) (*dto.DonationRequest, error) {
 	objID, err := common_util.ParsePrimitiveObjectID(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid ID format: %v", err)
+		return nil, fmt.Errorf("INVALID_ID_FORMAT")
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{
+
+	// Build update document with $set operator
+	setUpdate := bson.M{
 		"last_modified_at": time.Now(),
 	}
 
-	// Only update fields that are provided
+	// Only update fields that are provided and not empty
 	if donation.CompanyID != "" {
-		update["company_id"] = donation.CompanyID
+		// Convert string ID to ObjectID
+		companyObjID, err := common_util.ParsePrimitiveObjectID(donation.CompanyID)
+		if err != nil {
+			return nil, fmt.Errorf("INVALID_COMPANY_ID_FORMAT")
+		}
+		setUpdate["company_id"] = companyObjID
 	}
+
 	if donation.CategoryID != "" {
-		update["category_id"] = donation.CategoryID
+		// Convert string ID to ObjectID
+		categoryObjID, err := common_util.ParsePrimitiveObjectID(donation.CategoryID)
+		if err != nil {
+			return nil, fmt.Errorf("INVALID_CATEGORY_ID_FORMAT")
+		}
+		setUpdate["category_id"] = categoryObjID
 	}
+
 	if donation.Title != "" {
-		update["title"] = donation.Title
+		setUpdate["title"] = donation.Title
 	}
-	update["is_featured"] = donation.IsFeatured
+
+	// Always update is_featured as it's a boolean
+	setUpdate["is_featured"] = donation.IsFeatured
+
 	if donation.Target > 0 {
-		update["target"] = donation.Target
+		setUpdate["target"] = donation.Target
 	}
+
 	if donation.DonationDescription != "" {
-		update["donation_description"] = donation.DonationDescription
+		setUpdate["donation_description"] = donation.DonationDescription
 	}
+
 	if !donation.EndDate.IsZero() {
-		update["end_date"] = donation.EndDate
+		setUpdate["end_date"] = donation.EndDate
 	}
+
 	if !donation.StartDate.IsZero() {
-		update["start_date"] = donation.StartDate
+		setUpdate["start_date"] = donation.StartDate
 	}
+
 	if len(imageURLs) > 0 {
-		update["donation_images"] = imageURLs
+		setUpdate["donation_images"] = imageURLs
 	}
+
+	// Use $set operator for proper MongoDB update syntax
+	update := bson.M{"$set": setUpdate}
 
 	_, err = d.donationDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update donation: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_UPDATE_DONATION")
 	}
 
 	return &donation, nil

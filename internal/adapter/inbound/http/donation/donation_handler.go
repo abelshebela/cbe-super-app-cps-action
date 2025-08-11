@@ -406,7 +406,7 @@ func (h *DonationHttpStore) UpdateDonationCompany(w http.ResponseWriter, r *http
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Donation company updated successfully")
+	utils.WriteSuccessResponse(w, nil, "Donation company updated request sent successfully")
 }
 
 func (h *DonationHttpStore) CreateDonation(w http.ResponseWriter, r *http.Request) {

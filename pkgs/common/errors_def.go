@@ -2356,6 +2356,16 @@ var DefineError = ErrorDefinitions{
 			Message: "Donation lookup failed",
 			Status:  StatusInternalServerError,
 		},
+		"INVALID_COMPANY_ID_FORMAT": {
+			Code:    "DON_060",
+			Message: "Invalid company ID format",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_CATEGORY_ID_FORMAT": {
+			Code:    "DON_061",
+			Message: "Invalid category ID format",
+			Status:  StatusBadRequest,
+		},
 	},
 }
 
