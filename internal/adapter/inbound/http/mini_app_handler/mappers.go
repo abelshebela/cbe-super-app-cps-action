@@ -13,12 +13,6 @@ func (r MiniAppRequest) ToMiniAppCreateRequest(isCreate bool) (*miniappentity.Mi
 		return nil, err
 	}
 
-	appType, err := r.GetAppType(isCreate)
-
-	if err != nil {
-		return nil, err
-	}
-	// Initialize result
 	result := miniappentity.MiniAppCreateRequest{
 		AppName:             r.AppName,
 		AppIcon:             r.AppIcon,
@@ -27,10 +21,9 @@ func (r MiniAppRequest) ToMiniAppCreateRequest(isCreate bool) (*miniappentity.Mi
 		MerchantID:          r.MerchantID,
 		IsEventMiniApp:      r.IsEventMiniApp,
 		IsThreeClick:        r.IsThreeClick,
-		AppType:             appType,
+		AppType:             miniappentity.URL,
 		AppViewType:         miniappentity.AppViewType(strings.ToUpper(r.AppViewType)),
 		URL:                 r.URL,
-		MPAASID:             r.MPAASID,
 		Stage:               miniappentity.StageUat,
 	}
 
@@ -71,7 +64,6 @@ func ToMiniAppResponse(m *miniappentity.MiniApp) MiniAppResponse {
 		ProductCode:       m.ProductCode,
 		Credential:        m.Credential,
 		URL:               m.URL,
-		MPAASID:           m.MPAASID,
 		AppViewType:       m.AppViewType,
 		Stage:             m.Stage,
 		IsEventMiniApp:    m.IsEventMiniApp,

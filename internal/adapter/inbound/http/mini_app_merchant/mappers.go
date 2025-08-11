@@ -20,15 +20,13 @@ func ToMiniAppMerchantResponseDTO(domain *domain.MiniAppMerchant) *MiniAppMercha
 			},
 		},
 		AccountNumber: domain.BankAccountNumber,
-		MiniAppIDs:    domain.MiniAppIDs,
+		MiniApps:      domain.MiniApps,
 		Enabled:       domain.Enabled,
 		IsDeleted:     domain.IsDeleted,
 		CreatedAt:     domain.CreatedAt,
 		LastModified:  domain.LastModifiedAt,
 	}
 }
-
-
 
 func ToMiniAppMerchantDomainFromUpdateDTO(d *MiniAppMerchantDTO) *dto.MiniAppMerchantRequest {
 	return &dto.MiniAppMerchantRequest{

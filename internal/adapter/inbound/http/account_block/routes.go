@@ -275,6 +275,87 @@ func RegisterAccountBlockRoutes(
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
+
+			// New route to enable and disable branch
+			// Branch
+			{
+				Method:  http.MethodPost,
+				Path:    "/branches/enable",
+				Handler: handler.EnableBranches,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/branches/disable",
+				Handler: handler.DisableBranches,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+
+			// Region
+			{
+				Method:  http.MethodPost,
+				Path:    "/regions/enable",
+				Handler: handler.EnableRegion,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/regions/disable",
+				Handler: handler.DisableRegion,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+
+			// District
+			{
+				Method:  http.MethodPost,
+				Path:    "/districts/enable",
+				Handler: handler.EnableDistrict,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/districts/disable",
+				Handler: handler.DisableDistrict,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+
+			// City
+			{
+				Method:  http.MethodPost,
+				Path:    "/cities/enable",
+				Handler: handler.EnableCity,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/cities/disable",
+				Handler: handler.DisableCity,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				},
+			},
 		}
 
 		sharedhttp.RegisterRoutes(r, routes)

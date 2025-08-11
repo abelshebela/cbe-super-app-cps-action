@@ -387,19 +387,32 @@ const (
 	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
 	RequestUnlinkUser               RequestAction = "UNLINK_USER"
 	RequestBlockRegion              RequestAction = "BLOCK_REGION"
-	RequestEnableRegion             RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
-	RequestEnableDistrict           RequestAction = "ENABLE_DISTRICT"
 	RequestBlockCity                RequestAction = "BLOCK_CITY"
-	RequestEnableCity               RequestAction = "ENABLE_CITY"
 	RequestBlockUser                RequestAction = "BLOCK_USER"
+	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+
+	// Newly added for block_account
+	// Branch
+	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
+
+	// Region
+	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
+	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+
+	// District
+	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
+	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+
+	// City
+	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
+	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
 	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
-
-	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
-	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
-	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
-	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 )
 
 type RegistrationType string

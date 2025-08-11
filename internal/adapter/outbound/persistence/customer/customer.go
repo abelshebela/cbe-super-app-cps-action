@@ -152,21 +152,6 @@ func (c *CustomerDetailRepo) GetCustomerByID(ctx context.Context, id string) (*e
 	return mappers.ModelToUserDomain(member), nil
 }
 
-func (c *CustomerDetailRepo) CreateUser(ctx context.Context, user *entity.User) (*entity.User, error) {
-	userDoc, err := mappers.DomainToUserModel(user)
-
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.mongoDal.InsertOne(ctx, *userDoc)
-	if err != nil {
-		return nil, fmt.Errorf(common_util.GeneralDBInsertFailed)
-	}
-
-	return mappers.ModelToUserDomain(&res), nil
-}
-
 func (c *CustomerDetailRepo) CheckUserExist(ctx context.Context, user *entity.User) (bool, error) {
 	filter := bson.M{
 		"$or": []bson.M{

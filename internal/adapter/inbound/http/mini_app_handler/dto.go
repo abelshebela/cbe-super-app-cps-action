@@ -42,11 +42,7 @@ type MiniAppRequest struct {
 	IsThreeClick        bool                  `form:"is_three_click"`
 	AppViewType         string                `form:"app_view_type"`
 
-	// App types
-	AppType string `form:"app_type"`
-
-	URL     string `form:"url"`
-	MPAASID string `form:"mpaas_id"`
+	URL string `form:"url"`
 
 	// IFB product codes
 	IFBProductCode    string `form:"ifb_product_code"`
@@ -61,24 +57,23 @@ type MiniAppRequest struct {
 
 // MiniAppResponse struct
 type MiniAppResponse struct {
-	ID                string                                `json:"id"`
-	AppName           string                                `json:"app_name"`
-	AppIcon           string                                `json:"app_icon"`
-	BannerImage       string                                `json:"banner_image"`
-	CommisonGLAccount string                                `json:"commison_gl_account,omitempty"`
-	AppType           miniappentity.AppType                 `json:"app_type"`
-	MerchantID        string                                `json:"merchant_id"`
-	AppViewType       miniappentity.AppViewType             `json:"app_view_type"`
-	URL               string                                `json:"url,omitempty"`
-	MPAASID           string                                `json:"mpaas_id,omitempty"`
-	Stage             miniappentity.Stage                   `json:"stage"`
-	ProductCode       []miniappentity.ProductCode           `json:"product_code"`
-	Credential        []miniappentity.CredentialInformation `json:"credential"`
-	IsEventMiniApp    bool                                  `json:"is_event_mini_app"`
-	IsThreeClick      bool                                  `json:"is_three_click"`
-	Enabled           bool                                  `json:"enabled"`
-	CreatedAt         time.Time                             `json:"created_at"`
-	LastModifiedAt    time.Time                             `json:"last_modified_at"`
+	ID                string                              `json:"id"`
+	AppName           string                              `json:"app_name"`
+	AppIcon           string                              `json:"app_icon"`
+	BannerImage       string                              `json:"banner_image"`
+	CommisonGLAccount string                              `json:"commison_gl_account,omitempty"`
+	AppType           miniappentity.AppType               `json:"app_type"`
+	MerchantID        string                              `json:"merchant_id"`
+	AppViewType       miniappentity.AppViewType           `json:"app_view_type"`
+	URL               string                              `json:"url,omitempty"`
+	Stage             miniappentity.Stage                 `json:"stage"`
+	ProductCode       []miniappentity.ProductCode         `json:"product_code"`
+	Credential        miniappentity.CredentialInformation `json:"credential"`
+	IsEventMiniApp    bool                                `json:"is_event_mini_app"`
+	IsThreeClick      bool                                `json:"is_three_click"`
+	Enabled           bool                                `json:"enabled"`
+	CreatedAt         time.Time                           `json:"created_at"`
+	LastModifiedAt    time.Time                           `json:"last_modified_at"`
 }
 
 // Validate validates the MiniAppRequest for create or update (PATCH)
@@ -90,7 +85,7 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required")),
 			validation.Field(&r.AppIcon, validation.Required, validation.By(validateFile)),
 			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required")),
-			validation.Field(&r.AppType, validation.Required.Error("app_type is required")),
+			validation.Field(&r.URL, validation.Required.Error("url is required")),
 			validation.Field(&r.BannerImage, validation.Required.Error("banner_image is required"), validation.By(validateFile)),
 		}
 	} else {
@@ -150,14 +145,8 @@ func validateFile(value any) error {
 // validateAppType ensures exactly one app type is provided and validates URL if AppType is "URL"
 func validateAppType(r MiniAppRequest) validation.RuleFunc {
 	return func(value any) error {
-		if strings.ToUpper(r.AppType) == "URL" {
-			if r.URL == "" {
-				return errors.New("URL_REQUIRED")
-			}
-			// Validate if URL is valid
-			if err := validateURL(r.URL); err != nil {
-				return err
-			}
+		if err := validateURL(r.URL); err != nil {
+			return err
 		}
 		return nil
 	}
@@ -251,26 +240,6 @@ func validateAppViewType(r MiniAppRequest, isCreate bool) validation.RuleFunc {
 	}
 }
 
-func (r *MiniAppRequest) GetAppType(isCreate bool) (miniappentity.AppType, error) {
-	var selected miniappentity.AppType
-	count := 0
-
-	if strings.ToUpper(r.AppType) == "URL" {
-		selected = miniappentity.URL
-		count++
-	}
-	if strings.ToUpper(r.AppType) == "MPAASID" {
-		selected = miniappentity.MPAASID
-		count++
-	}
-
-	if count == 0 && isCreate {
-		return "", errors.New("APP_TYPE_MISSING")
-	}
-
-	return selected, nil
-}
-
 func validateExclusiveAppFlags(r MiniAppRequest) validation.RuleFunc {
 	return func(value any) error {
 		if r.IsEventMiniApp && r.IsThreeClick {
@@ -286,7 +255,6 @@ func IsEmptyUpdate(dto *miniappentity.MiniAppCreateRequest) bool {
 		dto.CommissionGLAccount == "" &&
 		dto.AppType == "" &&
 		len(dto.ProductCode) == 0 &&
-		len(dto.Credential) == 0 &&
 		!dto.IsEventMiniApp &&
 		!dto.IsThreeClick &&
 		dto.BannerImage == nil

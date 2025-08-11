@@ -13,7 +13,8 @@ import (
 )
 
 type UnlinkAccount interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
+	GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 }
 
@@ -46,7 +47,23 @@ func (ua *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request
 		local_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	fmt.Println(user)
+
+	local_util.BaseResponseMaker(user, w, "User successfuly retrived", 200)
+}
+
+func (ua *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
+	filterParams := local_util.ExtractFilterParams(r)
+	if filterParams.Page < 0 || filterParams.PerPage < 0 {
+		local_util.SendErrorResponse(w, "PLEASE_ADD_VALID_PAGE_OR_PERPAGE", 0, nil)
+		return
+	}
+	var filter local_util.Filter = local_util.Filter(*filterParams)
+	user, err := ua.unlinkApp.GetAllArchivedUser(r.Context(), &filter)
+	if err != nil {
+		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
 	local_util.BaseResponseMaker(user, w, "User successfuly retrived", 200)
 }
 

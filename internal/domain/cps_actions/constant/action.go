@@ -108,21 +108,37 @@ const (
 	RequestEnableEvent              RequestAction = "ENABLE_EVENT"
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 
+	RequestUpdateBlockTime RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar    RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar    RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar    RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar   RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar    RequestAction = "UPDATE_AVATAR"
+	RequestBlockRegion     RequestAction = "BLOCK_REGION"
+	// RequestEnableRegion          RequestAction = "ENABLE_REGION"
+	RequestBlockDistrict RequestAction = "BLOCK_DISTRICT"
+	// RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
+	// RequestEnableCity            RequestAction = "ENABLE_CITY"
+	RequestBlockCity RequestAction = "BLOCK_CITY"
+
+	// Branch
+	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
+
+	// Region
+	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
+	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+
+	// District
+	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
+	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+
+	// City
+	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
+	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
+
 	RequestCreateEventCategory RequestAction = "CREATE_EVENT_CATEGORY"
 	RequestUpdateEventCategory RequestAction = "UPDATE_EVENT_CATEGORY"
-
-	RequestUpdateBlockTime       RequestAction = "UPDATE_BLOCK_TIME"
-	RequestCreateAvatar          RequestAction = "CREATE_AVATAR"
-	RequestDeleteAvatar          RequestAction = "DELETE_AVATAR"
-	RequestEnableAvatar          RequestAction = "ENABLE_AVATAR"
-	RequestDisableAvatar         RequestAction = "DISABLE_AVATAR"
-	RequestUpdateAvatar          RequestAction = "UPDATE_AVATAR"
-	RequestBlockRegion           RequestAction = "BLOCK_REGION"
-	RequestEnableRegion          RequestAction = "ENABLE_REGION"
-	RequestBlockDistrict         RequestAction = "BLOCK_DISTRICT"
-	RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
-	RequestEnableCity            RequestAction = "ENABLE_CITY"
-	RequestBlockCity             RequestAction = "BLOCK_CITY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
@@ -480,6 +496,22 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableDistrict,
 		RequestBlockCity,
 		RequestEnableCity,
+
+		// Branch
+		RequestEnableBranches,
+		RequestDisableBranches,
+
+		// Region
+		RequestEnableRegion,
+		RequestDisableRegion,
+
+		// District
+		RequestEnableDistrict,
+		RequestDisableDistrict,
+
+		// City
+		RequestEnableCity,
+		RequestDisableCity,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),

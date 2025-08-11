@@ -29,6 +29,12 @@ type BranchInformation struct {
 	BranchAccountNumber string `json:"branch_account_number"`
 }
 
+type MiniApps struct {
+	ID        string `json:"id" bson:"id"`
+	Enabled   bool   `json:"enabled" bson:"enabled"`
+	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
+}
+
 type MiniAppMerchant struct {
 	ID                string              `json:"id,omitempty"`
 	Code              string              `json:"merchant_code"`
@@ -39,7 +45,7 @@ type MiniAppMerchant struct {
 	Branches          []BranchInformation `json:"branches"`
 	Email             string              `json:"email"`
 	PhoneNumber       string              `json:"phone_number"`
-	MiniAppIDs        []string            `json:"mini_apps"`
+	MiniApps          []MiniApps          `json:"mini_apps"`
 	Enabled           bool                `json:"enabled"`
 	IsDeleted         bool                `json:"is_deleted"`
 	CreatedAt         time.Time           `json:"created_at"`
@@ -53,5 +59,5 @@ type CheckMiniAppMerchant struct {
 	PhoneNumber       string `json:"phone_number"`
 }
 type MiniAppMerchantExistOptions struct {
-	ExcludeID string 
+	ExcludeID string
 }

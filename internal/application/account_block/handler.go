@@ -2,6 +2,9 @@ package account_block
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
@@ -27,18 +30,18 @@ type ApplicationService interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (action.Branch, error)
 
 	BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
-	EnabelRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
+	// EnabelRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error)
 	UpdateRegion(ctx context.Context, region action.Region) error
 	ApproveRegionBlock(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 	GetRegionByCode(ctx context.Context, regionCode string) (action.Region, error)
 
 	BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
-	EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
+	// EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error)
 	GetDistrictByCode(ctx context.Context, districtCode string) (action.District, error)
 	ApproveBlockDistrict(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
 
 	BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
-	EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
+	// EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error)
 
 	GetCityByCode(ctx context.Context, cityCode string) (action.City, error)
 	ApproveBlockCity(ctx context.Context, actionID string, approve bool, reason *string, checker action.User) error
@@ -51,6 +54,23 @@ type ApplicationService interface {
 	GetAllDistricts(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.District], error)
 	GetAllRegions(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Region], error)
 	GetAllBranches(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error)
+
+	// Newly added
+	// Branch
+	EnableBranches(r *http.Request) error
+	DisableBranches(r *http.Request) error
+
+	// Region
+	EnableRegion(r *http.Request) error
+	DisableRegion(r *http.Request) error
+
+	// District
+	EnableDistrict(r *http.Request) error
+	DisableDistrict(r *http.Request) error
+
+	// City
+	EnableCity(r *http.Request) error
+	DisableCity(r *http.Request) error
 }
 
 type Handler struct {
@@ -99,9 +119,9 @@ func (h *Handler) GetBranchByCode(ctx context.Context, branchCode string) (actio
 	return h.service.GetBranchByCode(ctx, branchCode)
 }
 
-func (h *Handler) EnabelRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
-	return h.service.EnableRegion(ctx, regionCode, maker)
-}
+//	func (h *Handler) EnabelRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
+//		return h.service.EnableRegion(ctx, regionCode, maker)
+//	}
 func (h *Handler) BlockRegion(ctx context.Context, regionCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockRegion(ctx, regionCode, maker)
 }
@@ -118,9 +138,9 @@ func (h *Handler) GetRegionByCode(ctx context.Context, regionCode string) (actio
 	return h.service.GetRegionByCode(ctx, regionCode)
 }
 
-func (h *Handler) EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
-	return h.service.EnableDistrict(ctx, districtCode, maker)
-}
+//	func (h *Handler) EnableDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
+//		return h.service.EnableDistrict(ctx, districtCode, maker)
+//	}
 func (h *Handler) BlockDistrict(ctx context.Context, districtCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockDistrict(ctx, districtCode, maker)
 }
@@ -133,9 +153,9 @@ func (h *Handler) ApproveBlockDistrict(ctx context.Context, actionID string, app
 	return nil
 }
 
-func (h *Handler) EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
-	return h.service.EnableCity(ctx, cityCode, maker)
-}
+// func (h *Handler) EnableCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
+// 	return h.service.EnableCity(ctx, cityCode, maker)
+// }
 
 func (h *Handler) BlockCity(ctx context.Context, cityCode string, maker action.CPSAction) (string, error) {
 	return h.service.BlockCity(ctx, cityCode, maker)
@@ -176,4 +196,184 @@ func (h *Handler) GetAllRegions(ctx context.Context, filter *constant.Filter) (*
 
 func (h *Handler) GetAllBranches(ctx context.Context, filter *constant.Filter) (*constant_utils.PaginatedResponse[[]*model.Branch], error) {
 	return h.service.GetAllBranches(ctx, filter)
+}
+
+// Newly added
+// Branch
+func (h *Handler) EnableBranches(r *http.Request) error {
+	var req EnableOrDisableBranches
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	if len(req.BranchCodes) == 0 {
+		return fmt.Errorf("BRANCH_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.EnableBranches(ctx, req.BranchCodes, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (h *Handler) DisableBranches(r *http.Request) error {
+	var req EnableOrDisableBranches
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	if len(req.BranchCodes) == 0 {
+		return fmt.Errorf("BRANCH_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.DisableBranches(ctx, req.BranchCodes, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Region
+func (h *Handler) EnableRegion(r *http.Request) error {
+	var req EnableOrDisableRegions
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	if len(req.RegionsCodes) == 0 {
+		return fmt.Errorf("REGION_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.EnableRegion(ctx, req.RegionsCodes, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) DisableRegion(r *http.Request) error {
+	var req EnableOrDisableRegions
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	if len(req.RegionsCodes) == 0 {
+		return fmt.Errorf("REGION_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.DisableRegion(ctx, req.RegionsCodes, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// District
+func (h *Handler) EnableDistrict(r *http.Request) error {
+	var req EnableOrDisableDistricts
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	if len(req.DistrictCodes) == 0 {
+		return fmt.Errorf("DISTRICT_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.EnableDistrict(ctx, req.DistrictCodes, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) DisableDistrict(r *http.Request) error {
+	var req EnableOrDisableDistricts
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	if len(req.DistrictCodes) == 0 {
+		return fmt.Errorf("DISTRICT_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.DisableDistrict(ctx, req.DistrictCodes, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// City
+func (h *Handler) EnableCity(r *http.Request) error {
+	var req EnableOrDisableCities
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+	if len(req.CitiesCode) == 0 {
+		return fmt.Errorf("CITY_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.EnableCity(ctx, req.CitiesCode, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) DisableCity(r *http.Request) error {
+	var req EnableOrDisableCities
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+
+	// Trim any whitespace
+	req.clean()
+
+	fmt.Println("Citties code:", req.CitiesCode)
+	if len(req.CitiesCode) == 0 {
+		return fmt.Errorf("CITY_CODE_IS_REQUIRED")
+	}
+
+	ctx := r.Context()
+	err := h.service.DisableCity(ctx, req.CitiesCode, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

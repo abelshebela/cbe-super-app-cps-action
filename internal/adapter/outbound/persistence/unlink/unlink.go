@@ -23,10 +23,14 @@ type unlinkCustomer struct {
 	archivedUserDal   dal.MongoDal[model.ArchivedUser, model.ArchivedUser]
 	linkedDal         dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
 	archivedLinkedDal dal.MongoDal[model.ArchivedLinkedAccount, model.ArchivedLinkedAccount]
+	client            *mongo.Client
+	dbName            string
+	collection        []string
 }
 
 type UnlinkAccount interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
+	GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction any) (any, error)
 }
@@ -40,10 +44,58 @@ func NewUnlinkPersistence(client *mongo.Client, database string, collection []st
 		linkedDal:         dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[4]),
 		archivedUserDal:   dal.NewMongoDal[model.ArchivedUser, model.ArchivedUser](client, database, collection[2]),
 		archivedLinkedDal: dal.NewMongoDal[model.ArchivedLinkedAccount, model.ArchivedLinkedAccount](client, database, collection[3]),
+		client:            client,
+		dbName:            database,
+		collection:        collection,
 	}
 }
 
-func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string) (*local_util.PaginatedResponse[*any], error) {
+func (u *unlinkCustomer) GetAllArchivedUser(ctx context.Context, filterParams *local_util.Filter) (*local_util.PaginatedResponse[*any], error) {
+	// Validate filterParams
+	if filterParams == nil {
+		return nil, fmt.Errorf("FILTER_PARAMS_CANNOT_BE_NIL")
+	}
+
+	// Build MongoDB filter
+	filter := bson.M{}
+	if filterParams.Search != "" {
+		filter["$or"] = []bson.M{
+			{"customer_number": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			{"user_code": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+		}
+	}
+
+	page := filterParams.Page
+
+	limit := filterParams.PerPage
+	skip := int64((page - 1) * limit)
+	limit64 := int64(limit)
+
+	archivedUsers, err := u.archivedUserDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit64)
+	if err != nil {
+		u.logger.Errorf("failed to fetch archived users: %v", err)
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("NO_DOC_FOUND")
+		}
+		return nil, fmt.Errorf("FAILED_TO_FETCH_ARCHIVED_USERS")
+	}
+
+	total, err := u.archivedUserDal.TotalCount(ctx, filter)
+	if err != nil {
+		u.logger.Errorf("failed to count archived users: %v", err)
+		return nil, fmt.Errorf("FAILED_TO_COUNT_ARCHIVED_USERS")
+	}
+
+	meta := local_util.BuildPaginationMeta(total, page, limit)
+	var data any = archivedUsers
+	resp := &local_util.PaginatedResponse[*any]{
+		Data: &data,
+		Meta: meta,
+	}
+
+	return resp, nil
+}
+func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string) (*any, error) {
 	if accNumber == "" {
 		return nil, fmt.Errorf("ACCOUNT_NUMBER_CANNOT_BE_EMPTY")
 	}
@@ -56,6 +108,7 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 		"account_number":      1,
 		"linked_status":       1,
 		"account_holder_name": 1,
+		"customer_number":     1,
 		"linked_date":         1,
 		"account_type":        1,
 		"is_account_active":   1,
@@ -64,32 +117,28 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 		"_id":                 1,
 	}
 
-	linkedAccounts, err := u.linkedDal.FindAllWithPagination(ctx, filter, projection, 0, 0)
+	linkedAccounts, err := u.linkedDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		u.logger.Errorf("failed to fetch linked accounts: %v", err)
 		return nil, fmt.Errorf("FAILED_TO_FETCH_LINKED_ACCOUNTS")
 	}
-	if len(linkedAccounts) == 0 {
-		u.logger.Warnf("no linked account found for account number: %s", accNumber)
-		return nil, fmt.Errorf("NO_DOCUMENT_FOUND")
-	}
 
+	if linkedAccounts.CustomerNumber == "" {
+		u.logger.Warnf("no linked account found for account number: %s", accNumber)
+		return nil, fmt.Errorf("NO_DOC_FOUND")
+	}
 	// Step 2: Fetch user by customer number
-	customerNumber := linkedAccounts[0].CustomerNumber
+	customerNumber := linkedAccounts.CustomerNumber
 	filter = bson.M{
 		"customer_number": customerNumber,
 	}
-	projection = bson.M{
-		"full_name": 1,
-		"user_code": 1,
-		"_id":       1,
-	}
-
+	projection = bson.M{}
+	fmt.Println("=====================filter", filter)
 	userDoc, err := u.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			u.logger.Warnf("user not found for customer number: %s", customerNumber)
-			return nil, fmt.Errorf("NO_DOCUMENT_FOUND")
+			return nil, fmt.Errorf("NO_DOC_FOUND")
 		}
 		u.logger.Errorf("error fetching user: %v", err)
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")
@@ -103,19 +152,8 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 	}
 	(*userData)["linked_account"] = linkedAccounts
 
-	// Step 4: Get total count and build pagination meta
-	total, err := u.linkedDal.TotalCount(ctx, bson.M{"account_number": accNumber})
-	if err != nil {
-		u.logger.Errorf("failed to get total count: %v", err)
-		return nil, fmt.Errorf("FAILED_TO_FETCH_TOTAL_COUNT")
-	}
-	meta := local_util.BuildPaginationMeta(total, 1, 1)
-
 	var data any = userData
-	return &local_util.PaginatedResponse[*any]{
-		Data: &data,
-		Meta: meta,
-	}, nil
+	return &data, nil
 }
 
 func (u *unlinkCustomer) UnlinkUserCif(ctx context.Context, userCode string) error {
@@ -194,14 +232,16 @@ func (u *unlinkCustomer) Authorize(ctx context.Context, cpsAction any) (any, err
 		}
 	}
 
-	err = u.userDal.DeleteOne(ctx, bson.M{"user_code": user.UserCode})
+	err = u.HardDeleteByID(ctx, u.client, u.dbName, u.collection[1], user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = u.linkedDal.DeleteOne(ctx, bson.M{"customer_number": user.CustomerNumber})
-	if err != nil {
-		return nil, err
+	for _, account := range linkedAccount {
+		err = u.HardDeleteByID(ctx, u.client, u.dbName, u.collection[4], account.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return cpsActionData, nil
@@ -261,4 +301,21 @@ func (u *unlinkCustomer) checkPendingAction(ctx context.Context, requestAction s
 
 	u.logger.Warnf("Pending action exists for filter: %+v", filter)
 	return true, nil
+}
+func (u *unlinkCustomer) HardDeleteByID(ctx context.Context, client *mongo.Client, databaseName string, collectionName string, id interface{}) error {
+	db := client.Database(databaseName)
+	collection := db.Collection(collectionName)
+	filter := bson.M{"_id": id}
+
+	res, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		u.logger.Errorf("failed to hard delete document from %s: %v", collectionName, err)
+		return err
+	}
+	if res.DeletedCount == 0 {
+		u.logger.Warnf("no document found to delete in %s with id: %v", collectionName, id)
+		return fmt.Errorf("NO_DOC_FOUND")
+	}
+	u.logger.Infof("Successfully hard deleted document from %s with id: %v", collectionName, id)
+	return nil
 }

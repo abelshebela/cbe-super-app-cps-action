@@ -304,7 +304,7 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context) (*any,
 	}
 
 	projectedData := ProjectDataArray[model.HQ](service, projection)
-	var data any = projectedData
+	var data any = projectedData[0]
 	sp.logger.Infof("Successfully fetched %d total transfer cap services", len(service))
 	return &data, nil
 }
@@ -474,6 +474,7 @@ func (sp *servicePersistence) UpdateTotalMaxTransferCap(ctx context.Context, id 
 		sp.logger.Errorf("error creating CPS action for update total max transfer cap: %v", err)
 		return err
 	}
+
 	sp.logger.Infof("Successfully created CPS action for update total max transfer cap, id: %s", id)
 	return nil
 }
@@ -985,36 +986,17 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 			return nil, fmt.Errorf("FAILED_TO_AUTHORIZE_DELETE")
 		}
 	case string(model.RequestUpdateServiceTotal):
+		fmt.Println("===============Checkpoint")
 		current, err := castToBsonM(action.CurrentAction)
 		if err != nil {
 			sp.logger.Errorf("invalid currentAction format for update: %v", err)
 			return nil, fmt.Errorf("INVALID_CURRENT_ACTION_FORMAT")
 		}
+		fmt.Println(current)
 		update := bson.M{}
-		for k, v := range current {
-			switch val := v.(type) {
-			case string:
-				if strings.TrimSpace(val) != "" {
-					update[k] = v
-				}
-			case []interface{}:
-				// Only include non-empty arrays
-				if len(val) > 0 {
-					update[k] = v
-				}
-			case nil:
-				// skip
-			default:
-				update[k] = v
-			}
-		}
 
-		if len(update) == 0 {
-			sp.logger.Errorf("empty update body for service update")
-			return nil, fmt.Errorf("EMPTY_UPDATE_BODY")
-		}
-
-		update["last_modified_at"] = time.Now()
+		update["updated_at_total_cap"] = time.Now()
+		update["total_cap"] = current["totaltransferlimit"]
 		prev, err := castToBsonM(action.PreviousAction)
 
 		if err != nil {

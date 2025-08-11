@@ -59,7 +59,7 @@ func (h *HttpStore) CreateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Create MiniAppMerchant request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Create MiniAppMerchant request successfully created")
 }
 
 func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +99,7 @@ func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Update request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Update request successfully created")
 }
 
 func (h *HttpStore) DeleteMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +122,7 @@ func (h *HttpStore) DeleteMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Delete request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Delete request successfully created")
 }
 
 func (h *HttpStore) Enable(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +144,7 @@ func (h *HttpStore) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Enable request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Enable request successfully created")
 }
 
 func (h *HttpStore) Disable(w http.ResponseWriter, r *http.Request) {
@@ -166,7 +166,7 @@ func (h *HttpStore) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Disable request submitted")
+	common_util.WriteSuccessResponse(w, nil, "Disable request successfully created")
 }
 
 func (h *HttpStore) GetMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
