@@ -54,7 +54,7 @@ func (d *DonationPersistence) DonationNameExists(ctx context.Context, categoryNa
 	filter := bson.M{"category_name": categoryName, "is_deleted": false}
 	count, err := d.donationCategoryDal.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check donation category name: %v", err)
+		return false, fmt.Errorf("CATEGORY_LOOKUP_FAILED")
 	}
 	return count > 0, nil
 }
@@ -175,7 +175,7 @@ func (d *DonationPersistence) DonationCompanyNameExists(ctx context.Context, com
 	filter := bson.M{"company_name": companyName, "is_deleted": false}
 	count, err := d.donationCompanyDal.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check donation company name: %v", err)
+		return false, fmt.Errorf("COMPANY_LOOKUP_FAILED")
 	}
 	return count > 0, nil
 }
@@ -184,7 +184,7 @@ func (d *DonationPersistence) DonationCompanyAccountExists(ctx context.Context, 
 	filter := bson.M{"account_number": accountNumber, "is_deleted": false}
 	count, err := d.donationCompanyDal.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check donation company account: %v", err)
+		return false, fmt.Errorf("COMPANY_LOOKUP_FAILED")
 	}
 	return count > 0, nil
 }
@@ -337,25 +337,35 @@ func (d *DonationPersistence) DonationTitleExists(ctx context.Context, title str
 	filter := bson.M{"title": title, "is_deleted": false}
 	count, err := d.donationDal.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check donation title: %v", err)
+		return false, fmt.Errorf("DONATION_LOOKUP_FAILED")
 	}
 	return count > 0, nil
 }
 
 func (d *DonationPersistence) DonationCompanyExists(ctx context.Context, companyID string) (bool, error) {
-	filter := bson.M{"_id": companyID, "is_deleted": false}
+	objID, err := common_util.ParsePrimitiveObjectID(companyID)
+	if err != nil {
+		return false, fmt.Errorf("INVALID_ID_FORMAT")
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
 	count, err := d.donationCompanyDal.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check donation company: %v", err)
+		return false, fmt.Errorf("COMPANY_LOOKUP_FAILED")
 	}
 	return count > 0, nil
 }
 
 func (d *DonationPersistence) DonationCategoryExists(ctx context.Context, categoryID string) (bool, error) {
-	filter := bson.M{"_id": categoryID, "is_deleted": false}
+	objID, err := common_util.ParsePrimitiveObjectID(categoryID)
+	if err != nil {
+		return false, fmt.Errorf("INVALID_ID_FORMAT")
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
 	count, err := d.donationCategoryDal.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check donation category: %v", err)
+		return false, fmt.Errorf("CATEGORY_LOOKUP_FAILED")
 	}
 	return count > 0, nil
 }
@@ -507,70 +517,6 @@ func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *c
 		Meta: meta,
 	}, nil
 }
-
-// func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*dto.DonationListResponse], error) {
-// 	filter := bson.M{"is_deleted": false}
-
-// 	if filterParams.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
-// 		filter["title"] = searchRegex
-// 	}
-
-// 	if filterParams.Filters != nil {
-// 		for key, value := range filterParams.Filters {
-// 			filter[key] = value
-// 		}
-// 	}
-
-// 	skip := int64((filterParams.Page - 1) * filterParams.PerPage)
-// 	limit := int64(filterParams.PerPage)
-
-// 	cursor, err := d.donationDal.Find(ctx, filter, options.Find().SetSkip(skip).SetLimit(limit))
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to fetch donations: %v", err)
-// 	}
-// 	defer cursor.Close(ctx)
-
-// 	var donations []*model.Donation
-// 	if err := cursor.All(ctx, &donations); err != nil {
-// 		return nil, fmt.Errorf("failed to decode donations: %v", err)
-// 	}
-
-// 	total, err := d.donationDal.CountDocuments(ctx, filter)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to count donations: %v", err)
-// 	}
-
-// 	var result []*dto.DonationListResponse
-// 	for _, donation := range donations {
-// 		result = append(result, mappers.ToDonationListResponse(donation))
-// 	}
-
-// 	meta := common_util.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
-// 	return &common_util.PaginatedResponse[[]*dto.DonationListResponse]{
-// 		Data: result,
-// 		Meta: meta,
-// 	}, nil
-// }
-
-// func (d *DonationPersistence) FetchDonationByID(ctx context.Context, id string) (*dto.DonationListResponse, error) {
-// 	objID, err := common_util.ParsePrimitiveObjectID(id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid ID format: %v", err)
-// 	}
-
-// 	filter := bson.M{"_id": objID, "is_deleted": false}
-// 	var donation model.Donation
-// 	err = d.donationDal.FindOne(ctx, filter).Decode(&donation)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			return nil, fmt.Errorf("donation not found")
-// 		}
-// 		return nil, fmt.Errorf("failed to fetch donation: %v", err)
-// 	}
-
-// 	return mappers.ToDonationListResponse(&donation), nil
-// }
 
 func (d *DonationPersistence) FetchDonationByID(ctx context.Context, id string) (*dto.DonationListResponse, error) {
 	objID, err := common_util.ParsePrimitiveObjectID(id)

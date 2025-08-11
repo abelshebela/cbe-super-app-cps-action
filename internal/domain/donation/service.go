@@ -830,6 +830,10 @@ func (e *Service) FetchDonationByCode(ctx context.Context, donationCode string) 
 func (e *Service) ValidateCompanyExists(ctx context.Context, companyID string) error {
 	exist, err := e.Repository.DonationCompanyExists(ctx, companyID)
 	if err != nil {
+		// Check if it's an invalid ID format error
+		if err.Error() == "INVALID_ID_FORMAT" {
+			return fmt.Errorf("INVALID_ID_FORMAT")
+		}
 		return fmt.Errorf("COMPANY_LOOKUP_FAILED")
 	}
 	if !exist {
@@ -841,6 +845,10 @@ func (e *Service) ValidateCompanyExists(ctx context.Context, companyID string) e
 func (e *Service) ValidateCategoryExists(ctx context.Context, categoryID string) error {
 	exist, err := e.Repository.DonationCategoryExists(ctx, categoryID)
 	if err != nil {
+		// Check if it's an invalid ID format error
+		if err.Error() == "INVALID_ID_FORMAT" {
+			return fmt.Errorf("INVALID_ID_FORMAT")
+		}
 		return fmt.Errorf("CATEGORY_LOOKUP_FAILED")
 	}
 	if !exist {

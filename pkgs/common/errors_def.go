@@ -71,6 +71,11 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Invalid ID provided.",
 		},
+		"INVALID_ID_FORMAT": {
+			Code:    "GEN_018",
+			Status:  StatusBadRequest,
+			Message: "Invalid ID format provided.",
+		},
 		"INVALID_JSON_PAYLOAD": {
 			Code:    "GEN_003",
 			Status:  StatusBadRequest,
@@ -2346,8 +2351,12 @@ var DefineError = ErrorDefinitions{
 			Message: "Failed to safely convert to Object ID",
 			Status:  StatusBadRequest,
 		},
+		"DONATION_LOOKUP_FAILED": {
+			Code:    "DON_058",
+			Message: "Donation lookup failed",
+			Status:  StatusInternalServerError,
+		},
 	},
-
 }
 
 func (e ErrorDefinition) Error() string {
