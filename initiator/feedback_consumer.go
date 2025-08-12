@@ -21,7 +21,7 @@ func InitFeedbackConsumer(mongoClient *mongo.Client, cfg *config.VaultConfig, lo
 		return nil
 	}
 
-	feedbackRepository := feedbackRepo.InitFeedback(mongoClient, cfg.MongoDBDatabase, "feedbacks", logger)
+	feedbackRepository := feedbackRepo.InitFeedback(mongoClient, cfg.MongoDBDatabase, "feedback", logger)
 
 	// Create dead letter queue
 	deadLetterQueue := kafka.NewSimpleDeadLetterQueue(logger)

@@ -66,10 +66,15 @@ import (
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
+
+	donation_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/donation"
+
 	bulk_service_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/bulk_service"
+
 	notification_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/notification"
 	productcode_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/product_code"
 	servicePersistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/service"
+	donation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 )
@@ -107,19 +112,26 @@ type Persitence struct {
 
 	NotificationPersisitence notification_domain.NotificationRepository
 	ProductCodePersistenct   productcode.Repository
+
+	DonationPersistence      donation.DonationRepository
+
 	BulkServicesPersistence  bulkOutbound.BulkServiceRepository
+
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
 	return Persitence{
 		advertPersistence: advert.InitAD(client, databaseName, "adverts", logger),
 
+
+		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
+		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedback", logger),
+		UnlinkPersistence:   unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
+
 		BulkServicesPersistence: bulk_service_persistence.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "access_list"}, logger),
 		avatarPersitence:        avatarPersitence.InitAvatarPersistence(client, databaseName, "avatars", logger),
 
-		CustomerPersistence: customer_repo.InitCustomerDetail(client, databaseName, "users", logger),
-		FeedBackPersistence: feedback_repo.InitFeedback(client, databaseName, "feedbacks", logger),
-		UnlinkPersistence:   unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "users", "archived_users", "archived_linked_account", "linked_account"}, logger),
+
 		BudgetPersistence:   budget_repo.InitBudget(client, databaseName, []string{"icons", "colors", "cps_actions"}, logger),
 		AccountPersistence:  account_validation.InitAccountValidationPersistence(client, databaseName, 5*time.Second, logger),
 
@@ -172,5 +184,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 
 		NotificationPersisitence: notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 		ProductCodePersistenct:   productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
+		DonationPersistence:      donation_persistence.InitDonationPersistence(client, databaseName, []string{"donations", "donation_categories", "donation_companies"}, logger),
 	}
 }

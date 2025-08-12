@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	bsonv2 "go.mongodb.org/mongo-driver/v2/bson"
@@ -80,22 +81,37 @@ func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *const
 		}
 	}
 
-	cleanFilter, err := common_util.JsonUnmarshal[map[string]interface{}](filterParams.Filters)
-	if err != nil {
-		return nil, fmt.Errorf("FAILED_TO_PARSE_FILTERS")
-	}
+	if filterParams.Filters != nil {
+		allowedKeys := []string{
+			"user_code", "full_name", "username", "phone_number",
+			"branch_code", "branch_name", "home_branch", "role",
+			"realm", "enabled", "is_deleted",
+		}
 
-	validBPSUserFields := []string{
-		"user_code", "full_name", "username", "phone_number",
-		"branch_code", "branch_name", "home_branch", "role",
-		"realm", "enabled", "is_deleted",
-	}
+		handlers := map[string]func(interface{}) interface{}{
+			"enabled": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
 
-	filterBy := common_util.BuildMongoFilterWithValidation(*cleanFilter, validBPSUserFields)
-	for k, v := range filterBy {
-
-		if _, exists := filter[k]; !exists {
-			filter[k] = v
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			if _, exists := filter[key]; !exists {
+				filter[key] = value
+			}
 		}
 	}
 
