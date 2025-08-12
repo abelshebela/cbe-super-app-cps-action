@@ -16,7 +16,7 @@ import (
 type ApplicationService interface {
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.BPSUser], error)
+	GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.BPSUser], error)
 	DisableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
 	EnableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
 }
@@ -65,7 +65,7 @@ func (h *Handler) FetchUserByUserCode(ctx context.Context, userCode string) (*us
 	return dtoUser, nil
 }
 
-func (h *Handler) GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.BPSUser], error) {
+func (h *Handler) GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.BPSUser], error) {
 	users, err := h.service.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err

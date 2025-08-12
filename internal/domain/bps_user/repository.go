@@ -12,7 +12,7 @@ import (
 type Repository interface {
 	// Basic CRUD operations
 	GetBPSUserByUserCode(ctx context.Context, userCode string) (*BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*BPSUser], error)
+	GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*BPSUser], error)
 
 	// Enable/Disable operations with maker-checker flow
 	EnableBPSUser(ctx context.Context, userCode string) error

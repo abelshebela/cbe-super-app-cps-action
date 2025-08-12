@@ -65,39 +65,40 @@ func (o *BpsPersistence) GetBPSUserByUserCode(ctx context.Context, userCode stri
 	return domainUser, nil
 }
 
-func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error) {
+func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error) {
 	filter := bsonv2.M{}
 
 	if filterParams.Search != "" {
-		searchRegex := bsonv2.Regex{Pattern: filterParams.Search, Options: "i"}
-		filter["$or"] = []bsonv2.M{
-			{"user_code": searchRegex},
-			{"full_name": searchRegex},
-			{"phone_number": searchRegex},
-			{"username": searchRegex},
-			{"role": searchRegex},
-			{"branch_name": searchRegex},
+		filter = bsonv2.M{
+			"$or": []bsonv2.M{
+				{"user_code": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"full_name": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"phone_number": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"username": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"role": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"branch_name": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
 		}
 	}
 
-	cleanFilter, err := common_util.JsonUnmarshal[map[string]interface{}](filterParams.Filters)
-	if err != nil {
-		return nil, fmt.Errorf("FAILED_TO_PARSE_FILTERS")
-	}
+	// cleanFilter, err := common_util.JsonUnmarshal[map[string]interface{}](filterParams.Filters)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("FAILED_TO_PARSE_FILTERS")
+	// }
 
-	validBPSUserFields := []string{
-		"user_code", "full_name", "username", "phone_number",
-		"branch_code", "branch_name", "home_branch", "role",
-		"realm", "enabled", "is_deleted",
-	}
+	// validBPSUserFields := []string{
+	// 	"user_code", "full_name", "username", "phone_number",
+	// 	"branch_code", "branch_name", "home_branch", "role",
+	// 	"realm", "enabled", "is_deleted",
+	// }
 
-	filterBy := common_util.BuildMongoFilterWithValidation(*cleanFilter, validBPSUserFields)
-	for k, v := range filterBy {
+	// filterBy := common_util.BuildMongoFilterWithValidation(*cleanFilter, validBPSUserFields)
+	// for k, v := range filterBy {
 
-		if _, exists := filter[k]; !exists {
-			filter[k] = v
-		}
-	}
+	// 	if _, exists := filter[k]; !exists {
+	// 		filter[k] = v
+	// 	}
+	// }
 
 	skip := int64((filterParams.Page - 1) * filterParams.PerPage)
 	limit := int64(filterParams.PerPage)
