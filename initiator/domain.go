@@ -23,6 +23,7 @@ import (
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
 	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
@@ -34,6 +35,10 @@ import (
 	BulkServiceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	"time"
+
+	accountlookup "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/core_banking_calls"
 )
 
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger,
@@ -71,6 +76,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		ServiceCheckDomain:  service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
 		NotificationService: notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
 		ProductCodeService:  productcode.NewService(persistence.ProductCodePersistenct, logger),
+		DonationDomain:      donation_domain.NewDonationService(persistence.DonationPersistence, minioClient, "donations", cfg, logger, accountlookup.InitAccountAPIClient(cfg.CBEBaseURL, 30*time.Second, logger)),
 		KeyGenService:       keygenService,
 	}
 }
