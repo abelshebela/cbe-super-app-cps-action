@@ -214,7 +214,7 @@ func (h *Handler) EnableBranches(r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	err := h.service.EnableBranches(ctx, req.BranchCodes)
+	err := h.service.EnableBranches(ctx, req.BranchCodes, true)
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func (h *Handler) DisableBranches(r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	err := h.service.DisableBranches(ctx, req.BranchCodes)
+	err := h.service.DisableBranches(ctx, req.BranchCodes, false)
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func (h *Handler) EnableRegion(r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	err := h.service.EnableRegion(ctx, req.RegionsCodes)
+	err := h.service.EnableRegion(ctx, req.RegionsCodes, true)
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,7 @@ func (h *Handler) DisableRegion(r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	err := h.service.DisableRegion(ctx, req.RegionsCodes)
+	err := h.service.DisableRegion(ctx, req.RegionsCodes, false)
 	if err != nil {
 		return err
 	}
@@ -303,7 +303,7 @@ func (h *Handler) EnableDistrict(r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	err := h.service.EnableDistrict(ctx, req.DistrictCodes)
+	err := h.service.EnableDistrict(ctx, req.DistrictCodes, true)
 	if err != nil {
 		return err
 	}
@@ -325,7 +325,7 @@ func (h *Handler) DisableDistrict(r *http.Request) error {
 	}
 
 	ctx := r.Context()
-	err := h.service.DisableDistrict(ctx, req.DistrictCodes)
+	err := h.service.DisableDistrict(ctx, req.DistrictCodes, false)
 	if err != nil {
 		return err
 	}
@@ -342,13 +342,12 @@ func (h *Handler) EnableCity(r *http.Request) error {
 
 	// Trim any whitespace
 	req.clean()
-
 	if len(req.CitiesCode) == 0 {
 		return fmt.Errorf("CITY_CODE_IS_REQUIRED")
 	}
 
 	ctx := r.Context()
-	err := h.service.EnableCity(ctx, req.CitiesCode)
+	err := h.service.EnableCity(ctx, req.CitiesCode, true)
 	if err != nil {
 		return err
 	}
@@ -365,12 +364,13 @@ func (h *Handler) DisableCity(r *http.Request) error {
 	// Trim any whitespace
 	req.clean()
 
+	fmt.Println("Citties code:", req.CitiesCode)
 	if len(req.CitiesCode) == 0 {
 		return fmt.Errorf("CITY_CODE_IS_REQUIRED")
 	}
 
 	ctx := r.Context()
-	err := h.service.DisableCity(ctx, req.CitiesCode)
+	err := h.service.DisableCity(ctx, req.CitiesCode, false)
 	if err != nil {
 		return err
 	}

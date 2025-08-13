@@ -59,7 +59,6 @@ func (o *outboundAccountBlockStore) FilterSingleBranches(ctx context.Context, re
 		return nil, common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]
 	}
 
-	
 	filter := bson.M{"branch_region": region, "district_name": district}
 	projection := bson.M{}
 
@@ -1754,7 +1753,7 @@ func (o *outboundAccountBlockStore) EnableOrDisable(ctx context.Context, blockTy
 			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 		}
 	case "CITY":
-		filter = bson.M{"district_code": bson.M{"$in": codes}}
+		filter = bson.M{"city_code": bson.M{"$in": codes}}
 
 		_, err := o.MongoDalCity.FindOne(ctx, filter, bson.M{})
 		if err != nil {
@@ -1904,15 +1903,18 @@ func (o *outboundAccountBlockStore) AuthorizeDisableDistrict(ctx context.Context
 // City
 func (o *outboundAccountBlockStore) AuthorizeEnableCities(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 	data, err := constant_utils.JsonUnmarshal[[]model.City](action.CurrentAction)
+	fmt.Printf("Data: %v\n", data)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, service := range *data {
-		filter := bson.M{"city_code": service.CityCode}
+	for _, code := range *data {
+		filter := bson.M{"city_code": code.CityCode}
 		update := bson.M{"enabled": true}
+		fmt.Println("Filter:", filter)
+		fmt.Println("Update:", update)
 		_, err = o.MongoDalCity.UpdateOne(ctx, filter, update)
 		if err != nil {
+			fmt.Println("Error", err)
 			return nil, err
 		}
 	}

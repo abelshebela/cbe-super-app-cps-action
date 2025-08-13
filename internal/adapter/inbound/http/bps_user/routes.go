@@ -14,16 +14,15 @@ import (
 func RegisterBPSUserMakerRoutes(router chi.Router, handler inbound.BPSUserHandler, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/bps_users", func(r chi.Router) {
 		routes := []sharedhttp.Route{
-
-			{
-				Method:  http.MethodGet,
-				Path:    "/pending_user_actions",
-				Handler: handler.GetPendingUserActions,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
+			// {
+			// 	Method:  http.MethodGet,
+			// 	Path:    "/pending_user_actions",
+			// 	Handler: handler.GetPendingUserActions,
+			// 	Middlewares: []func(next http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 		authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
+			// 	},
+			// },
 			{
 				Method:  http.MethodGet,
 				Path:    "/{user_code}",

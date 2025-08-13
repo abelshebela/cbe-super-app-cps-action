@@ -16,3 +16,8 @@ scripts/start_kafka_infrastructure.sh
 scripts/send_test_messages.sh
 scripts/run_feedback_consumer.sh
 scripts/README_DOCKER.md
+DONATION_FEATURE_ANALYSIS.md
+main
+main
+FILTER_USAGE_EXAMPLES.md
+pkgs/utils/filter_params_test.go
