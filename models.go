@@ -91,8 +91,6 @@ const (
 
 // Advert For
 const (
-	IFB  = "IFB"
-	CB   = "CB"
 	Both = "ALL"
 )
 
