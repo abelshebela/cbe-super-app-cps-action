@@ -14,5 +14,6 @@ type MiniRepository interface {
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
+	GetMiniAppByName(ctx context.Context, name string) (*MiniApp, error)
 	EnableDisableMiniApp(ctx context.Context, id string, enabled bool) (*MiniApp, error)
 }

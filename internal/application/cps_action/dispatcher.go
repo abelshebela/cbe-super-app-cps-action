@@ -104,6 +104,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Donation"):
 		return d.app.DonationDomain.Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Department"):
+		return d.app.DepartmentDomain.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

@@ -1276,6 +1276,11 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusUnauthorized,
 			Message: "Incomplete user information",
 		},
+		"APP_NAME_EXIST": {
+			Code:    "AUTH_033",
+			Status:  StatusUnauthorized,
+			Message: "The App name already exists",
+		},
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {

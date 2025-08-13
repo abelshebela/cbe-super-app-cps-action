@@ -888,16 +888,6 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
-	prevFilter := bson.M{
-		"unique_id":  cpsAction.UniqueId,
-		"maker_id":   cpsAction.MakerID,
-		"maker_name": cpsAction.MakerName,
-	}
-	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, bson.M{})
-	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviousAction = previosCPSAction.CurrentAction
-	}
-
 	createdAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		return nil, fmt.Errorf("DATABASE_CREATE_FAILED")
@@ -934,14 +924,13 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		"user_code":  userCode,
 		"is_deleted": false,
 	}
-	_, err = o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
+	existingUser, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 		}
 		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
-	fmt.Println(data.PhoneNumber)
 	duplicateFilter := bson.M{
 		"$and": []bson.M{
 			{"user_code": bson.M{"$ne": userCode}},
@@ -971,15 +960,8 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
-	prevFilter := bson.M{
-		"unique_id":  cpsAction.UniqueId,
-		"maker_id":   cpsAction.MakerID,
-		"maker_name": cpsAction.MakerName,
-	}
-	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
-	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviousAction = previosCPSAction.CurrentAction
-	}
+	cpsAction.UniqueId = existingUser.UserCode
+	cpsAction.PreviousAction = existingUser
 
 	updatedAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -993,7 +975,7 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 	filter := bson.M{"user_code": userCode}
 
 	// Check if the user exists
-	_, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	existingUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
@@ -1017,6 +999,9 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 	if pendingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
+
+	cpsAction.UniqueId = existingUser.UserCode
+	cpsAction.PreviousAction = existingUser
 
 	// If user exists, create a CPS action for deletion
 	cpsAction, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
@@ -1066,6 +1051,8 @@ func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, 
 	if user.Enabled == boolStatus {
 		return fmt.Errorf("DUPLICATE_ACTION")
 	}
+
+	cpsAction.UniqueId = user.UserCode
 
 	// Create the CPS action
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
