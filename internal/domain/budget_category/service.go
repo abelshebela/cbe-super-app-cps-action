@@ -70,7 +70,7 @@ func (s *BudgetCategoryService) ApproveAction(ctx context.Context, approveReques
 	return *cpsAction, operationErr
 }
 
-func (s *BudgetCategoryService) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
+func (s BudgetCategoryService) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
 	if cpsAction == nil {
 		return nil, fmt.Errorf("Authorize cps action data")
 	}

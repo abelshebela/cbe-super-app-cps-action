@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	accountService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account/service"
 	accountBlockService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
 	adService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	amountBasedAuthService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
@@ -16,7 +15,9 @@ import (
 	bulkServiceService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bulk_service"
 	constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	cpsActionService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	cpsUserService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
+	donationService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	eventService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	faydaService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	hqService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
@@ -26,38 +27,41 @@ import (
 	passwordRuleService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permissionService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	productCodeService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
-	serviceCheckService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service_check"
+	serviceCheckService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlinkService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	walletService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	local_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+
+	accountValidationService "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 )
 
 // DomainInterface defines the interface for domain services that the dispatcher needs
 type DomainInterface interface {
-	CPSActionDomain() CPSActionService
+	CPSActionDomain() cpsActionService.CPSActionService
 	BankDomain() bankService.BankService
 	AccountBlockDomain() accountBlockService.AccountService
-	AccountDomain() accountService.AccountDomain
+	AccountDomain() accountValidationService.Service
 	AdDomain() adService.AdvertService
-	ServiceCheckDomain() serviceCheckService.ServiceCheckDomain
+	ServiceCheckDomain() serviceCheckService.ServiceRepo
 	FaydaDomain() faydaService.FaydaAccount
 	MiniAppMerchantDomain() miniAppMerchantService.MiniAppMerchantService
 	MiniAppDomain() miniAppService.MiniAppService
 	HQDomain() hqService.Service
 	PasswordRuleDomain() passwordRuleService.PasswordRuleService
-	PermissionDomain() permissionService.PermissionDomainService
+	PermissionDomain() permissionService.Service
 	UnlinkDomain() unlinkService.UnlinkAccount
 	WalletDomain() walletService.WalletService
 	AmountBasedAuthDomain() amountBasedAuthService.AmountBasedAuthDomain
 	BudgetCategoryDomain() budgetCategoryService.BudgetCategoryService
-	BudgetDomain() budgetService.BudgetService
+	BudgetDomain() *budgetService.BudgetService
 	CPSUserDomain() cpsUserService.CPSUserService
 	BulkServiceDomain() bulkServiceService.BulkService
-	EventDomain() eventService.Event
+	EventDomain() eventService.EventService
 	NotificationService() notificationService.NotificationService
 	ProductCodeService() productCodeService.Service
-	BPSUserDomain() bpsUserService.BPSUserDomain
-	AvatarDomian() avatarService.AvatarDomian
+	BPSUserDomain() bpsUserService.Service
+	AvatarDomain() avatarService.AvatarDomainService
+	DonationDomain() donationService.DonationService
 }
 
 type Dispatcher struct {
@@ -137,8 +141,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 		return d.app.BulkServiceDomain().Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Event"):
 		return d.app.EventDomain().Authorize(ctx, cpsAction)
-	case constants.IsActionInGroup(action, "Service"):
-		return d.app.BudgetDomain().Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Notification"):
 		return d.app.NotificationService().Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "ProductCode"):
@@ -146,7 +148,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *entities.CPSActio
 	case constants.IsActionInGroup(action, "BPSUser"):
 		return d.app.BPSUserDomain().Authorize(ctx, cpsAction)
 	case constants.IsActionInGroup(action, "Avatar"):
-		return d.app.AvatarDomian().Authorize(ctx, cpsAction)
+		return d.app.AvatarDomain().Authorize(ctx, cpsAction)
+	case constants.IsActionInGroup(action, "Donation"):
+		return d.app.DonationDomain().Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

@@ -2,11 +2,14 @@ package donation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
+	"go.mongodb.org/mongo-driver/v2/bson"
+
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"mime/multipart"
 
@@ -16,6 +19,7 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
+	"github.com/google/uuid"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -48,6 +52,7 @@ type DonationService interface {
 	ValidateCompanyExists(ctx context.Context, companyID string) error
 	ValidateCategoryExists(ctx context.Context, categoryID string) error
 	DonationTitleExists(ctx context.Context, title string) (bool, error)
+	GenerateImageID() string
 }
 
 type Service struct {
@@ -450,18 +455,88 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			}
 		}
 
-		// Update with image URLs if provided
+		_, err := e.Repository.UpdateDonation(ctx, donationID, updateRequest)
+		if err != nil {
+			e.logger.Errorf("failed to update donation: %v", err)
+			return nil, fmt.Errorf("failed to update donation: %v", err)
+		}
+
+		// Handle image operations if present
 		if len(donationCPS.DonationImages) > 0 {
-			_, err := e.Repository.UpdateDonationWithImageURLs(ctx, donationID, updateRequest, donationCPS.DonationImages)
-			if err != nil {
-				e.logger.Errorf("failed to update donation with images: %v", err)
-				return nil, fmt.Errorf("failed to update donation: %v", err)
+			var previousImages []dto.DonationImage
+
+			// fmt.Printf("PreviousAction type: %T\n", action.PreviousAction)
+			// fmt.Printf("PreviousAction value: %+v\n", action.PreviousAction)
+
+			if prevData, ok := action.PreviousAction.(map[string]interface{}); ok {
+				// fmt.Println("Previous action data:", prevData)
+				if imagesData, exists := prevData["donation_images"]; exists {
+					if imagesBytes, err := json.Marshal(imagesData); err == nil {
+						if err := json.Unmarshal(imagesBytes, &previousImages); err == nil {
+							fmt.Println("Previous images parsed:", previousImages)
+						}
+					}
+					// fmt.Println("imaaaaaaaaaaaggggeeeeeesssss:", imagesData)
+				}
+			} else if bsonDoc, ok := action.PreviousAction.(bson.D); ok {
+				// fmt.Println("Previous action is bson.D, converting...")
+				prevData := make(map[string]interface{})
+				for _, elem := range bsonDoc {
+					prevData[elem.Key] = elem.Value
+				}
+				// fmt.Println("Converted previous action data:", prevData)
+				if imagesData, exists := prevData["donation_images"]; exists {
+					if imagesBytes, err := json.Marshal(imagesData); err == nil {
+						if err := json.Unmarshal(imagesBytes, &previousImages); err == nil {
+							fmt.Println("Previous images parsed:", previousImages)
+						}
+					}
+					// fmt.Println("imaaaaaaaaaaaggggeeeeeesssss:", imagesData)
+				}
+			} else {
+				fmt.Println("Failed to cast PreviousAction to expected types")
 			}
-		} else {
-			_, err := e.Repository.UpdateDonation(ctx, donationID, updateRequest)
-			if err != nil {
-				e.logger.Errorf("failed to update donation: %v", err)
-				return nil, fmt.Errorf("failed to update donation: %v", err)
+
+			for _, image := range donationCPS.DonationImages {
+				if image.ID != "" && image.PhotoURL != "" {
+					createdAt, err := time.Parse("2006-01-02T15:04:05Z07:00", image.CreatedAt)
+					if err != nil {
+						createdAt = time.Now()
+					}
+
+					imageExists := false
+					for _, prevImage := range previousImages {
+						if prevImage.ID == image.ID {
+							imageExists = true
+							break
+						}
+					}
+
+					if imageExists {
+						if err := e.Repository.UpdateDonationImage(ctx, donationID, image.ID, image.PhotoURL); err != nil {
+							e.logger.Errorf("failed to update donation image: %v", err)
+							return nil, fmt.Errorf("failed to update donation image: %v", err)
+						}
+					} else {
+						donationImage := dto.DonationImage{
+							ID:        image.ID,
+							PhotoURL:  image.PhotoURL,
+							CreatedAt: createdAt.Format("2006-01-02T15:04:05Z07:00"),
+						}
+						if err := e.Repository.AddDonationImage(ctx, donationID, donationImage); err != nil {
+							e.logger.Errorf("failed to add donation image: %v", err)
+							return nil, fmt.Errorf("failed to add donation image: %v", err)
+						}
+					}
+				}
+			}
+		}
+
+		// Handle image deletion if present
+		if donationCPS.ImageIDToDelete != "" {
+			if err := e.Repository.DeleteDonationImage(ctx, donationID, donationCPS.ImageIDToDelete); err != nil {
+				e.logger.Errorf("failed to delete donation image: %v", err)
+				return nil, fmt.Errorf("failed to delete donation image: %v", err)
 			}
 		}
 
@@ -730,6 +805,15 @@ func (e *Service) CreateDonation(ctx context.Context, donation dto.DonationReque
 		startDate = time.Now()
 	}
 
+	donationImages := make([]dto.DonationImage, len(imageURLs))
+	for i, url := range imageURLs {
+		donationImages[i] = dto.DonationImage{
+			ID:        e.GenerateImageID(),
+			PhotoURL:  url,
+			CreatedAt: time.Now().Format("2006-01-02T15:04:05Z07:00"),
+		}
+	}
+
 	result := dto.DonationResponse{
 		CompanyID:           donation.CompanyID,
 		CategoryID:          donation.CategoryID,
@@ -737,7 +821,7 @@ func (e *Service) CreateDonation(ctx context.Context, donation dto.DonationReque
 		IsFeatured:          donation.IsFeatured,
 		Target:              donation.Target,
 		DonationDescription: donation.DonationDescription,
-		DonationImages:      imageURLs,
+		DonationImages:      donationImages,
 		EndDate:             donation.EndDate.Format("2006-01-02T15:04:05Z07:00"),
 		StartDate:           startDate.Format("2006-01-02T15:04:05Z07:00"),
 	}
@@ -882,4 +966,8 @@ func (e *Service) DonationCompanyAccountExists(ctx context.Context, accountNumbe
 		return false, err
 	}
 	return exist, nil
+}
+
+func (e *Service) GenerateImageID() string {
+	return uuid.New().String()
 }
