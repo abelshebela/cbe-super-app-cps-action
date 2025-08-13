@@ -15,8 +15,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	// miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
-	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
@@ -27,7 +28,7 @@ type MiniAppPersistence struct {
 	client          *mongo.Client
 }
 
-func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.MiniRepository {
+func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp_domain.MiniRepository {
 	return &MiniAppPersistence{
 		MongoDalMiniApp: dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
 		logger:          logger,
@@ -87,6 +88,21 @@ func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (
 		return nil, err
 	}
 	filter := bson.M{"_id": objectID, "is_deleted": false}
+	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf(common_util.NotFound)
+		}
+
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
+	}
+	res := mappers.ToDomainMiniApp(*miniApp)
+	return &res, nil
+}
+
+func (o *MiniAppPersistence) GetMiniAppByName(ctx context.Context, name string) (*miniApp_domain.MiniApp, error) {
+
+	filter := bson.M{"app_name": name, "is_deleted": false}
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

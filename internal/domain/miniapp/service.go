@@ -33,6 +33,7 @@ type MiniAppService interface {
 	DeleteMiniApp(ctx context.Context, maker entities.User, id string) (*MiniApp, *MiniApp, error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
+	GetMiniAppByName(ctx context.Context, name string) (*MiniApp, error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
 	EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*MiniApp, *MiniApp, error)
 }
@@ -249,6 +250,18 @@ func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniA
 
 	miniApp.Credential.AppSecret = decryptedSecret
 	s.logger.Infof("Successfully fetched MiniApp details for ID: %s", id)
+	return miniApp, nil
+}
+
+func (s *MiniAppStore) GetMiniAppByName(ctx context.Context, name string) (*MiniApp, error) {
+	s.logger.Infof("Fetching MiniApp details for Name: %s", name)
+	miniApp, err := s.repository.GetMiniAppByName(ctx, name)
+	if err != nil {
+		s.logger.Errorf("Failed to fetch MiniApp with name %s: %v", name, err)
+		return nil, err
+	}
+
+	s.logger.Infof("Successfully fetched MiniApp details for name: %s", name)
 	return miniApp, nil
 }
 
