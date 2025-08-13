@@ -67,6 +67,7 @@ func (s *ServiceStore) GetHQ(ctx context.Context, id string) (HQ, error) {
 }
 
 func (s *ServiceStore) GetBlockTime(ctx context.Context) (BlockTimeResponse, error) {
+	fmt.Println("=========Service=========")
 	hq, err := s.repository.GetSingleHQ(ctx)
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
@@ -126,23 +127,20 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 	}
 
 	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdateHQBlockTime), request.Department)
-	if err != nil && !errors.Is(err,mongo.ErrNoDocuments) {
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, err
 	}
 	if pending {
 		fmt.Println("[hq service update block time pending action found")
-		return nil,fmt.Errorf("PENDING_ACTION_EXISTS")
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
-	
-
-	
 
 	updatedHQ := originalHQ
 	updatedHQ.BlockTime = request.BlockTime
 	type CurrentAction struct {
 		HQ HQ `json:"hq"`
 	}
-	previousAction:=CurrentAction{HQ: originalHQ}
+	previousAction := CurrentAction{HQ: originalHQ}
 	currentAction := CurrentAction{HQ: updatedHQ}
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
@@ -178,16 +176,13 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	}
 
 	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdateHQArchiveTime), request.Department)
-	if err != nil && !errors.Is(err,mongo.ErrNoDocuments) {
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, err
 	}
 	if pending {
 		fmt.Println("[hq service update block time]pending action found")
-		return nil,fmt.Errorf("PENDING_ACTION_EXISTS")
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
-	
-
-	
 
 	updatedHQ := originalHQ
 	updatedHQ.ArchiveTime = request.ArchiveTime
@@ -195,7 +190,7 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 		HQ HQ `json:"hq"`
 	}
 	currentAction := CurrentAction{HQ: updatedHQ}
-	previousAction:=CurrentAction{HQ: originalHQ}
+	previousAction := CurrentAction{HQ: originalHQ}
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 	a := action.CPSAction{
@@ -230,16 +225,13 @@ func (s *ServiceStore) UpdatePasswordExpiryRequest(ctx context.Context, request 
 	}
 
 	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdatePasswordExpiry), request.Department)
-	if err != nil && !errors.Is(err,mongo.ErrNoDocuments) {
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, err
 	}
 	if pending {
 		fmt.Println("[hq service update block time]pending action found")
-		return nil,fmt.Errorf("PENDING_ACTION_EXISTS")
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
-	
-
-	
 
 	updatedHQ := originalHQ
 	updatedHQ.PasswordExpiry = request.PasswordExpiry

@@ -66,7 +66,7 @@ func (o *BpsPersistence) GetBPSUserByUserCode(ctx context.Context, userCode stri
 	return domainUser, nil
 }
 
-func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error) {
+func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error) {
 	filter := bsonv2.M{}
 
 	if filterParams.Search != "" {
