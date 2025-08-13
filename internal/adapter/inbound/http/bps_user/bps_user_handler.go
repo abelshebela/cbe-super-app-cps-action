@@ -60,6 +60,7 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 }
 
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
+	// filterParams := local_util.ExtractFilterParams(r)
 	filterParams := local_util.ExtractMongoFilterParams(r)
 
 	users, err := h.Service.GetAllBPSUsers(r.Context(), filterParams)

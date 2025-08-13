@@ -192,14 +192,26 @@ const (
 	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
 	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
 	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
+	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation         RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestAccountUpdate:         {},
-	RequestDeleteAmountBasedAuth: {},
-	RequestCreateAmountBasedAuth: {},
-	RequestUpdateAmountBasedAuth: {},
-	RequestUser:                  {},
+	RequestCreateDonationCategory: {},
+	RequestUpdateDonationCategory: {},
+	RequestCreateDonationCompany:  {},
+	RequestUpdateDonationCompany:  {},
+	RequestCreateDonation:         {},
+	RequestUpdateDonation:         {},
+	RequestAccountUpdate:          {},
+	RequestDeleteAmountBasedAuth:  {},
+	RequestCreateAmountBasedAuth:  {},
+	RequestUpdateAmountBasedAuth:  {},
+	RequestUser:                   {},
 
 	RequestUpdateAccountValidation: {},
 	RequestCreateBudgetColor:       {},
@@ -550,6 +562,14 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"ProductCode": {
 		RequestUpdateProductCode,
+	},
+	"Donation": {
+		RequestCreateDonationCategory,
+		RequestUpdateDonationCategory,
+		RequestCreateDonationCompany,
+		RequestUpdateDonationCompany,
+		RequestCreateDonation,
+		RequestUpdateDonation,
 	},
 }
 

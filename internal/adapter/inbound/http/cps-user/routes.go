@@ -42,24 +42,6 @@ func RegisterCPSUserMakerRoutes(router chi.Router, handler inbound.CPSUserMakerH
 				},
 			},
 			{
-				Method:  http.MethodPatch,
-				Path:    "/approve_or_reject/{action_id}",
-				Handler: handler.ApproveUserAction,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/pending_user_actions",
-				Handler: handler.GetPendingUserActions,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
 				Method:  http.MethodGet,
 				Path:    "/{user_code}",
 				Handler: handler.FetchUserByUserCode,

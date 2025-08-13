@@ -17,6 +17,10 @@ type ActionRepository interface {
 	DeleteCpsAction(ctx context.Context, actionID string) error
 	FetchCpsActionById(ctx context.Context, Action_Id string) (*action_entity.CPSAction, error)
 	FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (*action_entity.CPSAction, error)
+
+	// CreateCpsAction(ctx context.Context, Action action_entity.CPSAction) (action_entity.CPSAction, error)
+	// GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
+	// UpdateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
 type ActionRepo struct {

@@ -56,6 +56,7 @@ type ErrorDefinitions struct {
 	Permission  ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
+	Donation    ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -69,6 +70,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_002",
 			Status:  StatusBadRequest,
 			Message: "Invalid ID provided.",
+		},
+		"INVALID_ID_FORMAT": {
+			Code:    "GEN_018",
+			Status:  StatusBadRequest,
+			Message: "Invalid ID format provided.",
 		},
 		"INVALID_JSON_PAYLOAD": {
 			Code:    "GEN_003",
@@ -1102,6 +1108,11 @@ var DefineError = ErrorDefinitions{
 			Status:  http.StatusConflict,
 			Message: "Failed to fetch archived users",
 		},
+		"DUPLICATE_ACTION": {
+			Code:    "GEN_182",
+			Status:  http.StatusConflict,
+			Message: "You are requesting a duplicate action",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {
@@ -1604,6 +1615,21 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "One or more branch code is required",
 		},
+		"USER_ALREADY_ENABLED": {
+			Code:    "BRN_017",
+			Status:  StatusConflict,
+			Message: "This user is already enabled",
+		},
+		"USER_ALREADY_DISABLED": {
+			Code:    "BRN_018",
+			Status:  StatusConflict,
+			Message: "This user is already disabled",
+		},
+		"FAILED_TO_PARSE_FILTERS": {
+			Code:    "BRN_019",
+			Status:  StatusInternalServerError,
+			Message: "Failed to parse filter params",
+		},
 	},
 	Region: ErrorGroup{
 		"REGION_CODE_IS_REQUIRED": {
@@ -2049,6 +2075,316 @@ var DefineError = ErrorDefinitions{
 			Code:    "MINIAPP_015",
 			Status:  StatusBadRequest,
 			Message: "only one of is_event_mini_app or is_three_click can be true.",
+		},
+	},
+
+	Event: ErrorGroup{
+		"EVENT_NAME_ALREADY_EXISTS": {
+			Code:    "EVE_001",
+			Message: "Event name already exists",
+			Status:  StatusBadRequest,
+		},
+	},
+	Donation: ErrorGroup{
+		"CATEGORY_NAME_ALREADY_EXISTS": {
+			Code:    "DON_001",
+			Message: "Category name already exists",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_ICON": {
+			Code:    "DON_002",
+			Message: "Failed to upload icon",
+			Status:  StatusBadRequest,
+		},
+		"ICON_IS_REQUIRED": {
+			Code:    "DON_003",
+			Message: "Icon is required",
+			Status:  StatusBadRequest,
+		},
+		"MINIO_TIME_SYNC_ERROR": {
+			Code:    "DON_004",
+			Message: "MinIO time synchronization error",
+			Status:  StatusInternalServerError,
+		},
+		"MINIO_BUCKET_ERROR": {
+			Code:    "DON_005",
+			Message: "MinIO bucket operation failed",
+			Status:  StatusInternalServerError,
+		},
+		"MINIO_CLIENT_NOT_CONFIGURED": {
+			Code:    "DON_006",
+			Message: "MinIO client is not configured",
+			Status:  StatusInternalServerError,
+		},
+		"CONFIGURATION_NOT_LOADED": {
+			Code:    "DON_007",
+			Message: "Configuration is not loaded",
+			Status:  StatusInternalServerError,
+		},
+		"UNABLE_TO_CHECK_ACCOUNT": {
+			Code:    "DON_008",
+			Message: "Unable to check account",
+			Status:  StatusInternalServerError,
+		},
+		"TIME_OUT_ERROR": {
+			Code:    "DON_009",
+			Message: "Operation timed out",
+			Status:  StatusInternalServerError,
+		},
+		"INVALID_DONATION_AMOUNT": {
+			Code:    "DON_010",
+			Message: "Invalid donation amount",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_END_DATE_FORMAT": {
+			Code:    "DON_011",
+			Message: "Invalid end date format",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_START_DATE_FORMAT": {
+			Code:    "DON_012",
+			Message: "Invalid start date format",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_IMAGES_REQUIRED": {
+			Code:    "DON_013",
+			Message: "Donation images are required",
+			Status:  StatusBadRequest,
+		},
+		"COMPANY_NAME_ALREADY_EXISTS": {
+			Code:    "DON_014",
+			Message: "Company name already exists",
+			Status:  StatusBadRequest,
+		},
+		"ACCOUNT_NUMBER_ALREADY_EXISTS": {
+			Code:    "DON_015",
+			Message: "Account number already exists",
+			Status:  StatusBadRequest,
+		},
+		"LOGO_IS_REQUIRED": {
+			Code:    "DON_016",
+			Message: "Logo is required",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_LOGO": {
+			Code:    "DON_017",
+			Message: "Failed to upload logo",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_TITLE_ALREADY_EXISTS": {
+			Code:    "DON_018",
+			Message: "Donation title already exists",
+			Status:  StatusBadRequest,
+		},
+		"COMPANY_NOT_FOUND": {
+			Code:    "DON_019",
+			Message: "Company not found",
+			Status:  StatusBadRequest,
+		},
+		"CATEGORY_NOT_FOUND": {
+			Code:    "DON_020",
+			Message: "Category not found",
+			Status:  StatusBadRequest,
+		},
+		"AT_LEAST_ONE_IMAGE_REQUIRED": {
+			Code:    "DON_021",
+			Message: "At least one image is required",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGES": {
+			Code:    "DON_022",
+			Message: "Failed to upload images",
+			Status:  StatusBadRequest,
+		},
+		"ICON_URL_MISSING": {
+			Code:    "DON_023",
+			Message: "Icon URL is missing in CPS request",
+			Status:  StatusBadRequest,
+		},
+		"PREVIOUS_ACTION_REQUIRED": {
+			Code:    "DON_024",
+			Message: "Previous action is required for update",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_PREVIOUS_ACTION_FORMAT": {
+			Code:    "DON_025",
+			Message: "Invalid previous action format",
+			Status:  StatusBadRequest,
+		},
+		"ID_NOT_FOUND": {
+			Code:    "DON_026",
+			Message: "ID not found in previous action",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_ID_FORMAT": {
+			Code:    "DON_027",
+			Message: "Invalid ID format",
+			Status:  StatusBadRequest,
+		},
+		"LOGO_URL_MISSING": {
+			Code:    "DON_028",
+			Message: "Logo URL is missing in CPS request",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_IMAGES_MISSING": {
+			Code:    "DON_029",
+			Message: "Donation images are missing in CPS request",
+			Status:  StatusBadRequest,
+		},
+		"ACCOUNT_NUMBER_IS_REQUIRED": {
+			Code:    "DON_030",
+			Message: "Account number is required",
+			Status:  StatusBadRequest,
+		},
+		"ACCOUNT_NOT_FOUND": {
+			Code:    "DON_031",
+			Message: "Account not found",
+			Status:  StatusBadRequest,
+		},
+		"COMPANY_LOOKUP_FAILED": {
+			Code:    "DON_032",
+			Message: "Company lookup failed",
+			Status:  StatusInternalServerError,
+		},
+		"CATEGORY_LOOKUP_FAILED": {
+			Code:    "DON_033",
+			Message: "Category lookup failed",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_1": {
+			Code:    "DON_034",
+			Message: "Failed to upload image 1",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_2": {
+			Code:    "DON_035",
+			Message: "Failed to upload image 2",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_3": {
+			Code:    "DON_036",
+			Message: "Failed to upload image 3",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_4": {
+			Code:    "DON_037",
+			Message: "Failed to upload image 4",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_5": {
+			Code:    "DON_038",
+			Message: "Failed to upload image 5",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPDATE_DONATION": {
+			Code:    "DON_039",
+			Message: "Failed to update donation",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_UPDATE_DONATION_CATEGORY": {
+			Code:    "DON_040",
+			Message: "Failed to update donation category",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_UPDATE_DONATION_COMPANY": {
+			Code:    "DON_041",
+			Message: "Failed to update donation company",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CREATE_DONATION": {
+			Code:    "DON_042",
+			Message: "Failed to create donation",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CREATE_DONATION_CATEGORY": {
+			Code:    "DON_043",
+			Message: "Failed to create donation category",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CREATE_DONATION_COMPANY": {
+			Code:    "DON_044",
+			Message: "Failed to create donation company",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CHECK_DONATION_COMPANY_NAME": {
+			Code:    "DON_045",
+			Message: "Failed to check donation company name",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CHECK_DONATION_COMPANY_ACCOUNT": {
+			Code:    "DON_046",
+			Message: "Failed to check donation company account",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_FETCH_DONATION_COMPANIES": {
+			Code:    "DON_047",
+			Message: "Failed to fetch donation companies",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_DECODE_DONATION_COMPANIES": {
+			Code:    "DON_048",
+			Message: "Failed to decode donation companies",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_COUNT_DONATION_COMPANIES": {
+			Code:    "DON_049",
+			Message: "Failed to count donation companies",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_FETCH_DONATION_CATEGORIES": {
+			Code:    "DON_050",
+			Message: "Failed to fetch donation categories",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_DECODE_DONATION_CATEGORIES": {
+			Code:    "DON_051",
+			Message: "Failed to decode donation categories",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_COUNT_DONATION_CATEGORIES": {
+			Code:    "DON_052",
+			Message: "Failed to count donation categories",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_FETCH_DONATIONS": {
+			Code:    "DON_053",
+			Message: "Failed to fetch donations",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_DECODE_DONATIONS": {
+			Code:    "DON_054",
+			Message: "Failed to decode donations",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_COUNT_DONATIONS": {
+			Code:    "DON_055",
+			Message: "Failed to count donations",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CONVERT_STRING_TO_OBJECT_ID": {
+			Code:    "DON_056",
+			Message: "Failed to convert string to Object ID",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_SAFE_CONVERT_TO_OBJECT_ID": {
+			Code:    "DON_057",
+			Message: "Failed to safely convert to Object ID",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_LOOKUP_FAILED": {
+			Code:    "DON_058",
+			Message: "Donation lookup failed",
+			Status:  StatusInternalServerError,
+		},
+		"INVALID_COMPANY_ID_FORMAT": {
+			Code:    "DON_060",
+			Message: "Invalid company ID format",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_CATEGORY_ID_FORMAT": {
+			Code:    "DON_061",
+			Message: "Invalid category ID format",
+			Status:  StatusBadRequest,
 		},
 	},
 }

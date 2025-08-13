@@ -7,19 +7,19 @@ import (
 )
 
 type BPSUser struct {
-	ID                bson.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserCode          string        `json:"user_code" bson:"user_code"`
-	FullName          string        `json:"full_name" bson:"full_name"`
-	Username          string        `json:"username" bson:"username"`
-	PhoneNumber       string        `json:"phone_number" bson:"phone_number"`
-	BranchCode        []string      `json:"branch_code" bson:"branch_code"`
-	BranchName        string        `json:"branch_name" bson:"branch_name"`
-	HomeBranch        string        `json:"home_branch" bson:"home_branch"`
-	Role              string        `json:"role" bson:"role"`
-	Realm             string        `json:"realm" bson:"realm"`
-	Password          Password      `json:"password" bson:"password"`
-	Enabled           bool          `json:"enabled" bson:"enabled"`
-	IsDeleted         bool          `json:"is_deleted" bson:"is_deleted"`
+	ID          bson.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserCode    string        `json:"user_code" bson:"user_code"`
+	FullName    string        `json:"full_name" bson:"full_name"`
+	Username    string        `json:"username" bson:"username"`
+	PhoneNumber string        `json:"phone_number" bson:"phone_number"`
+	BranchCode  []string      `json:"branch_code" bson:"branch_code"`
+	BranchName  string        `json:"branch_name" bson:"branch_name"`
+	HomeBranch  string        `json:"home_branch" bson:"home_branch"`
+	Role        string        `json:"role" bson:"role"`
+	Realm       string        `json:"realm" bson:"realm"`
+	Password    Password      `json:"password" bson:"password"`
+	Enabled     bool          `json:"enabled" bson:"enabled"`
+	IsDeleted   bool          `json:"is_deleted" bson:"is_deleted"`
 	// LastLoginAttempt  time.Time     `json:"last_login_attempt" bson:"last_login_attempt"`
 	// NextLoginAttempt  time.Time     `json:"next_login_attempt" bson:"next_login_attempt"`
 	// LastLogin         time.Time     `json:"last_login" bson:"last_login"`
@@ -78,4 +78,3 @@ type MakerAndChecker struct {
 	Maker   User `json:"maker" bson:"maker"`
 	Checker User `json:"checker" bson:"checker"`
 }
-

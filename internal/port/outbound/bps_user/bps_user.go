@@ -15,7 +15,6 @@ type BPSUserPersistence interface {
 	// Basic CRUD operations
 	GetBPSUserByUserCode(ctx context.Context, userCode string) (*bps_user.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error)
-
 	EnableBPSUser(ctx context.Context, userCode string) error
 	DisableBPSUser(ctx context.Context, userCode string) error
 	UpdateBPSUserStatus(ctx context.Context, userCode string, enabled bool, updatedAt time.Time) error

@@ -211,15 +211,33 @@ func (s *AccountService) BlockUser(ctx context.Context, userID string, maker act
 }
 
 // Newly added
-func generateCPSAction(ctx context.Context, branchCodes []string, actionType model.ActionType, requestActionType model.RequestAction) model.CPSAction {
+func generateCPSAction(ctx context.Context, codeType string, enabled bool, codes []string, actionType model.ActionType, requestActionType model.RequestAction) model.CPSAction {
 	userPayload := ctx_utils.ExtractContext(ctx)
 
-	var actions []model.Branch
-	for _, branchCode := range branchCodes {
-		actions = append(actions, model.Branch{
-			BranchCode: branchCode,
-			Enabled:    false,
-		})
+	var actions []interface{}
+	for _, code := range codes {
+		switch codeType {
+		case "BRANCH":
+			actions = append(actions, model.Branch{
+				BranchCode: code,
+				Enabled:    enabled,
+			})
+		case "REGION":
+			actions = append(actions, model.Region{
+				RegionCode: code,
+				Enabled:    enabled,
+			})
+		case "DISTRICT":
+			actions = append(actions, model.District{
+				DistrictCode: code,
+				Enabled:      enabled,
+			})
+		case "CITY":
+			actions = append(actions, model.City{
+				CityCode: code,
+				Enabled:  enabled,
+			})
+		}
 	}
 
 	cpsAction := model.CPSAction{
@@ -243,46 +261,46 @@ func generateCPSAction(ctx context.Context, branchCodes []string, actionType mod
 
 // Newly added
 // Branch
-func (s *AccountService) EnableBranches(ctx context.Context, branchCodes []string) error {
-	cpsAction := generateCPSAction(ctx, branchCodes, model.ActionEnable, model.RequestEnableBranches)
+func (s *AccountService) EnableBranches(ctx context.Context, branchCodes []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "BRANCH", enabled, branchCodes, model.ActionEnable, model.RequestEnableBranches)
 	return s.repo.EnableOrDisable(ctx, "BRANCH", branchCodes, cpsAction, model.RequestEnableBranches)
 }
 
-func (s *AccountService) DisableBranches(ctx context.Context, branchCodes []string) error {
-	cpsAction := generateCPSAction(ctx, branchCodes, model.ActionDisable, model.RequestDisableBranches)
+func (s *AccountService) DisableBranches(ctx context.Context, branchCodes []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "BRANCH", enabled, branchCodes, model.ActionDisable, model.RequestDisableBranches)
 	return s.repo.EnableOrDisable(ctx, "BRANCH", branchCodes, cpsAction, model.RequestDisableBranches)
 }
 
 // Region
-func (s *AccountService) EnableRegion(ctx context.Context, regionsCode []string) error {
-	cpsAction := generateCPSAction(ctx, regionsCode, model.ActionEnable, model.RequestEnableRegion)
+func (s *AccountService) EnableRegion(ctx context.Context, regionsCode []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "REGION", enabled, regionsCode, model.ActionEnable, model.RequestEnableRegion)
 	return s.repo.EnableOrDisable(ctx, "REGION", regionsCode, cpsAction, model.RequestEnableRegion)
 }
 
-func (s *AccountService) DisableRegion(ctx context.Context, regionsCode []string) error {
-	cpsAction := generateCPSAction(ctx, regionsCode, model.ActionDisable, model.RequestDisableRegion)
+func (s *AccountService) DisableRegion(ctx context.Context, regionsCode []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "REGION", enabled, regionsCode, model.ActionDisable, model.RequestDisableRegion)
 	return s.repo.EnableOrDisable(ctx, "REGION", regionsCode, cpsAction, model.RequestDisableRegion)
 }
 
 // District
-func (s *AccountService) EnableDistrict(ctx context.Context, districtsCode []string) error {
-	cpsAction := generateCPSAction(ctx, districtsCode, model.ActionEnable, model.RequestEnableDistrict)
+func (s *AccountService) EnableDistrict(ctx context.Context, districtsCode []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "DISTRICT", enabled, districtsCode, model.ActionEnable, model.RequestEnableDistrict)
 	return s.repo.EnableOrDisable(ctx, "DISTRICT", districtsCode, cpsAction, model.RequestEnableDistrict)
 }
 
-func (s *AccountService) DisableDistrict(ctx context.Context, districtsCode []string) error {
-	cpsAction := generateCPSAction(ctx, districtsCode, model.ActionEnable, model.RequestDisableDistrict)
+func (s *AccountService) DisableDistrict(ctx context.Context, districtsCode []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "DISTRICT", enabled, districtsCode, model.ActionEnable, model.RequestDisableDistrict)
 	return s.repo.EnableOrDisable(ctx, "DISTRICT", districtsCode, cpsAction, model.RequestDisableDistrict)
 }
 
 // City
-func (s *AccountService) EnableCity(ctx context.Context, citiesCode []string) error {
-	cpsAction := generateCPSAction(ctx, citiesCode, model.ActionEnable, model.RequestEnableCity)
+func (s *AccountService) EnableCity(ctx context.Context, citiesCode []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "CITY", enabled, citiesCode, model.ActionEnable, model.RequestEnableCity)
 	return s.repo.EnableOrDisable(ctx, "CITY", citiesCode, cpsAction, model.RequestEnableCity)
 }
 
-func (s *AccountService) DisableCity(ctx context.Context, citiesCode []string) error {
-	cpsAction := generateCPSAction(ctx, citiesCode, model.ActionEnable, model.RequestDisableCity)
+func (s *AccountService) DisableCity(ctx context.Context, citiesCode []string, enabled bool) error {
+	cpsAction := generateCPSAction(ctx, "CITY", enabled, citiesCode, model.ActionEnable, model.RequestDisableCity)
 	return s.repo.EnableOrDisable(ctx, "CITY", citiesCode, cpsAction, model.RequestDisableCity)
 }
 

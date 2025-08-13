@@ -36,6 +36,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/viper v1.20.1 // indirect
 )
 

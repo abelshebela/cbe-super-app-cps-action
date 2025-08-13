@@ -25,8 +25,6 @@ import (
 type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error)
-	ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error)
-	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
@@ -184,37 +182,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 	}
 
 	return s.repo.UpdateUserRequest(ctx, cpsAction, userCode)
-}
-
-func (s *cpsUserService) ApproveUserAction(ctx context.Context, r *http.Request, approved userDTO.ApproveCPSAction, actionID string) (*model.CPSAction, error) {
-	userPayload := ctx_util.ExtractContext(ctx)
-	cpsAction := model.CPSAction{
-		CheckerID:          userPayload.UserID,
-		CheckerName:        userPayload.FullName,
-		CheckerPhoneNumber: userPayload.PhoneNumber,
-		Department:         userPayload.Department,
-	}
-
-	if approved.Approved {
-		cpsAction.ActionStatus = string(model.ActionApproved)
-	} else if !approved.Approved {
-		cpsAction.ActionStatus = string(model.ActionRejected)
-		cpsAction.RejectionReason = *approved.Reason
-	}
-
-	return s.repo.ApproveUserAction(ctx, actionID, cpsAction)
-}
-
-func (s *cpsUserService) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
-	data, err := s.repo.GetPendingUserActions(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(data) == 0 {
-		return nil, fmt.Errorf("NO_PENDING_ACTION_FOUND")
-	}
-
-	return data, nil
 }
 
 func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error) {

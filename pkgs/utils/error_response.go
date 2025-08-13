@@ -259,6 +259,7 @@ func lookupErrorDefinition(key string) common.ErrorDefinition {
 		common.DefineError.Permission,
 		common.DefineError.MiniApp,
 		common.DefineError.Event,
+		common.DefineError.Donation,
 	}
 
 	for _, group := range errorGroups {

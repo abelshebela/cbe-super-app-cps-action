@@ -45,18 +45,18 @@ type ApplicationServices interface {
 
 	// Newly added
 	// Branch
-	EnableBranches(ctx context.Context, branchCodes []string) error
-	DisableBranches(ctx context.Context, branchCodes []string) error
+	EnableBranches(ctx context.Context, branchCodes []string, enabled bool) error
+	DisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
 
 	// Region
-	EnableRegion(ctx context.Context, regionsCode []string) error
-	DisableRegion(ctx context.Context, regionsCode []string) error
+	EnableRegion(ctx context.Context, regionsCode []string, enabled bool) error
+	DisableRegion(ctx context.Context, regionsCode []string, enabled bool) error
 
 	// District
-	EnableDistrict(ctx context.Context, districtsCode []string) error
-	DisableDistrict(ctx context.Context, districtsCode []string) error
+	EnableDistrict(ctx context.Context, districtsCode []string, enabled bool) error
+	DisableDistrict(ctx context.Context, districtsCode []string, enabled bool) error
 
 	// City
-	EnableCity(ctx context.Context, citiesCode []string) error
-	DisableCity(ctx context.Context, citiesCode []string) error
+	EnableCity(ctx context.Context, citiesCode []string, enabled bool) error
+	DisableCity(ctx context.Context, citiesCode []string, enabled bool) error
 }

@@ -20,8 +20,6 @@ import (
 type ApplicationService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
-	ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error)
-	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
@@ -87,31 +85,6 @@ func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*mode
 	return h.service.UpdateUserRequest(ctx, r, req, userCode)
 }
 
-func (h *Handler) ApproveUserAction(ctx context.Context, r *http.Request) (*model.CPSAction, error) {
-	actionID := strings.TrimSpace(chi.URLParam(r, "action_id"))
-
-	if actionID == "" {
-		h.logger.Errorf("action_id is required")
-		return nil, fmt.Errorf("USER_CODE_IS_REQUIRED")
-	}
-
-	var req userDTO.ApproveCPSAction
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to bind user data: %v", err)
-		return nil, err
-	}
-
-	if err := req.Validate(); err != nil {
-		h.logger.Errorf("validation failed: %v", err)
-		return nil, err
-	}
-
-	return h.service.ApproveUserAction(ctx, r, req, actionID)
-}
-
-func (h *Handler) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
-	return h.service.GetPendingUserActions(ctx)
-}
 func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error) {
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	return h.service.FetchUserByUserCode(ctx, userCode)

@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// ExtractFilterParams extracts pagination and filter params from the HTTP request query.
 func ExtractFilterParams(r *http.Request) *constant.Filter {
 	query := r.URL.Query()
 
@@ -31,8 +30,6 @@ func ExtractFilterParams(r *http.Request) *constant.Filter {
 	}
 }
 
-// BuildMongoFilter constructs a MongoDB filter from the provided input map.
-// MongoFilter
 func ExtractMongoFilterParams(r *http.Request) *constant.MongoFilter {
 	query := r.URL.Query()
 
@@ -51,12 +48,21 @@ func ExtractMongoFilterParams(r *http.Request) *constant.MongoFilter {
 	}
 
 	filters := make(map[string]interface{}, len(query))
+
 	for k, v := range query {
-		if len(v) == 0 || !strings.HasPrefix(k, "filter[") || !strings.HasSuffix(k, "]") {
+		if len(v) == 0 || k == "page" || k == "per_page" || k == "search" {
 			continue
 		}
-		key := k[7 : len(k)-1]
-		filters[key] = v[0]
+
+		if strings.HasPrefix(k, "filter[") && strings.HasSuffix(k, "]") {
+			key := k[7 : len(k)-1]
+			filters[key] = parseValue(v[0])
+			continue
+		}
+
+		if !isReserved(k) {
+			filters[k] = parseValue(v[0])
+		}
 	}
 
 	return &constant.MongoFilter{
@@ -67,18 +73,63 @@ func ExtractMongoFilterParams(r *http.Request) *constant.MongoFilter {
 	}
 }
 
-func BuildMongoFilter(input map[string]interface{}) bson.M {
-	return BuildMongoFilterWithValidation(input, nil)
+func isReserved(key string) bool {
+	reserved := map[string]bool{
+		"page": true, "per_page": true, "search": true, "sort": true, "order": true,
+		"limit": true, "offset": true, "fields": true, "include": true, "exclude": true,
+		"format": true, "callback": true, "pretty": true,
+	}
+	return reserved[key]
 }
 
-func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []string) bson.M {
+func parseValue(value string) interface{} {
+	if value == "" {
+		return ""
+	}
+
+	if value == "true" {
+		return true
+	}
+	if value == "false" {
+		return false
+	}
+
+	if parsed, err := strconv.Atoi(value); err == nil {
+		return parsed
+	}
+
+	if parsed, err := strconv.ParseFloat(value, 64); err == nil {
+		return parsed
+	}
+
+	if strings.Contains(value, ",") {
+		parts := strings.Split(value, ",")
+		var result []interface{}
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if part != "" {
+				result = append(result, parseValue(part))
+			}
+		}
+		if len(result) > 0 {
+			return result
+		}
+	}
+
+	return value
+}
+
+func BuildMongoFilter(input map[string]interface{}) bson.M {
+	return BuildMongoFilterWithKeys(input, nil)
+}
+
+func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string) bson.M {
 	filter := bson.M{}
 
-	var validKeysMap map[string]bool
-	if validKeys != nil {
-		validKeysMap = make(map[string]bool, len(validKeys))
-		for _, key := range validKeys {
-			validKeysMap[key] = true
+	allowedMap := make(map[string]bool)
+	if allowedKeys != nil {
+		for _, key := range allowedKeys {
+			allowedMap[key] = true
 		}
 	}
 
@@ -87,23 +138,70 @@ func BuildMongoFilterWithValidation(input map[string]interface{}, validKeys []st
 			continue
 		}
 
-		if validKeysMap != nil && !validKeysMap[key] {
+		if allowedKeys != nil && !allowedMap[key] {
 			continue
 		}
 
 		switch v := value.(type) {
 		case string:
-			filter[key] = bson.M{"$regex": v, "$options": "i"}
-
+			if v != "" {
+				filter[key] = bson.M{"$regex": v, "$options": "i"}
+			}
 		case []interface{}:
-			filter[key] = bson.M{"$in": v}
-
+			if len(v) > 0 {
+				filter[key] = bson.M{"$in": v}
+			}
 		case map[string]interface{}:
-			nested := BuildMongoFilterWithValidation(v, validKeys)
+			nested := BuildMongoFilterWithKeys(v, allowedKeys)
 			for nestedKey, nestedVal := range nested {
 				filter[key+"."+nestedKey] = nestedVal
 			}
+		default:
+			filter[key] = v
+		}
+	}
 
+	return filter
+}
+
+func BuildMongoFilterWithHandlers(input map[string]interface{}, allowedKeys []string, handlers map[string]func(interface{}) interface{}) bson.M {
+	filter := bson.M{}
+
+	allowedMap := make(map[string]bool)
+	if allowedKeys != nil {
+		for _, key := range allowedKeys {
+			allowedMap[key] = true
+		}
+	}
+
+	for key, value := range input {
+		if value == nil || value == "" {
+			continue
+		}
+
+		if allowedKeys != nil && !allowedMap[key] {
+			continue
+		}
+
+		if handler, exists := handlers[key]; exists {
+			filter[key] = handler(value)
+			continue
+		}
+
+		switch v := value.(type) {
+		case string:
+			if v != "" {
+				filter[key] = bson.M{"$regex": v, "$options": "i"}
+			}
+		case []interface{}:
+			if len(v) > 0 {
+				filter[key] = bson.M{"$in": v}
+			}
+		case map[string]interface{}:
+			nested := BuildMongoFilterWithHandlers(v, allowedKeys, handlers)
+			for nestedKey, nestedVal := range nested {
+				filter[key+"."+nestedKey] = nestedVal
+			}
 		default:
 			filter[key] = v
 		}
