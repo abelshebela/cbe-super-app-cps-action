@@ -73,12 +73,11 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
 		MiniAppMerchantDomain: miniAppMerchantDomain,
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
-
-		BulkServiceDomain:   BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
-		ServiceCheckDomain:  service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
-		NotificationService: notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
-		ProductCodeService:  productcode.NewService(persistence.ProductCodePersistenct, logger),
-		DonationDomain:      donation_domain.NewDonationService(persistence.DonationPersistence, minioClient, "donations", cfg, logger, accountlookup.InitAccountAPIClient(cfg.CBEBaseURL, 30*time.Second, logger)),
-		KeyGenService:       keygenService,
+		BulkServiceDomain:     BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
+		ServiceCheckDomain:    service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
+		NotificationService:   notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
+		ProductCodeService:    productcode.NewService(persistence.ProductCodePersistenct, logger),
+		DonationDomain:        donation_domain.NewDonationService(persistence.DonationPersistence, minioClient, "donations", cfg, logger, accountlookup.InitAccountAPIClient(cfg.CBEBaseURL, 30*time.Second, logger)),
+		KeyGenService:         keygenService,
 	}
 }

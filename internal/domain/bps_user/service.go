@@ -22,7 +22,7 @@ import (
 type Service interface {
 	// Basic CRUD operations
 	GetBPSUserByUserCode(ctx context.Context, userCode string) (*BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filerParams *constant.Filter) (*utils.PaginatedResponse[[]*BPSUser], error)
+	GetAllBPSUsers(ctx context.Context, filerParams *constant.MongoFilter) (*utils.PaginatedResponse[[]*BPSUser], error)
 
 	// Enable/Disable operations with maker-checker flow
 	EnableBPSUserRequest(ctx context.Context, request EnableBPSUserRequest) (*cps_entities.CPSAction, error)
@@ -78,7 +78,7 @@ func (s *ServiceStore) GetBPSUserByUserCode(ctx context.Context, userCode string
 	return user, nil
 }
 
-func (s *ServiceStore) GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*BPSUser], error) {
+func (s *ServiceStore) GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*utils.PaginatedResponse[[]*BPSUser], error) {
 	users, err := s.repository.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
 		s.logger.Errorf("failed to fetch BPS users: %v", err)

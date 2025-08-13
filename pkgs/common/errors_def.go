@@ -1108,6 +1108,11 @@ var DefineError = ErrorDefinitions{
 			Status:  http.StatusConflict,
 			Message: "Failed to fetch archived users",
 		},
+		"DUPLICATE_ACTION": {
+			Code:    "GEN_182",
+			Status:  http.StatusConflict,
+			Message: "You are requesting a duplicate action",
+		},
 	},
 	Auth: ErrorGroup{
 		"AUTH_USER_NOT_FOUND": {

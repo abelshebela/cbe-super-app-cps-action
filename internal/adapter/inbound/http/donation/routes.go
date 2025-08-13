@@ -127,6 +127,36 @@ func InitDonationHandlers(router chi.Router, handler donation_inbound.DonationHa
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/donation/image/{id}",
+			Handler: handler.UpdateDonationImage,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateDonation)),
+			},
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/donation/image/{id}",
+			Handler: handler.DeleteDonationImage,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateDonation)),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/donation/image/{id}",
+			Handler: handler.AddDonationImage,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateDonation)),
+			},
+		},
 	}
 
 	route.RegisterRoutes(router, routes)

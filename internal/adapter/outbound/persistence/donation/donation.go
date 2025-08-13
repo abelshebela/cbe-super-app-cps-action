@@ -90,7 +90,7 @@ func (d *DonationPersistence) CreateDonationCategoryWithURL(ctx context.Context,
 
 func (d *DonationPersistence) FetchDonationCategory(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*dto.DonationCategoryListResponse], error) {
 	filter := bson.M{"is_deleted": false}
-// here incase if we want to filter by is deleted the following implementation works just comment the above line
+	// here incase if we want to filter by is deleted the following implementation works just comment the above line
 	if filterParams.Search != "" {
 		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
 		filter["category_name"] = searchRegex
@@ -458,7 +458,8 @@ func (d *DonationPersistence) CreateDonationWithURLs(ctx context.Context, donati
 		IsFeatured:          donation.IsFeatured,
 		Target:              donation.Target,
 		DonationDescription: donation.DonationDescription,
-		DonationImages:      donation.DonationImages,
+		DonationImages:      d.convertDonationImages(donation.DonationImages),
+		CoverImage:          donation.CoverImage, // URL for cover image
 		EndDate:             endDate,
 		StartDate:           startDate,
 		IsDeleted:           false,
@@ -473,6 +474,19 @@ func (d *DonationPersistence) CreateDonationWithURLs(ctx context.Context, donati
 	return nil
 }
 
+func (d *DonationPersistence) convertDonationImages(dtoImages []dto.DonationImage) []model.DonationImage {
+	modelImages := make([]model.DonationImage, len(dtoImages))
+	for i, dtoImage := range dtoImages {
+		createdAt, _ := time.Parse("2006-01-02T15:04:05Z07:00", dtoImage.CreatedAt)
+		modelImages[i] = model.DonationImage{
+			ID:        dtoImage.ID,
+			PhotoURL:  dtoImage.PhotoURL,
+			CreatedAt: createdAt,
+		}
+	}
+	return modelImages
+}
+
 func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*dto.DonationListResponse], error) {
 	filter := bson.M{"is_deleted": false}
 
@@ -482,7 +496,7 @@ func (d *DonationPersistence) FetchDonation(ctx context.Context, filterParams *c
 	}
 
 	if filterParams.Filters != nil {
-		allowedKeys := []string{"company_id", "category_id", "is_featured", "target", "title", "start_date", "end_date", "created_at", "last_modified_at","is_deleted"}
+		allowedKeys := []string{"company_id", "category_id", "is_featured", "target", "title", "start_date", "end_date", "created_at", "last_modified_at", "is_deleted"}
 		handlers := map[string]func(interface{}) interface{}{
 			"company_id": func(value interface{}) interface{} {
 				if strValue, ok := value.(string); ok {
@@ -715,67 +729,155 @@ func (d *DonationPersistence) UpdateDonationWithImageURLs(ctx context.Context, i
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{}
 
-	// Build update document with $set operator
-	setUpdate := bson.M{
-		"last_modified_at": time.Now(),
-	}
-
-	// Only update fields that are provided and not empty
 	if donation.CompanyID != "" {
-		// Convert string ID to ObjectID
-		companyObjID, err := common_util.ParsePrimitiveObjectID(donation.CompanyID)
+		companyObjID, err := d.convertStringToObjectID(donation.CompanyID)
 		if err != nil {
-			return nil, fmt.Errorf("INVALID_COMPANY_ID_FORMAT")
+			return nil, fmt.Errorf("invalid company ID format: %v", err)
 		}
-		setUpdate["company_id"] = companyObjID
+		update["company_id"] = companyObjID
 	}
 
 	if donation.CategoryID != "" {
-		// Convert string ID to ObjectID
-		categoryObjID, err := common_util.ParsePrimitiveObjectID(donation.CategoryID)
+		categoryObjID, err := d.convertStringToObjectID(donation.CategoryID)
 		if err != nil {
-			return nil, fmt.Errorf("INVALID_CATEGORY_ID_FORMAT")
+			return nil, fmt.Errorf("invalid category ID format: %v", err)
 		}
-		setUpdate["category_id"] = categoryObjID
+		update["category_id"] = categoryObjID
 	}
 
 	if donation.Title != "" {
-		setUpdate["title"] = donation.Title
+		update["title"] = donation.Title
 	}
 
-	// Always update is_featured as it's a boolean
-	setUpdate["is_featured"] = donation.IsFeatured
+	update["is_featured"] = donation.IsFeatured
 
 	if donation.Target > 0 {
-		setUpdate["target"] = donation.Target
+		update["target"] = donation.Target
 	}
 
 	if donation.DonationDescription != "" {
-		setUpdate["donation_description"] = donation.DonationDescription
+		update["donation_description"] = donation.DonationDescription
 	}
 
 	if !donation.EndDate.IsZero() {
-		setUpdate["end_date"] = donation.EndDate
+		update["end_date"] = donation.EndDate
 	}
 
 	if !donation.StartDate.IsZero() {
-		setUpdate["start_date"] = donation.StartDate
+		update["start_date"] = donation.StartDate
 	}
 
 	if len(imageURLs) > 0 {
-		setUpdate["donation_images"] = imageURLs
+		donationImages := make([]model.DonationImage, len(imageURLs))
+		for i, url := range imageURLs {
+			donationImages[i] = model.DonationImage{
+				ID:        d.generateImageID(),
+				PhotoURL:  url,
+				CreatedAt: time.Now(),
+			}
+		}
+		update["donation_images"] = donationImages
 	}
 
-	// Use $set operator for proper MongoDB update syntax
-	update := bson.M{"$set": setUpdate}
+	update["last_modified_at"] = time.Now()
 
-	_, err = d.donationDal.UpdateOne(ctx, filter, update)
+	_, err = d.donationDal.UpdateOne(ctx, filter, bson.M{"$set": update})
 	if err != nil {
-		return nil, fmt.Errorf("FAILED_TO_UPDATE_DONATION")
+		return nil, fmt.Errorf("failed to update donation: %v", err)
 	}
 
 	return &donation, nil
+}
+
+func (d *DonationPersistence) generateImageID() string {
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const length = 16
+
+	rand.Seed(time.Now().UnixNano())
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return "IMG" + string(result)
+}
+
+func (d *DonationPersistence) UpdateDonationImage(ctx context.Context, donationID, imageID, photoURL string) error {
+	objID, err := common_util.ParsePrimitiveObjectID(donationID)
+	if err != nil {
+		return fmt.Errorf("INVALID_DONATION_ID_FORMAT")
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false, "donation_images.id": imageID}
+	update := bson.M{
+		"$set": bson.M{
+			"donation_images.$.photo_url": photoURL,
+			"last_modified_at":            time.Now(),
+		},
+	}
+
+	_, err = d.donationDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update donation image: %v", err)
+	}
+
+	return nil
+}
+
+func (d *DonationPersistence) DeleteDonationImage(ctx context.Context, donationID, imageID string) error {
+	objID, err := common_util.ParsePrimitiveObjectID(donationID)
+	if err != nil {
+		return fmt.Errorf("INVALID_DONATION_ID_FORMAT")
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{
+		"$pull": bson.M{
+			"donation_images": bson.M{"id": imageID},
+		},
+		"$set": bson.M{
+			"last_modified_at": time.Now(),
+		},
+	}
+
+	_, err = d.donationDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to delete donation image: %v", err)
+	}
+
+	return nil
+}
+
+func (d *DonationPersistence) AddDonationImage(ctx context.Context, donationID string, image dto.DonationImage) error {
+	objID, err := common_util.ParsePrimitiveObjectID(donationID)
+	if err != nil {
+		return fmt.Errorf("INVALID_DONATION_ID_FORMAT")
+	}
+
+	donationImage := model.DonationImage{
+		ID:        image.ID,
+		PhotoURL:  image.PhotoURL,
+		CreatedAt: time.Now(),
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{
+		"$push": bson.M{
+			"donation_images": donationImage,
+		},
+		"$set": bson.M{
+			"last_modified_at": time.Now(),
+		},
+	}
+
+	_, err = d.donationDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to add donation image: %v", err)
+	}
+
+	return nil
 }
 
 // Helper function to convert string IDs to ObjectIDs

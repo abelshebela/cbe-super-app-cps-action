@@ -1028,17 +1028,6 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 }
 
 func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
-	filter := bson.M{"user_code": userCode}
-
-	// Check if the user exists
-	_, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return fmt.Errorf("CPS_USER_NOT_FOUND")
-		}
-		return fmt.Errorf("database error while finding user")
-	}
-
 	// Check if there is a pending action
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
@@ -1054,6 +1043,28 @@ func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, 
 	}
 	if pendingAction != nil {
 		return fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	var boolStatus bool
+	switch strings.ToUpper(cpsAction.ActionType) {
+	case "ENABLE":
+		boolStatus = true
+	case "DISABLE":
+		boolStatus = false
+	}
+
+	filter := bson.M{"user_code": userCode}
+	// Check if the user exists, and check if duplication action trying to create
+	user, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("CPS_USER_NOT_FOUND")
+		}
+		return fmt.Errorf("database error while finding user")
+	}
+
+	if user.Enabled == boolStatus {
+		return fmt.Errorf("DUPLICATE_ACTION")
 	}
 
 	// Create the CPS action

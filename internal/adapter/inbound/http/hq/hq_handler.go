@@ -133,7 +133,7 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w,map[string]string{"action_code": action.ActionCode}, "Update archive time request submitted for approval")
+	common_util.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update archive time request submitted for approval")
 }
 
 func (h *HQHTTPHandler) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.Request) {
