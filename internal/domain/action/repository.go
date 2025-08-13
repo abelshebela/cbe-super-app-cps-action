@@ -1,6 +1,10 @@
 package action
 
-import "context"
+import (
+	"context"
+
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+)
 
 type ActionRepository interface {
 	GetAllHqServices(ctx context.Context) ([]ServiceDetails, error)
@@ -20,8 +24,7 @@ type ActionRepository interface {
 }
 
 type IActionRepository interface {
-	CreateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
-	UpdateCpsAction(ctx context.Context, Action CPSAction) (CPSAction, error)
-	FetchCpsActionById(ctx context.Context, Action_Id string) (*CPSAction, error)
-	FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (*CPSAction, error)
+	CreateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+	GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error)
+	UpdateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }

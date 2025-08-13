@@ -5,6 +5,7 @@ shared
 test.go
 aiso/env
 .env
+docs
 .vscode
 # for running using Air package
 .air.toml

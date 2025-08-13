@@ -1610,6 +1610,21 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "One or more branch code is required",
 		},
+		"USER_ALREADY_ENABLED": {
+			Code:    "BRN_017",
+			Status:  StatusConflict,
+			Message: "This user is already enabled",
+		},
+		"USER_ALREADY_DISABLED": {
+			Code:    "BRN_018",
+			Status:  StatusConflict,
+			Message: "This user is already disabled",
+		},
+		"FAILED_TO_PARSE_FILTERS": {
+			Code:    "BRN_019",
+			Status:  StatusInternalServerError,
+			Message: "Failed to parse filter params",
+		},
 	},
 	Region: ErrorGroup{
 		"REGION_CODE_IS_REQUIRED": {

@@ -22,6 +22,7 @@ import (
 	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 
 	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
@@ -52,6 +53,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		AdDomain:              ad_service.NewAdvertService(persistence.advertPersistence, minioClient, "adverts", cfg, logger),
 		AvatarDomian:          avatar_domain.InitAvatarDomain(persistence.avatarPersitence, minioClient, "avatars", cfg, logger),
 		CustomerDomain:        customerDomain,
+		AccountDomain:         account_validation.NewAccountValidationService(persistence.AccountPersistence, persistence.CPSActionsPersistance, logger),
 		BPSUserDomain:         bps_user.NewBPSUserService(persistence.BPSUserPersistence, persistence.CPSActionsPersistance, logger),
 		FeedbackDomain:        feedback_service.InitFeedbackDomain(persistence.FeedBackPersistence, logger),
 		UnlinkDomain:          unlink_service.NewUnlinkServiceDomain(persistence.UnlinkPersistence, logger),

@@ -33,7 +33,7 @@ type CreateBankRequest struct {
 
 func (c CreateBankRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Name, validation.Required.Error(error_codes.MissingBankName), validation.Length(3, 10)),
+		validation.Field(&c.Name, validation.Required.Error(error_codes.MissingBankName), validation.Length(3, 25)),
 		validation.Field(&c.Code, validation.Required.Error(error_codes.MissingBankCode)),
 		validation.Field(&c.BIC, validation.Required.Error(error_codes.MissingBankBIC)),
 		validation.Field(&c.Logo, validation.By(func(value any) error {
@@ -134,7 +134,22 @@ func (u UpdateLogo) Validate() error {
 				return validation.NewError("logo", error_codes.FileTooLarge)
 			}
 
-			if !IsValidImage(file) {
+			// Check MIME type is image/*
+			fileObj, err := file.Open()
+			if err != nil {
+				return validation.NewError("logo", error_codes.InvalidFileType)
+			}
+			defer fileObj.Close()
+			buffer := make([]byte, 512)
+			_, err = fileObj.Read(buffer)
+			if err != nil {
+				return validation.NewError("logo", error_codes.InvalidFileType)
+			}
+			contentType := http.DetectContentType(buffer)
+			if !allowedMIMETypes[contentType] {
+				return validation.NewError("logo", error_codes.InvalidFileType)
+			}
+			if contentType == "" || len(contentType) < 6 || contentType[:6] != "image/" {
 				return validation.NewError("logo", error_codes.InvalidFileType)
 			}
 

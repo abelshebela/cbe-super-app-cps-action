@@ -35,6 +35,7 @@ type AccountValidationRepo struct {
 func InitAccountValidationPersistence(client *mongo.Client, database string, timeout time.Duration, logger utils.Logger) *AccountValidationRepo {
 	validationDal := dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, database, "validation_rule")
 	cpsActionDal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, database, "cps_actions")
+
 	return &AccountValidationRepo{
 		client:        client,
 		validationDal: validationDal,

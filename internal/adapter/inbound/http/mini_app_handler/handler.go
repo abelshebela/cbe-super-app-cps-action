@@ -148,7 +148,7 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Create Mini App request successfully created")
+	utils.BaseResponseMaker(nil, w, "Create Mini App requested Succssfully", 201)
 }
 
 func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -198,7 +198,7 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, nil, "Update Mini App request created successfully")
+	utils.BaseResponseMaker(nil, w, "Update Mini App request created successfully", 201)
 }
 
 func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -214,7 +214,7 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, nil, "Mini App deleted  request created successfully")
+	utils.BaseResponseMaker(nil, w, "Mini App deleted  request created successfully", 201)
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +235,7 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 		Data: &docs,
 		Meta: list.Meta,
 	}
-	utils.WriteSuccessResponse(w, res, "successful")
+	utils.BaseResponseMaker(res, w, "Mini Apps successfuly retrived", 201)
 }
 
 func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
@@ -244,12 +244,12 @@ func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, common_util.InvalidID, 0, nil)
 		return
 	}
-	detail, err := h.Application.DetailMiniAppByID(r.Context(), id)
+	_, err := h.Application.DetailMiniAppByID(r.Context(), id)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.WriteSuccessResponse(w, detail, "successful feached miniapp by ID")
+	utils.BaseResponseMaker(nil, w, "successful feached miniapp by ID", 201)
 }
 
 func (h *HttpStore) EnableMiniAppByID(w http.ResponseWriter, r *http.Request) {
@@ -290,5 +290,5 @@ func (h *HttpStore) enableDisableMiniApp(w http.ResponseWriter, r *http.Request,
 	if enable {
 		action = "enabled"
 	}
-	utils.WriteSuccessResponse(w, nil, fmt.Sprintf("Mini App %s successfully", action))
+	utils.BaseResponseMaker(nil, w, fmt.Sprintf("Mini App %s successfully", action), 201)
 }
