@@ -13,11 +13,13 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type CPSUserService interface {
@@ -249,6 +251,15 @@ func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string)
 
 func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error {
 	userPayload := ctx_util.ExtractContext(ctx)
+	data, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return err
+		}
+	}
+	if data != nil {
+		return common.DefineError.General["PENDING_REQUEST_EXISTS"]
+	}
 	actionCode := utils.RandomGenerator(24)
 
 	action := model.CPSUser{
@@ -279,6 +290,15 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error {
 	userPayload := ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
+	data, err := s.repo.FetchPendingActionsByUniqueID(ctx, userPayload.UserCode)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return err
+		}
+	}
+	if data != nil {
+		return common.DefineError.General["PENDING_REQUEST_EXISTS"]
+	}
 
 	action := model.CPSUser{
 		UserCode: userCode,

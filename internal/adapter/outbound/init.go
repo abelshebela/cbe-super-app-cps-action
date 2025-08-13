@@ -1212,7 +1212,7 @@ func (o *outboundStore) GetDepartmentByID(ctx context.Context, id string) (*dep_
 }
 
 func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error) {
-	filter := bson.M{"user_code": userCode}
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil && modelUser == nil {
 		return nil, fmt.Errorf("CPS_USER_NOT_FOUND")

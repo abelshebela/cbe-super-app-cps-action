@@ -85,14 +85,14 @@ func (b *BankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cpsRequest.ActionData = bankRequest
-	cpsRes, err := b.bankHandler.CreateOneBank(r.Context(), *cpsRequest)
+	_, err = b.bankHandler.CreateOneBank(r.Context(), *cpsRequest)
 	if err != nil {
 		common_util.SendErrorResponse(w, err, 409, nil)
 		return
 	}
 
-	data := map[string]interface{}{"action_code": cpsRes.ActionCode}
-	common_util.WriteSuccessResponse(w, data, "Bank created successfully")
+	data := map[string]interface{}{}
+	common_util.WriteSuccessResponse(w, data, "Bank created requrest sent successfully")
 }
 
 func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +125,7 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank updated successfully")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank updated request sent successfully")
 }
 
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,7 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank deleted successfully.")
+	common_util.WriteSuccessResponse(w, cpsAction, "Bank deleted request sent successfully.")
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
@@ -161,7 +161,7 @@ func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, banks, "Banks retrieved successfully")
+	common_util.WriteSuccessResponse(w, banks, "Banks retrieved request sent successfully")
 }
 
 func (b *BankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
@@ -253,13 +253,13 @@ func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	cpsReq.ActionData = dto.UpdateBankRequest{ID: id}
 
-	cpsAction, err := b.bankHandler.EnableOrDisableBank(r.Context(), id, model.RequestEnableBank, *cpsReq)
+	_, err = b.bankHandler.EnableOrDisableBank(r.Context(), id, model.RequestEnableBank, *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank enable request sent successfully")
+	common_util.WriteSuccessResponse(w, map[string]interface{}{}, "Bank enable request sent successfully")
 }
 
 func (b *BankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
@@ -293,11 +293,11 @@ func (b *BankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cpsRequest.ActionData = updateLogo
-	cpsRes, err := b.bankHandler.UpdateLogo(r.Context(), id, *cpsRequest)
+	_, err = b.bankHandler.UpdateLogo(r.Context(), id, *cpsRequest)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsRes, "Bank logo updated successfully.")
+	common_util.WriteSuccessResponse(w, map[string]interface{}{}, "Bank logo updated request sent successfully.")
 }
