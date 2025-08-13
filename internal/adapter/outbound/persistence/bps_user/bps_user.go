@@ -66,18 +66,19 @@ func (o *BpsPersistence) GetBPSUserByUserCode(ctx context.Context, userCode stri
 	return domainUser, nil
 }
 
-func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error) {
+func (o *BpsPersistence) GetAllBPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*bps_user.BPSUser], error) {
 	filter := bsonv2.M{}
 
 	if filterParams.Search != "" {
-		searchRegex := bsonv2.Regex{Pattern: filterParams.Search, Options: "i"}
-		filter["$or"] = []bsonv2.M{
-			{"user_code": searchRegex},
-			{"full_name": searchRegex},
-			{"phone_number": searchRegex},
-			{"username": searchRegex},
-			{"role": searchRegex},
-			{"branch_name": searchRegex},
+		filter = bsonv2.M{
+			"$or": []bsonv2.M{
+				{"user_code": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"full_name": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"phone_number": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"username": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"role": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+				{"branch_name": bsonv2.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
 		}
 	}
 

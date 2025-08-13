@@ -15,8 +15,6 @@ import (
 type CPSUserRepo interface {
 	CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error)
-	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
-	ApproveUserAction(ctx context.Context, actionCode string, checker model.CPSAction) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	FetchPendingActionsByUniqueID(ctx context.Context, uniqueID string) ([]action.ActionResponse, error)
