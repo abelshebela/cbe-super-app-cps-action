@@ -84,6 +84,7 @@ func (h *HttpStore) UpdateAccountValidationMaker(w http.ResponseWriter, r *http.
 		utils.SendErrorResponse(w, "MAX_NOT_BE_LESS", 0, nil)
 		return
 	}
+
 	if err := req.Validate(); err != nil {
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return

@@ -72,7 +72,6 @@ func ToDomainEventRequest(req struct {
 	}
 }
 
-
 // ToEventResponse maps domain Event entity to HTTP EventResponse
 func ToEventResponse(e *evententity.Event) EventResponse {
 	return EventResponse{
@@ -86,6 +85,7 @@ func ToEventResponse(e *evententity.Event) EventResponse {
 		EventEndDate:     e.EventInformation.DueDate,
 		EventStatus:      string(e.Status),
 		EventVenue:       e.EventVenue,
+		Enabled:          e.Enabled,
 		EventCity:        e.EventCity,
 		MerchantName:     e.MerchantInformation.MercahntName,
 		MerchantPhone:    e.MerchantInformation.MerchantPhoneNumber,

@@ -182,6 +182,13 @@ func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *miniApp_
 		return nil, err
 	}
 
+	existing, err := o.MongoDalMiniApp.FindOne(ctx, bson.M{"app_name": miniAppDoc.AppName}, bson.M{"_id": 1})
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("The App name Already Exist")
+	}
 	miniApp, err := o.MongoDalMiniApp.InsertOne(ctx, *miniAppDoc)
 	if err != nil {
 		return nil, err

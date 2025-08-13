@@ -4,6 +4,7 @@ import (
 	"context"
 
 	action_entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -22,11 +23,11 @@ type ActionRepo struct {
 	client *mongo.Client
 	logger utils.Logger
 
-	cpsDal dal.MongoDal[action_entity.CPSAction, action_entity.CPSAction]
+	cpsDal dal.MongoDal[*entities.CPSAction, *entities.CPSAction]
 }
 
 func NewActionRepo(client *mongo.Client, dbName string, collections []string, logger utils.Logger) action_entity.IActionRepository {
-	dalCPS := dal.NewMongoDal[action_entity.CPSAction, action_entity.CPSAction](client, dbName, "cps_actions")
+	dalCPS := dal.NewMongoDal[*entities.CPSAction, *entities.CPSAction](client, dbName, "cps_actions")
 	return &ActionRepo{
 		cpsDal: dalCPS,
 		logger: logger,
@@ -34,14 +35,61 @@ func NewActionRepo(client *mongo.Client, dbName string, collections []string, lo
 	}
 }
 
-func (r *ActionRepo) CreateCpsAction(ctx context.Context, Action action_entity.CPSAction) (action_entity.CPSAction, error) {
-	return r.cpsDal.InsertOne(ctx, Action)
+func (r *ActionRepo) CreateCPSAction(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+	return r.cpsDal.InsertOne(ctx, action)
 }
 
-func (r *ActionRepo) UpdateCpsAction(ctx context.Context, Action action_entity.CPSAction) (action_entity.CPSAction, error) {
+func (r *ActionRepo) GetCPSActionByID(ctx context.Context, id string) (*entities.CPSAction, error) {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
+		return nil, err
+	}
+
+	data, err := r.cpsDal.FindOne(ctx, bson.M{"_id": oid}, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return *data, nil
+}
+
+func (r *ActionRepo) FetchCpsActionById(ctx context.Context, actionId string) (*entities.CPSAction, error) {
+	oid, err := bson.ObjectIDFromHex(actionId)
+	if err != nil {
+		r.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
+		return nil, err
+	}
+
+	data, err := r.cpsDal.FindOne(ctx, bson.M{"_id": oid}, nil)
+	if err != nil {
+		return nil, err
+	}
+	return *data, nil
+}
+
+func (r *ActionRepo) FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (*entities.CPSAction, error) {
+	filter := bson.M{"maker.user_id": makerId}
+	data, err := r.cpsDal.FindOne(ctx, filter, bson.M{"$sort": bson.M{"created_at": -1}})
+	if err != nil {
+		return nil, err
+	}
+	return *data, nil
+}
+
+func (r *ActionRepo) DeleteCpsAction(ctx context.Context, actionId string) error {
+	oid, err := bson.ObjectIDFromHex(actionId)
+	if err != nil {
+		r.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
+		return err
+	}
+	return r.cpsDal.DeleteOne(ctx, bson.M{"_id": oid})
+}
+
+func (r *ActionRepo) UpdateCPSAction(ctx context.Context, Action *entities.CPSAction) (*entities.CPSAction, error) {
 	update := bson.M{
 		"action_code":          Action.ActionCode,
-		"unique_id":            Action.UniqueId,
+		"unique_id":            Action.UniqueID,
 		"maker_id":             Action.MakerID,
 		"maker_name":           Action.MakerName,
 		"maker_phone_number":   Action.MakerPhoneNumber,
@@ -58,28 +106,4 @@ func (r *ActionRepo) UpdateCpsAction(ctx context.Context, Action action_entity.C
 		"last_modified_at":     Action.LastModifiedAt,
 	}
 	return r.cpsDal.UpdateOne(ctx, bson.M{"_id": Action.ID}, update)
-}
-
-func (r *ActionRepo) FetchCpsActionById(ctx context.Context, actionId string) (*action_entity.CPSAction, error) {
-	oid, err := bson.ObjectIDFromHex(actionId)
-	if err != nil {
-		r.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
-		return nil, err
-	}
-
-	return r.cpsDal.FindOne(ctx, bson.M{"_id": oid}, nil)
-}
-
-func (r *ActionRepo) FetchLastCpsActionByMakerID(ctx context.Context, makerId string) (*action_entity.CPSAction, error) {
-	filter := bson.M{"maker.user_id": makerId}
-	return r.cpsDal.FindOne(ctx, filter, bson.M{"$sort": bson.M{"created_at": -1}})
-}
-
-func (r *ActionRepo) DeleteCpsAction(ctx context.Context, actionId string) error {
-	oid, err := bson.ObjectIDFromHex(actionId)
-	if err != nil {
-		r.logger.Errorf("failed to convert action ID to ObjectID: %v", err)
-		return err
-	}
-	return r.cpsDal.DeleteOne(ctx, bson.M{"_id": oid})
 }

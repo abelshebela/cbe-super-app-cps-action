@@ -98,6 +98,7 @@ const (
 	RequestUpdateAccessConfig       RequestAction = "UPDATE_ACCESS_CONFIG"
 	RequestEnableSingleBranch       RequestAction = "ENABLE_SINGLE_BRANCH"
 	RequestDisableSingleBranch      RequestAction = "DISABLE_SINGLE_BRANCH"
+	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestEnableMultiUsers         RequestAction = "ENABLE_MULTI_USERS"
 	RequestDisableMultiUsers        RequestAction = "DISABLE_MULTI_USERS"
 	RequestCreateBusiness           RequestAction = "CREATE_BUSINESS"
@@ -137,8 +138,8 @@ const (
 	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
 	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
 
-	RequestCreateEventCategory RequestAction = "CREATE_EVENT_CATEGORY"
-	RequestUpdateEventCategory RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestCreateEventCategory   RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory   RequestAction = "UPDATE_EVENT_CATEGORY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
@@ -200,12 +201,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateAmountBasedAuth: {},
 	RequestUser:                  {},
 
-	RequestCreateBudgetColor: {},
-	RequestUpdateBudgetColor: {},
-	RequestDeleteBudgetColor: {},
-	RequestCreateBudgetIcon:  {},
-	RequestUpdateBudgetIcon:  {},
-	RequestDeleteBudgetIcon:  {},
+	RequestUpdateAccountValidation: {},
+	RequestCreateBudgetColor:       {},
+	RequestUpdateBudgetColor:       {},
+	RequestDeleteBudgetColor:       {},
+	RequestCreateBudgetIcon:        {},
+	RequestUpdateBudgetIcon:        {},
+	RequestDeleteBudgetIcon:        {},
 
 	RequestCpsUserCreate:            {},
 	RequestCpsUserUpdate:            {},
@@ -324,6 +326,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"Account": {
 		RequestUser,
+		RequestUpdateAccountValidation,
 		RequestEnableUser,
 		RequestDisableUser,
 		RequestUpdateUser,
