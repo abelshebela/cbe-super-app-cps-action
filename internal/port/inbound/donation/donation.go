@@ -19,4 +19,8 @@ type DonationHandler interface {
 	UpdateDonation(w http.ResponseWriter, r *http.Request)
 	FetchDonation(w http.ResponseWriter, r *http.Request)
 	FetchDonationByID(w http.ResponseWriter, r *http.Request)
+
+	UpdateDonationImage(w http.ResponseWriter, r *http.Request)
+	DeleteDonationImage(w http.ResponseWriter, r *http.Request)
+	AddDonationImage(w http.ResponseWriter, r *http.Request)
 }

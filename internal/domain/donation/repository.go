@@ -37,4 +37,8 @@ type DonationRepository interface {
 	FetchDonationByCode(ctx context.Context, donationCode string) (*dto.DonationListResponse, error)
 	UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) (*dto.DonationRequest, error)
 	UpdateDonationWithImageURLs(ctx context.Context, id string, donation dto.DonationRequest, imageURLs []string) (*dto.DonationRequest, error)
+
+	UpdateDonationImage(ctx context.Context, donationID, imageID, photoURL string) error
+	DeleteDonationImage(ctx context.Context, donationID, imageID string) error
+	AddDonationImage(ctx context.Context, donationID string, image dto.DonationImage) error
 }

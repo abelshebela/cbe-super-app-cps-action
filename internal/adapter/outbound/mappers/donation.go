@@ -1,6 +1,7 @@
 package mappers
 
 import (
+	"math/rand"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -46,6 +47,7 @@ func ToDonationCategoryDTO(m *model.DonationCategory) *dto.DonationCategoryReque
 
 func ToDonationCategoryListResponse(m *model.DonationCategory) *dto.DonationCategoryListResponse {
 	return &dto.DonationCategoryListResponse{
+		ID:             m.ID.Hex(),
 		CategoryName:   m.CategoryName,
 		Icon:           m.Icon,
 		IsDeleted:      m.IsDeleted,
@@ -84,6 +86,7 @@ func ToDonationCompanyModelWithURL(d *dto.DonationCompanyRequest, logoURL string
 
 func ToDonationCompanyListResponse(m *model.DonationCompany) *dto.DonationCompanyListResponse {
 	return &dto.DonationCompanyListResponse{
+		ID:             m.ID.Hex(),
 		CompanyName:    m.CompanyName,
 		CompanyLogo:    m.CompanyLogo,
 		AccountNumber:  m.AccountNumber,
@@ -106,7 +109,8 @@ func ToDonationModel(d *dto.DonationRequest) *model.Donation {
 		IsFeatured:          d.IsFeatured,
 		Target:              d.Target,
 		DonationDescription: d.DonationDescription,
-		DonationImages:      []string{}, // Will be set by service
+		DonationImages:      []model.DonationImage{},
+		CoverImage:          "", // Will be set by service
 		EndDate:             d.EndDate,
 		StartDate:           d.StartDate,
 		IsDeleted:           false,
@@ -114,10 +118,19 @@ func ToDonationModel(d *dto.DonationRequest) *model.Donation {
 	}
 }
 
-func ToDonationModelWithURLs(d *dto.DonationRequest, imageURLs []string) *model.Donation {
+func ToDonationModelWithURLs(d *dto.DonationRequest, imageURLs []string, coverImage string) *model.Donation {
 	// Convert string IDs to ObjectIDs
 	companyObjID, _ := stringToObjectID(d.CompanyID)
 	categoryObjID, _ := stringToObjectID(d.CategoryID)
+
+	donationImages := make([]model.DonationImage, len(imageURLs))
+	for i, url := range imageURLs {
+		donationImages[i] = model.DonationImage{
+			ID:        generateImageID(),
+			PhotoURL:  url,
+			CreatedAt: time.Now(),
+		}
+	}
 
 	return &model.Donation{
 		DonationCode:        d.DonationCode,
@@ -127,7 +140,8 @@ func ToDonationModelWithURLs(d *dto.DonationRequest, imageURLs []string) *model.
 		IsFeatured:          d.IsFeatured,
 		Target:              d.Target,
 		DonationDescription: d.DonationDescription,
-		DonationImages:      imageURLs,
+		DonationImages:      donationImages,
+		CoverImage:          coverImage, // URL for cover image
 		EndDate:             d.EndDate,
 		StartDate:           d.StartDate,
 		IsDeleted:           false,
@@ -144,7 +158,8 @@ func ToDonationDTO(m *model.Donation) *dto.DonationRequest {
 		IsFeatured:          m.IsFeatured,
 		Target:              m.Target,
 		DonationDescription: m.DonationDescription,
-		DonationImages:      nil, // URLs are stored in DonationImages field
+		DonationImages:      nil,
+		CoverImage:          nil, // URLs are stored in DonationImages field
 		EndDate:             m.EndDate,
 		StartDate:           m.StartDate,
 	}
@@ -155,7 +170,17 @@ func ToDonationListResponse(
 	company *model.DonationCompany,
 	category *model.DonationCategory,
 ) *dto.DonationListResponse {
+	donationImages := make([]dto.DonationImage, len(m.DonationImages))
+	for i, img := range m.DonationImages {
+		donationImages[i] = dto.DonationImage{
+			ID:        img.ID,
+			PhotoURL:  img.PhotoURL,
+			CreatedAt: img.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+	}
+
 	return &dto.DonationListResponse{
+		ID:           m.ID.Hex(),
 		DonationCode: m.DonationCode,
 		Company: dto.DonationCompanyCPSRequest{
 			ID:            company.ID.Hex(),
@@ -172,11 +197,25 @@ func ToDonationListResponse(
 		IsFeatured:          m.IsFeatured,
 		Target:              m.Target,
 		DonationDescription: m.DonationDescription,
-		DonationImages:      m.DonationImages,
+		DonationImages:      donationImages,
+		CoverImage:          m.CoverImage,
 		EndDate:             m.EndDate.Format("2006-01-02T15:04:05Z07:00"),
 		StartDate:           m.StartDate.Format("2006-01-02T15:04:05Z07:00"),
 		IsDeleted:           m.IsDeleted,
 		CreatedAt:           m.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		LastModifiedAt:      m.LastModifiedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
+}
+
+func generateImageID() string {
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const length = 16
+
+	rand.Seed(time.Now().UnixNano())
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return "IMG" + string(result)
 }
