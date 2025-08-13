@@ -9,6 +9,7 @@ import (
 	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	evententity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
@@ -56,8 +57,21 @@ func (a *ApplicationStore) handleCPSAction(ctx context.Context, maker cps_entiti
 		ActionStatus:  cps_const.ActionPending,
 		ActionType:    actionType,
 	})
+	userdata := entities.CheckCPSAction{
+		UserCode:    maker.UserCode,
+		Department:  maker.Department,
+		FullName:    maker.FullName,
+		PhoneNumber: maker.PhoneNumber,
+	}
+	existing, err := a.cpsService.CPSActionExists(ctx, userdata)
+	if err != nil {
+		return err
+	}
+	if existing {
+		return fmt.Errorf("PENDING_REQUEST_EXISTS")
+	}
+	_, err = a.cpsService.CreateCPSAction(ctx, cpsAction)
 
-	_, err := a.cpsService.CreateCPSAction(ctx, cpsAction)
 	return err
 }
 
@@ -118,6 +132,21 @@ func (a *ApplicationStore) DeleteEvent(ctx context.Context, id string, maker cps
 }
 
 func (a *ApplicationStore) EnableDisableEvent(ctx context.Context, id string, maker cps_entitites.User, enable bool) error {
+
+	userdata := entities.CheckCPSAction{
+		UserCode:    maker.UserCode,
+		Department:  maker.Department,
+		FullName:    maker.FullName,
+		PhoneNumber: maker.PhoneNumber,
+	}
+	existing, err := a.cpsService.CPSActionExists(ctx, userdata)
+	if err != nil {
+		return err
+	}
+	if existing {
+		return fmt.Errorf("PENDING_REQUEST_EXISTS")
+	}
+
 	curAction, prevAction, err := a.service.EnableDisableEvent(ctx, id, enable)
 	if err != nil {
 		return err
