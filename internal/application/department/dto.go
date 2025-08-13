@@ -12,9 +12,9 @@ type CreateDepartmentRequest struct {
 
 func (i CreateDepartmentRequest) Validate() error {
 	return validation.ValidateStruct(&i,
-		validation.Field(&i.Department, validation.Required),
-		validation.Field(&i.PortalCards, validation.Required, validation.Each(validation.Required)),
-		validation.Field(&i.PermissionGroups, validation.Required, validation.Each(validation.Required)),
+		validation.Field(&i.Department, validation.Required.Error("Department name is required")),
+		validation.Field(&i.PortalCards, validation.Each(validation.Required.Error("Each portal card must be non-empty"))),
+		validation.Field(&i.PermissionGroups, validation.Each(validation.Required.Error("Each permission group must be non-empty"))),
 	)
 }
 
@@ -26,9 +26,9 @@ type UpdateDepartmentRequest struct {
 
 func (i UpdateDepartmentRequest) Validate() error {
 	return validation.ValidateStruct(&i,
-		validation.Field(&i.Department, validation.Required),
-		validation.Field(&i.PortalCards, validation.Required, validation.Each(validation.Required)),
-		validation.Field(&i.PermissionGroups, validation.Required, validation.Each(validation.Required)),
+		validation.Field(&i.Department, validation.When(i.Department != "", validation.Required.Error("Department name must be non-empty when provided"))),
+		validation.Field(&i.PortalCards, validation.When(i.PortalCards != nil, validation.Each(validation.Required.Error("Each portal card must be non-empty when provided")))),
+		validation.Field(&i.PermissionGroups, validation.When(i.PermissionGroups != nil, validation.Each(validation.Required.Error("Each permission group must be non-empty when provided")))),
 	)
 }
 
@@ -44,13 +44,13 @@ type DepartmentUpdateCPSActionRequest struct {
 
 func (i DepartmentUpdateCPSActionRequest) Validate() error {
 	return validation.ValidateStruct(&i,
-		validation.Field(&i.MakerID, validation.Required),
-		validation.Field(&i.MakerName, validation.Required),
-		validation.Field(&i.MakerPhoneNumber, validation.Required),
-		validation.Field(&i.Department, validation.Required),
-		validation.Field(&i.DepartmentCode, validation.Required),
-		validation.Field(&i.DepartmentName, validation.Required),
-		validation.Field(&i.PortalCards, validation.Required, validation.Each(validation.Required)),
+		validation.Field(&i.MakerID, validation.Required.Error("Maker ID is required")),
+		validation.Field(&i.MakerName, validation.Required.Error("Maker name is required")),
+		validation.Field(&i.MakerPhoneNumber, validation.Required.Error("Maker phone number is required")),
+		validation.Field(&i.Department, validation.Required.Error("Department is required")),
+		validation.Field(&i.DepartmentCode, validation.Required.Error("Department code is required")),
+		validation.Field(&i.DepartmentName, validation.Required.Error("Department name is required")),
+		validation.Field(&i.PortalCards, validation.Each(validation.Required.Error("Each portal card must be non-empty"))),
 	)
 }
 
