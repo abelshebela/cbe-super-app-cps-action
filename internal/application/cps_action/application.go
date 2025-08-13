@@ -2,7 +2,8 @@ package cpsaction
 
 import (
 	"context"
-	"time"
+	"encoding/json"
+	"fmt"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -10,7 +11,6 @@ import (
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type CPSActionApplication interface {
@@ -25,50 +25,40 @@ type cpsActionApplication struct {
 	service    service.CPSActionService
 	services   application.Domain
 	dispatcher Dispatcher
-	logger     utils.Logger
 }
 
-func NewCPSActionApplication(service service.CPSActionService, services application.Domain, dispatcher Dispatcher,
-	logger utils.Logger,
-) CPSActionApplication {
+func NewCPSActionApplication(service service.CPSActionService, services application.Domain, dispatcher Dispatcher) CPSActionApplication {
 	return &cpsActionApplication{
 		service:    service,
 		services:   services,
 		dispatcher: dispatcher,
-		logger:     logger,
 	}
 }
 
+func PrettyPrintJSON(data interface{}) error {
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(prettyJSON))
+	return nil
+}
+
 func (a *cpsActionApplication) ApproveCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {
-	var result *entities.CPSAction
-
-	txCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	err := a.service.RunInTransaction(txCtx, func(txCtx context.Context) error {
-		a.logger.Infof("Approving CPS action: %s", action.ActionCode)
-
-		cpsAction, err := a.service.ApproveCPSAction(txCtx, action)
-		if err != nil {
-			a.logger.Errorf("failed to approve CPS action: %v", err)
-			return err
-		}
-
-		cpsRes, err := a.dispatcher.Authorize(txCtx, cpsAction)
-		if err != nil {
-			a.logger.Errorf("failed to authorize CPS action: %v", err)
-			return err
-		}
-
-		a.logger.Infof("Successfully approved and authorized CPS action: %s", cpsRes.ID)
-		result = cpsRes
-		return nil
-	})
-
+	cpsAction, err := a.service.ApproveCPSAction(ctx, action)
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+
+	PrettyPrintJSON(cpsAction)
+
+	cpsRes, err := a.dispatcher.Authorize(ctx, cpsAction)
+	if err != nil {
+		return nil, err
+	}
+
+	return cpsRes, nil
 }
 
 func (a *cpsActionApplication) RejectCPSAction(ctx context.Context, action *entities.AuthorizeCPSAction) (*entities.CPSAction, error) {

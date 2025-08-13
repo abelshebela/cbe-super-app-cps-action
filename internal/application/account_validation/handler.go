@@ -32,6 +32,7 @@ func (a *ApplicationStore) GetAllAccountValidation(ctx context.Context, filterPa
 }
 
 func (a *ApplicationStore) GetAccountValidation(ctx context.Context, id string) (dto.GetAccountValidationResponse, error) {
+
 	rule, err := a.service.GetAccountValidation(ctx, id)
 	if err != nil {
 		return dto.GetAccountValidationResponse{}, err

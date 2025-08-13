@@ -81,7 +81,10 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 	var fieldRules []*validation.FieldRules
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.AppName, validation.Required.Error("app_name is required")),
+			validation.Field(&r.AppName,
+				validation.Required.Error("app_name is required"),
+				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error("app_name must not contain special characters"),
+			),
 			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required")),
 			validation.Field(&r.AppIcon, validation.Required, validation.By(validateFile)),
 			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required")),
