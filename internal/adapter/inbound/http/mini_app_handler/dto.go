@@ -103,12 +103,7 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 		return err
 	}
 
-	return validation.Validate(&r,
-		validation.By(validateAppType(r)),
-		validation.By(validateProductCodes(r, isCreate)),
-		validation.By(validateExclusiveAppFlags(r)),
-		validation.By(validateAppViewType(r, isCreate)),
-	)
+	return nil
 }
 
 const MaxAvatarSize = 2 * 1024 * 1024

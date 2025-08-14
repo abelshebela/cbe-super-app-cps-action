@@ -137,7 +137,9 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *mi
 }
 
 func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
+
 	objID, err := common_util.ParsePrimitiveObjectID(miniApp.ID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +169,21 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 		update["product_code"] = miniApp.ProductCode
 	}
 	if !reflect.DeepEqual(miniApp.Credential, miniApp_domain.CredentialInformation{}) {
-		update["credential"] = miniApp.Credential
+
+		// credID, err := common_util.ParsePrimitiveObjectID(miniApp.Credential.ID)
+		// fmt.Println("//////////////////////////", err)
+
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		data, err := common_util.JsonUnmarshal[bson.M](miniApp.Credential)
+		if err != nil {
+			return nil, err
+		}
+
+		(*data)["id"] = bson.NewObjectID()
+		update["credential"] = data
 	}
 
 	update["is_event_mini_app"] = miniApp.IsEventMiniApp
@@ -177,7 +193,6 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 	if len(update) == 1 {
 		return nil, fmt.Errorf(common_util.NoDataProvidedForUpdate)
 	}
-
 	mini, err := o.MongoDalMiniApp.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

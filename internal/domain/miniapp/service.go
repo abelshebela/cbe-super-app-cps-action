@@ -139,6 +139,7 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	}
 
 	var err error
+
 	switch requestedAction := action.RequestAction; requestedAction {
 	case constant.RequestCreateMiniApp:
 		err = s.repository.RunInTransaction(ctx, func(ctx context.Context) error {
@@ -159,6 +160,7 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 			return nil
 		})
 	case constant.RequestUpdateMiniApp:
+
 		minApp, err = s.repository.UpdateMinApp(ctx, minApp)
 	case constant.RequestDeleteMiniApp:
 		err = s.repository.RunInTransaction(ctx, func(ctx context.Context) error {
