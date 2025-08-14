@@ -79,7 +79,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	// Input validation
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[CreateDepartment] validation failed: %v", err)
-		common_util.SendErrorResponse(w, common_util.InvalidInput, http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, err, http.StatusBadRequest,nil)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 
 	if err := validatePatchUpdateDepartmentRequest(request); err != nil {
 		h.logger.Warnf("[UpdateDepartmentRequest] validation failed: %v", err)
-		common_util.SendErrorResponse(w, common_util.InvalidInput, http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, err, http.StatusBadRequest,nil)
 		return
 	}
 
