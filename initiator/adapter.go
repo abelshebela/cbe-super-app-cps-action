@@ -79,14 +79,12 @@ import (
 	inboundBudgetCategory "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/budget_category"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/cps_actions"
 
-
 	//bps_user "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
 
 	donation_handler "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/donation"
 	donation_inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/donation"
 
 	encryption "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/encryption"
-
 )
 
 type Adapter struct {
@@ -131,8 +129,7 @@ type Adapter struct {
 	ProductCodeAdapter  productcode_inbound.ProductCodeHandler
 	DonationAdapter     donation_inbound.DonationHandler
 
-	Encryption             encryption.Encryption
-
+	Encryption encryption.Encryption
 }
 
 func InitAdapter(application Application, minioClient config.MinioClientInterface, logger utils.Logger, config *config.VaultConfig) Adapter {
@@ -168,10 +165,9 @@ func InitAdapter(application Application, minioClient config.MinioClientInterfac
 		NotificationAdapter:    notification_handler.NewNotificationHTTPHandler(application.NotificationApplication, logger),
 		ProductCodeAdapter:     productcode_handler.NewProductCodeHTTPHandler(application.ProductCodeApplication, logger),
 
-		DonationAdapter:        donation_handler.NewDonationHTTPHandler(application.DonationApplication, logger),
+		DonationAdapter: donation_handler.NewDonationHTTPHandler(application.DonationApplication, logger),
 
-		BPSUserAdapter:         bps_user_handler.InitBPSUserMakerHandler(application.BPSUserApplication, logger),
-		Encryption:             encryption_handler.NewEncryption(logger, config),
-
+		BPSUserAdapter: bps_user_handler.InitBPSUserMakerHandler(application.BPSUserApplication, logger),
+		Encryption:     encryption_handler.NewEncryption(logger, config),
 	}
 }

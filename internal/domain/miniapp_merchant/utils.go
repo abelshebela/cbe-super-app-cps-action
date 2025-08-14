@@ -1,6 +1,5 @@
 package miniappmerchant
 
-
 import "time"
 
 // nonEmptyString returns s if non-empty, otherwise fallback

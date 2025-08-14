@@ -10,10 +10,10 @@ import (
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 )
 
 type DonationAbstract interface {
@@ -41,8 +41,6 @@ type DonationAbstract interface {
 	DeleteDonationImage(ctx context.Context, donationID, imageID string, maker cps_entities.User) error
 	AddDonationImage(ctx context.Context, donationID string, image *multipart.FileHeader, maker cps_entities.User) error
 }
-
-
 
 type DonationStore struct {
 	service    donation_domain.DonationService

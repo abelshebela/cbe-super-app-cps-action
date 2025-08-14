@@ -159,4 +159,4 @@ package mocks
 // func (mr *MockServiceFeeMockRecorder) RejectServiceFeeUpdate(ctx, cpsAction interface{}) *gomock.Call {
 // 	mr.mock.ctrl.T.Helper()
 // 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RejectServiceFeeUpdate", reflect.TypeOf((*MockServiceFee)(nil).RejectServiceFeeUpdate), ctx, cpsAction)
-// } 
+// }

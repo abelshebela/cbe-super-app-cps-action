@@ -14,7 +14,7 @@ type CifSearchResposnse struct {
 }
 
 type CifRemoveMakerResponse struct {
-	UserID   string `json:"user_id"`
+	UserID     string `json:"user_id"`
 	ActionCode string `json:"action_code"`
 }
 

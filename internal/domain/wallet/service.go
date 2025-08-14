@@ -7,8 +7,8 @@ import (
 	"time"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"

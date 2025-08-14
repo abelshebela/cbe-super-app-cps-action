@@ -26,7 +26,7 @@ func NewBranchHandler(service branchapp.ApplicationService, logger utils.Logger)
 		logger:  logger,
 	}
 }
-func (h *BranchHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
+func (h *BranchHandler) GetBranch(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Region   string `json:"region"`
 		District string `json:"district"`
@@ -36,9 +36,9 @@ func (h *BranchHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Requ
 		resp.SendJSON()
 		return
 	}
-	branches, err := h.service.FilterSingleBranches(r.Context(), req.Region, req.District)
+	branches, err := h.service.GetBranch(r.Context(), req.Region, req.District)
 	if err != nil {
-		h.logger.Errorf("FilterSingleBranches failed: %v", err)
+		h.logger.Errorf("GetBranch failed: %v", err)
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
 		resp.SendJSON()
 		return
@@ -124,7 +124,7 @@ func (h *BranchHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *htt
 	resp.SendJSON()
 }
 
-func (h *BranchHandler) FilterMultipleBranches(w http.ResponseWriter, r *http.Request) {
+func (h *BranchHandler) GetAllBranches(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Region   string `json:"region"`
 		District string `json:"district"`
@@ -147,9 +147,9 @@ func (h *BranchHandler) FilterMultipleBranches(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	branches, err := h.service.FilterMultipleBranches(r.Context(), req.Region, req.District)
+	branches, err := h.service.GetAllBranches(r.Context(), req.Region, req.District)
 	if err != nil {
-		h.logger.Errorf("FilterMultipleBranches failed: %v", err)
+		h.logger.Errorf("GetAllBranches failed: %v", err)
 		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
 		resp.SendJSON()
 		return

@@ -70,7 +70,6 @@ func (a *AvatarDomain) UpdateAvatar(ctx context.Context, id string, req AvatarRe
 		return nil, nil, err
 	}
 
-
 	var url string
 	if req.Avatar != nil {
 		url, err = common_util.UploadFileToMinio(ctx, a.minioClient, a.bucketName, req.Avatar, "avatar", a.cfg.MinioEndPoint, a.logger)
@@ -106,7 +105,7 @@ func (a *AvatarDomain) DeleteAvatar(ctx context.Context, id string) (*Avatar, *A
 		return nil, nil, err
 	}
 
-	now:= time.Now()
+	now := time.Now()
 	curData := *existingAvatar
 	curData.IsDeleted = true
 	curData.DeletedAt = &now

@@ -69,8 +69,6 @@ func (h *AdvertHTTPStore) parseBannerImage(r *http.Request, isUpdate bool) (*mul
 	return fileHeader, nil
 }
 
-
-
 // parseAndValidateAdvertRequest parses and validates the advert request from multipart form
 func (h *AdvertHTTPStore) parseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpdate bool) (AdvertRequest, bool) {
 	var req AdvertRequest

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	
 
 	"mime/multipart"
 
@@ -29,7 +28,6 @@ func parseDonationAmount(amountStr string) (int, error) {
 
 	cleanedAmount := utils.CleanAmountString(amountStr)
 
-
 	amount, err := strconv.ParseFloat(cleanedAmount, 64)
 	if err != nil {
 		return 0, fmt.Errorf("invalid donation amount format")
@@ -37,9 +35,6 @@ func parseDonationAmount(amountStr string) (int, error) {
 
 	return int(amount), nil
 }
-
-
-
 
 const (
 	DefaultPage     = 1

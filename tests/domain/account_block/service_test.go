@@ -35,7 +35,7 @@ package account_block
 // 			district: "Bole",
 // 			mockSetup: func() {
 // 				mockRepo.EXPECT().
-// 					FilterSingleBranches(ctx, "Addis", "Bole", nil).
+// 					GetBranch(ctx, "Addis", "Bole", nil).
 // 					Return([]action.Branch{
 // 						{BranchCode: "BR001", BranchName: "Branch 1"},
 // 						{BranchCode: "BR002", BranchName: "Branch 2"},
@@ -61,7 +61,7 @@ package account_block
 // 			district: "Bole",
 // 			mockSetup: func() {
 // 				mockRepo.EXPECT().
-// 					FilterSingleBranches(ctx, "Addis", "Bole", nil).
+// 					GetBranch(ctx, "Addis", "Bole", nil).
 // 					Return(nil, errors.New("db error"))
 // 			},
 // 			wantErr:    true,
@@ -72,7 +72,7 @@ package account_block
 // 	for _, tt := range tests {
 // 		t.Run(tt.name, func(t *testing.T) {
 // 			tt.mockSetup()
-// 			got, err := service.FilterSingleBranches(ctx, tt.region, tt.district, nil)
+// 			got, err := service.GetBranch(ctx, tt.region, tt.district, nil)
 // 			if tt.wantErr {
 // 				assert.Error(t, err)
 // 				assert.Nil(t, got)
@@ -222,7 +222,7 @@ package account_block
 // 			district: "Bole",
 // 			mockSetup: func() {
 // 				mockRepo.EXPECT().
-// 					FilterMultipleBranches(ctx, "Addis", "Bole", nil).
+// 					GetAllBranches(ctx, "Addis", "Bole", nil).
 // 					Return([]action.Branch{
 // 						{BranchCode: "BR003"},
 // 						{BranchCode: "BR004"},
@@ -248,7 +248,7 @@ package account_block
 // 			district: "Bole",
 // 			mockSetup: func() {
 // 				mockRepo.EXPECT().
-// 					FilterMultipleBranches(ctx, "Addis", "Bole", nil).
+// 					GetAllBranches(ctx, "Addis", "Bole", nil).
 // 					Return(nil, errors.New("db error"))
 // 			},
 // 			wantErr:    true,
@@ -259,7 +259,7 @@ package account_block
 // 	for _, tt := range tests {
 // 		t.Run(tt.name, func(t *testing.T) {
 // 			tt.mockSetup()
-// 			got, err := service.FilterMultipleBranches(ctx, tt.region, tt.district, nil)
+// 			got, err := service.GetAllBranches(ctx, tt.region, tt.district, nil)
 // 			if tt.wantErr {
 // 				assert.Error(t, err)
 // 				assert.Nil(t, got)
@@ -473,7 +473,7 @@ package account_block
 
 // 	t.Run("success", func(t *testing.T) {
 // 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-// 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(branches, nil)
+// 		mockRepo.EXPECT().GetAllBranches(ctx, "Addis", "", nil).Return(branches, nil)
 // 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 // 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(nil)
 
@@ -494,14 +494,14 @@ package account_block
 
 // 	t.Run("filter branches error", func(t *testing.T) {
 // 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-// 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(nil, errors.New("fail"))
+// 		mockRepo.EXPECT().GetAllBranches(ctx, "Addis", "", nil).Return(nil, errors.New("fail"))
 // 		_, err := service.BlockRegion(ctx, region.ID, maker)
 // 		assert.Error(t, err)
 // 	})
 
 // 	t.Run("disable branches error", func(t *testing.T) {
 // 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-// 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(branches, nil)
+// 		mockRepo.EXPECT().GetAllBranches(ctx, "Addis", "", nil).Return(branches, nil)
 // 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(errors.New("fail"))
 // 		_, err := service.BlockRegion(ctx, region.ID, maker)
 // 		assert.Error(t, err)
@@ -509,7 +509,7 @@ package account_block
 
 // 	t.Run("block region error", func(t *testing.T) {
 // 		mockRepo.EXPECT().UpdateRegion(ctx, gomock.Any()).Return(nil)
-// 		mockRepo.EXPECT().FilterMultipleBranches(ctx, "Addis", "", nil).Return(branches, nil)
+// 		mockRepo.EXPECT().GetAllBranches(ctx, "Addis", "", nil).Return(branches, nil)
 // 		mockRepo.EXPECT().DisableMultipleBranches(ctx, gomock.Any(), action.User{UserCode: maker.MakerID}).Return(nil)
 // 		mockRepo.EXPECT().BlockRegion(ctx, "R1", maker).Return(errors.New("fail"))
 // 		_, err := service.BlockRegion(ctx, region.ID, maker)

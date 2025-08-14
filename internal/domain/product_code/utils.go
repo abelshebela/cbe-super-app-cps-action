@@ -7,7 +7,6 @@ func nonEmptyString(s, fallback string) string {
 	return fallback
 }
 
-
 // nonEmptyProductCodes updates ProductCodes fields if provided, otherwise preserves existing values
 func nonEmptyProductCodes(request, existing ProductCodes) ProductCodes {
 	return ProductCodes{

@@ -23,7 +23,7 @@ func LoadKafkaConfig(cfg *config.VaultConfig) *KafkaConfig {
 	fmt.Printf("DEBUG: Starting LoadKafkaConfig\n")
 	fmt.Printf("DEBUG: Using VaultConfig from initiator\n")
 
-	return loadKafkaConfigFromEnv(cfg )
+	return loadKafkaConfigFromEnv(cfg)
 
 }
 
@@ -34,9 +34,9 @@ func loadKafkaConfigFromEnv(cfg *config.VaultConfig) *KafkaConfig {
 	heartbeatInterval, _ := strconv.Atoi(getEnv("KAFKA_HEARTBEAT_INTERVAL", "3000"))
 
 	return &KafkaConfig{
-        Brokers:           cfg.KafkaBrokers,
-        FeedbackTopic:     "feedback-events",
-        ConsumerGroup:     "cps-action-service",
+		Brokers:           cfg.KafkaBrokers,
+		FeedbackTopic:     "feedback-events",
+		ConsumerGroup:     "cps-action-service",
 		RequiredAcks:      requiredAcks,
 		RetryMax:          retryMax,
 		SessionTimeout:    sessionTimeout,

@@ -33,7 +33,7 @@ func TestBranchService_FilterSingleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterSingleBranches(ctx, "Addis", "Bole").
+					GetBranch(ctx, "Addis", "Bole").
 					Return([]entities.Branch{
 						{BranchCode: "BR001", BranchName: "Branch 1"},
 						{BranchCode: "BR002", BranchName: "Branch 2"},
@@ -59,7 +59,7 @@ func TestBranchService_FilterSingleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterSingleBranches(ctx, "Addis", "Bole").
+					GetBranch(ctx, "Addis", "Bole").
 					Return(nil, errors.New("db error"))
 			},
 			wantErr:    true,
@@ -70,7 +70,7 @@ func TestBranchService_FilterSingleBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			got, err := service.FilterSingleBranches(ctx, tt.region, tt.district)
+			got, err := service.GetBranch(ctx, tt.region, tt.district)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, got)
@@ -220,7 +220,7 @@ func TestBranchService_FilterMultipleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterMultipleBranches(ctx, "Addis", "Bole").
+					GetAllBranches(ctx, "Addis", "Bole").
 					Return([]entities.Branch{
 						{BranchCode: "BR003"},
 						{BranchCode: "BR004"},
@@ -246,7 +246,7 @@ func TestBranchService_FilterMultipleBranches(t *testing.T) {
 			district: "Bole",
 			mockSetup: func() {
 				mockRepo.EXPECT().
-					FilterMultipleBranches(ctx, "Addis", "Bole").
+					GetAllBranches(ctx, "Addis", "Bole").
 					Return(nil, errors.New("db error"))
 			},
 			wantErr:    true,
@@ -257,7 +257,7 @@ func TestBranchService_FilterMultipleBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			got, err := service.FilterMultipleBranches(ctx, tt.region, tt.district)
+			got, err := service.GetAllBranches(ctx, tt.region, tt.district)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, got)

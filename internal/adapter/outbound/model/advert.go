@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-
 type AdvertFor string
 
 type AdvertDate struct {

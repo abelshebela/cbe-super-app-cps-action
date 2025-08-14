@@ -11,7 +11,6 @@ import (
 	cRand "crypto/rand"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
 )
 
 // GenerateRandom returns a random numeric string of the specified digit length.

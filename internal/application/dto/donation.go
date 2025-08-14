@@ -300,7 +300,7 @@ func validateDonationImages(value interface{}) error {
 	for _, file := range files {
 		// Check file size
 		if file.Size > 10*1024*1024 {
-			return validation.NewError("validation_image_size", 
+			return validation.NewError("validation_image_size",
 				"image exceeds the 10MB size limit")
 		}
 
@@ -312,7 +312,6 @@ func validateDonationImages(value interface{}) error {
 
 	return nil
 }
-
 
 func validateStartDate(value interface{}) error {
 	startDate, ok := value.(time.Time)

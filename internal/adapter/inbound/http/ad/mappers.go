@@ -54,4 +54,3 @@ func ToAdvertResponses(adverts []*entity.Advert) []*AdvertResponse {
 	}
 	return responses
 }
-

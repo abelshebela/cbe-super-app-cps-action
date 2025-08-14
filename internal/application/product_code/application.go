@@ -7,9 +7,8 @@ import (
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	constan "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // Application defines the interface for product code application logic
@@ -27,7 +26,7 @@ type ApplicationStore struct {
 }
 
 // NewApplication creates a new ApplicationStore
-func NewApplication(service  domain.Service, cpsService cps_service.CPSActionService, logger shared.Logger) Application {
+func NewApplication(service domain.Service, cpsService cps_service.CPSActionService, logger shared.Logger) Application {
 	return &ApplicationStore{
 		service:    service,
 		cpsService: cpsService,

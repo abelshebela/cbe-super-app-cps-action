@@ -79,7 +79,7 @@ func (h *AdvertHTTPStore) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	domainReq, _ := ToDomainAdvertRequest(req)
 
-PrettyPrintJSON(domainReq)
+	PrettyPrintJSON(domainReq)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && domainReq.BannerImage == nil && domainReq.Date.StartedAt.IsZero() && domainReq.Date.ExpiredAt.IsZero() {
 		h.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)

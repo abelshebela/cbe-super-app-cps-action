@@ -189,7 +189,6 @@ func (h *NotificationHTTPStore) DisableNotification(w http.ResponseWriter, r *ht
 	h.sendResponse(w, err, "Notification disable request submitted successfully", nil)
 }
 
-
 // FetchNotificationByID fetches a notification by its ID
 func (h *NotificationHTTPStore) FetchNotificationByID(w http.ResponseWriter, r *http.Request) {
 	id, ok := h.extractID(w, r)
