@@ -233,9 +233,91 @@ type AppViewType string
 // Method represents authentication method
 type Method string
 
+type RequestAction string
+
+const (
+	REQUEST_USER                       RequestAction = "USER"
+	REQUEST_PERMISSION_GROUP           RequestAction = "PERMISSION_GROUP"
+	REQUEST_DEPARTMENT                 RequestAction = "DEPARMTENT"
+	REQUEST_ENABLE_USER                RequestAction = "ENABLE_USER"
+	REQUEST_DISABLE_USER               RequestAction = "DISABLE_USER"
+	REQUEST_BPS_USER                   RequestAction = "BPS_USER"
+	REQUEST_DISABLE_BPS_USER           RequestAction = "DISABLE_BPS_USER"
+	REQUEST_ENABLE_BPS_USER            RequestAction = "ENABLE_BPS_USER"
+	REQUEST_UPDATE_USER                RequestAction = "UPDATE_USER"
+	REQUEST_TOTAL_DAILY_LIMIT          RequestAction = "TOTAL_DAILY_LIMIT"
+	REQUEST_UPDATE_VAT                 RequestAction = "UPDATE_VAT"
+	REQUEST_AUTH_TIER                  RequestAction = "AUTHTIER"
+	REQUEST_CREATE_ADVERT              RequestAction = "CREATE_ADVERT"
+	REQUEST_UPDATE_ADVERT              RequestAction = "UPDATE_ADVERT"
+	REQUEST_ENABLE_ADVERT              RequestAction = "ENABLE_ADVERT"
+	REQUEST_DISABLE_ADVERT             RequestAction = "DISABLE_ADVERT"
+	REQUEST_DELETE_ADVERT              RequestAction = "DELETE_ADVERT"
+	REQUEST_CREATE_BANK                RequestAction = "CREATE_BANK"
+	REQUEST_UPDATE_BANK                RequestAction = "UPDATE_BANK"
+	REQUEST_ENABLE_BANK                RequestAction = "ENABLE_BANK"
+	REQUEST_DISABLE_BANK               RequestAction = "DISABLE_BANK"
+	REQUEST_ENABLE_WALLET              RequestAction = "ENABLE_WALLET"
+	REQUEST_DISABLE_WALLET             RequestAction = "DISABLE_WALLET"
+	REQUEST_UPDATE_PASSWORD_EXPIRY     RequestAction = "UPDATE_PASSWORD_EXPIRY"
+	REQUEST_CREATE_VALIDATION          RequestAction = "CREATE_VALIDATION"
+	REQUEST_UPDATE_VALIDATION          RequestAction = "UPDATE_VALIDATION"
+	REQUEST_DELETE_VALIDATION          RequestAction = "DELETE_VALIDATION"
+	REQUEST_UPDATE_ARCHIVE_EXPIRY      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	REQUEST_CREATE_SERVICE_FEE         RequestAction = "CREATE_SERVICE_FEE"
+	REQUEST_UPDATE_SERVICE_FEE         RequestAction = "UPDATE_SERVICE_FEE"
+	REQUEST_DELETE_SERVICE_FEE         RequestAction = "DELETE_SERVICE_FEE"
+	REQUEST_CREATE_DAILY_LIMIT         RequestAction = "CREATE_DAILY_LIMIT"
+	REQUEST_UPDATE_DAILY_LIMIT         RequestAction = "UPDATE_DAILY_LIMIT"
+	REQUEST_DELETE_DAILY_LIMIT         RequestAction = "DELETE_DAILY_LIMIT"
+	REQUEST_BUDGET_COLOR               RequestAction = "BUDGET_COLOR"
+	REQUEST_BUDGET_ICON                RequestAction = "BUDGET_ICON"
+	REQUEST_UPDATE_PRODUCT             RequestAction = "UPDATE_PRODUCT"
+	REQUEST_CREATE_PUBLIC_NOTIFICATION RequestAction = "CREATE_PUBLIC_NOTIFICATION"
+	REQUEST_ARCHIVE_USER               RequestAction = "ARCHIVE_USER"
+	REQUEST_CREATE_PASSWORD_RULE       RequestAction = "CREATE_PASSWORD_RULE"
+	REQUEST_UPDATE_PASSWORD_RULE       RequestAction = "UPDATE_PASSWORD_RULE"
+	REQUEST_UPDATE_MINIMUM_SERVICE     RequestAction = "UPDATE_MINIMUM_SERVICE"
+	REQUEST_UPDATE_SERVICE_RULE        RequestAction = "UPDATE_SERVICE_RULE"
+	REQUEST_UPDATE_TOTAL               RequestAction = "UPDATE_TOTAL"
+	REQUEST_UPDATE_ACCESS_CONFIG       RequestAction = "UPDATE_ACCESS_CONFIG"
+	REQUEST_ENABLE_SINGLE_BRANCH       RequestAction = "ENABLE_SINGLE_BRANCH"
+	REQUEST_DISABLE_SINGLE_BRANCH      RequestAction = "DISABLE_SINGLE_BRANCH"
+	REQUEST_ENABLE_MULTI_USERS         RequestAction = "ENABLE_MULTI_USERS"
+	REQUEST_DISABLE_MULTI_USERS        RequestAction = "DISABLE_MULTI_USERS"
+	REQUEST_CREATE_BUSINESS            RequestAction = "CREATE_BUSINESS"
+	REQUEST_UPDATE_BUSINESS            RequestAction = "UPDATE_BUSINESS"
+	REQUEST_CREATE_EVENT               RequestAction = "CREATE_EVENT"
+	REQUEST_UPDATE_EVENT               RequestAction = "UPDATE_EVENT"
+	REQUEST_CREATE_EVENT_CATEGORY      RequestAction = "CREATE_EVENT_CATEGORY"
+	REQUEST_UPDATE_EVENT_CATEGORY      RequestAction = "UPDATE_EVENT_CATEGORY"
+	REQUEST_DISABLE_EVENT              RequestAction = "DISABLE_EVENT"
+	REQUEST_CREATE_MINIAPP_MERCHANT    RequestAction = "CREATE_MINIAPP_MERCHANT"
+	REQUEST_UPDATE_MINIAPP_MERCHANT    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	REQUEST_UPDATE_BLOCK_TIME          RequestAction = "UPDATE_BLOCK_TIME"
+	REQUEST_UPDATE_ACCOUNT_VALIDATION  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
+	REQUEST_UPDATE_SERVICE_DETAILS     RequestAction = "UPDATE_SERVICE_DETAILS"
+	REQUEST_UPDATE_HQ_BLOCK_TIME       RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	REQUEST_UPDATE_HQ_ARCHIVE_TIME     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+
+	// Add these for budget icon and color actions
+	REQUEST_CREATE_ICON  RequestAction = "CREATE_ICON"
+	REQUEST_UPDATE_ICON  RequestAction = "UPDATE_ICON"
+	REQUEST_DELETE_ICON  RequestAction = "DELETE_ICON"
+	REQUEST_CREATE_COLOR RequestAction = "CREATE_COLOR"
+	REQUEST_UPDATE_COLOR RequestAction = "UPDATE_COLOR"
+	REQUEST_DELETE_COLOR RequestAction = "DELETE_COLOR"
+)
+
 // =============================================================================
 // CORE MODELS
 // =============================================================================
+
+type ActionData struct {
+	UseCode     string `json:"user_code" bson:"user_code"`
+	FullName    string `json:"full_name" bson:"full_name"`
+	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+}
 
 // User represents a basic user
 type User struct {
@@ -709,4 +791,24 @@ type Notification struct {
 	CreatedAt         time.Time          `json:"created_at" bson:"created_at"`
 	LastModified      time.Time          `json:"last_modified" bson:"last_modified"`
 	DeletedAt         time.Time          `json:"deleted_at" bson:"deleted_at"`
+}
+
+type CPSAction struct {
+	ID                string        `json:"id,omitempty"`
+	ActionCode        string        `json:"action_code" bson:"action_code"`
+	CheckerUser       User          `json:"checker_user" bson:"checker_user"`
+	MakerUser         User          `json:"maker_user" bson:"maker_user"`
+	RejectedReason    string        `json:"rejected_reason,omitempty" bson:"rejected_reason"`
+	Department        string        `json:"department,omitempty" bson:"department"`
+	Status            ActionStatus  `json:"status,omitempty" bson:"status"`
+	RequestAction     RequestAction `json:"request_action,omitempty" bson:"request_action"`
+	ActionType        ActionType    `json:"action_type,omitempty" bson:"action_type"`
+	ActionData        ActionData    `json:"action_data" bson:"action_data"`
+	PreviousAction    any           `json:"previous_action,omitempty"`
+	CurrentAction     any           `json:"current_action,omitempty"`
+	MakerActionTime   time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time"`
+	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time"`
+	CreatedAt         time.Time     `json:"created_at,omitempty" bson:"created_at"`
+	LastModifiedAt    time.Time     `json:"last_modified_at,omitempty" bson:"last_modified_at"`
+	UniqueID          string        `json:"unique_id,omitempty" bson:"unique_id"`
 }

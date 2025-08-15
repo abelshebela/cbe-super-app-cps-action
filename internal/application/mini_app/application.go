@@ -7,6 +7,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
+	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
@@ -102,14 +103,27 @@ func (a *ApplicationStore) CreateMiniApp(ctx context.Context, miniApp *dto.MiniA
 		return err
 	}
 
+	existingAction, err := a.cpsService.CPSActionExists(ctx, cpsactions.CheckCPSAction{UserCode: maker.UserCode, FullName: maker.FullName, PhoneNumber: maker.PhoneNumber})
+	if err != nil {
+		return err
+	}
+	if existingAction {
+		return fmt.Errorf("PENDING_REQUEST_EXISTS")
+	}
+
 	existing, err := a.service.GetMiniAppByName(ctx, miniApp.AppName)
-	res, err := a.service.CreateMiniApp(ctx, *miniApp, maker)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.CreateMiniApp] %v", err)
 		return err
 	}
 	if existing != nil {
 		return fmt.Errorf("APP_NAME_EXIST")
+	}
+
+	res, err := a.service.CreateMiniApp(ctx, *miniApp, maker)
+	if err != nil {
+		a.Logger.Errorf("[mini_app.CreateMiniApp] %v", err)
+		return err
 	}
 	err = a.handleCPSAction(ctx, maker, cps_const.RequestCreateMiniApp, res, nil, cps_const.ActionCreate)
 	if err != nil {
@@ -123,6 +137,30 @@ func (a *ApplicationStore) CreateMiniApp(ctx context.Context, miniApp *dto.MiniA
 func (a *ApplicationStore) UpdateMiniApp(ctx context.Context, req *dto.MiniAppCreateRequest, maker entities.User) error {
 	if err := a.setMerchantDetails(ctx, req); err != nil {
 		return err
+	}
+	fmt.Println("***********UpdateMiniApp*****************")
+	userdata := entities.CheckCPSAction{
+		UserCode:    maker.UserCode,
+		Department:  maker.Department,
+		FullName:    maker.FullName,
+		PhoneNumber: maker.PhoneNumber,
+	}
+
+	existingAction, err := a.cpsService.CPSActionExists(ctx, userdata)
+	if err != nil {
+		return err
+	}
+	if existingAction {
+		return fmt.Errorf("PENDING_REQUEST_EXISTS")
+	}
+
+	existing, err := a.service.GetMiniAppByName(ctx, req.AppName)
+	if err != nil {
+		a.Logger.Errorf("[mini_app.CreateMiniApp] %v", err)
+		return err
+	}
+	if existing != nil && existing.ID != req.ID {
+		return fmt.Errorf("APP_NAME_EXIST")
 	}
 
 	curAction, prevAction, err := a.service.UpdateMiniApp(ctx, *req, maker, req.ID)
