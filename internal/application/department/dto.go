@@ -1,6 +1,8 @@
 package department
 
 import (
+	"fmt"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -12,11 +14,24 @@ type CreateDepartmentRequest struct {
 
 func (i CreateDepartmentRequest) Validate() error {
 	return validation.ValidateStruct(&i,
-		validation.Field(&i.Department, validation.Required.Error("Department name is required")),
-		validation.Field(&i.PortalCards, validation.Each(validation.Required.Error("Each portal card must be non-empty"))),
-		validation.Field(&i.PermissionGroups, validation.Each(validation.Required.Error("Each permission group must be non-empty"))),
+		validation.Field(
+			&i.Department,
+			validation.Required.Error("Department name is required"),
+		),
+		validation.Field(
+			&i.PortalCards,
+			validation.Required.Error("Portal cards are required"),
+			validation.Each(validation.Required.Error("Each portal card must be non-empty")),
+		),
+		validation.Field(
+			&i.PermissionGroups,
+			validation.Required.Error("Permission groups are required"),
+			validation.Each(validation.Required.Error("Each permission group must be non-empty")),
+		),
 	)
 }
+
+
 
 type UpdateDepartmentRequest struct {
 	Department       string   `json:"department"`
@@ -33,25 +48,31 @@ func (i UpdateDepartmentRequest) Validate() error {
 }
 
 type DepartmentUpdateCPSActionRequest struct {
-	MakerID          string   `json:"maker_id"`
-	MakerName        string   `json:"maker_name"`
-	MakerPhoneNumber string   `json:"maker_phone_number"`
 	Department       string   `json:"department"`
-	DepartmentCode   string   `json:"department_code"`
-	DepartmentName   string   `json:"department_name"`
 	PortalCards      []string `json:"portal_cards"`
+	PermissionGroups []string `json:"permission_groups"`
 }
-
-func (i DepartmentUpdateCPSActionRequest) Validate() error {
-	return validation.ValidateStruct(&i,
-		validation.Field(&i.MakerID, validation.Required.Error("Maker ID is required")),
-		validation.Field(&i.MakerName, validation.Required.Error("Maker name is required")),
-		validation.Field(&i.MakerPhoneNumber, validation.Required.Error("Maker phone number is required")),
-		validation.Field(&i.Department, validation.Required.Error("Department is required")),
-		validation.Field(&i.DepartmentCode, validation.Required.Error("Department code is required")),
-		validation.Field(&i.DepartmentName, validation.Required.Error("Department name is required")),
-		validation.Field(&i.PortalCards, validation.Each(validation.Required.Error("Each portal card must be non-empty"))),
-	)
+func (req DepartmentUpdateCPSActionRequest) Validate() error {
+	var rules []error
+	if req.Department != "" {
+		if err := validation.Validate(req.Department, validation.Required); err != nil {
+			rules = append(rules, err)
+		}
+	}
+	if req.PortalCards != nil {
+		if err := validation.Validate(req.PortalCards, validation.Each(validation.Required)); err != nil {
+			rules = append(rules, err)
+		}
+	}
+	if req.PermissionGroups != nil {
+		if err := validation.Validate(req.PermissionGroups, validation.Each(validation.Required)); err != nil {
+			rules = append(rules, err)
+		}
+	}
+	if len(rules) > 0 {
+		return fmt.Errorf("%v", rules)
+	}
+	return nil
 }
 
 type CPSActionResponse struct {
