@@ -18,7 +18,7 @@ type NotificationRequest struct {
 
 type NotificationResponse struct {
 	ID                string    `json:"id"`
-	Title            string `json:"title"`
+	Title             string    `json:"title"`
 	NotificationType  string    `json:"notification_type"`
 	NotificationBody  string    `json:"notification_body"`
 	IsPublic          bool      `json:"is_public"`
@@ -27,7 +27,7 @@ type NotificationResponse struct {
 	NotificationParts any       `json:"notification_parts"`
 	Seen              bool      `json:"seen"`
 	Enabled           bool      `json:"enabled"`
-	Status           string      `json:"status"`
+	Status            string    `json:"status"`
 	IsDeleted         bool      `json:"is_deleted"`
 	CreatedAt         time.Time `json:"created_at"`
 	LastModified      time.Time `json:"last_modified"`
@@ -76,6 +76,6 @@ func toInterfaceSlice(strs []string) []interface{} {
 func (r NotificationRequest) IsEmpty() bool {
 	return strings.TrimSpace(r.NotificationType) == "" &&
 		strings.TrimSpace(r.NotificationBody) == "" &&
-		strings.TrimSpace(r.For) == ""  &&
+		strings.TrimSpace(r.For) == "" &&
 		strings.TrimSpace(r.Title) == ""
 }

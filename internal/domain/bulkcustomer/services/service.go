@@ -16,11 +16,11 @@ func NewBranchService(repo repository.BulkCustomerRepo) *BranchService {
 	return &BranchService{repo: repo}
 }
 
-func (s *BranchService) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+func (s *BranchService) GetBranch(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	if region == "" || district == "" {
 		return nil, fmt.Errorf("region and district are required")
 	}
-	return s.repo.FilterSingleBranches(ctx, region, district)
+	return s.repo.GetBranch(ctx, region, district)
 }
 
 func (s *BranchService) DisableSingleBranch(ctx context.Context, branch entities.Branch, maker entities.User) error {
@@ -34,11 +34,11 @@ func (s *BranchService) ApproveSingleBranchDisable(ctx context.Context, actionID
 	return s.repo.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
 }
 
-func (s *BranchService) FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+func (s *BranchService) GetAllBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	if region == "" || district == "" {
 		return nil, fmt.Errorf("region and district are required")
 	}
-	return s.repo.FilterMultipleBranches(ctx, region, district)
+	return s.repo.GetAllBranches(ctx, region, district)
 }
 func (s *BranchService) DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) (*entities.CPSAction, error) {
 	if len(branches) == 0 {

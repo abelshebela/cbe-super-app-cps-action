@@ -9,9 +9,8 @@ import (
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	constan "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // Service defines the interface for product code business logic

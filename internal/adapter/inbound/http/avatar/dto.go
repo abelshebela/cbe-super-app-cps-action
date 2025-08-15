@@ -29,7 +29,7 @@ func (dto AvatarDTO) IsEmpty() bool {
 	return dto.Label == "" && dto.Avatar == nil
 }
 
-// MaxAvatarSize defines the max allowed size for avatar: 2MB 
+// MaxAvatarSize defines the max allowed size for avatar: 2MB
 const MaxAvatarSize = 2 * 1024 * 1024
 
 // isImageFormat checks if the content type is an allowed image

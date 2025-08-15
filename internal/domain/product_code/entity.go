@@ -19,4 +19,3 @@ type ProductCodes struct {
 	SFPRD  string `json:"sf_prd" bson:"sfprd"`
 	TRXN   string `json:"trxn" bson:"trxn"`
 }
-

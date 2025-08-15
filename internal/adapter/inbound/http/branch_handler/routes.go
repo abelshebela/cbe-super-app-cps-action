@@ -17,7 +17,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
 			{
 				Method:  http.MethodPost,
 				Path:    "/filter/single",
-				Handler: handler.FilterSingleBranches,
+				Handler: handler.GetBranch,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
@@ -26,7 +26,7 @@ func RegisterBranchRoutes(r chi.Router, handler inbound.BranchHandler, authMiddl
 			{
 				Method:  http.MethodPost,
 				Path:    "/filter/multiple",
-				Handler: handler.FilterMultipleBranches,
+				Handler: handler.GetAllBranches,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),

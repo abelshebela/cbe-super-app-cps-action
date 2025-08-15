@@ -36,7 +36,7 @@ func NewBranchPersistence(client *mongo.Client, dbName string, timeout time.Dura
 	}
 }
 
-func (b *BranchPersistence) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+func (b *BranchPersistence) GetBranch(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	filter := bson.M{
 		"branchRegion": strings.TrimSpace(region),
 		"districtName": strings.TrimSpace(district),
@@ -122,7 +122,7 @@ func (b *BranchPersistence) ApproveSingleBranchDisable(ctx context.Context, acti
 	return err
 }
 
-func (b *BranchPersistence) FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+func (b *BranchPersistence) GetAllBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	filter := bson.M{
 		"branchRegion": strings.TrimSpace(region),
 		"districtName": strings.TrimSpace(district),

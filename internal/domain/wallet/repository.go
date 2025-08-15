@@ -1,7 +1,6 @@
 // Package repository provides interfaces for wallet data persistence and operations.
 package wallet
 
-
 import (
 	"context"
 

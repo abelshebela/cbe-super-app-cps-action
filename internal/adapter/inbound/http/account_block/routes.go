@@ -20,16 +20,7 @@ func RegisterAccountBlockRoutes(
 		routes := []sharedhttp.Route{
 			{
 				Method:  http.MethodGet,
-				Path:    "/branch/filter_single",
-				Handler: handler.FilterSingleBranches,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/branch/all",
+				Path:    "/branches",
 				Handler: handler.GetAllBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -37,110 +28,17 @@ func RegisterAccountBlockRoutes(
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/branch/disable_single",
-				Handler: handler.DisableSingleBranch,
+				Method:  http.MethodGet,
+				Path:    "/branches/{branch_code}",
+				Handler: handler.GetBranch,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			//enable single branch
-			{
-				Method:  http.MethodPost,
-				Path:    "/branch/enable_single",
-				Handler: handler.EnableSingleBranch,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/branch/approve_disable_single",
-				Handler: handler.ApproveSingleBranchDisable,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
 				},
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/branch/filter_multiple",
-				Handler: handler.FilterMultipleBranches,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			//enable mutiple branch
-			{
-				Method:  http.MethodPost,
-				Path:    "/branch/enable_multiple",
-				Handler: handler.EnableMultipleBranches,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/branch/disable_multiple",
-				Handler: handler.DisableMultipleBranches,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/branch/approve_disable_multiple",
-				Handler: handler.ApproveBulkBranchesDisable,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			//region enable
-			{
-				Method:  http.MethodPost,
-				Path:    "/region/enable",
-				Handler: handler.EnableRegion,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/region/block",
-				Handler: handler.BlockRegion,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPut,
-				Path:    "/region/update",
-				Handler: handler.UpdateRegion,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/region/approve_block",
-				Handler: handler.ApproveRegionBlock,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/region",
+				Path:    "/regions{region_code}",
 				Handler: handler.GetRegionByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -149,44 +47,16 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/region/all",
-				Handler: handler.GetAllRegion,
+				Path:    "/regions",
+				Handler: handler.GetAllRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
-			// district enable
-			{
-				Method:  http.MethodPost,
-				Path:    "/district/enable",
-				Handler: handler.EnableDistrict,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/district/block",
-				Handler: handler.BlockDistrict,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/district/approve_block",
-				Handler: handler.ApproveBlockDistrict,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/district",
+				Path:    "/districts{district_code}",
 				Handler: handler.GetDistrictByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -195,44 +65,16 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/district/all",
-				Handler: handler.GetAllDistrict,
+				Path:    "/districts",
+				Handler: handler.GetAllDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
-			//city enable
-			{
-				Method:  http.MethodPost,
-				Path:    "/city/enable",
-				Handler: handler.EnableCity,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/city/block",
-				Handler: handler.BlockCity,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/city/approve_block",
-				Handler: handler.ApproveBlockCity,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/city",
+				Path:    "/cities{city_code}",
 				Handler: handler.GetCityByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -241,43 +83,13 @@ func RegisterAccountBlockRoutes(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/city/all",
+				Path:    "/cities",
 				Handler: handler.GetAllCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 				},
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/block",
-				Handler: handler.BlockUser,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/approve_block",
-				Handler: handler.ApproveBlockUser,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/user",
-				Handler: handler.GetUserByPhone,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
-				},
-			},
-
-			// New route to enable and disable branch
-			// Branch
 			{
 				Method:  http.MethodPost,
 				Path:    "/branches/enable",
@@ -296,8 +108,6 @@ func RegisterAccountBlockRoutes(
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
-
-			// Region
 			{
 				Method:  http.MethodPost,
 				Path:    "/regions/enable",
@@ -316,8 +126,6 @@ func RegisterAccountBlockRoutes(
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
-
-			// District
 			{
 				Method:  http.MethodPost,
 				Path:    "/districts/enable",
@@ -336,8 +144,6 @@ func RegisterAccountBlockRoutes(
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 				},
 			},
-
-			// City
 			{
 				Method:  http.MethodPost,
 				Path:    "/cities/enable",

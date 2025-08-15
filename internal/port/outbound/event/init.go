@@ -2,10 +2,9 @@ package event_outbound
 
 import (
 	"context"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
-
 )
 
 type EventRepository interface {

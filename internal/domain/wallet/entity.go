@@ -1,7 +1,6 @@
 // Package entity provides domain entities for wallet management.
 package wallet
 
-
 import (
 	"time"
 )

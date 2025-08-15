@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func  ToEventModel(e *model.EventDocument) event.Event {
+func ToEventModel(e *model.EventDocument) event.Event {
 	return event.Event{
 		ID:                  e.ID.Hex(),
 		EventCode:           e.EventCode,

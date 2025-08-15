@@ -8,11 +8,11 @@ import (
 )
 
 type ApplicationService interface {
-	FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error)
+	GetBranch(ctx context.Context, region, district string) ([]entities.Branch, error)
 	DisableSingleBranch(ctx context.Context, branch entities.Branch, maker entities.User) error
 	ApproveSingleBranchDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
-	FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error)
+	GetAllBranches(ctx context.Context, region, district string) ([]entities.Branch, error)
 	DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) (*entities.CPSAction, error)
 	ApproveBulkBranchesDisable(ctx context.Context, actionID string, approve bool, reason *string) error
 
@@ -29,8 +29,8 @@ func NewApplicationHandler(service services.BranchServices) ApplicationService {
 	}
 }
 
-func (h *Handler) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
-	return h.service.FilterSingleBranches(ctx, region, district)
+func (h *Handler) GetBranch(ctx context.Context, region, district string) ([]entities.Branch, error) {
+	return h.service.GetBranch(ctx, region, district)
 }
 
 func (h *Handler) DisableSingleBranch(ctx context.Context, branch entities.Branch, maker entities.User) error {
@@ -41,8 +41,8 @@ func (h *Handler) ApproveSingleBranchDisable(ctx context.Context, actionID strin
 	return h.service.ApproveSingleBranchDisable(ctx, actionID, approve, reason)
 }
 
-func (h *Handler) FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
-	return h.service.FilterMultipleBranches(ctx, region, district)
+func (h *Handler) GetAllBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+	return h.service.GetAllBranches(ctx, region, district)
 }
 
 func (h *Handler) DisableMultipleBranches(ctx context.Context, branches []entities.Branch, maker entities.User) (*entities.CPSAction, error) {

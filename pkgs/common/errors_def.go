@@ -1544,7 +1544,7 @@ var DefineError = ErrorDefinitions{
 	Branch: ErrorGroup{
 		"BRANCH_NOT_FOUND": {
 			Code:    "BRN_001",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "Branch not found.",
 		},
 		"BRANCH_DISABLED": {
@@ -1580,7 +1580,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"CITY_NOT_FOUND": {
 			Code:    "BRN_008",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "City not found",
 		},
 		"DISTRICT_ALREADY_BLOCKED": {
@@ -1590,12 +1590,12 @@ var DefineError = ErrorDefinitions{
 		},
 		"DISTRICT_NOT_FOUND": {
 			Code:    "BRN_010",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "District Not Found",
 		},
 		"REGION_NOT_FOUND": {
 			Code:    "BRN_011",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "Region Not Found",
 		},
 		"BRANCH_ALREADY_BLOCKED": {
@@ -1634,6 +1634,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "BRN_019",
 			Status:  StatusInternalServerError,
 			Message: "Failed to parse filter params",
+		},
+		"BRANCH_CODE_REQUIRED": {
+			Code:    "020",
+			Status:  StatusBadRequest,
+			Message: "Branch code is required",
 		},
 	},
 	Region: ErrorGroup{

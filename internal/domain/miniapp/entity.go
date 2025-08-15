@@ -24,7 +24,7 @@ const (
 type AppType string
 
 const (
-	URL     AppType = "URL"
+	URL AppType = "URL"
 )
 
 type Stage string
@@ -64,40 +64,40 @@ type CredentialInformation struct {
 }
 
 type MiniApp struct {
-	ID                  string                  `bson:"_id" json:"id,omitempty"`
-	AppName             string                  `bson:"app_name" json:"app_name"`
-	AppIcon             string                  `bson:"app_icon" json:"app_icon"`
-	BannerImage         string                  `bson:"banner_image" json:"banner_image"`
-	CommissionGLAccount string                  `bson:"commison_gl_account" json:"commison_gl_account,omitempty"`
-	AppType             AppType                 `bson:"app_type" json:"app_type"`
-	MerchantID          string                  `bson:"merchant_id" json:"merchant_id"`
-	ProductCode         []ProductCode           `bson:"product_code" json:"product_code"`
+	ID                  string                `bson:"_id" json:"id,omitempty"`
+	AppName             string                `bson:"app_name" json:"app_name"`
+	AppIcon             string                `bson:"app_icon" json:"app_icon"`
+	BannerImage         string                `bson:"banner_image" json:"banner_image"`
+	CommissionGLAccount string                `bson:"commison_gl_account" json:"commison_gl_account,omitempty"`
+	AppType             AppType               `bson:"app_type" json:"app_type"`
+	MerchantID          string                `bson:"merchant_id" json:"merchant_id"`
+	ProductCode         []ProductCode         `bson:"product_code" json:"product_code"`
 	Credential          CredentialInformation `bson:"credential" json:"credential,omitempty"`
-	URL                 string                  `bson:"url" json:"url,omitempty"`
-	AppViewType         AppViewType             `bson:"app_view_type" json:"app_view_type"`
-	Stage               Stage                   `bson:"stage" json:"stage"`
-	IsEventMiniApp      bool                    `bson:"is_event_mini_app" json:"is_event_mini_app"`
-	IsThreeClick        bool                    `bson:"is_three_click" json:"is_three_click"`
-	Enabled             bool                    `bson:"enabled" json:"enabled"`
-	IsDeleted           bool                    `bson:"is_deleted" json:"is_deleted"`
-	CreatedAt           time.Time               `bson:"created_at" json:"created_at"`
-	LastModifiedAt      time.Time               `bson:"last_modified_at" json:"last_modified_at"`
-	DeletedAt           time.Time               `bson:"deleted_at" json:"deleted_at"`
+	URL                 string                `bson:"url" json:"url,omitempty"`
+	AppViewType         AppViewType           `bson:"app_view_type" json:"app_view_type"`
+	Stage               Stage                 `bson:"stage" json:"stage"`
+	IsEventMiniApp      bool                  `bson:"is_event_mini_app" json:"is_event_mini_app"`
+	IsThreeClick        bool                  `bson:"is_three_click" json:"is_three_click"`
+	Enabled             bool                  `bson:"enabled" json:"enabled"`
+	IsDeleted           bool                  `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt           time.Time             `bson:"created_at" json:"created_at"`
+	LastModifiedAt      time.Time             `bson:"last_modified_at" json:"last_modified_at"`
+	DeletedAt           time.Time             `bson:"deleted_at" json:"deleted_at"`
 }
 
 type MiniAppCreateRequest struct {
-	ID                  string                  `json:"id"`
-	AppName             string                  `json:"app_name"`
-	AppIcon             *multipart.FileHeader   `json:"app_icon"`
-	BannerImage         *multipart.FileHeader   `json:"banner_image"`
-	CommissionGLAccount string                  `json:"commison_gl_account"`
-	AppType             AppType                 `json:"app_type"`
-	MerchantID          string                  `json:"merchant_id"`
-	URL                 string                  `json:"url"`
-	Stage               Stage                   `json:"stage"`
-	AppViewType         AppViewType             `json:"app_view_type"`
-	ProductCode         []ProductCode           `json:"product_code"`
+	ID                  string                `json:"id"`
+	AppName             string                `json:"app_name"`
+	AppIcon             *multipart.FileHeader `json:"app_icon"`
+	BannerImage         *multipart.FileHeader `json:"banner_image"`
+	CommissionGLAccount string                `json:"commison_gl_account"`
+	AppType             AppType               `json:"app_type"`
+	MerchantID          string                `json:"merchant_id"`
+	URL                 string                `json:"url"`
+	Stage               Stage                 `json:"stage"`
+	AppViewType         AppViewType           `json:"app_view_type"`
+	ProductCode         []ProductCode         `json:"product_code"`
 	Credential          CredentialInformation `json:"credential"`
-	IsEventMiniApp      bool                    `json:"is_event_mini_app"`
-	IsThreeClick        bool                    `json:"is_three_click"`
+	IsEventMiniApp      bool                  `json:"is_event_mini_app"`
+	IsThreeClick        bool                  `json:"is_three_click"`
 }

@@ -8,9 +8,8 @@ import (
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // ADHandlers defines the interface for advert application logic
@@ -126,8 +125,6 @@ func (a *ADHandler) FetchAdverts(ctx context.Context, filterParams *util_constan
 		a.logger.Errorf("[event.FetchAdverts] failed to fetch adverts, error: %v", err)
 		return nil, err
 	}
-
-	
 
 	return response, nil
 }

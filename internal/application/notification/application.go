@@ -122,7 +122,6 @@ func (a *NotificationApplication) EnableDisableNotification(ctx context.Context,
 	return a.handleCPSAction(ctx, maker, action, curAction, prevAction, cps_const.ActionUpdate)
 }
 
-
 // FetchNotificationByID fetches a notification by its ID
 func (a *NotificationApplication) FetchNotificationByID(ctx context.Context, id string) (*notification_entity.Notification, error) {
 	return a.service.FetchNotificationByID(ctx, id)
