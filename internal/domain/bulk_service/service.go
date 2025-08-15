@@ -46,7 +46,7 @@ func (b *bulkServiceImpl) EnableBulkService(ctx context.Context, keys []string) 
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
-		UniqueId:         userPayload.UserCode,
+		UniqueId:         "",
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,
@@ -69,14 +69,6 @@ func (b *bulkServiceImpl) DisableBulkService(ctx context.Context, keys []string)
 	userPayload := ctx_util.ExtractContext(ctx)
 	actionCode := utils.RandomGenerator(24)
 
-	// var actions []APPAccessList
-	// for _, code := range serviceCodes {
-	// 	actions = append(actions, APPAccessList{
-	// 		Key:     code,
-	// 		Enabled: true,
-	// 	})
-	// }
-
 	type currAction struct {
 		Keys []string
 	}
@@ -84,7 +76,7 @@ func (b *bulkServiceImpl) DisableBulkService(ctx context.Context, keys []string)
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
-		UniqueId:         userPayload.UserCode,
+		UniqueId:         "",
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,

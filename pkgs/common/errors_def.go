@@ -53,6 +53,7 @@ type ErrorDefinitions struct {
 	Action      ErrorGroup
 	Wallet      ErrorGroup
 	AD          ErrorGroup
+	BulkService ErrorGroup
 	Permission  ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
@@ -1976,6 +1977,43 @@ var DefineError = ErrorDefinitions{
 			Code:    "AD_006",
 			Status:  StatusBadRequest,
 			Message: "end date is required",
+		},
+	},
+	BulkService: ErrorGroup{
+		"FAILED_TO_UPDATE_PARENT": {
+			Code:    "BULK_001",
+			Status:  StatusInternalServerError,
+			Message: "Failed to update parent access list",
+		},
+		"FAILED_TO_UPDATE_CHILD": {
+			Code:    "BULK_002",
+			Status:  StatusInternalServerError,
+			Message: "Failed to update sub access list",
+		},
+		"INVALID_KEY_FORMAT": {
+			Code:    "BULK_003",
+			Status:  StatusBadRequest,
+			Message: "The keys you entered are not valid",
+		},
+		"INVALID_CURRENT_ACTION": {
+			Code:    "BULK_004",
+			Status:  StatusBadRequest,
+			Message: "Current action format is not valid",
+		},
+		"SURVICE_NOT_FOUND": {
+			Code:    "BULK_005",
+			Status:  StatusNotFound,
+			Message: "The bulk service you requested is not found",
+		},
+		"NO_RESOURCE_FOUND": {
+			Code:    "BULK_006",
+			Status:  StatusNotFound,
+			Message: "No document/resource found",
+		},
+		"BULK_SERVICE_CODE_IS_REQUIRED": {
+			Code:    "BULK_007",
+			Status:  StatusBadRequest,
+			Message: "One or more bulk service code is required",
 		},
 	},
 	Permission: ErrorGroup{
