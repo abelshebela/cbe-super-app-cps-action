@@ -4,7 +4,7 @@ package department_handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
@@ -15,7 +15,6 @@ import (
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"github.com/go-chi/chi/v5"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -79,7 +78,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	// Input validation
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[CreateDepartment] validation failed: %v", err)
-		common_util.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
@@ -109,7 +108,7 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	var request department.UpdateDepartmentRequest
+	var request department.DepartmentUpdateCPSActionRequest
 	curCtx := h.getContext(r)
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -118,9 +117,9 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if err := validatePatchUpdateDepartmentRequest(request); err != nil {
+	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[UpdateDepartmentRequest] validation failed: %v", err)
-		common_util.SendErrorResponse(w, err, http.StatusBadRequest, nil)
+		common_util.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
@@ -175,28 +174,7 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 }
 
 // validatePatchUpdateDepartmentRequest validates only fields that are present for PATCH semantics
-func validatePatchUpdateDepartmentRequest(req department.UpdateDepartmentRequest) error {
-	var rules []error
-	if req.Department != "" {
-		if err := validation.Validate(req.Department, validation.Required); err != nil {
-			rules = append(rules, err)
-		}
-	}
-	if req.PortalCards != nil {
-		if err := validation.Validate(req.PortalCards, validation.Each(validation.Required)); err != nil {
-			rules = append(rules, err)
-		}
-	}
-	if req.PermissionGroups != nil {
-		if err := validation.Validate(req.PermissionGroups, validation.Each(validation.Required)); err != nil {
-			rules = append(rules, err)
-		}
-	}
-	if len(rules) > 0 {
-		return fmt.Errorf("%v", rules)
-	}
-	return nil
-}
+
 
 func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
@@ -224,3 +202,4 @@ func (h *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 	}
 	common_util.WriteSuccessResponse(w, department, "Department fetched successfully")
 }
+
