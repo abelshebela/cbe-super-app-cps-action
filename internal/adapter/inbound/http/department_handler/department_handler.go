@@ -175,7 +175,6 @@ func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 
 // validatePatchUpdateDepartmentRequest validates only fields that are present for PATCH semantics
 
-
 func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 	departments, err := h.departmentService.GetAllDepartments(r.Context(), filterParams)
@@ -202,4 +201,3 @@ func (h *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 	}
 	common_util.WriteSuccessResponse(w, department, "Department fetched successfully")
 }
-

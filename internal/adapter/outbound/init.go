@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -896,6 +897,15 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 	return &createdAction, nil
 }
 
+func removeField(fields []string, target string) []string {
+	result := []string{}
+	for _, f := range fields {
+		if f != target {
+			result = append(result, f)
+		}
+	}
+	return result
+}
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
 	projection := bson.M{}
 
@@ -958,6 +968,49 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		if duplicate.UserName == data.UserName {
 			return nil, fmt.Errorf("USERNAME_ALREADY_EXISTS")
 		}
+	}
+
+	// Check if the incomming data are, the one saved in database which no change
+	// Convert existing user to map
+	existingBytes, err := json.Marshal(existingUser)
+	if err != nil {
+		return nil, fmt.Errorf("FAILED_TO_MARSHAL_EXISTING_USER")
+	}
+	var existingMap map[string]interface{}
+	if err := json.Unmarshal(existingBytes, &existingMap); err != nil {
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_EXISTING_USER")
+	}
+
+	// Convert incoming user to map
+	incomingBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("FAILED_TO_MARSHAL_INCOMING_USER")
+	}
+	var incomingMap map[string]interface{}
+	if err := json.Unmarshal(incomingBytes, &incomingMap); err != nil {
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_INCOMING_USER")
+	}
+
+	// Compare
+	changedFields := bson.M{}
+	unchangedFields := []string{}
+
+	for key, newVal := range incomingMap {
+		oldVal, exists := existingMap[key]
+		if !exists || !reflect.DeepEqual(oldVal, newVal) {
+			changedFields[key] = newVal
+		} else {
+			unchangedFields = append(unchangedFields, key)
+		}
+	}
+	unchangedFields = removeField(unchangedFields, "user_code")
+	unchangedFields = removeField(unchangedFields, "password")
+	unchangedFields = removeField(unchangedFields, "last_online_date")
+	unchangedFields = removeField(unchangedFields, "permission_category")
+	unchangedFields = removeField(unchangedFields, "permission_groups")
+
+	if len(unchangedFields) > 0 {
+		return nil, fmt.Errorf("NO_CHANGES: the following fields are unchanged. Remove from the payload and try again: %v", unchangedFields)
 	}
 
 	cpsAction.UniqueId = existingUser.UserCode

@@ -167,7 +167,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
-		UniqueId:         "",
+		UniqueId:         userCode + utils.RandomGenerator(6),
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,
@@ -308,7 +308,7 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 	cpsAction := model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       actionCode,
-		UniqueId:         userPayload.UserCode,
+		UniqueId:         userCode + utils.RandomGenerator(6),
 		MakerID:          userPayload.UserID,
 		MakerName:        userPayload.FullName,
 		MakerPhoneNumber: userPayload.PhoneNumber,
