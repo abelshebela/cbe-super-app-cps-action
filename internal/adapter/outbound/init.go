@@ -1006,6 +1006,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	unchangedFields = removeField(unchangedFields, "user_code")
 	unchangedFields = removeField(unchangedFields, "password")
 	unchangedFields = removeField(unchangedFields, "last_online_date")
+	unchangedFields = removeField(unchangedFields, "date_joined")
+	unchangedFields = removeField(unchangedFields, "last_modified")
+	unchangedFields = removeField(unchangedFields, "last_login")
+	unchangedFields = removeField(unchangedFields, "otp_status")
 	unchangedFields = removeField(unchangedFields, "permission_category")
 	unchangedFields = removeField(unchangedFields, "permission_groups")
 
