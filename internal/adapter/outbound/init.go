@@ -1025,7 +1025,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 }
 
 func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, cpsAction model.CPSAction) (*model.CPSAction, error) {
-	filter := bson.M{"user_code": userCode}
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
 
 	// Check if the user exists
 	existingUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
