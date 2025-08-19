@@ -61,7 +61,7 @@ func (h *HQHTTPHandler) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HQHTTPHandler) GetBlockTime(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GetBlockTime called")
+	
 	resp, err := h.handler.GetBlockTime(r.Context())
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
@@ -106,12 +106,12 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
 		return
 	}
-	action, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
+	_, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update block time request submitted for approval")
+	common_util.WriteSuccessResponse(w,0, "Update block time request submitted for approval")
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {

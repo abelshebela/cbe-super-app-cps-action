@@ -3,7 +3,6 @@ package hq
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"time"
@@ -11,7 +10,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+
 
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -36,11 +35,11 @@ type Service interface {
 
 type ServiceStore struct {
 	repository Repository
-	actionRepo action.ActionRepository
+	actionRepo action.IActionRepository
 	logger     sharedutils.Logger
 }
 
-func NewService(repo Repository, actionRepo action.ActionRepository, logger sharedutils.Logger) Service {
+func NewService(repo Repository, actionRepo  action.IActionRepository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,
@@ -125,16 +124,6 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
-
-	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdateHQBlockTime), request.Department)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	if pending {
-		fmt.Println("[hq service update block time pending action found")
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
-	}
-
 	updatedHQ := originalHQ
 	updatedHQ.BlockTime = request.BlockTime
 	type CurrentAction struct {
@@ -160,7 +149,7 @@ func (s *ServiceStore) UpdateBlockTimeRequest(ctx context.Context, request Updat
 		MakerActionTime:  time.Now(),
 		UniqueId:         originalHQ.ID.Hex(),
 	}
-	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
+	createdAction, err := s.actionRepo.CreateCPSAction(ctx, a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
 		return nil, fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
@@ -173,15 +162,6 @@ func (s *ServiceStore) UpdateArchiveTimeRequest(ctx context.Context, request Upd
 	if err != nil {
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
-	}
-
-	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdateHQArchiveTime), request.Department)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	if pending {
-		fmt.Println("[hq service update block time]pending action found")
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	updatedHQ := originalHQ
@@ -223,16 +203,6 @@ func (s *ServiceStore) UpdatePasswordExpiryRequest(ctx context.Context, request 
 		s.logger.Errorf("failed to fetch HQ: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
-
-	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestUpdatePasswordExpiry), request.Department)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	if pending {
-		fmt.Println("[hq service update block time]pending action found")
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
-	}
-
 	updatedHQ := originalHQ
 	updatedHQ.PasswordExpiry = request.PasswordExpiry
 	type CurrentAction struct {
