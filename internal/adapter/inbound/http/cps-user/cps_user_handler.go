@@ -37,7 +37,7 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
 	_, err := h.Service.UpdateUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("UpdateUserRequest failed: %v", err)
-		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		local_util.SendErrorResponse(w, err.Error(), 409, nil)
 		return
 	}
 

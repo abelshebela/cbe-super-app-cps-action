@@ -2,7 +2,7 @@ package notification
 
 import (
 	"context"
-	
+
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"

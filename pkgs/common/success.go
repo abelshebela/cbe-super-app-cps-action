@@ -76,4 +76,3 @@ func GetSuccessResponseByKey(key string) (SuccessDefinition, bool) {
 	}
 	return SuccessDefinition{}, false
 }
-

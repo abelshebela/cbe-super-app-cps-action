@@ -8,15 +8,15 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-	
+
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
 	shared "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/ad"
-	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 // ADPersistence implements ADRepository
@@ -32,7 +32,7 @@ func InitAD(client *mongo.Client, database string, collection string, logger uti
 		adDal:  adDal,
 		logger: logger,
 	}
-} 
+}
 
 // CreateAdvert creates a new advert in the database
 func (a *ADPersistence) CreateAdvert(ctx context.Context, advert *entity.Advert) (*entity.Advert, error) {

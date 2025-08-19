@@ -409,10 +409,10 @@ const (
 	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
 
 	// City
-	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
-	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
-	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
-	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
+	RequestEnableCity         RequestAction = "REQUEST_ENABLE_CITY"
+	RequestDisableCity        RequestAction = "REQUEST_DISABLE_CITY"
+	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
 )
 
 type RegistrationType string

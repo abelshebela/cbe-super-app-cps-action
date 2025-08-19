@@ -31,8 +31,6 @@ func (i CreateDepartmentRequest) Validate() error {
 	)
 }
 
-
-
 type UpdateDepartmentRequest struct {
 	Department       string   `json:"department"`
 	PortalCards      []string `json:"portal_cards"`
@@ -52,6 +50,7 @@ type DepartmentUpdateCPSActionRequest struct {
 	PortalCards      []string `json:"portal_cards"`
 	PermissionGroups []string `json:"permission_groups"`
 }
+
 func (req DepartmentUpdateCPSActionRequest) Validate() error {
 	var rules []error
 	if req.Department != "" {

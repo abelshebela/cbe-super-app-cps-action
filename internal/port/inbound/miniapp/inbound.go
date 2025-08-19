@@ -11,5 +11,4 @@ type MiniAppInbound interface {
 	DetailMiniAppByID(w http.ResponseWriter, r *http.Request)
 	EnableMiniAppByID(w http.ResponseWriter, r *http.Request)
 	DisableMiniAppByID(w http.ResponseWriter, r *http.Request)
-
 }

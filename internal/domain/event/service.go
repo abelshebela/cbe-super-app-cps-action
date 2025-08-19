@@ -44,7 +44,7 @@ func NewEventService(repository EventRepository,
 		Repository: repository,
 		logger:     logger,
 		minio:      minio,
-		cfg: cfg,
+		cfg:        cfg,
 		bucketName: bucketName,
 	}
 }
@@ -73,11 +73,11 @@ func (e *Service) CreateEvent(ctx context.Context, event EventRequest) (*Event, 
 		return nil, err
 	}
 	result := Event{
-		EventCode:  code,
-		EventName:  event.EventName,
-		EventCity:  event.EventCity,
-		EventVenue: event.EventVenue,
-		Status:     EventUpcomming,
+		EventCode:     code,
+		EventName:     event.EventName,
+		EventCity:     event.EventCity,
+		EventVenue:    event.EventVenue,
+		Status:        EventUpcomming,
 		AccountNumber: event.AccountNumber,
 		MerchantInformation: MerchantInformation{
 			MerchantID:          event.MerchantID,
@@ -92,11 +92,11 @@ func (e *Service) CreateEvent(ctx context.Context, event EventRequest) (*Event, 
 			Cover:       URL,
 		},
 		TicketInformation: TicketInformation{
-			TotalNumberOfTicket: uint64(event.TotalTicketCount),
+			TotalNumberOfTicket:          uint64(event.TotalTicketCount),
 			TotalNumberOfAvailableTicket: uint64(event.TotalTicketCount),
 		},
-		Ticket: event.Tickets,
-		CreatedAt: time.Now(),
+		Ticket:         event.Tickets,
+		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
 	}
 
@@ -159,10 +159,10 @@ func (e *Service) UpdateEvent(ctx context.Context, id string, event EventRequest
 		TicketInformation: TicketInformation{
 			TotalNumberOfTicket: nonZeroUint64(uint64(event.TotalTicketCount), prevEvent.TicketInformation.TotalNumberOfTicket),
 		},
-		Ticket: nonEmptyTickets(event.Tickets, prevEvent.Ticket),
-		CreatedAt: time.Now(),
+		Ticket:         nonEmptyTickets(event.Tickets, prevEvent.Ticket),
+		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
-		AccountNumber: nonEmptyString(event.AccountNumber, prevEvent.AccountNumber),
+		AccountNumber:  nonEmptyString(event.AccountNumber, prevEvent.AccountNumber),
 	}
 
 	e.logger.Infof("Updated event", "id", id, "merchantAppID", curAction.MerchantInformation.MerchantID)
@@ -218,12 +218,12 @@ func (e *Service) FetchEvent(ctx context.Context, filterParam *constant.Filter) 
 
 func generateEvent(event Event) *Event {
 	return &Event{
-		ID:         event.ID,
-		EventCode:  event.EventCode,
-		EventName:  event.EventName,
-		EventCity:  event.EventCity,
-		EventVenue: event.EventVenue,
-		Status:     EventUpcomming,
+		ID:            event.ID,
+		EventCode:     event.EventCode,
+		EventName:     event.EventName,
+		EventCity:     event.EventCity,
+		EventVenue:    event.EventVenue,
+		Status:        EventUpcomming,
 		AccountNumber: event.AccountNumber,
 		MerchantInformation: MerchantInformation{
 			MerchantID:          event.MerchantInformation.MerchantID,
@@ -240,8 +240,8 @@ func generateEvent(event Event) *Event {
 		TicketInformation: TicketInformation{
 			TotalNumberOfTicket: event.TicketInformation.TotalNumberOfTicket,
 		},
-		Ticket: event.Ticket,
-		CreatedAt: event.CreatedAt,
+		Ticket:         event.Ticket,
+		CreatedAt:      event.CreatedAt,
 		LastModifiedAt: event.LastModifiedAt,
 	}
 }
@@ -293,40 +293,3 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 	action.CurrentAction = event
 	return action, nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

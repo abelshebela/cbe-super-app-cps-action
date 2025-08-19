@@ -53,6 +53,7 @@ type ErrorDefinitions struct {
 	Action      ErrorGroup
 	Wallet      ErrorGroup
 	AD          ErrorGroup
+	BulkService ErrorGroup
 	Permission  ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
@@ -1544,7 +1545,7 @@ var DefineError = ErrorDefinitions{
 	Branch: ErrorGroup{
 		"BRANCH_NOT_FOUND": {
 			Code:    "BRN_001",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "Branch not found.",
 		},
 		"BRANCH_DISABLED": {
@@ -1580,7 +1581,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"CITY_NOT_FOUND": {
 			Code:    "BRN_008",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "City not found",
 		},
 		"DISTRICT_ALREADY_BLOCKED": {
@@ -1590,12 +1591,12 @@ var DefineError = ErrorDefinitions{
 		},
 		"DISTRICT_NOT_FOUND": {
 			Code:    "BRN_010",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "District Not Found",
 		},
 		"REGION_NOT_FOUND": {
 			Code:    "BRN_011",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "Region Not Found",
 		},
 		"BRANCH_ALREADY_BLOCKED": {
@@ -1634,6 +1635,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "BRN_019",
 			Status:  StatusInternalServerError,
 			Message: "Failed to parse filter params",
+		},
+		"BRANCH_CODE_REQUIRED": {
+			Code:    "020",
+			Status:  StatusBadRequest,
+			Message: "Branch code is required",
 		},
 	},
 	Region: ErrorGroup{
@@ -1899,6 +1905,26 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Failed to update user status.",
 		},
+		"FAILED_TO_MARSHAL_INCOMING_USER": {
+			Code:    "USR_002",
+			Status:  StatusInternalServerError,
+			Message: "Failed to marshal incoming user data",
+		},
+		"FAILED_TO_UNMARSHAL_INCOMING_USER": {
+			Code:    "USR_003",
+			Status:  StatusInternalServerError,
+			Message: "Failed to unmarshal incomming user data",
+		},
+		"FAILED_TO_MARSHAL_EXISTING_USER": {
+			Code:    "USR_004",
+			Status:  StatusInternalServerError,
+			Message: "Failed to marshal existing user data",
+		},
+		"FAILED_TO_UNMARSHAL_EXISTING_USER": {
+			Code:    "USR_005",
+			Status:  StatusInternalServerError,
+			Message: "Failed to unmarshal existing user data",
+		},
 	},
 	Wallet: ErrorGroup{
 		"WALLET_NOT_FOUND": {
@@ -1997,6 +2023,43 @@ var DefineError = ErrorDefinitions{
 			Code:    "AD_006",
 			Status:  StatusBadRequest,
 			Message: "end date is required",
+		},
+	},
+	BulkService: ErrorGroup{
+		"FAILED_TO_UPDATE_PARENT": {
+			Code:    "BULK_001",
+			Status:  StatusInternalServerError,
+			Message: "Failed to update parent access list",
+		},
+		"FAILED_TO_UPDATE_CHILD": {
+			Code:    "BULK_002",
+			Status:  StatusInternalServerError,
+			Message: "Failed to update sub access list",
+		},
+		"INVALID_KEY_FORMAT": {
+			Code:    "BULK_003",
+			Status:  StatusBadRequest,
+			Message: "The keys you entered are not valid",
+		},
+		"INVALID_CURRENT_ACTION": {
+			Code:    "BULK_004",
+			Status:  StatusBadRequest,
+			Message: "Current action format is not valid",
+		},
+		"SURVICE_NOT_FOUND": {
+			Code:    "BULK_005",
+			Status:  StatusNotFound,
+			Message: "The bulk service you requested is not found",
+		},
+		"NO_RESOURCE_FOUND": {
+			Code:    "BULK_006",
+			Status:  StatusNotFound,
+			Message: "No document/resource found",
+		},
+		"BULK_SERVICE_CODE_IS_REQUIRED": {
+			Code:    "BULK_007",
+			Status:  StatusBadRequest,
+			Message: "One or more bulk service code is required",
 		},
 	},
 	Permission: ErrorGroup{

@@ -41,25 +41,25 @@ type UpdateUserRequest struct {
 }
 
 type CPSUserDTO struct {
-	ID                 bson.ObjectID   `json:"id,omitempty"`
-	UserCode           string          `json:"user_code,omitempty"`
-	FullName           string          `json:"full_name,omitempty"`
-	Role               string          `json:"role,omitempty"`
-	Department         bson.ObjectID   `json:"department,omitempty"`
-	Gender             string          `json:"gender,omitempty"`
-	PhoneNumber        string          `json:"phone_number,omitempty"`
-	Email              string          `json:"email,omitempty"`
-	UserName           string          `json:"username,omitempty"`
-	Realm              string          `json:"realm,omitempty"`
-	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty"`
-	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty"`
+	ID                 bson.ObjectID   `json:"id"`
+	UserCode           string          `json:"user_code"`
+	FullName           string          `json:"full_name"`
+	Role               string          `json:"role"`
+	Department         bson.ObjectID   `json:"department"`
+	Gender             string          `json:"gender"`
+	PhoneNumber        string          `json:"phone_number"`
+	Email              string          `json:"email"`
+	UserName           string          `json:"username"`
+	Realm              string          `json:"realm"`
+	PermissionCategory []bson.ObjectID `json:"permission_category"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group"`
 
-	Enabled      bool       `json:"enabled,omitempty"`
-	DateJoined   *time.Time `json:"date_joined,omitempty"`
-	LastModified *time.Time `json:"last_modified,omitempty"`
+	Enabled      bool       `json:"enabled"`
+	DateJoined   *time.Time `json:"date_joined"`
+	LastModified *time.Time `json:"last_modified"`
 
-	Country string `json:"country,omitempty"`
-	Region  string `json:"region,omitempty"`
+	Country string `json:"country"`
+	Region  string `json:"region"`
 }
 
 func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {

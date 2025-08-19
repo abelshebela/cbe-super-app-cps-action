@@ -13,4 +13,3 @@ func (f FeedbackRequest) Validate() error {
 		validation.Field(&f.Responses, validation.Required.Error("responses are required")),
 	)
 }
- 

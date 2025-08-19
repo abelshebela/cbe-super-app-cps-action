@@ -61,8 +61,10 @@ func (h *PermissionHandler) UpdatePermissionGroupRequest(ctx context.Context,old
 		return model.CPSAction{}, err
 	}
 	cpsAction.PreviousAction = perv_action
+
 	
 	cpsAction, err = h.service.CreatePermissionGroup(ctx,oldGroupName, groupName, role, permissionCategoryLists, cpsAction)
+
 	if err != nil {
 		h.logger.Errorf("Handler: Failed to update permission group '%s' for role '%s': %v", groupName, role, err)
 		return model.CPSAction{}, err

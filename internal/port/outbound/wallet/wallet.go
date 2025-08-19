@@ -5,9 +5,8 @@ import (
 
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
-
+	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
 type WalletRepository interface {

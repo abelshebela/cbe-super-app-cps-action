@@ -22,7 +22,7 @@ func InitPasswordRuleHandler(service services.PasswordRuleService, logger utils.
 }
 
 func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rule *action.PasswordRule, maker action.User, department string) (string, error) {
-	
+
 	actionID, err := h.PasswordRuleService.RequestPasswordRuleUpdate(ctx, rule, maker, department)
 	if err != nil {
 		h.logger.Errorf("Failed to request password rule update: %v", err)
@@ -30,7 +30,6 @@ func (h *PasswordRuleHandler) RequestPasswordRuleUpdate(ctx context.Context, rul
 	}
 	return actionID, nil
 }
-
 
 func (h *PasswordRuleHandler) GetPasswordRuleUpdateActionByID(ctx context.Context, actionID string) (*action.CPSAction, error) {
 	action, err := h.PasswordRuleService.GetPasswordRuleUpdateActionByID(ctx, actionID)
