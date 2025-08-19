@@ -1879,6 +1879,26 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Failed to update user status.",
 		},
+		"FAILED_TO_MARSHAL_INCOMING_USER": {
+			Code:    "USR_002",
+			Status:  StatusInternalServerError,
+			Message: "Failed to marshal incoming user data",
+		},
+		"FAILED_TO_UNMARSHAL_INCOMING_USER": {
+			Code:    "USR_003",
+			Status:  StatusInternalServerError,
+			Message: "Failed to unmarshal incomming user data",
+		},
+		"FAILED_TO_MARSHAL_EXISTING_USER": {
+			Code:    "USR_004",
+			Status:  StatusInternalServerError,
+			Message: "Failed to marshal existing user data",
+		},
+		"FAILED_TO_UNMARSHAL_EXISTING_USER": {
+			Code:    "USR_005",
+			Status:  StatusInternalServerError,
+			Message: "Failed to unmarshal existing user data",
+		},
 	},
 	Wallet: ErrorGroup{
 		"WALLET_NOT_FOUND": {

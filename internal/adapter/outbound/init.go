@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -896,6 +897,15 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 	return &createdAction, nil
 }
 
+func removeField(fields []string, target string) []string {
+	result := []string{}
+	for _, f := range fields {
+		if f != target {
+			result = append(result, f)
+		}
+	}
+	return result
+}
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
 	projection := bson.M{}
 
@@ -960,6 +970,53 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
+	// Check if the incomming data are, the one saved in database which no change
+	// Convert existing user to map
+	existingBytes, err := json.Marshal(existingUser)
+	if err != nil {
+		return nil, fmt.Errorf("FAILED_TO_MARSHAL_EXISTING_USER")
+	}
+	var existingMap map[string]interface{}
+	if err := json.Unmarshal(existingBytes, &existingMap); err != nil {
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_EXISTING_USER")
+	}
+
+	// Convert incoming user to map
+	incomingBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("FAILED_TO_MARSHAL_INCOMING_USER")
+	}
+	var incomingMap map[string]interface{}
+	if err := json.Unmarshal(incomingBytes, &incomingMap); err != nil {
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_INCOMING_USER")
+	}
+
+	// Compare
+	changedFields := bson.M{}
+	unchangedFields := []string{}
+
+	for key, newVal := range incomingMap {
+		oldVal, exists := existingMap[key]
+		if !exists || !reflect.DeepEqual(oldVal, newVal) {
+			changedFields[key] = newVal
+		} else {
+			unchangedFields = append(unchangedFields, key)
+		}
+	}
+	unchangedFields = removeField(unchangedFields, "user_code")
+	unchangedFields = removeField(unchangedFields, "password")
+	unchangedFields = removeField(unchangedFields, "last_online_date")
+	unchangedFields = removeField(unchangedFields, "date_joined")
+	unchangedFields = removeField(unchangedFields, "last_modified")
+	unchangedFields = removeField(unchangedFields, "last_login")
+	unchangedFields = removeField(unchangedFields, "otp_status")
+	unchangedFields = removeField(unchangedFields, "permission_category")
+	unchangedFields = removeField(unchangedFields, "permission_groups")
+
+	if len(unchangedFields) > 0 {
+		return nil, fmt.Errorf("NO_CHANGES: the following fields are unchanged. Remove from the payload and try again: %v", unchangedFields)
+	}
+
 	cpsAction.UniqueId = existingUser.UserCode
 	cpsAction.PreviousAction = existingUser
 
@@ -972,7 +1029,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 }
 
 func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, cpsAction model.CPSAction) (*model.CPSAction, error) {
-	filter := bson.M{"user_code": userCode}
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
 
 	// Check if the user exists
 	existingUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
