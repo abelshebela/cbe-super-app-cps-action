@@ -3,7 +3,7 @@ package dto
 import (
 	"mime/multipart"
 
-	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-cps-action/internal/constants"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"

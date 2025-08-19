@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-cps-action/internal/constants"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

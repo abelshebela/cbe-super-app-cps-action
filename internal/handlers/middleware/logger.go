@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

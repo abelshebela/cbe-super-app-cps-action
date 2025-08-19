@@ -1,7 +1,7 @@
 package api
 
 import (
-	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/errors"
 	"context"
 	"fmt"
 	"time"
@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	session "cbe-super-app-member-auth/grpc"
+	session "cbe-super-app-cps-action/grpc"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

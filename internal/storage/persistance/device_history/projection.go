@@ -1,7 +1,7 @@
 package device_history
 
 import (
-	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/errors"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

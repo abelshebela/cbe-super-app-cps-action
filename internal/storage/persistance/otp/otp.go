@@ -3,10 +3,10 @@ package otp
 import (
 	"context"
 
-	"cbe-super-app-member-auth/internal/constants/errors"
-	"cbe-super-app-member-auth/internal/constants/model"
-	"cbe-super-app-member-auth/internal/storage"
-	local_util "cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

@@ -16,9 +16,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"cbe-super-app-member-auth/internal/constants"
-	customErr "cbe-super-app-member-auth/internal/constants/errors"
-	"cbe-super-app-member-auth/internal/constants/response"
+	"cbe-super-app-cps-action/internal/constants"
+	customErr "cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/response"
 )
 
 func CORS() func(http.Handler) http.Handler {
@@ -57,15 +57,14 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 }
 
 type UserPayload struct {
-	PhoneNumber string   `json:"phone_number,omitempty"`
-	UserRole    string   `json:"user_role,omitempty"`
-	UserID      string   `json:"user_id,omitempty"`
-	BranchCode  []string `json:"branch_code,omitempty"`
-	UserCode    string   `json:"user_code,omitempty"`
-	FullName    string   `json:"full_name,omitempty"`
-	Department  string   `json:"department,omitempty"`
-	NextStep    string   `json:"next_step,omitempty"`
-	Action      string   `json:"action"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+	UserRole    string `json:"user_role,omitempty"`
+	UserID      string `json:"user_id,omitempty"`
+	UserCode    string `json:"user_code,omitempty"`
+	FullName    string `json:"full_name,omitempty"`
+	Department  string `json:"department,omitempty"`
+	NextStep    string `json:"next_step,omitempty"`
+	Action      string `json:"action"`
 }
 
 type authMiddleware struct {
@@ -76,6 +75,7 @@ type authMiddleware struct {
 }
 
 type AuthMiddleware interface {
+	AccessControl(allowedRoles []string) func(http.Handler) http.Handler
 	AuthenticateToken(next http.Handler) http.Handler
 	AuthenticateTempToken(next http.Handler) http.Handler
 }
@@ -127,6 +127,34 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 	})
 }
 
+func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler) http.Handler {
+	roleSet := make(map[string]struct{}, len(allowedRoles))
+	for _, r := range allowedRoles {
+		roleSet[strings.ToUpper(r)] = struct{}{}
+	}
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
+			if !ok || role == "" {
+
+				response.SendErrorResponse(w, customErr.ErrActionNotAllowed)
+
+				return
+			}
+
+			if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
+
+				response.SendErrorResponse(w, customErr.ErrActionNotAllowed)
+
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -158,7 +186,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			response.SendErrorResponse(w, customErr.ErrUnauthorized)
 			return
 		}
-
+		fmt.Println("user payload ****************", userPayload)
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
 
@@ -214,7 +242,6 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 }
 
 func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPayload) context.Context {
-	ctx = context.WithValue(ctx, constants.ContextKey("branch_code"), userPayload.BranchCode)
 	ctx = context.WithValue(ctx, constants.ContextKey("user_role"), userPayload.UserRole)
 	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), userPayload.UserID)
 	ctx = context.WithValue(ctx, constants.ContextKey("phone_number"), userPayload.PhoneNumber)

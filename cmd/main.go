@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"cbe-super-app-member-auth/initiator"
+	"cbe-super-app-cps-action/initiator"
 )
 
 func main() {

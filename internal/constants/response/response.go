@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"cbe-super-app-member-auth/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

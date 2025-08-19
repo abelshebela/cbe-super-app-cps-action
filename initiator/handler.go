@@ -1,19 +1,18 @@
 package initiator
 
 import (
-	inbound "cbe-super-app-member-auth/internal/handlers/rest"
-	userHandler "cbe-super-app-member-auth/internal/handlers/rest/http/users"
-	service "cbe-super-app-member-auth/internal/service"
+	inbound "cbe-super-app-cps-action/internal/handlers/rest"
+	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Handler struct {
-	UserHandler inbound.Users
+	CpsActionHandler inbound.CPSActionAdapter
 }
 
-func InitHandler(serviceLayer service.UserService, logger utils.Logger) Handler {
+func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 	return Handler{
-		UserHandler: userHandler.Init(serviceLayer, logger),
+		CpsActionHandler: cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
 	}
 }

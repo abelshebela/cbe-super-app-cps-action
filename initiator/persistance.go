@@ -1,34 +1,91 @@
 package initiator
 
 import (
-	"cbe-super-app-member-auth/internal/storage"
-	"cbe-super-app-member-auth/internal/storage/external_call"
-	"cbe-super-app-member-auth/internal/storage/persistance/device_history"
-	"cbe-super-app-member-auth/internal/storage/persistance/hq"
-	"cbe-super-app-member-auth/internal/storage/persistance/otp"
-	"cbe-super-app-member-auth/internal/storage/persistance/reset_session"
-	"cbe-super-app-member-auth/internal/storage/persistance/users"
+	"cbe-super-app-cps-action/internal/storage/external_call"
+	"cbe-super-app-cps-action/internal/storage/persistance"
+	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
+	"cbe-super-app-cps-action/internal/storage/persistance/account_block"
+	"cbe-super-app-cps-action/internal/storage/persistance/advert"
+	"cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth"
+	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
+	"cbe-super-app-cps-action/internal/storage/persistance/auth_tier"
+	"cbe-super-app-cps-action/internal/storage/persistance/avatar"
+	"cbe-super-app-cps-action/internal/storage/persistance/bank"
+	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
+	"cbe-super-app-cps-action/internal/storage/persistance/branch"
+	"cbe-super-app-cps-action/internal/storage/persistance/city"
+	"cbe-super-app-cps-action/internal/storage/persistance/color"
+	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
+
+	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
+	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
+	"cbe-super-app-cps-action/internal/storage/persistance/district"
+	"cbe-super-app-cps-action/internal/storage/persistance/donation"
+
+	// "cbe-super-app-cps-action/internal/storage/persistance/donation_category"
+	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
+	// "cbe-super-app-cps-action/internal/storage/persistance/event"
+	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
+	"cbe-super-app-cps-action/internal/storage/persistance/hq"
+	"cbe-super-app-cps-action/internal/storage/persistance/icon"
+	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
+	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
+	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
+	"cbe-super-app-cps-action/internal/storage/persistance/notification"
+	"cbe-super-app-cps-action/internal/storage/persistance/otp"
+	"cbe-super-app-cps-action/internal/storage/persistance/password_rule"
+	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
+	"cbe-super-app-cps-action/internal/storage/persistance/region"
+	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
+	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
+	"cbe-super-app-cps-action/internal/storage/persistance/users"
+	"cbe-super-app-cps-action/internal/storage/persistance/validation_rule"
+	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type Persistence struct {
-	UserPersistence              storage.UserRepository
-	HQPersistence                storage.HQRepository
-	OTPPersistence               storage.OTPRepository
-	DeviceLinkHistoryPersistence storage.DeviceLinkHistoryRepository
-	ResetSessionPersistence      storage.ResetSessionRepository
-	SMSSenderApi                 external_call.SMSPersistence
-}
-
-func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) Persistence {
-	return Persistence{
+func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) persistance.Persistence {
+	return persistance.Persistence{
 		UserPersistence:              users.NewUserRepository(client, dbName, "users", logger),
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
 		DeviceLinkHistoryPersistence: device_history.NewDeviceLinkHistoryRepository(client, dbName, "member_device_histories", logger),
 		ResetSessionPersistence:      reset_session.NewResetSessionRepository(client, dbName, "pin_reset_sessions", logger),
 		SMSSenderApi:                 *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
+		CPSAction:                    cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
+		AmountBasedAuthPersistence:   amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tiers", logger),
+		AccountBlockPersistence:      account_block.NewAccountBlockRepository(client, dbName, "branches", "cps_actions", logger),
+		PortalCardPersistence:        portal_card.NewPortalCardRepository(client, dbName, "cards", logger),
+		MiniAppPersistence:           mini_app.NewMiniAppRepository(client, dbName, "mini_apps", logger),
+		CityPersistence:              city.NewCityRepository(client, dbName, "cities", logger),
+		RegionPersistence:            region.NewRegionRepository(client, dbName, "regions", logger),
+		DistrictPersistence:          district.NewDistrictRepository(client, dbName, "districts", logger),
+		BranchPersistence:            branch.NewBranchRepository(client, dbName, "branches", logger),
+		// Additional repositories
+		AccessListPersistence:       access_list.NewAccessListRepository(client, dbName, "access_lists", logger),
+		AvatarPersistence:           avatar.NewAvatarRepository(client, dbName, "avatars", logger),
+		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "bps_users", logger),
+		AdvertRepositoryPersistence: advert.NewAdvertRepository(client, dbName, "adverts", logger),
+		ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
+		AuthTierPersistence:         auth_tier.NewAuthTierRepository(client, dbName, "auth_tiers", logger),
+		BankPersistence:             bank.NewBankRepository(client, dbName, "banks", logger),
+		ColorPersistence:            color.NewColorRepository(client, dbName, "colors", logger),
+		// CpsUserPersistence:           cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
+		DonationPersistence: donation.NewDonationRepository(client, dbName, "donations", logger),
+		// DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
+		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
+		// EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
+
+		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
+		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
+		LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
+		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchants", logger),
+		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),
+		PasswordRulePersistence:    password_rule.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
+		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
+		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
+		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
 	}
 }

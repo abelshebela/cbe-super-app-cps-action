@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"cbe-super-app-member-auth/internal/constants"
+	"cbe-super-app-cps-action/internal/constants"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"math/rand"
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
@@ -14,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-member-auth/internal/constants"
-	customErr "cbe-super-app-member-auth/internal/constants/errors"
-	"cbe-super-app-member-auth/internal/constants/types"
+	"cbe-super-app-cps-action/internal/constants"
+	customErr "cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -113,7 +112,6 @@ func GenerateUsername(fullName string) string {
 
 func GenerateUserCode() string {
 	const prefix = "CBEUSR-"
-	const codeLength = 12
 
 	// Generate a random number between 0 and 999999999999
 	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
@@ -134,13 +132,13 @@ func GenerateRandom(digit int) string {
 		min = 0
 	}
 
-	// Ensure the range is valid and non-negative for rand.Intn
+	// Ensure the range is valid and non-negative formathrand.Intn
 	rangeSize := max - min + 1
 	if rangeSize <= 0 {
 		return ""
 	}
 
-	generatedNumber := min + rand.Intn(rangeSize)
+	generatedNumber := min + mathrand.Intn(rangeSize)
 	result := strconv.Itoa(generatedNumber)
 	return result
 }
@@ -154,7 +152,7 @@ func intPow(a, b int) int {
 }
 func GenerateSalt(length int) (string, error) {
 	bytes := make([]byte, length)
-	_, err := rand.Read(bytes)
+	_, err := mathrand.Read(bytes)
 	if err != nil {
 		return "", err
 	}
@@ -250,4 +248,51 @@ func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
 		return "", customErr.ErrBadRequest
 	}
 	return step, nil
+}
+
+func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string) bson.M {
+	filter := bson.M{}
+
+	allowedMap := make(map[string]bool)
+	for _, key := range allowedKeys {
+		allowedMap[key] = true
+	}
+
+	for key, value := range input {
+		if value == nil || value == "" {
+			continue
+		}
+
+		if !allowedMap[key] {
+			continue
+		}
+
+		switch v := value.(type) {
+		case string:
+			if v != "" {
+				filter[key] = bson.M{"$regex": v, "$options": "i"}
+			}
+		case []interface{}:
+			if len(v) > 0 {
+				filter[key] = bson.M{"$in": v}
+			}
+		case map[string]interface{}:
+			nested := BuildMongoFilterWithKeys(v, allowedKeys)
+			for nestedKey, nestedVal := range nested {
+				filter[key+"."+nestedKey] = nestedVal
+			}
+		default:
+			filter[key] = v
+		}
+	}
+
+	return filter
+}
+
+func MapSlice[T any, R any](items []T, mapper func(T) R) []R {
+	results := make([]R, len(items))
+	for i, v := range items {
+		results[i] = mapper(v)
+	}
+	return results
 }

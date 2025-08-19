@@ -8,9 +8,9 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"cbe-super-app-member-auth/internal/constants/errors"
-	"cbe-super-app-member-auth/internal/constants/response"
-	"cbe-super-app-member-auth/platform/logger"
+	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/response"
+	"cbe-super-app-cps-action/platform/logger"
 
 	"go.uber.org/zap"
 )

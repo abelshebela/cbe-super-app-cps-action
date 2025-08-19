@@ -1,7 +1,7 @@
 package otp
 
 import (
-	"cbe-super-app-member-auth/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

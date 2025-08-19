@@ -1,4 +1,4 @@
-module cbe-super-app-member-auth
+module cbe-super-app-cps-action
 
 go 1.24.5
 
@@ -10,7 +10,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/redis/go-redis/v9 v9.12.0
 	github.com/rs/zerolog v1.34.0

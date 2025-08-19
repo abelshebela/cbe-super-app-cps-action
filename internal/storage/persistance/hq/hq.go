@@ -3,8 +3,8 @@ package hq
 import (
 	"context"
 
-	"cbe-super-app-member-auth/internal/constants/model"
-	"cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

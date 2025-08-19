@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-member-auth/internal/constants"
-	"cbe-super-app-member-auth/internal/constants/errors"
-	"cbe-super-app-member-auth/internal/constants/model"
-	"cbe-super-app-member-auth/pkgs/utils"
+	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"runtime"
 
-	"cbe-super-app-member-auth/cmd/server"
-	local "cbe-super-app-member-auth/config"
-	"cbe-super-app-member-auth/internal/storage/api"
+	"cbe-super-app-cps-action/cmd/server"
+	local "cbe-super-app-cps-action/config"
+	"cbe-super-app-cps-action/internal/storage/api"
 
-	// "cbe-super-app-member-auth/platform/logger"
+	// "cbe-super-app-cps-action/platform/logger"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -48,7 +48,7 @@ func Init(ctx context.Context) {
 	serviceLayer := InitServiceLayer(persitence, logger, sessionGRPCClient, cfg, minioClient)
 
 	logger.Infof("initialize handler layer")
-	handlerLayer := InitHandler(serviceLayer.UserService, logger)
+	handlerLayer := InitHandler(serviceLayer, logger)
 
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, logger)

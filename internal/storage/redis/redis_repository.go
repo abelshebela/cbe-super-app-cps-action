@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"cbe-super-app-member-auth/internal/storage"
+	"cbe-super-app-cps-action/internal/storage"
 
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

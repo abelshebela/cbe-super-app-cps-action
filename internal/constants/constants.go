@@ -25,6 +25,10 @@ const (
 	Password                          = "PASSWORD"
 	Login                             = "LOGIN"
 	Change                            = "CHANGE"
+	Checker                           = "CHECKER"
+	IFBChecker                        = "IFB_CHECKER"
+	Maker                             = "IFBMAKER"
+	IFBMaker                          = "MAKER"
 	Permanent                         = "PERMANENT"
 	TokenType                         = "TOKEN_TYPE"
 	Token                             = "TOKEN"
@@ -43,6 +47,17 @@ const (
 	ProfileTemp                       = "PROFILE-*.TMP"
 	BucketUserProfilePicture          = "USER-PROFILE-PICTURES"
 	OtpExpirationTime                 = 3 * time.Minute
+	ActionCode                        = "action_code"
+	ActionID                          = "action_id"
+	ActionStatus                      = "action_status"
+	IncompleteUserInfo                = "incomplete user info"
+	Approved                          = "APPROVED"
+	Rejected                          = "REJECTED"
+)
+
+const (
+	DefaultPage    = 1
+	DefaultPerPage = 10
 )
 
 type Realm string
@@ -138,4 +153,223 @@ const (
 	Pending  OTPStatus = "PENDING"
 	Verified OTPStatus = "VERIFIED"
 	Denied   OTPStatus = "DENIED"
+)
+
+type RequestAction string
+
+const (
+	RequestUser           RequestAction = "USER"
+	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete  RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable  RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
+
+	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
+	RequestDepartment               RequestAction = "DEPARMTENT"
+	RequestEnableUser               RequestAction = "ENABLE_USER"
+	RequestDisableUser              RequestAction = "DISABLE_USER"
+	RequestBPSUser                  RequestAction = "BPS_USER"
+	RequestDisableBPSUser           RequestAction = "DISABLE_BPS_USER"
+	RequestEnableBPSUser            RequestAction = "ENABLE_BPS_USER"
+	RequestUpdateUser               RequestAction = "UPDATE_USER"
+	RequestTotalDailyLimit          RequestAction = "TOTAL_DAILY_LIMIT"
+	RequestUpdateVAT                RequestAction = "UPDATE_VAT"
+	RequestAuthTier                 RequestAction = "AUTHTIER"
+	RequestDeleteAmountBasedAuth    RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth    RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestCreateAdvert             RequestAction = "CREATE_ADVERT"
+	RequestUpdateAdvert             RequestAction = "UPDATE_ADVERT"
+	RequestEnableAdvert             RequestAction = "ENABLE_ADVERT"
+	RequestDisableAdvert            RequestAction = "DISABLE_ADVERT"
+	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
+	RequestCreateBank               RequestAction = "CREATE_BANK"
+	RequestUpdateBank               RequestAction = "UPDATE_BANK"
+	RequestDeleteBank               RequestAction = "DELETE_BANK"
+	RequestEnableBank               RequestAction = "ENABLE_BANK"
+	RequestDisableBank              RequestAction = "DISABLE_BANK"
+	RequestCreateWallet             RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet             RequestAction = "DELETE_WALLET"
+	RequestEnableWallet             RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet            RequestAction = "DISABLE_WALLET"
+	RequestUpdatePasswordExpiry     RequestAction = "UPDATE_PASSWORD_EXPIRY"
+	RequestCreateValidation         RequestAction = "CREATE_VALIDATION"
+	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
+	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
+	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle      RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal       RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap      RequestAction = "UPDATE_SERVICE_MIN_CAP"
+	RequestCreateServiceFee         RequestAction = "CREATE_SERVICE_FEE"
+	RequestUpdateServiceFee         RequestAction = "UPDATE_SERVICE_FEE"
+	RequestDeleteServiceFee         RequestAction = "DELETE_SERVICE_FEE"
+	RequestCreateDailyLimit         RequestAction = "CREATE DAILY LIMIT"
+	RequestUpdateDailyLimit         RequestAction = "UPDATE DAILY LIMIT"
+	RequestDeleteDailyLimit         RequestAction = "DELETE DAILY LIMIT"
+	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
+	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
+	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
+	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
+	RequestArchiveUser              RequestAction = "ARCHIVE_USER"
+	RequestCreatePasswordRule       RequestAction = "CREATE_PASSWORD_RULE"
+	RequestUpdatePasswordRule       RequestAction = "UPDATE_PASSWORD_RULE"
+	RequestUpdateMinimumService     RequestAction = "UPDATE_MINIMUM_SERVICE"
+	RequestUpdateServiceRule        RequestAction = "UPDATE_SERVICE_RULE"
+	RequestUpdateTotal              RequestAction = "UPDATE_TOTAL"
+	RequestUpdateAccessConfig       RequestAction = "UPDATE_ACCESS_CONFIG"
+	RequestEnableSingleBranch       RequestAction = "ENABLE_SINGLE_BRANCH"
+	RequestDisableSingleBranch      RequestAction = "DISABLE_SINGLE_BRANCH"
+	RequestEnableMultiUsers         RequestAction = "ENABLE_MULTI_USERS"
+	RequestDisableMultiUsers        RequestAction = "DISABLE_MULTI_USERS"
+	RequestCreateBusiness           RequestAction = "CREATE_BUSINESS"
+	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
+	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
+	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar             RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
+	RequestUnlinkUser               RequestAction = "UNLINK_USER"
+	RequestBlockRegion              RequestAction = "BLOCK_REGION"
+	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
+	RequestBlockCity                RequestAction = "BLOCK_CITY"
+	RequestBlockUser                RequestAction = "BLOCK_USER"
+	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+
+	// Newly added for block_account
+	// Branch
+	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
+
+	// Region
+	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
+	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+
+	// District
+	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
+	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+
+	// City
+	RequestEnableCity         RequestAction = "REQUEST_ENABLE_CITY"
+	RequestDisableCity        RequestAction = "REQUEST_DISABLE_CITY"
+	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
+
+	RequestCreateEvent             RequestAction = "CREATE_EVENT"
+	RequestUpdateEvent             RequestAction = "UPDATE_EVENT"
+	RequestCreateEventCategory     RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory     RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestDisableEvent            RequestAction = "DISABLE_EVENT"
+	RequestUpdateAccountValidation RequestAction = "UPDATE_ACCOUNT_VALIDATION"
+	RequestUpdateServiceDetails    RequestAction = "UPDATE_SERVICE_DETAILS"
+	RequestUpdateHQBlockTime       RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+
+	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
+	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
+	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
+	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
+	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
+	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+
+	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestBudgetDelete RequestAction = "DELETE_BUDGET_CATEGORY"
+
+	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
+	RequestCIFRemove         RequestAction = "CIF_REMOVE"
+	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
+)
+
+type RegistrationType string
+
+const (
+	RegistrationTypeNew    RegistrationType = "NEW"
+	RegistrationTypeLinked RegistrationType = "LINKED"
+)
+
+type PrimaryAuthentication string
+
+const (
+	PrimaryAuthenticationByPhoneNumber         PrimaryAuthentication = "PHONE_NUMBER"
+	PrimaryAuthenticationByEmail               PrimaryAuthentication = "EMAIL"
+	PrimaryAuthenticationByEmailAndPhoneNumber PrimaryAuthentication = "EMAIL_AND_PHONE_NUMBER"
+)
+
+type AdvertFor string
+
+const (
+	IFB_ADVERT_FOR  AdvertFor = "IFB"
+	CB_ADVERT_FOR   AdvertFor = "CB"
+	BOTH_ADVERT_FOR AdvertFor = "ALL"
+)
+
+type RestrictionType string
+
+const (
+	AgeRestriction RestrictionType = "AGE_RESTRICTION"
+)
+
+type EventStatus string
+
+const (
+	EventUpcomming EventStatus = "UPCOMMING"
+	EventLive      EventStatus = "LIVE"
+	EventClosed    EventStatus = "CLOSED"
+)
+
+type BranchType string
+
+const (
+	IFB BranchType = "IFB"
+	CB  BranchType = "CB"
+)
+
+type AppType string
+
+const (
+	UATApp     AppType = "UAT"
+	Production AppType = "PRODUCATION"
+	Test       AppType = "TEST"
+	Dev        AppType = "DEV"
+)
+
+type EnvironmentType string
+
+const (
+	UatEnvironment        EnvironmentType = "UAT"
+	DevEnvironment        EnvironmentType = "DEV"
+	TestEnvironment       EnvironmentType = "TEST"
+	ProductionEnvironment EnvironmentType = "PRODUCTION"
+)
+
+type Method string
+
+const (
+	OPEN      Method = "OPEN"
+	PIN       Method = "PIN"
+	OTPANDPIN Method = "OTP_PIN"
+)
+
+type NotificationFor string
+
+const (
+	ForIFB NotificationFor = "IFB"
+	ForCB  NotificationFor = "CB"
+	ForAll NotificationFor = "ALL"
+)
+
+type NotificationStatus string
+
+const (
+	StatusPending NotificationStatus = "PENDING"
+	StatusSent    NotificationStatus = "SENT"
+	StatusSeen    NotificationStatus = "SEEN"
 )

@@ -1,9 +1,9 @@
 package users
 
 import (
-	"cbe-super-app-member-auth/internal/constants/errors"
-	"cbe-super-app-member-auth/internal/constants/model"
-	"cbe-super-app-member-auth/internal/constants/types"
+	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
