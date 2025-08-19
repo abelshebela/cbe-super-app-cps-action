@@ -56,6 +56,7 @@ func InitPermissionRoutes(router chi.Router, permissionHandler inbound.Permissio
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdatePermissionGroup)),
 				},
 			},
 		}
