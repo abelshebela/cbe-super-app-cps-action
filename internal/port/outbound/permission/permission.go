@@ -2,6 +2,8 @@ package permission
 
 import (
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
+	"context"
+
 	model "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 )
 
@@ -13,7 +15,7 @@ type PermissionRepository interface {
 }
 
 type PermissionCategoryRepository interface {
-	ValidatePermissionCategories(ids []string) ([]string, error)
+	ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error)
 }
 
 type CPSActionRepository interface {

@@ -14,6 +14,7 @@ import (
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	gomock "go.uber.org/mock/gomock"
+	"context"
 )
 
 // MockPermissionGroupRepository is a mock of PermissionGroupRepository interface.
@@ -107,7 +108,7 @@ func (m *MockPermissionCategoryRepository) EXPECT() *MockPermissionCategoryRepos
 }
 
 // ValidatePermissionCategories mocks base method.
-func (m *MockPermissionCategoryRepository) ValidatePermissionCategories(ids []string) ([]string, error) {
+func (m *MockPermissionCategoryRepository) ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidatePermissionCategories", ids)
 	ret0, _ := ret[0].([]string)
@@ -116,7 +117,7 @@ func (m *MockPermissionCategoryRepository) ValidatePermissionCategories(ids []st
 }
 
 // ValidatePermissionCategories indicates an expected call of ValidatePermissionCategories.
-func (mr *MockPermissionCategoryRepositoryMockRecorder) ValidatePermissionCategories(ids any) *gomock.Call {
+func (mr *MockPermissionCategoryRepositoryMockRecorder) ValidatePermissionCategories(ctx context.Context,ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidatePermissionCategories", reflect.TypeOf((*MockPermissionCategoryRepository)(nil).ValidatePermissionCategories), ids)
 }

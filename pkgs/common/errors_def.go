@@ -1689,7 +1689,33 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Portal cards must be a list of strings.",
 		},
+		
+		"DEPARTMENT_ALREADY_ENABLED": {
+			Code:    "DEP_006",
+			Status:  StatusConflict,
+			Message: "Department is already enabled.",	
 	},
+		"DEPARTMENT_ALREADY_DISABLED": {
+			Code:    "DEP_007",
+			Status:  StatusConflict,
+			Message: "Department is alreaPORTALdy disabled.",	
+	},
+	"PORTAL_CARD_ARRAY_EMPTY":{
+			Code:    "DEP_008",
+			Status:  StatusBadRequest,	
+			Message: "Portal card array cannot be empty.",
+	},
+	"PORTAL_CARD_NOT_FOUND": {
+			Code:    "DEP_009",
+			Status:  StatusBadRequest,
+			Message: "invalid portal card used.",
+	},
+	"INVALID_PERMISSION_GROUPS": {
+			Code:    "DEP_010",
+			Status:  StatusBadRequest,
+			Message: "invalid permission group used",
+		},
+},
 	Bank: ErrorGroup{
 		"BANKS_NOT_FOUND": {
 			Code:    "BNK_001",
