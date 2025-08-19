@@ -3,215 +3,381 @@ package department
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
-	domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
-
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
-
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
+	portal_card "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type DepartmentData struct {
-	Code             string
-	Name             string
-	PortalCards      []string
-	PermissionGroups []string
+// Maker represents a user who can create CPS actions
+type Maker struct {
+	UserCode    string `json:"user_code"`
+	FullName    string `json:"full_name"`
+	PhoneNumber string `json:"phone_number"`
+	Department  string `json:"department"`
 }
 
 type DepartmentService interface {
-	CreateCPSAction(ctx context.Context, department string, portalCards []string, permissionGroups []string, cpsAction cpsactions.CPSAction) (string, error)
-	CreateDepartment(ctx context.Context, input string, portalCards []string, cpsAction cpsactions.CPSAction) error
-	UpdateDepartment(ctx context.Context, code string, req UpdateDepartmentRequest) (*entities.Department, error)
-	CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error)
-	ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error)
-	RejectActionRequest(ctx context.Context, actionCode string, action cpsactions.CPSAction) error
+	CreateDepartment(ctx context.Context, request CreateDepartmentRequest, maker Maker) error
+	UpdateDepartment(ctx context.Context, id string, request DepartmentUpdateCPSActionRequest, maker Maker) error
+	EnableDepartment(ctx context.Context, id string, maker Maker) error
+	DisableDepartment(ctx context.Context, id string, maker Maker) error
 	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
 	GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error)
 }
 
 type DepartmentHandler struct {
-	service          *domain.Service
-	logger           utils.Logger
-	departmentDomain department.Service
+	service           department.Service
+	permissionService permission.PermissionDomainService
+	cpsService        cps_service.CPSActionService
+	portalCardService     portal_card.PortaCardInterface
+	logger            utils.Logger
 }
 
-func InitDepartmentHandler(service *domain.Service, logger utils.Logger) DepartmentService {
+func NewDepartmentHandler(
+	service department.Service,
+	permissionService permission.PermissionDomainService,
+	cpsService cps_service.CPSActionService,
+	portalCardService portal_card.PortaCardInterface,
+	logger utils.Logger,
+) *DepartmentHandler {
 	return &DepartmentHandler{
-		service:          service,
-		logger:           logger,
-		departmentDomain: *service,
+		service:           service,
+		permissionService: permissionService,
+		cpsService:        cpsService,
+		portalCardService:     portalCardService,
+		logger:            logger,
 	}
 }
 
-func (h *DepartmentHandler) extractDepartmentData(current any) (*DepartmentData, error) {
-	var data map[string]any
-
-	switch v := current.(type) {
-	case map[string]any:
-		data = v
-	default:
-		bytes, err := json.Marshal(current)
-		if err != nil {
-			h.logger.Errorf("failed to marshal action data: %v", err)
-			return nil, fmt.Errorf(err_msg.InvalidInput)
-		}
-		if err := json.Unmarshal(bytes, &data); err != nil {
-			h.logger.Errorf("failed to unmarshal action data: %v", err)
-			return nil, fmt.Errorf(err_msg.InvalidJSONPayload)
-		}
+// handleCPSAction handles CPS action creation using the generic CPS service
+func (h *DepartmentHandler) handleCPSAction(ctx context.Context, maker Maker, requestAction cps_const.RequestAction, curData, prevData interface{}, actionType cps_const.ActionType, uniqueID string) error {
+	// Convert Maker to cpsactions.User
+	cpsUser := cpsactions.User{
+		UserCode:    maker.UserCode,
+		FullName:    maker.FullName,
+		PhoneNumber: maker.PhoneNumber,
+		Department:  maker.Department,
 	}
 
-	name, ok := data["department"].(string)
-	if !ok || name == "" {
-		h.logger.Errorf("missing or invalid department name")
-		return nil, fmt.Errorf(err_msg.DepartmentNameRequired)
+	cpsAction := h.cpsService.BuildCPSAction(ctx, cpsactions.CreateCPSRequest{
+		User:          cpsUser,
+		CurData:       curData,
+		PrevData:      prevData,
+		RequestAction: requestAction,
+		ActionStatus:  cps_const.ActionPending,
+		ActionType:    actionType,
+	})
+
+	// Set the unique ID if provided
+	if uniqueID != "" {
+		cpsAction.UniqueID = uniqueID
 	}
 
-	rawCards, ok := data["portal_cards"].([]any)
-	if !ok {
-		h.logger.Errorf("missing or invalid portal_cards")
-		return nil, fmt.Errorf(err_msg.InvalidInput)
-	}
-
-	var cards []string
-	for _, card := range rawCards {
-		str, ok := card.(string)
-		if !ok {
-			h.logger.Errorf("portal_cards must contain only strings, got: %v", card)
-			return nil, fmt.Errorf(err_msg.PortalCardsInvalid)
-		}
-		cards = append(cards, str)
-	}
-
-	// Extract permission_groups
-	var permissionGroups []string
-	if rawGroups, ok := data["permission_groups"]; ok {
-		switch v := rawGroups.(type) {
-		case []any:
-			for _, g := range v {
-				if str, ok := g.(string); ok {
-					permissionGroups = append(permissionGroups, str)
-				}
-			}
-		case []string:
-			permissionGroups = v
-		}
-	}
-
-	code, _ := data["department_code"].(string)
-
-	return &DepartmentData{
-		Code:             code,
-		Name:             name,
-		PortalCards:      cards,
-		PermissionGroups: permissionGroups,
-	}, nil
-}
-
-func (h *DepartmentHandler) CreateCPSAction(ctx context.Context, department string, portalCards []string, permissionGroups []string, cpsAction cpsactions.CPSAction) (string, error) {
-	// Check request exists
-	if existing, err := h.service.CheckRequestExists(ctx, cpsAction); err != nil {
-		h.logger.Errorf("failed to check request exists: %v", err)
-		return "", err
-	} else if existing != nil {
-		h.logger.Errorf("pending request exists for action code: %s", existing.ActionCode)
-		return "", fmt.Errorf(err_msg.PendingRequestExists)
-	}
-
-	// check department exist
-	if exists, err := h.service.CheckDepartmentExists(ctx, department); err != nil {
-		h.logger.Errorf("failed to check department exists: %v", err)
-		return "", err
-	} else if exists {
-		h.logger.Errorf("department already exists for action code: %s", department)
-		return "", fmt.Errorf(err_msg.DepartmentAlreadyExists)
-	}
-
-	// creating dep
-	createdActionCode, err := h.service.CreateCPSAction(ctx, department, portalCards, permissionGroups, cpsAction)
+	_, err := h.cpsService.CreateCPSAction(ctx, cpsAction)
 	if err != nil {
 		h.logger.Errorf("failed to create CPS action: %v", err)
-		return "", err
-	}
-	return createdActionCode, nil
-}
-func (h *DepartmentHandler) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction cpsactions.CPSAction) error {
-	h.logger.Infof("Creating department: %s with portal cards: %v", department, portalCards)
-	err := h.service.CreateDepartment(ctx, department, portalCards, cpsAction)
-	if err != nil {
-		h.logger.Errorf("Failed to create department: %v", err)
 		return err
 	}
-	h.logger.Infof("Department created successfully: %s", department)
 	return nil
 }
 
-func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req UpdateDepartmentRequest) (*entities.Department, error) {
+func (h *DepartmentHandler) CreateDepartment(ctx context.Context, request CreateDepartmentRequest, maker Maker) error {
+	h.logger.Infof("Creating department: %s with portal cards: %v and permission groups: %v", request.Department, request.PortalCards, request.PermissionGroups)
 
-	if id != "" {
-		if exists, err := h.service.CheckDepartmentExistsByID(ctx, id); err != nil {
-			return nil, err
-		} else if !exists {
-			return nil, fmt.Errorf(err_msg.DepartmentNotFound)
+	// Validate department name is not empty
+	if request.Department == "" {
+		h.logger.Errorf("department name cannot be empty")
+		return fmt.Errorf("DEPARTMENT_NAME_REQUIRED")
+	}
+
+	// Check if department already exists
+	exists, err := h.service.CheckDepartmentExists(ctx, request.Department)
+	if err != nil {
+		h.logger.Errorf("failed to check department existence: %v", err)
+		return fmt.Errorf("DEPARTMENT_EXISTENCE_CHECK_FAILED")
+	}
+	if exists {
+		h.logger.Errorf("department already exists: %s", request.Department)
+		return fmt.Errorf("DEPARTMENT_ALREADY_EXISTS")
+	}
+
+	// Validate portal cards are not empty
+	if len(request.PortalCards) == 0 {
+		h.logger.Errorf("portal cards cannot be empty")
+		return fmt.Errorf("PORTAL_CARDS_REQUIRED")
+	}
+
+	// Validate permission groups are not empty
+	if len(request.PermissionGroups) == 0 {
+		h.logger.Errorf("permission groups cannot be empty")
+		return fmt.Errorf("PERMISSION_GROUPS_REQUIRED")
+	}
+
+	// Validate permission groups exist in the system
+	if _, err := h.permissionService.ValidatePermissionGroups(ctx,request.PermissionGroups); err != nil {
+		h.logger.Errorf("invalid permission groups: %v", err)
+		return fmt.Errorf("INVALID_PERMISSION_GROUPS")
+	}
+	if _,err:=h.portalCardService.ValidatePortalCard(ctx,request.PortalCards);err!=nil{
+		h.logger.Errorf("invalid portal cards: %v", err)
+		return err
+	}
+	// Create CPS request data
+	cpsRequest := map[string]interface{}{
+		"department":        request.Department,
+		"portal_cards":      request.PortalCards,
+		"permission_groups": request.PermissionGroups,
+	}
+
+	// Handle CPS action creation
+	if err := h.handleCPSAction(ctx, maker, cps_const.RequestCreateDepartment, cpsRequest, nil, cps_const.ActionCreate, ""); err != nil {
+		h.logger.Errorf("failed to create CPS action: %v", err)
+		return fmt.Errorf("DEPARTMENT_CPS_ACTION_CREATION_FAILED")
+	}
+
+	h.logger.Infof("Department creation request sent successfully: %s", request.Department)
+	return nil
+}
+
+func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, request DepartmentUpdateCPSActionRequest, maker Maker) error {
+	h.logger.Infof("Updating department with ID: %s", id)
+
+	// Validate ID format
+	if id == "" {
+		h.logger.Errorf("department ID cannot be empty")
+		return fmt.Errorf("DEPARTMENT_ID_REQUIRED")
+	}
+
+	// Check if department exists
+	exists, err := h.service.CheckDepartmentExistsByID(ctx, id)
+	if err != nil {
+		h.logger.Errorf("failed to check department existence: %v", err)
+		return fmt.Errorf("DEPARTMENT_EXISTENCE_CHECK_FAILED")
+	}
+	if !exists {
+		h.logger.Errorf("department not found: %s", id)
+		return fmt.Errorf("DEPARTMENT_NOT_FOUND")
+	}
+
+	// Validate that at least one field is being updated
+	if request.Department == "" && len(request.PortalCards) == 0 && len(request.PermissionGroups) == 0 {
+		h.logger.Errorf("no fields provided for update")
+		return fmt.Errorf("DEPARTMENT_UPDATE_FIELDS_REQUIRED")
+	}
+
+	// Validate department name if provided
+	if request.Department != "" {
+		// Check if the new name conflicts with existing departments (excluding current one)
+		existingDept, err := h.service.GetDepartmentByID(ctx, id)
+		if err != nil {
+			h.logger.Errorf("failed to get existing department: %v", err)
+			return fmt.Errorf("DEPARTMENT_FETCH_FAILED")
+		}
+
+		if existingDept.Department != request.Department {
+			// Check if new name already exists
+			nameExists, err := h.service.CheckDepartmentExists(ctx, request.Department)
+			if err != nil {
+				h.logger.Errorf("failed to check department name existence: %v", err)
+				return fmt.Errorf("DEPARTMENT_NAME_EXISTENCE_CHECK_FAILED")
+			}
+			if nameExists {
+				h.logger.Errorf("department name already exists: %s", request.Department)
+				return fmt.Errorf("DEPARTMENT_ALREADY_EXISTS")
+			}
 		}
 	}
 
-	domainReq := domain.UpdateDepartmentRequest{
-		Department:       req.Department,
-		PortalCards:      req.PortalCards,
-		PermissionGroups: req.PermissionGroups,
+	// Validate portal cards if provided
+	if len(request.PortalCards) > 0 {
+		// Check if portal cards are not empty strings
+		for i, card := range request.PortalCards {
+			if card == "" {
+				h.logger.Errorf("portal card at index %d cannot be empty", i)
+				return fmt.Errorf("PORTAL_CARD_EMPTY_VALUE")
+			}
+		}
 	}
-	data, err := h.service.UpdateDepartment(ctx, id, domainReq)
-	if err != nil {
-		return nil, err
+
+	// Validate permission groups if provided
+	if len(request.PermissionGroups) > 0 {
+		// Check if permission groups are not empty strings
+		for i, group := range request.PermissionGroups {
+			if group == "" {
+				h.logger.Errorf("permission group at index %d cannot be empty", i)
+				return fmt.Errorf("PERMISSION_GROUP_EMPTY_VALUE")
+			}
+		}
+
+		// Validate permission groups exist in the system
+		if _, err := h.permissionService.ValidatePermissionGroups(ctx,request.PermissionGroups); err != nil {
+			h.logger.Errorf("invalid permission groups: %v", err)
+			return fmt.Errorf("INVALID_PERMISSION_GROUPS")
+		}
 	}
-	return data, nil
+
+	// Create CPS request data with only provided fields
+	cpsRequest := map[string]interface{}{
+		"department_id": id, // Include the department ID for identification
+	}
+	if request.Department != "" {
+		cpsRequest["department"] = request.Department
+	}
+	if len(request.PortalCards) > 0 {
+		cpsRequest["portal_cards"] = request.PortalCards
+	}
+	if len(request.PermissionGroups) > 0 {
+		cpsRequest["permission_groups"] = request.PermissionGroups
+	}
+
+	// Handle CPS action creation
+	if err := h.handleCPSAction(ctx, maker, cps_const.RequestUpdateDepartment, cpsRequest, nil, cps_const.ActionUpdate, id); err != nil {
+		h.logger.Errorf("failed to create CPS action: %v", err)
+		return fmt.Errorf("DEPARTMENT_UPDATE_CPS_ACTION_CREATION_FAILED")
+	}
+
+	h.logger.Infof("Department update request sent successfully: %s", id)
+	return nil
 }
 
-func (h *DepartmentHandler) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error) {
-	action, err := h.service.ValidateActionRequest(ctx, actionCode, userDept)
-	if err != nil {
-		h.logger.Errorf("Failed to validate action request: %v", err)
-		return nil, err
+func (h *DepartmentHandler) EnableDepartment(ctx context.Context, id string, maker Maker) error {
+	h.logger.Infof("Enabling department with ID: %s", id)
+
+	// Validate ID format
+	if id == "" {
+		h.logger.Errorf("department ID cannot be empty")
+		return fmt.Errorf("DEPARTMENT_ID_REQUIRED")
 	}
-	return action, nil
+
+	// Check if department exists
+	exists, err := h.service.CheckDepartmentExistsByID(ctx, id)
+	if err != nil {
+		h.logger.Errorf("failed to check department existence: %v", err)
+		return fmt.Errorf("DEPARTMENT_EXISTENCE_CHECK_FAILED")
+	}
+	if !exists {
+		h.logger.Errorf("department not found: %s", id)
+		return fmt.Errorf("DEPARTMENT_NOT_FOUND")
+	}
+
+	// Check if department is already enabled
+	existingDept, err := h.service.GetDepartmentByID(ctx, id)
+	if err != nil {
+		h.logger.Errorf("failed to get existing department: %v", err)
+		return fmt.Errorf("DEPARTMENT_FETCH_FAILED")
+	}
+
+	if existingDept.Enabled {
+		h.logger.Errorf("department is already enabled: %s", id)
+		return fmt.Errorf("DEPARTMENT_ALREADY_ENABLED")
+	}
+
+	// Create CPS request data for enable
+	cpsRequest := map[string]interface{}{
+		"department_id": id,   // Include the department ID for identification
+		"enabled":       true, // Use "enabled" to match database field
+	}
+
+	// Handle CPS action creation
+	if err := h.handleCPSAction(ctx, maker, cps_const.RequestUpdateDepartment, cpsRequest, nil, cps_const.ActionUpdate, id); err != nil {
+		h.logger.Errorf("failed to create CPS action: %v", err)
+		return fmt.Errorf("DEPARTMENT_ENABLE_CPS_ACTION_CREATION_FAILED")
+	}
+
+	h.logger.Infof("Department enable request sent successfully: %s", id)
+	return nil
 }
 
-func (h *DepartmentHandler) CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
-	if existing, err := h.service.CheckRequestExists(ctx, req); err != nil {
-		h.logger.Errorf("failed to check request exists: %v", err)
-		return nil, err
-	} else if existing != nil {
-		h.logger.Errorf("pending request exists for action code: %s", existing.ActionCode)
-		return nil, fmt.Errorf(err_msg.PendingRequestExists)
+func (h *DepartmentHandler) DisableDepartment(ctx context.Context, id string, maker Maker) error {
+	h.logger.Infof("Disabling department with ID: %s", id)
+
+	// Validate ID format
+	if id == "" {
+		h.logger.Errorf("department ID cannot be empty")
+		return fmt.Errorf("DEPARTMENT_ID_REQUIRED")
 	}
 
-	cpsAction, err := h.service.CreateDepartmentUpdateCPSAction(ctx, req)
+	// Check if department exists
+	exists, err := h.service.CheckDepartmentExistsByID(ctx, id)
 	if err != nil {
-		h.logger.Errorf("Failed to create department update CPS action: %v", err)
-		return nil, err
+		h.logger.Errorf("failed to check department existence: %v", err)
+		return fmt.Errorf("DEPARTMENT_EXISTENCE_CHECK_FAILED")
+	}
+	if !exists {
+		h.logger.Errorf("department not found: %s", id)
+		return fmt.Errorf("DEPARTMENT_NOT_FOUND")
 	}
 
-	h.logger.Infof("Department update CPS action created successfully with action code: %s", cpsAction.ActionCode)
-	return cpsAction, nil
-}
+	// Check if department is already disabled
+	existingDept, err := h.service.GetDepartmentByID(ctx, id)
+	if err != nil {
+		h.logger.Errorf("failed to get existing department: %v", err)
+		return fmt.Errorf("DEPARTMENT_FETCH_FAILED")
+	}
 
-func (h *DepartmentHandler) RejectActionRequest(ctx context.Context, actionCode string, action cpsactions.CPSAction) error {
-	return h.service.RejectActionRequest(ctx, actionCode, action)
+	if !existingDept.Enabled {
+		h.logger.Errorf("department is already disabled: %s", id)
+		return fmt.Errorf("DEPARTMENT_ALREADY_DISABLED")
+	}
+
+	// Create CPS request data for disable
+	cpsRequest := map[string]interface{}{
+		"department_id": id,    // Include the department ID for identification
+		"enabled":       false, // Use "enabled" to match database field
+	}
+
+	// Handle CPS action creation
+	if err := h.handleCPSAction(ctx, maker, cps_const.RequestUpdateDepartment, cpsRequest, nil, cps_const.ActionUpdate, id); err != nil {
+		h.logger.Errorf("failed to create CPS action: %v", err)
+		return fmt.Errorf("DEPARTMENT_DISABLE_CPS_ACTION_CREATION_FAILED")
+	}
+
+	h.logger.Infof("Department disable request sent successfully: %s", id)
+	return nil
 }
 
 func (h *DepartmentHandler) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
-	return h.service.GetAllDepartments(ctx, filterParams)
+	h.logger.Infof("Fetching all departments with filter params: %+v", filterParams)
+
+	result, err := h.service.GetAllDepartments(ctx, filterParams)
+	if err != nil {
+		h.logger.Errorf("Failed to fetch departments: %v", err)
+		return nil, err
+	}
+
+	h.logger.Infof("Successfully fetched %d departments", len(result.Data))
+	return result, nil
 }
 
 func (h *DepartmentHandler) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
-	return h.service.GetDepartmentByID(ctx, id)
+	h.logger.Infof("Fetching department by ID: %s", id)
+
+	result, err := h.service.GetDepartmentByID(ctx, id)
+	if err != nil {
+		h.logger.Errorf("Failed to fetch department by ID: %v", err)
+		return nil, err
+	}
+
+	h.logger.Infof("Successfully fetched department: %s", id)
+	return result, nil
+}
+
+// InitDepartmentHandler initializes the department application handler
+func InitDepartmentHandler(
+	departmentDomain department.Service,
+	permissionDomain permission.PermissionDomainService,
+	cpsActionDomain cps_service.CPSActionService,
+	portalCardDomain portal_card.PortaCardInterface,
+	logger utils.Logger,
+) DepartmentService {
+	return NewDepartmentHandler(departmentDomain, permissionDomain, cpsActionDomain,portalCardDomain, logger)
 }

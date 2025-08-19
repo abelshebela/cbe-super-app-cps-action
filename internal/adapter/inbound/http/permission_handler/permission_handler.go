@@ -67,7 +67,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		RequestAction:    string(constants.RequestCreatePermissionGroup),
 	}
 
-	cpsAction, err := h.permissionService.CreatePermissionGroup("", request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	cpsAction, err := h.permissionService.CreatePermissionGroup(r.Context(),"", request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[CreatePermissionGroup] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -138,7 +138,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		RequestAction:    string(constants.RequestUpdatePermissionGroup),
 	}
 
-	cpsAction, err := h.permissionService.UpdatePermissionGroupRequest(oldGroupName, request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	cpsAction, err := h.permissionService.UpdatePermissionGroupRequest(r.Context(),oldGroupName, request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[UpdatePermissionGroup] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)

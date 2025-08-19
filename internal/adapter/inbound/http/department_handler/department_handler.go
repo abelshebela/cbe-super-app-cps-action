@@ -2,15 +2,10 @@
 package department_handler
 
 import (
-	"context"
 	"encoding/json"
-
 	"net/http"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/department"
-	cpsconstants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
-	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/department"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -35,43 +30,36 @@ func NewDepartmentHTTPHandler(service department.DepartmentService, logger utils
 	}
 }
 
-func (h *DepartmentHandler) createCPSActionMaker(ctx ctx_util.UserContext) cpsactions.CPSAction {
-	cpsAction := cpsactions.CPSAction{
-		MakerID:          ctx.UserID,
-		MakerName:        ctx.FullName,
-		MakerPhoneNumber: ctx.PhoneNumber,
-		Department:       ctx.Department,
-		ActionStatus:     cpsconstants.ActionPending,
-		ActionType:       cpsconstants.ActionCreate,
-		RequestAction:    cpsconstants.RequestCreateDepartment,
+// extractUserContext extracts and validates user context from the request
+func (h *DepartmentHandler) extractUserContext(w http.ResponseWriter, r *http.Request) (ctx_util.UserContext, bool) {
+	ctx := ctx_util.ExtractUserContext(r)
+	if ctx.IsIncomplete() {
+		h.logger.Errorf("incomplete user information")
+		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
+		return ctx, false
 	}
-
-	return cpsAction
+	return ctx, true
 }
 
-func (h *DepartmentHandler) getContext(r *http.Request) context.Context {
-	return r.Context()
-}
-
-func (h *DepartmentHandler) createCPSActionChecker(ctx ctx_util.UserContext) entities.CPSAction {
-	cpsAction := entities.CPSAction{
-		CheckerID:          ctx.UserID,
-		CheckerName:        ctx.FullName,
-		CheckerPhoneNumber: ctx.PhoneNumber,
+// validateDepartmentID validates the department ID from URL parameters
+func (h *DepartmentHandler) validateDepartmentID(w http.ResponseWriter, r *http.Request) (string, bool) {
+	departmentID := chi.URLParam(r, "id")
+	if departmentID == "" {
+		h.logger.Errorf("missing or invalid parameter 'id'")
+		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, http.StatusBadRequest, nil)
+		return "", false
 	}
-
-	return cpsAction
+	return departmentID, true
 }
 
 func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	var request department.CreateDepartmentRequest
-	curCtx := h.getContext(r)
+	curCtx := r.Context()
 
-	// this is decoding
+	// Decode request body
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[CreateDepartment] failed to decode request: %v", err)
 		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
-
 		return
 	}
 
@@ -82,99 +70,77 @@ func (h *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ctx := ctx_util.ExtractUserContext(r)
-	userID := ctx.UserID
-
-	// context validation
-	if ctx.IsIncomplete() {
-		h.logger.Errorf("[CreateDepartment] incomplete user information")
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
+	// Extract and validate user context
+	userCtx, ok := h.extractUserContext(w, r)
+	if !ok {
 		return
 	}
 
-	cpsAction := h.createCPSActionMaker(ctx)
+	// Create maker user for application layer
+	maker := department.Maker{
+		UserCode:    userCtx.UserID,
+		FullName:    userCtx.FullName,
+		PhoneNumber: userCtx.PhoneNumber,
+		Department:  userCtx.Department,
+	}
 
-	// creating department
-	createdActionCode, err := h.departmentService.CreateCPSAction(curCtx, request.Department, request.PortalCards, request.PermissionGroups, cpsAction)
-	if err != nil {
+	// Pass to application layer - let it handle CPS action creation
+	if err := h.departmentService.CreateDepartment(curCtx, request, maker); err != nil {
 		h.logger.Errorf("[CreateDepartment] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s with action_code: %s", userID, createdActionCode)
-
-	common_util.BaseResponseMaker(map[string]string{"action_code": createdActionCode}, w, RequestSentSuccesfully, 200)
+	h.logger.Infof("[CreateDepartment] request sent successfully by user: %s", userCtx.UserID)
+	common_util.WriteSuccessResponse(w, nil, RequestSentSuccesfully)
 }
 
 func (h *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
 	var request department.DepartmentUpdateCPSActionRequest
-	curCtx := h.getContext(r)
+	curCtx := r.Context()
 
+	// Decode request body
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[UpdateDepartmentRequest] failed to decode request: %v", err)
 		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
 		return
 	}
 
+	// Input validation
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[UpdateDepartmentRequest] validation failed: %v", err)
 		common_util.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
 
-	ctx := ctx_util.ExtractUserContext(r)
-	userID := ctx.UserID
-
-	if ctx.IsIncomplete() {
-		h.logger.Errorf("[UpdateDepartmentRequest] incomplete user information")
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, http.StatusBadRequest, nil)
+	// Extract and validate user context
+	userCtx, ok := h.extractUserContext(w, r)
+	if !ok {
 		return
 	}
 
-	departmentID := chi.URLParam(r, "id")
-	if departmentID == "" {
-		h.logger.Errorf("[UpdateDepartmentRequest] missing or invalid parameter 'id'")
-		common_util.SendErrorResponse(w, common_util.InvalidInputParameters, http.StatusBadRequest, nil)
+	// Validate department ID
+	departmentID, ok := h.validateDepartmentID(w, r)
+	if !ok {
 		return
 	}
-
-	_, err := h.departmentService.GetDepartmentByID(r.Context(), departmentID)
-	if err != nil {
-		h.logger.Errorf("[UpdateDepartmentRequest] department not found: %v", err)
-		common_util.SendErrorResponse(w, "NOT_FOUND", http.StatusNotFound, nil)
-		return
+	maker := department.Maker{
+		UserCode:    userCtx.UserID,
+		FullName:    userCtx.FullName,
+		PhoneNumber: userCtx.PhoneNumber,
+		Department:  userCtx.Department,
 	}
 
-	cpsAction := cpsactions.CPSAction{
-		MakerID:          ctx.UserID,
-		MakerName:        ctx.FullName,
-		MakerPhoneNumber: ctx.PhoneNumber,
-		Department:       ctx.Department,
-		ActionStatus:     cpsconstants.ActionPending,
-		ActionType:       cpsconstants.ActionUpdate,
-		RequestAction:    cpsconstants.RequestUpdateDepartment,
-		CurrentAction: map[string]interface{}{
-			"department_id":     departmentID,
-			"department":        request.Department,
-			"portal_cards":      request.PortalCards,
-			"permission_groups": request.PermissionGroups,
-		},
-	}
-
-	createdAction, err := h.departmentService.CreateDepartmentUpdateCPSAction(curCtx, cpsAction)
-	if err != nil {
+	// Pass to application layer - let it handle CPS action creation
+	if err := h.departmentService.UpdateDepartment(curCtx, departmentID, request, maker); err != nil {
 		h.logger.Errorf("[UpdateDepartmentRequest] service error: %v", err)
 		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
-	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s for department_id: %s, action_code: %s", userID, departmentID, createdAction.ActionCode)
-	common_util.BaseResponseMaker(map[string]string{"action_code": createdAction.ActionCode}, w, RequestSentSuccesfully, 200)
+	h.logger.Infof("[UpdateDepartmentRequest] update request sent successfully by user: %s for department_id: %s", userCtx.UserID, departmentID)
+	common_util.WriteSuccessResponse(w, nil, RequestSentSuccesfully)
 }
-
-// validatePatchUpdateDepartmentRequest validates only fields that are present for PATCH semantics
-
 
 func (h *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
@@ -203,3 +169,79 @@ func (h *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 	common_util.WriteSuccessResponse(w, department, "Department fetched successfully")
 }
 
+func (h *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
+	userCtx, ok := h.extractUserContext(w, r)
+	if !ok {
+		return
+	}
+
+	departmentID, ok := h.validateDepartmentID(w, r)
+	if !ok {
+		return
+	}
+
+	// _, err := h.departmentService.GetDepartmentByID(r.Context(), departmentID)
+	// if err != nil {
+	// 	h.logger.Errorf("[EnableDepartment] department not found: %v", err)
+	// 	common_util.SendErrorResponse(w, "NOT_FOUND", http.StatusNotFound, nil)
+	// 	return
+	// }
+
+	// Create maker user for application layer
+	maker := department.Maker{
+		UserCode:    userCtx.UserID,
+		FullName:    userCtx.FullName,
+		PhoneNumber: userCtx.PhoneNumber,
+		Department:  userCtx.Department,
+	}
+
+	// Pass to application layer - let it handle CPS action creation
+	if err := h.departmentService.EnableDepartment(r.Context(), departmentID, maker); err != nil {
+		h.logger.Errorf("[EnableDepartment] service error: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
+	h.logger.Infof("[EnableDepartment] enable request sent successfully by user: %s for department_id: %s", userCtx.UserID, departmentID)
+	common_util.WriteSuccessResponse(w, nil, RequestSentSuccesfully)
+}
+
+func (h *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Request) {
+	// Extract and validate user context
+	userCtx, ok := h.extractUserContext(w, r)
+	if !ok {
+		return
+	}
+
+	// Validate department ID
+	departmentID, ok := h.validateDepartmentID(w, r)
+	if !ok {
+		return
+	}
+
+	// Check if department exists
+	_, err := h.departmentService.GetDepartmentByID(r.Context(), departmentID)
+	if err != nil {
+		h.logger.Errorf("[DisableDepartment] department not found: %v", err)
+		common_util.SendErrorResponse(w, "NOT_FOUND", http.StatusNotFound, nil)
+		return
+	}
+
+	// Create maker user for application layer
+	maker := department.Maker{
+		UserCode:    userCtx.UserID,
+		FullName:    userCtx.FullName,
+		PhoneNumber: userCtx.PhoneNumber,
+		Department:  userCtx.Department,
+	}
+
+	// Pass to application layer - let it handle CPS action creation
+	if err := h.departmentService.DisableDepartment(r.Context(), departmentID, maker); err != nil {
+		h.logger.Errorf("[DisableDepartment] service error: %v", err)
+		common_util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
+	h.logger.Infof("[DisableDepartment] disable request sent successfully by user: %s for department_id: %s", userCtx.UserID, departmentID)
+	common_util.WriteSuccessResponse(w, nil, RequestSentSuccesfully)
+}

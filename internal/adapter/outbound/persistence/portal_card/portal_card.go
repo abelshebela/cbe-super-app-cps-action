@@ -2,6 +2,8 @@ package faydaaccount
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	portalCardDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
@@ -9,6 +11,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -80,3 +83,52 @@ func (o *PortalCardRepo) GetAllPortalCard(ctx context.Context, filterParams *con
 		Meta: meta,
 	}, nil
 }
+func (o *PortalCardRepo) ValidatePortalCard(ctx context.Context, names []string) (bool, error) {
+	if len(names) == 0 {
+		return false, fmt.Errorf("PORTAL_CARD_ARRAY_EMPTY")
+	}
+
+	var cleaned []string
+	for _, name := range names {
+		if trimmed := strings.TrimSpace(name); trimmed != "" {
+			cleaned = append(cleaned, trimmed)
+		}
+	}
+
+	if len(cleaned) == 0 {
+		return false, fmt.Errorf("NO_VALID_PORTAL_CARD_NAME")
+	}
+
+	// Query DB
+	cards, err := o.portalCardDal.FindAll(ctx,
+		bson.M{"card_name": bson.M{"$in": cleaned}},
+		bson.M{"card_name": 1},
+	)
+	if err != nil {
+		return false, fmt.Errorf("DB_ERROR: %w", err)
+	}
+
+	// Build lookup
+	found := make(map[string]struct{})
+	for _, card := range cards {
+		if card.CardName != "" {
+			found[card.CardName] = struct{}{}
+		}
+	}
+
+	// Detect missing names
+	var missing []string
+	for _, name := range cleaned {
+		if _, ok := found[name]; !ok {
+			missing = append(missing, name)
+		}
+	}
+
+	if len(missing) > 0 {
+		return false, fmt.Errorf("MISSING_PORTAL_CARDS: %v", missing)
+	}
+
+	return true, nil
+}
+
+

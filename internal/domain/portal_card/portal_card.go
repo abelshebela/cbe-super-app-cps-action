@@ -20,3 +20,7 @@ func NewPortalCardDomain(poratal PortalCardRepository) PortaCardInterface {
 func (p *portalCardDomain) GetAllPortalCard(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*Card], error) {
 	return p.portalInfra.GetAllPortalCard(ctx, filterParams)
 }
+
+func (p *portalCardDomain)ValidatePortalCard(ctx context.Context, names []string) (bool,error){
+	return  p.portalInfra.ValidatePortalCard(ctx,names)
+}

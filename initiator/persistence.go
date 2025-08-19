@@ -5,6 +5,7 @@ import (
 
 	outboundStore "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound"
 	account_lookup_impl "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/bps_calls"
+	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
 	account_block_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_block"
 	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/account_validation"
 	advert "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/ad"
@@ -35,6 +36,7 @@ import (
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
+	dept_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
 	donation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
 	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
@@ -115,8 +117,11 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 			"cps_actions",
 		}),
 
-		BankPersistance:       bank_repo.InitBank(client, databaseName, []string{"banks", "cps_actions"}, logger),
-		DepartmentPersistence: dept_repo.InitDepartment(client, databaseName, 5*time.Second, logger),
+		BankPersistance: bank_repo.InitBank(client, databaseName, []string{"banks", "cps_actions"}, logger),
+		DepartmentPersistence: dept_repo.NewDepartmentPersistence(
+			dal.NewMongoDal[dept_entities.Department, dept_entities.Department](client, databaseName, "department"),
+			logger,
+		),
 		PermissionPersistence: perm_repo.InitPermission(client, databaseName, 5*time.Second, logger),
 		AccountBlockPersistance: account_block_repo.NewOutboundAccountBlockStore(
 			client,

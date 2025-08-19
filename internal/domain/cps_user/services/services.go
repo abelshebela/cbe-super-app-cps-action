@@ -11,7 +11,6 @@ import (
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/repository"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
@@ -35,13 +34,12 @@ type CPSUserService interface {
 
 type cpsUserService struct {
 	repo              repository.CPSUserRepo
-	repoDepartment    department.DepartmentRepository
 	permissionService permission.PermissionDomainService
 	logger            utils.Logger
 }
 
-func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission.PermissionDomainService, repoDepartment department.DepartmentRepository, logger utils.Logger) CPSUserService {
-	return &cpsUserService{repo: repo, permissionService: permissionService, repoDepartment: repoDepartment, logger: logger}
+func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission.PermissionDomainService, logger utils.Logger) CPSUserService {
+	return &cpsUserService{repo: repo, permissionService: permissionService, logger: logger}
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
@@ -51,7 +49,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 		categoryIDs[i] = id.Hex()
 	}
 
-	_, err := s.permissionService.ValidatePermissionCategories(categoryIDs)
+	_, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -61,15 +59,8 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	for i, id := range userData.PermissionGroups {
 		groupIDs[i] = id.Hex()
 	}
-	_, err = s.permissionService.ValidatePermissionGroups(groupIDs)
+	_, err = s.permissionService.ValidatePermissionGroups(ctx, groupIDs)
 	if err != nil {
-		return nil, err
-	}
-
-	// Check if the department exists
-	_, err = s.repo.GetDepartmentByID(ctx, userData.Department.Hex())
-	if err != nil {
-		s.logger.Errorf("failed to check department existence: %v", err)
 		return nil, err
 	}
 
@@ -124,7 +115,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		for i, id := range userData.PermissionCategory {
 			categoryIDs[i] = id.Hex()
 		}
-		_, err := s.permissionService.ValidatePermissionCategories(categoryIDs)
+		_, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +126,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		for i, id := range userData.PermissionGroups {
 			groupIDs[i] = id.Hex()
 		}
-		_, err := s.permissionService.ValidatePermissionGroups(groupIDs)
+		_, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs)
 		if err != nil {
 			return nil, err
 		}
