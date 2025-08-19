@@ -57,7 +57,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
 		bps_userhandler.RegisterBPSUserMakerRoutes(sub, adapter.BPSUserAdapter, authMiddleware)
 
-		wallet.InitWalletRoutes(sub, adapter.WalletAdapter, authMiddleware)
+		wallet.InitWalletRoutes(sub, adapter.WalletAdapter, authMiddleware,cpsGuard)
 		faydaaccount.InitFaydaRoutes(sub, adapter.FaydaAdapter, authMiddleware)
 		customerhandler.InitCustomerRoutes(sub, adapter.CustomerAdapter, authMiddleware)
 		feedbackhandler.InitFeedbackRoutes(sub, adapter.FeedbackAdapter)
