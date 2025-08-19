@@ -62,7 +62,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		customerhandler.InitCustomerRoutes(sub, adapter.CustomerAdapter, authMiddleware)
 		feedbackhandler.InitFeedbackRoutes(sub, adapter.FeedbackAdapter)
 		department_handler.InitDepartmentRoutes(sub, adapter.DepartmentAdapter, authMiddleware,cpsGuard)
-		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware)
+		permission_handler.InitPermissionRoutes(sub, adapter.PermissionAdapter, authMiddleware,cpsGuard)
 		unlink.InitUnlinkHanldler(sub, adapter.UnlinkAdapter, authMiddleware)
 		budget_handler.InitBudgetRoutes(sub, adapter.BudgetAdapter, authMiddleware)
 		bulkservices_inbound.RegisterBulkServiceRoutes(sub, adapter.BulkServiceAdapter, authMiddleware)

@@ -206,6 +206,10 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 				return fmt.Errorf("PORTAL_CARD_EMPTY_VALUE")
 			}
 		}
+	if _,err:=h.portalCardService.ValidatePortalCard(ctx,request.PortalCards);err!=nil{
+		h.logger.Errorf("invalid portal cards: %v", err)
+		return err
+	}
 	}
 
 	// Validate permission groups if provided
@@ -218,7 +222,6 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 			}
 		}
 
-		// Validate permission groups exist in the system
 		if _, err := h.permissionService.ValidatePermissionGroups(ctx,request.PermissionGroups); err != nil {
 			h.logger.Errorf("invalid permission groups: %v", err)
 			return fmt.Errorf("INVALID_PERMISSION_GROUPS")

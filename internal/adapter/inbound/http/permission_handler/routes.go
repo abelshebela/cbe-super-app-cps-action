@@ -7,20 +7,22 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
 	inbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/permission"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	"github.com/go-chi/chi/v5"
 )
 
-func InitPermissionRoutes(router chi.Router, permissionHandler inbound.PermissionPortHandler, authMiddleware middleware.AuthMiddleware) {
+func InitPermissionRoutes(router chi.Router, permissionHandler inbound.PermissionPortHandler, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/permissions", func(r chi.Router) {
 		routes := []route.Route{
 			{
 				Method:  http.MethodPost,
 				Path:    "/",
 				Handler: permissionHandler.CreatePermissionGroup,
+
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{role.Maker}),
+					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreatePermissionGroup)),
 				},
 			},
 			{

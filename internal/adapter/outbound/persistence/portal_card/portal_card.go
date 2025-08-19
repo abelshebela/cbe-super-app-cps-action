@@ -125,7 +125,7 @@ func (o *PortalCardRepo) ValidatePortalCard(ctx context.Context, names []string)
 	}
 
 	if len(missing) > 0 {
-		return false, fmt.Errorf("MISSING_PORTAL_CARDS: %v", missing)
+		return false, fmt.Errorf("PORTAL_CARD_NOT_FOUND")
 	}
 
 	return true, nil

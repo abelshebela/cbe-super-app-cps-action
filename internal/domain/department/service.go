@@ -100,7 +100,22 @@ func (s *ServiceImpl) CreateDepartment(ctx context.Context, department string, p
 func (s *ServiceImpl) UpdateDepartment(ctx context.Context, id string, updateData map[string]interface{}) (*entities.Department, error) {
 	// Validate permission groups if provided
 	if permissionGroups, exists := updateData["permission_groups"]; exists {
-		if groupIDs, ok := permissionGroups.([]string); ok {
+		var groupIDs []string
+
+		// Handle different types for permission groups
+		if strArr, ok := permissionGroups.([]string); ok {
+			groupIDs = strArr
+		} else if interfaceArr, ok := permissionGroups.([]interface{}); ok {
+			// Convert []interface{} to []string
+			for _, item := range interfaceArr {
+				if str, ok := item.(string); ok && str != "" {
+					groupIDs = append(groupIDs, str)
+				}
+			}
+		}
+
+		// Validate the group IDs if we have any
+		if len(groupIDs) > 0 {
 			for _, idStr := range groupIDs {
 				if _, err := bson.ObjectIDFromHex(idStr); err != nil {
 					return nil, fmt.Errorf("DEPARTMENT_INVALID_PERMISSION_GROUP_ID")
@@ -152,9 +167,15 @@ func (s *ServiceImpl) Authorize(ctx context.Context, action *cpsactions.CPSActio
 
 		s.logger.Infof("Extracted raw permission groups: %+v (type: %T)", permissionGroupsRaw, permissionGroupsRaw)
 		var portalCardsList []string
-		for _, item := range currentAction["portal_cards"].([]interface{}) {
-			if str, ok := item.(string); ok {
-				portalCardsList = append(portalCardsList, str)
+		if portalCardsRaw, exists := currentAction["portal_cards"]; exists {
+			if portalCardsArr, ok := portalCardsRaw.([]interface{}); ok {
+				for _, item := range portalCardsArr {
+					if str, ok := item.(string); ok {
+						portalCardsList = append(portalCardsList, str)
+					}
+				}
+			} else if portalCardsArr, ok := portalCardsRaw.([]string); ok {
+				portalCardsList = portalCardsArr
 			}
 		}
 		// Convert permission groups to proper []string
@@ -232,12 +253,48 @@ func (s *ServiceImpl) Authorize(ctx context.Context, action *cpsactions.CPSActio
 						cleanUpdateData[key] = strVal
 					}
 				case "portal_cards":
+					// Handle portal cards with proper type conversion
+					s.logger.Infof("Processing portal_cards field with value: %+v (type: %T)", value, value)
 					if arrVal, ok := value.([]string); ok && len(arrVal) > 0 {
+						s.logger.Infof("Portal cards as []string: %+v", arrVal)
 						cleanUpdateData[key] = arrVal
+					} else if arrVal, ok := value.([]interface{}); ok && len(arrVal) > 0 {
+						// Convert []interface{} to []string
+						s.logger.Infof("Portal cards as []interface{}: %+v", arrVal)
+						var portalCards []string
+						for _, item := range arrVal {
+							if str, ok := item.(string); ok && str != "" {
+								portalCards = append(portalCards, str)
+							}
+						}
+						s.logger.Infof("Converted portal cards: %+v", portalCards)
+						if len(portalCards) > 0 {
+							cleanUpdateData[key] = portalCards
+						}
+					} else {
+						s.logger.Warnf("Portal cards field has unexpected type or is empty: %+v (type: %T)", value, value)
 					}
 				case "permission_groups":
+					// Handle permission groups with proper type conversion
+					s.logger.Infof("Processing permission_groups field with value: %+v (type: %T)", value, value)
 					if arrVal, ok := value.([]string); ok && len(arrVal) > 0 {
+						s.logger.Infof("Permission groups as []string: %+v", arrVal)
 						cleanUpdateData[key] = arrVal
+					} else if arrVal, ok := value.([]interface{}); ok && len(arrVal) > 0 {
+						// Convert []interface{} to []string
+						s.logger.Infof("Permission groups as []interface{}: %+v", arrVal)
+						var permissionGroups []string
+						for _, item := range arrVal {
+							if str, ok := item.(string); ok && str != "" {
+								permissionGroups = append(permissionGroups, str)
+							}
+						}
+						s.logger.Infof("Converted permission groups: %+v", permissionGroups)
+						if len(permissionGroups) > 0 {
+							cleanUpdateData[key] = permissionGroups
+						}
+					} else {
+						s.logger.Warnf("Permission groups field has unexpected type or is empty: %+v (type: %T)", value, value)
 					}
 				case "enable":
 					if boolVal, ok := value.(bool); ok {
