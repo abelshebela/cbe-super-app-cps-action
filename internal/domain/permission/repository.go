@@ -22,7 +22,7 @@ type PermissionGroupRepository interface {
 }
 
 type PermissionCategoryRepository interface {
-	ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error)
+	ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error)
 }
 

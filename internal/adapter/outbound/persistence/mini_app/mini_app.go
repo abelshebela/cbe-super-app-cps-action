@@ -214,11 +214,11 @@ func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *miniApp_
 	}
 
 	existing, err := o.MongoDalMiniApp.FindOne(ctx, bson.M{"app_name": miniAppDoc.AppName}, bson.M{"_id": 1})
-	if err != nil {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
 	if existing != nil {
-		return nil, fmt.Errorf("The App name Already Exist")
+		return nil, fmt.Errorf("the app name already exist")
 	}
 	miniApp, err := o.MongoDalMiniApp.InsertOne(ctx, *miniAppDoc)
 	if err != nil {

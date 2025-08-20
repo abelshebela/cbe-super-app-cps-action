@@ -258,7 +258,7 @@ func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniA
 func (s *MiniAppStore) GetMiniAppByName(ctx context.Context, name string) (*MiniApp, error) {
 	s.logger.Infof("Fetching MiniApp details for Name: %s", name)
 	miniApp, err := s.repository.GetMiniAppByName(ctx, name)
-	if err != nil {
+	if err != nil && err.Error() != "NOT_FOUND" {
 		s.logger.Errorf("Failed to fetch MiniApp with name %s: %v", name, err)
 		return nil, err
 	}

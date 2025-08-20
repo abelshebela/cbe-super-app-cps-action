@@ -49,8 +49,7 @@ func NewWalletService(repository WalletRepository,
 }
 
 func (s *Service) CreateWallet(ctx context.Context, req WalletRequest) (*Wallet, error) {
-
-	exist, err := s.Repository.WalletNameExists(ctx, req.Name, nil)
+	exist, err := s.Repository.WalletNameExists(ctx, req.Name, req.Code, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +89,7 @@ func (s *Service) UpdateWallet(ctx context.Context, id string, req WalletRequest
 	}
 
 	if req.Name != "" {
-		exist, err := s.Repository.WalletNameExists(ctx, req.Name, &id)
+		exist, err := s.Repository.WalletNameExists(ctx, req.Name, req.Code, &id)
 		if err != nil {
 			return nil, nil, err
 		}

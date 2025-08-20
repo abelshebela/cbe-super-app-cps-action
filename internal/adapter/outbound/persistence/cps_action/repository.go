@@ -100,7 +100,6 @@ func (a *cpsActionStore) CPSActionExists(ctx context.Context, user entity.CheckC
 }
 
 func (o *cpsActionStore) CreateCPSAction(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error) {
-
 	modelAction, err := mappers.DomainToModelCPSAction(*action)
 	if err != nil {
 		o.logger.Errorf("Domain to Model conversion failed: %v", err)

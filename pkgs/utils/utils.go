@@ -19,6 +19,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities/enums"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/go-playground/validator/v10"
 	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
@@ -341,4 +342,20 @@ func NonEmptyString(s, fallback string) string {
 		return s
 	}
 	return fallback
+}
+
+func NoSpecialChars(value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation", "invalid type")
+	}
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return nil
+	}
+	re := regexp.MustCompile(`^[a-zA-Z0-9\s]+$`)
+	if !re.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
 }
