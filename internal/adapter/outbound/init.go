@@ -1277,11 +1277,10 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	return &safeUser, nil
 }
 
-func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
-	filter := bson.M{
-		"is_deleted": false,
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
+	filter := []bson.M{
+		{"is_deleted": false},
 	}
-	projection := bson.M{}
 
 	// Add search functionality
 	if filterParams.Search != "" {
@@ -1295,27 +1294,27 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
-
-		// Combile the filter
-		filter = bson.M{
-			"$and": []bson.M{
-				{"is_deleted": false},
-				searchFilter,
-			},
-		}
-
+		filter = append(filter, searchFilter)
 	}
 
 	// Add filter functionality
-	if filterParams.Filters != "" {
-		filter["role"] = filterParams.Filters
+	if filterParams.Filters != nil {
+		allowedKeys := []string{"enabled", "user_code", "full_name", "phone_number", "email", "role", "department"}
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, nil)
+
+		for key, value := range enhancedFilter {
+			filter = append(filter, bson.M{key: value})
+		}
 	}
+
+	// Final Mongo filter
+	mongoFilter := bson.M{"$and": filter}
 
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit
 
-	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, mongoFilter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
@@ -1327,7 +1326,7 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 		dtoUsers = append(dtoUsers, &dto)
 	}
 
-	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, filter)
+	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, mongoFilter)
 	if err != nil {
 		return nil, err
 	}

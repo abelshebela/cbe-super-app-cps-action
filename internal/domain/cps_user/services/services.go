@@ -25,7 +25,7 @@ type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	Authorize(ctx context.Context, action *entity.CPSAction) (*entity.CPSAction, error)
 	DeleteUserRequest(ctx context.Context, userCode string) (*model.CPSAction, error)
 	EnableUser(ctx context.Context, userCode string) error
@@ -183,7 +183,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
+func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	users, err := s.repo.GetAllCPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err
