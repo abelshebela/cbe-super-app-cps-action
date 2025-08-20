@@ -45,7 +45,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(persitence, logger, sessionGRPCClient, cfg, minioClient)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient)
 
 	logger.Infof("initialize handler layer")
 	handlerLayer := InitHandler(serviceLayer, logger)

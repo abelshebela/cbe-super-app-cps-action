@@ -26,6 +26,7 @@ type OTPRepository interface {
 
 type UserRepository interface {
 	Save(ctx context.Context, user *model.User) error
+	GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error)
 	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*model.User, error)
 	FindByUserCode(ctx context.Context, userCode string) (*model.User, error)
@@ -278,6 +279,7 @@ type LinkedAccountRepository interface {
 	Update(ctx context.Context, id string, account *model.LinkedAccount) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.LinkedAccount, error)
+	FindByAccountNumber(ctx context.Context, accountNumber string) (*model.LinkedAccount, error)
 	FindByCustomerNumber(ctx context.Context, customer_number string) (*model.LinkedAccount, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error)
 }

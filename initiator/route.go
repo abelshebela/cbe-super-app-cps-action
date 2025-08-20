@@ -7,6 +7,7 @@ import (
 	"time"
 
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
+	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -39,5 +40,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	authMiddleware := customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
+	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

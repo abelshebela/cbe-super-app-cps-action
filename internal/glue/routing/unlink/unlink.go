@@ -16,11 +16,11 @@ func Init(router chi.Router, handler unlink.UnlinkAdapter, authMiddleware middle
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/unlink/archived-user",
+			Path:    "/unlink/archived_user",
 			Handler: handler.GetArchivedUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Maker, constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -34,7 +34,7 @@ func Init(router chi.Router, handler unlink.UnlinkAdapter, authMiddleware middle
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/unlink/user-cif",
+			Path:    "/unlink/user_cif",
 			Handler: handler.UnlinkUserCif,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

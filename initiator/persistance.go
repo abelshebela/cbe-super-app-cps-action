@@ -80,7 +80,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 
 		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
 		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
-		LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
+		LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_account", logger),
 		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchants", logger),
 		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),
 		PasswordRulePersistence:    password_rule.NewPasswordRuleRepository(client, dbName, "password_rules", logger),

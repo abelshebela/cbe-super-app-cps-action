@@ -1,6 +1,7 @@
 package archived_user
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -30,8 +31,10 @@ func NewArchivedUserRepository(client *mongo.Client, dbName string, collection s
 	}
 }
 
-func (a *archivedUserStorage) Create(ctx context.Context, user *model.ArchivedUser) error {
-	_, err := a.dal.InsertOne(ctx, *user)
+func (a *archivedUserStorage) Create(ctx context.Context, user *model.User) error {
+
+	archivedUser := UserToArchivedUser(user)
+	_, err := a.dal.InsertOne(ctx, *archivedUser)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -51,31 +54,70 @@ func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.A
 	return result, nil
 }
 
-func (a *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+// func (a *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
+// 	filter := bson.M{
+// 		"is_deleted": false,
+// 	}
 
+// 	if filterParam.Search != "" {
+// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+// 		filter["key"] = searchRegex
+// 	}
+
+// 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
+// 	limit := int64(filterParam.PerPage)
+
+// 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	total, err := a.dal.TotalCount(ctx, filter)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+// 	return &types.PaginatedResponse[[]*model.ArchivedUser]{
+// 		Data: data,
+// 		Meta: meta,
+// 	}, nil
+// }
+
+func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
+	// 1. Base filter (only active records)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
+
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{"enabled", "kyc_level", "is_blocked", "is_verified"}
+
+	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["key"] = searchRegex
+		searchKeys["field1"] = searchRegex // choose your searchable field(s)
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	// 5. Fetch data
+	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	total, err := a.dal.TotalCount(ctx, filter)
+	// 6. Count total
+	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
+	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.ArchivedUser]{
 		Data: data,
 		Meta: meta,

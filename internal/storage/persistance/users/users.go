@@ -135,6 +135,40 @@ func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*
 	return user, nil
 }
 
+func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
+	linkedAccountCollection := r.client.Database(r.dbName).Collection("linked_accounts")
+	linkedAccountFilter := bson.M{"account_number": accNumber}
+	var linkedAccount struct {
+		CustomerNumber string `bson:"customer_number"`
+	}
+	err := linkedAccountCollection.FindOne(ctx, linkedAccountFilter).Decode(&linkedAccount)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Warnf("no linked account found for the provided account number")
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
+		}
+		r.logger.Errorf("unexpected error during GetUserByAccount (linked account): %v", err)
+		return nil, errors.New(localization.ErrorInternalServerError.Code)
+	}
+
+	userFilter := bson.M{
+		"customer_number": linkedAccount.CustomerNumber,
+	}
+	projection := UserProjection()
+	user, err := r.userDal.FindOne(ctx, userFilter, projection)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Warnf("no user found for the provided customer number")
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
+		}
+		r.logger.Errorf("unexpected error during GetUserByAccount (user): %v", err)
+		return nil, errors.New(localization.ErrorInternalServerError.Code)
+	}
+
+	r.logger.Infof("user found by account number via linked account")
+	return user, nil
+}
+
 func (r *userRepository) Delete(ctx context.Context, id string) error {
 	db := r.client.Database(r.dbName)
 	collection := db.Collection(r.collection)

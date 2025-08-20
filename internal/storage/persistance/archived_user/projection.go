@@ -1,6 +1,8 @@
 package archived_user
 
 import (
+	"cbe-super-app-cps-action/internal/constants/model"
+
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -23,5 +25,30 @@ func Projection() bson.M {
 		"is_verified":        1,
 		"is_blocked":         1,
 		"last_login":         1,
+	}
+}
+
+func UserToArchivedUser(user *model.User) *model.ArchivedUser {
+	if user == nil {
+		return nil
+	}
+	return &model.ArchivedUser{
+		ID:                user.ID,
+		UserCode:          user.UserCode,
+		FullName:          user.FullName,
+		MotherName:        user.MotherName,
+		Nationality:       user.Nationality,
+		BirthDate:         user.BirthDate,
+		ResidentialStatus: user.ResidentialStatus,
+		PhoneNumber:       user.PhoneNumber,
+		Gender:            user.Gender,
+		Email:             user.Email,
+		CreatedAt:         user.CreatedAt,
+		AccountStatus:     user.AccountStatus,
+		KYCLevel:          user.KYCLevel,
+		IsVerified:        user.IsVerified,
+		IsBlocked:         user.IsBlocked,
+		LastLogin:         user.LastLogin,
+		// Add other fields as needed if present in both structs
 	}
 }

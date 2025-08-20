@@ -30,6 +30,22 @@ func NewLinkedAccountRepository(client *mongo.Client, dbName string, collection 
 	}
 }
 
+func (l *LinkedAccountStorage) FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.LinkedAccount, error) {
+	filter := bson.M{
+		"customer_number": customerNumber,
+		"is_deleted":      false,
+	}
+
+	result, err := l.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
+}
+
 func (l *LinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
 	_, err := l.dal.InsertOne(ctx, *account)
 	if err != nil {
@@ -76,6 +92,21 @@ func (l *LinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.
 
 	if err != nil {
 		return nil, err
+	}
+	return result, nil
+}
+
+func (l *LinkedAccountStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*model.LinkedAccount, error) {
+	filter := bson.M{
+		"account_number": accountNumber,
+	}
+
+	result, err := l.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }

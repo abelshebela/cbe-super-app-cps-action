@@ -27,9 +27,8 @@ type unlinkService struct {
 	cpsService                service.CPSActionService
 }
 
-func NewUnlinkService(client *mongo.Client, userData storage.UserRepository, archivedUserRepo storage.ArchivedUserRepository, linkedAccountRepo storage.LinkedAccountRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, repo storage.UnlinkAccount, cpsAction service.CPSActionService, logger utils.Logger) service.UnlinkService {
+func NewUnlinkService(client *mongo.Client, userData storage.UserRepository, archivedUserRepo storage.ArchivedUserRepository, linkedAccountRepo storage.LinkedAccountRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, cpsAction service.CPSActionService, logger utils.Logger) service.UnlinkService {
 	return &unlinkService{
-		repo:                      repo,
 		userRepo:                  userData,
 		archivedUserRepo:          archivedUserRepo,
 		linkedAccountRepo:         linkedAccountRepo,
@@ -39,12 +38,22 @@ func NewUnlinkService(client *mongo.Client, userData storage.UserRepository, arc
 	}
 }
 
-func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error) {
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
 
-	return u.repo.GetUserByAccount(ctx, accNumber)
+	account, err := u.linkedAccountRepo.FindByAccountNumber(ctx, accNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := u.userRepo.FindById(ctx, account.UserID.Hex())
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
-func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error) {
-	return u.repo.GetAllArchivedUser(ctx, filterParams)
+func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
+	return u.archivedUserRepo.FindAllWithPagination(ctx, *filterParams)
 }
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
 	userData := local_util.ExtractUserFromContext(ctx)
