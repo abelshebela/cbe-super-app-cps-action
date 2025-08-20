@@ -43,7 +43,8 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 func (r *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 
 	filter := bson.M{
-		"is_active": false,
+		"is_deleted": false,
+		"department": department,
 	}
 
 	if filterParam.Search != "" {
@@ -74,13 +75,14 @@ func (r *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error) {
 	filterMap := BuildCPSActionFilter(filter)
 
-	data, err := r.dal.FindOne(ctx, filterMap, Projection)
+	data, err := r.dal.FindOne(ctx, filterMap, nil)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	return data, nil
 }
-func (r *CPSActionStorage) Update(ctx context.Context, action_code string, update model.CPSAction) error {
+
+func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) error {
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 

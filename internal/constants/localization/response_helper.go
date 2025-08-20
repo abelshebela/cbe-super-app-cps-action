@@ -55,20 +55,11 @@ func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldEr
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(responseCode.StatusCode)
 
-	errorDetail := &ErrorDetail{
-		Code:        responseCode.Code,
-		Message:     responseCode.Message,
-		StatusCode:  responseCode.StatusCode,
-		Type:        responseCode.Type,
-		FieldErrors: fieldErrors,
-		Details:     details,
-	}
-
 	response := StandardResponse{
 		Ok:      false,
 		Status:  responseCode.StatusCode,
 		Message: responseCode.Message,
-		Error:   errorDetail,
+		// Error:   errorDetail,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -85,6 +76,15 @@ func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldEr
 // SendValidationErrorResponse sends a validation error response
 func SendValidationErrorResponse(w http.ResponseWriter, fieldErrors []FieldError) {
 	SendErrorResponse(w, ErrorValidationFailed, fieldErrors, nil)
+}
+
+// SendErrorByCodeResponse sends a validation error response
+func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
+	responseCode, ok := GetResponseCodeByCode(code)
+	if !ok {
+		SendErrorResponse(w, ErrorValidationFailed, nil, nil)
+	}
+	SendSuccessResponse(w, responseCode, nil)
 }
 
 // SendUnauthorizedResponse sends an unauthorized error response
@@ -180,4 +180,16 @@ func CreateFieldError(field, message, value, constraint string) FieldError {
 // CreateFieldErrors creates multiple field errors
 func CreateFieldErrors(errors ...FieldError) []FieldError {
 	return errors
+}
+
+// GetResponseCodeByCode fetches a ResponseCode by its Code field from a predefined set of response codes.
+func GetResponseCodeByCode(code string) (ResponseCode, bool) {
+	// List all response codes to search through.
+
+	for _, rc := range ResponseCodesList {
+		if rc.Code == code {
+			return rc, true
+		}
+	}
+	return ResponseCode{}, false
 }

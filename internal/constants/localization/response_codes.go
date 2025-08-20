@@ -8,6 +8,53 @@ type ResponseCode struct {
 	Type       string `json:"type"` // "success", "error", "warning", "info"
 }
 
+var ResponseCodesList = []ResponseCode{
+	// Success codes
+	SuccessUserCreated,
+	SuccessUserUpdated,
+	SuccessUserDeleted,
+	SuccessUserRetrieved,
+	SuccessUserLogin,
+	SuccessUserLogout,
+	SuccessOTPSent,
+	SuccessDonationCompanyLogoUploaded,
+	SuccessDonationCompanyLogoUpdated,
+	SuccessDonationImageUploaded,
+	SuccessDonationImagesUpdated,
+	SuccessNotificationConstructed,
+	SuccessNotificationUpdated,
+	SuccessFeedbackSavedToDatabase,
+	// Error codes
+	ErrorUserNotFound,
+	ErrorUserAlreadyExists,
+	ErrorUserUnauthorized,
+	ErrorUserForbidden,
+	ErrorUserInvalidCredentials,
+	ErrorUserAccountBlocked,
+	ErrorUserSessionExpired,
+	ErrorProductCodeDatabaseQueryFailed,
+	ErrorProductCodeCountFailed,
+	ErrorProductCodeDatabaseUpdateFailed,
+	ErrorMiniAppMerchantCheckPendingFailed,
+	ErrorMiniAppMerchantExistsCheckFailed,
+	ErrorMiniAppMerchantFetchCategoriesFailed,
+	ErrorMiniAppMerchantUnexpectedDBError,
+	ErrorMiniAppMerchantMarshalFailed,
+	ErrorMiniAppMerchantUnmarshalFailed,
+	ErrorMiniAppMerchantCreateFromActionFailed,
+	ErrorMiniAppMerchantUnmarshalActionFailed,
+	ErrorMiniAppMerchantUpdateFailed,
+	ErrorMiniAppMerchantFetchPermissionsFailed,
+	ErrorNotificationMapFailed,
+	ErrorFeedbackSavedToDatabase,
+	ErrorHQApproved,
+	ErrorCPSActionStatusInvalid,
+	ErrorAdvertConstructed,
+	ErrorAdvertUpdate,
+	ErrorValidationRuleApproved,
+	// Add more as needed...
+}
+
 // Success Response Codes
 var (
 	SuccessUserCreated = ResponseCode{
@@ -1191,6 +1238,13 @@ var (
 		Code:       "ERROR_OTP_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgOTPNotFound,
+		Type:       "error",
+	}
+
+	ErrorInvalidRequest = ResponseCode{
+		Code:       "ERROR_INVALID_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestOnParam,
 		Type:       "error",
 	}
 

@@ -43,7 +43,7 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/by-id/{id}",
+			Path:    "/actions/by-id/{action_id}",
 			Handler: handler.GetCPSActionByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

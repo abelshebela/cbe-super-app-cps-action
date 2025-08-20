@@ -2,6 +2,7 @@ package cps_action
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -19,109 +20,74 @@ var Projection = bson.M{
 func BuildCPSActionFilter(cps model.CPSAction) bson.M {
 	filter := bson.M{}
 
-	if cps.ID.IsZero() {
+	// Helper to add string fields
+	addString := func(key, value string) {
+		if value != "" {
+			filter[key] = value
+		}
+	}
+
+	// Helper to add slice fields
+	addSlice := func(key string, value []string) {
+		if len(value) > 0 {
+			filter[key] = value
+		}
+	}
+
+	// Helper to add time fields
+	addTime := func(key string, value time.Time) {
+		if !value.IsZero() {
+			filter[key] = value
+		}
+	}
+
+	// Helper to add pointer time fields
+	addPtrTime := func(key string, value *time.Time) {
+		if value != nil && !value.IsZero() {
+			filter[key] = value
+		}
+	}
+
+	if !cps.ID.IsZero() {
 		filter["_id"] = cps.ID
 	}
-	if cps.ActionCode != "" {
-		filter["action_code"] = cps.ActionCode
-	}
-	if cps.UniqueId != "" {
-		filter["unique_id"] = cps.UniqueId
-	}
-	if cps.MakerID != "" {
-		filter["maker_id"] = cps.MakerID
-	}
-	if cps.MakerName != "" {
-		filter["maker_name"] = cps.MakerName
-	}
-	if cps.MakerPhoneNumber != "" {
-		filter["maker_phone_number"] = cps.MakerPhoneNumber
-	}
-	if cps.CheckerID != "" {
-		filter["checker_id"] = cps.CheckerID
-	}
-	if cps.CheckerName != "" {
-		filter["checker_name"] = cps.CheckerName
-	}
-	if cps.CheckerPhoneNumber != "" {
-		filter["checker_phone_number"] = cps.CheckerPhoneNumber
-	}
-	if cps.Department != "" {
-		filter["department"] = cps.Department
-	}
-	if cps.RejectionReason != "" {
-		filter["rejection_reason"] = cps.RejectionReason
-	}
+	addString("action_code", cps.ActionCode)
+	addString("unique_id", cps.UniqueId)
+	addString("maker_id", cps.MakerID)
+	addString("maker_name", cps.MakerName)
+	addString("maker_phone_number", cps.MakerPhoneNumber)
+	addString("checker_id", cps.CheckerID)
+	addString("checker_name", cps.CheckerName)
+	addString("checker_phone_number", cps.CheckerPhoneNumber)
+	addString("department", cps.Department)
+	addString("rejection_reason", cps.RejectionReason)
 	if cps.PreviousAction != nil {
 		filter["previous_action"] = cps.PreviousAction
 	}
 	if cps.CurrentAction != nil {
 		filter["current_action"] = cps.CurrentAction
 	}
-	if cps.ActionStatus != "" {
-		filter["action_status"] = cps.ActionStatus
-	}
-	if cps.ActionType != "" {
-		filter["action_type"] = cps.ActionType
-	}
-	// Only filter by is_deleted if it's true, to avoid filtering out non-deleted by default
+	addString("action_status", cps.ActionStatus)
+	addString("action_type", cps.ActionType)
 	if cps.IsDeleted {
 		filter["is_deleted"] = cps.IsDeleted
 	}
-	if cps.RequestAction != "" {
-		filter["request_action"] = cps.RequestAction
-	}
-	// Branch fields
-	if len(cps.BranchCodes) > 0 {
-		filter["branch_codes"] = cps.BranchCodes
-	}
-	if len(cps.BranchNames) > 0 {
-		filter["branch_names"] = cps.BranchNames
-	}
-	// City fields
-	if len(cps.CityCodes) > 0 {
-		filter["city_codes"] = cps.CityCodes
-	}
-	if len(cps.CityNames) > 0 {
-		filter["city_names"] = cps.CityNames
-	}
-	// Region fields
-	if len(cps.RegionCodes) > 0 {
-		filter["region_codes"] = cps.RegionCodes
-	}
-	if len(cps.RegionNames) > 0 {
-		filter["region_names"] = cps.RegionNames
-	}
-	// District fields
-	if len(cps.DistrictCodes) > 0 {
-		filter["district_codes"] = cps.DistrictCodes
-	}
-	if len(cps.DistrictNames) > 0 {
-		filter["district_names"] = cps.DistrictNames
-	}
-	// Timestamps
-	if !cps.CreatedAt.IsZero() {
-		filter["created_at"] = cps.CreatedAt
-	}
-	if !cps.LastModifiedAt.IsZero() {
-		filter["last_modified_at"] = cps.LastModifiedAt
-	}
-	if !cps.MakerActionTime.IsZero() {
-		filter["maker_action_time"] = cps.MakerActionTime
-	}
-	if cps.CheckerActionTime != nil && !cps.CheckerActionTime.IsZero() {
-		filter["checker_action_time"] = cps.CheckerActionTime
-	}
-	// Additional fields
-	if cps.Reason != "" {
-		filter["reason"] = cps.Reason
-	}
-	if cps.Status != "" {
-		filter["status"] = cps.Status
-	}
-	if !cps.LastUpdated.IsZero() {
-		filter["last_updated"] = cps.LastUpdated
-	}
+	addString("request_action", cps.RequestAction)
+	addSlice("branch_codes", cps.BranchCodes)
+	addSlice("branch_names", cps.BranchNames)
+	addSlice("city_codes", cps.CityCodes)
+	addSlice("city_names", cps.CityNames)
+	addSlice("region_codes", cps.RegionCodes)
+	addSlice("region_names", cps.RegionNames)
+	addSlice("district_codes", cps.DistrictCodes)
+	addSlice("district_names", cps.DistrictNames)
+	addTime("created_at", cps.CreatedAt)
+	addTime("last_modified_at", cps.LastModifiedAt)
+	addTime("maker_action_time", cps.MakerActionTime)
+	addPtrTime("checker_action_time", cps.CheckerActionTime)
+	addString("reason", cps.Reason)
+	addString("status", cps.Status)
+	addTime("last_updated", cps.LastUpdated)
 
 	return filter
 }
@@ -129,105 +95,71 @@ func BuildCPSActionFilter(cps model.CPSAction) bson.M {
 func BuildCPSActionUpdateMap(cps model.CPSAction) bson.M {
 	update := bson.M{}
 
-	if cps.ActionCode != "" {
-		update["action_code"] = cps.ActionCode
+	// Helper to add string fields
+	addString := func(key, value string) {
+		if value != "" {
+			update[key] = value
+		}
 	}
-	if cps.UniqueId != "" {
-		update["unique_id"] = cps.UniqueId
+
+	// Helper to add slice fields
+	addSlice := func(key string, value []string) {
+		if len(value) > 0 {
+			update[key] = value
+		}
 	}
-	if cps.MakerID != "" {
-		update["maker_id"] = cps.MakerID
+
+	// Helper to add time fields
+	addTime := func(key string, value time.Time) {
+		if !value.IsZero() {
+			update[key] = value
+		}
 	}
-	if cps.MakerName != "" {
-		update["maker_name"] = cps.MakerName
+
+	// Helper to add pointer time fields
+	addPtrTime := func(key string, value *time.Time) {
+		if value != nil && !value.IsZero() {
+			update[key] = value
+		}
 	}
-	if cps.MakerPhoneNumber != "" {
-		update["maker_phone_number"] = cps.MakerPhoneNumber
-	}
-	if cps.CheckerID != "" {
-		update["checker_id"] = cps.CheckerID
-	}
-	if cps.CheckerName != "" {
-		update["checker_name"] = cps.CheckerName
-	}
-	if cps.CheckerPhoneNumber != "" {
-		update["checker_phone_number"] = cps.CheckerPhoneNumber
-	}
-	if cps.Department != "" {
-		update["department"] = cps.Department
-	}
-	if cps.RejectionReason != "" {
-		update["rejection_reason"] = cps.RejectionReason
-	}
+
+	addString("action_code", cps.ActionCode)
+	addString("unique_id", cps.UniqueId)
+	addString("maker_id", cps.MakerID)
+	addString("maker_name", cps.MakerName)
+	addString("maker_phone_number", cps.MakerPhoneNumber)
+	addString("checker_id", cps.CheckerID)
+	addString("checker_name", cps.CheckerName)
+	addString("checker_phone_number", cps.CheckerPhoneNumber)
+	addString("department", cps.Department)
+	addString("rejection_reason", cps.RejectionReason)
 	if cps.PreviousAction != nil {
 		update["previous_action"] = cps.PreviousAction
 	}
 	if cps.CurrentAction != nil {
 		update["current_action"] = cps.CurrentAction
 	}
-	if cps.ActionStatus != "" {
-		update["action_status"] = cps.ActionStatus
-	}
-	if cps.ActionType != "" {
-		update["action_type"] = cps.ActionType
-	}
+	addString("action_status", cps.ActionStatus)
+	addString("action_type", cps.ActionType)
 	if cps.IsDeleted {
 		update["is_deleted"] = cps.IsDeleted
 	}
-	if cps.RequestAction != "" {
-		update["request_action"] = cps.RequestAction
-	}
-	// Branch fields
-	if len(cps.BranchCodes) > 0 {
-		update["branch_codes"] = cps.BranchCodes
-	}
-	if len(cps.BranchNames) > 0 {
-		update["branch_names"] = cps.BranchNames
-	}
-	// City fields
-	if len(cps.CityCodes) > 0 {
-		update["city_codes"] = cps.CityCodes
-	}
-	if len(cps.CityNames) > 0 {
-		update["city_names"] = cps.CityNames
-	}
-	// Region fields
-	if len(cps.RegionCodes) > 0 {
-		update["region_codes"] = cps.RegionCodes
-	}
-	if len(cps.RegionNames) > 0 {
-		update["region_names"] = cps.RegionNames
-	}
-	// District fields
-	if len(cps.DistrictCodes) > 0 {
-		update["district_codes"] = cps.DistrictCodes
-	}
-	if len(cps.DistrictNames) > 0 {
-		update["district_names"] = cps.DistrictNames
-	}
-	// Timestamps
-	if !cps.CreatedAt.IsZero() {
-		update["created_at"] = cps.CreatedAt
-	}
-	if !cps.LastModifiedAt.IsZero() {
-		update["last_modified_at"] = cps.LastModifiedAt
-	}
-	if !cps.MakerActionTime.IsZero() {
-		update["maker_action_time"] = cps.MakerActionTime
-	}
-	if cps.CheckerActionTime != nil && !cps.CheckerActionTime.IsZero() {
-		update["checker_action_time"] = cps.CheckerActionTime
-	}
-	// Additional fields
-	if cps.Reason != "" {
-		update["reason"] = cps.Reason
-	}
-	if cps.Status != "" {
-		update["status"] = cps.Status
-	}
-	if !cps.LastUpdated.IsZero() {
-		update["last_updated"] = cps.LastUpdated
-	}
+	addString("request_action", cps.RequestAction)
+	addSlice("branch_codes", cps.BranchCodes)
+	addSlice("branch_names", cps.BranchNames)
+	addSlice("city_codes", cps.CityCodes)
+	addSlice("city_names", cps.CityNames)
+	addSlice("region_codes", cps.RegionCodes)
+	addSlice("region_names", cps.RegionNames)
+	addSlice("district_codes", cps.DistrictCodes)
+	addSlice("district_names", cps.DistrictNames)
+	addTime("created_at", cps.CreatedAt)
+	addTime("last_modified_at", cps.LastModifiedAt)
+	addTime("maker_action_time", cps.MakerActionTime)
+	addPtrTime("checker_action_time", cps.CheckerActionTime)
+	addString("reason", cps.Reason)
+	addString("status", cps.Status)
+	addTime("last_updated", cps.LastUpdated)
 
 	return update
 }

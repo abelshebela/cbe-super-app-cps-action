@@ -534,6 +534,8 @@ const (
 	MsgResourceNetworkError       = "Resource network error"
 	MsgResourceConfigurationError = "Resource configuration error"
 	MsgResourceMaintenanceMode    = "Resource in maintenance mode"
+	MsgInvalidRequestOnParam      = "Invalid request on page and per page"
+	MsgInvalidRequest             = "Invalid request"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"

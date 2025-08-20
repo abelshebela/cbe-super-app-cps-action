@@ -95,7 +95,7 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	actionID := chi.URLParam(r, string(constants.ActionCode))
+	actionID := chi.URLParam(r, string(constants.ActionID))
 
 	action, err := a.cpsActionApplication.GetCPSActionByID(r.Context(), actionID, userData.Department)
 	if err != nil {
