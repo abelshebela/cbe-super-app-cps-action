@@ -65,34 +65,34 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 
 	return nil
 }
-func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) error {
+func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 
 	if cpsAction.ActionStatus != constants.Approved {
 		u.logger.Errorf("Try to authorize the collection without cps action approval")
-		return errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
 	userOldData, err := u.userRepo.FindByUserCode(ctx, cpsAction.UniqueId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
 	if err != nil {
-		return errors.New(localization.ErrorUnlinkFaild.Code)
+		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
 
 	if archUserErr != nil || archLinkedAccErr != nil {
-		return archUserErr
+		return nil, archUserErr
 	}
 
 	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
 	if userErr != nil || linkedErr != nil {
-		return errors.New(localization.ErrorUnlinkFaild.Code)
+		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 
-	return nil
+	return nil, nil
 
 }

@@ -97,7 +97,7 @@ type UnlinkService interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type WalletService interface {

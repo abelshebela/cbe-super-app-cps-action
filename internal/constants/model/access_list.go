@@ -7,10 +7,10 @@ import (
 )
 
 type APPAccessList struct {
-	ID             bson.ObjectID         `json:"id,omitempty" bson:"_id"`
+	ID             bson.ObjectID         `json:"id" bson:"_id"`
 	Key            string                `json:"key" bson:"key"`
 	Enabled        bool                  `json:"enabled" bson:"enabled"`
-	AccessListName string                `json:"accessListName" bson:"accessListName"`
-	SubAccessList  []types.SubAccessList `json:"subAccessList" bson:"subAccessList"`
-	USSDEnabled    bool                  `json:"USSDEnabled" bson:"USSDEnabled"`
+	AccessListName string                `json:"access_list_name" bson:"access_list_name"`
+	SubAccessList  []types.SubAccessList `json:"sub_access_list" bson:"sub_access_list"`
+	USSDEnabled    bool                  `json:"ussd_enabled" bson:"ussd_enabled"`
 }

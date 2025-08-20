@@ -7,6 +7,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"sync"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, currentAction any, requestAction, actionType string) model.CPSAction {
@@ -60,4 +62,28 @@ func GoRoutinBaker(opts types.BakerOptions, tasks ...func()) {
 		}(task)
 	}
 	wg.Wait()
+}
+
+func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
+	var skip, limit int64
+	filter := bson.M{}
+
+	if filterParam.Search != "" {
+		for key, value := range searchKeys {
+			filter[key] = value
+		}
+	}
+
+	if filterParam.Filters != nil {
+
+		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys)
+		for key, value := range enhancedFilter {
+			filter[key] = value
+		}
+	}
+
+	skip = int64((filterParam.Page - 1) * filterParam.PerPage)
+	limit = int64(filterParam.PerPage)
+
+	return filter, skip, limit
 }

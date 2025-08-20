@@ -1,6 +1,7 @@
 package access_list
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/localization"
@@ -90,7 +91,6 @@ func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APP
 	filter := bson.M{"_id": objID}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +98,16 @@ func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APP
 }
 
 func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
-	filter := bson.M{
-		"is_deleted": false,
-		"department": department,
-	}
+	searchKeys := bson.M{}
+	filter := bson.M{"is_deleted": false}
+	allowedKeys := []string{"access_list_name", "is_deleted", "ussd_enabled", "enabled"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["key"] = searchRegex
+		searchKeys["access_list_name"] = searchRegex
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

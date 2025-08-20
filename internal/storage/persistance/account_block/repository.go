@@ -1,6 +1,7 @@
 package account_block
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/localization"
@@ -8,6 +9,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -40,7 +43,7 @@ func NewAccountBlockRepository(client *mongo.Client, dbName string, branchCollec
 }
 
 func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error) {
-	filter := bson.M{"branch_code": branchCode}
+	filter := bson.M{"branch_code": branchCode, "is_deleted": false}
 
 	result, err := a.branchDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -143,41 +146,32 @@ func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*m
 }
 
 func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error) {
-	filter := bson.M{}
+	searchKeys := bson.M{}
+	filter := bson.M{"is_deleted": false}
+	allowedKeys := []string{"branch_address", "district_name", "branch_region", "enabled"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
-			{"branch_name": searchRegex},
-			{"branch_code": searchRegex},
-		}
+		searchKeys["category_name"] = searchRegex
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// Get total count
-	// totalCount, err := a.branchDal.TotalCount(ctx, filter)
-	// if err != nil {
-	// 	a.logger.Errorf("Error counting branches: %v", err)
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
-
-	results, err := a.branchDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
+	data, err := a.branchDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		a.logger.Errorf("Error finding branches with pagination: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// If filterParam.Search is empty, return empty data and meta using local_utils
-	if filterParam.Search == "" {
-		return &types.PaginatedResponse[[]*model.Branch]{
-			Data: []*model.Branch{},
-		}, nil
+	total, err := a.branchDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]*model.Branch]{
-		Data: results,
+		Data: data,
+		Meta: meta,
 	}, nil
 }
 
@@ -272,18 +266,19 @@ func (a *AccountBlockStorage) FindCityByID(ctx context.Context, id string) (*mod
 }
 
 func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error) {
-	filter := bson.M{}
+	searchKeys := bson.M{}
+	filter := bson.M{"is_deleted": false}
+	allowedKeys := []string{"city_address", "city_name", "city_region", "region_name", "enabled"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		searchKeys["$or"] = []bson.M{
 			{"city_name": searchRegex},
 			{"city_code": searchRegex},
 		}
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// Get total count
 	totalCount, err := a.cityDal.TotalCount(ctx, filter)
@@ -298,19 +293,13 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// If filterParam.Search is empty, return empty data and meta using local_utils
 	if filterParam.Search == "" {
 		return &types.PaginatedResponse[[]*model.City]{
 			Data: []*model.City{},
 		}, nil
 	}
 
-	meta := types.PaginationMeta{
-		TotalDocs:  totalCount,
-		Page:       filterParam.Page,
-		Limit:      filterParam.PerPage,
-		TotalPages: int((totalCount + int64(filterParam.PerPage) - 1) / int64(filterParam.PerPage)),
-	}
+	meta := local_util.BuildPaginationMeta(totalCount, filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]*model.City]{
 		Data: results,

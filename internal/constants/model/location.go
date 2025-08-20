@@ -16,6 +16,7 @@ type Branch struct {
 	BranchRegion  string        `bson:"branch_region" json:"branch_region"`
 	RecordStat    string        `bson:"record_stat" json:"record_stat"`
 	CreatedAt     time.Time     `bson:"created_at" json:"created_at"`
+	IsDeleted     bool          `bson:"is_deleted" json:"-"`
 	UpdatedAt     time.Time     `bson:"updated_at" json:"updated_at"`
 	Enabled       bool          `bson:"enabled" json:"enabled"`
 }
