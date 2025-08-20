@@ -5,7 +5,7 @@ import (
 
 	// cpsaction "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/cps_action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	domain_hq "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -16,12 +16,12 @@ import (
 type ApplicationAbstracts interface {
 	GetHQ(ctx context.Context, id string) (dto.HQ, error)
 	GetHQDetail(ctx context.Context, filterParams *constant.Filter) (*utils.PaginatedResponse[[]*domain_hq.HQ], error)
-	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
-	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
+	UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
+	UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
 	GetBlockTime(ctx context.Context) (dto.BlockTimeResponse, error)
 	GetArchiveTime(ctx context.Context) (dto.ArchiveTimeResponse, error)
 	GetPasswordExpiry(ctx context.Context) (dto.PasswordExpiryResponse, error)
-	UpdatePasswordExpiryRequest(ctx context.Context, request dto.UpdatePasswordExpiryRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error)
+	UpdatePasswordExpiryRequest(ctx context.Context, request dto.UpdatePasswordExpiryRequest, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
 }
 
 type ApplicationStore struct {
@@ -88,7 +88,7 @@ func (a *ApplicationStore) GetPasswordExpiry(ctx context.Context) (dto.PasswordE
 	}, nil
 }
 
-func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
+func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request dto.UpdateBlockTimeRequest, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error) {
 	return a.service.UpdateBlockTimeRequest(ctx, domain_hq.UpdateBlockTimeRequest{
 		BlockTime:  request.BlockTime,
 		MakerID:    makerID,
@@ -98,7 +98,7 @@ func (a *ApplicationStore) UpdateBlockTimeRequest(ctx context.Context, request d
 	})
 }
 
-func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
+func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request dto.UpdateArchiveTimeRequest, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error) {
 	return a.service.UpdateArchiveTimeRequest(ctx, domain_hq.UpdateArchiveTimeRequest{
 		ArchiveTime: request.ArchiveTime,
 		MakerID:     makerID,
@@ -108,7 +108,7 @@ func (a *ApplicationStore) UpdateArchiveTimeRequest(ctx context.Context, request
 	})
 }
 
-func (a *ApplicationStore) UpdatePasswordExpiryRequest(ctx context.Context, request dto.UpdatePasswordExpiryRequest, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
+func (a *ApplicationStore) UpdatePasswordExpiryRequest(ctx context.Context, request dto.UpdatePasswordExpiryRequest, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error) {
 	return a.service.UpdatePasswordExpiryRequest(ctx, domain_hq.UpdatePasswordExpiryRequest{
 		PasswordExpiry: request.PasswordExpiry,
 		MakerID:        makerID,

@@ -34,6 +34,8 @@ import (
 	unlink_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/unlink"
 	wallet_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/wallet"
 	account_lookup_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
+	action_persistence "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	cps_actions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 	dept_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
@@ -91,6 +93,7 @@ type Persitence struct {
 	ProductCodePersistenct      productcode.Repository
 	DonationPersistence         donation.DonationRepository
 	BulkServicesPersistence     bulk_outbound.BulkServiceRepository
+	ActionPersistence           action.IActionRepository
 }
 
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
@@ -153,5 +156,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		NotificationPersisitence: notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 		ProductCodePersistenct:   productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
 		DonationPersistence:      donation_persistence.InitDonationPersistence(client, databaseName, []string{"donations", "donation_categories", "donation_companies"}, logger),
+		ActionPersistence:        action_persistence.NewActionRepo(client, databaseName, []string{"cps_actions"}, logger),
 	}
 }

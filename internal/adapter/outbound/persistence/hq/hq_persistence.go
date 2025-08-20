@@ -166,12 +166,14 @@ func (p *HQPersistence) GetSingleHQ(ctx context.Context) (hq.HQ, error) {
 func (p *HQPersistence) UpdateHQField(ctx context.Context, field string, value interface{}, now time.Time) error {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
+	
 	// Find the single HQ document
 	hqDoc, err := p.GetSingleHQ(ctx)
 	if err != nil {
 		return err
 	}
 	updateDoc := bson.M{field: value}
+
 	switch field {
 	case "block_time":
 		updateDoc["updated_at_block"] = now

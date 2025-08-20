@@ -157,8 +157,7 @@ const (
 	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
 	RequestUnlinkUser             RequestAction = "UNLINK_USER"
-	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime    RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+
 	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
 	RequestUpdateMiniAppMerchant  RequestAction = "UPDATE_MINI_APP_MERCHANT"
 	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
@@ -431,9 +430,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniAppMerchant,
 		RequestDisableMiniAppMerchant,
 	},
-	"BlockTime": {
-		RequestUpdateBlockTime,
-	},
 	"Password": {
 
 		RequestUpdatePasswordRule,
@@ -526,8 +522,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUnlinkUser,
 	},
 	"HQ": {
-		RequestUpdateHQBlockTime,
-		RequestUpdateHQArchiveTime,
+		RequestUpdateBlockTime,
+		RequestUpdateArchiveExpiry,
 		RequestUpdatePasswordExpiry,
 	},
 	"Fayda": {
