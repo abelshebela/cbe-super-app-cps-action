@@ -72,7 +72,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 
 	// Create the CPS action
 	actionCode := utils.RandomGenerator(24)
-
 	user := model.CPSUser{
 		ID:                 bson.NewObjectID(),
 		UserCode:           "CPS_USER_" + utils.RandomGenerator(15),
@@ -168,10 +167,10 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		RequestAction:    string(model.RequestCpsUserUpdate),
 		PreviousAction:   nil,
 		CurrentAction:    userData,
-		CreatedAt:        time.Now(),
 		MakerActionTime:  time.Now(),
 	}
 
+	fmt.Println("Incomming cps", cpsAction.CurrentAction)
 	return s.repo.UpdateUserRequest(ctx, cpsAction, userCode)
 }
 

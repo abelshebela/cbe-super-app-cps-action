@@ -111,8 +111,7 @@ func (e InvalidIDsError) Error() string {
 	return fmt.Sprintf("%s not found: %v", e.Field, e.IDs)
 }
 
-func (r *PermissionPersistence) ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error) {
-
+func (r *PermissionPersistence) ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error) {
 
 	var validObjectIDs []bson.ObjectID
 	var invalidIDs []string

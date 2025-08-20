@@ -970,8 +970,7 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
-	// Check if the incomming data are, the one saved in database which no change
-	// Convert existing user to map
+	// Check if the incomming data has any changes compared to the existing user
 	existingBytes, err := json.Marshal(existingUser)
 	if err != nil {
 		return nil, fmt.Errorf("FAILED_TO_MARSHAL_EXISTING_USER")
@@ -1003,13 +1002,8 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 			unchangedFields = append(unchangedFields, key)
 		}
 	}
+	unchangedFields = removeField(unchangedFields, "id")
 	unchangedFields = removeField(unchangedFields, "user_code")
-	unchangedFields = removeField(unchangedFields, "password")
-	unchangedFields = removeField(unchangedFields, "last_online_date")
-	unchangedFields = removeField(unchangedFields, "date_joined")
-	unchangedFields = removeField(unchangedFields, "last_modified")
-	unchangedFields = removeField(unchangedFields, "last_login")
-	unchangedFields = removeField(unchangedFields, "otp_status")
 	unchangedFields = removeField(unchangedFields, "permission_category")
 	unchangedFields = removeField(unchangedFields, "permission_groups")
 
@@ -1127,11 +1121,7 @@ func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_ent
 		return nil, err
 	}
 
-	// Add filds to the User collection
 	now := time.Now()
-	data.Country = ""
-	data.Region = ""
-	data.Enabled = true
 	data.Realm = "BANK"
 	data.PasswordDisable = true
 	data.SyncDisabled = false
@@ -1139,15 +1129,10 @@ func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_ent
 	data.NextLoginAttempt = time.Now()
 	data.LastLoginAttempt = time.Now()
 	data.LastLogin = time.Now()
-	data.LoginPassword = ""
-	data.AccountAuthorizationCode = ""
 	data.UnlockAccountRequested = false
 	data.PasswordChangedAt = nil
-	data.OTPStatus = ""
 	data.OTPLastTriedAt = nil
 	data.OTPVerifyCount = 0
-	data.Enabled = true
-	data.IsDeleted = false
 	data.DateJoined = &now
 	data.LastModified = &now
 
@@ -1167,23 +1152,43 @@ func (o *outboundStore) AuthorizeUserUpdate(ctx context.Context, action *cps_ent
 		return nil, err
 	}
 
-	// Find the user by user_code
 	filter := bson.M{"user_code": data.UserCode}
 
 	now := time.Now()
 	data.LastModified = &now
 
-	// Update the user document
-	updateBytes, err := bson.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-	var updateDoc bson.M
-	if err := bson.Unmarshal(updateBytes, &updateDoc); err != nil {
-		return nil, err
-	}
+	setFields := bson.M{}
 
-	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
+	if data.FullName != "" {
+		setFields["full_name"] = data.FullName
+	}
+	if data.UserName != "" {
+		setFields["username"] = data.UserName
+	}
+	if !data.Department.IsZero() {
+		setFields["department"] = data.Department
+	}
+	if data.PhoneNumber != "" {
+		setFields["phone_number"] = data.PhoneNumber
+	}
+	if data.Role != "" {
+		setFields["role"] = data.Role
+	}
+	if data.Gender != "" {
+		setFields["gender"] = data.Gender
+	}
+	if data.Email != "" {
+		setFields["email"] = data.Email
+	}
+	if len(data.PermissionCategory) > 0 {
+		setFields["permission_category"] = data.PermissionCategory
+	}
+	if len(data.PermissionGroup) > 0 {
+		setFields["permission_group"] = data.PermissionGroup
+	}
+	setFields["last_modified"] = now
+
+	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, setFields)
 	if err != nil {
 		return nil, err
 	}

@@ -99,7 +99,7 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 		BPSUserApplication:         bps_user.NewApplicationHandler(domain.BPSUserDomain, logger),
 		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
 		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
-		DepartmentApplication:      department.InitDepartmentHandler(domain.DepartmentDomain, domain.PermissionDomain, domain.CPSActionDomain,domain.PortalCardDomain, logger),
+		DepartmentApplication:      department.InitDepartmentHandler(domain.DepartmentDomain, domain.PermissionDomain, domain.CPSActionDomain, domain.PortalCardDomain, logger),
 		AccountBlockApplication:    account_block.NewApplicationHandler(domain.AccountBlockDomain),
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),
 		PermissionApplication:      permission.InitPermissionHandler(&domain.PermissionDomain, logger),

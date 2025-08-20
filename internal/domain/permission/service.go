@@ -18,13 +18,13 @@ import (
 )
 
 type PermissionDomainService interface {
-	CreatePermissionGroup(ctx context.Context,oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
+	CreatePermissionGroup(ctx context.Context, oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error)
 	Authorize(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
-	ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error)
-	ValidatePermissionGroups(ctx context.Context,ids []string) ([]string, error)
+	ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error)
+	ValidatePermissionGroups(ctx context.Context, ids []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error)
 }
 
@@ -44,7 +44,7 @@ func InitPermissionDomain(cpsActionRepo CPSActionRepository, permissionGroupRepo
 	}
 }
 
-func (s Service) CreatePermissionGroup(ctx context.Context,oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+func (s Service) CreatePermissionGroup(ctx context.Context, oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	oldGroupName = strings.ToUpper(oldGroupName)
 	groupName = strings.ToUpper(groupName)
 	if err := s.cpsActionRepo.CheckPendingRequest(cpsAction.MakerID, model.ActionStatus(cpsAction.ActionStatus), model.RequestAction(cpsAction.RequestAction)); err != nil {
@@ -57,7 +57,7 @@ func (s Service) CreatePermissionGroup(ctx context.Context,oldGroupName, groupNa
 		return model.CPSAction{}, fmt.Errorf("PERMISSION_GROUP_ALREADY_EXIXTS")
 	}
 
-	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(ctx,permissionCategoryLists)
+	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(ctx, permissionCategoryLists)
 	if err != nil {
 		s.logger.Errorf("Failed to validate permission categories: %v", err)
 		return model.CPSAction{}, err
@@ -122,12 +122,12 @@ func (s Service) GetPermissionGroups(ctx context.Context, filterParams *constant
 	return s.permissionGroupRepo.GetPermissionGroups(ctx, filterParams)
 }
 
-func (s Service) ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error) {
-	return s.permissionCategoryRepo.ValidatePermissionCategories(ctx,ids)
+func (s Service) ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error) {
+	return s.permissionCategoryRepo.ValidatePermissionCategories(ctx, ids)
 }
 
-func (s Service) ValidatePermissionGroups(ctx context.Context,ids []string) ([]string, error) {
-	return s.permissionGroupRepo.ValidatePermissionGroups(ctx,ids)
+func (s Service) ValidatePermissionGroups(ctx context.Context, ids []string) ([]string, error) {
+	return s.permissionGroupRepo.ValidatePermissionGroups(ctx, ids)
 }
 
 func (s Service) GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error) {

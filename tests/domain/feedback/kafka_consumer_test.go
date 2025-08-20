@@ -125,16 +125,15 @@ func TestFeedbackConsumer_DatabaseError(t *testing.T) {
 	mockLogger := &MockLogger{}
 	mockDeadLetterQ := &MockDeadLetterQueue{}
 
-cfg := config.KafkaConfig{
-	Brokers:           "localhost:9092",
-	FeedbackTopic:     "feedback-events",
-	ConsumerGroup:     "test-consumer-group",
-	RequiredAcks:      1,
-	RetryMax:          3,
-	SessionTimeout:    30000,
-	HeartbeatInterval: 10800000, // 3 hours
-}
-
+	cfg := config.KafkaConfig{
+		Brokers:           "localhost:9092",
+		FeedbackTopic:     "feedback-events",
+		ConsumerGroup:     "test-consumer-group",
+		RequiredAcks:      1,
+		RetryMax:          3,
+		SessionTimeout:    30000,
+		HeartbeatInterval: 10800000, // 3 hours
+	}
 
 	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo, mockDeadLetterQ)
 	if err != nil {

@@ -38,7 +38,7 @@ type DepartmentHandler struct {
 	service           department.Service
 	permissionService permission.PermissionDomainService
 	cpsService        cps_service.CPSActionService
-	portalCardService     portal_card.PortaCardInterface
+	portalCardService portal_card.PortaCardInterface
 	logger            utils.Logger
 }
 
@@ -53,7 +53,7 @@ func NewDepartmentHandler(
 		service:           service,
 		permissionService: permissionService,
 		cpsService:        cpsService,
-		portalCardService:     portalCardService,
+		portalCardService: portalCardService,
 		logger:            logger,
 	}
 }
@@ -123,11 +123,11 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, request Create
 	}
 
 	// Validate permission groups exist in the system
-	if _, err := h.permissionService.ValidatePermissionGroups(ctx,request.PermissionGroups); err != nil {
+	if _, err := h.permissionService.ValidatePermissionGroups(ctx, request.PermissionGroups); err != nil {
 		h.logger.Errorf("invalid permission groups: %v", err)
 		return fmt.Errorf("INVALID_PERMISSION_GROUPS")
 	}
-	if _,err:=h.portalCardService.ValidatePortalCard(ctx,request.PortalCards);err!=nil{
+	if _, err := h.portalCardService.ValidatePortalCard(ctx, request.PortalCards); err != nil {
 		h.logger.Errorf("invalid portal cards: %v", err)
 		return err
 	}
@@ -206,10 +206,10 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 				return fmt.Errorf("PORTAL_CARD_EMPTY_VALUE")
 			}
 		}
-	if _,err:=h.portalCardService.ValidatePortalCard(ctx,request.PortalCards);err!=nil{
-		h.logger.Errorf("invalid portal cards: %v", err)
-		return err
-	}
+		if _, err := h.portalCardService.ValidatePortalCard(ctx, request.PortalCards); err != nil {
+			h.logger.Errorf("invalid portal cards: %v", err)
+			return err
+		}
 	}
 
 	// Validate permission groups if provided
@@ -222,7 +222,7 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 			}
 		}
 
-		if _, err := h.permissionService.ValidatePermissionGroups(ctx,request.PermissionGroups); err != nil {
+		if _, err := h.permissionService.ValidatePermissionGroups(ctx, request.PermissionGroups); err != nil {
 			h.logger.Errorf("invalid permission groups: %v", err)
 			return fmt.Errorf("INVALID_PERMISSION_GROUPS")
 		}
@@ -382,5 +382,5 @@ func InitDepartmentHandler(
 	portalCardDomain portal_card.PortaCardInterface,
 	logger utils.Logger,
 ) DepartmentService {
-	return NewDepartmentHandler(departmentDomain, permissionDomain, cpsActionDomain,portalCardDomain, logger)
+	return NewDepartmentHandler(departmentDomain, permissionDomain, cpsActionDomain, portalCardDomain, logger)
 }
