@@ -661,6 +661,7 @@ const (
 	// BPS User Service related error messages
 	MsgBPSUserApprovedSuccess = "BPS user approved successfully"
 
+	MsgUserUnlinkFailed = "User Unlink Failed"
 	// Ad Service related error messages
 	MsgAdvertConstructedSuccess = "Advert constructed successfully"
 	MsgAdvertUpdateSuccess      = "Advert updated successfully"

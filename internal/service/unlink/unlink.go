@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/unlink/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -71,7 +72,6 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		return errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
-	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false})
 	userOldData, err := u.userRepo.FindByUserCode(ctx, cpsAction.UniqueId)
 	if err != nil {
 		return err
@@ -79,23 +79,18 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 
 	linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
 	if err != nil {
-		return err
+		return errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 
-	if err := u.archivedUserRepo.Create(ctx, userOldData); err != nil {
-		return err
+	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
+
+	if archUserErr != nil || archLinkedAccErr != nil {
+		return archUserErr
 	}
 
-	if err := u.archivedLinkedAccountRepo.Create(ctx, linkedAccountOldData); err != nil {
-		return err
-	}
-
-	if err := u.userRepo.Delete(ctx, userOldData.ID.Hex()); err != nil {
-		return err
-	}
-
-	if err := u.linkedAccountRepo.Delete(ctx, linkedAccountOldData.ID.Hex()); err != nil {
-		return err
+	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
+	if userErr != nil || linkedErr != nil {
+		return errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 
 	return nil

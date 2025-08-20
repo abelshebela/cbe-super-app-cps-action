@@ -2178,6 +2178,14 @@ var (
 		Message:    MsgCPSActionStatusInvalid,
 		Type:       "error",
 	}
+
+	// User Unlink error response codes
+	ErrorUnlinkFaild = ResponseCode{
+		Code:       "ERROR_USER_UNLINK_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgUserUnlinkFailed,
+		Type:       "error",
+	}
 	// Ad Service related error response codes
 	ErrorAdvertConstructed = ResponseCode{
 		Code:       "ERROR_ADVERT_CONSTRUCTED",
