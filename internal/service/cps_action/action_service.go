@@ -36,6 +36,19 @@ func NewCPSActionService(repo storage.CPSActionRepository, persistence persistan
 	}
 }
 
+func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
+
+	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.UniqueId, cpsAction.Department)
+	if err != nil {
+		return err
+	}
+	if existing != nil {
+		return errors.New(localization.ErrorAccountNumberRequired.Code)
+	}
+
+	return ca.repo.Save(ctx, cpsAction)
+}
+
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
 	if err := ca.repo.Save(ctx, action); err != nil {
@@ -69,6 +82,10 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return ca.repo.FindOne(ctx, model.CPSAction{ID: objID})
+}
+func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error) {
+
+	return ca.repo.FindOne(ctx, model.CPSAction{UniqueId: id, Department: department})
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	return ca.repo.FindOne(ctx, model.CPSAction{ActionCode: uniqueID, Department: department})

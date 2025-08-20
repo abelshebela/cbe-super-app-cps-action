@@ -14,7 +14,9 @@ const (
 	MsgUserPINChanged            = "PIN changed successfully"
 	MsgUserDeviceLinked          = "Device linked successfully"
 	MsgUserDeviceUnlinked        = "Device unlinked successfully"
-
+	MSGAccountNumberRequired     = "Account Number is required"
+	MSGIncompleteUserInfo        = "Incomplte user info"
+	MsgActionAlreadyExists       = "Action already requested wait for checker approval"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
 	MsgOTPVerifiedSuccessfully = "OTP verified successfully"

@@ -301,6 +301,7 @@ const (
 	PrimaryAuthenticationByPhoneNumber         PrimaryAuthentication = "PHONE_NUMBER"
 	PrimaryAuthenticationByEmail               PrimaryAuthentication = "EMAIL"
 	PrimaryAuthenticationByEmailAndPhoneNumber PrimaryAuthentication = "EMAIL_AND_PHONE_NUMBER"
+	Delete                                                           = "DELETE"
 )
 
 type AdvertFor string

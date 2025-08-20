@@ -11,6 +11,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+type UnlinkAccount interface {
+	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
+	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error)
+	Delete(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction model.CPSAction) (model.ArchivedUser, error)
+}
+
 type OTPRepository interface {
 	Save(ctx context.Context, otp *model.OTP) error
 	Find(ctx context.Context, filte bson.M) (*model.OTP, error)
@@ -19,7 +26,9 @@ type OTPRepository interface {
 
 type UserRepository interface {
 	Save(ctx context.Context, user *model.User) error
+	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*model.User, error)
+	FindByUserCode(ctx context.Context, userCode string) (*model.User, error)
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error)
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error)
 	Update(ctx context.Context, id string, update *model.User) error
@@ -151,9 +160,15 @@ type AdvertRepository interface {
 }
 
 type ArchivedUserRepository interface {
-	Create(ctx context.Context, user *model.ArchivedUser) error
+	Create(ctx context.Context, user *model.User) error
 	FindByID(ctx context.Context, id string) (*model.ArchivedUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
+}
+
+type ArchivedLinkedAccountRepository interface {
+	Create(ctx context.Context, user *model.LinkedAccount) error
+	FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
 }
 
 type AuthTierRepository interface {
@@ -263,6 +278,7 @@ type LinkedAccountRepository interface {
 	Update(ctx context.Context, id string, account *model.LinkedAccount) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.LinkedAccount, error)
+	FindByCustomerNumber(ctx context.Context, customer_number string) (*model.LinkedAccount, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error)
 }
 

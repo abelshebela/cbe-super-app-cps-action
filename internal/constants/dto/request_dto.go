@@ -24,6 +24,10 @@ type ChangePinRequest struct {
 	NewPin string `json:"new_pin"`
 }
 
+type UnlinkUserRequest struct {
+	UserCode string `json:"user_code"`
+}
+
 type SetPinRequest struct {
 	NewPin     string          `json:"new_pin" validate:"required,min=6,max=6"`
 	UserID     string          `json:"user_id"`

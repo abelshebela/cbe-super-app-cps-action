@@ -52,6 +52,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAdvertConstructed,
 	ErrorAdvertUpdate,
 	ErrorValidationRuleApproved,
+	ErrorAccountNumberRequired,
+	ErrorAccountNumberRequired,
 	// Add more as needed...
 }
 
@@ -1154,6 +1156,27 @@ var (
 		Code:       "ERROR_USER_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgUserNotFound,
+		Type:       "error",
+	}
+
+	ErrorActionAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACTION_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAccountNumberRequired = ResponseCode{
+		Code:       "ERROR_USER_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MSGAccountNumberRequired,
+		Type:       "error",
+	}
+
+	ErrorIncompleteUserInfo = ResponseCode{
+		Code:       "ERROR_INCOMPLET_USER_INFO",
+		StatusCode: StatusBadRequest,
+		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
 	}
 

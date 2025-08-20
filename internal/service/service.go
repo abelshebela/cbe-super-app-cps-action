@@ -9,9 +9,11 @@ import (
 
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
+	CreateCPSAction(ctx context.Context, action *model.CPSAction) error
 	RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
+	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
 }
 
@@ -92,10 +94,10 @@ type ServiceService interface {
 }
 
 type UnlinkService interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*any, error)
-	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*any], error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
+	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
 }
 
 type WalletService interface {

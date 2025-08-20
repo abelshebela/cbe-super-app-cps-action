@@ -7,6 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type BakerOptions struct {
+	Sequential bool
+	UseMutex   bool
+}
+
 type Address struct {
 	Zone        string `json:"zone" bson:"zone"`
 	Wereda      string `json:"wereda" bson:"wereda"`

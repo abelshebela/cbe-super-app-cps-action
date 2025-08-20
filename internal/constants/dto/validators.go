@@ -31,6 +31,15 @@ func isWeakPin(pin string) bool {
 	return isAscending || isDescending
 }
 
+// for user unlink user code
+func (un *UnlinkUserRequest) Validate() error {
+	err := validation.ValidateStruct(
+		un,
+		validation.Field(&un.UserCode, validation.Required),
+	)
+	return err
+}
+
 // Validators Group
 func (v VerifyForgetPinOtpRequest) Validate() error {
 	return validation.ValidateStruct(&v,

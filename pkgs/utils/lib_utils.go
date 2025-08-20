@@ -3,6 +3,7 @@ package utils
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -33,6 +34,22 @@ func ParseUserContext(r *http.Request) (types.UserContext, error) {
 func ExtractUserContext(r *http.Request) types.UserContext {
 	get := func(key string) string {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
+		return val
+	}
+
+	return types.UserContext{
+		UserCode:    get("user_code"),
+		UserID:      get("user_id"),
+		FullName:    get("full_name"),
+		PhoneNumber: get("phone_number"),
+		Department:  get("department"),
+		UserRole:    get("user_role"),
+	}
+}
+
+func ExtractUserFromContext(ctx context.Context) types.UserContext {
+	get := func(key string) string {
+		val, _ := ctx.Value(constants.ContextKey(key)).(string)
 		return val
 	}
 
@@ -200,4 +217,21 @@ func StringToObjectID(id string) (bson.ObjectID, bool) {
 		return bson.ObjectID{}, false
 	}
 	return objID, true
+}
+
+// GenerateActionCode generates a unique action code of length 20 with prefix "CBE_"
+func GenerateActionCode() string {
+	const (
+		prefix     = "CBE_"
+		codeLen    = 20
+		charset    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+		randomPart = codeLen - len(prefix)
+	)
+	b := make([]byte, randomPart)
+	seed := time.Now().UnixNano()
+	for i := range b {
+		seed = seed*1664525 + 1013904223 // simple LCG for more randomness
+		b[i] = charset[seed%int64(len(charset))]
+	}
+	return prefix + string(b)
 }
