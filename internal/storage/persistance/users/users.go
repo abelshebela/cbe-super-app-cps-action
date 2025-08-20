@@ -2,8 +2,10 @@ package users
 
 import (
 	"context"
+	"errors"
 
-	"cbe-super-app-cps-action/internal/constants/errors"
+	// "cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 
@@ -14,26 +16,28 @@ import (
 )
 
 type userRepository struct {
-	userDal dal.MongoDal[model.User, model.User]
-	logger  utils.Logger
+	userDal    dal.MongoDal[model.User, model.User]
+	client     *mongo.Client
+	logger     utils.Logger
+	dbName     string
+	collection string
 }
 
 func NewUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.UserRepository {
 	return &userRepository{
-		userDal: dal.NewMongoDal[model.User, model.User](client, dbName, collection),
-		logger:  logger,
+		userDal:    dal.NewMongoDal[model.User, model.User](client, dbName, collection),
+		logger:     logger,
+		client:     client,
+		dbName:     dbName,
+		collection: collection,
 	}
 }
 
 func (r *userRepository) Save(ctx context.Context, user *model.User) error {
-	if user == nil {
-		r.logger.Errorf("attempted to save nil user")
-		return errors.ErrTryToSaveEmptyUser
-	}
 
 	if _, err := r.userDal.InsertOne(ctx, *user); err != nil {
 		r.logger.Errorf("failed to insert user")
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorInternalServerError.Code)
 	}
 	r.logger.Infof("user saved successfully")
 	return nil
@@ -51,10 +55,10 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("no user found for the provided id")
-			return nil, errors.ErrUserNotFound
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
 		}
 		r.logger.Errorf("unexpected error during FindById")
-		return nil, errors.ErrUnexpected
+		return nil, errors.New(localization.ErrorInternalServerError.Code)
 	}
 
 	r.logger.Infof("user found by id")
@@ -62,10 +66,6 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, 
 }
 
 func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error) {
-	if phoneNumber == "" {
-		r.logger.Errorf("phone number is empty in FindByPhoneNumber")
-		return nil, errors.ErrPhoneNumberCanNotBeEmpty
-	}
 
 	projection := UserProjection()
 	filter := UserPhoneFilterAttachment(phoneNumber)
@@ -75,13 +75,10 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 		if err == mongo.ErrNoDocuments {
 			r.logger.Errorf("failed to find user by phone number", err)
 
-			return nil, errors.ErrUserNotFound
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
 		}
 		r.logger.Errorf("failed to find user by phone number")
-		return nil, err
-	}
-	if user == nil {
-		return nil, errors.ErrUserNotFound
+		return nil, errors.New(localization.ErrorInternalServerError.Code)
 	}
 
 	r.logger.Infof("user found by phone number")
@@ -89,10 +86,6 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 }
 
 func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error) {
-	if deviceUUID == "" {
-		r.logger.Errorf("deviceUUID is empty in FindByDeviceUUID")
-		return nil, errors.ErrDeviceUUIDCanNotBeNull
-	}
 
 	projection := UserProjection()
 
@@ -102,10 +95,10 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("no user found for the provided deviceUUID")
-			return nil, errors.ErrUserNotFound
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
 		}
 		r.logger.Errorf("unexpected error during FindByDeviceUUID: %v", err)
-		return nil, errors.ErrUnexpected
+		return nil, errors.New(localization.ErrorInternalServerError.Code)
 	}
 
 	r.logger.Infof("user found by deviceUUID")
@@ -113,33 +106,47 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 }
 
 func (r *userRepository) Update(ctx context.Context, id string, update *model.User) error {
-	if update == nil {
-		r.logger.Errorf("attempted to update with nil user")
-		return errors.ErrTryToSaveEmptyUser
-	}
+
 	filter, _ := UserIdFilterAttachMent(id)
 	req := UserBuilder(*update)
 	_, err := r.userDal.UpdateOne(ctx, filter, req)
 	if err != nil {
 		r.logger.Errorf("failed to update user")
-		return err
+		return errors.New(localization.ErrorInternalServerError.Code)
 	}
 
 	r.logger.Infof("user updated successfully")
 	return nil
 }
 
-func (r *userRepository) UpdateLoginAttemp(ctx context.Context, id string, update bson.M) error {
-	if update == nil {
-
-		return errors.ErrEmptyEmptyData
+func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*model.User, error) {
+	filter := bson.M{
+		"user_code": userCode,
 	}
-
-	filter, _ := UserIdFilterAttachMent(id)
-	_, err := r.userDal.UpdateOne(ctx, filter, update)
+	projection := UserProjection()
+	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		return err
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
+		}
+		return nil, err
 	}
 
+	return user, nil
+}
+
+func (r *userRepository) Delete(ctx context.Context, id string) error {
+	db := r.client.Database(r.dbName)
+	collection := db.Collection(r.collection)
+	filter := bson.M{"_id": id}
+
+	_, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		r.logger.Errorf("failed to hard delete document from %s: %v", r.collection, err)
+		return errors.New(localization.ErrorInternalServerError.Code)
+	}
+
+	r.logger.Infof("Successfully hard deleted document from %s with id: %v", r.collection, id)
 	return nil
+
 }
