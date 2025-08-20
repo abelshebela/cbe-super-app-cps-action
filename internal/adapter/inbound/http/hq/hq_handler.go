@@ -9,7 +9,7 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/hq"
 	ctx_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	// common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -40,7 +40,7 @@ func (h *HQHTTPHandler) GetHQ(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	data, err := utils.StructToMap(hqResp)
 	if err != nil {
-		utils.SendErrorResponse(w, fmt.Errorf("Unhandled Server Error"), 500, nil)
+		utils.SendErrorResponse(w, fmt.Errorf("unhandled Server Error"), 500, nil)
 		return
 	}
 	utils.BaseResponseMaker(data, w, "Successfly fetched", 200)
@@ -103,7 +103,7 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 	}
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
 	_, err := h.handler.UpdateBlockTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
@@ -111,7 +111,7 @@ func (h *HQHTTPHandler) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Re
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w,0, "Update block time request submitted for approval")
+	utils.WriteSuccessResponse(w,0, "Update block time request submitted for approval")
 }
 
 func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +126,7 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 	}
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
 	action, err := h.handler.UpdateArchiveTimeRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
@@ -134,7 +134,7 @@ func (h *HQHTTPHandler) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update archive time request submitted for approval")
+	utils.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update archive time request submitted for approval")
 }
 
 func (h *HQHTTPHandler) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,7 @@ func (h *HQHTTPHandler) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *ht
 	}
 	userContext := ctx_util.ExtractUserContext(r)
 	if userContext.IsIncomplete() {
-		common_util.SendErrorResponse(w, common_util.IncompleteUserInfo, 0, nil)
+		utils.SendErrorResponse(w, utils.IncompleteUserInfo, 0, nil)
 		return
 	}
 	action, err := h.handler.UpdatePasswordExpiryRequest(r.Context(), request, userContext.UserID, userContext.PhoneNumber, userContext.FullName, userContext.Department)
@@ -157,5 +157,5 @@ func (h *HQHTTPHandler) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *ht
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update password expiry request submitted for approval")
+	utils.WriteSuccessResponse(w, map[string]string{"action_code": action.ActionCode}, "Update password expiry request submitted for approval")
 }
