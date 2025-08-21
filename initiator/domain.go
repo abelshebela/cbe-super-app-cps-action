@@ -3,32 +3,31 @@ package initiator
 import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_block"
+	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
+	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
 	ad_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
 	amount_based_auth_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/amount_based_auth"
 	avatar_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/avatar"
 	bank_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bank/service"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
 	budget_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget"
+	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/services"
 	customer_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/customer/service"
 	department "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
+	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
+	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
 	fayda_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/fayda_account/service"
 	feedback_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback"
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
+	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	password_rule_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/repository"
 	password_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/password_rule/services"
 	permission "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portalcard "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
-	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-
-	account_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_lookup"
-	account_validation "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/account_validation"
-	cps_action_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
-	donation_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/donation"
-	event_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/event"
-	mini_app_merchant_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp_merchant"
-	notification_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/notification"
 	productcode "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/product_code"
+	service_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	unlink_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/unlink"
 	wallet_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/wallet"
 	keyGen_service "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/keygen"
@@ -77,7 +76,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
 		BulkServiceDomain:     BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
 		ServiceCheckDomain:    service_domain.NewServiceDomain(persistence.ServicePersistence, logger),
-		NotificationService:   notification_domain.NewNotificationService(persistence.NotificationPersisitence, logger),
+		NotificationService:   notification_domain.NewNotificationService(persistence.NotificationPersisitence, persistence.InAppNotificationPersistence, logger),
 		ProductCodeService:    productcode.NewService(persistence.ProductCodePersistenct, logger),
 		DonationDomain:        donation_domain.NewDonationService(persistence.DonationPersistence, minioClient, "donations", cfg, logger, accountlookup.InitAccountAPIClient(cfg.CBEBaseURL, 30*time.Second, logger)),
 		KeyGenService:         keygenService,

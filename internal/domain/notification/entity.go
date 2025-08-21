@@ -6,8 +6,9 @@ type NotificationStatus string
 
 const (
 	StatusPending NotificationStatus = "PENDING"
-	StatusSent    NotificationStatus = "SENT"
+	StatusDelivered NotificationStatus = "DELIVERED"
 	StatusSeen    NotificationStatus = "SEEN"
+	StatusFailed    NotificationStatus = "FAILED"
 )
 
 type NotificationFor string

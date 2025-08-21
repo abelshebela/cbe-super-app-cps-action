@@ -23,6 +23,7 @@ import (
 type NotificationPersistence struct {
 	notificationDal dal.MongoDal[model.NotificationDocument, model.NotificationDocument]
 	logger          utils.Logger
+	client          *mongo.Client
 }
 
 // InitNotificationPersistence initializes the notification persistence layer
@@ -30,6 +31,7 @@ func InitNotificationPersistence(client *mongo.Client, dbName string, collection
 	return &NotificationPersistence{
 		notificationDal: dal.NewMongoDal[model.NotificationDocument, model.NotificationDocument](client, dbName, collection),
 		logger:          logger,
+		client:          client,
 	}
 }
 
@@ -261,4 +263,44 @@ func (n *NotificationPersistence) NotificationExists(ctx context.Context, notifi
 	}
 
 	return count > 0, nil
+}
+
+
+func (p *NotificationPersistence) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	p.logger.Debugf("Starting MongoDB session for transaction")
+
+	session, err := p.client.StartSession()
+	if err != nil {
+		p.logger.Errorf("failed to start MongoDB session: %v", err)
+		return fmt.Errorf(common_util.UnhandledServerError)
+	}
+	defer session.EndSession(ctx)
+
+	return mongo.WithSession(ctx, session, func(txCtx context.Context) error {
+		p.logger.Debugf("Starting MongoDB transaction")
+
+		if err := session.StartTransaction(); err != nil {
+			p.logger.Errorf("failed to start transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		err := fn(txCtx)
+		if err != nil {
+			p.logger.Errorf("transaction logic failed: %v", err)
+			if abortErr := session.AbortTransaction(txCtx); abortErr != nil {
+				p.logger.Errorf("failed to abort transaction: %v", abortErr)
+			} else {
+				p.logger.Debugf("Transaction aborted successfully")
+			}
+			return err
+		}
+
+		if err := session.CommitTransaction(txCtx); err != nil {
+			p.logger.Errorf("failed to commit transaction: %v", err)
+			return fmt.Errorf(common_util.UnhandledServerError)
+		}
+
+		p.logger.Debugf("Transaction committed successfully")
+		return nil
+	})
 }
