@@ -18,8 +18,8 @@ import (
 )
 
 type unlinkService struct {
-	logger                    utils.Logger
-	repo                      storage.UnlinkAccount
+	logger utils.Logger
+	// repo                      storage.UnlinkAccount
 	userRepo                  storage.UserRepository
 	archivedUserRepo          storage.ArchivedUserRepository
 	linkedAccountRepo         storage.LinkedAccountRepository
@@ -57,9 +57,9 @@ func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *ty
 }
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(userData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
-	}
+	// if incomplet := local_util.IsIncomplete(userData); incomplet {
+	// 	return errors.New(localization.ErrorAccountNumberRequired.Code)
+	// }
 
 	user, err := u.userRepo.FindByUserCode(ctx, userCode)
 	if err != nil {
@@ -68,7 +68,8 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 
 	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.Delete)
 
-	if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+	err = u.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
 		return err
 	}
 
@@ -90,7 +91,7 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
-	lib.CpsModelBuilder()
+	// lib.CpsModelBuilder()
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
 
 	if archUserErr != nil || archLinkedAccErr != nil {

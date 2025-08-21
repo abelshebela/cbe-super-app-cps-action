@@ -259,8 +259,6 @@ type EventRepository interface {
 
 type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
-	Update(ctx context.Context, id string, feedback *model.Feedback) error
-	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.Feedback, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
 }
