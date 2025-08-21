@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	// "fmt"
-	"strings"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -149,25 +149,15 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		role = strings.ToUpper(*request.Role)
 	}
 
-	// Handle PermissionCategory which is interface{} - convert to []string if possible
 	var permissionCategoryLists []string
 	if request.PermissionCategoryLists != nil {
 		permissionCategoryLists = *request.PermissionCategoryLists
+		h.logger.Infof("[UpdatePermissionGroup] Using provided permission categories: %+v", permissionCategoryLists)
 	} else {
-		// Try to convert current PermissionCategory to []string
-		if currentGroup.PermissionCategory != nil {
-			switch v := currentGroup.PermissionCategory.(type) {
-			case []string:
-				permissionCategoryLists = v
-			case []interface{}:
-				for _, item := range v {
-					if str, ok := item.(string); ok {
-						permissionCategoryLists = append(permissionCategoryLists, str)
-					}
-				}
-			}
-		}
+		h.logger.Infof("[UpdatePermissionGroup] No permission categories provided, will keep existing ones unchanged")
+			permissionCategoryLists = []string{} 
 	}
+
 
 	cpsAction := model.CPSAction{
 		MakerID:          userContext.UserID,
