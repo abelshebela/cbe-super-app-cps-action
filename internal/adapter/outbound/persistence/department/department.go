@@ -88,12 +88,10 @@ func (r *DepartmentPersistence) UpdateDepartment(ctx context.Context, id string,
 		r.logger.Infof("Processing portal_cards in persistence: %+v (type: %T)", portalCards, portalCards)
 		var cardIDs []string
 
-		// Handle different types for portal cards
 		if strArr, ok := portalCards.([]string); ok && len(strArr) > 0 {
 			r.logger.Infof("Portal cards as []string: %+v", strArr)
 			cardIDs = strArr
 		} else if interfaceArr, ok := portalCards.([]interface{}); ok && len(interfaceArr) > 0 {
-			// Convert []interface{} to []string
 			r.logger.Infof("Portal cards as []interface{}: %+v", interfaceArr)
 			for _, item := range interfaceArr {
 				if str, ok := item.(string); ok && str != "" {
@@ -103,46 +101,12 @@ func (r *DepartmentPersistence) UpdateDepartment(ctx context.Context, id string,
 			r.logger.Infof("Converted portal cards: %+v", cardIDs)
 		}
 
-		// Process the card IDs if we have any
 		if len(cardIDs) > 0 {
 			updateDoc["portal_cards"] = cardIDs
 			r.logger.Infof("Final portal cards: %+v", cardIDs)
 		}
 	}
 
-	if permissionGroups, exists := updateData["permission_groups"]; exists {
-		r.logger.Infof("Processing permission_groups in persistence: %+v (type: %T)", permissionGroups, permissionGroups)
-		var groupIDs []string
-
-		// Handle different types for permission groups
-		if strArr, ok := permissionGroups.([]string); ok && len(strArr) > 0 {
-			r.logger.Infof("Permission groups as []string: %+v", strArr)
-			groupIDs = strArr
-		} else if interfaceArr, ok := permissionGroups.([]interface{}); ok && len(interfaceArr) > 0 {
-			// Convert []interface{} to []string
-			r.logger.Infof("Permission groups as []interface{}: %+v", interfaceArr)
-			for _, item := range interfaceArr {
-				if str, ok := item.(string); ok && str != "" {
-					groupIDs = append(groupIDs, str)
-				}
-			}
-			r.logger.Infof("Converted permission groups: %+v", groupIDs)
-		}
-
-		// Process the group IDs if we have any
-		if len(groupIDs) > 0 {
-			var objectIDs []bson.ObjectID
-			for _, groupID := range groupIDs {
-				oid, err := bson.ObjectIDFromHex(groupID)
-				if err != nil {
-					return nil, fmt.Errorf("INVALID_PERMISSION_GROUP_ID")
-				}
-				objectIDs = append(objectIDs, oid)
-			}
-			updateDoc["permission_groups"] = objectIDs
-			r.logger.Infof("Final permission groups ObjectIDs: %+v", objectIDs)
-		}
-	}
 	fmt.Println("data in persitence", updateData)
 	if v, ok := updateData["enabled"].(bool); ok {
 		updateDoc["enabled"] = v
