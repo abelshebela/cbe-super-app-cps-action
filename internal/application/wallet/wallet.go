@@ -17,7 +17,7 @@ import (
 )
 
 type WalletHandlerAppllication interface {
-	GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*common_utils.PaginatedResponse[[]*domain.Wallet], error)
+	GetAllWallet(ctx context.Context, filterParams *constant.MongoFilter) (*common_utils.PaginatedResponse[[]*domain.Wallet], error)
 	GetWallet(ctx context.Context, id string) (*domain.Wallet, error)
 
 	CreateWallet(ctx context.Context, req domain.WalletRequest, maker cps_entitites.User) error
@@ -61,7 +61,7 @@ func (w *WalletHandler) DeleteWallet(ctx context.Context, id string, maker cps_e
 
 }
 
-func (w *WalletHandler) GetAllWallet(ctx context.Context, filterParams *constant.Filter) (*common_utils.PaginatedResponse[[]*domain.Wallet], error) {
+func (w *WalletHandler) GetAllWallet(ctx context.Context, filterParams *constant.MongoFilter) (*common_utils.PaginatedResponse[[]*domain.Wallet], error) {
 	banks, err := w.walletDomain.FetchWallet(ctx, filterParams)
 	if err != nil {
 		return nil, err
