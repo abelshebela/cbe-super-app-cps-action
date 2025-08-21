@@ -79,19 +79,21 @@ func (h *ProductCodeHTTPStore) UpdateProductCode(w http.ResponseWriter, r *http.
 		return
 	}
 
+	err := req.validate()
+	if err != nil {
+		h.logger.Errorf("[productcode.UpdateProductCode] validation error: %v", err)
+		utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+
 	maker, ok := h.extractUserAndMaker(w, r)
 	if !ok {
 		return
 	}
 
 	domainReq := ToDomainProductCodeRequest(req)
-	if req.isEmpty() {
-		h.logger.Errorf("[productcode.UpdateProductCode] no data provided for update, id: %s", id)
-		utils.SendErrorResponse(w, utils.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
-		return
-	}
 
-	err := h.Application.Update(r.Context(), id, domainReq, maker)
+	err = h.Application.Update(r.Context(), id, domainReq, maker)
 	h.sendResponse(w, err, "Product code update request submitted successfully", nil)
 }
 
