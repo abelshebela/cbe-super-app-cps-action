@@ -56,7 +56,7 @@ func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *ty
 	return u.archivedUserRepo.FindAllWithPagination(ctx, *filterParams)
 }
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
-	userData := local_util.ExtractUserFromContext(ctx)
+	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(userData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
@@ -66,7 +66,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 		return err
 	}
 
-	cpsAction := lib.CpsModelBuilder(userCode, userData, user, nil, string(constants.RequestUnlinkUser), constants.Delete)
+	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.Delete)
 
 	if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -90,7 +90,7 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
-
+	lib.CpsModelBuilder()
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
 
 	if archUserErr != nil || archLinkedAccErr != nil {

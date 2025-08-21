@@ -24,6 +24,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationConstructed,
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
+	SuccessAvatarCreated,
+
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -63,6 +65,13 @@ var (
 		Code:       "SUCCESS_USER_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUserCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarCreated = ResponseCode{
+		Code:       "SUCCESS_AVATAR_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarCreatedSuccessfully,
 		Type:       "success",
 	}
 

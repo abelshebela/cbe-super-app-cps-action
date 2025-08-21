@@ -125,6 +125,11 @@ type AmountBasedAuthService interface {
 }
 
 type AvatarService interface {
+	CreateAvatar(ctx context.Context, avatar *model.Avatar) error
+	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar) error
+	DeleteAvatar(ctx context.Context, id string) error
+	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
+	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

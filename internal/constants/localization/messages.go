@@ -4,6 +4,7 @@ package localization
 const (
 	// User related success messages
 	MsgUserCreatedSuccessfully   = "User created successfully"
+	MsgAvatarCreatedSuccessfully = "Avatar created successfully"
 	MsgUserUpdatedSuccessfully   = "User updated successfully"
 	MsgUserDeletedSuccessfully   = "User deleted successfully"
 	MsgUserRetrievedSuccessfully = "User retrieved successfully"
