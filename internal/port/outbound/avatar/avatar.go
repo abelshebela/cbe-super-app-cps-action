@@ -16,4 +16,5 @@ type AvatarRepository interface {
 	EnableDisableAvatar(ctx context.Context, id string, enable bool) (*dto.Avatar, error)
 	GetAvatar(ctx context.Context, id string) (*dto.Avatar, error)
 	GetAllAvatar(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*dto.Avatar], error)
+	GetAvatarByLabel(ctx context.Context, label string) (*dto.Avatar, error)
 }

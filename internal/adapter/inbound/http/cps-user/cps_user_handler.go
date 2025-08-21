@@ -26,7 +26,7 @@ func (h CPSUserMakerHandler) CreateUserRequest(w http.ResponseWriter, r *http.Re
 	_, err := h.Service.CreateUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("CreateUserRequest failed: %v", err)
-		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		local_util.SendErrorResponse(w, err.Error(), 400, nil)
 		return
 	}
 
@@ -37,7 +37,7 @@ func (h CPSUserMakerHandler) UpdateUserRequest(w http.ResponseWriter, r *http.Re
 	_, err := h.Service.UpdateUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("UpdateUserRequest failed: %v", err)
-		local_util.SendErrorResponse(w, err.Error(), 409, nil)
+		local_util.SendErrorResponse(w, err.Error(), 400, nil)
 		return
 	}
 
@@ -79,12 +79,12 @@ func (h CPSUserMakerHandler) DeleteUserRequest(w http.ResponseWriter, r *http.Re
 	action, err := h.Service.DeleteUserRequest(r.Context(), r)
 	if err != nil {
 		h.logger.Errorf("DeleteUserRequest failed: %v", err)
-		local_util.SendErrorResponse(w, err.Error(), 0, nil)
+		local_util.SendErrorResponse(w, err.Error(), 204, nil)
 		return
 	}
 
 	response := map[string]interface{}{"action_code": action.ActionCode}
-	local_util.BaseResponseMaker(response, w, "User deletion action submitted successfully", 200)
+	local_util.BaseResponseMaker(response, w, "User deletion action submitted successfully", 204)
 }
 
 func (h CPSUserMakerHandler) DisableUser(w http.ResponseWriter, r *http.Request) {

@@ -176,7 +176,6 @@ const (
 	REQUEST_UPDATE_ACCOUNT_VALIDATION  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	REQUEST_UPDATE_SERVICE_DETAILS     RequestAction = "UPDATE_SERVICE_DETAILS"
 
-
 	// Add these for budget icon and color actions
 	REQUEST_CREATE_ICON  RequestAction = "CREATE_ICON"
 	REQUEST_UPDATE_ICON  RequestAction = "UPDATE_ICON"

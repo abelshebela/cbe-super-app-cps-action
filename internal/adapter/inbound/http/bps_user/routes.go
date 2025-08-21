@@ -7,11 +7,12 @@ import (
 
 	sharedhttp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/bps_user"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
 
-func RegisterBPSUserMakerRoutes(router chi.Router, handler inbound.BPSUserHandler, authMiddleware middleware.AuthMiddleware) {
+func RegisterBPSUserMakerRoutes(router chi.Router, handler inbound.BPSUserHandler, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/bps_users", func(r chi.Router) {
 		routes := []sharedhttp.Route{
 			// {
@@ -48,6 +49,7 @@ func RegisterBPSUserMakerRoutes(router chi.Router, handler inbound.BPSUserHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDisableBPSUser)),
 				},
 			},
 			{
@@ -57,6 +59,7 @@ func RegisterBPSUserMakerRoutes(router chi.Router, handler inbound.BPSUserHandle
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableBPSUser)),
 				},
 			},
 		}

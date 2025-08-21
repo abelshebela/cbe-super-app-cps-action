@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -40,41 +40,43 @@ var allowedNotificationFor = []string{"IFB", "CB", "ALL"}
 func (r NotificationRequest) Validate(isCreate bool) error {
 	enumValues := toInterfaceSlice(allowedNotificationFor)
 
+	r.NotificationType = strings.TrimSpace(r.NotificationType)
+	r.NotificationBody = strings.TrimSpace(r.NotificationBody)
+	r.For = strings.TrimSpace(r.For)
+	r.Title = strings.TrimSpace(r.Title)
+
 	var fieldRules []*validation.FieldRules
 
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required")),
-			validation.Field(&r.NotificationBody, validation.Required.Error("notification_body is required")),
+			validation.Field(&r.NotificationType,
+				validation.Required.Error("notification_type is required"),
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
+			validation.Field(&r.NotificationBody,
+				validation.Required.Error("notification_body is required"),
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 			validation.Field(&r.Title,
 				validation.Required.Error("title is required"),
-				validation.By(func(value interface{}) error {
-					if str, ok := value.(string); ok {
-						return common_util.ValidateInputNoSpecialChars(str)
-					}
-					return nil
-				}),
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
 			),
 			validation.Field(&r.For,
 				validation.Required.Error("for is required"),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
 			),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType),
-			validation.Field(&r.NotificationBody),
-			validation.Field(&r.Title,
-				validation.By(func(value interface{}) error {
-					if str, ok := value.(string); ok && str != "" {
-						return common_util.ValidateInputNoSpecialChars(str)
-					}
-					return nil
-				}),
-			),
-			validation.Field(&r.For,
-				validation.In(enumValues...).Error("invalid value for 'for'"),
-			),
+			validation.Field(&r.NotificationType, validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.NotificationBody, validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.Title, validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.For, validation.By(utils.NoSpecialChars), validation.In(enumValues...).Error("invalid value for 'for'")),
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	// "net/http"
 	"time"
@@ -179,6 +180,22 @@ func (a *AvatarPersistence) GetAvatar(ctx context.Context, id string) (*avatar.A
 		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
 	}
 
+	result := mappers.ToAvatarModel(avatarDoc)
+
+	return &result, nil
+}
+
+func (a *AvatarPersistence) GetAvatarByLabel(ctx context.Context, label string) (*avatar.Avatar, error) {
+	filter := bson.M{
+		"label":      bson.M{"$regex": "^" + regexp.QuoteMeta(label) + "$", "$options": "i"},
+		"is_deleted": false,
+	}
+
+	avatarDoc, err := a.avatarDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		a.logger.Errorf("failed to get avatar by label %s: %v", label, err)
+		return nil, err
+	}
 	result := mappers.ToAvatarModel(avatarDoc)
 
 	return &result, nil

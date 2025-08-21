@@ -77,7 +77,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 				res.SendJSON()
 				return
 			}
-			
+
 			if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
 				res := common.Response[constant.ErrorDefinition]{
 					ResponseWriter: w,
