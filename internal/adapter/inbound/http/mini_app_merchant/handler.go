@@ -59,7 +59,7 @@ func (h *HttpStore) CreateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Create MiniAppMerchant request successfully created")
+	common_util.BaseResponseMaker(nil, w, "Create MiniAppMerchant request successfully created", 201)
 }
 
 func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
@@ -73,11 +73,6 @@ func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 	var reqDTO MiniAppMerchantDTO
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		common_util.SendErrorResponse(w, common_util.InvalidJSONPayload, http.StatusBadRequest, nil)
-		return
-	}
-
-	if reqDTO.IsEmpty() {
-		common_util.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
 		return
 	}
 

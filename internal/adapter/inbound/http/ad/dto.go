@@ -6,6 +6,7 @@ import (
 	"time"
 
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -43,14 +44,20 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 	err := validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
 			validation.When(!isUpdate, validation.Required.Error("title is required")),
+			validation.By(utils.NoSpecialChars),
+			validation.By(utils.TrimWhiteSpace),
 			validation.Length(3, 20).Error("TITLE_LENGTH_3_TO_20"),
 		),
 		validation.Field(&c.Description,
 			validation.When(!isUpdate, validation.Required.Error("description is required")),
+			validation.By(utils.NoSpecialChars),
+			validation.By(utils.TrimWhiteSpace),
 			validation.Length(30, 100).Error("DESCRIPTION_LENGTH_30_TO_100"),
 		),
 		validation.Field(&c.AdvertFor,
 			validation.When(!isUpdate, validation.Required.Error("advert for is required")),
+			validation.By(utils.NoSpecialChars),
+			validation.By(utils.TrimWhiteSpace),
 			validation.In(string(entity.Both), string(entity.IFB), string(entity.CB)).Error("invalid advert for field"),
 		),
 		validation.Field(&c.BannerImage,
@@ -95,7 +102,7 @@ func (a AdvertDate) Validate(isUpdate bool) error {
 				startedAt, ok := value.(time.Time)
 				if !ok {
 					if !isUpdate {
-						return fmt.Errorf("The start time format is invalid. Please provide a valid date and time.")
+						return fmt.Errorf("the start time format is invalid. Please provide a valid date and time")
 					}
 					return nil // skip validation on update if not provided
 				}
@@ -103,7 +110,7 @@ func (a AdvertDate) Validate(isUpdate bool) error {
 					return nil // skip validation on update if zero value
 				}
 				if startedAt.Before(time.Now().Add(10 * time.Minute)) {
-					return fmt.Errorf("The start time must be at least 10 minutes from now.")
+					return fmt.Errorf("the start time must be at least 10 minutes from now")
 				}
 				return nil
 			}),
@@ -114,7 +121,7 @@ func (a AdvertDate) Validate(isUpdate bool) error {
 				expiredAt, ok := value.(time.Time)
 				if !ok {
 					if !isUpdate {
-						return fmt.Errorf("The expiry time format is invalid. Please provide a valid date and time.")
+						return fmt.Errorf("the expiry time format is invalid. Please provide a valid date and time")
 					}
 					return nil // skip validation on update if not provided
 				}
@@ -122,10 +129,10 @@ func (a AdvertDate) Validate(isUpdate bool) error {
 					return nil // skip validation on update if zero value
 				}
 				if !expiredAt.After(time.Now().Add(24 * time.Hour)) {
-					return fmt.Errorf("The expiry time must be at least 24 hours from now")
+					return fmt.Errorf("the expiry time must be at least 24 hours from now")
 				}
 				if !expiredAt.After(a.StartedAt) && !a.StartedAt.IsZero() {
-					return fmt.Errorf("The expiry time must be later than the start time")
+					return fmt.Errorf("the expiry time must be later than the start time")
 				}
 				return nil
 			}),

@@ -58,6 +58,7 @@ type ErrorDefinitions struct {
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
 	Donation    ErrorGroup
+	Avatar      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -1709,7 +1710,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "DEP_009",
 			Status:  StatusBadRequest,
 			Message: "invalid portal card used.",
-
 		},
 	},
 	Bank: ErrorGroup{
@@ -2019,6 +2019,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "AD_006",
 			Status:  StatusBadRequest,
 			Message: "end date is required",
+		},
+		"ADVERT_TITLE_ALREADY_EXISTS": {
+			Code:    "AD_007",
+			Status:  StatusConflict,
+			Message: "Advert title already exists",
 		},
 	},
 	BulkService: ErrorGroup{
@@ -2475,6 +2480,13 @@ var DefineError = ErrorDefinitions{
 			Code:    "DON_061",
 			Message: "Invalid category ID format",
 			Status:  StatusBadRequest,
+		},
+	},
+	Avatar: ErrorGroup{
+		"AVATAR_LABEL_ALREADY_EXISTS": {
+			Code:    "AVT_001",
+			Message: "Avatar label already exists",
+			Status:  StatusConflict,
 		},
 	},
 }

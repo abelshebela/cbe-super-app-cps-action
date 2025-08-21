@@ -156,6 +156,6 @@ func InitPersistence(client *mongo.Client, databaseName string, logger utils.Log
 		NotificationPersisitence:     notification_persistence.InitNotificationPersistence(client, databaseName, "notifications", logger),
 		ProductCodePersistenct:       productcode_persistence.InitProductCodePersistence(client, databaseName, "services", logger),
 		DonationPersistence:          donation_persistence.InitDonationPersistence(client, databaseName, []string{"donations", "donation_categories", "donation_companies"}, logger),
-		InAppNotificationPersistence: inappnotification_persistence.InitInAppNotificationPersistence(client, databaseName, "in_app_notifications", logger),
+		InAppNotificationPersistence: inappnotification_persistence.InitInAppNotificationPersistence(client, databaseName, "inapp_notifications", logger),
 	}
 }
