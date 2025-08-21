@@ -65,7 +65,6 @@ func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, sta
 
 	updatedUser := *user
 	updatedUser.Enabled = status
-		fmt.Println("**********************service****************************")
 
 		var requestAction string
 		if status{

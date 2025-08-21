@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
-	"fmt"
 	"net/http"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
@@ -68,7 +67,6 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("**********************handler****************************")
 	err := h.Service.UpdateBpsUser(r.Context(), userCode, false)
 	if err != nil {
 		h.logger.Errorf("Disable user request failed: %v", err)

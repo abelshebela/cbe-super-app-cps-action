@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -61,7 +60,6 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"username":searchRegex},
 		}
 	}
-	fmt.Println("***********Repos**********************")
 	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
