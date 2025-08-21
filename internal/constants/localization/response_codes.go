@@ -56,6 +56,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
+	ErrorActionNotFound,
+	ErrorUserAlreadyEnabled,
+	ErrorUserAlreadyDisabled,
 	// Add more as needed...
 }
 
@@ -1263,6 +1266,20 @@ var (
 		Code:       "ERROR_ACTION_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgCPSActionNotFound,
+		Type:       "error",
+	}
+	
+	ErrorUserAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorUserAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyDisabled,
 		Type:       "error",
 	}
 

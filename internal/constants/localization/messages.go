@@ -359,6 +359,8 @@ const (
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
 	MsgCPSActionNotFound             = "CPS action not found"
+	MsgBpsUserAlreadyEnabled             = "BPS user already enabled"
+	MsgBpsUserAlreadyDisabled             = "BPS user already disabled"
 	MsgCPSActionNotPending           = "Action is not in pending status"
 	MsgCPSActionAlreadyApproved      = "Action already approved"
 	MsgCPSActionAlreadyRejected      = "Action already rejected"
