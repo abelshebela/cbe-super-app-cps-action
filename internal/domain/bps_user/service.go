@@ -3,13 +3,14 @@ package bps_user
 import (
 	"context"
 	"encoding/json"
-	
+
 	"fmt"
 	"time"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
 	// entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
 
@@ -87,8 +88,6 @@ func (s *ServiceStore) GetAllBPSUsers(ctx context.Context, filterParams *constan
 	return users, nil
 }
 
-
-
 func (s *ServiceStore) EnableBPSUserRequest(ctx context.Context, request EnableBPSUserRequest) (*cps_entities.CPSAction, error) {
 	// Check if user exists
 	originalUser, err := s.repository.GetBPSUserByUserCode(ctx, request.UserCode)
@@ -96,7 +95,10 @@ func (s *ServiceStore) EnableBPSUserRequest(ctx context.Context, request EnableB
 		s.logger.Errorf("failed to fetch BPS user: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
-	if originalUser.Enabled == true {
+	if originalUser == nil {
+		return nil, fmt.Errorf("USER_NOT_FOUND")
+	}
+	if originalUser.Enabled {
 		return nil, fmt.Errorf("USER_ALREADY_ENABLED")
 	}
 
@@ -140,14 +142,15 @@ func (s *ServiceStore) DisableBPSUserRequest(ctx context.Context, request Disabl
 	// Check if user exists
 	originalUser, err := s.repository.GetBPSUserByUserCode(ctx, request.UserCode)
 	if err != nil {
-
 		s.logger.Errorf("failed to fetch BPS user: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
-	if originalUser.Enabled == false {
+	if originalUser == nil {
+		return nil, fmt.Errorf("USER_NOT_FOUND")
+	}
+	if !originalUser.Enabled {
 		return nil, fmt.Errorf("USER_ALREADY_DISABLED")
 	}
-
 
 	// Create updated user data
 	updatedUser := *originalUser
