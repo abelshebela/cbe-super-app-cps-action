@@ -272,9 +272,7 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 		filter := bson.M{
 			"key": parentKey,
 			"subAccessList": bson.M{
-				"$not": bson.M{
-					"$elemMatch": bson.M{"enabled": false},
-				},
+				"$elemMatch": bson.M{"enabled": true},
 			},
 		}
 

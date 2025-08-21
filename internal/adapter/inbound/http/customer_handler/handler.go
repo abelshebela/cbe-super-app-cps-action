@@ -62,7 +62,7 @@ func (c CustomerHTTPHandler) GetCustomerByID(w http.ResponseWriter, r *http.Requ
 
 	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customer)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusOK)
 }
 
 func (c CustomerHTTPHandler) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +77,7 @@ func (c CustomerHTTPHandler) GetBlockedCustomer(w http.ResponseWriter, r *http.R
 
 	def, _ := common.GetSuccessResponseByKey("SUCCESS")
 	data, _ := util.StructToMap(customers)
-	util.BaseResponseMaker(data, w, def.Message, http.StatusAccepted)
+	util.BaseResponseMaker(data, w, def.Message, http.StatusOK)
 
 }
 

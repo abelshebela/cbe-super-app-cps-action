@@ -40,7 +40,7 @@ func InitDepartmentRoutes(router chi.Router, departmentHandler inbound.Departmen
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker}),
-					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateDepartment)),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateDepartment)),
 				},
 			},
 			{

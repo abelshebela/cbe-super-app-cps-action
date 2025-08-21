@@ -5,13 +5,13 @@ import (
 
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	walletRoutes "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-
 	"github.com/go-chi/chi/v5"
 )
 
-func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware) {
+func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/wallets", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -22,6 +22,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 					middleware.RequireFormContentType(),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestCreateWallet)),
 				},
 			},
 			{
@@ -31,6 +32,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestUpdateWallet)),
 				},
 			},
 			{
@@ -40,6 +42,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestDeleteWallet)),
 				},
 			},
 			{
@@ -67,6 +70,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableWallet)),
 				},
 			},
 			{
@@ -76,6 +80,7 @@ func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, auth
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+					cpsGuard.RequireNoPendingCPSActionGuard(string(cps_const.RequestEnableWallet)),
 				},
 			},
 		}

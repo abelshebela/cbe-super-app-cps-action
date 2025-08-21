@@ -62,7 +62,7 @@ func (h CPSUserMakerHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.
 }
 
 func (h CPSUserMakerHandler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams := local_util.ExtractMongoFilterParams(r)
 
 	users, err := h.Service.GetAllCPSUsers(r.Context(), filterParams)
 	if err != nil {

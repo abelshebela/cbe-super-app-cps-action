@@ -1,4 +1,4 @@
-// package service_details_test
+package service_details_test
 
 // import (
 // 	"context"
