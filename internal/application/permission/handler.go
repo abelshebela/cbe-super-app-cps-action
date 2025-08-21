@@ -17,11 +17,11 @@ import (
 )
 
 type PermissionService interface {
-	CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryIDs []string, cpsAction model.CPSAction) (model.CPSAction, error)
+	CreatePermissionGroup(ctx context.Context, oldGroupName, groupName, role string, permissionCategoryIDs []string, cpsAction model.CPSAction) (model.CPSAction, error)
 	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
 	UpdatePermissionGroup(groupName string, permissionCategoryIDs []string) (entities.PermissionGroup, error)
-	UpdatePermissionGroupRequest(oldGroupName, groupName, role string, permissionCategoryIDs []string, cpsAction model.CPSAction) (model.CPSAction, error)
+	UpdatePermissionGroupRequest(ctx context.Context, oldGroupName, groupName, role string, permissionCategoryIDs []string, cpsAction model.CPSAction) (model.CPSAction, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error)
 }
 
@@ -37,12 +37,12 @@ func InitPermissionHandler(service *domain.Service, logger utils.Logger) Permiss
 	}
 }
 
-func (h *PermissionHandler) CreatePermissionGroup(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+func (h *PermissionHandler) CreatePermissionGroup(ctx context.Context, oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	oldGroupName = strings.ToUpper(oldGroupName)
 	groupName = strings.ToUpper(groupName)
 	h.logger.Infof("Handler: Initiating Create cps action for PermissionGroup with groupName: %s, role: %s, makerID: %s", groupName, role, cpsAction.MakerID)
 
-	cpsAction, err := h.service.CreatePermissionGroup(oldGroupName, groupName, role, permissionCategoryLists, cpsAction)
+	cpsAction, err := h.service.CreatePermissionGroup(ctx, oldGroupName, groupName, role, permissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("Handler: Failed to create cps action for  permission group '%s' for role '%s': %v", groupName, role, err)
 		return model.CPSAction{}, err
@@ -52,7 +52,7 @@ func (h *PermissionHandler) CreatePermissionGroup(oldGroupName, groupName, role 
 	return cpsAction, nil
 }
 
-func (h *PermissionHandler) UpdatePermissionGroupRequest(oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
+func (h *PermissionHandler) UpdatePermissionGroupRequest(ctx context.Context, oldGroupName, groupName, role string, permissionCategoryLists []string, cpsAction model.CPSAction) (model.CPSAction, error) {
 	oldGroupName = strings.ToUpper(oldGroupName)
 	groupName = strings.ToUpper(groupName)
 	perv_action, err := h.service.GetPermissionGroup(oldGroupName)
@@ -62,7 +62,8 @@ func (h *PermissionHandler) UpdatePermissionGroupRequest(oldGroupName, groupName
 	}
 	cpsAction.PreviousAction = perv_action
 
-	cpsAction, err = h.service.CreatePermissionGroup(oldGroupName, groupName, role, permissionCategoryLists, cpsAction)
+	cpsAction, err = h.service.CreatePermissionGroup(ctx, oldGroupName, groupName, role, permissionCategoryLists, cpsAction)
+
 	if err != nil {
 		h.logger.Errorf("Handler: Failed to update permission group '%s' for role '%s': %v", groupName, role, err)
 		return model.CPSAction{}, err

@@ -198,14 +198,21 @@ func (w *WalletPersistence) EnableDisableWallet(ctx context.Context, id string, 
 	return result, nil
 }
 
-func (w *WalletPersistence) WalletNameExists(ctx context.Context, name string, id *string) (bool, error) {
+func (w *WalletPersistence) WalletNameExists(ctx context.Context, name string, code string, id *string) (bool, error) {
 	if name == "" {
 		return false, fmt.Errorf(common_util.InvalidInput)
 	}
 
 	filter := bson.M{
-		"name":       bson.M{"$regex": fmt.Sprintf("^%s$", name), "$options": "i"},
-		"is_deleted": false,
+		"$and": []bson.M{
+			{"is_deleted": false},
+			{
+				"$or": []bson.M{
+					{"name": bson.M{"$regex": fmt.Sprintf("^%s$", name), "$options": "i"}},
+					{"code": bson.M{"$regex": fmt.Sprintf("^%s$", code), "$options": "i"}},
+				},
+			},
+		},
 	}
 
 	if id != nil {

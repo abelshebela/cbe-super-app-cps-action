@@ -10,6 +10,7 @@ import (
 	"time"
 
 	miniappentity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -84,10 +85,11 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 			validation.Field(&r.AppName,
 				validation.Required.Error("app_name is required"),
 				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error("app_name must not contain special characters"),
+				validation.By(utils.NoSpecialChars),
 			),
-			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required")),
+			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required"), validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.AppIcon, validation.Required, validation.By(validateFile)),
-			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required")),
+			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required"), validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.URL, validation.Required.Error("url is required")),
 			validation.Field(&r.BannerImage, validation.Required.Error("banner_image is required"), validation.By(validateFile)),
 		}

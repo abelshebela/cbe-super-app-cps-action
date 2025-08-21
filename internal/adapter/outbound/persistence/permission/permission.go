@@ -111,8 +111,7 @@ func (e InvalidIDsError) Error() string {
 	return fmt.Sprintf("%s not found: %v", e.Field, e.IDs)
 }
 
-func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]string, error) {
-	ctx := context.Background()
+func (r *PermissionPersistence) ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error) {
 
 	var validObjectIDs []bson.ObjectID
 	var invalidIDs []string
@@ -178,8 +177,19 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ids []string) ([]st
 	return validIDs, nil
 }
 
-func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string, error) {
-	ctx := context.Background()
+func (r *PermissionPersistence) ValidatePermissionGroups(ctx context.Context, ids []string) ([]string, error) {
+	// Validate input array
+	if ids == nil {
+		r.logger.Errorf("permission groups array is nil")
+		return nil, fmt.Errorf("PERMISSION_GROUPS_ARRAY_IS_NIL")
+	}
+
+	if len(ids) == 0 {
+		r.logger.Errorf("permission groups array is empty")
+		return nil, fmt.Errorf("PERMISSION_GROUPS_ARRAY_IS_EMPTY")
+	}
+
+	r.logger.Infof("Validating permission groups: %+v", ids)
 
 	var validObjectIDs []bson.ObjectID
 	var invalidIDs []string
@@ -208,6 +218,13 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string
 		return nil, fmt.Errorf("INVALID_PERMISSION_GROUP_ID")
 	}
 
+	if len(validObjectIDs) == 0 {
+		r.logger.Errorf("No valid ObjectIDs found after validation")
+		return nil, fmt.Errorf("NO_VALID_PERMISSION_GROUP_IDS")
+	}
+
+	r.logger.Infof("Querying database with valid ObjectIDs: %+v", validObjectIDs)
+
 	groups, err := r.permissionGroupsDal.FindAll(ctx,
 		bson.M{"_id": bson.M{"$in": validObjectIDs}},
 		bson.M{"_id": 1},
@@ -218,9 +235,12 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string
 		return nil, fmt.Errorf("UNEXPECTED_DATABASE_ERROR")
 	}
 
-	if len(groups) == 0 || err == mongo.ErrNoDocuments {
+	if len(groups) == 0 {
+		r.logger.Errorf("No permission groups found in database for IDs: %+v", validObjectIDs)
 		return nil, fmt.Errorf("NO_PERMISSION_GROUP_FOUND")
 	}
+
+	r.logger.Infof("Found %d permission groups in database", len(groups))
 
 	foundIDs := make(map[bson.ObjectID]bool)
 	for _, group := range groups {
@@ -240,9 +260,11 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ids []string) ([]string
 	}
 
 	if len(missingIDs) > 0 {
+		r.logger.Errorf("Missing permission groups: %+v", missingIDs)
 		return nil, fmt.Errorf("ONE_OR_MORE_PERMISSION_GROUPS_NOT_FOUND")
 	}
 
+	r.logger.Infof("Successfully validated %d permission groups", len(validIDs))
 	return validIDs, nil
 }
 

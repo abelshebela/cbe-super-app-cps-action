@@ -41,15 +41,6 @@ func InitAccountValidationHandlerMaker(router chi.Router, handler inbound.Inboun
 					middleware.AccessControl([]string{role.Maker}),
 				},
 			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/approve_reject/{action_code}",
-				Handler: handler.UpdateAccountValidationChecker,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{role.Checker}),
-				},
-			},
 		}
 
 		route.RegisterRoutes(r, routes)

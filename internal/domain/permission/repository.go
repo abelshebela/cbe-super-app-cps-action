@@ -18,10 +18,11 @@ type PermissionGroupRepository interface {
 	UpdatePermissionGroup(groupName string, permissionCategoryLists []string) (entities.PermissionGroup, error)
 	GetPermissionGroup(groupName string) (entities.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionGroup], error)
+	ValidatePermissionGroups(ctx context.Context, ids []string) ([]string, error)
 }
 
 type PermissionCategoryRepository interface {
-	ValidatePermissionCategories(ids []string) ([]string, error)
+	ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*entities.PermissionCategory, error)
 }
 

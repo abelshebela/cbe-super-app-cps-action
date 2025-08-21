@@ -55,7 +55,7 @@ func (m *MockPermissionDomainService) GetPermissionGroup(groupName string) (enti
 	return args.Get(0).(entities.PermissionGroup), args.Error(1)
 }
 
-func (m *MockPermissionDomainService) ValidatePermissionCategories(categoryIDs []string) ([]string, error) {
+func (m *MockPermissionDomainService) ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error) {
 	args := m.Called(categoryIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -63,7 +63,7 @@ func (m *MockPermissionDomainService) ValidatePermissionCategories(categoryIDs [
 	return args.Get(0).([]string), args.Error(1)
 }
 
-func (m *MockPermissionDomainService) ValidatePermissionGroups(groupIDs []string) ([]string, error) {
+func (m *MockPermissionDomainService) ValidatePermissionGroups(ctx context.Context, mgroupIDs []string) ([]string, error) {
 	args := m.Called(groupIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

@@ -192,7 +192,6 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
 		return
 	}
-	fmt.Println("*********************88888")
 	err = h.Application.UpdateMiniApp(r.Context(), dto, maker)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)

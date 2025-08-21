@@ -132,7 +132,7 @@ func TestFeedbackConsumer_DatabaseError(t *testing.T) {
 		RequiredAcks:      1,
 		RetryMax:          3,
 		SessionTimeout:    30000,
-		HeartbeatInterval: 3000,
+		HeartbeatInterval: 10800000, // 3 hours
 	}
 
 	consumer, err := kafka.NewFeedbackConsumer(cfg, mockLogger, mockRepo, mockDeadLetterQ)
