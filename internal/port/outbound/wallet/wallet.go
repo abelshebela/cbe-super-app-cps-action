@@ -16,5 +16,5 @@ type WalletRepository interface {
 	UpdateWallet(ctx context.Context, wallet entity.Wallet) (*entity.Wallet, error)
 	DeleteWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	EnableDisableWallet(ctx context.Context, id string, enable bool) (*entity.Wallet, error)
-	WalletNameExists(ctx context.Context, name string, id *string) (bool, error)
+	WalletNameExists(ctx context.Context, name string, code string, id *string) (bool, error)
 }

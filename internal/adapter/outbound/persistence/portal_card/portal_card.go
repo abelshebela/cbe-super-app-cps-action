@@ -130,5 +130,3 @@ func (o *PortalCardRepo) ValidatePortalCard(ctx context.Context, names []string)
 
 	return true, nil
 }
-
-

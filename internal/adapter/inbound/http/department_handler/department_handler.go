@@ -169,7 +169,6 @@ func (h *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 	common_util.WriteSuccessResponse(w, department, "Department fetched successfully")
 }
 
-
 func (h *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
 	userCtx, ok := h.extractUserContext(w, r)
 	if !ok {
@@ -246,4 +245,3 @@ func (h *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 	h.logger.Infof("[DisableDepartment] disable request sent successfully by user: %s for department_id: %s", userCtx.UserID, departmentID)
 	common_util.WriteSuccessResponse(w, nil, RequestSentSuccesfully)
 }
-

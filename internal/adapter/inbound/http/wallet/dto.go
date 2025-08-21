@@ -4,7 +4,8 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	// error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -47,16 +48,12 @@ func (c WalletRequest) Validate(isCreate bool) error {
 		rules = append(rules, validation.Field(&c.Name,
 			validation.Required.Error("name is required"),
 			validation.Length(3, 10),
-			validation.By(func(value interface{}) error {
-				if str, ok := value.(string); ok {
-					return common_util.ValidateInputNoSpecialChars(str)
-				}
-				return nil
-			}),
+			validation.By(utils.NoSpecialChars),
 		))
 	} else if c.Name != "" {
 		rules = append(rules, validation.Field(&c.Name,
 			validation.Length(3, 10),
+			validation.By(utils.NoSpecialChars),
 			validation.By(func(value interface{}) error {
 				if str, ok := value.(string); ok {
 					return common_util.ValidateInputNoSpecialChars(str)
@@ -64,14 +61,8 @@ func (c WalletRequest) Validate(isCreate bool) error {
 				return nil
 			}),
 		))
-	}
-
-	if isCreate {
 		rules = append(rules, validation.Field(&c.Code,
-			validation.Required.Error("code is required"),
-		))
-	} else if c.Code != "" {
-		rules = append(rules, validation.Field(&c.Code))
+			validation.By(utils.NoSpecialChars)))
 	}
 
 	if isCreate {
@@ -79,14 +70,14 @@ func (c WalletRequest) Validate(isCreate bool) error {
 		rules = append(rules, validation.Field(&c.Avatar, validation.Required, validation.By(func(value any) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {
-				return validation.NewError("avatar", error_codes.InvalidInput)
+				return validation.NewError("avatar", utils.InvalidInput)
 			}
 			if file.Size > maxFileSize {
-				return validation.NewError("avatar", error_codes.FileTooLarge)
+				return validation.NewError("avatar", utils.FileTooLarge)
 			}
 
 			if !IsValidImage(file) {
-				return validation.NewError("avatar", error_codes.InvalidFileType)
+				return validation.NewError("avatar", utils.InvalidFileType)
 			}
 			return nil
 		})))
@@ -95,14 +86,14 @@ func (c WalletRequest) Validate(isCreate bool) error {
 		rules = append(rules, validation.Field(&c.Avatar, validation.By(func(value any) error {
 			file, ok := value.(*multipart.FileHeader)
 			if !ok {
-				return validation.NewError("avatar", error_codes.InvalidInput)
+				return validation.NewError("avatar", utils.InvalidInput)
 			}
 			if file.Size > maxFileSize {
-				return validation.NewError("avatar", error_codes.FileTooLarge)
+				return validation.NewError("avatar", utils.FileTooLarge)
 			}
 
 			if !IsValidImage(file) {
-				return validation.NewError("avatar", error_codes.InvalidFileType)
+				return validation.NewError("avatar", utils.InvalidFileType)
 			}
 			return nil
 		})))
