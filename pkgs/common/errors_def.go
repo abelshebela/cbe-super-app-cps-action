@@ -1709,11 +1709,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "DEP_009",
 			Status:  StatusBadRequest,
 			Message: "invalid portal card used.",
-		},
-		"INVALID_PERMISSION_GROUPS": {
-			Code:    "DEP_010",
-			Status:  StatusBadRequest,
-			Message: "invalid permission group used",
+
 		},
 	},
 	Bank: ErrorGroup{

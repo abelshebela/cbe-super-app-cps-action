@@ -10,7 +10,6 @@ import (
 	cps_service "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/services"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
 	portal_card "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -36,7 +35,6 @@ type DepartmentService interface {
 
 type DepartmentHandler struct {
 	service           department.Service
-	permissionService permission.PermissionDomainService
 	cpsService        cps_service.CPSActionService
 	portalCardService portal_card.PortaCardInterface
 	logger            utils.Logger
@@ -44,14 +42,12 @@ type DepartmentHandler struct {
 
 func NewDepartmentHandler(
 	service department.Service,
-	permissionService permission.PermissionDomainService,
 	cpsService cps_service.CPSActionService,
 	portalCardService portal_card.PortaCardInterface,
 	logger utils.Logger,
 ) *DepartmentHandler {
 	return &DepartmentHandler{
 		service:           service,
-		permissionService: permissionService,
 		cpsService:        cpsService,
 		portalCardService: portalCardService,
 		logger:            logger,
@@ -91,7 +87,7 @@ func (h *DepartmentHandler) handleCPSAction(ctx context.Context, maker Maker, re
 }
 
 func (h *DepartmentHandler) CreateDepartment(ctx context.Context, request CreateDepartmentRequest, maker Maker) error {
-	h.logger.Infof("Creating department: %s with portal cards: %v and permission groups: %v", request.Department, request.PortalCards, request.PermissionGroups)
+	h.logger.Infof("Creating department: %s with portal cards: %v", request.Department, request.PortalCards)
 
 	// Validate department name is not empty
 	if request.Department == "" {
@@ -116,26 +112,16 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, request Create
 		return fmt.Errorf("PORTAL_CARDS_REQUIRED")
 	}
 
-	// Validate permission groups are not empty
-	if len(request.PermissionGroups) == 0 {
-		h.logger.Errorf("permission groups cannot be empty")
-		return fmt.Errorf("PERMISSION_GROUPS_REQUIRED")
-	}
 
-	// Validate permission groups exist in the system
-	if _, err := h.permissionService.ValidatePermissionGroups(ctx, request.PermissionGroups); err != nil {
-		h.logger.Errorf("invalid permission groups: %v", err)
-		return fmt.Errorf("INVALID_PERMISSION_GROUPS")
-	}
+
 	if _, err := h.portalCardService.ValidatePortalCard(ctx, request.PortalCards); err != nil {
 		h.logger.Errorf("invalid portal cards: %v", err)
 		return err
 	}
 	// Create CPS request data
 	cpsRequest := map[string]interface{}{
-		"department":        request.Department,
-		"portal_cards":      request.PortalCards,
-		"permission_groups": request.PermissionGroups,
+		"department":   request.Department,
+		"portal_cards": request.PortalCards,
 	}
 
 	// Handle CPS action creation
@@ -169,7 +155,7 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 	}
 
 	// Validate that at least one field is being updated
-	if request.Department == "" && len(request.PortalCards) == 0 && len(request.PermissionGroups) == 0 {
+	if request.Department == "" && len(request.PortalCards) == 0 {
 		h.logger.Errorf("no fields provided for update")
 		return fmt.Errorf("DEPARTMENT_UPDATE_FIELDS_REQUIRED")
 	}
@@ -187,12 +173,12 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 			// Check if new name already exists
 			nameExists, err := h.service.CheckDepartmentExists(ctx, request.Department)
 			if err != nil {
-				h.logger.Errorf("failed to check department name existence: %v", err)
-				return fmt.Errorf("DEPARTMENT_NAME_EXISTENCE_CHECK_FAILED")
+				h.logger.Errorf("failed to check department name conflict: %v", err)
+				return fmt.Errorf("DEPARTMENT_NAME_CONFLICT_CHECK_FAILED")
 			}
 			if nameExists {
 				h.logger.Errorf("department name already exists: %s", request.Department)
-				return fmt.Errorf("DEPARTMENT_ALREADY_EXISTS")
+				return fmt.Errorf("DEPARTMENT_NAME_ALREADY_EXISTS")
 			}
 		}
 	}
@@ -212,21 +198,6 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 		}
 	}
 
-	// Validate permission groups if provided
-	if len(request.PermissionGroups) > 0 {
-		// Check if permission groups are not empty strings
-		for i, group := range request.PermissionGroups {
-			if group == "" {
-				h.logger.Errorf("permission group at index %d cannot be empty", i)
-				return fmt.Errorf("PERMISSION_GROUP_EMPTY_VALUE")
-			}
-		}
-
-		if _, err := h.permissionService.ValidatePermissionGroups(ctx, request.PermissionGroups); err != nil {
-			h.logger.Errorf("invalid permission groups: %v", err)
-			return fmt.Errorf("INVALID_PERMISSION_GROUPS")
-		}
-	}
 
 	// Create CPS request data with only provided fields
 	cpsRequest := map[string]interface{}{
@@ -237,9 +208,6 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 	}
 	if len(request.PortalCards) > 0 {
 		cpsRequest["portal_cards"] = request.PortalCards
-	}
-	if len(request.PermissionGroups) > 0 {
-		cpsRequest["permission_groups"] = request.PermissionGroups
 	}
 
 	// Handle CPS action creation
@@ -377,10 +345,11 @@ func (h *DepartmentHandler) GetDepartmentByID(ctx context.Context, id string) (*
 // InitDepartmentHandler initializes the department application handler
 func InitDepartmentHandler(
 	departmentDomain department.Service,
-	permissionDomain permission.PermissionDomainService,
 	cpsActionDomain cps_service.CPSActionService,
 	portalCardDomain portal_card.PortaCardInterface,
 	logger utils.Logger,
 ) DepartmentService {
-	return NewDepartmentHandler(departmentDomain, permissionDomain, cpsActionDomain, portalCardDomain, logger)
+
+	return NewDepartmentHandler(departmentDomain, cpsActionDomain, portalCardDomain, logger)
+
 }
