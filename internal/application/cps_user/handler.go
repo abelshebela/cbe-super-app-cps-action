@@ -21,7 +21,7 @@ type ApplicationService interface {
 	CreateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	UpdateUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, r *http.Request) (*userDTO.CPSUserDTO, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
+	GetAllCPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error)
 	DeleteUserRequest(ctx context.Context, r *http.Request) (*model.CPSAction, error)
 	DisableUser(ctx context.Context, r *http.Request) error
 	EnableUser(ctx context.Context, r *http.Request) error
@@ -90,7 +90,7 @@ func (h *Handler) FetchUserByUserCode(ctx context.Context, r *http.Request) (*us
 	return h.service.FetchUserByUserCode(ctx, userCode)
 }
 
-func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
+func (h *Handler) GetAllCPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
 	users, err := h.service.GetAllCPSUsers(ctx, filterParams)
 	if err != nil {
 		return nil, err

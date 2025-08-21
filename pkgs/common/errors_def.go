@@ -1709,6 +1709,7 @@ var DefineError = ErrorDefinitions{
 			Code:    "DEP_009",
 			Status:  StatusBadRequest,
 			Message: "invalid portal card used.",
+
 		},
 	},
 	Bank: ErrorGroup{

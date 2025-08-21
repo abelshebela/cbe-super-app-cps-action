@@ -5,13 +5,13 @@ import (
 
 	route "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	walletRoutes "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/inbound/wallet"
 	role "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	"github.com/go-chi/chi/v5"
 )
 
-func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware,cpsGuard *middleware.CPSActionMiddlewareFactory) {
+func InitWalletRoutes(router chi.Router, wallet walletRoutes.WalletAdapter, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/wallets", func(r chi.Router) {
 		routes := []route.Route{
 			{

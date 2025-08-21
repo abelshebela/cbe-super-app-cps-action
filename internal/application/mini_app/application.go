@@ -138,7 +138,6 @@ func (a *ApplicationStore) UpdateMiniApp(ctx context.Context, req *dto.MiniAppCr
 	if err := a.setMerchantDetails(ctx, req); err != nil {
 		return err
 	}
-	fmt.Println("***********UpdateMiniApp*****************")
 	userdata := entities.CheckCPSAction{
 		UserCode:    maker.UserCode,
 		Department:  maker.Department,

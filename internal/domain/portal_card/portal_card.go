@@ -21,6 +21,6 @@ func (p *portalCardDomain) GetAllPortalCard(ctx context.Context, filterParams *c
 	return p.portalInfra.GetAllPortalCard(ctx, filterParams)
 }
 
-func (p *portalCardDomain)ValidatePortalCard(ctx context.Context, names []string) (bool,error){
-	return  p.portalInfra.ValidatePortalCard(ctx,names)
+func (p *portalCardDomain) ValidatePortalCard(ctx context.Context, names []string) (bool, error) {
+	return p.portalInfra.ValidatePortalCard(ctx, names)
 }

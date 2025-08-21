@@ -15,7 +15,7 @@ type PermissionRepository interface {
 }
 
 type PermissionCategoryRepository interface {
-	ValidatePermissionCategories(ctx context.Context,ids []string) ([]string, error)
+	ValidatePermissionCategories(ctx context.Context, ids []string) ([]string, error)
 }
 
 type CPSActionRepository interface {

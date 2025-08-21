@@ -49,7 +49,6 @@ func (w *WalletHandler) CreateWallet(ctx context.Context, req domain.WalletReque
 	}
 
 	return w.handleCPSAction(ctx, maker, cps_const.RequestCreateWallet, wallet, nil, cps_const.ActionCreate)
-
 }
 
 func (w *WalletHandler) DeleteWallet(ctx context.Context, id string, maker cps_entitites.User) error {
