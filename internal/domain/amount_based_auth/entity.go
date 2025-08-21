@@ -128,5 +128,4 @@ const (
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
-	
 )

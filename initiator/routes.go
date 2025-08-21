@@ -71,7 +71,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		passwordrule.RegisterPasswordRuleRoutes(sub, adapter.PasswordRuleAdapter, authMiddleware)
 		portalcard.InitPortalCardRoutes(sub, adapter.PortalCardAdapter, authMiddleware)
 		accountblock_handler.RegisterAccountBlockRoutes(sub, adapter.AccountBlockAdapter, authMiddleware)
-		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware,cpsGuard)
+		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware, cpsGuard)
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
 		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware, cpsGuard)
 		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware, cpsGuard)
