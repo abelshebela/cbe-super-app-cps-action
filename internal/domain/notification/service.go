@@ -25,17 +25,17 @@ type NotificationService interface {
 
 // Service implements NotificationService
 type Service struct {
-	Repository NotificationRepository
+	Repository                  NotificationRepository
 	InAppNotificationRepository inappnotification.InAppNotificationRepository
-	logger     shared_utils.Logger
+	logger                      shared_utils.Logger
 }
 
 // NewNotificationService creates a new notification service instance
 func NewNotificationService(repository NotificationRepository, inAppNotificationRepository inappnotification.InAppNotificationRepository, logger shared_utils.Logger) NotificationService {
 	return &Service{
-		Repository: repository,
+		Repository:                  repository,
 		InAppNotificationRepository: inAppNotificationRepository,
-		logger:     logger,
+		logger:                      logger,
 	}
 }
 
@@ -235,7 +235,7 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			notification, err = s.Repository.EnableDisableNotification(ctx, notification.ID, true)
 			if err != nil {
 				s.logger.Errorf("Failed to enable notification in repository", "id", notification.ID, "error", err)
-				return  err
+				return err
 			}
 
 			err = s.InAppNotificationRepository.EnableDisableInAppNotification(ctx, notification.ID, true)

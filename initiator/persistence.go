@@ -99,7 +99,7 @@ type Persitence struct {
 func InitPersistence(client *mongo.Client, databaseName string, logger utils.Logger, cfg *config.VaultConfig) Persitence {
 	return Persitence{
 		advertPersistence:       advert.InitAD(client, databaseName, "adverts", logger),
-		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "user", logger),
+		CustomerPersistence:     customer_repo.InitCustomerDetail(client, databaseName, "customers", logger),
 		FeedBackPersistence:     feedback_repo.InitFeedback(client, databaseName, "feedback", logger),
 		UnlinkPersistence:       unlink_repo.NewUnlinkPersistence(client, databaseName, []string{"cps_actions", "user", "archived_users", "archived_linked_account", "linked_account"}, logger),
 		BulkServicesPersistence: bulk_service_repo.InitBulkServicePersistence(client, databaseName, []string{"cps_actions", "access_list"}, logger),

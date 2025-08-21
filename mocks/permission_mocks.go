@@ -63,7 +63,6 @@ func (m *MockPermissionDomainService) ValidatePermissionCategories(ctx context.C
 	return args.Get(0).([]string), args.Error(1)
 }
 
-
 func (m *MockPermissionDomainService) GetPermissionCategories(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.PermissionCategory], error) {
 	args := m.Called(ctx, filterParams)
 	if args.Get(0) == nil {

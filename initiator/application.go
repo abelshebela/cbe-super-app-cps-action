@@ -93,14 +93,14 @@ func InitApplication(domain application.Domain, minioClient config.MinioClientIn
 
 		UnlinkApplication: unlink_application.NewUnlinkApplication(domain.UnlinkDomain, logger),
 
-		BudgetApplication:          budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
-		AccountApplication:         accountvalidation_app.NewApplication(domain.AccountDomain, logger),
-		CPSUserApplication:         cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
-		BPSUserApplication:         bps_user.NewApplicationHandler(domain.BPSUserDomain, logger),
-		PasswordRuleApplication:    passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
-		PortalCardApplication:      portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
+		BudgetApplication:       budget.InitBudgetHandler(domain.BudgetDomain, minioClient, "icons", logger, cfg),
+		AccountApplication:      accountvalidation_app.NewApplication(domain.AccountDomain, logger),
+		CPSUserApplication:      cpsusermaker.NewApplicationHandler(domain.CPSUserDomain, logger),
+		BPSUserApplication:      bps_user.NewApplicationHandler(domain.BPSUserDomain, logger),
+		PasswordRuleApplication: passwordrule.InitPasswordRuleHandler(domain.PasswordRuleDomain, logger),
+		PortalCardApplication:   portalcard.NewPortalCardApp(domain.PortalCardDomain, logger),
 
-		DepartmentApplication:      department.InitDepartmentHandler(domain.DepartmentDomain, domain.CPSActionDomain, domain.PortalCardDomain, logger),
+		DepartmentApplication: department.InitDepartmentHandler(domain.DepartmentDomain, domain.CPSActionDomain, domain.PortalCardDomain, logger),
 
 		AccountBlockApplication:    account_block.NewApplicationHandler(domain.AccountBlockDomain),
 		HQApplication:              hq.NewApplication(domain.HQDomain, logger),

@@ -265,7 +265,6 @@ func (n *NotificationPersistence) NotificationExists(ctx context.Context, notifi
 	return count > 0, nil
 }
 
-
 func (p *NotificationPersistence) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	p.logger.Debugf("Starting MongoDB session for transaction")
 

@@ -76,6 +76,11 @@ func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if reqDTO.IsEmpty() {
+		common_util.SendErrorResponse(w, common_util.NoDataProvidedForUpdate, http.StatusBadRequest, nil)
+		return
+	}
+
 	if err := reqDTO.Validate(false); err != nil {
 		common_util.SendErrorResponse(w, err, http.StatusBadRequest, nil)
 		return

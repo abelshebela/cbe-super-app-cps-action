@@ -45,7 +45,20 @@ type RepresentativeDTO struct {
 	Email string `json:"email"`
 }
 
+func (dto MiniAppMerchantDTO) IsEmpty() bool {
+	return dto.Type == "" &&
+		strings.TrimSpace(dto.MerchantName) == "" &&
+		strings.TrimSpace(dto.MerchantRepresentativeName) == "" &&
+		strings.TrimSpace(dto.PhoneNumber) == "" &&
+		strings.TrimSpace(dto.Email) == "" &&
+		strings.TrimSpace(dto.AccountNumber) == ""
+}
+
 func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
+	if !isCreate && dto.IsEmpty() {
+		return nil
+	}
+
 	var rules []*validation.FieldRules
 
 	if isCreate {
