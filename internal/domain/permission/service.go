@@ -57,10 +57,34 @@ func (s Service) CreatePermissionGroup(ctx context.Context, oldGroupName, groupN
 		return model.CPSAction{}, fmt.Errorf("PERMISSION_GROUP_ALREADY_EXIXTS")
 	}
 
-	validCategories, err := s.permissionCategoryRepo.ValidatePermissionCategories(ctx, permissionCategoryLists)
-	if err != nil {
-		s.logger.Errorf("Failed to validate permission categories: %v", err)
-		return model.CPSAction{}, err
+	// For UPDATE operations, only validate permission categories if they are being changed
+	var validCategories []string
+	var err error
+	if cpsAction.ActionType == string(entities.ActionUpdate) && oldGroupName != "" {
+		// This is an update operation - check if permission categories are being changed
+		if len(permissionCategoryLists) > 0 {
+			// Permission categories are being updated, so validate them
+			s.logger.Infof("Validating permission categories for update: %+v", permissionCategoryLists)
+			validCategories, err = s.permissionCategoryRepo.ValidatePermissionCategories(ctx, permissionCategoryLists)
+			if err != nil {
+				s.logger.Errorf("Failed to validate permission categories: %v", err)
+				return model.CPSAction{}, err
+			}
+			s.logger.Infof("Permission categories validated successfully: %+v", validCategories)
+		} else {
+			// Permission categories are not being changed, use existing ones without validation
+			s.logger.Infof("No permission categories provided for update, keeping existing ones unchanged")
+			validCategories = permissionCategoryLists // This will be empty, indicating no change
+		}
+	} else {
+		// This is a create operation - always validate permission categories
+		s.logger.Infof("Validating permission categories for create: %+v", permissionCategoryLists)
+		validCategories, err = s.permissionCategoryRepo.ValidatePermissionCategories(ctx, permissionCategoryLists)
+		if err != nil {
+			s.logger.Errorf("Failed to validate permission categories: %v", err)
+			return model.CPSAction{}, err
+		}
+		s.logger.Infof("Permission categories validated successfully: %+v", validCategories)
 	}
 
 	cpsAction.ActionCode = utils.RandomGenerator(20)
