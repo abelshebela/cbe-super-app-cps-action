@@ -12,12 +12,14 @@ import (
 	"strings"
 
 	"github.com/go-chi/cors"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 
 	"cbe-super-app-cps-action/internal/constants"
 	customErr "cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/response"
 )
 
@@ -78,6 +80,7 @@ type AuthMiddleware interface {
 	AccessControl(allowedRoles []string) func(http.Handler) http.Handler
 	AuthenticateToken(next http.Handler) http.Handler
 	AuthenticateTempToken(next http.Handler) http.Handler
+	RequireFormContentType() func(http.Handler) http.Handler
 }
 
 func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
@@ -86,6 +89,18 @@ func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMidd
 		Key:          key,
 		IV:           iv,
 		logger:       logger,
+	}
+}
+
+func (a *authMiddleware) RequireFormContentType() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+				localization.SendBadRequestResponse(w, localization.ErrorFileInvalidType.Code)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 
