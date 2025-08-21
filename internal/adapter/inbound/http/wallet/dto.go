@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	// error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -52,15 +54,13 @@ func (c WalletRequest) Validate(isCreate bool) error {
 		rules = append(rules, validation.Field(&c.Name,
 			validation.Length(3, 10),
 			validation.By(utils.NoSpecialChars),
+			validation.By(func(value interface{}) error {
+				if str, ok := value.(string); ok {
+					return common_util.ValidateInputNoSpecialChars(str)
+				}
+				return nil
+			}),
 		))
-	}
-
-	if isCreate {
-		rules = append(rules, validation.Field(&c.Code,
-			validation.Required.Error("code is required"),
-			validation.By(utils.NoSpecialChars),
-		))
-	} else if c.Code != "" {
 		rules = append(rules, validation.Field(&c.Code,
 			validation.By(utils.NoSpecialChars)))
 	}

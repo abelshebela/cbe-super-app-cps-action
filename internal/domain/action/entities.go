@@ -136,8 +136,7 @@ const (
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestUpdateServiceDetails     RequestAction = "UPDATE_SERVICE_DETAILS"
-	RequestUpdateHQBlockTime        RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime      RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+
 	RequestUpdateEevent             RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove                RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate        RequestAction = "SERVICE_FLAG_UPDATE"

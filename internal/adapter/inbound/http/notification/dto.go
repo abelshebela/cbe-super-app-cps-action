@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -45,7 +46,15 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required")),
 			validation.Field(&r.NotificationBody, validation.Required.Error("notification_body is required")),
-			validation.Field(&r.Title, validation.Required.Error("title is required")),
+			validation.Field(&r.Title,
+				validation.Required.Error("title is required"),
+				validation.By(func(value interface{}) error {
+					if str, ok := value.(string); ok {
+						return common_util.ValidateInputNoSpecialChars(str)
+					}
+					return nil
+				}),
+			),
 			validation.Field(&r.For,
 				validation.Required.Error("for is required"),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
@@ -55,7 +64,14 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.NotificationType),
 			validation.Field(&r.NotificationBody),
-			validation.Field(&r.Title),
+			validation.Field(&r.Title,
+				validation.By(func(value interface{}) error {
+					if str, ok := value.(string); ok && str != "" {
+						return common_util.ValidateInputNoSpecialChars(str)
+					}
+					return nil
+				}),
+			),
 			validation.Field(&r.For,
 				validation.In(enumValues...).Error("invalid value for 'for'"),
 			),

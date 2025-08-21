@@ -40,6 +40,7 @@ import (
 	"time"
 
 	accountlookup "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/core_banking_calls"
+	hq_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/hq"
 )
 
 func InitDomain(minioClient config.MinioClientInterface, persistence Persitence, logger utils.Logger,
@@ -48,6 +49,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 	customerDomain := customer_service.IntiCustomerDomain(persistence.CustomerPersistence, logger)
 	keygenService := keyGen_service.NewKeyGenerator(logger, cfg)
 	miniAppMerchantDomain := mini_app_merchant_service.NewMiniAppMerchantService(persistence.MiniAppMerchantPersisitenct, logger)
+	cpsActionService := cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger)
 
 	return application.Domain{
 		AdDomain:              ad_service.NewAdvertService(persistence.advertPersistence, minioClient, "adverts", cfg, logger),
@@ -70,7 +72,7 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		MiniAppDomain:         miniApp_domain.NewService("miniapps", minioClient, persistence.miniAppPersistance, cfg, keygenService, miniAppMerchantDomain, logger),
 		FaydaDomain:           fayda_service.InitFaydaAccountDomain(persistence.FaydaPersistence, logger),
 		EventDomain:           event_domain.NewEventService(persistence.EventPersistence, minioClient, "events", cfg, logger),
-		CPSActionDomain:       cps_action_service.NewCPSActionService(persistence.CPSActionsPersistance, logger),
+		CPSActionDomain:       cpsActionService,
 		MiniAppMerchantDomain: miniAppMerchantDomain,
 		AccountLookup:         account_service.NewUserSearchService(persistence.AccounLookUp),
 		BulkServiceDomain:     BulkServiceDomain.NewBulkService(persistence.BulkServicePersistence, logger),
@@ -79,5 +81,6 @@ func InitDomain(minioClient config.MinioClientInterface, persistence Persitence,
 		ProductCodeService:    productcode.NewService(persistence.ProductCodePersistenct, logger),
 		DonationDomain:        donation_domain.NewDonationService(persistence.DonationPersistence, minioClient, "donations", cfg, logger, accountlookup.InitAccountAPIClient(cfg.CBEBaseURL, 30*time.Second, logger)),
 		KeyGenService:         keygenService,
+		HQDomain:              hq_domain.NewService(persistence.HQPersistence, cpsActionService, logger),
 	}
 }
