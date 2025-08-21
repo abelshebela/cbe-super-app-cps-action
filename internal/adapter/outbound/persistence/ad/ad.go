@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
@@ -223,4 +224,19 @@ func (a *ADPersistence) FetchAdverts(ctx context.Context, filterParams *util_con
 		Data: result,
 		Meta: meta,
 	}, nil
+}
+
+func (a *ADPersistence) GetAdvertByTitle(ctx context.Context, title string) (*entity.Advert, error) {
+	filter := bson.M{
+		"title":      bson.M{"$regex": "^" + regexp.QuoteMeta(title) + "$", "$options": "i"},
+		"is_deleted": false,
+	}
+
+	adDoc, err := a.adDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		a.logger.Errorf("failed to get ad by title %s: %v", title, err)
+		return nil, err
+	}
+
+	return mappers.ToAdvertDomain(*adDoc), nil
 }

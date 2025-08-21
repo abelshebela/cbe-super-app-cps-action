@@ -11,6 +11,7 @@ import (
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type AvatarDomainService interface {
@@ -42,6 +43,15 @@ func InitAvatarDomain(avatarRepo AvatarRepository, minioClient config.MinioClien
 }
 
 func (a *AvatarDomain) CreateAvatar(ctx context.Context, req AvatarRequest) (*Avatar, error) {
+	existingAvatar, err := a.avatarRepo.GetAvatarByLabel(ctx, req.Label)
+	if err != nil && err != mongo.ErrNoDocuments {
+		a.logger.Errorf("failed to check existing avatar: %v", err)
+		return nil, fmt.Errorf(common_util.UnhandledServerError)
+	}
+	if existingAvatar != nil {
+		a.logger.Errorf("avatar with label %s already exists", req.Label)
+		return nil, fmt.Errorf("AVATAR_LABEL_ALREADY_EXISTS")
+	}
 
 	url, err := common_util.UploadFileToMinio(ctx, a.minioClient, a.bucketName, req.Avatar, "avatar", a.cfg.MinioEndPoint, a.logger)
 	if err != nil {

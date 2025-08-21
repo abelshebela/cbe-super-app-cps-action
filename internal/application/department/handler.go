@@ -112,8 +112,6 @@ func (h *DepartmentHandler) CreateDepartment(ctx context.Context, request Create
 		return fmt.Errorf("PORTAL_CARDS_REQUIRED")
 	}
 
-
-
 	if _, err := h.portalCardService.ValidatePortalCard(ctx, request.PortalCards); err != nil {
 		h.logger.Errorf("invalid portal cards: %v", err)
 		return err
@@ -197,7 +195,6 @@ func (h *DepartmentHandler) UpdateDepartment(ctx context.Context, id string, req
 			return err
 		}
 	}
-
 
 	// Create CPS request data with only provided fields
 	cpsRequest := map[string]interface{}{

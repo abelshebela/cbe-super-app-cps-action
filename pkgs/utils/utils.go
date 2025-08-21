@@ -344,6 +344,8 @@ func NonEmptyString(s, fallback string) string {
 	return fallback
 }
 
+var allowedChars = "a-zA-Z0-9\\s._-"
+
 func NoSpecialChars(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -353,9 +355,19 @@ func NoSpecialChars(value any) error {
 	if str == "" {
 		return nil
 	}
-	re := regexp.MustCompile(`^[a-zA-Z0-9\s]+$`)
+
+	re := regexp.MustCompile("^[" + allowedChars + "]+$")
 	if !re.MatchString(str) {
 		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
+}
+
+func TrimWhiteSpace(value interface{}) error {
+	if s, ok := value.(string); ok {
+		if strings.TrimSpace(s) == "" {
+			return errors.New("value cannot be empty or whitespace")
+		}
 	}
 	return nil
 }

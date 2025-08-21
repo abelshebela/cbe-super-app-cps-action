@@ -59,7 +59,7 @@ func (h *HttpStore) CreateMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Create MiniAppMerchant request successfully created")
+	common_util.BaseResponseMaker(nil, w, "Create MiniAppMerchant request successfully created", 201)
 }
 
 func (h *HttpStore) UpdateMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
