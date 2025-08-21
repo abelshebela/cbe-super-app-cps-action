@@ -155,9 +155,8 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		h.logger.Infof("[UpdatePermissionGroup] Using provided permission categories: %+v", permissionCategoryLists)
 	} else {
 		h.logger.Infof("[UpdatePermissionGroup] No permission categories provided, will keep existing ones unchanged")
-			permissionCategoryLists = []string{} 
+		permissionCategoryLists = []string{}
 	}
-
 
 	cpsAction := model.CPSAction{
 		MakerID:          userContext.UserID,

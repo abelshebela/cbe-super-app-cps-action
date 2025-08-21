@@ -3,6 +3,7 @@ package wallet
 import (
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -40,68 +41,68 @@ var IsValidImage = func(fileHeader *multipart.FileHeader) bool {
 }
 
 func (c WalletRequest) Validate(isCreate bool) error {
-	var rules = []*validation.FieldRules{}
+	var rules []*validation.FieldRules
 
 	if isCreate {
-		rules = append(rules, validation.Field(&c.Name,
-			validation.Required.Error("name is required"),
-			validation.Length(3, 10),
-			validation.By(utils.NoSpecialChars),
-		))
-	} else if c.Name != "" {
-		rules = append(rules, validation.Field(&c.Name,
-			validation.Length(3, 10),
-			validation.By(utils.NoSpecialChars),
-		))
-	}
+		rules = append(rules,
+			validation.Field(&c.Name,
+				validation.Required.Error("name is required"),
+				validation.Length(3, 10),
+				validation.By(utils.NoSpecialChars),
+				validation.By(utils.TrimWhiteSpace),
+			),
+			validation.Field(&c.Code,
+				validation.Required.Error("code is required"),
+				validation.By(utils.NoSpecialChars),
+				validation.By(utils.TrimWhiteSpace),
+			),
+			validation.Field(&c.Avatar,
+				validation.Required,
+				validation.By(validateAvatar),
+			),
+		)
+	} else {
+		if c.Name != "" {
+			rules = append(rules,
+				validation.Field(&c.Name,
+					validation.Length(3, 10),
+					validation.By(utils.NoSpecialChars),
+				),
+			)
+		}
 
-	if isCreate {
-		rules = append(rules, validation.Field(&c.Code,
-			validation.Required.Error("code is required"),
-			validation.By(utils.NoSpecialChars),
-		))
-	} else if c.Code != "" {
-		rules = append(rules, validation.Field(&c.Code,
-			validation.By(utils.NoSpecialChars)))
-	}
+		rules = append(rules,
+			validation.Field(&c.Code,
+				validation.By(utils.NoSpecialChars),
+			),
+		)
 
-	if isCreate {
-		// Avatar is required on create
-		rules = append(rules, validation.Field(&c.Avatar, validation.Required, validation.By(func(value any) error {
-			file, ok := value.(*multipart.FileHeader)
-			if !ok {
-				return validation.NewError("avatar", utils.InvalidInput)
-			}
-			if file.Size > maxFileSize {
-				return validation.NewError("avatar", utils.FileTooLarge)
-			}
-
-			if !IsValidImage(file) {
-				return validation.NewError("avatar", utils.InvalidFileType)
-			}
-			return nil
-		})))
-	} else if c.Avatar != nil {
-		// On update, if Avatar provided, validate file
-		rules = append(rules, validation.Field(&c.Avatar, validation.By(func(value any) error {
-			file, ok := value.(*multipart.FileHeader)
-			if !ok {
-				return validation.NewError("avatar", utils.InvalidInput)
-			}
-			if file.Size > maxFileSize {
-				return validation.NewError("avatar", utils.FileTooLarge)
-			}
-
-			if !IsValidImage(file) {
-				return validation.NewError("avatar", utils.InvalidFileType)
-			}
-			return nil
-		})))
+		if c.Avatar != nil {
+			rules = append(rules,
+				validation.Field(&c.Avatar,
+					validation.By(validateAvatar),
+				),
+			)
+		}
 	}
 
 	return validation.ValidateStruct(&c, rules...)
 }
 
+func validateAvatar(value any) error {
+	file, ok := value.(*multipart.FileHeader)
+	if !ok {
+		return validation.NewError("avatar", utils.InvalidInput)
+	}
+	if file.Size > maxFileSize {
+		return validation.NewError("avatar", utils.FileTooLarge)
+	}
+	if !IsValidImage(file) {
+		return validation.NewError("avatar", utils.InvalidFileType)
+	}
+	return nil
+}
+
 func IsEmpty(value WalletRequest) bool {
-	return value.Name == "" && value.Code == "" && value.Avatar == nil
+	return strings.TrimSpace(value.Name) == "" && strings.TrimSpace(value.Code) == "" && value.Avatar == nil
 }

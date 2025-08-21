@@ -2094,7 +2094,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "One or more permission groups not found.",
 		},
-		
 	},
 	MiniApp: ErrorGroup{
 		"APP_NAME_REQUIRED": {
