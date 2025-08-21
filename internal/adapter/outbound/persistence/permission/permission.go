@@ -304,68 +304,65 @@ func (r *PermissionPersistence) ValidateActionRequest(actionCode, department str
 }
 
 func (r *PermissionPersistence) CreatePermissionGroupFromAction(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
-
 	var actionData map[string]interface{}
+
 	bytes, err := json.Marshal(action.CurrentAction)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %w", err)
 	}
 	if err := json.Unmarshal(bytes, &actionData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal CurrentAction: %w", err)
 	}
 
 	groupName, ok := actionData["group_name"].(string)
-	if !ok {
-		return nil, errors.New("invalid group_name")
+	if !ok || groupName == "" {
+		return nil, fmt.Errorf("invalid or missing group_name")
 	}
 
 	permissionCategoriesIface, ok := actionData["permission_category"].([]interface{})
 	if !ok {
-		return nil, errors.New("invalid permission_categories")
+		return nil, fmt.Errorf("invalid or missing permission_category")
 	}
 
-	permissionCategories := make([]entities.PermissionCategory, len(permissionCategoriesIface))
+	permissionCategories := make([]string, len(permissionCategoriesIface))
 	for i, v := range permissionCategoriesIface {
 		idStr, ok := v.(string)
-		if !ok {
-			return nil, errors.New("permission_categories contains non-string value")
+		if !ok || idStr == "" {
+			return nil, fmt.Errorf("permission_category contains invalid value")
 		}
-		objID, err := bson.ObjectIDFromHex(idStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid permission category id: %s", idStr)
-		}
-		permissionCategories[i] = entities.PermissionCategory{
-			ID: objID,
-		}
+		permissionCategories[i] = idStr
 	}
 
 	role, ok := actionData["role"].(string)
-	if !ok {
-		return nil, errors.New("invalid role")
+	if !ok || role == "" {
+		return nil, fmt.Errorf("invalid or missing role")
 	}
 
 	realm, ok := actionData["realm"].(string)
-	if !ok {
-		return nil, errors.New("invalid realm")
+	if !ok || realm == "" {
+		return nil, fmt.Errorf("invalid or missing realm")
 	}
+
+	now := time.Now()
 
 	newPermissionGroup := entities.PermissionGroup{
 		GroupName:          groupName,
 		PermissionCategory: permissionCategories,
 		Role:               role,
 		Realm:              realm,
-		CreatedAt:          time.Now(),
-		LastModified:       time.Now(),
+		CreatedAt:          now,
+		LastModified:       now,
+		
 	}
 
-	_, err = r.permissionGroupsDal.InsertOne(ctx, newPermissionGroup)
-	if err != nil {
+	if _, err := r.permissionGroupsDal.InsertOne(ctx, newPermissionGroup); err != nil {
 		r.logger.Errorf("Error creating permission group from action: %v", err)
 		return nil, err
 	}
 
 	return action, nil
 }
+
 
 func (r *PermissionPersistence) RejectActionRequest(actionCode string, action model.CPSAction, rejectedReason string) (model.CPSAction, error) {
 	ctx := context.Background()
