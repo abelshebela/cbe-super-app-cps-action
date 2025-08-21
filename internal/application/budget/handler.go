@@ -226,6 +226,7 @@ func (b *BudgetHandler) UpdateIcon(ctx context.Context, id string, cpsAction ent
 }
 
 func (b *BudgetHandler) CreateColor(ctx context.Context, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+
 	cpsAction.ActionCode = utils.RandomGenerator(20)
 	if hexCode == "" {
 		b.logger.Errorf("hex code cannot be empty")
@@ -251,6 +252,7 @@ func (b *BudgetHandler) FetchColors(ctx context.Context, filterParams *constant.
 
 func (b *BudgetHandler) UpdateColor(ctx context.Context, id, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	cpsAction.ActionCode = utils.RandomGenerator(20)
+
 	actions, err := b.service.UpdateColor(ctx, id, hexCode, cpsAction)
 	if err != nil {
 		return nil, err

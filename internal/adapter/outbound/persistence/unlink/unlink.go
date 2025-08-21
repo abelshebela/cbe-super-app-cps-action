@@ -120,12 +120,15 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 	linkedAccounts, err := u.linkedDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		u.logger.Errorf("failed to fetch linked accounts: %v", err)
+		if err.Error() == "mongo: no documents in result" {
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
 		return nil, fmt.Errorf("FAILED_TO_FETCH_LINKED_ACCOUNTS")
 	}
 
 	if linkedAccounts.CustomerNumber == "" {
 		u.logger.Warnf("no linked account found for account number: %s", accNumber)
-		return nil, fmt.Errorf("NO_DOC_FOUND")
+		return nil, fmt.Errorf("NOT_FOUND")
 	}
 	// Step 2: Fetch user by customer number
 	customerNumber := linkedAccounts.CustomerNumber
@@ -138,7 +141,7 @@ func (u *unlinkCustomer) GetUserByAccount(ctx context.Context, accNumber string)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			u.logger.Warnf("user not found for customer number: %s", customerNumber)
-			return nil, fmt.Errorf("NO_DOC_FOUND")
+			return nil, fmt.Errorf("NOT_FOUND")
 		}
 		u.logger.Errorf("error fetching user: %v", err)
 		return nil, fmt.Errorf("UNHANDLED_SERVER_ERROR")

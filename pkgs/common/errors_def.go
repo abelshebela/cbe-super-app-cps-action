@@ -1047,7 +1047,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"NO_DOC_FOUND": {
 			Code:    "GEN_171	",
-			Message: "mongo: no documents in result",
+			Message: "No data found",
 		},
 		"INVALID_TOTAL_CAP_VALUE": {
 			Code:    "GEN_172	",

@@ -59,6 +59,7 @@ func (s *BudgetService) CreateColor(ctx context.Context, hexCode string, cpsActi
 		s.logger.Errorf("Color %s already exists", hexCode)
 		return nil, fmt.Errorf("CONFLICT_KEY")
 	}
+
 	action, err := s.repo.CreateColor(ctx, hexCode, cpsAction)
 	if err != nil {
 		return nil, err

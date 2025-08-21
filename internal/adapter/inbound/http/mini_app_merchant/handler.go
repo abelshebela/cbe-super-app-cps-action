@@ -188,7 +188,7 @@ func (h *HttpStore) GetMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) GetAllMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
-	filter := common_util.ExtractFilterParams(r)
+	filter := common_util.ExtractMongoFilterParams(r)
 
 	result, err := h.Application.FetchMerchants(r.Context(), filter)
 	if err != nil {

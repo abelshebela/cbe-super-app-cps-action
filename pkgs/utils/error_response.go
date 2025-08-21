@@ -39,6 +39,7 @@ var errorKeyToStatus = map[string]int{
 	"SERVER_KEYS_NOT_CONFIGURED":                     http.StatusInternalServerError,
 	"INVALID_INPUT":                                  http.StatusBadRequest,
 	"UNAUTHORIZED":                                   http.StatusUnauthorized,
+	"NO_DOC_FOUND":                                   http.StatusNotFound,
 	"USER_REALM_NOT_FOUND":                           http.StatusNotFound,
 	"ACTION_NOT_ALLOWED":                             http.StatusForbidden,
 	"WAIT_FOR_PREVIOUS_OTP_EXPIRATION":               http.StatusTooManyRequests,

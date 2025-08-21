@@ -11,7 +11,7 @@ import (
 type WalletRepository interface {
 	CreateWallet(ctx context.Context, wallet Wallet) (*Wallet, error)
 	FetchWalletByID(ctx context.Context, id string) (*Wallet, error)
-	FetchWallet(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Wallet], error)
+	FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*Wallet], error)
 	UpdateWallet(ctx context.Context, wallet Wallet) (*Wallet, error)
 	DeleteWallet(ctx context.Context, id string) (*Wallet, error)
 	EnableDisableWallet(ctx context.Context, id string, enable bool) (*Wallet, error)

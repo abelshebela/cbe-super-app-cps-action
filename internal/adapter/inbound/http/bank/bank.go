@@ -119,13 +119,14 @@ func (b *BankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.ID = id
 	cpsReq.ActionData = updateRequest
 
-	cpsAction, err := b.bankHandler.UpdateOneBank(r.Context(), id, *cpsReq)
+	_, err = b.bankHandler.UpdateOneBank(r.Context(), id, *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
+	data := map[string]interface{}{}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank updated request sent successfully")
+	common_util.WriteSuccessResponse(w, data, "Bank updated request sent successfully")
 }
 
 func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
@@ -143,13 +144,14 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 	cpsReq.ActionData = entity.Bank{ID: id}
 
-	cpsAction, err := b.bankHandler.DeleteOneBank(r.Context(), id, *cpsReq)
+	_, err = b.bankHandler.DeleteOneBank(r.Context(), id, *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
+	data := map[string]interface{}{}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank deleted request sent successfully.")
+	common_util.WriteSuccessResponse(w, data, "Bank deleted request sent successfully.")
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
@@ -229,13 +231,14 @@ func (b *BankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 	cpsReq.ActionData = dto.UpdateBankRequest{ID: id}
 
-	cpsAction, err := b.bankHandler.EnableOrDisableBank(r.Context(), id, model.RequestDisableBank, *cpsReq)
+	_, err = b.bankHandler.EnableOrDisableBank(r.Context(), id, model.RequestDisableBank, *cpsReq)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, cpsAction, "Bank disable request sent successfully")
+	data := map[string]interface{}{}
+	common_util.WriteSuccessResponse(w, data, "Bank disable request sent successfully")
 }
 
 func (b *BankAdapter) Enable(w http.ResponseWriter, r *http.Request) {

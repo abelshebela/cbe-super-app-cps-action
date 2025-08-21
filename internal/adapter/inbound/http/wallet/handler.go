@@ -161,8 +161,7 @@ func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
-	filterParams := common_util.ExtractFilterParams(r)
-
+	filterParams := common_util.ExtractMongoFilterParams(r)
 	wallets, err := wa.walletHandler.GetAllWallet(r.Context(), filterParams)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)

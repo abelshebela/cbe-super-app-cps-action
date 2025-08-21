@@ -23,7 +23,7 @@ type WalletService interface {
 	DeleteWallet(ctx context.Context, id string) (*Wallet, *Wallet, error)
 	EnableDisableWallet(ctx context.Context, id string, enable bool) (*Wallet, *Wallet, error)
 	FetchWalletByID(ctx context.Context, id string) (*Wallet, error)
-	FetchWallet(ctx context.Context, filterParam *constant.Filter) (*utils.PaginatedResponse[[]*Wallet], error)
+	FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*utils.PaginatedResponse[[]*Wallet], error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
@@ -168,7 +168,7 @@ func (s *Service) FetchWalletByID(ctx context.Context, id string) (*Wallet, erro
 	return s.Repository.FetchWalletByID(ctx, id)
 }
 
-func (s *Service) FetchWallet(ctx context.Context, filterParam *constant.Filter) (*utils.PaginatedResponse[[]*Wallet], error) {
+func (s *Service) FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*utils.PaginatedResponse[[]*Wallet], error) {
 	return s.Repository.FetchWallet(ctx, filterParam)
 }
 
@@ -207,7 +207,7 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		}
 
 	case cps_const.RequestDeleteWallet:
-		wallet, err = s.Repository.CreateWallet(ctx, *wallet)
+		wallet, err = s.Repository.DeleteWallet(ctx, wallet.ID)
 
 		if err != nil {
 			return nil, err

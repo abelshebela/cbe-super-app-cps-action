@@ -12,7 +12,7 @@ import (
 type WalletRepository interface {
 	CreateWallet(ctx context.Context, wallet entity.Wallet) (*entity.Wallet, error)
 	FetchWalletByID(ctx context.Context, id string) (*entity.Wallet, error)
-	FetchWallet(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Wallet], error)
+	FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Wallet], error)
 	UpdateWallet(ctx context.Context, wallet entity.Wallet) (*entity.Wallet, error)
 	DeleteWallet(ctx context.Context, id string) (*entity.Wallet, error)
 	EnableDisableWallet(ctx context.Context, id string, enable bool) (*entity.Wallet, error)

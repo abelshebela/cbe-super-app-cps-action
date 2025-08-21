@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
@@ -63,7 +64,7 @@ func (w *WalletPersistence) FetchWalletByID(ctx context.Context, id string) (*en
 	return result, nil
 }
 
-func (w *WalletPersistence) FetchWallet(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Wallet], error) {
+func (w *WalletPersistence) FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Wallet], error) {
 	filter := bson.M{"is_deleted": false}
 
 	if filterParam.Search != "" {
@@ -72,6 +73,25 @@ func (w *WalletPersistence) FetchWallet(ctx context.Context, filterParam *consta
 			{"code": searchRegex},
 			{"name": searchRegex},
 			{"avatar": searchRegex},
+		}
+	}
+
+	if filterParam.Filters != nil {
+		allowedKeys := []string{"enabled"}
+		handlers := map[string]func(interface{}) interface{}{
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParam.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			filter[key] = value
 		}
 	}
 
