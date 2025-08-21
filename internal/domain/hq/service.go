@@ -249,7 +249,6 @@ func (s *ServiceStore) AuthorizeUpdatePasswordExpiry(ctx context.Context, cpsAct
 }
 
 func (s *ServiceStore) authorizeUpdateHQ(ctx context.Context, cpsAction *entities.CPSAction, actionType string) (*entities.CPSAction, error) {
-	
 
 	currentActionBytes, err := toJSONBytes(cpsAction.CurrentAction)
 	if err != nil {
@@ -294,7 +293,6 @@ func (s *ServiceStore) authorizeUpdateHQ(ctx context.Context, cpsAction *entitie
 
 	return cpsAction, nil
 }
-
 
 func (s *ServiceStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
 	switch action.RequestAction {
