@@ -296,6 +296,7 @@ const (
 	// Validation error messages
 	MsgValidationFailed     = "Validation failed"
 	MsgRequiredFieldMissing = "Required field is missing"
+	MsgBankImageRequiredOrMissing = "Required bank image invalid or missing"
 	MsgInvalidFormat        = "Invalid format"
 	MsgInvalidEmail         = "Invalid email format"
 	MsgInvalidPhoneNumber   = "Invalid phone number format"

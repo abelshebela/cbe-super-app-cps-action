@@ -135,6 +135,17 @@ type AvatarService interface {
 
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
+
+	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
+	
+	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+	
+	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
+	EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
+	UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
 }
 
 type BudgetCategoryService interface {

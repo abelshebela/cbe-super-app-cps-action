@@ -59,6 +59,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
+	ErrorBankImageMissingOrInvalid,
 	// Add more as needed...
 }
 
@@ -1476,6 +1477,13 @@ var (
 		Code:       "ERROR_REQUIRED_FIELD_MISSING",
 		StatusCode: StatusBadRequest,
 		Message:    MsgRequiredFieldMissing,
+		Type:       "error",
+	}
+	
+	ErrorBankImageMissingOrInvalid = ResponseCode{
+		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankImageRequiredOrMissing,
 		Type:       "error",
 	}
 
