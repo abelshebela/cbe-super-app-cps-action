@@ -15,21 +15,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-// import (
-// 	"cbe-super-app-cps-action/internal/constants/dto/ad"
-// 	"cbe-super-app-cps-action/internal/constants/localization"
-
-// 	"fmt"
-// 	"mime/multipart"
-// 	"net/http"
-// 	"time"
-
-// 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/dto"
-// 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/ad/mapper"
-
-
-// )
-
 // extractUserAndMaker extracts user context and creates a maker, sending an error response if incomplete
 func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Logger) (cps_entities.CPSUser, bool) {
 	userContext := local_util.ExtractUserContext(r)
@@ -125,13 +110,3 @@ func ParseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpd
 	}
 	return req, true
 }
-
-// // sendResponse sends success or error responses
-// func (h *advertAdapter) sendResponse(w http.ResponseWriter, err error, successMessage string, data interface{}) {
-// 	if err != nil {
-// 		h.logger.Errorf("[event.sendResponse] error: %v", err)
-// 		utils.SendErrorResponse(w, err.Error(), 0, nil)
-// 		return
-// 	}
-// 	utils.WriteSuccessResponse(w, data, successMessage)
-// }

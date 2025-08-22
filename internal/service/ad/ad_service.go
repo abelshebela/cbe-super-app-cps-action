@@ -73,7 +73,6 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 	// update banner image url after uploading
 	ad.BannerImage = url
 
-	// s.handleCPSAction(ctx, maker, constant.RequestCreateAdvert, res, nil, constant.ActionCreate)
 	err = s.handleCPSAction(ctx, maker, cpsaction.RequestCreateAdvert, ad, nil, cpsaction.ActionCreate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert creation, title: %s, error: %v", ad.Title, err)
@@ -128,7 +127,6 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		LastUpdatedAt: time.Now(),
 	}
 
-	// return a	.handleCPSAction(ctx, maker, constant.RequestUpdateAdvert, curAction, prevAction, constant.ActionUpdate)
 	err = s.handleCPSAction(ctx, maker, cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert update, id: %s, error: %v", id, err)
@@ -153,7 +151,6 @@ func (s *advertService) DeleteAdvert(ctx context.Context, id string, maker model
 	curAdvert.DeletedAt = time.Now()
 	curAdvert.LastUpdatedAt = time.Now()
 
-	// return a.handleCPSAction(ctx, maker, constant.RequestDeleteAdvert, curAction, prevAction, constant.ActionDelete)
 	err = s.handleCPSAction(ctx, maker, cpsaction.RequestDeleteAdvert, curAdvert, prevAdvert, cpsaction.ActionDelete)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert deletion, id: %s, error: %v", id, err)
@@ -197,7 +194,6 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, make
 		action = cpsaction.RequestDisableAdvert
 	}
 
-	// return s.handleCPSAction(ctx, maker, action, curAction, prevAction, constant.ActionUpdate)
 	err = s.handleCPSAction(ctx, maker, action, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert enable/disable, id: %s, error: %v", id, err)

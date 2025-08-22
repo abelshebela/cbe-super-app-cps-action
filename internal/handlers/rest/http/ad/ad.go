@@ -93,11 +93,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// PrettyPrintJSON(req)
-
 	domainReq, _ := ad_dto.ToAdvert(req)
-
-	// PrettyPrintJSON(domainReq)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil && domainReq.Date.StartedAt.IsZero() && domainReq.Date.ExpiredAt.IsZero() {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)
