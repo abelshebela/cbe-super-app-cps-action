@@ -87,6 +87,14 @@ func (w *WalletPersistence) FetchWallet(ctx context.Context, filterParam *consta
 				}
 				return value
 			},
+			"enabled": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
 		}
 
 		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParam.Filters, allowedKeys, handlers)
