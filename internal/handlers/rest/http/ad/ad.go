@@ -3,6 +3,7 @@ package ad
 import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/ad/core"
 	"cbe-super-app-cps-action/internal/service"
+	"fmt"
 	"net/http"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -38,10 +39,21 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domainReq, _ := core.ToAdvert(req)
-	err := a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage, maker)
+	fmt.Println("=============================", req)
+
+	domainReq, err := core.ToAdvert(req)
 	if err != nil {
+		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)	
+		return
+	}
+
+	fmt.Println("=============================", domainReq)
+
+	err = a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage, maker)
+	if err != nil { 
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)

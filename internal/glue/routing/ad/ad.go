@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InitADRoutes(router chi.Router, ad ad.ADAdapter, middleware middleware.AuthMiddleware ) {
+func Init(router chi.Router, ad ad.ADAdapter, middleware middleware.AuthMiddleware ) {
 		routes := []glue.Route{
 			{
 				Method:  http.MethodPost,

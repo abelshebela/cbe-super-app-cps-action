@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
+	advert "cbe-super-app-cps-action/internal/service/ad"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -20,7 +21,9 @@ type ServiceLayer struct {
 	// Services  service.ServiceContainer
 	Unlink service.UnlinkService
 	BpsUser service.BPSUserService
+	Advert service.AdvertService
 }
+var advertBucketName = "advert-bucket" // TODO: Add to config
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
@@ -34,5 +37,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Feedback:  feedbackService,
 		// Services:  services,
 		Unlink: unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
 	}
 }

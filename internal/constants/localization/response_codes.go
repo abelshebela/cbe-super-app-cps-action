@@ -75,6 +75,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorUserCodeRequired,
+	ErrorPendingCpsActionExists,
 	// Add more as needed...
 }
 
@@ -1249,7 +1250,7 @@ var (
 	}
 
 	ErrorAccountNumberRequired = ResponseCode{
-		Code:       "ERROR_USER_NOT_FOUND",
+		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
@@ -1356,6 +1357,13 @@ var (
 		Code:       "ERROR_ACTION_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgCPSActionNotFound,
+		Type:       "error",
+	}
+
+	ErrorPendingCpsActionExists =  ResponseCode{
+		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPendingCPSActionExists,
 		Type:       "error",
 	}
 

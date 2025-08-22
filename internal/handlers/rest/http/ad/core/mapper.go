@@ -3,25 +3,20 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/ad"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	// "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"errors"
 	"time"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	// local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 // ToDomainAdvertRequest converts an HTTP AdvertRequest to a domain-level dto.AdvertRequest
 func ToAdvert(httpRequest ad.AdvertRequest) (model.Advert, error) {
 	advertFor := constants.AdvertFor(httpRequest.AdvertFor)
 
-	objId, ok := local_util.StringToObjectID(httpRequest.ID)
-	if !ok {
-		return model.Advert{}, errors.New(localization.ErrorInvalidID.Code)
-	}
+
 	return model.Advert{
-		ID:         objId,
 		Title:       httpRequest.Title,
 		Description: httpRequest.Description,
 		AdvertFor:   advertFor,
@@ -29,7 +24,6 @@ func ToAdvert(httpRequest ad.AdvertRequest) (model.Advert, error) {
 			StartedAt: httpRequest.Date.StartedAt,
 			ExpiredAt: httpRequest.Date.ExpiredAt,
 		},
-
 		CreatedAt:     time.Now(),
 		LastUpdatedAt: time.Now(),
 		Enabled:       false,

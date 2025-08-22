@@ -12,6 +12,8 @@ import (
 	cpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
+	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
+	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -21,6 +23,7 @@ type Handler struct {
 	UnlinkHandler    unlinkInbound.UnlinkAdapter
 	BpsHandler bpsInbound.BPSUserHandler
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
+	AdvertHandler advertHandlerInterface.ADAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -29,5 +32,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		UnlinkHandler:    unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler: bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser,logger),
 		FeedbackHandler:  feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		AdvertHandler: advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 	}
 }
