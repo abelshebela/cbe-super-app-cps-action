@@ -12,8 +12,8 @@ import (
 )
 
 type unlinkService struct {
-	logger                    utils.Logger
-	repo                      storage.UnlinkAccount
+	logger utils.Logger
+	// repo                      storage.UnlinkAccount
 	userRepo                  storage.UserRepository
 	archivedUserRepo          storage.ArchivedUserRepository
 	linkedAccountRepo         storage.LinkedAccountRepository

@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -56,6 +57,9 @@ type FaydaAccountService interface {
 
 type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	GetFeedbackByID(ctx context.Context, id string) (*model.Feedback, error)
+	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error)
 }
 
 type HQService interface {
