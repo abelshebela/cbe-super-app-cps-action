@@ -55,7 +55,6 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 }
 
@@ -88,13 +87,13 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 	// Enhanced ID validation
 	if id == "" {
 		f.logger.Errorf("empty feedback ID provided")
-		localization.SendErrorByCodeResponse(w, "feedback ID is required")
+		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
 		return
 	}
 
 	if len(id) != 24 {
 		f.logger.Errorf("invalid feedback ID format: %s", id)
-		localization.SendErrorByCodeResponse(w, "invalid feedback ID format")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidIDFormat.Code)
 		return
 	}
 

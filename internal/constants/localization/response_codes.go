@@ -1185,6 +1185,19 @@ var (
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
 	}
+	ErrorFeedbackIDRequired = ResponseCode{
+		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgFeedbackIDRequired,
+		Type:       "error",
+	}
+
+	ErrorInvalidIDFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ID_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidIDFormat,
+		Type:       "error",
+	}
 
 	ErrorIncompleteUserInfo = ResponseCode{
 		Code:       "ERROR_INCOMPLET_USER_INFO",

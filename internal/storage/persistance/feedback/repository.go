@@ -44,12 +44,16 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*model.Feedb
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+
+	filter := bson.M{"_id": objID, "is_deleted": bson.M{"$ne": true}}
 
 	result, err := f.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }
