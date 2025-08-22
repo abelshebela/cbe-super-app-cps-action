@@ -146,7 +146,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
 }
 
 type AccountSearchService interface {

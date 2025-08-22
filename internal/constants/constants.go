@@ -156,9 +156,9 @@ const (
 )
 
 const (
-	Update = "UPDATE"
-	Delete = "DELETE"
-	Create = "CREATE"
+	UPDATE = "UPDATE"
+	DELETE = "DELETE"
+	CREATE = "CREATE"
 )
 
 type RequestAction string

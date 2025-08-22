@@ -3,6 +3,7 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
+	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -18,6 +19,7 @@ type ServiceLayer struct {
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
 	Unlink service.UnlinkService
+	BpsUser service.BPSUserService
 }
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
@@ -28,6 +30,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
+		BpsUser: bpsService.NewBPSUserService(persistence.BPSUserPersistence,cpsActionService,logger),
 		Feedback:  feedbackService,
 		// Services:  services,
 		Unlink: unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
