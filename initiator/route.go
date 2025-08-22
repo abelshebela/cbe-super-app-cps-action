@@ -8,9 +8,10 @@ import (
 
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
+	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
-	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -44,6 +45,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
+	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
+
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }
