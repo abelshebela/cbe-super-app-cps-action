@@ -90,7 +90,7 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }
@@ -110,12 +110,12 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

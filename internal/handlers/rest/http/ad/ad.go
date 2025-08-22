@@ -38,7 +38,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domainReq, _ := ad_dto.ToAdvert(req)
+	domainReq, _ := core.ToAdvert(req)
 	err := a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage, maker)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -55,7 +55,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	docs := ad_dto.ToAdvertResponses(list.Data)
+	docs := core.ToAdvertResponses(list.Data)
 	res := types.PaginatedResponse[[]*ad_dto.AdvertResponse]{
 		Data: docs,
 		Meta: list.Meta,
@@ -74,7 +74,7 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	res := ad_dto.ToAdvertResponse(*data)
+	res := core.ToAdvertResponse(*data)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertFetched, res)
 }
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +93,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domainReq, _ := ad_dto.ToAdvert(req)
+	domainReq, _ := core.ToAdvert(req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil && domainReq.Date.StartedAt.IsZero() && domainReq.Date.ExpiredAt.IsZero() {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)

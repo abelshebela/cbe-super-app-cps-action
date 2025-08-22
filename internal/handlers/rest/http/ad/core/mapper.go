@@ -1,7 +1,8 @@
-package ad
+package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/ad"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -11,10 +12,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
-// entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/constants/model"
-
 // ToDomainAdvertRequest converts an HTTP AdvertRequest to a domain-level dto.AdvertRequest
-func ToAdvert(httpRequest AdvertRequest) (model.Advert, error) {
+func ToAdvert(httpRequest ad.AdvertRequest) (model.Advert, error) {
 	advertFor := constants.AdvertFor(httpRequest.AdvertFor)
 
 	objId, ok := local_util.StringToObjectID(httpRequest.ID)
@@ -39,14 +38,14 @@ func ToAdvert(httpRequest AdvertRequest) (model.Advert, error) {
 }
 
 // ToAdvertResponse converts an entity.Advert to a dto.AdvertResponse
-func ToAdvertResponse(advert model.Advert) AdvertResponse {
-	return AdvertResponse{
+func ToAdvertResponse(advert model.Advert) ad.AdvertResponse {
+	return ad.AdvertResponse{
 		ID:            advert.ID.Hex(),
 		Title:         advert.Title,
 		Description:   advert.Description,
 		BannerImage:   advert.BannerImage,
 		AdvertFor:     advert.AdvertFor,
-		Date:          AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
+		Date:          ad.AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
 		Enabled:       advert.Enabled,
 		CreatedAt:     advert.CreatedAt,
 		LastUpdatedAt: advert.LastUpdatedAt,
@@ -54,16 +53,16 @@ func ToAdvertResponse(advert model.Advert) AdvertResponse {
 }
 
 // ToAdvertResponses converts a slice of entity.Advert to a slice of dto.AdvertResponse
-func ToAdvertResponses(adverts []*model.Advert) []*AdvertResponse {
-	responses := make([]*AdvertResponse, len(adverts))
+func ToAdvertResponses(adverts []*model.Advert) []*ad.AdvertResponse {
+	responses := make([]*ad.AdvertResponse, len(adverts))
 	for i, advert := range adverts {
-		responses[i] = &AdvertResponse{
+		responses[i] = &ad.AdvertResponse{
 			ID:            advert.ID.Hex(),
 			Title:         advert.Title,
 			Description:   advert.Description,
 			BannerImage:   advert.BannerImage,
 			AdvertFor:     advert.AdvertFor,
-			Date:          AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
+			Date:          ad.AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
 			Enabled:       advert.Enabled,
 			CreatedAt:     advert.CreatedAt,
 			LastUpdatedAt: advert.LastUpdatedAt,
