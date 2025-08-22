@@ -1,4 +1,4 @@
-package bank
+package bank_core
 
 import (
 	"cbe-super-app-cps-action/internal/localization"

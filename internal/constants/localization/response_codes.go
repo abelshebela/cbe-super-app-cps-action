@@ -25,6 +25,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
 	SuccessAvatarCreated,
+	SuccessDeleteBanksRequest,
+	SuccessDeleteRequestCreated,
+	SuccessGetOneBank,
+	SuccessBankDisableRequestCreated,
+	SuccessBankEnableRequestCreated,
 
 	// Error codes
 	ErrorUserNotFound,
@@ -60,6 +65,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
+	ErrorBankUpdateFailed,
+	ErrorValidationFailed,
+	ErrorRequiredFieldMissing,
+	ErrorBankDeleteRequestFailed,
+	ErrorBankImageMissingOrInvalid,
+	ErrorGetAllBanksFailed,
+	ErrorGetAllBanksFailed,
+	ErrorGetOneBank,
+	ErrorBankDisableRequest,
+	ErrorBankEnableRequestFailed,
 	// Add more as needed...
 }
 
@@ -583,6 +598,20 @@ var (
 		Code:       "SUCCESS_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgDisableRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+
+	SuccessBankDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_BANK_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgBankDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessBankEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgBankEnableRequestSent,
 		Type:       "success",
 	}
 
@@ -1161,6 +1190,27 @@ var (
 		Message:    MsgFeedbackSavedToDatabaseSuccess,
 		Type:       "success",
 	}
+
+	SuccessGetAllBanks = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_BANKS",
+		StatusCode: StatusOK,
+		Message:    msgGetAllBanksSuccess,
+		Type:       "success",
+	}
+
+	SuccessGetOneBank = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_BANK",
+		StatusCode: StatusOK,
+		Message:    msgGetOneBankSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeleteBanksRequest = ResponseCode{
+		Code:       "SUCCESS_DELETE_BANK_request",
+		StatusCode: StatusNoContent,
+		Message:    msgDeleteBankRequestSuccess,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -1269,7 +1319,7 @@ var (
 		Message:    MsgCPSActionNotFound,
 		Type:       "error",
 	}
-	
+
 	ErrorUserAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
@@ -1479,7 +1529,21 @@ var (
 		Message:    MsgRequiredFieldMissing,
 		Type:       "error",
 	}
-	
+
+	ErrorGetAllBanksFailed = ResponseCode{
+		Code:       "ERROR_GET_ALL_BANKS_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    msgGetAllBanksFailed,
+		Type:       "error",
+	}
+
+	ErrorBankDeleteRequestFailed = ResponseCode{
+		Code:       "ERROR_BANK_DELETE_REQUEST_FIELD",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankDeleteRequestFailed,
+		Type:       "error",
+	}
+
 	ErrorBankImageMissingOrInvalid = ResponseCode{
 		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
@@ -2047,6 +2111,12 @@ var (
 		Message:    MsgBankLogoUpdateFailed,
 		Type:       "error",
 	}
+	ErrorBankUpdateFailed = ResponseCode{
+		Code:       "ERROR_BANK_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankLogoUpdateFailed,
+		Type:       "error",
+	}
 
 	// CPS Action related error response codes
 	ErrorCPSActionRejectionPayloadDecodeFailed = ResponseCode{
@@ -2240,6 +2310,26 @@ var (
 		Code:       "ERROR_VALIDATION_RULE_APPROVED",
 		StatusCode: StatusOK,
 		Message:    MsgValidationRuleApprovedSuccess,
+		Type:       "error",
+	}
+	ErrorGetOneBank = ResponseCode{
+		Code:       "ERROR_GET_ONE_BANK",
+		StatusCode: StatusInternalServerError,
+		Message:    msgGetOneBankFailed,
+		Type:       "error",
+	}
+
+	ErrorBankDisableRequest = ResponseCode{
+		Code:       "ERROR_BANK_DISABLE_REQUEST",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankDisableRequestFailed,
+		Type:       "error",
+	}
+
+	ErrorBankEnableRequestFailed = ResponseCode{
+		Code:       "ERROR_BANK_ENABLE_REQUEST",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankEnableRequestFailed,
 		Type:       "error",
 	}
 )

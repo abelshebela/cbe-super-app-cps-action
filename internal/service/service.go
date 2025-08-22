@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -138,14 +139,13 @@ type BankService interface {
 	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
 
 	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
-	
-	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
-	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	DeleteOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
-	
-	Reject(ctx context.Context, req model.RejectCPSAction) (*model.CPSAction, error)
-	EnableOrDisableBank(ctx context.Context, id string, requestAction model.RequestAction, cpsReq model.CreateCPSAction) (*model.CPSAction, error)
-	UpdateLogo(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
+
+	CreateOneBank(ctx context.Context, req bank_dto.CreateBankRequest) error
+	UpdateOneBank(ctx context.Context, id string, req bank_dto.UpdateBankRequest) error
+	DeleteOneBank(ctx context.Context, id string) error
+
+	EnableOrDisableBank(ctx context.Context, id string, enableDisable bool) error
+	UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error
 }
 
 type BudgetCategoryService interface {
@@ -153,10 +153,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 }
 
 type AccountSearchService interface {

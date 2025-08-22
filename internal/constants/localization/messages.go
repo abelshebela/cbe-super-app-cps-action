@@ -294,15 +294,21 @@ const (
 	MsgFileDeleteFailed = "File deletion failed"
 
 	// Validation error messages
-	MsgValidationFailed     = "Validation failed"
-	MsgRequiredFieldMissing = "Required field is missing"
-	MsgBankImageRequiredOrMissing = "Required bank image invalid or missing"
-	MsgInvalidFormat        = "Invalid format"
-	MsgInvalidEmail         = "Invalid email format"
-	MsgInvalidPhoneNumber   = "Invalid phone number format"
-	MsgInvalidDate          = "Invalid date format"
-	MsgFieldTooLong         = "Field value is too long"
-	MsgFieldTooShort        = "Field value is too short"
+	MsgValidationFailed                      = "Validation failed"
+	MsgRequiredFieldMissing                  = "Required field is missing"
+	MsgBankDeleteRequestFailed               = "Bank delete request failed"
+	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
+	MsgInvalidFormat                         = "Invalid format"
+	MsgInvalidEmail                          = "Invalid email format"
+	MsgInvalidPhoneNumber                    = "Invalid phone number format"
+	MsgInvalidDate                           = "Invalid date format"
+	MsgFieldTooLong                          = "Field value is too long"
+	MsgFieldTooShort                         = "Field value is too short"
+	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
+	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
+
+	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
+	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -337,6 +343,11 @@ const (
 	MsgBankNameTooShort          = "Bank name too short"
 	MsgBankNameTooLong           = "Bank name too long"
 	MsgBankNameInvalidCharacters = "Bank name contains invalid characters"
+	msgGetAllBanksFailed         = "Get all banks failed"
+	msgGetAllBanksSuccess        = "Successfully got all banks"
+	msgGetOneBankSuccess         = "Successfully got one bank"
+	msgDeleteBankRequestSuccess  = "Successfully bank delete request created"
+	msgGetOneBankFailed          = "Get one bank failed"
 
 	// Donation related error messages
 	MsgDonationCategoryNameAlreadyExists  = "Category name already exists"
@@ -360,8 +371,8 @@ const (
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
 	MsgCPSActionNotFound             = "CPS action not found"
-	MsgBpsUserAlreadyEnabled             = "BPS user already enabled"
-	MsgBpsUserAlreadyDisabled             = "BPS user already disabled"
+	MsgBpsUserAlreadyEnabled         = "BPS user already enabled"
+	MsgBpsUserAlreadyDisabled        = "BPS user already disabled"
 	MsgCPSActionNotPending           = "Action is not in pending status"
 	MsgCPSActionAlreadyApproved      = "Action already approved"
 	MsgCPSActionAlreadyRejected      = "Action already rejected"
@@ -617,6 +628,7 @@ const (
 	MsgBankFileParseFailed              = "Failed to parse bank file"
 	MsgBankRejectionPayloadDecodeFailed = "Failed to decode rejection payload"
 	MsgBankLogoUpdateFailed             = "Failed to update bank logo"
+	MsgBankUpdateFailed                 = "Failed to update bank"
 
 	// CPS Action related error messages
 	MsgCPSActionRejectionPayloadDecodeFailed = "Failed to decode rejection payload"
