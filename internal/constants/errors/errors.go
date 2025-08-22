@@ -25,6 +25,7 @@ var (
 	ErrOTPNotFound                  = errors.New("otp not found")
 	ErrFileTooLarge                 = errors.New("file too large")
 	ErrInvalidFileType              = errors.New("invalid file type")
+	ErrMissingFile                  = errors.New("missing file")
 	ErrBranchNotFound               = errors.New("branch not found")
 	ErrPhoneNumberAlreadyExists     = errors.New("phone number already exists")
 	ErrRequestFailed                = errors.New("request failed")

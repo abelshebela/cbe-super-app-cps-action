@@ -24,6 +24,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationConstructed,
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
+	SuccessBudgetColorsFetched,
+	SuccessBudgetIconsFetched,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -54,6 +60,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
+	ErrorInvalidJSONPayload,
 	// Add more as needed...
 }
 
@@ -1112,6 +1119,55 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBudgetIconRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetCheckerActionApproved = ResponseCode{
+		Code:       "BUDGET_ICON_CHECKER_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCheckerActionApprovedSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconsFetched = ResponseCode{
+		Code:       "BUDGET_ICONS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorsFetched = ResponseCode{
+		Code:       "BUDGET_COLORS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorsFetchedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessDonationImageUploaded = ResponseCode{
 		Code:       "SUCCESS_DONATION_IMAGE_UPLOADED",
 		StatusCode: StatusOK,
@@ -1173,8 +1229,22 @@ var (
 		Type:       "error",
 	}
 
+	ErrorMissingOrInvalidImage = ResponseCode{
+		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingOrInvalidImage,
+		Type:       "error",
+	}
+
+	ErrorInvalidJSONPayload = ResponseCode{
+		Code:       "ERROR_INVALID_JSON_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidJSONPayload,
+		Type:       "error",
+	}
+
 	ErrorIncompleteUserInfo = ResponseCode{
-		Code:       "ERROR_INCOMPLET_USER_INFO",
+		Code:       "ERROR_INCOMPLTE_USER_INFO",
 		StatusCode: StatusBadRequest,
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
@@ -1457,6 +1527,13 @@ var (
 		Code:       "ERROR_INVALID_FORMAT",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidFormat,
+		Type:       "error",
+	}
+
+	ErrorInvalidInputParameter = ResponseCode{
+		Code:       "ERROR_INVALID_INPUT_PARAMETER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameter,
 		Type:       "error",
 	}
 
