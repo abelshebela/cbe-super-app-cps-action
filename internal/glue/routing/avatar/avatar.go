@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, handler avatar, authMiddleware middleware.AuthMiddleware) {
+func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middleware.AuthMiddleware) {
 
 	routes := []glue.Route{
 		{
