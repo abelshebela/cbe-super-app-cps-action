@@ -1,10 +1,13 @@
 package factory
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
+	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -176,10 +179,21 @@ func (c *cpsActionService) GetCPSActionByID(ctx context.Context, id, department 
 	c.logger.Infof("CPS Action service getting action by ID: %s", id)
 	return nil, nil
 }
-
+func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
+	return true, nil
+}
 func (c *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	c.logger.Infof("CPS Action service getting action by code: %s", uniqueID)
 	return nil, nil
+}
+func (c *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
+	c.logger.Infof("CPS Action service getting action by code: %s", uniqueID)
+	return nil, nil
+}
+func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
+
+	return nil
+
 }
 
 // CPS User Service
@@ -240,6 +254,29 @@ func (e *eventService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	e.logger.Infof("Event service authorizing action: %s", cpsAction.ActionCode)
 	cpsAction.ActionStatus = "APPROVED"
 	return cpsAction, nil
+}
+func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequest) error {
+	return errors.New("CreateEvent: not implemented")
+}
+
+func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdto.EventRequest) error {
+	return errors.New("UpdateEvent: not implemented")
+}
+
+func (e *eventService) DeleteEvent(ctx context.Context, id string) error {
+	return errors.New("DeleteEvent: not implemented")
+}
+
+func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable bool) error {
+	return errors.New("EnableDisableEvent: not implemented")
+}
+
+func (e *eventService) FetchEventByID(ctx context.Context, id string) (*model.Event, error) {
+	return nil, errors.New("FetchEventByID: not implemented")
+}
+
+func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
+	return nil, errors.New("FetchEvent: not implemented")
 }
 
 // Fayda Service
@@ -311,6 +348,12 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	m.logger.Infof("Mini App Merchant service authorizing action: %s", cpsAction.ActionCode)
 	cpsAction.ActionStatus = "APPROVED"
 	return cpsAction, nil
+}
+func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+
+	m.logger.Infof("Mini App Merchant service authorizing action: %s", constants.ActionCode)
+
+	return m.repo.DetailMiniAppByID(ctx, id)
 }
 
 // Notification Service
@@ -388,12 +431,25 @@ type unlinkService struct {
 	logger utils.Logger
 }
 
-func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) error {
 	u.logger.Infof("Unlink service authorizing action: %s", cpsAction.ActionCode)
 	cpsAction.ActionStatus = "APPROVED"
-	return cpsAction, nil
+	return nil
 }
 
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error) {
+	return nil, errors.New("GetUserByAccount: not implemented")
+}
+
+func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error) {
+	return nil, errors.New("GetAllArchivedUser: not implemented")
+}
+
+func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
+	return errors.New("UnlinkUserCif: not implemented")
+}
+
+ 
 // Wallet Service
 type walletService struct {
 	repo   storage.WalletRepository

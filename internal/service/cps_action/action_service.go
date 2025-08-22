@@ -97,3 +97,6 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 func (ca *cpsActionService) RollBack(ctx context.Context, action_code string) error {
 	return ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
 }
+func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
+	return s.repo.CPSActionExists(ctx, user)
+}

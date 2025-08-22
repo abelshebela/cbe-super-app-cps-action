@@ -1,12 +1,13 @@
 package mini_app_merchant
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -125,4 +126,24 @@ func (m *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 		Data: data,
 		Meta: meta,
 	}, nil
+}
+
+func (p *MiniAppMerchantStorage) DetailMiniAppByID(ctx context.Context, merchantID string) (*model.MiniAppMerchant, error) {
+	objID, err := bson.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Errorf("invalid merchant ObjectID %s: %v", merchantID, err)
+		return nil, fmt.Errorf(localization.ErrorMerchantNotFound.Code)
+	}
+
+	doc, err := p.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("no Mini App merchant found for ID: %s, %+v :", objID, err)
+			return nil, errors.New(localization.ErrorMerchantNotFound.Code)
+		}
+		p.logger.Errorf("failed to get miniapp merchant by ID: %v", err)
+		return nil, errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+
+	return ToMiniAppMerchantDomain(doc), nil
 }

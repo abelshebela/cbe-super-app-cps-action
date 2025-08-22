@@ -104,6 +104,7 @@ var (
 	ErrSessionUpdateFailed        = errors.New("Failed to update Session")
 	ErrSessionRetrivalFailed      = errors.New("Failed to update Session")
 	ErrHealthCheckFailed          = errors.New("Failed to update Session")
+	
 )
 
 var ErrorMap = map[error]int{

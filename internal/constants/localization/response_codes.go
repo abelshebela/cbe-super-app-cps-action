@@ -60,7 +60,27 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorUserCodeRequired,
-	// Add more as needed...
+
+	ErrorEventNameRequired,
+	ErrorEventAlreadyExists,
+	ErrorCoverImageRequired,
+	ErrorMerchantNotFound,
+	ErrorEventNotFound,
+	ErrorEventAlreadyEnabled,
+	ErrorEventAlreadyDisabled,
+	ErrorUnhandledServer,
+	ErrorInvalidDateFormat,
+	ErrorInvalidFileUpload,
+	ErrorInvalidNumberFormat,
+	ErrorMerchantIDRequired,
+	ErrorEventVenueRequired,
+	ErrorStartDateRequired,
+	ErrorDueDateRequired,
+	ErrorTotalTicketCountRequired,
+	ErrorInvalidTicketCount,
+	ErrorEventCityRequired,
+	ErrorEventDescriptionRequired,
+	ErrorTicketsRequired,
 }
 
 // Success Response Codes
@@ -460,6 +480,139 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgEventsSuccessfullyRetrieved,
 		Type:       "success",
+	}
+	ErrorEventNameRequired = ResponseCode{
+		Code:       "ERROR_EVENT_NAME_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event name is required",
+		Type:       "error",
+	}
+
+	ErrorEventAlreadyExists = ResponseCode{
+		Code:       "ERROR_EVENT_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "An event with this name already exists",
+		Type:       "error",
+	}
+
+	ErrorCoverImageRequired = ResponseCode{
+		Code:       "ERROR_COVER_IMAGE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Cover image is required",
+		Type:       "error",
+	}
+
+	ErrorMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Merchant not found",
+		Type:       "error",
+	}
+
+	// Update/Delete/Enable/Disable errors
+	ErrorEventNotFound = ResponseCode{
+		Code:       "ERROR_EVENT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Event not found",
+		Type:       "error",
+	}
+
+	ErrorEventAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_EVENT_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event is already enabled",
+		Type:       "error",
+	}
+
+	ErrorEventAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_EVENT_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event is already disabled",
+		Type:       "error",
+	}
+
+	// General / internal
+	ErrorUnhandledServer = ResponseCode{
+		Code:       "ERROR_UNHANDLED_SERVER",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unhandled server error",
+		Type:       "error",
+	}
+	ErrorInvalidDateFormat = ResponseCode{
+		Code:       "ERROR_INVALID_DATE_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid date format",
+		Type:       "error",
+	}
+	ErrorInvalidFileUpload = ResponseCode{
+		Code:       "ERROR_INVALID_FILE_UPLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid or corrupted file upload",
+		Type:       "error",
+	}
+
+	ErrorInvalidNumberFormat = ResponseCode{
+		Code:       "ERROR_INVALID_NUMBER_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid number format",
+		Type:       "error",
+	}
+	ErrorMerchantIDRequired = ResponseCode{
+		Code:       "ERROR_MERCHANT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Merchant ID is required",
+		Type:       "error",
+	}
+
+	ErrorEventVenueRequired = ResponseCode{
+		Code:       "ERROR_EVENT_VENUE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event venue is required",
+		Type:       "error",
+	}
+	ErrorStartDateRequired = ResponseCode{
+		Code:       "ERROR_START_DATE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Start date is required",
+		Type:       "error",
+	}
+	ErrorDueDateRequired = ResponseCode{
+		Code:       "ERROR_DUE_DATE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Due date is required",
+		Type:       "error",
+	}
+	ErrorTotalTicketCountRequired = ResponseCode{
+		Code:       "ERROR_TOTAL_TICKET_COUNT_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Total ticket count is required",
+		Type:       "error",
+	}
+	ErrorInvalidTicketCount = ResponseCode{
+		Code:       "ERROR_INVALID_TICKET_COUNT",
+		StatusCode: StatusBadRequest,
+		Message:    "Total ticket count must be at least 1",
+		Type:       "error",
+	}
+	ErrorEventCityRequired = ResponseCode{
+		Code:       "ERROR_EVENT_CITY_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event city is required",
+		Type:       "error",
+	}
+
+	ErrorEventDescriptionRequired = ResponseCode{
+		Code:       "ERROR_EVENT_DESCRIPTION_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event description is required",
+		Type:       "error",
+	}
+
+	ErrorTicketsRequired = ResponseCode{
+		Code:       "ERROR_TICKETS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Tickets are required",
+		Type:       "error",
 	}
 
 	// Product Code related success response codes
@@ -1305,6 +1458,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorNoDataProvidedForUpdate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for update",
+		Type:       "error",
+	}
+
+	ErrorEventIDRequired = ResponseCode{
+		Code:       "ERROR_EVENT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Event ID is required",
+		Type:       "error",
+	}
+
 	ErrorOTPExpired = ResponseCode{
 		Code:       "ERROR_OTP_EXPIRED",
 		StatusCode: StatusBadRequest,
@@ -1533,6 +1700,12 @@ var (
 		Code:       "ERROR_INTERNAL_SERVER_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgInternalServerError,
+		Type:       "error",
+	}
+	ErrorPendingCPSAction = ResponseCode{
+		Code:       "ERROR_PENDING_CPS_ACTION_PRESENT",
+		StatusCode: StatusConflict,
+		Message:    MsgPendingCPSActionExists,
 		Type:       "error",
 	}
 

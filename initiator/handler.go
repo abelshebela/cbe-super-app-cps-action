@@ -7,8 +7,10 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 
 	// Handler section
+	inbound "cbe-super-app-cps-action/internal/handlers/rest"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
-	cpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -17,13 +19,15 @@ import (
 type Handler struct {
 	CpsActionHandler actionInbound.CPSActionAdapter
 	UnlinkHandler    unlinkInbound.UnlinkAdapter
-	BpsHandler bpsInbound.BPSUserHandler
+	BpsHandler       bpsInbound.BPSUserHandler
+	EventHandler     inbound.EventHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 	return Handler{
-		CpsActionHandler: cpsActionHandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
 		UnlinkHandler:    unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler: bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser,logger),
+		BpsHandler:       bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		CpsActionHandler: cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		EventHandler:     eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
 	}
 }
