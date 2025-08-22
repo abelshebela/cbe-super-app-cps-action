@@ -46,7 +46,7 @@ func NonZeroUint64(n, fallback uint64) uint64 {
 	return fallback
 }
 
-func NonEmptyTickets(tickets, fallback []model.Ticket) []model.Ticket {
+func NonEmptyTickets(tickets, fallback []types.Ticket) []types.Ticket {
 	if len(tickets) > 0 {
 		return tickets
 	}

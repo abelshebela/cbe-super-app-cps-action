@@ -1,7 +1,7 @@
 package eventdto
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"mime/multipart"
 	"time"
 )
@@ -20,5 +20,5 @@ type EventRequest struct {
 	CoverImage          *multipart.FileHeader `json:"cover_image"`
 	EventDescription    string                `json:"event_description"`
 	TotalTicketCount    uint                  `json:"total_ticket_count"`
-	Tickets             []model.Ticket        `json:"tickets"`
+	Tickets             []types.Ticket        `json:"tickets"`
 }

@@ -18,7 +18,7 @@ type Event struct {
 	RefundPolicy        []string                  `bson:"refund_policy"`
 	MICSInfo            []string                  `bson:"mics_info"`
 	Restriction         types.Restriction         `bson:"restriction"`
-	Ticket              []Ticket                  `bson:"ticket"`
+	Ticket              []types.Ticket                  `bson:"ticket"`
 	Status              constants.EventStatus     `bson:"status"`
 	EventInformation    types.EventInformation    `bson:"event_information"`
 	TicketStatistics    types.TicketStatistics    `bson:"ticket_statistics"`
@@ -31,10 +31,4 @@ type Event struct {
 	DeletedAt           time.Time                 `bson:"deleted_at"`
 	LastModifiedAt      time.Time                 `bson:"last_modified_at"`
 }
-type Ticket struct {
-	Name           string `json:"name" bson:"name"`
-	Category       string `json:"category" bson:"category"`
-	Type           string `json:"type" bson:"type"`
-	Price          uint64 `json:"price" bson:"price"`
-	NumberOfTicker uint8  `json:"number_of_ticker" bson:"number_of_ticker"`
-}
+

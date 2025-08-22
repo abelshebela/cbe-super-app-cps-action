@@ -3,7 +3,7 @@ package core
 import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"net/http"
@@ -63,8 +63,8 @@ func ParseEventRequestFromMultipartForm(r *http.Request, isCreate bool) (eventdt
 	return req, nil
 }
 
-func parseTicketsFromForm(form url.Values) ([]model.Ticket, error) {
-	var tickets []model.Ticket
+func parseTicketsFromForm(form url.Values) ([]types.Ticket, error) {
+	var tickets []types.Ticket
 	for i := 0; ; i++ {
 		name := form.Get("ticket_name[" + strconv.Itoa(i) + "]")
 		if name == "" {
@@ -86,7 +86,7 @@ func parseTicketsFromForm(form url.Values) ([]model.Ticket, error) {
 			return nil, errors.New(localization.ErrorInvalidNumberFormat.Code)
 		}
 
-		tickets = append(tickets, model.Ticket{
+		tickets = append(tickets, types.Ticket{
 			Name:           name,
 			Category:       category,
 			Type:           tType,
