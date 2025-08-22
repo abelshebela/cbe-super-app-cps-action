@@ -20,9 +20,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.CreateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),//should be maker or ifb maker
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
-				// authMiddleware.RequireFormContentType(),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -31,8 +29,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.UpdateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -41,8 +38,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.EnableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -51,8 +47,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.DisableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -61,8 +56,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.DeleteEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{

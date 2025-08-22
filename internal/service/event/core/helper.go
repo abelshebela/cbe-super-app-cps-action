@@ -206,7 +206,6 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-// EventMapperForUpdate merges the new event data into the existing event
 func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, coverURL string) model.Event {
 	return model.Event{
 		ID:         prevEvent.ID,
