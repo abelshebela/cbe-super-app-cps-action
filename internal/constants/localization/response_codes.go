@@ -26,6 +26,18 @@ var ResponseCodesList = []ResponseCode{
 	SuccessFeedbackSavedToDatabase,
 	SuccessAvatarCreated,
 
+	// Ad related success response codes
+	SuccessAdvertCreated,
+	SuccessAdvertCreateRequestSent,
+	SuccessAdvertUpdated,
+	SuccessAdvertUpdateRequestSent,
+	SuccessAdvertDeleted,
+	SuccessAdvertDeleteRequestSent,
+	SuccessAdvertFetched,
+	SuccessAdvertsFetched,
+	SuccessAdvertEnableRequestSent,
+	SuccessAdvertDisableRequestSent,
+
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -53,6 +65,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSActionStatusInvalid,
 	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
+	ErrorAdvertUpdate,
+	ErrorAdvertAlreadyEnabled,
+	ErrorAdvertAlreadyDisabled,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
@@ -671,11 +686,11 @@ var (
 	SuccessAdvertDeleted = ResponseCode{
 		Code:       "SUCCESS_ADVERT_DELETED",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertDeletedSuccessfully,	
+		Message:    MsgAdvertDeletedSuccessfully,
 		Type:       "success",
 	}
 	SuccessAdvertDeleteRequestSent = ResponseCode{
-		Code:       "SUCCESS_ADVERT_DELETE_REQUEST_SENT",	
+		Code:       "SUCCESS_ADVERT_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgAdvertDeleteRequestSent,
 		Type:       "success",
@@ -1259,7 +1274,7 @@ var (
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
 	}
-	
+
 	ErrorUserCodeRequired = ResponseCode{
 		Code:       "ERROR_USER_CODE_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1343,7 +1358,7 @@ var (
 		Message:    MsgCPSActionNotFound,
 		Type:       "error",
 	}
-	
+
 	ErrorUserAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
@@ -1583,10 +1598,10 @@ var (
 	}
 
 	ErrorInvalidActionData = ResponseCode{
-		Code: "ERROR_INVALID_ACTION_DATA",
+		Code:       "ERROR_INVALID_ACTION_DATA",
 		StatusCode: StatusBadRequest,
-		Message: MsgInvalidActionData,
-		Type: "error",
+		Message:    MsgInvalidActionData,
+		Type:       "error",
 	}
 	ErrorUnsupportedAction = ResponseCode{
 		Code:       "ERROR_UNSUPPORTED_ACTION",
@@ -1594,7 +1609,6 @@ var (
 		Message:    MsgUnsupportedAction,
 		Type:       "error",
 	}
-
 
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
@@ -2332,7 +2346,7 @@ var (
 
 	ErrorAdvertAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_ADVERT_ALREADY_ENABLED",
-		StatusCode: StatusBadRequest,	
+		StatusCode: StatusBadRequest,
 		Message:    MsgAdvertAlreadyEnabled,
 		Type:       "error",
 	}
