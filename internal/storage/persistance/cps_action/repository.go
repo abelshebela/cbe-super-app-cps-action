@@ -74,9 +74,11 @@ func (r *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 }
 func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error) {
 	filterMap := BuildCPSActionFilter(filter)
-
 	data, err := r.dal.FindOne(ctx, filterMap, nil)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil,errors.New(localization.ErrorActionNotFound.Code)
+		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	return data, nil

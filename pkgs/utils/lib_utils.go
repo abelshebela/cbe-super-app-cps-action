@@ -2,9 +2,13 @@ package utils
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
+	"errors"
 	"fmt"
+	"math/rand"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
@@ -222,16 +226,38 @@ func StringToObjectID(id string) (bson.ObjectID, bool) {
 // GenerateActionCode generates a unique action code of length 20 with prefix "CBE_"
 func GenerateActionCode() string {
 	const (
-		prefix     = "CBE_"
-		codeLen    = 20
-		charset    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-		randomPart = codeLen - len(prefix)
+		prefix  = "CBE_"
+		codeLen = 20
+		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	)
+
+	randomPart := codeLen - len(prefix)
 	b := make([]byte, randomPart)
-	seed := time.Now().UnixNano()
+
+	// Seed once with high-resolution time
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	for i := range b {
-		seed = seed*1664525 + 1013904223 // simple LCG for more randomness
-		b[i] = charset[seed%int64(len(charset))]
+		b[i] = charset[rnd.Intn(len(charset))]
 	}
+
 	return prefix + string(b)
+}
+func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
+	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		return nil, nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
+	}
+
+	file, fileHeader, err := r.FormFile(key)
+	if err != nil {
+		if err == http.ErrMissingFile {
+			return nil, nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
+	}
+
+	return file, fileHeader, nil
 }

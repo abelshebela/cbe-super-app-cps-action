@@ -155,6 +155,12 @@ const (
 	Denied   OTPStatus = "DENIED"
 )
 
+const (
+	UPDATE = "UPDATE"
+	DELETE = "DELETE"
+	CREATE = "CREATE"
+)
+
 type RequestAction string
 
 const (
@@ -301,7 +307,6 @@ const (
 	PrimaryAuthenticationByPhoneNumber         PrimaryAuthentication = "PHONE_NUMBER"
 	PrimaryAuthenticationByEmail               PrimaryAuthentication = "EMAIL"
 	PrimaryAuthenticationByEmailAndPhoneNumber PrimaryAuthentication = "EMAIL_AND_PHONE_NUMBER"
-	Delete                                                           = "DELETE"
 )
 
 type AdvertFor string

@@ -24,6 +24,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationConstructed,
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
+	SuccessAvatarCreated,
+
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -54,6 +56,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
+	ErrorActionNotFound,
+	ErrorUserAlreadyEnabled,
+	ErrorUserAlreadyDisabled,
+	ErrorUserCodeRequired,
 	// Add more as needed...
 }
 
@@ -63,6 +69,13 @@ var (
 		Code:       "SUCCESS_USER_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUserCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarCreated = ResponseCode{
+		Code:       "SUCCESS_AVATAR_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1233,6 +1246,13 @@ var (
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
 	}
+	
+	ErrorUserCodeRequired = ResponseCode{
+		Code:       "ERROR_USER_CODE_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCodeIsRequired,
+		Type:       "error",
+	}
 
 	ErrorUserAlreadyExists = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_EXISTS",
@@ -1308,6 +1328,20 @@ var (
 		Code:       "ERROR_ACTION_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgCPSActionNotFound,
+		Type:       "error",
+	}
+	
+	ErrorUserAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorUserAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyDisabled,
 		Type:       "error",
 	}
 
