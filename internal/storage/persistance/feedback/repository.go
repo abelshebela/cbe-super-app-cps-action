@@ -53,38 +53,6 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*model.Feedb
 	}
 	return result, nil
 }
-
-// func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error) {
-// 	filter := bson.M{
-// 		"is_deleted": false,
-// 	}
-
-// 	if filterParam.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-// 		filter["user_id"] = searchRegex
-// 	}
-
-// 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-// 	limit := int64(filterParam.PerPage)
-
-// 	data, err := f.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	total, err := f.dal.TotalCount(ctx, filter)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-// 	return &types.PaginatedResponse[[]*model.Feedback]{
-// 		Data: data,
-// 		Meta: meta,
-// 	}, nil
-// }
-
 func (s *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
@@ -96,7 +64,7 @@ func (s *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex // choose your searchable field(s)
+		searchKeys[""] = searchRegex // choose your searchable field(s)
 	}
 
 	// 4. Build filter, skip, limit

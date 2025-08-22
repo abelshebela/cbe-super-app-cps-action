@@ -30,12 +30,13 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		f.logger.Errorf("failed to bind feedback data: %v", err)
-		localization.SendErrorByCodeResponse(w, localization.MsgInvalidInput)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		f.logger.Errorf("validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -49,25 +50,33 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 
 	_, err := f.feedbackApplication.CreateFeedback(r.Context(), req, userID)
 	if err != nil {
+		f.logger.Errorf("failed to create feedback: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
-	// data := interface{}{}
+
+	w.WriteHeader(http.StatusCreated)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 }
 
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-	if filterParams.Page < 0 || filterParams.PerPage < 0 {
-		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
-		return
+
+	// Enhanced pagination validation
+	if filterParams.Page < 1 {
+		filterParams.Page = 1
+	}
+	if filterParams.PerPage < 1 {
+		filterParams.PerPage = 10
+	}
+	if filterParams.PerPage > 100 {
+		filterParams.PerPage = 100
 	}
 
 	feedbacks, err := f.feedbackApplication.GetFeedbacks(r.Context(), filterParams)
 	if err != nil {
+		f.logger.Errorf("failed to get feedbacks: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
-
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
@@ -75,9 +84,24 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
+	// Enhanced ID validation
+	if id == "" {
+		f.logger.Errorf("empty feedback ID provided")
+		localization.SendErrorByCodeResponse(w, "feedback ID is required")
+		return
+	}
+
+	if len(id) != 24 {
+		f.logger.Errorf("invalid feedback ID format: %s", id)
+		localization.SendErrorByCodeResponse(w, "invalid feedback ID format")
+		return
+	}
+
 	ctx := r.Context()
 	feedback, err := f.feedbackApplication.GetFeedbackByID(ctx, id)
 	if err != nil {
+		f.logger.Errorf("failed to get feedback by ID %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
