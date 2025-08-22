@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InitBankRoutes(router chi.Router, bank bank.BankAdapter, authMiddleware middleware.AuthMiddleware) {
+func Init(router chi.Router, bank bank.BankAdapter, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
@@ -32,7 +32,7 @@ func InitBankRoutes(router chi.Router, bank bank.BankAdapter, authMiddleware mid
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "banks/{id}",
+			Path:    "/banks/{id}",
 			Handler: bank.DeleteOneBank,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

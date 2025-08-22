@@ -22,6 +22,14 @@ type bpsUserService struct {
 	logger utils.Logger
 }
 
+func NewBPSUserService(repo storage.BPSUserRepository, cpsService service.CPSActionService, logger utils.Logger) service.BPSUserService {
+	return &bpsUserService{
+		cpsService: cpsService,
+		repo:   repo,
+		logger: logger,
+	}
+}
+
 // Authorize implements service.BPSUserService.
 func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSAction)  error {
 
@@ -83,10 +91,3 @@ func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, sta
 	return nil
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, cpsService service.CPSActionService, logger utils.Logger) service.BPSUserService {
-	return &bpsUserService{
-		cpsService: cpsService,
-		repo:   repo,
-		logger: logger,
-	}
-}

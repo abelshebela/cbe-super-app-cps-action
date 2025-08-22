@@ -12,7 +12,6 @@ import (
 )
 
 func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware middleware.AuthMiddleware) {
-	// router.Route("/bps_users", func(r chi.Router) {
 		routes := []glue.Route{
 			{
 				Method:  http.MethodGet,
@@ -53,5 +52,4 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 		}
 
 		glue.RegisterRoutes(router, routes)
-	// })
 }
