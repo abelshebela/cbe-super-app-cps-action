@@ -24,25 +24,9 @@ type CPSAction struct {
 	ActionType         string        `bson:"action_type" json:"action_type,omitempty"`
 	IsDeleted          bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
 	RequestAction      string        `bson:"request_action" json:"request_action"`
-	// Branch fields
-	BranchCodes        []string      `bson:"branch_codes" json:"branch_codes,omitempty"`
-	BranchNames        []string      `bson:"branch_names" json:"branch_names,omitempty"`
-	// City fields
-	CityCodes          []string      `bson:"city_codes" json:"city_codes,omitempty"`
-	CityNames          []string      `bson:"city_names" json:"city_names,omitempty"`
-	// Region fields
-	RegionCodes        []string      `bson:"region_codes" json:"region_codes,omitempty"`
-	RegionNames        []string      `bson:"region_names" json:"region_names,omitempty"`
-	// District fields
-	DistrictCodes      []string      `bson:"district_codes" json:"district_codes,omitempty"`
-	DistrictNames      []string      `bson:"district_names" json:"district_names,omitempty"`
-	// Timestamps
+	
 	CreatedAt          time.Time     `bson:"created_at" json:"created_at,omitempty"`
 	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at,omitempty"`
 	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time,omitempty"`
 	CheckerActionTime  *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
-	// Additional fields
-	Reason             string        `bson:"reason" json:"reason,omitempty"`
-	Status             string        `bson:"status" json:"status,omitempty"`
-	LastUpdated        time.Time     `bson:"last_updated" json:"last_updated,omitempty"`
 }

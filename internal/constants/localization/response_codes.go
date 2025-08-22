@@ -24,6 +24,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationConstructed,
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
+	SuccessAvatarCreated,
+
 	SuccessBudgetColorsFetched,
 	SuccessBudgetIconsFetched,
 	SuccessBudgetIconRequestSubmittedForApproval,
@@ -60,6 +62,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
+	ErrorActionNotFound,
+	ErrorUserAlreadyEnabled,
+	ErrorUserAlreadyDisabled,
+	ErrorUserCodeRequired,
 	ErrorInvalidJSONPayload,
 	// Add more as needed...
 }
@@ -70,6 +76,13 @@ var (
 		Code:       "SUCCESS_USER_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUserCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarCreated = ResponseCode{
+		Code:       "SUCCESS_AVATAR_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1228,6 +1241,19 @@ var (
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
 	}
+	ErrorFeedbackIDRequired = ResponseCode{
+		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgFeedbackIDRequired,
+		Type:       "error",
+	}
+
+	ErrorInvalidIDFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ID_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidIDFormat,
+		Type:       "error",
+	}
 
 	ErrorMissingOrInvalidImage = ResponseCode{
 		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
@@ -1247,6 +1273,13 @@ var (
 		Code:       "ERROR_INCOMPLTE_USER_INFO",
 		StatusCode: StatusBadRequest,
 		Message:    MSGIncompleteUserInfo,
+		Type:       "error",
+	}
+
+	ErrorUserCodeRequired = ResponseCode{
+		Code:       "ERROR_USER_CODE_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCodeIsRequired,
 		Type:       "error",
 	}
 
@@ -1324,6 +1357,20 @@ var (
 		Code:       "ERROR_ACTION_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgCPSActionNotFound,
+		Type:       "error",
+	}
+
+	ErrorUserAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorUserAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyDisabled,
 		Type:       "error",
 	}
 

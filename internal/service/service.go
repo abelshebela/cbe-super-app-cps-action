@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -63,6 +64,9 @@ type FaydaAccountService interface {
 
 type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	GetFeedbackByID(ctx context.Context, id string) (*model.Feedback, error)
+	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error)
 }
 
 type HQService interface {
@@ -133,6 +137,11 @@ type AmountBasedAuthService interface {
 }
 
 type AvatarService interface {
+	CreateAvatar(ctx context.Context, avatar *model.Avatar) error
+	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar) error
+	DeleteAvatar(ctx context.Context, id string) error
+	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
+	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -145,7 +154,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
 }
 
 type AccountSearchService interface {

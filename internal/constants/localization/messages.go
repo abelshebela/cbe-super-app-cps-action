@@ -4,6 +4,7 @@ package localization
 const (
 	// User related success messages
 	MsgUserCreatedSuccessfully   = "User created successfully"
+	MsgAvatarCreatedSuccessfully = "Avatar created successfully"
 	MsgUserUpdatedSuccessfully   = "User updated successfully"
 	MsgUserDeletedSuccessfully   = "User deleted successfully"
 	MsgUserRetrievedSuccessfully = "User retrieved successfully"
@@ -17,7 +18,10 @@ const (
 	MsgMissingOrInvalidImage     = "Missing or invalid image"
 	MsgInvalidJSONPayload        = "Invalid JSON payload"
 	MSGAccountNumberRequired     = "Account Number is required"
+	MsgFeedbackIDRequired        = "Feedback ID is required"
+	MsgInvalidIDFormat           = "Invalid ID format"
 	MSGIncompleteUserInfo        = "Incomplte user info"
+	MSGUserCodeIsRequired        = "User code is required"
 	MsgActionAlreadyExists       = "Action already requested wait for checker approval"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
@@ -361,6 +365,8 @@ const (
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
 	MsgCPSActionNotFound             = "CPS action not found"
+	MsgBpsUserAlreadyEnabled         = "BPS user already enabled"
+	MsgBpsUserAlreadyDisabled        = "BPS user already disabled"
 	MsgCPSActionNotPending           = "Action is not in pending status"
 	MsgCPSActionAlreadyApproved      = "Action already approved"
 	MsgCPSActionAlreadyRejected      = "Action already rejected"

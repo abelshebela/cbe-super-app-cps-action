@@ -66,7 +66,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		// Additional repositories
 		AccessListPersistence:       access_list.NewAccessListRepository(client, dbName, "access_lists", logger),
 		AvatarPersistence:           avatar.NewAvatarRepository(client, dbName, "avatars", logger),
-		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "bps_users", logger),
+		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "branch_user", logger),
 		AdvertRepositoryPersistence: advert.NewAdvertRepository(client, dbName, "adverts", logger),
 		ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
 		AuthTierPersistence:         auth_tier.NewAuthTierRepository(client, dbName, "auth_tiers", logger),
