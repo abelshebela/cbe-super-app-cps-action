@@ -1,24 +1,27 @@
 package eventdto
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"regexp"
+	"strings"
 	"time"
+
+	"cbe-super-app-cps-action/internal/constants/localization"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func (e EventRequest) IsEmpty() bool {
-	return e.MerchantID == "" &&
-		e.EventName == "" &&
-		e.EventVenue == "" &&
-		e.EventCity == "" &&
+	return strings.TrimSpace(e.MerchantID) == "" &&
+		strings.TrimSpace(e.EventName) == "" &&
+		strings.TrimSpace(e.EventVenue) == "" &&
+		strings.TrimSpace(e.EventCity) == "" &&
 		e.StartDate.IsZero() &&
 		e.DueDate.IsZero() &&
 		e.CoverImage == nil &&
-		e.EventDescription == "" &&
+		strings.TrimSpace(e.EventDescription) == "" &&
 		e.TotalTicketCount == 0 &&
 		(len(e.Tickets) == 0 || e.Tickets == nil)
 }
@@ -30,46 +33,43 @@ func (e EventRequest) Validate(isCreate bool) error {
 
 	var rules []*validation.FieldRules
 
+	validateString := func(fieldName, value string, required bool) validation.RuleFunc {
+		return func(_ interface{}) error {
+			if required && strings.TrimSpace(value) == "" {
+				return fmt.Errorf("%s is required", fieldName)
+			}
+			if matched, _ := regexp.MatchString(`[<>$%]`, value); matched {
+				return fmt.Errorf("%s contains invalid characters", fieldName)
+			}
+			return nil
+		}
+	}
+
 	if isCreate {
 		rules = []*validation.FieldRules{
-			validation.Field(&e.MerchantID,
-				validation.Required.Error(localization.ErrorMerchantIDRequired.Code)),
-			validation.Field(&e.EventName,
-				validation.Required.Error(localization.ErrorEventNameRequired.Code)),
-			validation.Field(&e.EventVenue,
-				validation.Required.Error(localization.ErrorEventVenueRequired.Code)),
-			validation.Field(&e.EventCity,
-				validation.Required.Error(localization.ErrorEventCityRequired.Code)),
-			validation.Field(&e.StartDate,
-				validation.Required.Error(localization.ErrorStartDateRequired.Code),
-				validation.By(validateStartDate(e))),
-			validation.Field(&e.DueDate,
-				validation.Required.Error(localization.ErrorDueDateRequired.Code),
-				validation.By(validateDueDate(e))),
-			validation.Field(&e.CoverImage,
-				validation.Required.Error(localization.ErrorCoverImageRequired.Code),
-				validation.By(validateCoverImage(e))),
-			validation.Field(&e.EventDescription,
-				validation.Required.Error(localization.ErrorEventDescriptionRequired.Code)),
-			validation.Field(&e.TotalTicketCount,
-				validation.Required.Error(localization.ErrorTotalTicketCountRequired.Code),
-				validation.Min(uint(1)).Error(localization.ErrorInvalidTicketCount.Code)),
-			validation.Field(&e.Tickets,
-				validation.Required.Error(localization.ErrorTicketsRequired.Code),
-				validation.By(validateTickets(e, isCreate))),
+			validation.Field(&e.MerchantID, validation.By(validateString("merchant_id", e.MerchantID, true))),
+			validation.Field(&e.EventName, validation.By(validateString("event_name", e.EventName, true))),
+			validation.Field(&e.EventVenue, validation.By(validateString("event_venue", e.EventVenue, true))),
+			validation.Field(&e.EventCity, validation.By(validateString("event_city", e.EventCity, true))),
+			validation.Field(&e.EventDescription, validation.By(validateString("event_description", e.EventDescription, true))),
+			validation.Field(&e.StartDate, validation.Required.Error(localization.ErrorStartDateRequired.Code), validation.By(validateStartDate(e))),
+			validation.Field(&e.DueDate, validation.Required.Error(localization.ErrorDueDateRequired.Code), validation.By(validateDueDate(e))),
+			validation.Field(&e.CoverImage, validation.Required.Error(localization.ErrorCoverImageRequired.Code), validation.By(validateCoverImage(e))),
+			validation.Field(&e.TotalTicketCount, validation.Required.Error(localization.ErrorTotalTicketCountRequired.Code), validation.Min(uint(1)).Error(localization.ErrorInvalidTicketCount.Code)),
+			validation.Field(&e.Tickets, validation.Required.Error(localization.ErrorTicketsRequired.Code), validation.By(validateTickets(e, isCreate))),
 		}
 	} else {
-		if e.MerchantID != "" {
-			rules = append(rules, validation.Field(&e.MerchantID, validation.Required.Error("merchant_id is required")))
+		if strings.TrimSpace(e.MerchantID) != "" {
+			rules = append(rules, validation.Field(&e.MerchantID, validation.By(validateString("merchant_id", e.MerchantID, true))))
 		}
-		if e.EventName != "" {
-			rules = append(rules, validation.Field(&e.EventName, validation.Required.Error("event_name is required")))
+		if strings.TrimSpace(e.EventName) != "" {
+			rules = append(rules, validation.Field(&e.EventName, validation.By(validateString("event_name", e.EventName, true))))
 		}
-		if e.EventVenue != "" {
-			rules = append(rules, validation.Field(&e.EventVenue, validation.Required.Error("event_venue is required")))
+		if strings.TrimSpace(e.EventVenue) != "" {
+			rules = append(rules, validation.Field(&e.EventVenue, validation.By(validateString("event_venue", e.EventVenue, true))))
 		}
-		if e.EventCity != "" {
-			rules = append(rules, validation.Field(&e.EventCity, validation.Required.Error("event_city is required")))
+		if strings.TrimSpace(e.EventCity) != "" {
+			rules = append(rules, validation.Field(&e.EventCity, validation.By(validateString("event_city", e.EventCity, true))))
 		}
 		if !e.StartDate.IsZero() {
 			rules = append(rules, validation.Field(&e.StartDate, validation.By(validateStartDate(e))))
@@ -80,25 +80,22 @@ func (e EventRequest) Validate(isCreate bool) error {
 		if e.CoverImage != nil {
 			rules = append(rules, validation.Field(&e.CoverImage, validation.By(validateCoverImage(e))))
 		}
-		if e.EventDescription != "" {
-			rules = append(rules, validation.Field(&e.EventDescription, validation.Required.Error("event_description is required")))
+		if strings.TrimSpace(e.EventDescription) != "" {
+			rules = append(rules, validation.Field(&e.EventDescription, validation.By(validateString("event_description", e.EventDescription, true))))
 		}
 		if e.TotalTicketCount != 0 {
-			rules = append(rules, validation.Field(&e.TotalTicketCount,
-				validation.Min(uint(1)).Error("total_ticket_count must be at least 1")))
+			rules = append(rules, validation.Field(&e.TotalTicketCount, validation.Min(uint(1)).Error("total_ticket_count must be >=1")))
 		}
 		if len(e.Tickets) > 0 {
 			rules = append(rules, validation.Field(&e.Tickets, validation.By(validateTickets(e, isCreate))))
 		}
 	}
 
-	// Run validations if any rules are accumulated
 	if len(rules) > 0 {
 		if err := validation.ValidateStruct(&e, rules...); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -109,7 +106,7 @@ func validateStartDate(e EventRequest) validation.RuleFunc {
 			return nil
 		}
 		if t.Before(time.Now().Truncate(24 * time.Hour)) {
-			return fmt.Errorf("start_date can't be before today")
+			return errors.New("start_date cannot be before today")
 		}
 		return nil
 	}
@@ -118,7 +115,7 @@ func validateStartDate(e EventRequest) validation.RuleFunc {
 func validateDueDate(e EventRequest) validation.RuleFunc {
 	return func(value interface{}) error {
 		if !e.StartDate.IsZero() && !e.DueDate.IsZero() && e.StartDate.After(e.DueDate) {
-			return fmt.Errorf("due_date can't be before start_date")
+			return errors.New("due_date cannot be before start_date")
 		}
 		return nil
 	}
@@ -131,13 +128,11 @@ func validateCoverImage(e EventRequest) validation.RuleFunc {
 			return nil
 		}
 		if file.Size > (2 << 20) {
-			return errors.New("FILE_TOO_LARGE")
+			return errors.New("cover_image file too large (max 2MB)")
 		}
-		if file.Header != nil {
-			ct := file.Header.Get("Content-Type")
-			if ct == "" || (ct != "image/jpeg" && ct != "image/png" && ct != "image/gif" && ct != "image/webp") {
-				return fmt.Errorf("cover_image must be an image (jpeg, png, gif, webp)")
-			}
+		ct := file.Header.Get("Content-Type")
+		if ct == "" || (ct != "image/jpeg" && ct != "image/png" && ct != "image/gif" && ct != "image/webp") {
+			return errors.New("cover_image must be jpeg, png, gif, webp")
 		}
 		return nil
 	}
@@ -145,15 +140,15 @@ func validateCoverImage(e EventRequest) validation.RuleFunc {
 
 func validateTickets(e EventRequest, isCreate bool) validation.RuleFunc {
 	return func(value interface{}) error {
-		if (len(e.Tickets) == 0) && isCreate {
-			return fmt.Errorf("at least one ticket is required")
+		if len(e.Tickets) == 0 && isCreate {
+			return errors.New("at least one ticket is required")
 		}
 		var total uint
 		for _, t := range e.Tickets {
 			total += uint(t.NumberOfTicker)
 		}
 		if e.TotalTicketCount != 0 && total != e.TotalTicketCount {
-			return fmt.Errorf("sum of all ticket counts must match total_ticket_count")
+			return errors.New("sum of ticket numbers must match total_ticket_count")
 		}
 		return nil
 	}
