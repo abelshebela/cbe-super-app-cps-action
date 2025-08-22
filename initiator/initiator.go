@@ -47,6 +47,13 @@ func Init(ctx context.Context) {
 	logger.Infof("initialize service layer")
 	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient)
 
+	// Start feedback Kafka consumer (non-blocking)
+	go func() {
+		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
+			logger.Errorf("Failed to start feedback consumer: %v", err)
+		}
+	}()
+
 	logger.Infof("initialize handler layer")
 	handlerLayer := InitHandler(serviceLayer, logger)
 
