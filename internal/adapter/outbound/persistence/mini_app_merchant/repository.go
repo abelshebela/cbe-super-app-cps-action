@@ -112,6 +112,14 @@ func (p *miniAppMerchantPersistence) ListMiniAppMerchant(ctx context.Context, fi
 	if filterParams.Filters != nil {
 		allowedKeys := []string{"enabled", "merchant_type"}
 		handlers := map[string]func(interface{}) interface{}{
+			"enabled": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
 			"is_deleted": func(value interface{}) interface{} {
 				if str, ok := value.(string); ok {
 					if parsed, err := strconv.ParseBool(str); err == nil {

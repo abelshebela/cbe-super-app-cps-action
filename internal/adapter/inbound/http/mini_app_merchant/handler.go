@@ -184,7 +184,12 @@ func (h *HttpStore) GetMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := ToMiniAppMerchantResponseDTO(result)
-	common_util.WriteSuccessResponse(w, response, "Fetch successful")
+	data, err := common_util.StructToMap(response)
+	if err != nil {
+		common_util.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+	common_util.BaseResponseMaker(data, w, "Fetch successful", 200)
 }
 
 func (h *HttpStore) GetAllMiniAppMerchant(w http.ResponseWriter, r *http.Request) {
@@ -206,5 +211,5 @@ func (h *HttpStore) GetAllMiniAppMerchant(w http.ResponseWriter, r *http.Request
 		Meta: result.Meta,
 	}
 
-	common_util.WriteSuccessResponse(w, res, "List successful")
+	common_util.BaseResponseMaker(res, w, "List successful", 200)
 }
