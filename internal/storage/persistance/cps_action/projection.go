@@ -28,11 +28,7 @@ func BuildCPSActionFilter(cps model.CPSAction) bson.M {
 	}
 
 	// Helper to add slice fields
-	addSlice := func(key string, value []string) {
-		if len(value) > 0 {
-			filter[key] = value
-		}
-	}
+
 
 	// Helper to add time fields
 	addTime := func(key string, value time.Time) {
@@ -73,21 +69,11 @@ func BuildCPSActionFilter(cps model.CPSAction) bson.M {
 		filter["is_deleted"] = cps.IsDeleted
 	}
 	addString("request_action", cps.RequestAction)
-	addSlice("branch_codes", cps.BranchCodes)
-	addSlice("branch_names", cps.BranchNames)
-	addSlice("city_codes", cps.CityCodes)
-	addSlice("city_names", cps.CityNames)
-	addSlice("region_codes", cps.RegionCodes)
-	addSlice("region_names", cps.RegionNames)
-	addSlice("district_codes", cps.DistrictCodes)
-	addSlice("district_names", cps.DistrictNames)
+	
 	addTime("created_at", cps.CreatedAt)
 	addTime("last_modified_at", cps.LastModifiedAt)
 	addTime("maker_action_time", cps.MakerActionTime)
 	addPtrTime("checker_action_time", cps.CheckerActionTime)
-	addString("reason", cps.Reason)
-	addString("status", cps.Status)
-	addTime("last_updated", cps.LastUpdated)
 
 	return filter
 }
@@ -102,12 +88,6 @@ func BuildCPSActionUpdateMap(cps model.CPSAction) bson.M {
 		}
 	}
 
-	// Helper to add slice fields
-	addSlice := func(key string, value []string) {
-		if len(value) > 0 {
-			update[key] = value
-		}
-	}
 
 	// Helper to add time fields
 	addTime := func(key string, value time.Time) {
@@ -145,21 +125,11 @@ func BuildCPSActionUpdateMap(cps model.CPSAction) bson.M {
 		update["is_deleted"] = cps.IsDeleted
 	}
 	addString("request_action", cps.RequestAction)
-	addSlice("branch_codes", cps.BranchCodes)
-	addSlice("branch_names", cps.BranchNames)
-	addSlice("city_codes", cps.CityCodes)
-	addSlice("city_names", cps.CityNames)
-	addSlice("region_codes", cps.RegionCodes)
-	addSlice("region_names", cps.RegionNames)
-	addSlice("district_codes", cps.DistrictCodes)
-	addSlice("district_names", cps.DistrictNames)
+	
 	addTime("created_at", cps.CreatedAt)
 	addTime("last_modified_at", cps.LastModifiedAt)
 	addTime("maker_action_time", cps.MakerActionTime)
 	addPtrTime("checker_action_time", cps.CheckerActionTime)
-	addString("reason", cps.Reason)
-	addString("status", cps.Status)
-	addTime("last_updated", cps.LastUpdated)
 
 	return update
 }

@@ -106,9 +106,10 @@ type AvatarRepository interface {
 type BPSUserRepository interface {
 	GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 	GetAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.BPSUser, error)
-	GetAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
+	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
 
 // AmountBasedAuth persistence
