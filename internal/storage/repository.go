@@ -105,7 +105,6 @@ type AvatarRepository interface {
 // BPSUser persistence
 type BPSUserRepository interface {
 	GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
-	GetAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.BPSUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
