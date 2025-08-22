@@ -24,7 +24,9 @@ var (
 	ErrUserNotFound                 = errors.New("user not found")
 	ErrOTPNotFound                  = errors.New("otp not found")
 	ErrFileTooLarge                 = errors.New("file too large")
+	ErrMissingFile                  = errors.New("missing file")
 	ErrInvalidFileType              = errors.New("invalid file type")
+	ErrMissingOrInvalidImage        = errors.New("missing or invalid image")
 	ErrBranchNotFound               = errors.New("branch not found")
 	ErrPhoneNumberAlreadyExists     = errors.New("phone number already exists")
 	ErrRequestFailed                = errors.New("request failed")
@@ -62,6 +64,7 @@ var (
 	ErrSMSSendFailure               = errors.New("sms send failure")
 	ErrInvalidPassword              = errors.New("invalid password")
 	ErrEmptyFilterParam             = errors.New("empty filter param")
+	ErrInvalidInputParameters       = errors.New("invalid input parameters")
 	ErrTryToSaveEmptyUser           = errors.New("error saving empty user data")
 	ErrNoMongoDocument              = errors.New("mongo: no documents in result")
 	ErrPhoneNumberCanNotBeEmpty     = errors.New("phone number can not be empty")
@@ -99,11 +102,11 @@ var (
 	ErrTooManyAttempt             = errors.New("too many login attempts. Please try again later")
 	ErrGotoBranchToEnable         = errors.New("you have to go branch to enable this action")
 	ErrApiRequestFailed           = errors.New("api request failed")
-	ErrPhoneLookUpFailed          = errors.New("Phone look up failed")
-	ErrSessionCreationFailed      = errors.New("Failed to create Session")
-	ErrSessionUpdateFailed        = errors.New("Failed to update Session")
-	ErrSessionRetrivalFailed      = errors.New("Failed to update Session")
-	ErrHealthCheckFailed          = errors.New("Failed to update Session")
+	ErrPhoneLookUpFailed          = errors.New("phone look up failed")
+	ErrSessionCreationFailed      = errors.New("failed to create Session")
+	ErrSessionUpdateFailed        = errors.New("failed to update Session")
+	ErrSessionRetrivalFailed      = errors.New("failed to update Session")
+	ErrHealthCheckFailed          = errors.New("failed to update Session")
 )
 
 var ErrorMap = map[error]int{
@@ -163,7 +166,9 @@ var ErrorMap = map[error]int{
 	ErrUserNotFound:                 http.StatusNotFound,
 	ErrOTPNotFound:                  http.StatusNotFound,
 	ErrFileTooLarge:                 http.StatusRequestEntityTooLarge,
+	ErrMissingFile:                  http.StatusBadRequest,
 	ErrInvalidFileType:              http.StatusBadRequest,
+	ErrMissingOrInvalidImage:        http.StatusBadRequest,
 	ErrBranchNotFound:               http.StatusNotFound,
 	ErrPhoneNumberAlreadyExists:     http.StatusBadRequest,
 	ErrRequestFailed:                http.StatusBadRequest,
@@ -198,4 +203,5 @@ var ErrorMap = map[error]int{
 	ErrNoLinkedDevices:              http.StatusBadRequest,
 	ErrInvalidPassword:              http.StatusBadRequest,
 	ErrEmptyFilterParam:             http.StatusBadRequest,
+	ErrInvalidInputParameters:       http.StatusBadRequest,
 }

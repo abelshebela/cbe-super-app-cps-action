@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	mathrand "math/rand"
 	"mime/multipart"
@@ -295,4 +296,42 @@ func MapSlice[T any, R any](items []T, mapper func(T) R) []R {
 		results[i] = mapper(v)
 	}
 	return results
+}
+
+// nonEmptyString returns the new value if non-empty, otherwise the old value
+func NonEmptyString(new, old string) string {
+	if new != "" {
+		return new
+	}
+	return old
+}
+
+
+
+// nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
+func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
+	if new != "" {
+		return new
+	}
+	return old
+}
+
+// nonEmptyAdvertDate returns the new date if non-zero, otherwise the old date
+func NonEmptyAdvertDate(new, old types.AdvertDate)types.AdvertDate {
+	result := old
+	if !new.StartedAt.IsZero() {
+		result.StartedAt = new.StartedAt
+	}
+	if !new.ExpiredAt.IsZero() {
+		result.ExpiredAt = new.ExpiredAt
+	}
+	return result
+}
+
+func BindAction(source any, target any) error {
+	bytes, err := json.Marshal(source)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, target)
 }

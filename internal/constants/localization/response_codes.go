@@ -49,7 +49,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFeedbackSavedToDatabase,
 	ErrorHQApproved,
 	ErrorCPSActionStatusInvalid,
-	ErrorAdvertConstructed,
+	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
@@ -627,10 +627,17 @@ var (
 	}
 
 	// Ad related success response codes
-	SuccessAdvertConstructed = ResponseCode{
-		Code:       "SUCCESS_ADVERT_CONSTRUCTED",
+	SuccessAdvertCreated = ResponseCode{
+		Code:       "SUCCESS_ADVERT_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgAdvertConstructedSuccessfully,
+		Message:    MsgAdvertCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgAdvertCreatedRequestSent,
 		Type:       "success",
 	}
 
@@ -641,6 +648,53 @@ var (
 		Type:       "success",
 	}
 
+	SuccessAdvertUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertDeleted = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDeletedSuccessfully,	
+		Type:       "success",
+	}
+	SuccessAdvertDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DELETE_REQUEST_SENT",	
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertFetched = ResponseCode{
+		Code:       "SUCCESS_ADVERT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertsFetched = ResponseCode{
+		Code:       "SUCCESS_ADVERTS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDisableRequestSent,
+		Type:       "success",
+	}
 	// Account Validation related success response codes
 	SuccessValidationRuleApproved = ResponseCode{
 		Code:       "SUCCESS_VALIDATION_RULE_APPROVED",
@@ -1481,6 +1535,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidActionData = ResponseCode{
+		Code: "ERROR_INVALID_ACTION_DATA",
+		StatusCode: StatusBadRequest,
+		Message: MsgInvalidActionData,
+		Type: "error",
+	}
+	ErrorUnsupportedAction = ResponseCode{
+		Code:       "ERROR_UNSUPPORTED_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgUnsupportedAction,
+		Type:       "error",
+	}
+
+
+	ErrorInvalidID = ResponseCode{
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidID,
+		Type:       "error",
+	}
+
 	ErrorFieldTooLong = ResponseCode{
 		Code:       "ERROR_FIELD_TOO_LONG",
 		StatusCode: StatusBadRequest,
@@ -1696,6 +1771,13 @@ var (
 		Code:       "ERROR_SERVICE_UPDATE_FAILED_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgServiceUpdateFailedError,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForUpdate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNoDataProvidedForUpdate,
 		Type:       "error",
 	}
 
@@ -2187,17 +2269,30 @@ var (
 		Type:       "error",
 	}
 	// Ad Service related error response codes
-	ErrorAdvertConstructed = ResponseCode{
-		Code:       "ERROR_ADVERT_CONSTRUCTED",
+	ErrorAdvertCreated = ResponseCode{
+		Code:       "ERROR_ADVERT_CREATED",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertConstructedSuccess,
+		Message:    MsgAdvertCreateError,
 		Type:       "error",
 	}
 
 	ErrorAdvertUpdate = ResponseCode{
 		Code:       "ERROR_ADVERT_UPDATE",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertUpdateSuccess,
+		Message:    MsgAdvertUpdateError,
+		Type:       "error",
+	}
+
+	ErrorAdvertAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ADVERT_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,	
+		Message:    MsgAdvertAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorAdvertAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ADVERT_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAdvertAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -2206,6 +2301,20 @@ var (
 		Code:       "ERROR_VALIDATION_RULE_APPROVED",
 		StatusCode: StatusOK,
 		Message:    MsgValidationRuleApprovedSuccess,
+		Type:       "error",
+	}
+
+	ErrorInvalidInputParameters = ResponseCode{
+		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameters,
+		Type:       "error",
+	}
+
+	ErrorMissingOrInvalidImage = ResponseCode{
+		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingOrInvalidImage,
 		Type:       "error",
 	}
 )

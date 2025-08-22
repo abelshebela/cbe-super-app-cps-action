@@ -277,7 +277,7 @@ const (
 	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
 	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
 	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
-	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+	RequestDeleteBudgetIcAdvertServiceon  RequestAction = "BUDGET_DELETE_ICON"
 
 	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"

@@ -1,0 +1,73 @@
+package ad
+
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"errors"
+	"time"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+)
+
+// entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/constants/model"
+
+// ToDomainAdvertRequest converts an HTTP AdvertRequest to a domain-level dto.AdvertRequest
+func ToAdvert(httpRequest AdvertRequest) (model.Advert, error) {
+	advertFor := constants.AdvertFor(httpRequest.AdvertFor)
+
+	objId, ok := local_util.StringToObjectID(httpRequest.ID)
+	if !ok {
+		return model.Advert{}, errors.New(localization.ErrorInvalidID.Code)
+	}
+	return model.Advert{
+		ID:         objId,
+		Title:       httpRequest.Title,
+		Description: httpRequest.Description,
+		AdvertFor:   advertFor,
+		Date: types.AdvertDate{
+			StartedAt: httpRequest.Date.StartedAt,
+			ExpiredAt: httpRequest.Date.ExpiredAt,
+		},
+
+		CreatedAt:     time.Now(),
+		LastUpdatedAt: time.Now(),
+		Enabled:       false,
+		IsDeleted:     false,
+	}, nil
+}
+
+// ToAdvertResponse converts an entity.Advert to a dto.AdvertResponse
+func ToAdvertResponse(advert model.Advert) AdvertResponse {
+	return AdvertResponse{
+		ID:            advert.ID.Hex(),
+		Title:         advert.Title,
+		Description:   advert.Description,
+		BannerImage:   advert.BannerImage,
+		AdvertFor:     advert.AdvertFor,
+		Date:          AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
+		Enabled:       advert.Enabled,
+		CreatedAt:     advert.CreatedAt,
+		LastUpdatedAt: advert.LastUpdatedAt,
+	}
+}
+
+// ToAdvertResponses converts a slice of entity.Advert to a slice of dto.AdvertResponse
+func ToAdvertResponses(adverts []*model.Advert) []*AdvertResponse {
+	responses := make([]*AdvertResponse, len(adverts))
+	for i, advert := range adverts {
+		responses[i] = &AdvertResponse{
+			ID:            advert.ID.Hex(),
+			Title:         advert.Title,
+			Description:   advert.Description,
+			BannerImage:   advert.BannerImage,
+			AdvertFor:     advert.AdvertFor,
+			Date:          AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
+			Enabled:       advert.Enabled,
+			CreatedAt:     advert.CreatedAt,
+			LastUpdatedAt: advert.LastUpdatedAt,
+		}
+	}
+	return responses
+}
