@@ -59,13 +59,13 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, false)
 	if err != nil {
 		a.logger.Errorf("failed to parse event update request: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
 		a.logger.Warnf("no data provided for event update, event ID: %s", id)
-		localization.SendErrorResponse(w, localization.ErrorNoDataProvidedForUpdate, nil, nil)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
