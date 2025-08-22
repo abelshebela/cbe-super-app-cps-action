@@ -258,7 +258,6 @@ type EventRepository interface {
 
 	FindByID(ctx context.Context, id string) (*model.Event, error)
 	FindByName(ctx context.Context, name string) (*model.Event, error)
-	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Event, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
 }
 

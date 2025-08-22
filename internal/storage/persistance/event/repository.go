@@ -155,22 +155,7 @@ func (e *EventStorage) FindByName(ctx context.Context, name string) (*model.Even
 	return &result, nil
 }
 
-func (e *EventStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Event, error) {
-	filter["is_deleted"] = false
 
-	docs, err := e.dal.FindAll(ctx, filter, projection)
-	if err != nil {
-		e.logger.Errorf("FindAll Event failed", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	var events []*model.Event
-	for _, doc := range docs {
-		event := EventMapper(doc)
-		events = append(events, &event)
-	}
-	return events, nil
-}
 
 func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
 	e.logger.Infof("FindAllWithPagination called with filter: %+v", filterParam)
