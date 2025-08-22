@@ -17,6 +17,7 @@ const (
 	MsgUserDeviceUnlinked        = "Device unlinked successfully"
 	MSGAccountNumberRequired     = "Account Number is required"
 	MSGIncompleteUserInfo        = "Incomplte user info"
+	MSGUserCodeIsRequired        = "User code is required"
 	MsgActionAlreadyExists       = "Action already requested wait for checker approval"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"

@@ -59,6 +59,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
+	ErrorUserCodeRequired,
 	// Add more as needed...
 }
 
@@ -1189,6 +1190,13 @@ var (
 		Code:       "ERROR_INCOMPLET_USER_INFO",
 		StatusCode: StatusBadRequest,
 		Message:    MSGIncompleteUserInfo,
+		Type:       "error",
+	}
+	
+	ErrorUserCodeRequired = ResponseCode{
+		Code:       "ERROR_USER_CODE_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCodeIsRequired,
 		Type:       "error",
 	}
 

@@ -27,7 +27,7 @@ func InitBPSUserMakerHandler(service service.BPSUserService, logger utils.Logger
 func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
-		localization.SendErrorResponse(w,localization.ErrorIncompleteUserInfo, nil, nil)
+		localization.SendErrorResponse(w,localization.ErrorUserCodeRequired, nil, nil)
 		return
 	}
 
@@ -42,13 +42,7 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 }
 
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
-	// filterParams := local_util.ExtractFilterParams(r)
 	filterParams := common_utils.ExtractFilterParams(r)
-	// if filterParams.Page < 0 || filterParams.PerPage < 0 {
-	// 	h.logger.Errorf("GetAllBPSUser request failed Bad filter")
-	// 	localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
-	// 	return
-	// }
 	
 	users, err := h.Service.GetAllBPSUsers(r.Context(), filterParams)
 	if err != nil {
@@ -63,7 +57,7 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
-		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
 		return
 	}
 
@@ -74,13 +68,12 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	localization.SendSuccessResponse(w,localization.SuccessBankDisableRequestSent,map[string]string{})
-	// local_util.BaseResponseMaker(response, w, "User disable request submitted successfully", 200)
 }
 
 func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
-		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
 		return
 	}
 	
@@ -92,5 +85,4 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	localization.SendSuccessResponse(w,localization.SuccessBankEnableRequestSent,map[string]string{})
-	// local_util.BaseResponseMaker(response, w, "User enable request submitted successfully", 200)
 }
