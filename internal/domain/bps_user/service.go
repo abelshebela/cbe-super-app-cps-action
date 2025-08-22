@@ -3,16 +3,16 @@ package bps_user
 import (
 	"context"
 	"encoding/json"
-	"errors"
+
 	"fmt"
 	"time"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	cps_constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+
+	// entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	cps_repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/repository"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -29,9 +29,9 @@ type Service interface {
 	DisableBPSUserRequest(ctx context.Context, request DisableBPSUserRequest) (*cps_entities.CPSAction, error)
 
 	// Authorization methods
-	AuthorizeEnableBPSUser(ctx context.Context, action *entities.CPSAction) (*cps_entities.CPSAction, error)
-	AuthorizeDisableBPSUser(ctx context.Context, action *entities.CPSAction) (*cps_entities.CPSAction, error)
-	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
+	AuthorizeEnableBPSUser(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
+	AuthorizeDisableBPSUser(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
+	Authorize(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error)
 }
 
 type EnableBPSUserRequest struct {
@@ -88,15 +88,6 @@ func (s *ServiceStore) GetAllBPSUsers(ctx context.Context, filterParams *constan
 	return users, nil
 }
 
-func (s *ServiceStore) hasPendingAction(ctx context.Context, requestAction string, department string) (bool, error) {
-	// Check for pending actions using the repository
-	pending, err := s.repository.CheckPendingAction(ctx, requestAction, department)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return false, err
-	}
-	return pending, nil
-}
-
 func (s *ServiceStore) EnableBPSUserRequest(ctx context.Context, request EnableBPSUserRequest) (*cps_entities.CPSAction, error) {
 	// Check if user exists
 	originalUser, err := s.repository.GetBPSUserByUserCode(ctx, request.UserCode)
@@ -104,20 +95,13 @@ func (s *ServiceStore) EnableBPSUserRequest(ctx context.Context, request EnableB
 		s.logger.Errorf("failed to fetch BPS user: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
-	if originalUser.Enabled == true {
+	if originalUser == nil {
+		return nil, fmt.Errorf("USER_NOT_FOUND")
+	}
+	if originalUser.Enabled {
 		return nil, fmt.Errorf("USER_ALREADY_ENABLED")
 	}
 
-	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestEnableBPSUser), request.Department)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	if pending {
-		s.logger.Infof("pending action found for enable BPS user")
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
-	}
-
-	// Create updated user data
 	updatedUser := *originalUser
 	updatedUser.Enabled = true
 
@@ -158,22 +142,14 @@ func (s *ServiceStore) DisableBPSUserRequest(ctx context.Context, request Disabl
 	// Check if user exists
 	originalUser, err := s.repository.GetBPSUserByUserCode(ctx, request.UserCode)
 	if err != nil {
-
 		s.logger.Errorf("failed to fetch BPS user: %v", err)
 		return nil, fmt.Errorf("NOT_FOUND")
 	}
-	if originalUser.Enabled == false {
+	if originalUser == nil {
+		return nil, fmt.Errorf("USER_NOT_FOUND")
+	}
+	if !originalUser.Enabled {
 		return nil, fmt.Errorf("USER_ALREADY_DISABLED")
-	}
-
-	// Check for pending actions
-	pending, err := s.hasPendingAction(ctx, string(cps_constants.RequestDisableBPSUser), request.Department)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, err
-	}
-	if pending {
-		s.logger.Infof("pending action found for disable BPS user")
-		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
 	// Create updated user data
@@ -213,7 +189,7 @@ func (s *ServiceStore) DisableBPSUserRequest(ctx context.Context, request Disabl
 	return createdAction, nil
 }
 
-func (s *ServiceStore) authorizeUpdateBPSUser(ctx context.Context, cpsAction *entities.CPSAction, actionType string) (*entities.CPSAction, error) {
+func (s *ServiceStore) authorizeUpdateBPSUser(ctx context.Context, cpsAction *cps_entities.CPSAction, actionType string) (*cps_entities.CPSAction, error) {
 	type CurrentAction struct {
 		BPSUser BPSUser `json:"bps_user"`
 	}
@@ -244,15 +220,15 @@ func (s *ServiceStore) authorizeUpdateBPSUser(ctx context.Context, cpsAction *en
 	return cpsAction, nil
 }
 
-func (s *ServiceStore) AuthorizeEnableBPSUser(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+func (s *ServiceStore) AuthorizeEnableBPSUser(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 	return s.authorizeUpdateBPSUser(ctx, action, "enable")
 }
 
-func (s *ServiceStore) AuthorizeDisableBPSUser(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+func (s *ServiceStore) AuthorizeDisableBPSUser(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 	return s.authorizeUpdateBPSUser(ctx, action, "disable")
 }
 
-func (s *ServiceStore) Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error) {
+func (s *ServiceStore) Authorize(ctx context.Context, action *cps_entities.CPSAction) (*cps_entities.CPSAction, error) {
 	switch action.RequestAction {
 	case cps_constants.RequestEnableBPSUser:
 		return s.AuthorizeEnableBPSUser(ctx, action)

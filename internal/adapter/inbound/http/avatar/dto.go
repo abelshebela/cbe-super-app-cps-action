@@ -3,8 +3,10 @@ package avatar
 import (
 	"mime/multipart"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -47,6 +49,8 @@ func isImageFormat(fileHeader *multipart.FileHeader) bool {
 }
 
 func (dto AvatarDTO) Validate(isCreate bool) error {
+	dto.Label = strings.TrimSpace(dto.Label)
+
 	if !isCreate && dto.IsEmpty() {
 		return nil
 	}
@@ -55,7 +59,9 @@ func (dto AvatarDTO) Validate(isCreate bool) error {
 
 	if isCreate {
 		rules = []*validation.FieldRules{
-			validation.Field(&dto.Label, validation.Required.Error("label is required")),
+			validation.Field(&dto.Label,
+				validation.By(utils.NoSpecialChars),
+			),
 			validation.Field(&dto.Avatar,
 				validation.Required.Error("avatar image is required"),
 				validation.By(validateAvatarFile),

@@ -7,6 +7,7 @@ import (
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	inappnotification "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/in-app-notification"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -24,15 +25,17 @@ type NotificationService interface {
 
 // Service implements NotificationService
 type Service struct {
-	Repository NotificationRepository
-	logger     shared_utils.Logger
+	Repository                  NotificationRepository
+	InAppNotificationRepository inappnotification.InAppNotificationRepository
+	logger                      shared_utils.Logger
 }
 
 // NewNotificationService creates a new notification service instance
-func NewNotificationService(repository NotificationRepository, logger shared_utils.Logger) NotificationService {
+func NewNotificationService(repository NotificationRepository, inAppNotificationRepository inappnotification.InAppNotificationRepository, logger shared_utils.Logger) NotificationService {
 	return &Service{
-		Repository: repository,
-		logger:     logger,
+		Repository:                  repository,
+		InAppNotificationRepository: inAppNotificationRepository,
+		logger:                      logger,
 	}
 }
 
@@ -177,11 +180,34 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 
 	switch requestedAction {
 	case cps_const.RequestCreateNotification:
-		notification, err = s.Repository.CreateNotification(ctx, notification)
+		err = s.Repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			notification.Status = StatusDelivered
+			notification, err = s.Repository.CreateNotification(ctx, notification)
+			if err != nil {
+				s.logger.Errorf("Failed to create notification in repository", "error", err)
+				return err
+			}
+
+			inAppNotification := inappnotification.InAppNotification{
+				NotificationType: notification.NotificationType,
+				NotificationBody: notification.NotificationBody,
+				IsPublic:         notification.IsPublic,
+				For:              string(notification.For),
+				CreatedBy:        notification.CreatedBy,
+			}
+
+			err = s.InAppNotificationRepository.CreateInAppNotification(ctx, &inAppNotification)
+			if err != nil {
+				s.logger.Errorf("Failed to create in-app notification in repository", "error", err)
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			s.logger.Errorf("Failed to create notification in repository", "error", err)
 			return nil, err
 		}
+
 	case cps_const.RequestUpdateNotification:
 		notification, err = s.Repository.UpdateNotification(ctx, notification)
 		if err != nil {
@@ -189,23 +215,51 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			return nil, err
 		}
 	case cps_const.RequestDeleteNotification:
-		notification, err = s.Repository.DeleteNotification(ctx, notification.ID)
-		if err != nil {
-			s.logger.Errorf("Failed to delete notification in repository", "id", notification.ID, "error", err)
-			return nil, err
-		}
+		err = s.Repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			_, err := s.Repository.DeleteNotification(ctx, notification.ID)
+			if err != nil {
+				s.logger.Errorf("Failed to delete notification in repository", "id", notification.ID, "error", err)
+				return err
+			}
+
+			err = s.InAppNotificationRepository.DeleteInAppNotification(ctx, notification.ID)
+			if err != nil {
+				s.logger.Errorf("Failed to delete in-app notification in repository", "id", notification.ID, "error", err)
+				return err
+			}
+			return nil
+		})
 	case cps_const.RequestEnableNotification:
-		notification, err = s.Repository.EnableDisableNotification(ctx, notification.ID, true)
-		if err != nil {
-			s.logger.Errorf("Failed to enable notification in repository", "id", notification.ID, "error", err)
-			return nil, err
-		}
+		err = s.Repository.RunInTransaction(ctx, func(ctx context.Context) error {
+
+			notification, err = s.Repository.EnableDisableNotification(ctx, notification.ID, true)
+			if err != nil {
+				s.logger.Errorf("Failed to enable notification in repository", "id", notification.ID, "error", err)
+				return err
+			}
+
+			err = s.InAppNotificationRepository.EnableDisableInAppNotification(ctx, notification.ID, true)
+			if err != nil {
+				s.logger.Errorf("Failed to enable in-app notification in repository", "id", notification.ID, "error", err)
+				return err
+			}
+			return nil
+		})
 	case cps_const.RequestDisableNotification:
-		notification, err = s.Repository.EnableDisableNotification(ctx, notification.ID, false)
-		if err != nil {
-			s.logger.Errorf("Failed to disable notification in repository", "id", notification.ID, "error", err)
-			return nil, err
-		}
+		err = s.Repository.RunInTransaction(ctx, func(ctx context.Context) error {
+			notification, err = s.Repository.EnableDisableNotification(ctx, notification.ID, false)
+			if err != nil {
+				s.logger.Errorf("Failed to disable notification in repository", "id", notification.ID, "error", err)
+				return err
+			}
+
+			err = s.InAppNotificationRepository.EnableDisableInAppNotification(ctx, notification.ID, false)
+			if err != nil {
+				s.logger.Errorf("Failed to disable in-app notification in repository", "id", notification.ID, "error", err)
+				return err
+			}
+			return nil
+		})
 	default:
 		s.logger.Errorf("Unsupported action requested", "action", requestedAction)
 		return nil, fmt.Errorf(common_util.ErrUnsupported)

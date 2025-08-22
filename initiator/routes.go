@@ -55,7 +55,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		ad.InitADRoutes(sub, adapter.AdAdapter, authMiddleware, cpsGuard)
 		avatar.InitAvatarRoutes(sub, adapter.AvatarAdapter, authMiddleware, cpsGuard)
 		bank.InitBankRoutes(sub, adapter.BankAdapter, authMiddleware)
-		bps_userhandler.RegisterBPSUserMakerRoutes(sub, adapter.BPSUserAdapter, authMiddleware)
+		bps_userhandler.RegisterBPSUserMakerRoutes(sub, adapter.BPSUserAdapter, authMiddleware, cpsGuard)
 
 		wallet.InitWalletRoutes(sub, adapter.WalletAdapter, authMiddleware, cpsGuard)
 		faydaaccount.InitFaydaRoutes(sub, adapter.FaydaAdapter, authMiddleware)
@@ -71,7 +71,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		passwordrule.RegisterPasswordRuleRoutes(sub, adapter.PasswordRuleAdapter, authMiddleware)
 		portalcard.InitPortalCardRoutes(sub, adapter.PortalCardAdapter, authMiddleware)
 		accountblock_handler.RegisterAccountBlockRoutes(sub, adapter.AccountBlockAdapter, authMiddleware)
-		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware,cpsGuard)
+		hq_handler.InitHQRoutes(sub, adapter.HQAdapter, authMiddleware, cpsGuard)
 		amount_based_auth.InitAmountBasedAuthHandler(sub, adapter.AmountBasedAuth, authMiddleware)
 		miniapp_handler.InitMiniAppHandlerMaker(sub, adapter.MiniAppAdapter, authMiddleware, cpsGuard)
 		eventhandler.InitEventsHandlerMaker(sub, adapter.EventAdapter, authMiddleware, cpsGuard)

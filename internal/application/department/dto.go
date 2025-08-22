@@ -7,9 +7,8 @@ import (
 )
 
 type CreateDepartmentRequest struct {
-	Department       string   `json:"department"`
-	PortalCards      []string `json:"portal_cards"`
-	PermissionGroups []string `json:"permission_groups"`
+	Department  string   `json:"department"`
+	PortalCards []string `json:"portal_cards"`
 }
 
 func (i CreateDepartmentRequest) Validate() error {
@@ -23,32 +22,24 @@ func (i CreateDepartmentRequest) Validate() error {
 			validation.Required.Error("Portal cards are required"),
 			validation.Each(validation.Required.Error("Each portal card must be non-empty")),
 		),
-		validation.Field(
-			&i.PermissionGroups,
-			validation.Required.Error("Permission groups are required"),
-			validation.Each(validation.Required.Error("Each permission group must be non-empty")),
-		),
 	)
 }
 
 type UpdateDepartmentRequest struct {
-	Department       string   `json:"department"`
-	PortalCards      []string `json:"portal_cards"`
-	PermissionGroups []string `json:"permission_groups"`
+	Department  string   `json:"department"`
+	PortalCards []string `json:"portal_cards"`
 }
 
 func (i UpdateDepartmentRequest) Validate() error {
 	return validation.ValidateStruct(&i,
 		validation.Field(&i.Department, validation.When(i.Department != "", validation.Required.Error("Department name must be non-empty when provided"))),
 		validation.Field(&i.PortalCards, validation.When(i.PortalCards != nil, validation.Each(validation.Required.Error("Each portal card must be non-empty when provided")))),
-		validation.Field(&i.PermissionGroups, validation.When(i.PermissionGroups != nil, validation.Each(validation.Required.Error("Each permission group must be non-empty when provided")))),
 	)
 }
 
 type DepartmentUpdateCPSActionRequest struct {
-	Department       string   `json:"department"`
-	PortalCards      []string `json:"portal_cards"`
-	PermissionGroups []string `json:"permission_groups"`
+	Department  string   `json:"department"`
+	PortalCards []string `json:"portal_cards"`
 }
 
 func (req DepartmentUpdateCPSActionRequest) Validate() error {
@@ -60,11 +51,6 @@ func (req DepartmentUpdateCPSActionRequest) Validate() error {
 	}
 	if req.PortalCards != nil {
 		if err := validation.Validate(req.PortalCards, validation.Each(validation.Required)); err != nil {
-			rules = append(rules, err)
-		}
-	}
-	if req.PermissionGroups != nil {
-		if err := validation.Validate(req.PermissionGroups, validation.Each(validation.Required)); err != nil {
 			rules = append(rules, err)
 		}
 	}

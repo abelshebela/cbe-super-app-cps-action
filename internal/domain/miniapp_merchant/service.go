@@ -99,7 +99,6 @@ func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, 
 	if exist {
 		return nil, nil, fmt.Errorf(common_util.InformationAlreadyExistst)
 	}
-
 	now := time.Now()
 	cps := &MiniAppMerchant{
 		ID:                old.ID,

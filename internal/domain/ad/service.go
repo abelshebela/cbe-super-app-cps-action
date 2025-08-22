@@ -11,6 +11,7 @@ import (
 	util_constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // AdvertService defines the interface for advert business logic
@@ -26,7 +27,7 @@ type AdvertService interface {
 
 // Service implements AdvertService
 type Service struct {
-	Repository  ADRepository
+	repository  ADRepository
 	logger      shared.Logger
 	minioClient config.MinioClientInterface
 	bucketName  string
@@ -36,7 +37,7 @@ type Service struct {
 // NewAdvertService creates a new advert service instance
 func NewAdvertService(repository ADRepository, minioClient config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger shared.Logger) AdvertService {
 	return &Service{
-		Repository:  repository,
+		repository:  repository,
 		logger:      logger,
 		minioClient: minioClient,
 		bucketName:  bucketName,
@@ -46,7 +47,15 @@ func NewAdvertService(repository ADRepository, minioClient config.MinioClientInt
 
 // CreateAdvert prepares a new advert without persisting
 func (s *Service) CreateAdvert(ctx context.Context, request AdvertRequest) (*Advert, error) {
-	s.logger.Infof("Creating advert, title: %s", request.Title)
+	existingAd, err := s.repository.GetAdvertByTitle(ctx, request.Title)
+	if err != nil && err != mongo.ErrNoDocuments {
+		s.logger.Errorf("failed to check existing Advert: %v", err)
+		return nil, fmt.Errorf(utils.UnhandledServerError)
+	}
+	if existingAd != nil {
+		s.logger.Errorf("Advert with title %s already exists", request.Title)
+		return nil, fmt.Errorf("ADVERT_TITLE_ALREADY_EXISTS")
+	}
 
 	url, err := utils.UploadFileToMinio(ctx, s.minioClient, s.bucketName, request.BannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
 	if err != nil {
@@ -74,7 +83,7 @@ func (s *Service) CreateAdvert(ctx context.Context, request AdvertRequest) (*Adv
 func (s *Service) UpdateAdvert(ctx context.Context, id string, request AdvertRequest) (*Advert, *Advert, error) {
 	s.logger.Infof("Updating advert, id: %s", id)
 
-	prevAdvert, err := s.Repository.FetchAdvertByID(ctx, id)
+	prevAdvert, err := s.repository.FetchAdvertByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch advert, id: %s, error: %v", id, err)
 		return nil, nil, err
@@ -110,7 +119,7 @@ func (s *Service) UpdateAdvert(ctx context.Context, id string, request AdvertReq
 func (s *Service) DeleteAdvert(ctx context.Context, id string) (*Advert, *Advert, error) {
 	s.logger.Infof("Deleting advert, id: %s", id)
 
-	prevAdvert, err := s.Repository.FetchAdvertByID(ctx, id)
+	prevAdvert, err := s.repository.FetchAdvertByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch advert, id: %s, error: %v", id, err)
 		return nil, nil, err
@@ -129,7 +138,7 @@ func (s *Service) DeleteAdvert(ctx context.Context, id string) (*Advert, *Advert
 func (s *Service) EnableDisableAdvert(ctx context.Context, id string, enable bool) (*Advert, *Advert, error) {
 	s.logger.Infof("EnableDisable advert, id: %s, enable: %v", id, enable)
 
-	prevAdvert, err := s.Repository.FetchAdvertByID(ctx, id)
+	prevAdvert, err := s.repository.FetchAdvertByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch advert, id: %s, error: %v", id, err)
 		return nil, nil, err
@@ -166,15 +175,15 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 	var err error
 	switch action.RequestAction {
 	case constant.RequestCreateAdvert:
-		advert, err = s.Repository.CreateAdvert(ctx, advert)
+		advert, err = s.repository.CreateAdvert(ctx, advert)
 	case constant.RequestUpdateAdvert:
-		advert, err = s.Repository.UpdateAdvert(ctx, advert)
+		advert, err = s.repository.UpdateAdvert(ctx, advert)
 	case constant.RequestDeleteAdvert:
-		advert, err = s.Repository.DeleteAdvert(ctx, advert.ID)
+		advert, err = s.repository.DeleteAdvert(ctx, advert.ID)
 	case constant.RequestEnableAdvert:
-		advert, err = s.Repository.EnableDisableAdvert(ctx, advert.ID, true)
+		advert, err = s.repository.EnableDisableAdvert(ctx, advert.ID, true)
 	case constant.RequestDisableAdvert:
-		advert, err = s.Repository.EnableDisableAdvert(ctx, advert.ID, false)
+		advert, err = s.repository.EnableDisableAdvert(ctx, advert.ID, false)
 	default:
 		s.logger.Errorf("Unsupported action requested, action: %s", action.RequestAction)
 		return nil, fmt.Errorf(utils.ErrUnsupported)
@@ -193,11 +202,11 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 // FetchAdvertByID fetches an advert by ID
 func (s *Service) FetchAdvertByID(ctx context.Context, id string) (*Advert, error) {
 	s.logger.Infof("Fetching advert by ID, id: %s", id)
-	return s.Repository.FetchAdvertByID(ctx, id)
+	return s.repository.FetchAdvertByID(ctx, id)
 }
 
 // FetchAdverts fetches adverts with pagination and filtering
 func (s *Service) FetchAdverts(ctx context.Context, filterParam *util_constant.Filter) (*utils.PaginatedResponse[[]*Advert], error) {
 	s.logger.Infof("Fetching adverts with filter, filter: %v", filterParam)
-	return s.Repository.FetchAdverts(ctx, filterParam)
+	return s.repository.FetchAdverts(ctx, filterParam)
 }
