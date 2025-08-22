@@ -97,11 +97,24 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
 		message.Topic, message.Partition, message.Offset)
 
-	// Parse the Kafka message
+	// Parse the Kafka message wrapper first
+	var kafkaMsg entity.KafkaMessage
+	if err := json.Unmarshal(message.Value, &kafkaMsg); err != nil {
+		fc.logger.Errorf("Failed to unmarshal Kafka message wrapper: %v", err)
+		return fmt.Errorf("invalid message wrapper format: %w", err)
+	}
+
+	// Validate the message type
+	if kafkaMsg.Type != "feedback" {
+		fc.logger.Errorf("Unexpected message type: %s, expected: feedback", kafkaMsg.Type)
+		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
+	}
+
+	// Parse the payload into FeedbackKafkaMessage
 	var feedbackMsg entity.FeedbackKafkaMessage
-	if err := json.Unmarshal(message.Value, &feedbackMsg); err != nil {
-		fc.logger.Errorf("Failed to unmarshal feedback message: %v", err)
-		return fmt.Errorf("invalid message format: %w", err)
+	if err := json.Unmarshal(kafkaMsg.Payload, &feedbackMsg); err != nil {
+		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
+		return fmt.Errorf("invalid feedback payload format: %w", err)
 	}
 
 	// Validate the message

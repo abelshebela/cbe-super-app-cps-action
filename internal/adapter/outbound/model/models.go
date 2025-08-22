@@ -387,19 +387,32 @@ const (
 	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
 	RequestUnlinkUser               RequestAction = "UNLINK_USER"
 	RequestBlockRegion              RequestAction = "BLOCK_REGION"
-	RequestEnableRegion             RequestAction = "ENABLE_REGION"
 	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
-	RequestEnableDistrict           RequestAction = "ENABLE_DISTRICT"
 	RequestBlockCity                RequestAction = "BLOCK_CITY"
-	RequestEnableCity               RequestAction = "ENABLE_CITY"
 	RequestBlockUser                RequestAction = "BLOCK_USER"
-	RequestBulkServiceEnable        RequestAction = "ENABLE_BULK_SERVICE"
-	RequestBulkServiceDisable       RequestAction = "DISABLE_BULK_SERVICE"
+	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 
-	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
-	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
-	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
-	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+	// Newly added for block_account
+	// Branch
+	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
+
+	// Region
+	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
+	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+
+	// District
+	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
+	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+
+	// City
+	RequestEnableCity         RequestAction = "REQUEST_ENABLE_CITY"
+	RequestDisableCity        RequestAction = "REQUEST_DISABLE_CITY"
+	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
 )
 
 type RegistrationType string
@@ -554,30 +567,30 @@ type Card struct {
 }
 
 type CPSUser struct {
-	ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
-	UserCode           string          `json:"user_code,omitempty" bson:"user_code,omitempty"`
-	FullName           string          `json:"full_name,omitempty" bson:"full_name,omitempty"`
-	Role               string          `json:"role,omitempty" bson:"role,omitempty"`
-	Department         bson.ObjectID   `json:"department,omitempty" bson:"department,omitempty"`
-	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
-	PhoneNumber        string          `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
-	Email              string          `json:"email,omitempty" bson:"email,omitempty"`
-	UserName           string          `json:"username,omitempty" bson:"username,omitempty"`
-	Realm              string          `json:"realm,omitempty" bson:"realm,omitempty"`
-	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
-	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group,omitempty"`
+	ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id"`
+	UserCode           string          `json:"user_code,omitempty" bson:"user_code"`
+	FullName           string          `json:"full_name,omitempty" bson:"full_name"`
+	Role               string          `json:"role,omitempty" bson:"role"`
+	Department         bson.ObjectID   `json:"department,omitempty" bson:"department"`
+	Gender             string          `json:"gender,omitempty" bson:"gender"`
+	PhoneNumber        string          `json:"phone_number,omitempty" bson:"phone_number"`
+	Email              string          `json:"email,omitempty" bson:"email"`
+	UserName           string          `json:"username,omitempty" bson:"username"`
+	Realm              string          `json:"realm,omitempty" bson:"realm"`
+	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group"`
 
-	Password                 Password  `json:"password" bson:"password,omitempty"`
-	PasswordDisable          bool      `json:"password_disable,omitempty" bson:"password_disable,omitempty"`
-	SyncDisabled             bool      `json:"sync_disabled,omitempty" bson:"sync_disabled,omitempty"`
-	LoginAttemptCount        uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`
-	LastLoginAttempt         time.Time `json:"last_login_attempt,omitempty" bson:"last_login_attempt,omitempty"`
-	NextLoginAttempt         time.Time `json:"next_login_attempt,omitempty" bson:"next_login_attempt,omitempty"`
-	LastOnlineDate           time.Time `json:"last_online_date,omitempty" bson:"last_online_date,omitempty"`
-	LastLogin                time.Time `json:"last_login,omitempty" bson:"last_login,omitempty"`
-	LoginPassword            string    `json:"login_password,omitempty" bson:"login_password,omitempty"`
-	AccountAuthorizationCode string    `json:"account_authorization_code,omitempty" bson:"account_authorization_code,omitempty"`
-	UnlockAccountRequested   bool      `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested,omitempty"`
+	Password                 Password  `json:"password" bson:"password"`
+	PasswordDisable          bool      `json:"password_disable,omitempty" bson:"password_disable"`
+	SyncDisabled             bool      `json:"sync_disabled,omitempty" bson:"sync_disabled"`
+	LoginAttemptCount        uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count"`
+	LastLoginAttempt         time.Time `json:"last_login_attempt,omitempty" bson:"last_login_attempt"`
+	NextLoginAttempt         time.Time `json:"next_login_attempt,omitempty" bson:"next_login_attempt"`
+	LastOnlineDate           time.Time `json:"last_online_date,omitempty" bson:"last_online_date"`
+	LastLogin                time.Time `json:"last_login,omitempty" bson:"last_login"`
+	LoginPassword            string    `json:"login_password,omitempty" bson:"login_password"`
+	AccountAuthorizationCode string    `json:"account_authorization_code,omitempty" bson:"account_authorization_code"`
+	UnlockAccountRequested   bool      `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested"`
 
 	PasswordChangedAt *time.Time `json:"password_changed_at,omitempty" bson:"password_changed_at"`
 	OTPStatus         string     `json:"otp_status,omitempty" bson:"otp_status"`
@@ -590,8 +603,8 @@ type CPSUser struct {
 	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined"`
 	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified"`
 
-	Country string `json:"country,omitempty" bson:"country,omitempty"`
-	Region  string `json:"region,omitempty" bson:"region,omitempty"`
+	Country string `json:"country,omitempty" bson:"country"`
+	Region  string `json:"region,omitempty" bson:"region"`
 }
 type Password struct {
 	Salt             string    `json:"salt" bson:"salt"`

@@ -1,6 +1,5 @@
 package miniappmerchant
 
-
 type MiniAppMerchantRequest struct {
 	Type                       string
 	MerchantName               string

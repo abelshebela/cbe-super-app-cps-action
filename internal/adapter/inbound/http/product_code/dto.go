@@ -1,7 +1,11 @@
 package productcode
 
 import (
+	"strings"
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 // ProductCodes represents the codes for a product in DTOs
@@ -30,9 +34,45 @@ type ProductCodeRequest struct {
 	CBEIFBProductCodes ProductCodes `json:"cbe_ifb_product_codes" form:"cbe_ifb_product_codes"`
 }
 
-// isEmpty checks if the ProductCodeRequest is empty, excluding TRXN fields
-func (u ProductCodeRequest) isEmpty() bool {
-	return u.ProductName == "" &&
-		u.CBEProductCodes.PRD == "" && u.CBEProductCodes.VATPRD == "" && u.CBEProductCodes.SFPRD == "" &&
-		u.CBEIFBProductCodes.PRD == "" && u.CBEIFBProductCodes.VATPRD == "" && u.CBEIFBProductCodes.SFPRD == ""
+func (pc ProductCodes) validate() error {
+	pc.PRD = strings.TrimSpace(pc.PRD)
+	pc.VATPRD = strings.TrimSpace(pc.VATPRD)
+	pc.SFPRD = strings.TrimSpace(pc.SFPRD)
+
+	return validation.ValidateStruct(&pc,
+		validation.Field(&pc.PRD,
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&pc.VATPRD,
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&pc.SFPRD,
+			validation.By(utils.NoSpecialChars),
+		),
+	)
+}
+
+func (u ProductCodeRequest) validate() error {
+	u.ProductName = strings.TrimSpace(u.ProductName)
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.ProductName,
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&u.CBEProductCodes,
+			validation.By(func(value interface{}) error {
+				if pc, ok := value.(ProductCodes); ok {
+					return pc.validate()
+				}
+				return nil
+			}),
+		),
+		validation.Field(&u.CBEIFBProductCodes,
+			validation.By(func(value interface{}) error {
+				if pc, ok := value.(ProductCodes); ok {
+					return pc.validate()
+				}
+				return nil
+			}),
+		),
+	)
 }

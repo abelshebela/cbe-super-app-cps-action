@@ -61,7 +61,6 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 			return nil, fmt.Errorf("failed to unmarshal CurrentAction: %w", err)
 		}
 	}
-
 	return &model.CPSAction{
 		ID:                 objID,
 		ActionCode:         domainAction.ActionCode,
@@ -85,7 +84,6 @@ func DomainToModelCPSAction(domainAction domain.CPSAction) (*model.CPSAction, er
 		CheckerActionTime:  domainAction.CheckerActionTime,
 	}, nil
 }
-
 
 // BSONToMap recursively converts BSON types to map[string]interface{} or slices.
 func BSONToMap(i any) any {

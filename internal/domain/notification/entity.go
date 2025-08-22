@@ -5,9 +5,10 @@ import "time"
 type NotificationStatus string
 
 const (
-	StatusPending NotificationStatus = "PENDING"
-	StatusSent    NotificationStatus = "SENT"
-	StatusSeen    NotificationStatus = "SEEN"
+	StatusPending   NotificationStatus = "PENDING"
+	StatusDelivered NotificationStatus = "DELIVERED"
+	StatusSeen      NotificationStatus = "SEEN"
+	StatusFailed    NotificationStatus = "FAILED"
 )
 
 type NotificationFor string

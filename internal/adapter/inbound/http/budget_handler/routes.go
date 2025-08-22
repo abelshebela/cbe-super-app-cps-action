@@ -59,7 +59,7 @@ func InitBudgetRoutes(router chi.Router, budgetHandler inbound.BudgetPortHandler
 					authMiddleware.AccessControl([]string{role.Maker, role.Checker}),
 				},
 			},
-			
+
 			{
 				Method:  http.MethodPut,
 				Path:    "/colors/{id}",

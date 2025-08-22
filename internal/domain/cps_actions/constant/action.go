@@ -98,6 +98,7 @@ const (
 	RequestUpdateAccessConfig       RequestAction = "UPDATE_ACCESS_CONFIG"
 	RequestEnableSingleBranch       RequestAction = "ENABLE_SINGLE_BRANCH"
 	RequestDisableSingleBranch      RequestAction = "DISABLE_SINGLE_BRANCH"
+	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
 	RequestEnableMultiUsers         RequestAction = "ENABLE_MULTI_USERS"
 	RequestDisableMultiUsers        RequestAction = "DISABLE_MULTI_USERS"
 	RequestCreateBusiness           RequestAction = "CREATE_BUSINESS"
@@ -108,21 +109,37 @@ const (
 	RequestEnableEvent              RequestAction = "ENABLE_EVENT"
 	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
 
-	RequestCreateEventCategory RequestAction = "CREATE_EVENT_CATEGORY"
-	RequestUpdateEventCategory RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestUpdateBlockTime RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar    RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar    RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar    RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar   RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar    RequestAction = "UPDATE_AVATAR"
+	RequestBlockRegion     RequestAction = "BLOCK_REGION"
+	// RequestEnableRegion          RequestAction = "ENABLE_REGION"
+	RequestBlockDistrict RequestAction = "BLOCK_DISTRICT"
+	// RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
+	// RequestEnableCity            RequestAction = "ENABLE_CITY"
+	RequestBlockCity RequestAction = "BLOCK_CITY"
 
-	RequestUpdateBlockTime       RequestAction = "UPDATE_BLOCK_TIME"
-	RequestCreateAvatar          RequestAction = "CREATE_AVATAR"
-	RequestDeleteAvatar          RequestAction = "DELETE_AVATAR"
-	RequestEnableAvatar          RequestAction = "ENABLE_AVATAR"
-	RequestDisableAvatar         RequestAction = "DISABLE_AVATAR"
-	RequestUpdateAvatar          RequestAction = "UPDATE_AVATAR"
-	RequestBlockRegion           RequestAction = "BLOCK_REGION"
-	RequestEnableRegion          RequestAction = "ENABLE_REGION"
-	RequestBlockDistrict         RequestAction = "BLOCK_DISTRICT"
-	RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
-	RequestEnableCity            RequestAction = "ENABLE_CITY"
-	RequestBlockCity             RequestAction = "BLOCK_CITY"
+	// Branch
+	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
+
+	// Region
+	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
+	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+
+	// District
+	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
+	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+
+	// City
+	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
+	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
+
+	RequestCreateEventCategory   RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory   RequestAction = "UPDATE_EVENT_CATEGORY"
 	RequestBlockUser             RequestAction = "BLOCK_USER"
 	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
 	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
@@ -131,17 +148,16 @@ const (
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
-	RequestAccountUpdate          RequestAction = "REQUEST_ACCOUNT_UPDATE"
-	RequestCreatePermissionGroup  RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup  RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup  RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestCreateBudgetCategory   RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory   RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
-	RequestUnlinkUser             RequestAction = "UNLINK_USER"
-	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime    RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestAccountUpdate         RequestAction = "REQUEST_ACCOUNT_UPDATE"
+	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestUnlinkDevice          RequestAction = "UNLINK_DEVICE"
+	RequestUnlinkUser            RequestAction = "UNLINK_USER"
+
 	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
 	RequestUpdateMiniAppMerchant  RequestAction = "UPDATE_MINI_APP_MERCHANT"
 	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
@@ -175,21 +191,34 @@ const (
 	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
 	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
 	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
+	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation         RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestAccountUpdate:         {},
-	RequestDeleteAmountBasedAuth: {},
-	RequestCreateAmountBasedAuth: {},
-	RequestUpdateAmountBasedAuth: {},
-	RequestUser:                  {},
+	RequestCreateDonationCategory: {},
+	RequestUpdateDonationCategory: {},
+	RequestCreateDonationCompany:  {},
+	RequestUpdateDonationCompany:  {},
+	RequestCreateDonation:         {},
+	RequestUpdateDonation:         {},
+	RequestAccountUpdate:          {},
+	RequestDeleteAmountBasedAuth:  {},
+	RequestCreateAmountBasedAuth:  {},
+	RequestUpdateAmountBasedAuth:  {},
+	RequestUser:                   {},
 
-	RequestCreateBudgetColor: {},
-	RequestUpdateBudgetColor: {},
-	RequestDeleteBudgetColor: {},
-	RequestCreateBudgetIcon:  {},
-	RequestUpdateBudgetIcon:  {},
-	RequestDeleteBudgetIcon:  {},
+	RequestUpdateAccountValidation: {},
+	RequestCreateBudgetColor:       {},
+	RequestUpdateBudgetColor:       {},
+	RequestDeleteBudgetColor:       {},
+	RequestCreateBudgetIcon:        {},
+	RequestUpdateBudgetIcon:        {},
+	RequestDeleteBudgetIcon:        {},
 
 	RequestCpsUserCreate:            {},
 	RequestCpsUserUpdate:            {},
@@ -308,6 +337,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"Account": {
 		RequestUser,
+		RequestUpdateAccountValidation,
 		RequestEnableUser,
 		RequestDisableUser,
 		RequestUpdateUser,
@@ -400,9 +430,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniAppMerchant,
 		RequestDisableMiniAppMerchant,
 	},
-	"BlockTime": {
-		RequestUpdateBlockTime,
-	},
 	"Password": {
 
 		RequestUpdatePasswordRule,
@@ -468,6 +495,22 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableDistrict,
 		RequestBlockCity,
 		RequestEnableCity,
+
+		// Branch
+		RequestEnableBranches,
+		RequestDisableBranches,
+
+		// Region
+		RequestEnableRegion,
+		RequestDisableRegion,
+
+		// District
+		RequestEnableDistrict,
+		RequestDisableDistrict,
+
+		// City
+		RequestEnableCity,
+		RequestDisableCity,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),
@@ -479,8 +522,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUnlinkUser,
 	},
 	"HQ": {
-		RequestUpdateHQBlockTime,
-		RequestUpdateHQArchiveTime,
+		RequestUpdateBlockTime,
+		RequestUpdateArchiveExpiry,
 		RequestUpdatePasswordExpiry,
 	},
 	"Fayda": {
@@ -515,6 +558,14 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"ProductCode": {
 		RequestUpdateProductCode,
+	},
+	"Donation": {
+		RequestCreateDonationCategory,
+		RequestUpdateDonationCategory,
+		RequestCreateDonationCompany,
+		RequestUpdateDonationCompany,
+		RequestCreateDonation,
+		RequestUpdateDonation,
 	},
 }
 

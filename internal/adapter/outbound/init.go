@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -888,16 +889,6 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
-	prevFilter := bson.M{
-		"unique_id":  cpsAction.UniqueId,
-		"maker_id":   cpsAction.MakerID,
-		"maker_name": cpsAction.MakerName,
-	}
-	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, bson.M{})
-	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviousAction = previosCPSAction.CurrentAction
-	}
-
 	createdAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
 		return nil, fmt.Errorf("DATABASE_CREATE_FAILED")
@@ -906,6 +897,15 @@ func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.C
 	return &createdAction, nil
 }
 
+func removeField(fields []string, target string) []string {
+	result := []string{}
+	for _, f := range fields {
+		if f != target {
+			result = append(result, f)
+		}
+	}
+	return result
+}
 func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.CPSAction, userCode string) (*model.CPSAction, error) {
 	projection := bson.M{}
 
@@ -934,14 +934,13 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		"user_code":  userCode,
 		"is_deleted": false,
 	}
-	_, err = o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
+	existingUser, err := o.MongoDalCPSUser.FindOne(ctx, cpsUserFilter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
 		}
 		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 	}
-	fmt.Println(data.PhoneNumber)
 	duplicateFilter := bson.M{
 		"$and": []bson.M{
 			{"user_code": bson.M{"$ne": userCode}},
@@ -971,15 +970,49 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		}
 	}
 
-	prevFilter := bson.M{
-		"unique_id":  cpsAction.UniqueId,
-		"maker_id":   cpsAction.MakerID,
-		"maker_name": cpsAction.MakerName,
+	// Check if the incomming data has any changes compared to the existing user
+	existingBytes, err := json.Marshal(existingUser)
+	if err != nil {
+		return nil, fmt.Errorf("FAILED_TO_MARSHAL_EXISTING_USER")
 	}
-	previosCPSAction, err := o.MongoDalCPSAction.FindRecentDocument(ctx, prevFilter, projection)
-	if err == nil && previosCPSAction != nil {
-		cpsAction.PreviousAction = previosCPSAction.CurrentAction
+	var existingMap map[string]interface{}
+	if err := json.Unmarshal(existingBytes, &existingMap); err != nil {
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_EXISTING_USER")
 	}
+
+	// Convert incoming user to map
+	incomingBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("FAILED_TO_MARSHAL_INCOMING_USER")
+	}
+	var incomingMap map[string]interface{}
+	if err := json.Unmarshal(incomingBytes, &incomingMap); err != nil {
+		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_INCOMING_USER")
+	}
+
+	// Compare
+	changedFields := bson.M{}
+	unchangedFields := []string{}
+
+	for key, newVal := range incomingMap {
+		oldVal, exists := existingMap[key]
+		if !exists || !reflect.DeepEqual(oldVal, newVal) {
+			changedFields[key] = newVal
+		} else {
+			unchangedFields = append(unchangedFields, key)
+		}
+	}
+	unchangedFields = removeField(unchangedFields, "id")
+	unchangedFields = removeField(unchangedFields, "user_code")
+	unchangedFields = removeField(unchangedFields, "permission_category")
+	unchangedFields = removeField(unchangedFields, "permission_groups")
+
+	if len(unchangedFields) > 0 {
+		return nil, fmt.Errorf("NO_CHANGES: the following fields are unchanged. Remove from the payload and try again: %v", unchangedFields)
+	}
+
+	cpsAction.UniqueId = existingUser.UserCode
+	cpsAction.PreviousAction = existingUser
 
 	updatedAction, err := o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -990,10 +1023,10 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 }
 
 func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, cpsAction model.CPSAction) (*model.CPSAction, error) {
-	filter := bson.M{"user_code": userCode}
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
 
 	// Check if the user exists
-	_, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	existingUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
@@ -1018,6 +1051,9 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
+	cpsAction.UniqueId = existingUser.UserCode
+	cpsAction.PreviousAction = existingUser
+
 	// If user exists, create a CPS action for deletion
 	cpsAction, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -1028,17 +1064,6 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 }
 
 func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, cpsAction model.CPSAction, requestActionType model.RequestAction) error {
-	filter := bson.M{"user_code": userCode}
-
-	// Check if the user exists
-	_, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return fmt.Errorf("CPS_USER_NOT_FOUND")
-		}
-		return fmt.Errorf("database error while finding user")
-	}
-
 	// Check if there is a pending action
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
@@ -1056,6 +1081,30 @@ func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, 
 		return fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
+	var boolStatus bool
+	switch strings.ToUpper(cpsAction.ActionType) {
+	case "ENABLE":
+		boolStatus = true
+	case "DISABLE":
+		boolStatus = false
+	}
+
+	filter := bson.M{"user_code": userCode}
+	// Check if the user exists, and check if duplication action trying to create
+	user, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("CPS_USER_NOT_FOUND")
+		}
+		return fmt.Errorf("database error while finding user")
+	}
+
+	if user.Enabled == boolStatus {
+		return fmt.Errorf("DUPLICATE_ACTION")
+	}
+
+	cpsAction.UniqueId = user.UserCode
+
 	// Create the CPS action
 	_, err = o.MongoDalCPSAction.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -1065,189 +1114,6 @@ func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, 
 	return nil
 }
 
-func (o *outboundStore) ApproveUserAction(ctx context.Context, actionCode string, cpsAction model.CPSAction) (*model.CPSAction, error) {
-	// Find the CPS action
-	filter := bson.M{"action_code": actionCode}
-	projection := bson.M{}
-
-	cps_action, err := o.MongoDalCPSAction.FindOne(ctx, filter, projection)
-	if err != nil && err == mongo.ErrNoDocuments {
-		return nil, fmt.Errorf("CPS action not found")
-	} else if err != nil {
-		return nil, fmt.Errorf("database error while finding CPS action")
-	}
-
-	if cps_action.ActionStatus == string(model.ActionApproved) {
-		return nil, fmt.Errorf("ACTION_HAS_ALREADY_APPROVED")
-	} else if cps_action.ActionStatus == string(model.ActionRejected) {
-		return nil, fmt.Errorf("ACTION_HAS_ALREADY_REJECTED")
-	}
-
-	now := time.Now()
-
-	// Update it
-	cps_action.CheckerID = cpsAction.CheckerID
-	cps_action.CheckerName = cpsAction.CheckerName
-	cps_action.CheckerPhoneNumber = cpsAction.CheckerPhoneNumber
-	cps_action.Department = cpsAction.Department
-	cps_action.ActionStatus = cpsAction.ActionStatus
-	cps_action.RejectionReason = cpsAction.RejectionReason
-	cps_action.LastModifiedAt = time.Now()
-	cps_action.CheckerActionTime = &now
-
-	// Conver the struct to bson.M
-	updateBytes, err := bson.Marshal(cps_action)
-	if err != nil {
-		return nil, err
-	}
-
-	var updateData bson.M
-	if err := bson.Unmarshal(updateBytes, &updateData); err != nil {
-		return nil, err
-	}
-
-	// Apply the update
-	updatedCPSAction, err := o.MongoDalCPSAction.UpdateOne(ctx, filter, updateData)
-	if err != nil {
-		return nil, err
-	}
-
-	// If cps action is rejected, return early
-	if updatedCPSAction.ActionStatus == string(model.ActionRejected) {
-		return nil, nil
-	}
-
-	// Update the users data
-	data, err := json.Marshal(updatedCPSAction.CurrentAction)
-	if err != nil {
-		return nil, err
-	}
-
-	var dataMap map[string]interface{}
-	if err := json.Unmarshal(data, &dataMap); err != nil {
-		return nil, err
-	}
-
-	userCode, _ := dataMap["user_code"].(string)
-	userName, _ := dataMap["username"].(string)
-	fullName, _ := dataMap["full_name"].(string)
-	phoneNumber, _ := dataMap["phone_number"].(string)
-	role, _ := dataMap["role"].(string)
-	gender, _ := dataMap["gender"].(string)
-	email, _ := dataMap["email"].(string)
-	realm, _ := dataMap["realm"].(string)
-	country, _ := dataMap["country"].(string)
-	region, _ := dataMap["region"].(string)
-	deptStr, ok := dataMap["department"].(string)
-	if !ok {
-		return nil, fmt.Errorf("invalid or missing department")
-	}
-	department, err := bson.ObjectIDFromHex(deptStr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert string slices to []bson.ObjectID
-	var permissionCategory []bson.ObjectID
-	if raw, ok := dataMap["permission_category"]; ok {
-		if arr, ok := raw.([]interface{}); ok {
-			for _, v := range arr {
-				str, ok := v.(string)
-				if !ok {
-					return nil, fmt.Errorf("permission_category element is not a string")
-				}
-				id, err := bson.ObjectIDFromHex(str)
-				if err != nil {
-					return nil, err
-				}
-				permissionCategory = append(permissionCategory, id)
-			}
-		}
-	}
-
-	var permissionGroups []bson.ObjectID
-	if raw, ok := dataMap["permissiongroups"]; ok {
-		if arr, ok := raw.([]interface{}); ok {
-			for _, v := range arr {
-				str, ok := v.(string)
-				if !ok {
-					return nil, fmt.Errorf("permissiongroups element is not a string")
-				}
-				id, err := bson.ObjectIDFromHex(str)
-				if err != nil {
-					return nil, err
-				}
-				permissionGroups = append(permissionGroups, id)
-			}
-		}
-	}
-
-	// Creating a new user
-	now = time.Now()
-
-	newUser := model.CPSUser{}
-	newUser.ID = bson.NewObjectID()
-	newUser.UserCode = userCode
-	newUser.UserName = userName
-	newUser.FullName = fullName
-	newUser.Gender = gender
-	newUser.Email = email
-	newUser.Realm = realm
-	newUser.PhoneNumber = phoneNumber
-	newUser.Role = role
-	newUser.Department = department
-	newUser.Country = country
-	newUser.Region = region
-	newUser.PermissionCategory = permissionCategory
-	newUser.PermissionGroup = permissionGroups
-	newUser.PasswordDisable = false
-	newUser.SyncDisabled = false
-	newUser.LoginAttemptCount = 0
-	newUser.LastLoginAttempt = time.Now()
-	newUser.NextLoginAttempt = time.Now()
-	newUser.LastOnlineDate = time.Now()
-	newUser.LastLogin = time.Now()
-	newUser.LoginPassword = ""
-	newUser.AccountAuthorizationCode = ""
-	newUser.UnlockAccountRequested = false
-	newUser.PasswordChangedAt = nil
-	newUser.OTPStatus = ""
-	newUser.OTPLastTriedAt = nil
-	newUser.OTPVerifyCount = 0
-	newUser.Enabled = true
-	newUser.IsDeleted = false
-	newUser.DateJoined = &now
-
-	filterUser := bson.M{"user_code": userCode}
-
-	// If the action type is "CREATE", create a new user, else if it is "UPDATE" update the exsting user
-	if updatedCPSAction.ActionType == string(model.ActionCreate) {
-		_, err := o.MongoDalCPSUser.InsertOne(ctx, newUser)
-		if err != nil {
-			return nil, err
-		}
-
-	} else if updatedCPSAction.ActionType == string(model.ActionUpdate) {
-		// Convert data (*model.CPSUser) to bson.M for update
-		updateBytes, err := bson.Marshal(data)
-		if err != nil {
-			return nil, err
-		}
-		var updateDoc bson.M
-		if err := bson.Unmarshal(updateBytes, &updateDoc); err != nil {
-			return nil, err
-		}
-
-		// Update the user document
-		_, err = o.MongoDalCPSUser.UpdateOne(ctx, filterUser, bson.M{"$set": updateDoc})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &updatedCPSAction, nil
-}
-
 func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_entity.CPSAction) (*cps_entity.CPSAction, error) {
 	// Unmarshal the CurrentAction to a model.CPSUser
 	data, err := common_util.JsonUnmarshal[model.CPSUser](action.CurrentAction)
@@ -1255,11 +1121,7 @@ func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_ent
 		return nil, err
 	}
 
-	// Add filds to the User collection
 	now := time.Now()
-	data.Country = ""
-	data.Region = ""
-	data.Enabled = true
 	data.Realm = "BANK"
 	data.PasswordDisable = true
 	data.SyncDisabled = false
@@ -1267,15 +1129,10 @@ func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_ent
 	data.NextLoginAttempt = time.Now()
 	data.LastLoginAttempt = time.Now()
 	data.LastLogin = time.Now()
-	data.LoginPassword = ""
-	data.AccountAuthorizationCode = ""
 	data.UnlockAccountRequested = false
 	data.PasswordChangedAt = nil
-	data.OTPStatus = ""
 	data.OTPLastTriedAt = nil
 	data.OTPVerifyCount = 0
-	data.Enabled = true
-	data.IsDeleted = false
 	data.DateJoined = &now
 	data.LastModified = &now
 
@@ -1295,23 +1152,43 @@ func (o *outboundStore) AuthorizeUserUpdate(ctx context.Context, action *cps_ent
 		return nil, err
 	}
 
-	// Find the user by user_code
 	filter := bson.M{"user_code": data.UserCode}
 
 	now := time.Now()
 	data.LastModified = &now
 
-	// Update the user document
-	updateBytes, err := bson.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-	var updateDoc bson.M
-	if err := bson.Unmarshal(updateBytes, &updateDoc); err != nil {
-		return nil, err
-	}
+	setFields := bson.M{}
 
-	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, updateDoc)
+	if data.FullName != "" {
+		setFields["full_name"] = data.FullName
+	}
+	if data.UserName != "" {
+		setFields["username"] = data.UserName
+	}
+	if !data.Department.IsZero() {
+		setFields["department"] = data.Department
+	}
+	if data.PhoneNumber != "" {
+		setFields["phone_number"] = data.PhoneNumber
+	}
+	if data.Role != "" {
+		setFields["role"] = data.Role
+	}
+	if data.Gender != "" {
+		setFields["gender"] = data.Gender
+	}
+	if data.Email != "" {
+		setFields["email"] = data.Email
+	}
+	if len(data.PermissionCategory) > 0 {
+		setFields["permission_category"] = data.PermissionCategory
+	}
+	if len(data.PermissionGroup) > 0 {
+		setFields["permission_group"] = data.PermissionGroup
+	}
+	setFields["last_modified"] = now
+
+	_, err = o.MongoDalCPSUser.UpdateOne(ctx, filter, setFields)
 	if err != nil {
 		return nil, err
 	}
@@ -1394,32 +1271,8 @@ func (o *outboundStore) GetDepartmentByID(ctx context.Context, id string) (*dep_
 	return department, nil
 }
 
-func (o *outboundStore) GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error) {
-	filter := bson.M{
-		"action_status":  model.ActionPending,
-		"request_action": bson.M{"$in": []string{string(model.RequestUser), string(model.RequestUpdateUser)}},
-	}
-	projection := bson.M{}
-
-	data, err := o.MongoDalCPSAction.FindAll(ctx, filter, projection)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert []*model.CPSAction to []model.CPSAction
-	result := make([]model.CPSAction, 0, len(data))
-	for _, d := range data {
-		if d != nil {
-			result = append(result, *d)
-
-		}
-	}
-
-	return result, nil
-}
-
 func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.CPSUserDTO, error) {
-	filter := bson.M{"user_code": userCode}
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	modelUser, err := o.MongoDalCPSUser.FindOne(ctx, filter, nil)
 	if err != nil && modelUser == nil {
 		return nil, fmt.Errorf("CPS_USER_NOT_FOUND")
@@ -1429,11 +1282,10 @@ func (o *outboundStore) FetchUserByUserCode(ctx context.Context, userCode string
 	return &safeUser, nil
 }
 
-func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
-	filter := bson.M{
-		"is_deleted": false,
+func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.CPSUserDTO], error) {
+	filter := []bson.M{
+		{"is_deleted": false},
 	}
-	projection := bson.M{}
 
 	// Add search functionality
 	if filterParams.Search != "" {
@@ -1447,27 +1299,27 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 				{"department": bson.M{"$regex": filterParams.Search, "$options": "i"}},
 			},
 		}
-
-		// Combile the filter
-		filter = bson.M{
-			"$and": []bson.M{
-				{"is_deleted": false},
-				searchFilter,
-			},
-		}
-
+		filter = append(filter, searchFilter)
 	}
 
 	// Add filter functionality
-	if filterParams.Filters != "" {
-		filter["role"] = filterParams.Filters
+	if filterParams.Filters != nil {
+		allowedKeys := []string{"enabled", "user_code", "full_name", "phone_number", "email", "role", "department"}
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, nil)
+
+		for key, value := range enhancedFilter {
+			filter = append(filter, bson.M{key: value})
+		}
 	}
+
+	// Final Mongo filter
+	mongoFilter := bson.M{"$and": filter}
 
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit
 
-	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	users, err := o.MongoDalCPSUser.FindAllWithPagination(ctx, mongoFilter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		return nil, err
 	}
@@ -1479,7 +1331,7 @@ func (o *outboundStore) GetAllCPSUsers(ctx context.Context, filterParams *consta
 		dtoUsers = append(dtoUsers, &dto)
 	}
 
-	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, filter)
+	totalDocs, err := o.MongoDalCPSUser.TotalCount(ctx, mongoFilter)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -41,25 +42,25 @@ type UpdateUserRequest struct {
 }
 
 type CPSUserDTO struct {
-	ID                 bson.ObjectID   `json:"id,omitempty"`
-	UserCode           string          `json:"user_code,omitempty"`
-	FullName           string          `json:"full_name,omitempty"`
-	Role               string          `json:"role,omitempty"`
-	Department         bson.ObjectID   `json:"department,omitempty"`
-	Gender             string          `json:"gender,omitempty"`
-	PhoneNumber        string          `json:"phone_number,omitempty"`
-	Email              string          `json:"email,omitempty"`
-	UserName           string          `json:"username,omitempty"`
-	Realm              string          `json:"realm,omitempty"`
-	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty"`
-	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty"`
+	ID                 bson.ObjectID   `json:"id"`
+	UserCode           string          `json:"user_code"`
+	FullName           string          `json:"full_name"`
+	Role               string          `json:"role"`
+	Department         bson.ObjectID   `json:"department"`
+	Gender             string          `json:"gender"`
+	PhoneNumber        string          `json:"phone_number"`
+	Email              string          `json:"email"`
+	UserName           string          `json:"username"`
+	Realm              string          `json:"realm"`
+	PermissionCategory []bson.ObjectID `json:"permission_category"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group"`
 
-	Enabled      bool       `json:"enabled,omitempty"`
-	DateJoined   *time.Time `json:"date_joined,omitempty"`
-	LastModified *time.Time `json:"last_modified,omitempty"`
+	Enabled      bool       `json:"enabled"`
+	DateJoined   *time.Time `json:"date_joined"`
+	LastModified *time.Time `json:"last_modified"`
 
-	Country string `json:"country,omitempty"`
-	Region  string `json:"region,omitempty"`
+	Country string `json:"country"`
+	Region  string `json:"region"`
 }
 
 func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {
@@ -118,6 +119,43 @@ func IsObjectIDRequired(value interface{}) error {
 	return nil
 }
 
+func IsRequired(fieldName string) validation.RuleFunc {
+	return func(value interface{}) error {
+		switch v := value.(type) {
+		case string:
+			if strings.TrimSpace(v) == "" {
+				return validation.NewError("validation_required", "is required")
+			}
+		case bson.ObjectID:
+			if v.IsZero() {
+				return validation.NewError("validation_required", "is required")
+			}
+		case *bson.ObjectID:
+			if v == nil || v.IsZero() {
+				return validation.NewError("validation_required", "is required")
+			}
+		case []bson.ObjectID:
+			if len(v) == 0 {
+				return validation.NewError("validation_required", "is required")
+			}
+			for _, id := range v {
+				if id.IsZero() {
+					return validation.NewError("validation_required", fmt.Sprintf("%s cannot contain empty ObjectIDs", fieldName))
+				}
+			}
+		case []interface{}:
+			if len(v) == 0 {
+				return validation.NewError("validation_required", "is required")
+			}
+		default:
+			if value == nil {
+				return validation.NewError("validation_required", "is required")
+			}
+		}
+		return nil
+	}
+}
+
 // helper to check if slice of ObjectIDs is not empty
 func IsObjectIDSliceRequired(value interface{}) error {
 	_, ok := value.([]bson.ObjectID)
@@ -129,14 +167,14 @@ func IsObjectIDSliceRequired(value interface{}) error {
 
 func (r CreateUserRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserName, validation.Required.Error("username is required")),
-		validation.Field(&r.FullName, validation.Required.Error("full_name is required")),
-		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required")),
-		validation.Field(&r.Role, validation.Required.Error("user role is required")),
-		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
+		validation.Field(&r.UserName, validation.Required.Error("username is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.FullName, validation.Required.Error("full_name is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.Role, validation.Required.Error("user role is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.Department, validation.By(IsRequired("department")), validation.By(IsObjectIDRequired)),
 		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
+		validation.Field(&r.PermissionGroups, validation.By(IsRequired("permission_group")), validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.Gender, validation.Required.Error("gender is required"), validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.Email, validation.Required.Error("email is required")),
 	)
 }

@@ -15,7 +15,7 @@ func ToDomainProductCodeRequest(httpRequest ProductCodeRequest) entity.UpdatePro
 }
 
 // ToProductCodeResponse converts an entity.ProductCode to a ProductCodeResponse
-func ToProductCodeResponse(productCode entity.ProductCode)ProductCodeResponse {
+func ToProductCodeResponse(productCode entity.ProductCode) ProductCodeResponse {
 	return ProductCodeResponse{
 		ID:                 productCode.ID,
 		ProductName:        productCode.ProductName,

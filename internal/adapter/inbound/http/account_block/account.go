@@ -1,12 +1,12 @@
 package accountblock_handler
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/account_block"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/common"
 	constant_utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -22,212 +22,43 @@ type AccountBlockHandler struct {
 func NewAccountBlockHandler(service account_block.ApplicationService, logger utils.Logger) *AccountBlockHandler {
 	return &AccountBlockHandler{service: service, logger: logger}
 }
-func (h *AccountBlockHandler) FilterSingleBranches(w http.ResponseWriter, r *http.Request) {
 
+func (h *AccountBlockHandler) GetBranch(w http.ResponseWriter, r *http.Request) {
 	filterParams := constant_utils.ExtractFilterParams(r)
-
-	if !constant_utils.CheckRequiredQueries(w, r, []string{"region", "district"}) {
-		return
+	branchCode := strings.TrimSpace(chi.URLParam(r, "branch_code"))
+	if branchCode == "" {
+		constant_utils.SendErrorResponse(w, "BRANCH_CODE_REQUIRED", 0, nil)
 	}
 
-	region := strings.TrimSpace(r.URL.Query().Get("region"))
-	district := strings.TrimSpace(r.URL.Query().Get("district"))
-
-	if len(region) < 3 || len(district) < 3 {
-		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
-		return
-	}
-
-	branches, err := h.service.FilterSingleBranches(r.Context(), region, district, filterParams)
+	branch, err := h.service.GetBranch(r.Context(), branchCode, filterParams)
 	if err != nil {
-		h.logger.Errorf("FilterSingleBranches failed: %v", err)
-		switch err {
-		case common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]:
-			constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
-		case common.DefineError.Branch["FAILED_TO_FETCH_BRANCHES"]:
-			constant_utils.SendErrorResponse(w, "FAILED_TO_FETCH_BRANCHES", 500, nil)
-		case common.DefineError.Branch["BRANCH_NOT_FOUND"]:
-			constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND", 404, nil)
-		default:
-			constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 500, nil)
-		}
+		h.logger.Errorf("FetchUserRequest failed: %v", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
 
-	data, err := constant_utils.StructToMap(branches)
+	data, err := constant_utils.StructToMap(branch)
 	if err != nil {
 		constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", 500, nil)
 		return
 	}
-	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
+	constant_utils.BaseResponseMaker(data, w, "Branch retrieved successfully", http.StatusOK)
 }
-func (h *AccountBlockHandler) GetAllBranches(w http.ResponseWriter, r *http.Request) {
-	filterParams := constant_utils.ExtractFilterParams(r)
-	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
-		constant_utils.SendErrorResponse(w, "INVALID_PAGINATION_PARAMS", http.StatusBadRequest, nil)
-		return
-	}
 
-	branches, err := h.service.GetAllBranches(r.Context(), filterParams)
+func (h *AccountBlockHandler) GetAllBranches(w http.ResponseWriter, r *http.Request) {
+	region := strings.TrimSpace(r.URL.Query().Get("region"))
+	district := strings.TrimSpace(r.URL.Query().Get("district"))
+
+	filterParams := constant_utils.ExtractFilterParams(r)
+
+	// if len(region) < 3 || len(district) < 3 {
+	// 	constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
+	// 	return
+	// }
+
+	branches, err := h.service.GetAllBranches(r.Context(), region, district, filterParams)
 	if err != nil {
 		h.logger.Errorf("GetAllBranches failed: %v", err)
-		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		return
-	}
-
-	data, err := constant_utils.StructToMap(branches)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", http.StatusInternalServerError, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
-}
-func (h *AccountBlockHandler) EnableSingleBranch(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		BranchCode string `json:"branch_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.BranchCode) == "" {
-		constant_utils.SendErrorResponse(w, "BRANCH_ID_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	branch, err := h.service.GetBranchByCode(r.Context(), req.BranchCode)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND", http.StatusNotFound, nil)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-	_, err = h.service.EnableSingleBranch(r.Context(), branch, maker)
-	if err != nil {
-		h.logger.Errorf("[Handler.EnableSingleBranch] failed: %v", err)
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Branch enable action created", http.StatusCreated)
-
-}
-func (h *AccountBlockHandler) DisableSingleBranch(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		BranchCode string `json:"branch_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.BranchCode) == "" {
-		constant_utils.SendErrorResponse(w, "BRANCH_ID_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	branch, err := h.service.GetBranchByCode(r.Context(), req.BranchCode)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND", http.StatusNotFound, nil)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	_, err = h.service.DisableSingleBranch(r.Context(), branch, maker)
-	if err != nil {
-		h.logger.Errorf("DisableSingleBranch failed: %v", err)
-		switch {
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_DISABLE_ACTION_ALREADY_EXISTS"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_DISABLE_ACTION_ALREADY_EXISTS", http.StatusConflict, nil)
-		default:
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		}
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Branch disabled Request is Successfuly sent", http.StatusCreated)
-}
-
-func (h *AccountBlockHandler) ApproveSingleBranchDisable(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		constant_utils.SendErrorResponse(w, "ACTION_ID_IS_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	h.logger.Infof("ApproveSingleBranchDisable requested by user: %s (%s)", userID, fullName)
-	err := h.service.ApproveSingleBranchDisable(r.Context(), req.ActionID, req.Approve, req.Reason)
-	if err != nil {
-		h.logger.Errorf("ApproveSingleBranchDisable failed: %v", err)
-		switch {
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_DISABLE_ACTION_ALREADY_EXISTS"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_DISABLE_ACTION_ALREADY_EXISTS", http.StatusConflict, nil)
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_ID_REQUIRED"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_ID_REQUIRED", http.StatusBadRequest, nil)
-		case strings.Contains(err.Error(), common.DefineError.General["ACTION_NOT_FOUND"].Message):
-			constant_utils.SendErrorResponse(w, "ACTION_NOT_FOUND", http.StatusNotFound, nil)
-		default:
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		}
-		return
-	}
-
-	data := map[string]any{
-		"message": "Action processed successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
-}
-func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *http.Request) {
-
-	if !constant_utils.CheckRequiredQueries(w, r, []string{"region", "district"}) {
-		return
-	}
-	region := strings.TrimSpace(r.URL.Query().Get("region"))
-	district := strings.TrimSpace(r.URL.Query().Get("district"))
-
-	filterParams := constant_utils.ExtractFilterParams(r)
-
-	if len(region) < 3 || len(district) < 3 {
-		constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_MIN_LENGTH", 400, nil)
-		return
-	}
-	branches, err := h.service.FilterMultipleBranches(r.Context(), region, district, filterParams)
-	if err != nil {
-		h.logger.Errorf("FilterMultipleBranches failed: %v", err)
 		switch err {
 		case common.DefineError.Branch["BRANCH_REGION_AND_DISTRICT_REQUIRED"]:
 			constant_utils.SendErrorResponse(w, "BRANCH_REGION_AND_DISTRICT_REQUIRED", 400, nil)
@@ -249,155 +80,8 @@ func (h *AccountBlockHandler) FilterMultipleBranches(w http.ResponseWriter, r *h
 	constant_utils.BaseResponseMaker(data, w, "Branches retrieved successfully", http.StatusOK)
 }
 
-func (h *AccountBlockHandler) EnableMultipleBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		BranchCodes []string `json:"branch_codes"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.BranchCodes) == 0 {
-		constant_utils.SendErrorResponse(w, "BRANCH_CODES_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" ||
-		strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	var branches []action.Branch
-	for _, code := range req.BranchCodes {
-		branch, err := h.service.GetBranchByCode(r.Context(), code)
-		if err != nil {
-			constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND: "+code, http.StatusNotFound, nil)
-			return
-		}
-		branches = append(branches, branch)
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	_, err := h.service.EnableMultipleBranches(r.Context(), branches, maker)
-	if err != nil {
-		h.logger.Errorf("EnableMultipleBranches failed: %v", err)
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Multiple Branch enable CPS action created", http.StatusCreated)
-}
-func (h *AccountBlockHandler) DisableMultipleBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		BranchCodes []string `json:"branch_codes"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.BranchCodes) == 0 {
-		constant_utils.SendErrorResponse(w, "BRANCH_CODES_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" ||
-		strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	var branches []action.Branch
-	for _, code := range req.BranchCodes {
-		branch, err := h.service.GetBranchByCode(r.Context(), code)
-		if err != nil {
-			constant_utils.SendErrorResponse(w, "BRANCH_NOT_FOUND: "+code, http.StatusNotFound, nil)
-			return
-		}
-		branches = append(branches, branch)
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	_, err := h.service.DisableMultipleBranches(r.Context(), branches, maker)
-	if err != nil {
-		h.logger.Errorf("DisableMultipleBranches failed: %v", err)
-		if err.Error() == "branch code BR011 already disabled" {
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-			return
-		}
-		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		return
-	}
-
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Branches are disabled and CPS action created", http.StatusCreated)
-}
-func (h *AccountBlockHandler) ApproveBulkBranchesDisable(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		constant_utils.SendErrorResponse(w, "ACTION_ID_IS_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" || strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	h.logger.Infof("ApproveBulkBranchesDisable requested by user: %s (%s)", userID, fullName)
-	err := h.service.ApproveBulkBranchesDisable(r.Context(), req.ActionID, req.Approve, req.Reason)
-	if err != nil {
-		h.logger.Errorf("ApproveBulkBranchesDisable failed: %v", err)
-		switch {
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_DISABLE_MULTI_ACTION_ALREADY_EXISTS", http.StatusConflict, nil)
-		case strings.Contains(err.Error(), common.DefineError.Branch["BRANCH_ID_REQUIRED"].Message):
-			constant_utils.SendErrorResponse(w, "BRANCH_ID_REQUIRED", http.StatusBadRequest, nil)
-		case strings.Contains(err.Error(), common.DefineError.General["ACTION_NOT_FOUND"].Message):
-			constant_utils.SendErrorResponse(w, "ACTION_NOT_FOUND", http.StatusNotFound, nil)
-		default:
-			constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", http.StatusInternalServerError, nil)
-		}
-		return
-	}
-
-	data := map[string]any{
-		"message": "Action processed successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
-}
 func (h *AccountBlockHandler) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
-
-	if !constant_utils.CheckRequiredQueries(w, r, []string{"region_code"}) {
-		return
-	}
-	regionCode := r.URL.Query().Get("region_code")
+	regionCode := strings.TrimSpace(chi.URLParam(r, "region_code"))
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -436,7 +120,8 @@ func (h *AccountBlockHandler) GetRegionByCode(w http.ResponseWriter, r *http.Req
 	}
 	constant_utils.BaseResponseMaker(data, w, "Region retrieved successfully", http.StatusOK)
 }
-func (h *AccountBlockHandler) GetAllRegion(w http.ResponseWriter, r *http.Request) {
+
+func (h *AccountBlockHandler) GetAllRegions(w http.ResponseWriter, r *http.Request) {
 	filterParams := constant_utils.ExtractFilterParams(r)
 	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
 		constant_utils.SendErrorResponse(w, "INVALID_PAGINATION_PARAMS", http.StatusBadRequest, nil)
@@ -458,267 +143,8 @@ func (h *AccountBlockHandler) GetAllRegion(w http.ResponseWriter, r *http.Reques
 	constant_utils.BaseResponseMaker(data, w, "Regions retrieved successfully", http.StatusOK)
 }
 
-func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		RegionCode string `json:"region_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.RegionCode) == "" {
-		constant_utils.SendErrorResponse(w, "REGION_CODE_AND_NAME_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-	_, err := h.service.EnabelRegion(r.Context(), req.RegionCode, cpsAction)
-	if err != nil {
-
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region enable action created", http.StatusCreated)
-
-}
-func (h *AccountBlockHandler) BlockRegion(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		RegionCode string `json:"region_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.RegionCode) == "" {
-		constant_utils.SendErrorResponse(w, "REGION_CODE_AND_NAME_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-
-	_, err := h.service.BlockRegion(r.Context(), req.RegionCode, cpsAction)
-	if err != nil {
-
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region block action created", http.StatusCreated)
-}
-
-func (h *AccountBlockHandler) UpdateRegion(w http.ResponseWriter, r *http.Request) {
-	var req action.Region
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.RegionCode) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusBadRequest, Data: "region code is required"}
-		resp.SendJSON()
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-		resp.SendJSON()
-		return
-	}
-	if strings.TrimSpace(department) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-		resp.SendJSON()
-		return
-	}
-
-	h.logger.Infof("UpdateRegion requested by user: %s (%s)", userID, fullName)
-
-	err := h.service.UpdateRegion(r.Context(), req)
-	if err != nil {
-		h.logger.Errorf("UpdateRegion failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusInternalServerError, Data: err.Error()}
-		resp.SendJSON()
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "Region updated successfully", http.StatusOK)
-}
-func (h *AccountBlockHandler) ApproveRegionBlock(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		constant_utils.SendErrorResponse(w, "ACTION_ID_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-	if strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "DEPARTMENT_REQUIRED_IN_CONTEXT", http.StatusUnauthorized, nil)
-		return
-	}
-
-	h.logger.Infof("ApproveRegionBlock requested by user: %s (%s)", userID, fullName)
-	checker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-	err := h.service.ApproveRegionBlock(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
-	if err != nil {
-		h.logger.Errorf("ApproveRegionBlock failed: %v", err)
-		switch err {
-		case common.DefineError.General["ACTION_NOT_FOUND"]:
-			constant_utils.SendErrorResponse(w, "ACTION_NOT_FOUND", http.StatusNotFound, nil)
-		case common.DefineError.Branch["REGION_ACTION_ALREADY_PROCESSED"]:
-			constant_utils.SendErrorResponse(w, "REGION_ACTION_ALREADY_PROCESSED", http.StatusConflict, nil)
-		default:
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-		}
-		return
-	}
-	data := map[string]any{
-		"message": "Action processed successfully",
-		"code":    "ACTION_PROCESSED_SUCCESSFULLY",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
-}
-
-func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		DistrictCode string `json:"district_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.DistrictCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "district_code is required", http.StatusBadRequest)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-
-	_, err := h.service.EnableDistrict(r.Context(), req.DistrictCode, cpsAction)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "District enabel action created", http.StatusCreated)
-}
-func (h *AccountBlockHandler) BlockDistrict(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		DistrictCode string `json:"district_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.DistrictCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "district_code is required", http.StatusBadRequest)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-
-	_, err := h.service.BlockDistrict(r.Context(), req.DistrictCode, cpsAction)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "District block action created", http.StatusCreated)
-}
-
 func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.Request) {
-
-	if !constant_utils.CheckRequiredQueries(w, r, []string{"district_code"}) {
-		return
-	}
-	districtCode := r.URL.Query().Get("district_code")
+	districtCode := strings.TrimSpace(chi.URLParam(r, "district_code"))
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -753,7 +179,8 @@ func (h *AccountBlockHandler) GetDistrictByCode(w http.ResponseWriter, r *http.R
 	}
 	constant_utils.BaseResponseMaker(data, w, "District retrieved successfully", http.StatusOK)
 }
-func (h *AccountBlockHandler) GetAllDistrict(w http.ResponseWriter, r *http.Request) {
+
+func (h *AccountBlockHandler) GetAllDistricts(w http.ResponseWriter, r *http.Request) {
 	filterParams := constant_utils.ExtractFilterParams(r)
 	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
 		constant_utils.SendErrorResponse(w, "INVALID_PAGINATION_PARAMS", http.StatusBadRequest, nil)
@@ -774,65 +201,9 @@ func (h *AccountBlockHandler) GetAllDistrict(w http.ResponseWriter, r *http.Requ
 	}
 	constant_utils.BaseResponseMaker(data, w, "Districts retrieved successfully", http.StatusOK)
 }
-func (h *AccountBlockHandler) ApproveBlockDistrict(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		constant_utils.SendErrorResponse(w, "ACTION_ID_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" ||
-		strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	h.logger.Infof("ApproveBlockDistrict requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
-	checker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	err := h.service.ApproveBlockDistrict(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
-	if err != nil {
-		h.logger.Errorf("ApproveBlockDistrict failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
-		switch {
-		case strings.Contains(err.Error(), common.DefineError.Branch["BLOCK_DISTRICT_ALREADY_PROCESSED"].Message):
-			constant_utils.SendErrorResponse(w, "BLOCK_DISTRICT_ALREADY_PROCESSED", http.StatusConflict, nil)
-		case strings.Contains(err.Error(), common.DefineError.General["ACTION_NOT_FOUND"].Message):
-			constant_utils.SendErrorResponse(w, "ACTION_NOT_FOUND", http.StatusNotFound, nil)
-		case strings.Contains(err.Error(), "not allowed"):
-			constant_utils.SendErrorResponse(w, "ACTION_NOT_ALLOWED", http.StatusForbidden, nil)
-		default:
-			constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", http.StatusInternalServerError, nil)
-		}
-		return
-	}
-
-	data := map[string]any{
-		"message": "Action processed successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
-}
 
 func (h *AccountBlockHandler) GetCityByCode(w http.ResponseWriter, r *http.Request) {
-	if !constant_utils.CheckRequiredQueries(w, r, []string{"city_code"}) {
-		return
-	}
-	cityCode := r.URL.Query().Get("city_code")
+	cityCode := strings.TrimSpace(chi.URLParam(r, "city_code"))
 
 	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
 	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
@@ -867,6 +238,7 @@ func (h *AccountBlockHandler) GetCityByCode(w http.ResponseWriter, r *http.Reque
 	}
 	constant_utils.BaseResponseMaker(data, w, "City retrieved successfully", http.StatusOK)
 }
+
 func (h *AccountBlockHandler) GetAllCities(w http.ResponseWriter, r *http.Request) {
 	filterParams := constant_utils.ExtractFilterParams(r)
 	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
@@ -888,283 +260,91 @@ func (h *AccountBlockHandler) GetAllCities(w http.ResponseWriter, r *http.Reques
 	}
 	constant_utils.BaseResponseMaker(data, w, "Cities retrieved successfully", http.StatusOK)
 }
+
+func (h *AccountBlockHandler) EnableBranches(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableBranches(r)
+	if err != nil {
+		h.logger.Errorf("Enable branch/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable branch/es submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableBranches(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableBranches(r)
+	if err != nil {
+		h.logger.Errorf("Disable branch/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable branch/es submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) EnableRegion(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableRegion(r)
+	if err != nil {
+		h.logger.Errorf("Enable region/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable region/s submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableRegion(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableRegion(r)
+	if err != nil {
+		h.logger.Errorf("Disable region/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable region/s submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) EnableDistrict(w http.ResponseWriter, r *http.Request) {
+	err := h.service.EnableDistrict(r)
+	if err != nil {
+		h.logger.Errorf("Enable district/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable district/s submitted successfully", 200)
+}
+
+func (h *AccountBlockHandler) DisableDistrict(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableDistrict(r)
+	if err != nil {
+		h.logger.Errorf("Disable district/es request failed: %v\n", err)
+		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
+		return
+	}
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable district/s submitted successfully", 200)
+}
+
 func (h *AccountBlockHandler) EnableCity(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		CityCode string `json:"city_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.CityCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "city_code are required", http.StatusBadRequest)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-	_, err := h.service.EnableCity(r.Context(), req.CityCode, cpsAction)
+	err := h.service.EnableCity(r)
 	if err != nil {
+		h.logger.Errorf("Enable city/es request failed: %v\n", err)
 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "City enable action created", http.StatusCreated)
+
+	constant_utils.BaseResponseMaker(nil, w, "Request to enable city or cities submitted successfully", 200)
 }
-func (h *AccountBlockHandler) BlockCity(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		CityCode string `json:"city_code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil ||
-		strings.TrimSpace(req.CityCode) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "city_code are required", http.StatusBadRequest)
-		return
-	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-	if strings.TrimSpace(department) == "" {
-		constant_utils.BaseResponseMaker(nil, w, "department is required in context", http.StatusUnauthorized)
-		return
-	}
-
-	maker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	cpsAction := action.CPSAction{
-		MakerID:          maker.UserID,
-		MakerName:        maker.FullName,
-		MakerPhoneNumber: maker.PhoneNumber,
-		Department:       maker.Department,
-	}
-
-	_, err := h.service.BlockCity(r.Context(), req.CityCode, cpsAction)
+func (h *AccountBlockHandler) DisableCity(w http.ResponseWriter, r *http.Request) {
+	err := h.service.DisableCity(r)
 	if err != nil {
+		h.logger.Errorf("Disable city/es request failed: %v\n", err)
 		constant_utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "City block action created", http.StatusCreated)
-}
-func (h *AccountBlockHandler) ApproveBlockCity(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		constant_utils.SendErrorResponse(w, "ACTION_ID_REQUIRED", http.StatusBadRequest, nil)
-		return
-	}
 
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" ||
-		strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, "INCOMPLETE_USER_INFO", http.StatusUnauthorized, nil)
-		return
-	}
-
-	h.logger.Infof("ApproveBlockCity requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
-	checker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	err := h.service.ApproveBlockCity(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
-	if err != nil {
-		h.logger.Errorf("ApproveBlockCity failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
-		switch {
-		case strings.Contains(err.Error(), "action not found after update"):
-			constant_utils.SendErrorResponse(w, "ACTION_NOT_FOUND_AFTER_UPDATE", http.StatusNotFound, nil)
-		case strings.Contains(err.Error(), "already been processed"):
-			constant_utils.SendErrorResponse(w, "ACTION_ALREADY_APPROVED", http.StatusConflict, nil)
-		default:
-			constant_utils.SendErrorResponse(w, "UNHANDLED_SERVER_ERROR", http.StatusInternalServerError, nil)
-		}
-		return
-	}
-
-	data := map[string]any{
-		"message": "Action processed successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
-}
-func (h *AccountBlockHandler) BlockUser(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		PhoneNumber string `json:"phone_number"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.PhoneNumber) == "" {
-		constant_utils.SendErrorResponse(w, common.DefineError.General["INVALID_INPUT"].Message, http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumberCtx, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumberCtx) == "" || strings.TrimSpace(department) == "" {
-		constant_utils.SendErrorResponse(w, common.DefineError.General["INCOMPLETE_USER_INFO"].Message, http.StatusUnauthorized, nil)
-		return
-	}
-
-	maker := action.CPSAction{
-		MakerID:          userID,
-		MakerName:        fullName,
-		MakerPhoneNumber: phoneNumberCtx,
-		Department:       department,
-	}
-
-	user, err := h.service.GetUserByPhone(r.Context(), req.PhoneNumber, maker)
-	if err != nil || strings.TrimSpace(user.UserCode) == "" {
-		h.logger.Errorf("BlockUser failed to find user: %v", err)
-		constant_utils.SendErrorResponse(w, common.DefineError.Auth["AUTH_USER_NOT_FOUND"].Message, http.StatusNotFound, nil)
-		return
-	}
-
-	_, err = h.service.BlockUser(r.Context(), user.PhoneNumber, maker)
-	if err != nil {
-		h.logger.Errorf("BlockUser failed: %v", err)
-		if strings.Contains(err.Error(), common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message) {
-			constant_utils.SendErrorResponse(w, common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message, http.StatusConflict, nil)
-			return
-		}
-		constant_utils.SendErrorResponse(w, err.Error(), http.StatusInternalServerError, nil)
-		return
-	}
-
-	constant_utils.BaseResponseMaker(map[string]any{}, w, "User block action created", http.StatusCreated)
-}
-func (h *AccountBlockHandler) GetUserByPhone(w http.ResponseWriter, r *http.Request) {
-	if !constant_utils.CheckRequiredQueries(w, r, []string{"phone_number"}) {
-		return
-	}
-	phoneNumber := r.URL.Query().Get("phone_number")
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumberCtx, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" ||
-		strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumberCtx) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "Incomplete user information"}
-		resp.SendJSON()
-		return
-	}
-	if strings.TrimSpace(department) == "" {
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusUnauthorized, Data: "department is required in context"}
-		resp.SendJSON()
-		return
-	}
-
-	h.logger.Infof("GetUserByPhone requested by user: %s (%s)", userID, fullName)
-
-	maker := action.CPSAction{
-		MakerID:          userID,
-		MakerName:        fullName,
-		MakerPhoneNumber: phoneNumberCtx,
-		Department:       department,
-	}
-	user, err := h.service.GetUserByPhone(r.Context(), phoneNumber, maker)
-	if err != nil {
-		h.logger.Errorf("GetUserByPhone failed: %v", err)
-		resp := common.Response[any]{ResponseWriter: w, Status: http.StatusNotFound, Data: "User not found"}
-		resp.SendJSON()
-		return
-	}
-	data, err := constant_utils.StructToMap(user)
-	if err != nil {
-		constant_utils.SendErrorResponse(w, http.StatusInternalServerError, 500, nil)
-		return
-	}
-	constant_utils.BaseResponseMaker(data, w, "User retrieved successfully", http.StatusOK)
-}
-func (h *AccountBlockHandler) ApproveBlockUser(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		ActionID string  `json:"action_id"`
-		Approve  bool    `json:"approve"`
-		Reason   *string `json:"reason,omitempty"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.ActionID) == "" {
-		h.logger.Errorf("ApproveBlockUser: invalid request body or missing action_id, err=%v", err)
-		constant_utils.SendErrorResponse(w, common.DefineError.General["INVALID_INPUT"].Message, http.StatusBadRequest, nil)
-		return
-	}
-
-	userID, _ := r.Context().Value(constant.ContextKey("user_id")).(string)
-	fullName, _ := r.Context().Value(constant.ContextKey("full_name")).(string)
-	phoneNumber, _ := r.Context().Value(constant.ContextKey("phone_number")).(string)
-	department, _ := r.Context().Value(constant.ContextKey("department")).(string)
-
-	if strings.TrimSpace(userID) == "" || strings.TrimSpace(fullName) == "" ||
-		strings.TrimSpace(phoneNumber) == "" || strings.TrimSpace(department) == "" {
-		h.logger.Errorf("ApproveBlockUser: Incomplete user information in context: userID=%s, fullName=%s, phoneNumber=%s, department=%s", userID, fullName, phoneNumber, department)
-		constant_utils.SendErrorResponse(w, common.DefineError.General["INCOMPLETE_USER_INFO"].Message, http.StatusUnauthorized, nil)
-		return
-	}
-
-	h.logger.Infof("ApproveBlockUser requested by user: %s (%s), actionID: %s, approve: %v", userID, fullName, req.ActionID, req.Approve)
-	checker := action.User{
-		UserID:      userID,
-		FullName:    fullName,
-		PhoneNumber: phoneNumber,
-		Department:  department,
-	}
-
-	err := h.service.ApproveBlockUser(r.Context(), req.ActionID, req.Approve, req.Reason, checker)
-	if err != nil {
-		h.logger.Errorf("ApproveBlockUser failed for actionID=%s by user=%s: %v", req.ActionID, userID, err)
-		switch {
-		case strings.Contains(err.Error(), common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message):
-			constant_utils.SendErrorResponse(w, common.DefineError.Account["BLOCKED_ACTION_USER_ALREADY_EXIST"].Message, http.StatusConflict, nil)
-			return
-		case strings.Contains(err.Error(), common.DefineError.General["ACTION_NOT_FOUND"].Message):
-			constant_utils.SendErrorResponse(w, common.DefineError.General["ACTION_NOT_FOUND"].Message, http.StatusNotFound, nil)
-			return
-		case strings.Contains(err.Error(), "not allowed"):
-			constant_utils.SendErrorResponse(w, common.DefineError.General["ACTION_NOT_ALLOWED"].Message, http.StatusForbidden, nil)
-			return
-		default:
-			constant_utils.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
-			return
-		}
-	}
-
-	h.logger.Infof("ApproveBlockUser succeeded for actionID=%s by user=%s", req.ActionID, userID)
-	data := map[string]any{
-		"message": "Action processed successfully",
-	}
-	constant_utils.BaseResponseMaker(data, w, "Action processed successfully", http.StatusOK)
+	constant_utils.BaseResponseMaker(nil, w, "Request to disable city or cities submitted successfully", 200)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -89,7 +90,7 @@ func (p *miniAppMerchantPersistence) CreateMiniAppMerchant(ctx context.Context, 
 	return mappers.ToMiniAppMerchantDomain(&result), nil
 }
 
-func (p *miniAppMerchantPersistence) ListMiniAppMerchant(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.MiniAppMerchant], error) {
+func (p *miniAppMerchantPersistence) ListMiniAppMerchant(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entities.MiniAppMerchant], error) {
 	fmt.Println("I have been called ListMiniAppMerchant")
 
 	filter := bson.M{"is_deleted": false}
@@ -105,6 +106,33 @@ func (p *miniAppMerchantPersistence) ListMiniAppMerchant(ctx context.Context, fi
 			{"account_number": searchRegex},
 			{"type": searchRegex},
 			{"mini_app_id": searchRegex},
+		}
+	}
+
+	if filterParams.Filters != nil {
+		allowedKeys := []string{"enabled", "merchant_type"}
+		handlers := map[string]func(interface{}) interface{}{
+			"enabled": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			filter[key] = value
 		}
 	}
 

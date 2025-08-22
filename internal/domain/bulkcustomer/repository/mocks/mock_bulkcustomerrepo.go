@@ -91,34 +91,34 @@ func (mr *MockBulkCustomerRepoMockRecorder) DisableSingleBranch(ctx, branch, mak
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableSingleBranch", reflect.TypeOf((*MockBulkCustomerRepo)(nil).DisableSingleBranch), ctx, branch, maker)
 }
 
-// FilterMultipleBranches mocks base method.
-func (m *MockBulkCustomerRepo) FilterMultipleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+// GetAllBranches mocks base method.
+func (m *MockBulkCustomerRepo) GetAllBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilterMultipleBranches", ctx, region, district)
+	ret := m.ctrl.Call(m, "GetAllBranches", ctx, region, district)
 	ret0, _ := ret[0].([]entities.Branch)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FilterMultipleBranches indicates an expected call of FilterMultipleBranches.
-func (mr *MockBulkCustomerRepoMockRecorder) FilterMultipleBranches(ctx, region, district interface{}) *gomock.Call {
+// GetAllBranches indicates an expected call of GetAllBranches.
+func (mr *MockBulkCustomerRepoMockRecorder) GetAllBranches(ctx, region, district interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterMultipleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).FilterMultipleBranches), ctx, region, district)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).GetAllBranches), ctx, region, district)
 }
 
-// FilterSingleBranches mocks base method.
-func (m *MockBulkCustomerRepo) FilterSingleBranches(ctx context.Context, region, district string) ([]entities.Branch, error) {
+// GetBranch mocks base method.
+func (m *MockBulkCustomerRepo) GetBranch(ctx context.Context, region, district string) ([]entities.Branch, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilterSingleBranches", ctx, region, district)
+	ret := m.ctrl.Call(m, "GetBranch", ctx, region, district)
 	ret0, _ := ret[0].([]entities.Branch)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FilterSingleBranches indicates an expected call of FilterSingleBranches.
-func (mr *MockBulkCustomerRepoMockRecorder) FilterSingleBranches(ctx, region, district interface{}) *gomock.Call {
+// GetBranch indicates an expected call of GetBranch.
+func (mr *MockBulkCustomerRepoMockRecorder) GetBranch(ctx, region, district interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterSingleBranches", reflect.TypeOf((*MockBulkCustomerRepo)(nil).FilterSingleBranches), ctx, region, district)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBranch", reflect.TypeOf((*MockBulkCustomerRepo)(nil).GetBranch), ctx, region, district)
 }
 
 // GetBranchByCode mocks base method.

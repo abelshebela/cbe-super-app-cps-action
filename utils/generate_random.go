@@ -14,7 +14,7 @@ func GenerateRandom(digits int) string {
 
 	result := make([]byte, digits)
 	for i := range digits {
-		n := r.Intn(10) 
+		n := r.Intn(10)
 		if i == 0 {
 			n = r.Intn(9) + 1
 		}
@@ -23,4 +23,3 @@ func GenerateRandom(digits int) string {
 
 	return string(result)
 }
-

@@ -12,7 +12,7 @@ type MiniAppMerchantRepository interface {
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	CreateMiniAppMerchant(ctx context.Context, marchant *entities.MiniAppMerchant) (*entities.MiniAppMerchant, error)
 	UpdateMiniAppMerchant(ctx context.Context, marchant *entities.MiniAppMerchant) (*entities.MiniAppMerchant, error)
-	ListMiniAppMerchant(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*entities.MiniAppMerchant], error)
+	ListMiniAppMerchant(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entities.MiniAppMerchant], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*entities.MiniAppMerchant, error)
 	EnableMiniAppMerchant(ctx context.Context, id string) (*entities.MiniAppMerchant, error)
 	DisableMiniAppMerchant(ctx context.Context, id string) (*entities.MiniAppMerchant, error)

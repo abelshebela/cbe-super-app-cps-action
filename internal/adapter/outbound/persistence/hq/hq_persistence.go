@@ -152,26 +152,28 @@ func (p *HQPersistence) UpdateHQ(ctx context.Context, id string, update hq.HQ) e
 func (p *HQPersistence) GetSingleHQ(ctx context.Context) (hq.HQ, error) {
 	result, err := p.hqDal.FindOne(ctx, bson.M{}, bson.M{})
 	// fmt.Println("result",result)
-if err != nil {
-    p.logger.Errorf("failed to fetch HQ: %v", err)
-    return hq.HQ{}, err
-}
-if result == nil {
-    p.logger.Errorf("HQ not found (single)")
-    return hq.HQ{}, fmt.Errorf("NOT_FOUND")
-}
-return *result, nil
+	if err != nil {
+		p.logger.Errorf("failed to fetch HQ: %v", err)
+		return hq.HQ{}, err
+	}
+	if result == nil {
+		p.logger.Errorf("HQ not found (single)")
+		return hq.HQ{}, fmt.Errorf("NOT_FOUND")
+	}
+	return *result, nil
 }
 
 func (p *HQPersistence) UpdateHQField(ctx context.Context, field string, value interface{}, now time.Time) error {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
+
 	// Find the single HQ document
 	hqDoc, err := p.GetSingleHQ(ctx)
 	if err != nil {
 		return err
 	}
 	updateDoc := bson.M{field: value}
+
 	switch field {
 	case "block_time":
 		updateDoc["updated_at_block"] = now

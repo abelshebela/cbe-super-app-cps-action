@@ -22,16 +22,13 @@ type DeadLetterMessage struct {
 // SimpleDeadLetterQueue implements DeadLetterQueue interface
 type SimpleDeadLetterQueue struct {
 	logger utils.Logger
-
 }
-
 
 func NewSimpleDeadLetterQueue(logger utils.Logger) *SimpleDeadLetterQueue {
 	return &SimpleDeadLetterQueue{
 		logger: logger,
 	}
 }
-
 
 func (dlq *SimpleDeadLetterQueue) SendToDeadLetterQueue(topic string, message *sarama.ConsumerMessage, err error) error {
 	deadLetterMsg := &DeadLetterMessage{
@@ -53,14 +50,11 @@ func (dlq *SimpleDeadLetterQueue) SendToDeadLetterQueue(topic string, message *s
 	return nil
 }
 
-
 func (dlq *SimpleDeadLetterQueue) GetDeadLetterMessages(ctx context.Context) ([]*DeadLetterMessage, error) {
 	return []*DeadLetterMessage{}, nil
 }
 
-
 func (dlq *SimpleDeadLetterQueue) RetryDeadLetterMessage(ctx context.Context, msg *DeadLetterMessage) error {
-
 
 	dlq.logger.Infof("Retrying dead letter message from topic: %s", msg.OriginalTopic)
 	return fmt.Errorf("retry functionality not implemented")

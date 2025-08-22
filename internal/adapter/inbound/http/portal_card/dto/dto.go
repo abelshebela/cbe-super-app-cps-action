@@ -5,15 +5,15 @@ import "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action
 // "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/service/dto"
 
 type UpdateServiceFeeRequest struct {
-	ServiceType       string     `json:"serviceType"`
-	PaymentType       string     `json:"paymentType"`
-	AboveAmount       float64    `json:"aboveAmount"`
-	AboveServiceFee   float64    `json:"aboveServiceFee"`
-	MinAmountVIRTUAL  float64    `json:"minAmountVIRTUAL"`
-	DailyCapLevelOne  float64    `json:"dailyCapLevelOne"`
-	SingleCapLevelOne float64    `json:"singleCapLevelOne"`
-	CBglEntry         *GLEntry   `json:"CBglEntry"`
-	IFBglEntry        *GLEntry   `json:"IFBglEntry"`
+	ServiceType       string        `json:"serviceType"`
+	PaymentType       string        `json:"paymentType"`
+	AboveAmount       float64       `json:"aboveAmount"`
+	AboveServiceFee   float64       `json:"aboveServiceFee"`
+	MinAmountVIRTUAL  float64       `json:"minAmountVIRTUAL"`
+	DailyCapLevelOne  float64       `json:"dailyCapLevelOne"`
+	SingleCapLevelOne float64       `json:"singleCapLevelOne"`
+	CBglEntry         *GLEntry      `json:"CBglEntry"`
+	IFBglEntry        *GLEntry      `json:"IFBglEntry"`
 	Tiers             []action.Tier `json:"tiers" validate:"required,min=1,dive"`
 }
 

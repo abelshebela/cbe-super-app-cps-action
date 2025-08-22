@@ -61,7 +61,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 	for _, r := range allowedRoles {
 		roleSet[strings.ToUpper(r)] = struct{}{}
 	}
-
+	// fmt.Println(allowedRoles, "allowed roles")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role, ok := r.Context().Value(constant.ContextKey("user_role")).(string)

@@ -11,7 +11,9 @@ import (
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/budget/entities"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
+	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	utils "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	sharedutils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -27,11 +29,11 @@ type Service interface {
 
 type ServiceStore struct {
 	repository AccountValidationRepository
-	actionRepo action.ActionRepository
+	actionRepo action.IActionRepository
 	logger     sharedutils.Logger
 }
 
-func NewAccountValidationService(repo AccountValidationRepository, actionRepo action.ActionRepository, logger sharedutils.Logger) Service {
+func NewAccountValidationService(repo AccountValidationRepository, actionRepo action.IActionRepository, logger sharedutils.Logger) Service {
 	return &ServiceStore{
 		repository: repo,
 		actionRepo: actionRepo,
@@ -40,6 +42,7 @@ func NewAccountValidationService(repo AccountValidationRepository, actionRepo ac
 }
 
 func (s *ServiceStore) GetAllAccountValidation(ctx context.Context, filterParam utils.Filter) (*utils.PaginatedResponse[[]*model.ValidationRule], error) {
+
 	return s.repository.GetAllAccountValidation(ctx, filterParam)
 }
 func (s *ServiceStore) GetAccountValidation(ctx context.Context, id string) (ValidationRule, error) {
@@ -98,25 +101,24 @@ func (s *ServiceStore) UpdateAccountValidationRequest(
 
 	actionID := sharedutils.Random(10, &sharedutils.PreSufix{Prefix: "CPS_"})
 
-	a := action.CPSAction{
+	a := entities.CPSAction{
 		ActionCode:       actionID,
 		MakerID:          maker.ID,
 		MakerName:        maker.FullName,
 		MakerPhoneNumber: maker.PhoneNumber,
 		Department:       maker.Department,
-		UniqueId:         id,
-		ActionType:       action.ActionUpdate,
-		RequestAction:    action.RequestUpdateAccountValidation,
-		ActionStatus:     action.ActionPending,
+		UniqueID:         id,
+		ActionType:       constant.ActionType(action.ActionUpdate),
+		RequestAction:    constant.RequestAction(action.RequestUpdateAccountValidation),
+		ActionStatus:     constant.ActionStatus(action.ActionPending),
 		CurrentAction:    currentAction, // assign struct directly
 		PreviousAction:   previousActionJSON,
 		CreatedAt:        time.Now(),
 		LastModifiedAt:   time.Now(),
-		RejectionReason:  nil,
 		MakerActionTime:  time.Now(),
 	}
 
-	createdAction, err := s.actionRepo.CreateCpsAction(ctx, a)
+	createdAction, err := s.actionRepo.CreateCPSAction(ctx, &a)
 	if err != nil {
 		s.logger.Errorf("failed to create CPS action: %v", err)
 		return "", fmt.Errorf("FAILED_TO_CREATE_CPS_ACTION")
@@ -163,7 +165,7 @@ func (s *ServiceStore) Authorize(ctx context.Context, cpsAction *cps_entities.CP
 
 func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID string, decision utils.DecisonEnum, checker User, rejectedReason string) error {
 
-	cpsAction, err := s.actionRepo.FetchCpsActionById(ctx, actionID)
+	cpsAction, err := s.actionRepo.GetCPSActionByID(ctx, actionID)
 	if err != nil {
 		s.logger.Errorf("failed to fetch CPS action: %v", err)
 		return fmt.Errorf("ACTION_NOT_FOUND")
@@ -204,20 +206,20 @@ func (s *ServiceStore) UpdateAccountValidation(ctx context.Context, actionID str
 			return fmt.Errorf("FAILED_TO_UPDATE_VALIDATION_RULE")
 		}
 
-		cpsAction.ActionStatus = action.ActionApproved
+		cpsAction.ActionStatus = constant.ActionStatus(action.ActionApproved)
 		s.logger.Infof("validation rule approved successfully")
 	} else if decision == utils.DecisionDenied {
-		cpsAction.ActionStatus = action.ActionRejected
+		cpsAction.ActionStatus = constant.ActionStatus(action.ActionRejected)
 		if rejectedReason != "" {
-			cpsAction.RejectionReason = &rejectedReason
+			cpsAction.RejectionReason = rejectedReason
 		} else {
-			cpsAction.RejectionReason = stringToPointer("Checker rejected the update")
+			cpsAction.RejectionReason = "Checker rejected the update"
 		}
 	} else {
 		return fmt.Errorf("INVALID_DECISION")
 	}
 
-	if err := s.actionRepo.UpdateCpsAction(ctx, cpsAction); err != nil {
+	if _, err := s.actionRepo.UpdateCPSAction(ctx, cpsAction); err != nil {
 		s.logger.Errorf("failed to update CPS action: %v", err)
 		return fmt.Errorf("FAILED_TO_UPDATE_CPS_ACTION")
 	}
@@ -237,6 +239,7 @@ func (s *ServiceStore) UpdateAccountValidate(ctx context.Context, cpsAction *cps
 		s.logger.Errorf("failed to convert CurrentAction to JSON: %v", err)
 		return nil, fmt.Errorf("FAILED_TO_CONVERT_CURRENT_ACTION")
 	}
+
 	if err := json.Unmarshal(currentActionBytes, &currentAction); err != nil {
 		s.logger.Errorf("failed to unmarshal current action: %v, bytes: %s", err, string(currentActionBytes))
 		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_CURRENT_ACTION")

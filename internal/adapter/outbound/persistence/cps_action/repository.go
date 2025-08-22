@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
+	infra_mongo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mongo"
 	entity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	repo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/cps_actions"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -105,6 +105,7 @@ func (o *cpsActionStore) CreateCPSAction(ctx context.Context, action *entity.CPS
 		o.logger.Errorf("Domain to Model conversion failed: %v", err)
 		return nil, err
 	}
+
 	data, err := o.MongoCPSAction.InsertOne(ctx, *modelAction)
 	if err != nil {
 		o.logger.Errorf("Insert CPSAction failed: %v", err)

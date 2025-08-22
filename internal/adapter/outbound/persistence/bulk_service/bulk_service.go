@@ -122,8 +122,8 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 
 	// Check if one or more key is already enable or disabled.
 	dupAction := []string{}
+	var boolStatus bool
 	for _, k := range keys {
-		var boolStatus bool
 		switch strings.ToUpper(cpsAction.ActionType) {
 		case "ENABLE":
 			boolStatus = true
@@ -164,6 +164,28 @@ func (b BulkServicePersistence) EnableOrDisableBulkService(ctx context.Context, 
 		return fmt.Errorf("DUPLICATE_ACTION")
 	}
 
+	// Get all previous actions
+	prevAction := []interface{}{}
+	for _, key := range keys {
+		filterP := bson.M{"key": key}
+		filterC := bson.M{"subAccessList.key": key}
+		parent, err := b.mongoDalbulkService.FindOne(ctx, filterP, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				parentDoc, err := b.mongoDalbulkService.FindOne(ctx, filterC, bson.M{})
+				if err != nil {
+					continue
+				}
+				prevAction = append(prevAction, parentDoc)
+				continue
+			}
+			b.logger.Errorf("Failed to find previous action for bulk services: %v", err)
+			return fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+		}
+		prevAction = append(prevAction, parent)
+	}
+	cpsAction.PreviousAction = prevAction
+
 	// Create the CPS action
 	_, err = b.mongoDalCpsAction.InsertOne(ctx, cpsAction)
 	if err != nil {
@@ -193,6 +215,7 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 		}
 	}
 
+	parentKeys := []string{}
 	// Process each key
 	for _, key := range keys {
 		// Try updating parent
@@ -206,10 +229,23 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 				childFilter := bson.M{"subAccessList.key": key}
 				childUpdate := bson.M{"subAccessList.$.enabled": true}
 
-				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+				parentDoc, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
 					b.logger.Errorf("failed to update child: %v\n", err)
 					return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
+				}
+
+				// Collect the parent keys
+				exists := false
+				for _, pk := range parentKeys {
+					if pk == parentDoc.Key {
+						exists = true
+						break
+					}
+				}
+
+				if parentDoc.Key != "" && !exists {
+					parentKeys = append(parentKeys, parentDoc.Key)
 				}
 				continue
 			}
@@ -219,7 +255,7 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 			return nil, fmt.Errorf("FAILED_TO_UPDATE_PARENT")
 		}
 
-		// Parent exists — now disable all sub-keys
+		// Parent exists — now enable all sub-keys
 		for _, sub := range result.SubAccessList {
 			childFilter := bson.M{"subAccessList.key": sub.Key}
 			childUpdate := bson.M{"subAccessList.$.enabled": true}
@@ -229,6 +265,25 @@ func (b BulkServicePersistence) AuthorizeBulkServiceEnable(ctx context.Context, 
 				b.logger.Errorf("failed to update child: %v\n", err)
 				return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 			}
+		}
+	}
+
+	for _, parentKey := range parentKeys {
+		filter := bson.M{
+			"key": parentKey,
+			"subAccessList": bson.M{
+				"$elemMatch": bson.M{"enabled": true},
+			},
+		}
+
+		update := bson.M{"enabled": true}
+		_, err := b.mongoDalbulkService.UpdateOne(ctx, filter, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				continue
+			}
+			b.logger.Errorf("failed to enable parent %s: %v", parentKey, err)
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_PARENT")
 		}
 	}
 
@@ -255,6 +310,7 @@ func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context,
 	}
 
 	// Process each key
+	parentKeys := []string{}
 	for _, key := range keys {
 		// Try updating parent
 		parentFilter := bson.M{"key": key}
@@ -267,11 +323,24 @@ func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context,
 				childFilter := bson.M{"subAccessList.key": key}
 				childUpdate := bson.M{"subAccessList.$.enabled": false}
 
-				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+				parentDoc, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
 					b.logger.Errorf("failed to update child: %v\n", err)
 					return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 				}
+
+				exists := false
+				for _, pk := range parentKeys {
+					if pk == parentDoc.Key {
+						exists = true
+						break
+					}
+				}
+
+				if parentDoc.Key != "" && !exists {
+					parentKeys = append(parentKeys, parentDoc.Key)
+				}
+
 				continue
 			}
 
@@ -290,6 +359,27 @@ func (b BulkServicePersistence) AuthorizeBulkServiceDisable(ctx context.Context,
 				b.logger.Errorf("failed to update child: %v\n", err)
 				return nil, fmt.Errorf("FAILED_TO_UPDATE_CHILD")
 			}
+		}
+	}
+
+	for _, parentKey := range parentKeys {
+		filter := bson.M{
+			"key": parentKey,
+			"subAccessList": bson.M{
+				"$not": bson.M{
+					"$elemMatch": bson.M{"enabled": true},
+				},
+			},
+		}
+
+		update := bson.M{"enabled": false}
+		_, err := b.mongoDalbulkService.UpdateOne(ctx, filter, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				continue
+			}
+			b.logger.Errorf("failed to enable parent %s: %v", parentKey, err)
+			return nil, fmt.Errorf("FAILED_TO_UPDATE_PARENT")
 		}
 	}
 

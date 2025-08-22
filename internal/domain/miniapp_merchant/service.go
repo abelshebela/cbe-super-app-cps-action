@@ -15,7 +15,7 @@ import (
 type MiniAppMerchantService interface {
 	CreateMiniAppMerchant(ctx context.Context, data *MiniAppMerchantRequest) (*MiniAppMerchant, error)
 	UpdateMiniAppMerchant(ctx context.Context, id string, data *MiniAppMerchantRequest) (*MiniAppMerchant, *MiniAppMerchant, error)
-	ListMiniAppMerchant(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*MiniAppMerchant], error)
+	ListMiniAppMerchant(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*MiniAppMerchant], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniAppMerchant, error)
 	DeleteMiniAppMerchant(ctx context.Context, id string) (*MiniAppMerchant, *MiniAppMerchant, error)
 	EnableOrDisableMerchant(ctx context.Context, id string, enable bool) (*MiniAppMerchant, *MiniAppMerchant, error)
@@ -99,7 +99,6 @@ func (s *MiniAppMerchantServiceImpl) UpdateMiniAppMerchant(ctx context.Context, 
 	if exist {
 		return nil, nil, fmt.Errorf(common_util.InformationAlreadyExistst)
 	}
-
 	now := time.Now()
 	cps := &MiniAppMerchant{
 		ID:                old.ID,
@@ -206,7 +205,7 @@ func (s *MiniAppMerchantServiceImpl) Authorize(ctx context.Context, cpsAction *e
 	return cpsAction, nil
 }
 
-func (s *MiniAppMerchantServiceImpl) ListMiniAppMerchant(ctx context.Context, filter *constant.Filter) (*common_util.PaginatedResponse[[]*MiniAppMerchant], error) {
+func (s *MiniAppMerchantServiceImpl) ListMiniAppMerchant(ctx context.Context, filter *constant.MongoFilter) (*common_util.PaginatedResponse[[]*MiniAppMerchant], error) {
 	return s.repo.ListMiniAppMerchant(ctx, filter)
 }
 

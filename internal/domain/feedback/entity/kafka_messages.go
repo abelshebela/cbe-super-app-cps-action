@@ -46,4 +46,3 @@ func NewKafkaMessage(id, msgType string, payload interface{}) (*KafkaMessage, er
 func (k *KafkaMessage) UnmarshalPayload(v interface{}) error {
 	return json.Unmarshal(k.Payload, v)
 }
- 

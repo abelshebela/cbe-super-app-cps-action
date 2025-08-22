@@ -10,6 +10,7 @@ import (
 	"time"
 
 	miniappentity "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -81,10 +82,14 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 	var fieldRules []*validation.FieldRules
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.AppName, validation.Required.Error("app_name is required")),
-			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required")),
+			validation.Field(&r.AppName,
+				validation.Required.Error("app_name is required"),
+				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error("app_name must not contain special characters"),
+				validation.By(utils.NoSpecialChars),
+			),
+			validation.Field(&r.MerchantID, validation.Required.Error("merchant_id is required"), validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.AppIcon, validation.Required, validation.By(validateFile)),
-			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required")),
+			validation.Field(&r.AppViewType, validation.Required.Error("app_view_type is required"), validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.URL, validation.Required.Error("url is required")),
 			validation.Field(&r.BannerImage, validation.Required.Error("banner_image is required"), validation.By(validateFile)),
 		}
@@ -100,12 +105,7 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 		return err
 	}
 
-	return validation.Validate(&r,
-		validation.By(validateAppType(r)),
-		validation.By(validateProductCodes(r, isCreate)),
-		validation.By(validateExclusiveAppFlags(r)),
-		validation.By(validateAppViewType(r, isCreate)),
-	)
+	return nil
 }
 
 const MaxAvatarSize = 2 * 1024 * 1024

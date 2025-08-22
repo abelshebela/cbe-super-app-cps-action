@@ -5,6 +5,7 @@ shared
 test.go
 aiso/env
 .env
+docs
 .vscode
 # for running using Air package
 .air.toml
@@ -15,3 +16,10 @@ scripts/start_kafka_infrastructure.sh
 scripts/send_test_messages.sh
 scripts/run_feedback_consumer.sh
 scripts/README_DOCKER.md
+DONATION_FEATURE_ANALYSIS.md
+main
+main
+FILTER_USAGE_EXAMPLES.md
+pkgs/utils/filter_params_test.go
+internal/domain/account_validation/README.md
+main.exe

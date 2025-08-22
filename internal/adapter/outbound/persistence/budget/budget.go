@@ -200,6 +200,7 @@ func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAc
 			return nil, err
 		}
 	}
+
 	if existing != nil {
 		return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
 	}
@@ -293,7 +294,6 @@ func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (
 
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
 
-	fmt.Println("**********************8")
 	colorData, err := common_util.JsonUnmarshal[entities.Color](color.CurrentAction)
 	if err != nil {
 		return nil, err
@@ -345,6 +345,7 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 }
 
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+
 	if cpsAction.RequestAction == "BUDGET_UPDATE_COLOR" {
 		colorData, err := common_util.JsonUnmarshal[entities.Color](cpsAction.CurrentAction)
 		if err != nil {
@@ -358,12 +359,15 @@ func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities
 			}
 		}
 
-		if dataColor.Color == colorData.Color {
+		if dataColor != nil && dataColor.Color == colorData.Color {
 			return nil, fmt.Errorf("COLOR_ALREADY_EXISTED")
 		}
 	}
+
 	cpsAction.ID = bson.NewObjectID()
+	fmt.Println(cpsAction)
 	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
+
 	if err != nil {
 		b.logger.Errorf("failed to create CPSAction update request: %v", err)
 		return nil, err

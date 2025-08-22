@@ -7,8 +7,8 @@ import (
 	"time"
 
 	entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
 	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -23,7 +23,7 @@ type WalletService interface {
 	DeleteWallet(ctx context.Context, id string) (*Wallet, *Wallet, error)
 	EnableDisableWallet(ctx context.Context, id string, enable bool) (*Wallet, *Wallet, error)
 	FetchWalletByID(ctx context.Context, id string) (*Wallet, error)
-	FetchWallet(ctx context.Context, filterParam *constant.Filter) (*utils.PaginatedResponse[[]*Wallet], error)
+	FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*utils.PaginatedResponse[[]*Wallet], error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
@@ -49,8 +49,7 @@ func NewWalletService(repository WalletRepository,
 }
 
 func (s *Service) CreateWallet(ctx context.Context, req WalletRequest) (*Wallet, error) {
-
-	exist, err := s.Repository.WalletNameExists(ctx, req.Name, nil)
+	exist, err := s.Repository.WalletNameExists(ctx, req.Name, req.Code, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +89,7 @@ func (s *Service) UpdateWallet(ctx context.Context, id string, req WalletRequest
 	}
 
 	if req.Name != "" {
-		exist, err := s.Repository.WalletNameExists(ctx, req.Name, &id)
+		exist, err := s.Repository.WalletNameExists(ctx, req.Name, req.Code, &id)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -169,7 +168,7 @@ func (s *Service) FetchWalletByID(ctx context.Context, id string) (*Wallet, erro
 	return s.Repository.FetchWalletByID(ctx, id)
 }
 
-func (s *Service) FetchWallet(ctx context.Context, filterParam *constant.Filter) (*utils.PaginatedResponse[[]*Wallet], error) {
+func (s *Service) FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*utils.PaginatedResponse[[]*Wallet], error) {
 	return s.Repository.FetchWallet(ctx, filterParam)
 }
 
@@ -208,7 +207,7 @@ func (s *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		}
 
 	case cps_const.RequestDeleteWallet:
-		wallet, err = s.Repository.CreateWallet(ctx, *wallet)
+		wallet, err = s.Repository.DeleteWallet(ctx, wallet.ID)
 
 		if err != nil {
 			return nil, err

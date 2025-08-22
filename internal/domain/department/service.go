@@ -4,18 +4,14 @@ package department
 import (
 	"context"
 	"fmt"
-
-	"log"
-
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/department/entities"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/permission"
+	portal_card "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/portal_card"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
-	err_msg "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 
+	cps_const "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	cpsactions "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -26,73 +22,47 @@ const (
 )
 
 type UpdateDepartmentRequest struct {
-	Department       string   `json:"department"`
-	PortalCards      []string `json:"portal_cards"`
-	PermissionGroups []string `json:"permission_groups"`
+	Department  string   `json:"department"`
+	PortalCards []string `json:"portal_cards"`
 }
 
-type Service struct {
-	cpsActionRepo     CPSActionRepository
-	departmentRepo    DepartmentRepository
-	permissionService permission.PermissionDomainService
-	logger            utils.Logger
+type Service interface {
+	CheckDepartmentExists(ctx context.Context, department string) (bool, error)
+	CheckDepartmentExistsByID(ctx context.Context, id string) (bool, error)
+	CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction interface{}) error
+	UpdateDepartment(ctx context.Context, id string, updateData map[string]interface{}) (*entities.Department, error)
+	GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error)
+	Authorize(ctx context.Context, action *cpsactions.CPSAction) (*cpsactions.CPSAction, error)
+}
+
+type ServiceImpl struct {
+	departmentRepo DepartmentRepository
+	portalService  portal_card.PortaCardInterface
+	logger         utils.Logger
 }
 
 func InitDepartmentDomain(
-	cpsActionRepo CPSActionRepository,
 	departmentRepo DepartmentRepository,
-	permissionService permission.PermissionDomainService,
+	portalService portal_card.PortaCardInterface,
 	logger utils.Logger,
-) *Service {
-	return &Service{
-		cpsActionRepo:     cpsActionRepo,
-		departmentRepo:    departmentRepo,
-		permissionService: permissionService,
-		logger:            logger,
+) Service {
+	return &ServiceImpl{
+		departmentRepo: departmentRepo,
+		portalService:  portalService,
+		logger:         logger,
 	}
 }
 
-func (s *Service) CheckRequestExists(ctx context.Context, cpsAction cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
-	action, err := s.cpsActionRepo.CheckRequestExists(ctx, cpsAction)
-	if err != nil {
-		return nil, err
-	}
-
-	return action, nil
-}
-
-func (s *Service) CheckDepartmentExists(ctx context.Context, department string) (bool, error) {
+func (s *ServiceImpl) CheckDepartmentExists(ctx context.Context, department string) (bool, error) {
 	return s.departmentRepo.CheckDepartmentExists(ctx, department)
 }
 
-func (s *Service) CheckDepartmentExistsByID(ctx context.Context, id string) (bool, error) {
+func (s *ServiceImpl) CheckDepartmentExistsByID(ctx context.Context, id string) (bool, error) {
 	return s.departmentRepo.CheckDepartmentExistsByID(ctx, id)
 }
 
-// Change the return type of CreateCPSAction to (string, error)
-func (s *Service) CreateCPSAction(ctx context.Context, department string, portalCards []string, permissionGroups []string, cpsAction cpsactions.CPSAction) (string, error) {
-	groupIDs := permissionGroups
-	_, err := s.permissionService.ValidatePermissionGroups(groupIDs)
-	if err != nil {
-		return "", fmt.Errorf("invalid permission groups: %w", err)
-	}
-
-	cpsAction.ActionCode = utils.RandomGenerator(20)
-	cpsAction.CurrentAction = map[string]any{
-		"department":        department,
-		"portal_cards":      portalCards,
-		"permission_groups": permissionGroups,
-	}
-	cpsAction.MakerActionTime = time.Now()
-
-	if err := s.cpsActionRepo.CreateCPSAction(ctx, department, portalCards, permissionGroups, cpsAction); err != nil {
-		return "", err
-	}
-
-	s.logger.Infof("CPS action request created for department %s with action code %s", department, cpsAction.ActionCode)
-	return cpsAction.ActionCode, nil
-}
-func (s *Service) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction cpsactions.CPSAction) error {
+func (s *ServiceImpl) CreateDepartment(ctx context.Context, department string, portalCards []string, cpsAction interface{}) error {
 	dept := entities.Department{
 		DepartmentCode: utils.RandomGenerator(20),
 		Department:     department,
@@ -101,103 +71,141 @@ func (s *Service) CreateDepartment(ctx context.Context, department string, porta
 		LastModified:   time.Now(),
 	}
 	if err := s.departmentRepo.CreateDepartment(ctx, dept); err != nil {
-		return err
+		return fmt.Errorf("DEPARTMENT_CREATION_FAILED")
 	}
 
 	return nil
 }
 
-func (s *Service) ValidateActionRequest(ctx context.Context, actionCode string, userDept string) (*cpsactions.CPSAction, error) {
-	action, err := s.cpsActionRepo.FindByActionCode(ctx, actionCode)
+func (s *ServiceImpl) UpdateDepartment(ctx context.Context, id string, updateData map[string]interface{}) (*entities.Department, error) {
+	fmt.Println("we are on the authorize update 1st :", updateData)
+	data, err := s.departmentRepo.UpdateDepartment(ctx, id, updateData)
 	if err != nil {
-		log.Println("error", err)
-		return nil, err
-	}
-
-	if action.Department != userDept {
-		return nil, fmt.Errorf(err_msg.ActionNotAllowed)
-	}
-
-	return action, nil
-}
-func (s *Service) ApproveActionRequest(ctx context.Context, actionCode string, user cpsactions.CPSAction) error {
-
-	if err := s.cpsActionRepo.ApproveActionRequest(ctx, actionCode, user); err != nil {
-		return err
-	}
-	s.logger.Infof("Action request %s approved by user from department %s", actionCode, user.Department)
-
-	return nil
-}
-
-func (s *Service) RejectActionRequest(ctx context.Context, actionCode string, user cpsactions.CPSAction) error {
-	if err := s.cpsActionRepo.RejectActionRequest(ctx, actionCode, user); err != nil {
-		return err
-	}
-	s.logger.Infof("Action request %s approved by user from department %s", actionCode, user.Department)
-
-	return nil
-}
-
-func (s *Service) UpdateDepartment(ctx context.Context, id string, req UpdateDepartmentRequest) (*entities.Department, error) {
-	for _, idStr := range req.PermissionGroups {
-		if _, err := bson.ObjectIDFromHex(idStr); err != nil {
-			return nil, fmt.Errorf("invalid permission group id: %s", idStr)
-		}
-	}
-	if _, err := s.permissionService.ValidatePermissionGroups(req.PermissionGroups); err != nil {
-		return nil, fmt.Errorf("invalid permission groups: %w", err)
-	}
-	data, err := s.departmentRepo.UpdateDepartment(ctx, id, req.Department, req.PortalCards, req.PermissionGroups)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("DEPARTMENT_UPDATE_FAILED")
 	}
 	return data, nil
 }
 
-// CreateDepartmentUpdateCPSAction creates a CPS action for department updates
-func (s *Service) CreateDepartmentUpdateCPSAction(ctx context.Context, req cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
-	// Set up the CPS action for department update
-	req.ActionCode = utils.RandomGenerator(20)
-	req.MakerActionTime = time.Now()
-	req.CreatedAt = time.Now()
-	req.LastModifiedAt = time.Now()
-
-	cpsAction, err := s.cpsActionRepo.CreateDepartmentUpdateCPSAction(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	s.logger.Infof("Department update CPS action created with action code %s", cpsAction.ActionCode)
-	return cpsAction, nil
+func (s *ServiceImpl) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
+	return s.departmentRepo.GetAllDepartments(ctx, filterParams)
 }
 
-// General CPS Action Approve/Reject integration
-func (s *Service) Authorize(ctx context.Context, action *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
-	// fmt.Println("Authorizing action", action.ActionCode, "for department", action.Department)
-	if err := s.cpsActionRepo.ApproveDepartmentUpdate(ctx, *action); err != nil {
-		return nil, err
-	}
-	s.logger.Infof("Department action %s approved by user from department %s", action.ActionCode, action.Department)
-	return action, nil
-}
-
-func (s *Service) Reject(ctx context.Context, action *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
-	if err := s.cpsActionRepo.RejectDepartmentUpdate(ctx, *action); err != nil {
-		return nil, err
-	}
-	s.logger.Infof("Department action %s rejected by user from department %s", action.ActionCode, action.Department)
-	return action, nil
-}
-
-func (s *Service) GetAllDepartments(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Department], error) {
-	departments, err := s.departmentRepo.GetAllDepartments(ctx, filterParams)
-	if err != nil {
-		return nil, err
-	}
-	return departments, nil
-}
-
-func (s *Service) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
+func (s *ServiceImpl) GetDepartmentByID(ctx context.Context, id string) (*entities.Department, error) {
 	return s.departmentRepo.GetDepartmentByID(ctx, id)
+}
+
+func (s *ServiceImpl) Authorize(ctx context.Context, action *cpsactions.CPSAction) (*cpsactions.CPSAction, error) {
+	requestedAction := action.RequestAction
+	var err error
+
+	switch requestedAction {
+	case cps_const.RequestCreateDepartment:
+		currentAction, ok := action.CurrentAction.(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("invalid current action format for create")
+			return nil, fmt.Errorf("DEPARTMENT_INVALID_ACTION_DATA_FORMAT")
+		}
+
+		s.logger.Infof("Processing create request with data: %+v", currentAction)
+
+		department, _ := currentAction["department"].(string)
+
+		var portalCardsList []string
+		if portalCardsRaw, exists := currentAction["portal_cards"]; exists {
+			if portalCardsArr, ok := portalCardsRaw.([]interface{}); ok {
+				for _, item := range portalCardsArr {
+					if str, ok := item.(string); ok {
+						portalCardsList = append(portalCardsList, str)
+					}
+				}
+			} else if portalCardsArr, ok := portalCardsRaw.([]string); ok {
+				portalCardsList = portalCardsArr
+			}
+		}
+
+		if len(portalCardsList) == 0 {
+			s.logger.Errorf("portal cards cannot be empty")
+			return nil, fmt.Errorf("DEPARTMENT_PORTAL_CARDS_REQUIRED")
+		}
+
+		err = s.CreateDepartment(ctx, department, portalCardsList, action)
+		if err != nil {
+			s.logger.Errorf("failed to create department: %v", err)
+			return nil, fmt.Errorf("DEPARTMENT_CREATION_FAILED")
+		}
+
+	case cps_const.RequestUpdateDepartment:
+		updateData, ok := action.CurrentAction.(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("invalid current action format for update")
+			return nil, fmt.Errorf("DEPARTMENT_INVALID_ACTION_DATA_FORMAT")
+		}
+		fmt.Println("we are on the authorize update 1st :", updateData)
+		s.logger.Infof("Processing update request with data: %+v", updateData)
+
+		departmentID, ok := updateData["department_id"].(string)
+		if !ok || departmentID == "" {
+			s.logger.Errorf("department_id not found in update data")
+			return nil, fmt.Errorf("DEPARTMENT_ID_MISSING_IN_UPDATE_DATA")
+		}
+
+		s.logger.Infof("Updating department with ID: %s", departmentID)
+
+		cleanUpdateData := make(map[string]interface{})
+
+		for key, value := range updateData {
+			if key != "department_id" && value != nil {
+				switch key {
+				case "department":
+					if strVal, ok := value.(string); ok && strVal != "" {
+						cleanUpdateData[key] = strVal
+					}
+				case "portal_cards":
+					s.logger.Infof("Processing portal_cards field with value: %+v (type: %T)", value, value)
+					if arrVal, ok := value.([]string); ok && len(arrVal) > 0 {
+						s.logger.Infof("Portal cards as []string: %+v", arrVal)
+						cleanUpdateData[key] = arrVal
+					} else if arrVal, ok := value.([]interface{}); ok && len(arrVal) > 0 {
+						s.logger.Infof("Portal cards as []interface{}: %+v", arrVal)
+						var portalCards []string
+						for _, item := range arrVal {
+							if str, ok := item.(string); ok && str != "" {
+								portalCards = append(portalCards, str)
+							}
+						}
+						s.logger.Infof("Converted portal cards: %+v", portalCards)
+						if len(portalCards) > 0 {
+							cleanUpdateData[key] = portalCards
+						}
+					} else {
+						s.logger.Warnf("Portal cards field has unexpected type or is empty: %+v (type: %T)", value, value)
+					}
+				case "enable":
+					if boolVal, ok := value.(bool); ok {
+						fmt.Println("Enabling department:", boolVal)
+						cleanUpdateData["enabled"] = boolVal
+					}
+				case "enabled":
+					if boolVal, ok := value.(bool); ok {
+						cleanUpdateData["enabled"] = boolVal
+					}
+				}
+			}
+		}
+		fmt.Println("we are on the authorize update 2nd--cleaned one  :", cleanUpdateData)
+		s.logger.Infof("Clean update data: %+v", cleanUpdateData)
+
+		_, err = s.UpdateDepartment(ctx, departmentID, cleanUpdateData)
+		if err != nil {
+			s.logger.Errorf("failed to update department: %v", err)
+			return nil, fmt.Errorf("DEPARTMENT_UPDATE_FAILED")
+		}
+
+		s.logger.Infof("Department updated successfully: %s", departmentID)
+
+	default:
+		return nil, fmt.Errorf("DEPARTMENT_UNSUPPORTED_ACTION_TYPE")
+	}
+
+	return action, nil
 }

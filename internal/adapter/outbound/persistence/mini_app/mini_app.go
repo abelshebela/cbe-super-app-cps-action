@@ -15,8 +15,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	// miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
+
 	miniApp_domain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/miniapp"
-	miniApp "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound/mini_app"
 
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 )
@@ -27,7 +28,7 @@ type MiniAppPersistence struct {
 	client          *mongo.Client
 }
 
-func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp.MiniRepository {
+func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []string, logger utils.Logger) miniApp_domain.MiniRepository {
 	return &MiniAppPersistence{
 		MongoDalMiniApp: dal.NewMongoDal[model.MiniApp, model.MiniApp](client, DB_name, collections[0]),
 		logger:          logger,
@@ -99,6 +100,21 @@ func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (
 	return &res, nil
 }
 
+func (o *MiniAppPersistence) GetMiniAppByName(ctx context.Context, name string) (*miniApp_domain.MiniApp, error) {
+
+	filter := bson.M{"app_name": name, "is_deleted": false}
+	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf(common_util.NotFound)
+		}
+
+		return nil, fmt.Errorf(common_util.GeneralDBQueryFailed)
+	}
+	res := mappers.ToDomainMiniApp(*miniApp)
+	return &res, nil
+}
+
 func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
 
 	objID, err := bson.ObjectIDFromHex(action.ID)
@@ -121,7 +137,9 @@ func (o *MiniAppPersistence) DeleteMiniAppAction(ctx context.Context, action *mi
 }
 
 func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_domain.MiniApp) (*miniApp_domain.MiniApp, error) {
+
 	objID, err := common_util.ParsePrimitiveObjectID(miniApp.ID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +169,21 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 		update["product_code"] = miniApp.ProductCode
 	}
 	if !reflect.DeepEqual(miniApp.Credential, miniApp_domain.CredentialInformation{}) {
-		update["credential"] = miniApp.Credential
+
+		// credID, err := common_util.ParsePrimitiveObjectID(miniApp.Credential.ID)
+		// fmt.Println("//////////////////////////", err)
+
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		data, err := common_util.JsonUnmarshal[bson.M](miniApp.Credential)
+		if err != nil {
+			return nil, err
+		}
+
+		(*data)["id"] = bson.NewObjectID()
+		update["credential"] = data
 	}
 
 	update["is_event_mini_app"] = miniApp.IsEventMiniApp
@@ -161,7 +193,6 @@ func (o *MiniAppPersistence) UpdateMinApp(ctx context.Context, miniApp *miniApp_
 	if len(update) == 1 {
 		return nil, fmt.Errorf(common_util.NoDataProvidedForUpdate)
 	}
-
 	mini, err := o.MongoDalMiniApp.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -182,6 +213,13 @@ func (o *MiniAppPersistence) CreateMiniApp(ctx context.Context, action *miniApp_
 		return nil, err
 	}
 
+	existing, err := o.MongoDalMiniApp.FindOne(ctx, bson.M{"app_name": miniAppDoc.AppName}, bson.M{"_id": 1})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("the app name already exist")
+	}
 	miniApp, err := o.MongoDalMiniApp.InsertOne(ctx, *miniAppDoc)
 	if err != nil {
 		return nil, err

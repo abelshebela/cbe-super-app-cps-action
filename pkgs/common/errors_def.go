@@ -46,15 +46,19 @@ type ErrorDefinitions struct {
 	File        ErrorGroup
 	Branch      ErrorGroup
 	Region      ErrorGroup
+	District    ErrorGroup
+	City        ErrorGroup
 	Department  ErrorGroup
 	Bank        ErrorGroup
 	Action      ErrorGroup
 	Wallet      ErrorGroup
 	AD          ErrorGroup
-	Permission  ErrorGroup
 	BulkService ErrorGroup
+	Permission  ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
+	Donation    ErrorGroup
+	Avatar      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -68,6 +72,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_002",
 			Status:  StatusBadRequest,
 			Message: "Invalid ID provided.",
+		},
+		"INVALID_ID_FORMAT": {
+			Code:    "GEN_018",
+			Status:  StatusBadRequest,
+			Message: "Invalid ID format provided.",
 		},
 		"INVALID_JSON_PAYLOAD": {
 			Code:    "GEN_003",
@@ -884,6 +893,7 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "unsupported request action",
 		},
+
 		"FAILED_TO_GET_DEPARTMENT": {
 			Code:    "GEN_152",
 			Status:  StatusBadRequest,
@@ -1030,6 +1040,15 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "merchant not found",
 		},
+		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
+			Code:    "GEN_172",
+			Status:  StatusBadRequest,
+			Message: "Only Ethiopian numbers in local or international format are acceptable",
+		},
+		"NO_DOC_FOUND": {
+			Code:    "GEN_171	",
+			Message: "No data found",
+		},
 		"INVALID_TOTAL_CAP_VALUE": {
 			Code:    "GEN_172	",
 			Message: "invalid total cap value",
@@ -1050,7 +1069,10 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_176	",
 			Message: "corporate daily cap exceed total cap",
 		},
-
+		"DATABASE_ERROR_CHECKING_PENDING_ACTION": {
+			Code:    "GEN_177",
+			Message: "An error occured while checking pending action",
+		},
 		"SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL": {
 			Code:    "GEN_177",
 			Message: "Single max transfers can not be less or equal to min_amount",
@@ -1064,39 +1086,34 @@ var DefineError = ErrorDefinitions{
 			Message: "user code can not be empty",
 		},
 		"FAILED_TO_FIND_USER": {
-			Code:    "GEN_180",
+			Code:    "GEN_177",
 			Status:  http.StatusNotFound,
 			Message: "failed to find user",
 		},
 		"FAYDA_USER_ALREADY_ENABLED": {
-			Code:    "GEN_181",
+			Code:    "GEN_178",
 			Status:  http.StatusConflict,
 			Message: "fayda user already enabled",
 		},
 		"FAYDA_USER_ALREADY_DISABLE": {
+			Code:    "GEN_179",
+			Status:  http.StatusConflict,
+			Message: "fayda user already disable",
+		},
+		"PLEASE_ADD_VALID_PAGE_OR_PERPAGE": {
+			Code:    "GEN_180",
+			Status:  http.StatusConflict,
+			Message: "please add valid page or per page",
+		},
+		"FAILED_TO_FETCH_ARCHIVED_USERS": {
+			Code:    "GEN_181",
+			Status:  http.StatusConflict,
+			Message: "Failed to fetch archived users",
+		},
+		"DUPLICATE_ACTION": {
 			Code:    "GEN_182",
 			Status:  http.StatusConflict,
-			Message: "fayda user already disabled",
-		},
-		"INVALID_PAYLOAD": {
-			Code:    "GEN_183",
-			Status:  StatusBadRequest,
-			Message: "invalid payload",
-		},
-		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
-			Code:    "GEN_184",
-			Status:  StatusBadRequest,
-			Message: "Only Ethiopian numbers in local or international format are acceptable",
-		},
-		"NO_RESOURCE_FOUND": {
-			Code:    "GEN_185",
-			Status:  StatusNotFound,
-			Message: "Resource not found",
-		},
-		"NO_DOC_FOUND": {
-			Code:    "GEN_186",
-			Status:  StatusNotFound,
-			Message: "mongo: no documents in result",
+			Message: "You are requesting a duplicate action",
 		},
 	},
 	Auth: ErrorGroup{
@@ -1261,6 +1278,11 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusUnauthorized,
 			Message: "Incomplete user information",
 		},
+		"APP_NAME_EXIST": {
+			Code:    "AUTH_033",
+			Status:  StatusUnauthorized,
+			Message: "The App name already exists",
+		},
 	},
 	Transaction: ErrorGroup{
 		"TRANSACTION_NOT_FOUND": {
@@ -1398,7 +1420,7 @@ var DefineError = ErrorDefinitions{
 		"BRANCH_NOT_FOUND": {
 			Code:    "BRN_001",
 			Status:  StatusBadRequest,
-			Message: "No branch found for the given region and district",
+			Message: "No branch found",
 		},
 		"UNHANDLED_SERVER_ERROR": {
 			Code:    "GEN_004",
@@ -1524,7 +1546,7 @@ var DefineError = ErrorDefinitions{
 	Branch: ErrorGroup{
 		"BRANCH_NOT_FOUND": {
 			Code:    "BRN_001",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "Branch not found.",
 		},
 		"BRANCH_DISABLED": {
@@ -1560,7 +1582,7 @@ var DefineError = ErrorDefinitions{
 		},
 		"CITY_NOT_FOUND": {
 			Code:    "BRN_008",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "City not found",
 		},
 		"DISTRICT_ALREADY_BLOCKED": {
@@ -1570,12 +1592,12 @@ var DefineError = ErrorDefinitions{
 		},
 		"DISTRICT_NOT_FOUND": {
 			Code:    "BRN_010",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "District Not Found",
 		},
 		"REGION_NOT_FOUND": {
 			Code:    "BRN_011",
-			Status:  StatusBadRequest,
+			Status:  StatusNotFound,
 			Message: "Region Not Found",
 		},
 		"BRANCH_ALREADY_BLOCKED": {
@@ -1594,6 +1616,52 @@ var DefineError = ErrorDefinitions{
 		"MULTIPLE_BRANCH_ENABLE_HAVE_ALREADY_ENABLED_BRANCH": {
 			Code:    "BRN_015",
 			Message: "multiple branch enable list have  already enabled branch.",
+		},
+		"BRANCH_CODE_IS_REQUIRED": {
+			Code:    "BRN_016",
+			Status:  StatusBadRequest,
+			Message: "One or more branch code is required",
+		},
+		"USER_ALREADY_ENABLED": {
+			Code:    "BRN_017",
+			Status:  StatusConflict,
+			Message: "This user is already enabled",
+		},
+		"USER_ALREADY_DISABLED": {
+			Code:    "BRN_018",
+			Status:  StatusConflict,
+			Message: "This user is already disabled",
+		},
+		"FAILED_TO_PARSE_FILTERS": {
+			Code:    "BRN_019",
+			Status:  StatusInternalServerError,
+			Message: "Failed to parse filter params",
+		},
+		"BRANCH_CODE_REQUIRED": {
+			Code:    "020",
+			Status:  StatusBadRequest,
+			Message: "Branch code is required",
+		},
+	},
+	Region: ErrorGroup{
+		"REGION_CODE_IS_REQUIRED": {
+			Code:    "REG_001",
+			Status:  StatusBadRequest,
+			Message: "One or more region code is required",
+		},
+	},
+	District: ErrorGroup{
+		"DISTRICT_CODE_IS_REQUIRED": {
+			Code:    "DIST_001",
+			Status:  StatusBadRequest,
+			Message: "One or more district code is required",
+		},
+	},
+	City: ErrorGroup{
+		"CITY_CODE_IS_REQUIRED": {
+			Code:    "DIST_001",
+			Status:  StatusBadRequest,
+			Message: "One or more city code is required",
 		},
 	},
 	Department: ErrorGroup{
@@ -1621,6 +1689,27 @@ var DefineError = ErrorDefinitions{
 			Code:    "DEP_005",
 			Status:  StatusBadRequest,
 			Message: "Portal cards must be a list of strings.",
+		},
+
+		"DEPARTMENT_ALREADY_ENABLED": {
+			Code:    "DEP_006",
+			Status:  StatusConflict,
+			Message: "Department is already enabled.",
+		},
+		"DEPARTMENT_ALREADY_DISABLED": {
+			Code:    "DEP_007",
+			Status:  StatusConflict,
+			Message: "Department is alreaPORTALdy disabled.",
+		},
+		"PORTAL_CARD_ARRAY_EMPTY": {
+			Code:    "DEP_008",
+			Status:  StatusBadRequest,
+			Message: "Portal card array cannot be empty.",
+		},
+		"PORTAL_CARD_NOT_FOUND": {
+			Code:    "DEP_009",
+			Status:  StatusBadRequest,
+			Message: "invalid portal card used.",
 		},
 	},
 	Bank: ErrorGroup{
@@ -1812,20 +1901,25 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "Failed to update user status.",
 		},
-		"INVALID_USER_CODE": {
+		"FAILED_TO_MARSHAL_INCOMING_USER": {
 			Code:    "USR_002",
-			Status:  StatusBadRequest,
-			Message: "Invalid user code.",
+			Status:  StatusInternalServerError,
+			Message: "Failed to marshal incoming user data",
 		},
-		"USER_ALREADY_ENABLED": {
+		"FAILED_TO_UNMARSHAL_INCOMING_USER": {
 			Code:    "USR_003",
-			Status:  StatusBadRequest,
-			Message: "User already enabled.",
+			Status:  StatusInternalServerError,
+			Message: "Failed to unmarshal incomming user data",
 		},
-		"USER_ALREADY_DISABLED": {
+		"FAILED_TO_MARSHAL_EXISTING_USER": {
 			Code:    "USR_004",
-			Status:  StatusBadRequest,
-			Message: "User already disabled.",
+			Status:  StatusInternalServerError,
+			Message: "Failed to marshal existing user data",
+		},
+		"FAILED_TO_UNMARSHAL_EXISTING_USER": {
+			Code:    "USR_005",
+			Status:  StatusInternalServerError,
+			Message: "Failed to unmarshal existing user data",
 		},
 	},
 	Wallet: ErrorGroup{
@@ -1926,6 +2020,48 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "end date is required",
 		},
+		"ADVERT_TITLE_ALREADY_EXISTS": {
+			Code:    "AD_007",
+			Status:  StatusConflict,
+			Message: "Advert title already exists",
+		},
+	},
+	BulkService: ErrorGroup{
+		"FAILED_TO_UPDATE_PARENT": {
+			Code:    "BULK_001",
+			Status:  StatusInternalServerError,
+			Message: "Failed to update parent access list",
+		},
+		"FAILED_TO_UPDATE_CHILD": {
+			Code:    "BULK_002",
+			Status:  StatusInternalServerError,
+			Message: "Failed to update sub access list",
+		},
+		"INVALID_KEY_FORMAT": {
+			Code:    "BULK_003",
+			Status:  StatusBadRequest,
+			Message: "The keys you entered are not valid",
+		},
+		"INVALID_CURRENT_ACTION": {
+			Code:    "BULK_004",
+			Status:  StatusBadRequest,
+			Message: "Current action format is not valid",
+		},
+		"SURVICE_NOT_FOUND": {
+			Code:    "BULK_005",
+			Status:  StatusNotFound,
+			Message: "The bulk service you requested is not found",
+		},
+		"NO_RESOURCE_FOUND": {
+			Code:    "BULK_006",
+			Status:  StatusNotFound,
+			Message: "No document/resource found",
+		},
+		"BULK_SERVICE_CODE_IS_REQUIRED": {
+			Code:    "BULK_007",
+			Status:  StatusBadRequest,
+			Message: "One or more bulk service code is required",
+		},
 	},
 	Permission: ErrorGroup{
 		"NO_PERMISSION_CATEGORY_FOUND": {
@@ -1957,43 +2093,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "PERM_006",
 			Status:  StatusBadRequest,
 			Message: "One or more permission groups not found.",
-		},
-	},
-	BulkService: ErrorGroup{
-		"BULK_SERVICE_CODE_IS_REQUIRED": {
-			Code:    "BULK_001",
-			Status:  StatusBadRequest,
-			Message: "Bulk service code is required",
-		},
-		"SURVICE_NOT_FOUND": {
-			Code:    "BULK_002",
-			Status:  StatusNotFound,
-			Message: "One or more service is not found",
-		},
-		"DUPLICATE_ACTION": {
-			Code:    "BULK_003",
-			Status:  StatusConflict,
-			Message: "One or more duplicate action is requested",
-		},
-		"INVALID_CURRENT_ACTION": {
-			Code:    "BULK_004",
-			Status:  StatusBadRequest,
-			Message: "invalid CurrentAction format",
-		},
-		"INVALID_KEY_FORMAT": {
-			Code:    "BULK_005",
-			Status:  StatusBadRequest,
-			Message: "invalid keys format",
-		},
-		"FAILED_TO_UPDATE_CHILD": {
-			Code:    "BULK_006",
-			Status:  StatusInternalServerError,
-			Message: "failed to update child",
-		},
-		"FAILED_TO_UPDATE_PARENT": {
-			Code:    "BULK_007",
-			Status:  StatusInternalServerError,
-			Message: "failed to update parent",
 		},
 	},
 	MiniApp: ErrorGroup{
@@ -2032,6 +2131,11 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "invalid url.",
 		},
+		"MPAAS_ID_REQUIRED": {
+			Code:    "MINIAPP_008",
+			Status:  StatusBadRequest,
+			Message: "mpaas_id is required.",
+		},
 		"INCOMPLETE_BRANCH_PRODUCT_CODES": {
 			Code:    "MINIAPP_009",
 			Status:  StatusBadRequest,
@@ -2068,11 +2172,321 @@ var DefineError = ErrorDefinitions{
 			Message: "only one of is_event_mini_app or is_three_click can be true.",
 		},
 	},
+
 	Event: ErrorGroup{
 		"EVENT_NAME_ALREADY_EXISTS": {
 			Code:    "EVE_001",
 			Message: "Event name already exists",
 			Status:  StatusBadRequest,
+		},
+	},
+	Donation: ErrorGroup{
+		"CATEGORY_NAME_ALREADY_EXISTS": {
+			Code:    "DON_001",
+			Message: "Category name already exists",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_ICON": {
+			Code:    "DON_002",
+			Message: "Failed to upload icon",
+			Status:  StatusBadRequest,
+		},
+		"ICON_IS_REQUIRED": {
+			Code:    "DON_003",
+			Message: "Icon is required",
+			Status:  StatusBadRequest,
+		},
+		"MINIO_TIME_SYNC_ERROR": {
+			Code:    "DON_004",
+			Message: "MinIO time synchronization error",
+			Status:  StatusInternalServerError,
+		},
+		"MINIO_BUCKET_ERROR": {
+			Code:    "DON_005",
+			Message: "MinIO bucket operation failed",
+			Status:  StatusInternalServerError,
+		},
+		"MINIO_CLIENT_NOT_CONFIGURED": {
+			Code:    "DON_006",
+			Message: "MinIO client is not configured",
+			Status:  StatusInternalServerError,
+		},
+		"CONFIGURATION_NOT_LOADED": {
+			Code:    "DON_007",
+			Message: "Configuration is not loaded",
+			Status:  StatusInternalServerError,
+		},
+		"UNABLE_TO_CHECK_ACCOUNT": {
+			Code:    "DON_008",
+			Message: "Unable to check account",
+			Status:  StatusInternalServerError,
+		},
+		"TIME_OUT_ERROR": {
+			Code:    "DON_009",
+			Message: "Operation timed out",
+			Status:  StatusInternalServerError,
+		},
+		"INVALID_DONATION_AMOUNT": {
+			Code:    "DON_010",
+			Message: "Invalid donation amount",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_END_DATE_FORMAT": {
+			Code:    "DON_011",
+			Message: "Invalid end date format",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_START_DATE_FORMAT": {
+			Code:    "DON_012",
+			Message: "Invalid start date format",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_IMAGES_REQUIRED": {
+			Code:    "DON_013",
+			Message: "Donation images are required",
+			Status:  StatusBadRequest,
+		},
+		"COMPANY_NAME_ALREADY_EXISTS": {
+			Code:    "DON_014",
+			Message: "Company name already exists",
+			Status:  StatusBadRequest,
+		},
+		"ACCOUNT_NUMBER_ALREADY_EXISTS": {
+			Code:    "DON_015",
+			Message: "Account number already exists",
+			Status:  StatusBadRequest,
+		},
+		"LOGO_IS_REQUIRED": {
+			Code:    "DON_016",
+			Message: "Logo is required",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_LOGO": {
+			Code:    "DON_017",
+			Message: "Failed to upload logo",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_TITLE_ALREADY_EXISTS": {
+			Code:    "DON_018",
+			Message: "Donation title already exists",
+			Status:  StatusBadRequest,
+		},
+		"COMPANY_NOT_FOUND": {
+			Code:    "DON_019",
+			Message: "Company not found",
+			Status:  StatusBadRequest,
+		},
+		"CATEGORY_NOT_FOUND": {
+			Code:    "DON_020",
+			Message: "Category not found",
+			Status:  StatusBadRequest,
+		},
+		"AT_LEAST_ONE_IMAGE_REQUIRED": {
+			Code:    "DON_021",
+			Message: "At least one image is required",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGES": {
+			Code:    "DON_022",
+			Message: "Failed to upload images",
+			Status:  StatusBadRequest,
+		},
+		"ICON_URL_MISSING": {
+			Code:    "DON_023",
+			Message: "Icon URL is missing in CPS request",
+			Status:  StatusBadRequest,
+		},
+		"PREVIOUS_ACTION_REQUIRED": {
+			Code:    "DON_024",
+			Message: "Previous action is required for update",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_PREVIOUS_ACTION_FORMAT": {
+			Code:    "DON_025",
+			Message: "Invalid previous action format",
+			Status:  StatusBadRequest,
+		},
+		"ID_NOT_FOUND": {
+			Code:    "DON_026",
+			Message: "ID not found in previous action",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_ID_FORMAT": {
+			Code:    "DON_027",
+			Message: "Invalid ID format",
+			Status:  StatusBadRequest,
+		},
+		"LOGO_URL_MISSING": {
+			Code:    "DON_028",
+			Message: "Logo URL is missing in CPS request",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_IMAGES_MISSING": {
+			Code:    "DON_029",
+			Message: "Donation images are missing in CPS request",
+			Status:  StatusBadRequest,
+		},
+		"ACCOUNT_NUMBER_IS_REQUIRED": {
+			Code:    "DON_030",
+			Message: "Account number is required",
+			Status:  StatusBadRequest,
+		},
+		"ACCOUNT_NOT_FOUND": {
+			Code:    "DON_031",
+			Message: "Account not found",
+			Status:  StatusBadRequest,
+		},
+		"COMPANY_LOOKUP_FAILED": {
+			Code:    "DON_032",
+			Message: "Company lookup failed",
+			Status:  StatusInternalServerError,
+		},
+		"CATEGORY_LOOKUP_FAILED": {
+			Code:    "DON_033",
+			Message: "Category lookup failed",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_1": {
+			Code:    "DON_034",
+			Message: "Failed to upload image 1",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_2": {
+			Code:    "DON_035",
+			Message: "Failed to upload image 2",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_3": {
+			Code:    "DON_036",
+			Message: "Failed to upload image 3",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_4": {
+			Code:    "DON_037",
+			Message: "Failed to upload image 4",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPLOAD_IMAGE_5": {
+			Code:    "DON_038",
+			Message: "Failed to upload image 5",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_UPDATE_DONATION": {
+			Code:    "DON_039",
+			Message: "Failed to update donation",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_UPDATE_DONATION_CATEGORY": {
+			Code:    "DON_040",
+			Message: "Failed to update donation category",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_UPDATE_DONATION_COMPANY": {
+			Code:    "DON_041",
+			Message: "Failed to update donation company",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CREATE_DONATION": {
+			Code:    "DON_042",
+			Message: "Failed to create donation",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CREATE_DONATION_CATEGORY": {
+			Code:    "DON_043",
+			Message: "Failed to create donation category",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CREATE_DONATION_COMPANY": {
+			Code:    "DON_044",
+			Message: "Failed to create donation company",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CHECK_DONATION_COMPANY_NAME": {
+			Code:    "DON_045",
+			Message: "Failed to check donation company name",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CHECK_DONATION_COMPANY_ACCOUNT": {
+			Code:    "DON_046",
+			Message: "Failed to check donation company account",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_FETCH_DONATION_COMPANIES": {
+			Code:    "DON_047",
+			Message: "Failed to fetch donation companies",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_DECODE_DONATION_COMPANIES": {
+			Code:    "DON_048",
+			Message: "Failed to decode donation companies",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_COUNT_DONATION_COMPANIES": {
+			Code:    "DON_049",
+			Message: "Failed to count donation companies",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_FETCH_DONATION_CATEGORIES": {
+			Code:    "DON_050",
+			Message: "Failed to fetch donation categories",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_DECODE_DONATION_CATEGORIES": {
+			Code:    "DON_051",
+			Message: "Failed to decode donation categories",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_COUNT_DONATION_CATEGORIES": {
+			Code:    "DON_052",
+			Message: "Failed to count donation categories",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_FETCH_DONATIONS": {
+			Code:    "DON_053",
+			Message: "Failed to fetch donations",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_DECODE_DONATIONS": {
+			Code:    "DON_054",
+			Message: "Failed to decode donations",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_COUNT_DONATIONS": {
+			Code:    "DON_055",
+			Message: "Failed to count donations",
+			Status:  StatusInternalServerError,
+		},
+		"FAILED_TO_CONVERT_STRING_TO_OBJECT_ID": {
+			Code:    "DON_056",
+			Message: "Failed to convert string to Object ID",
+			Status:  StatusBadRequest,
+		},
+		"FAILED_TO_SAFE_CONVERT_TO_OBJECT_ID": {
+			Code:    "DON_057",
+			Message: "Failed to safely convert to Object ID",
+			Status:  StatusBadRequest,
+		},
+		"DONATION_LOOKUP_FAILED": {
+			Code:    "DON_058",
+			Message: "Donation lookup failed",
+			Status:  StatusInternalServerError,
+		},
+		"INVALID_COMPANY_ID_FORMAT": {
+			Code:    "DON_060",
+			Message: "Invalid company ID format",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_CATEGORY_ID_FORMAT": {
+			Code:    "DON_061",
+			Message: "Invalid category ID format",
+			Status:  StatusBadRequest,
+		},
+	},
+	Avatar: ErrorGroup{
+		"AVATAR_LABEL_ALREADY_EXISTS": {
+			Code:    "AVT_001",
+			Message: "Avatar label already exists",
+			Status:  StatusConflict,
 		},
 	},
 }

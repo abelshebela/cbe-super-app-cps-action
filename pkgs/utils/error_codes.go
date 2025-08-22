@@ -1,4 +1,3 @@
-// Package utils err_msg centralizes error code constants to avoid typos and duplication.
 package utils
 
 const (

@@ -27,7 +27,6 @@ type EventRequest struct {
 	Tickets          []evententity.Ticket  `json:"tickets"`
 }
 
-
 // validateStartDate ensures start_date is not before today
 func validateStartDate(e EventRequest) validation.RuleFunc {
 	return func(value interface{}) error {
@@ -240,6 +239,7 @@ type EventResponse struct {
 	EventStatus      string               `json:"event_status"`
 	EventVenue       string               `json:"event_venue"`
 	EventCity        string               `json:"event_city"`
+	Enabled          bool                 `json:"enabled`
 	MerchantName     string               `json:"merchant_name"`
 	MerchantPhone    string               `json:"merchant_phone"`
 	TicketTypes      []TicketTypeResponse `json:"ticket_types"`

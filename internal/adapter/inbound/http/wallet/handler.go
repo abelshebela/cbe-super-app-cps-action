@@ -3,6 +3,7 @@ package wallet
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/wallet"
 	cps_entitites "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
@@ -50,8 +51,8 @@ func (wa *WalletAdapter) parseRequest(r *http.Request, isCreate bool) (*WalletRe
 		defer file.Close()
 	}
 
-	walletRequest.Name = r.FormValue("name")
-	walletRequest.Code = r.FormValue("code")
+	walletRequest.Name = strings.TrimSpace(r.FormValue("name"))
+	walletRequest.Code = strings.TrimSpace(r.FormValue("code"))
 	walletRequest.Avatar = fileHeader
 
 	maker, err := createUser(r)
@@ -100,7 +101,7 @@ func (wa *WalletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Wallet creation request sent successfully")
+	common_util.BaseResponseMaker(nil, w, "Wallet creation request sent successfully", 201)
 }
 
 func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +139,7 @@ func (wa *WalletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Wallet update request sent successfully")
+	common_util.BaseResponseMaker(nil, w, "Wallet update request sent successfully", 200)
 }
 
 func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
@@ -156,12 +157,11 @@ func (wa *WalletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, nil, "Wallet deleted successfully")
+	common_util.BaseResponseMaker(nil, w, "Wallet deleted successfully", 204)
 }
 
 func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
-	filterParams := common_util.ExtractFilterParams(r)
-
+	filterParams := common_util.ExtractMongoFilterParams(r)
 	wallets, err := wa.walletHandler.GetAllWallet(r.Context(), filterParams)
 	if err != nil {
 		common_util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -169,7 +169,7 @@ func (wa *WalletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, wallets, "Wallets retrieved successfully")
+	common_util.BaseResponseMaker(wallets, w, "Wallets retrieved successfully", 200)
 }
 
 func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
@@ -187,7 +187,7 @@ func (wa *WalletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, wallet, "Wallet retrieved successfully")
+	common_util.BaseResponseMaker(wallet, w, "Wallet retrieved successfully", 200)
 }
 
 func (wa *WalletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -218,5 +218,5 @@ func (wa *WalletAdapter) handleEnableOrDisableWallet(w http.ResponseWriter, r *h
 		action = "enabled"
 	}
 
-	common_util.WriteSuccessResponse(w, nil, fmt.Sprintf("Wallet %s request sent successfully", action))
+	common_util.BaseResponseMaker(nil, w, fmt.Sprintf("Wallet %s request sent successfully", action), 200)
 }

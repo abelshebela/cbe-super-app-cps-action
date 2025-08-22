@@ -22,7 +22,7 @@ type MiniAppMerchantApplication interface {
 	DeleteMerchant(ctx context.Context, id string, maker cps_entities.User) error
 	EnableDisableMerchant(ctx context.Context, id string, maker cps_entities.User, enable bool) error
 	FetchMerchantByID(ctx context.Context, id string) (*domain.MiniAppMerchant, error)
-	FetchMerchants(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error)
+	FetchMerchants(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error)
 }
 
 type MiniAppMerchantApplicationStore struct {
@@ -138,6 +138,6 @@ func (a *MiniAppMerchantApplicationStore) FetchMerchantByID(ctx context.Context,
 	return a.service.DetailMiniAppByID(ctx, id)
 }
 
-func (a *MiniAppMerchantApplicationStore) FetchMerchants(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error) {
+func (a *MiniAppMerchantApplicationStore) FetchMerchants(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*domain.MiniAppMerchant], error) {
 	return a.service.ListMiniAppMerchant(ctx, filterParam)
 }

@@ -5,11 +5,12 @@ import (
 
 	// "fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
 	constants "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
-	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	// common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/permission"
@@ -56,7 +57,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		util.SendErrorResponse(w, util.IncompleteUserInfo, 0, nil)
 		return
 	}
-
+	role := strings.ToUpper(request.Role)
 	cpsAction := model.CPSAction{
 		MakerID:          userContext.UserID,
 		MakerName:        userContext.FullName,
@@ -67,7 +68,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		RequestAction:    string(constants.RequestCreatePermissionGroup),
 	}
 
-	cpsAction, err := h.permissionService.CreatePermissionGroup("", request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	_, err := h.permissionService.CreatePermissionGroup(r.Context(), "", request.GroupName, role, request.PermissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[CreatePermissionGroup] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -75,19 +76,19 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	h.logger.Infof("[CreatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
-	common_util.WriteSuccessResponse(w, map[string]string{"action_code": cpsAction.ActionCode}, "group permission Request  created successfully")
+	util.WriteSuccessResponse(w, 0, "group permission Request  created successfully")
 }
 
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
 
-	filterparams := common_util.ExtractFilterParams(r)
+	filterparams := util.ExtractFilterParams(r)
 	permissionGroups, err := h.permissionService.GetPermissionGroups(r.Context(), filterparams)
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroups] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, permissionGroups, "Permission groups fetched successfully")
+	util.WriteSuccessResponse(w, permissionGroups, "Permission groups fetched successfully")
 }
 
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
@@ -99,19 +100,19 @@ func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	common_util.WriteSuccessResponse(w, permissionGroup, "Permission group fetched successfully")
+	util.WriteSuccessResponse(w, permissionGroup, "Permission group fetched successfully")
 }
 
 func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http.Request) {
-	var request permission.CreatePermissionGroupRequest
+	var request permission.UpdatePermissionGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		h.logger.Errorf("[CreatePermissionGroup] failed to decode request: %v", err)
+		h.logger.Errorf("[UpdatePermissionGroup] failed to decode request: %v", err)
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		h.logger.Warnf("[CreatePermissionGroup] validation failed: %v", err)
+		h.logger.Warnf("[UpdatePermissionGroup] validation failed: %v", err)
 		util.SendErrorResponse(w, err.Error(), http.StatusBadRequest, nil)
 		return
 	}
@@ -128,6 +129,35 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Extract values from optional fields, using old values as defaults if not provided
+	groupName := oldGroupName
+	if request.GroupName != nil {
+		groupName = *request.GroupName
+	}
+
+	// Get current permission group to use as defaults for missing fields
+	currentGroup, err := h.permissionService.GetPermissionGroup(oldGroupName)
+	if err != nil {
+		h.logger.Errorf("[UpdatePermissionGroup] failed to get current permission group: %v", err)
+		util.SendErrorResponse(w, "Failed to get current permission group", 0, nil)
+		return
+	}
+
+	// Use current values as defaults for missing fields
+	var role string = currentGroup.Role
+	if request.Role != nil {
+		role = strings.ToUpper(*request.Role)
+	}
+
+	var permissionCategoryLists []string
+	if request.PermissionCategoryLists != nil {
+		permissionCategoryLists = *request.PermissionCategoryLists
+		h.logger.Infof("[UpdatePermissionGroup] Using provided permission categories: %+v", permissionCategoryLists)
+	} else {
+		h.logger.Infof("[UpdatePermissionGroup] No permission categories provided, will keep existing ones unchanged")
+		permissionCategoryLists = []string{}
+	}
+
 	cpsAction := model.CPSAction{
 		MakerID:          userContext.UserID,
 		MakerName:        userContext.FullName,
@@ -138,7 +168,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		RequestAction:    string(constants.RequestUpdatePermissionGroup),
 	}
 
-	cpsAction, err := h.permissionService.UpdatePermissionGroupRequest(oldGroupName, request.GroupName, request.Role, request.PermissionCategoryLists, cpsAction)
+	_, err = h.permissionService.UpdatePermissionGroupRequest(r.Context(), oldGroupName, groupName, role, permissionCategoryLists, cpsAction)
 	if err != nil {
 		h.logger.Errorf("[UpdatePermissionGroup] service error: %v", err)
 		util.SendErrorResponse(w, err.Error(), 0, nil)
@@ -146,7 +176,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 	}
 
 	h.logger.Infof("[UpdatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
-	common_util.WriteSuccessResponse(w, map[string]string{"action_code": cpsAction.ActionCode}, "group permission Request updated successfully")
+	util.WriteSuccessResponse(w, 0, "group permission Request updated successfully")
 }
 
 func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.ResponseWriter, r *http.Request) {
@@ -156,5 +186,5 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 		util.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	common_util.WriteSuccessResponse(w, categories, "Permission categories fetched successfully")
+	util.WriteSuccessResponse(w, categories, "Permission categories fetched successfully")
 }

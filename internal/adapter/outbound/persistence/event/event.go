@@ -208,7 +208,7 @@ func (e *EventPersistence) DeleteEvent(ctx context.Context, id string) (*event.E
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-		result := mappers.ToEventModel(&eventDoc)
+	result := mappers.ToEventModel(&eventDoc)
 
 	return &result, nil
 }
@@ -239,7 +239,7 @@ func (e *EventPersistence) EnableDisableEvent(ctx context.Context, id string, en
 		return nil, fmt.Errorf(common_util.GeneralDBUpdateFailed)
 	}
 
-		result := mappers.ToEventModel(&eventDoc)
+	result := mappers.ToEventModel(&eventDoc)
 
 	return &result, nil
 }

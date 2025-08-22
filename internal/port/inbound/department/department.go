@@ -5,8 +5,8 @@ import "net/http"
 type DepartmentPortHandler interface {
 	GetAllDepartments(w http.ResponseWriter, r *http.Request)
 	CreateDepartment(w http.ResponseWriter, r *http.Request)
-	// ApproveDepartmentRequest(w http.ResponseWriter, r *http.Request)
-	// RejectDepartmentRequest(w http.ResponseWriter, r *http.Request)
 	UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request)
 	GetDepartmentByID(w http.ResponseWriter, r *http.Request)
+	EnableDepartment(w http.ResponseWriter, r *http.Request)
+	DisableDepartment(w http.ResponseWriter, r *http.Request)
 }

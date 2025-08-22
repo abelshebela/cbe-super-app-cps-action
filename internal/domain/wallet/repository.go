@@ -1,7 +1,6 @@
 // Package repository provides interfaces for wallet data persistence and operations.
 package wallet
 
-
 import (
 	"context"
 
@@ -12,9 +11,9 @@ import (
 type WalletRepository interface {
 	CreateWallet(ctx context.Context, wallet Wallet) (*Wallet, error)
 	FetchWalletByID(ctx context.Context, id string) (*Wallet, error)
-	FetchWallet(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Wallet], error)
+	FetchWallet(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*Wallet], error)
 	UpdateWallet(ctx context.Context, wallet Wallet) (*Wallet, error)
 	DeleteWallet(ctx context.Context, id string) (*Wallet, error)
 	EnableDisableWallet(ctx context.Context, id string, enable bool) (*Wallet, error)
-	WalletNameExists(ctx context.Context, name string, id *string) (bool, error)
+	WalletNameExists(ctx context.Context, name string, code string, id *string) (bool, error)
 }

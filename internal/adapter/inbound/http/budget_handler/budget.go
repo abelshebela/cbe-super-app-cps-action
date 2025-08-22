@@ -2,6 +2,7 @@ package budget_handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -176,6 +177,7 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 		RequestAction:    entities.RequestCreateBudgetColor,
 		MakerActionTime:  time.Now(),
 	}
+	fmt.Println("*************************Adapter**************************8")
 
 	_, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {

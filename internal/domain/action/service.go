@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/constant"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -41,18 +42,18 @@ func NewService(repo ActionRepository, logger utils.Logger) ServiceInterface {
 
 func (s *ServiceStore) createCpsAction(maker User, actionID string, currentAction any, requestAction string) CPSAction {
 	return CPSAction{
-		ActionCode:        actionID,
-		MakerID:           maker.UserID,
-		MakerName:         maker.FullName,
-		MakerPhoneNumber:  maker.PhoneNumber,
-		ActionType:        ActionCreate,
-		ActionStatus:      ActionPending,
-		CurrentAction:     currentAction,
-		RequestAction:     RequestAction(requestAction),
-		Department:        maker.Department,
-		CreatedAt:         time.Now(),
-		LastModifiedAt:    time.Now(),
-		MakerActionTime:   time.Now(),
+		ActionCode:       actionID,
+		MakerID:          maker.UserID,
+		MakerName:        maker.FullName,
+		MakerPhoneNumber: maker.PhoneNumber,
+		ActionType:       ActionCreate,
+		ActionStatus:     ActionPending,
+		CurrentAction:    currentAction,
+		RequestAction:    RequestAction(requestAction),
+		Department:       maker.Department,
+		CreatedAt:        time.Now(),
+		LastModifiedAt:   time.Now(),
+		MakerActionTime:  time.Now(),
 	}
 
 }
@@ -91,8 +92,8 @@ func extractCurrentAction(input any) (CurrentAction, error) {
 func (s *ServiceStore) buildAndSaveCpsAction(ctx context.Context, maker User, current CurrentAction, requestAction string) (string, error) {
 	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
 
-	cpsAction := s.createCpsAction(maker, actionID, current, requestAction)
-	data, err := s.Repository.CreateCpsAction(ctx, cpsAction)
+	data := s.createCpsAction(maker, actionID, current, requestAction)
+	data, err := s.Repository.CreateCpsAction(ctx, data)
 	if err != nil {
 		return "", err
 	}
@@ -237,21 +238,21 @@ func (s *ServiceStore) CreateCpsAction(ctx context.Context, action CPSAction) (C
 		return CPSAction{}, fmt.Errorf(common_util.PendingCPSActionExists)
 	}
 	actionID := utils.Random(ActionIDLength, &utils.PreSufix{Prefix: ActionIDPrefix})
-	cpsAction := s.createCpsAction(
-		User{
-			UserID:      action.MakerID,
-			FullName:    action.MakerName,
-			PhoneNumber: action.MakerPhoneNumber,
-		},
-		actionID,
-		action.CurrentAction,
-		"",
-	)
-	cpsAction.RequestAction = action.RequestAction
-	createdAction, err := s.Repository.CreateCpsAction(ctx, cpsAction)
+	cpsAction := &CPSAction{
+		MakerID:          action.MakerID,
+		MakerName:        action.MakerName,
+		MakerPhoneNumber: action.MakerPhoneNumber,
+		UniqueId:         actionID,
+		CurrentAction:    action.CurrentAction,
+		ActionType:       ActionType(constant.ActionCreate),
+		CreatedAt:        time.Now(),
+	}
+
+	// cpsAction.RequestAction = action.RequestAction
+	_, err = s.Repository.CreateCpsAction(ctx, *cpsAction)
 	if err != nil {
 		s.Logger.Errorf("CreateCpsAction: failed to create CPS action", "makerID", action.MakerID, "error", err)
 		return CPSAction{}, err
 	}
-	return createdAction, nil
+	return CPSAction{}, nil
 }

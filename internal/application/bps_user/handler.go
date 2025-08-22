@@ -6,8 +6,8 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/action"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/bps_user"
+	cps_entities "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_actions/entities"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -17,8 +17,8 @@ type ApplicationService interface {
 	GetPendingUserActions(ctx context.Context) ([]model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*userDTO.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*userDTO.BPSUser], error)
-	DisableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*action.CPSAction, error)
-	EnableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*action.CPSAction, error)
+	DisableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
+	EnableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error)
 }
 
 type Handler struct {
@@ -47,19 +47,19 @@ func (h *Handler) FetchUserByUserCode(ctx context.Context, userCode string) (*us
 
 	// Convert domain BPSUser to DTO BPSUser
 	dtoUser := &userDTO.BPSUser{
-		ID:                user.ID,
-		UserCode:          user.UserCode,
-		FullName:          user.FullName,
-		Username:          user.Username,
-		PhoneNumber:       user.PhoneNumber,
-		BranchCode:        user.BranchCode,
-		BranchName:        user.BranchName,
-		HomeBranch:        user.HomeBranch,
-		Role:              user.Role,
-		Realm:             user.Realm,
-	
-		Enabled:           user.Enabled,
-		IsDeleted:         user.IsDeleted,
+		ID:          user.ID,
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		Username:    user.Username,
+		PhoneNumber: user.PhoneNumber,
+		BranchCode:  user.BranchCode,
+		BranchName:  user.BranchName,
+		HomeBranch:  user.HomeBranch,
+		Role:        user.Role,
+		Realm:       user.Realm,
+
+		Enabled:   user.Enabled,
+		IsDeleted: user.IsDeleted,
 	}
 
 	return dtoUser, nil
@@ -75,19 +75,18 @@ func (h *Handler) GetAllBPSUsers(ctx context.Context, filterParams *constant.Mon
 	dtoUsers := make([]*userDTO.BPSUser, 0, len(users.Data))
 	for _, user := range users.Data {
 		dtoUser := &userDTO.BPSUser{
-			ID:                user.ID,
-			UserCode:          user.UserCode,
-			FullName:          user.FullName,
-			Username:          user.Username,
-			PhoneNumber:       user.PhoneNumber,
-			BranchCode:        user.BranchCode,
-			BranchName:        user.BranchName,
-			HomeBranch:        user.HomeBranch,
-			Role:              user.Role,
-			Realm:             user.Realm,
-			Enabled:           user.Enabled,
-			IsDeleted:         user.IsDeleted,
-
+			ID:          user.ID,
+			UserCode:    user.UserCode,
+			FullName:    user.FullName,
+			Username:    user.Username,
+			PhoneNumber: user.PhoneNumber,
+			BranchCode:  user.BranchCode,
+			BranchName:  user.BranchName,
+			HomeBranch:  user.HomeBranch,
+			Role:        user.Role,
+			Realm:       user.Realm,
+			Enabled:     user.Enabled,
+			IsDeleted:   user.IsDeleted,
 		}
 		dtoUsers = append(dtoUsers, dtoUser)
 	}
@@ -98,7 +97,7 @@ func (h *Handler) GetAllBPSUsers(ctx context.Context, filterParams *constant.Mon
 	}, nil
 }
 
-func (h *Handler) DisableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
+func (h *Handler) DisableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error) {
 	if userCode == "" {
 		h.logger.Errorf("user_code is required")
 		return nil, fmt.Errorf("USER_CODE_IS_REQUIRED")
@@ -115,7 +114,7 @@ func (h *Handler) DisableUser(ctx context.Context, userCode, makerID, phone, ful
 	return h.service.DisableBPSUserRequest(ctx, request)
 }
 
-func (h *Handler) EnableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*action.CPSAction, error) {
+func (h *Handler) EnableUser(ctx context.Context, userCode, makerID, phone, fullName, dept string) (*cps_entities.CPSAction, error) {
 	if userCode == "" {
 		h.logger.Errorf("user_code is required")
 		return nil, fmt.Errorf("USER_CODE_IS_REQUIRED")

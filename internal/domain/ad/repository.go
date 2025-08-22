@@ -14,4 +14,5 @@ type ADRepository interface {
 	EnableDisableAdvert(ctx context.Context, id string, enable bool) (*Advert, error)
 	FetchAdvertByID(ctx context.Context, id string) (*Advert, error)
 	FetchAdverts(ctx context.Context, filterParams *util_constant.Filter) (*utils.PaginatedResponse[[]*Advert], error)
+	GetAdvertByTitle(ctx context.Context, title string) (*Advert, error)
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities/enums"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/go-playground/validator/v10"
 	common "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/common"
@@ -335,11 +336,38 @@ func ValidateStrict(input []byte, target interface{}) StrictValidationResult {
 	return result
 }
 
-
 // nonEmptyString returns if non-empty, otherwise fallback
 func NonEmptyString(s, fallback string) string {
 	if s != "" {
 		return s
 	}
 	return fallback
+}
+
+var allowedChars = "a-zA-Z0-9\\s._-"
+
+func NoSpecialChars(value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation", "invalid type")
+	}
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return nil
+	}
+
+	re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !re.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
+}
+
+func TrimWhiteSpace(value interface{}) error {
+	if s, ok := value.(string); ok {
+		if strings.TrimSpace(s) == "" {
+			return errors.New("value cannot be empty or whitespace")
+		}
+	}
+	return nil
 }
