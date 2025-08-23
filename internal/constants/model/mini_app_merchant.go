@@ -1,26 +1,63 @@
 package model
 
-import (
-	"cbe-super-app-cps-action/internal/constants/types"
-	"time"
+import "time"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
+type KYCStatus string
+
+const (
+	KYCStatusPending  KYCStatus = "PENDING"
+	KYCStatusComplete KYCStatus = "COMPLETE"
+	KYCStatusRejected KYCStatus = "REJECTED"
 )
 
+type KYCInformation struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+}
+
+type KYC struct {
+	Status         KYCStatus      `json:"status"`
+	Representative KYCInformation `json:"representative"`
+}
+
+type BranchInformation struct {
+	BranchCode          string `json:"branch_code"`
+	BranchName          string `json:"branch_name"`
+	BranchAddress       string `json:"branch_address"`
+	BranchOwner         string `json:"branch_owner"`
+	BranchAccountNumber string `json:"branch_account_number"`
+}
+
+type MiniApps struct {
+	ID        string `json:"id" bson:"id"`
+	Enabled   bool   `json:"enabled" bson:"enabled"`
+	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
+}
+
 type MiniAppMerchant struct {
-	ID                bson.ObjectID             `bson:"_id,omitempty"`
-	Code              string                    `bson:"merchant_code"`
-	MerchantName      string                    `bson:"merchant_name"`
-	MerchantType      string                    `bson:"merchant_type"`
-	KYC               types.KYC                 `bson:"kyc"`
-	BankAccountNumber string                    `bson:"bank_account_number"`
-	Branches          []types.BranchInformation `bson:"branches"`
-	Email             string                    `bson:"email"`
-	PhoneNumber       string                    `bson:"phone_number"`
-	MiniApps          []types.MiniApps          `bson:"mini_apps"`
-	Enabled           bool                      `bson:"enabled"`
-	IsDeleted         bool                      `bson:"is_deleted"`
-	CreatedAt         time.Time                 `bson:"created_at"`
-	LastUpdatedAt     time.Time                 `bson:"last_updated_at"`
-	DeletedAt         time.Time                 `bson:"deleted_at,omitempty"`
+	ID                string              `json:"id,omitempty"`
+	Code              string              `json:"merchant_code"`
+	MerchantName      string              `json:"merchant_name"`
+	MerchantType      string              `json:"merchant_type"`
+	KYC               KYC                 `json:"kyc"`
+	BankAccountNumber string              `json:"bank_account_number"`
+	Branches          []BranchInformation `json:"branches"`
+	Email             string              `json:"email"`
+	PhoneNumber       string              `json:"phone_number"`
+	MiniApps          []MiniApps          `json:"mini_apps"`
+	Enabled           bool                `json:"enabled"`
+	IsDeleted         bool                `json:"is_deleted"`
+	CreatedAt         time.Time           `json:"created_at"`
+	LastModifiedAt    time.Time           `json:"last_modified"`
+	DeletedAt         time.Time           `json:"deleted_at"`
+}
+
+type CheckMiniAppMerchant struct {
+	BankAccountNumber string `json:"bank_account_number"`
+	Email             string `json:"email"`
+	PhoneNumber       string `json:"phone_number"`
+}
+type MiniAppMerchantExistOptions struct {
+	ExcludeID string
 }
