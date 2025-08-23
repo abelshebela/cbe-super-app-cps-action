@@ -848,7 +848,6 @@ func stringToPointer(s string) *string {
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": "CREATE_CPS_USER",
@@ -912,7 +911,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	makerData := contexts.ExtractContext(ctx)
 
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": "UPDATE_CPS_USER",
@@ -1037,7 +1035,6 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 	// Check if there is a pending action
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": "DELETE_CPS_USER",
@@ -1067,7 +1064,6 @@ func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, 
 	// Check if there is a pending action
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": requestActionType,
@@ -1122,6 +1118,7 @@ func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_ent
 	}
 
 	now := time.Now()
+	data.ID = bson.NewObjectID()
 	data.Realm = "BANK"
 	data.PasswordDisable = true
 	data.SyncDisabled = false

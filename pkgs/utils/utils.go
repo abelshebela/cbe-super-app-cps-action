@@ -128,7 +128,7 @@ func GetRandomArbitrary() (string, error) {
 func FormatPhoneNumber(phoneNumber string) string {
 	phoneNumber = strings.TrimSpace(phoneNumber)
 
-	// Remove all none-digit and non-plus characters
+	// Remove all non-digit and non-plus characters
 	re := regexp.MustCompile(`[^\d\+]`)
 	phoneNumber = re.ReplaceAllString(phoneNumber, "")
 
@@ -136,23 +136,23 @@ func FormatPhoneNumber(phoneNumber string) string {
 		phoneNumber = "+251" + phoneNumber[5:]
 	} else if strings.HasPrefix(phoneNumber, "2510") {
 		phoneNumber = "+251" + phoneNumber[4:]
+	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
+		phoneNumber = "+251" + phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
+		phoneNumber = "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
+		phoneNumber = "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "251") {
+		phoneNumber = "+" + phoneNumber
 	}
 
-	switch {
-	case strings.HasPrefix(phoneNumber, "+251"):
+	if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
 		return phoneNumber
-	case strings.HasPrefix(phoneNumber, "251"):
-		return "+" + phoneNumber
-	case strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10:
-		return "+251" + phoneNumber[1:]
-	case strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9:
-		return "+251" + phoneNumber
-	case strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9:
-		return "+251" + phoneNumber
-	default:
-		return ""
 	}
+
+	return ""
 }
+
 func UserContext(ctx context.Context) (entities.User, error) {
 	// ctx = context.WithValue(ctx, constant.ContextKey("user"), userPayload)
 	if ctx.Err() != nil {

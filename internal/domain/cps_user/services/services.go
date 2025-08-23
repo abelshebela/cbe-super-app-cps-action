@@ -73,7 +73,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	// Create the CPS action
 	actionCode := utils.RandomGenerator(24)
 	user := model.CPSUser{
-		ID:          bson.NewObjectID(),
 		UserCode:    "CPS_USER_" + utils.RandomGenerator(15),
 		FullName:    userData.FullName,
 		Role:        userData.Role,
