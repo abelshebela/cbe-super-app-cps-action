@@ -27,7 +27,7 @@ type BankDomain struct {
 }
 
 type BankService interface {
-	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error)
+	GetAllBank(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Bank], error)
 	GetOneBank(ctx context.Context, id string) (*entity.Bank, error)
 	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -148,7 +148,7 @@ func (b *BankDomain) DeleteOneBank(ctx context.Context, id string, req model.Cre
 	return cpsAction, nil
 }
 
-func (b *BankDomain) GetAllBank(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
+func (b *BankDomain) GetAllBank(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
 	banks, err := b.bankRepo.GetAllBanks(ctx, filterParams)
 	if err != nil {
 		return nil, err

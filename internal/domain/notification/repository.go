@@ -15,5 +15,5 @@ type NotificationRepository interface {
 	NotificationExists(ctx context.Context, notificationType string, forValue NotificationFor, id *string) (bool, error)
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	FetchNotificationByID(ctx context.Context, id string) (*Notification, error)
-	FetchNotifications(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Notification], error)
+	FetchNotifications(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*Notification], error)
 }

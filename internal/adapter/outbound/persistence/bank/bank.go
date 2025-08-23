@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
@@ -171,12 +172,41 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &cpsRes, nil
 }
 
-func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
+func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
 	filter := bson.M{"is_deleted": false}
 	projection := bson.M{}
 
-	if filterParams.Filters != "" {
-		filter["status"] = filterParams.Filters
+	if filterParams.Search != "" {
+		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
+
+		filter["$or"] = []bson.M{
+			{"merchant_name": searchRegex},
+			{"merchant_representative_name": searchRegex},
+			{"phone_number": searchRegex},
+			{"email": searchRegex},
+			{"account_number": searchRegex},
+			{"type": searchRegex},
+			{"mini_app_id": searchRegex},
+		}
+	}
+
+	if filterParams.Filters != nil {
+		allowedKeys := []string{"enabled", "merchant_type"}
+		handlers := map[string]func(interface{}) interface{}{
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			filter[key] = value
+		}
 	}
 
 	page := filterParams.Page

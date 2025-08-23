@@ -217,7 +217,7 @@ func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
-	filterParam := common_util.ExtractFilterParams(r)
+	filterParam := common_util.ExtractMongoFilterParams(r)
 
 	list, err := h.Application.ListMiniApp(r.Context(), filterParam)
 	if err != nil {
@@ -243,12 +243,12 @@ func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, common_util.InvalidID, 0, nil)
 		return
 	}
-	_, err := h.Application.DetailMiniAppByID(r.Context(), id)
+	data, err := h.Application.DetailMiniAppByID(r.Context(), id)
 	if err != nil {
 		utils.SendErrorResponse(w, err.Error(), 0, nil)
 		return
 	}
-	utils.BaseResponseMaker(nil, w, "successful feached miniapp by ID", 201)
+	utils.BaseResponseMaker(data, w, "successful feached miniapp by ID", 201)
 }
 
 func (h *HttpStore) EnableMiniAppByID(w http.ResponseWriter, r *http.Request) {

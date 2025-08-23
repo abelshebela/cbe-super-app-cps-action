@@ -208,7 +208,7 @@ func (h *NotificationHTTPStore) FetchNotificationByID(w http.ResponseWriter, r *
 
 // FetchNotifications fetches notifications with pagination and filtering
 func (h *NotificationHTTPStore) FetchNotifications(w http.ResponseWriter, r *http.Request) {
-	filterParam := common_util.ExtractFilterParams(r)
+	filterParam := common_util.ExtractMongoFilterParams(r)
 
 	fmt.Println(filterParam)
 
