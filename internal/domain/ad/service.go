@@ -79,9 +79,18 @@ func (s *Service) CreateAdvert(ctx context.Context, request AdvertRequest) (*Adv
 	return result, nil
 }
 
-// UpdateAdvert updates an existing advert without persisting
 func (s *Service) UpdateAdvert(ctx context.Context, id string, request AdvertRequest) (*Advert, *Advert, error) {
 	s.logger.Infof("Updating advert, id: %s", id)
+
+	existingAd, err := s.repository.GetAdvertByTitle(ctx, request.Title)
+	if err != nil && err != mongo.ErrNoDocuments {
+		s.logger.Errorf("failed to check existing Advert: %v", err)
+		return nil, nil, fmt.Errorf(utils.UnhandledServerError)
+	}
+	if existingAd != nil {
+		s.logger.Errorf("Advert with title %s already exists", request.Title)
+		return nil, nil, fmt.Errorf("ADVERT_TITLE_ALREADY_EXISTS")
+	}
 
 	prevAdvert, err := s.repository.FetchAdvertByID(ctx, id)
 	if err != nil {
@@ -99,12 +108,15 @@ func (s *Service) UpdateAdvert(ctx context.Context, id string, request AdvertReq
 	}
 
 	curAdvert := &Advert{
-		ID:            prevAdvert.ID,
-		Title:         nonEmptyString(request.Title, prevAdvert.Title),
-		Description:   nonEmptyString(request.Description, prevAdvert.Description),
-		BannerImage:   nonEmptyString(url, prevAdvert.BannerImage),
-		AdvertFor:     nonEmptyAdvertFor(AdvertFor(request.AdvertFor), prevAdvert.AdvertFor),
-		Date:          nonEmptyAdvertDate(AdvertDate(request.Date), prevAdvert.Date),
+		ID:          prevAdvert.ID,
+		Title:       nonEmptyString(request.Title, prevAdvert.Title),
+		Description: nonEmptyString(request.Description, prevAdvert.Description),
+		BannerImage: nonEmptyString(url, prevAdvert.BannerImage),
+		AdvertFor:   nonEmptyAdvertFor(AdvertFor(request.AdvertFor), prevAdvert.AdvertFor),
+		Date: nonEmptyAdvertDate(
+			AdvertDate(request.Date),
+			prevAdvert.Date,
+		),
 		Enabled:       prevAdvert.Enabled,
 		IsDeleted:     prevAdvert.IsDeleted,
 		CreatedAt:     prevAdvert.CreatedAt,

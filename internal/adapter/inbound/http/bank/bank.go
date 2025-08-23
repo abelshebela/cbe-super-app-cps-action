@@ -155,7 +155,7 @@ func (b *BankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *BankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
-	filterParams := common_util.ExtractFilterParams(r)
+	filterParams := common_util.ExtractMongoFilterParams(r)
 	ctx := r.Context()
 	banks, err := b.bankHandler.GetAllBank(ctx, filterParams)
 	if err != nil {

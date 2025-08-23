@@ -171,19 +171,36 @@ func (b *Bank) DeleteBank(ctx context.Context, id string, cpsReq model.CreateCPS
 	return &cpsRes, nil
 }
 
-func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
-	filter := bson.M{"is_deleted": false}
+func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
+	filter := []bson.M{
+		{"is_deleted": false},
+	}
 	projection := bson.M{}
 
-	if filterParams.Filters != "" {
-		filter["status"] = filterParams.Filters
+	if filterParams.Search != "" {
+		searchFilter := bson.M{
+			"$or": []bson.M{
+				{"name": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+			},
+		}
+		filter = append(filter, searchFilter)
 	}
+
+	if filterParams.Filters != nil {
+		allowedKeys := []string{"name", "code", "enabled"}
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, nil)
+
+		for key, value := range enhancedFilter {
+			filter = append(filter, bson.M{key: value})
+		}
+	}
+	mongoFilter := bson.M{"$and": filter}
 
 	page := filterParams.Page
 	limit := filterParams.PerPage
 	skip := (page - 1) * limit
 
-	banksDocs, err := b.bankDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(filterParams.PerPage))
+	banksDocs, err := b.bankDal.FindAllWithPagination(ctx, mongoFilter, projection, int64(skip), int64(filterParams.PerPage))
 	if err != nil {
 		b.logger.Errorf("failed to get bank data, page: %d, per_page: %d, error: %v",
 			filterParams.Page, filterParams.PerPage, err)
@@ -195,14 +212,12 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.Filter) (
 		banks = append(banks, b.toDomain(doc))
 	}
 
-	total, err := b.bankDal.TotalCount(ctx, bson.M{})
+	totalDocs, err := b.bankDal.TotalCount(ctx, mongoFilter)
 	if err != nil {
-		b.logger.Errorf("failed to get bank total counts, error: %v", err)
-		return nil, fmt.Errorf(error_codes.UnhandledServerError)
+		return nil, err
 	}
 
-	b.logger.Infof("retrieved banks, page: %d, count: %d, total: %d", filterParams.Page, len(banks), total)
-	meta := common_util.BuildPaginationMeta(total, page, limit)
+	meta := common_util.BuildPaginationMeta(totalDocs, page, limit)
 
 	return &common_util.PaginatedResponse[[]*entity.Bank]{
 		Data: banks,

@@ -44,22 +44,22 @@ func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
 	// Validate PermissionCategory
-	categoryIDs := make([]string, len(userData.PermissionCategory))
-	for i, id := range userData.PermissionCategory {
-		categoryIDs[i] = id.Hex()
-	}
+	// categoryIDs := make([]string, len(userData.PermissionCategory))
+	// for i, id := range userData.PermissionCategory {
+	// 	categoryIDs[i] = id.Hex()
+	// }
 
-	_, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs)
-	if err != nil {
-		return nil, err
-	}
+	// _, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Validate PermissionGroups
 	groupIDs := make([]string, len(userData.PermissionGroups))
 	for i, id := range userData.PermissionGroups {
 		groupIDs[i] = id.Hex()
 	}
-	_, err = s.permissionService.ValidatePermissionGroups(ctx, groupIDs)
+	_, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -73,17 +73,17 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	// Create the CPS action
 	actionCode := utils.RandomGenerator(24)
 	user := model.CPSUser{
-		ID:                 bson.NewObjectID(),
-		UserCode:           "CPS_USER_" + utils.RandomGenerator(15),
-		FullName:           userData.FullName,
-		Role:               userData.Role,
-		Department:         userData.Department,
-		Gender:             userData.Gender,
-		PhoneNumber:        phone_number,
-		Email:              userData.Email,
-		UserName:           userData.UserName,
-		PermissionCategory: userData.PermissionCategory,
-		PermissionGroup:    userData.PermissionGroups,
+		ID:          bson.NewObjectID(),
+		UserCode:    "CPS_USER_" + utils.RandomGenerator(15),
+		FullName:    userData.FullName,
+		Role:        userData.Role,
+		Department:  userData.Department,
+		Gender:      userData.Gender,
+		PhoneNumber: phone_number,
+		Email:       userData.Email,
+		UserName:    userData.UserName,
+		// PermissionCategory: userData.PermissionCategory,
+		PermissionGroup: userData.PermissionGroups,
 	}
 
 	userPayload := ctx_util.ExtractContext(ctx)
