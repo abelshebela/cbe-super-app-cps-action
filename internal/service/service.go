@@ -95,7 +95,8 @@ type PermissionService interface {
 }
 
 type PortalCardService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
+	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
 type ProductCodeService interface {
@@ -123,6 +124,11 @@ type AccountBlockService interface {
 
 type AccountValidationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, rule *model.ValidationRule) error
+	Update(ctx context.Context, id string, rule *model.ValidationRule) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.ValidationRule, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
 type ActionService interface {
@@ -155,10 +161,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 }
 
 type AccountSearchService interface {

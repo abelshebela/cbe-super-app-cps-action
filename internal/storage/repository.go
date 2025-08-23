@@ -187,12 +187,8 @@ type BankRepository interface {
 }
 
 type PortalCardRepository interface {
-	Create(ctx context.Context, card *model.Card) error
-	Update(ctx context.Context, id string, card *model.Card) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Card, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
+	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
 type ColorRepository interface {
@@ -368,3 +364,4 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
+

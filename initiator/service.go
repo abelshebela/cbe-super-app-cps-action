@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/event"
 	"cbe-super-app-cps-action/internal/service/feedback"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
+	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
@@ -22,24 +23,27 @@ type ServiceLayer struct {
 	CPSAction service.CPSActionService
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
-	Unlink  service.UnlinkService
-	BpsUser service.BPSUserService
+	BpsUser    service.BPSUserService
+	PortalCard service.PortalCardService
+	Unlink     service.UnlinkService
 }
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
+	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
 
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 
 	return ServiceLayer{
-		CPSAction:    cpsActionService,
-		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		EventService: eventService,
-		Feedback:     feedback.NewFeedbackService(persistence.FeedbackPersistence, logger),
+		CPSAction: cpsActionService,
+		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Feedback:  feedbackService,
 		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		PortalCard:   portalCardService,
+		EventService: eventService,
 	}
-
 }
