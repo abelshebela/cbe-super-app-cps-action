@@ -42,7 +42,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSAction: cpsActionService,
 		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Feedback:  feedbackService,
-		// Services:  services,
 		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 		PortalCard:   portalCardService,
 		EventService: eventService,
