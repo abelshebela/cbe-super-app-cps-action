@@ -102,11 +102,12 @@ var (
 	ErrTooManyAttempt             = errors.New("too many login attempts. Please try again later")
 	ErrGotoBranchToEnable         = errors.New("you have to go branch to enable this action")
 	ErrApiRequestFailed           = errors.New("api request failed")
-	ErrPhoneLookUpFailed          = errors.New("phone look up failed")
-	ErrSessionCreationFailed      = errors.New("failed to create Session")
-	ErrSessionUpdateFailed        = errors.New("failed to update Session")
-	ErrSessionRetrivalFailed      = errors.New("failed to update Session")
-	ErrHealthCheckFailed          = errors.New("failed to update Session")
+	ErrPhoneLookUpFailed          = errors.New("Phone look up failed")
+	ErrSessionCreationFailed      = errors.New("Failed to create Session")
+	ErrSessionUpdateFailed        = errors.New("Failed to update Session")
+	ErrSessionRetrivalFailed      = errors.New("Failed to update Session")
+	ErrHealthCheckFailed          = errors.New("Failed to update Session")
+
 )
 
 var ErrorMap = map[error]int{

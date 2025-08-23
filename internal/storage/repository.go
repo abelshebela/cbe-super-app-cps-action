@@ -89,6 +89,7 @@ type CPSActionRepository interface {
 	FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error)
 	Update(ctx context.Context, id string, update model.CPSAction) error
 	Delete(ctx context.Context, id string) error
+	CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error)
 }
 
 // Avatar persistence
@@ -105,10 +106,7 @@ type AvatarRepository interface {
 // BPSUser persistence
 type BPSUserRepository interface {
 	GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
-	GetAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.BPSUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
-	DisableUser(ctx context.Context, userCode string) error
-	EnableUser(ctx context.Context, userCode string) error
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
 
@@ -250,12 +248,14 @@ type MiniAppRepository interface {
 }
 
 type EventRepository interface {
-	Create(ctx context.Context, donationCompany *model.DonationCompany) error
-	Update(ctx context.Context, id string, donationCompany *model.DonationCompany) error
+	Create(ctx context.Context, event *model.Event) error
+	Update(ctx context.Context, id string, event *model.Event) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.DonationCompany, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.DonationCompany], error)
+
+	FindByID(ctx context.Context, id string) (*model.Event, error)
+	FindByName(ctx context.Context, name string) (*model.Event, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
 }
 
 type FeedbackRepository interface {
@@ -326,6 +326,7 @@ type MiniAppMerchantRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 }
 
 type NotificationRepository interface {
