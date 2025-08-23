@@ -66,14 +66,14 @@ func (a *ADPersistence) UpdateAdvert(ctx context.Context, advert *entity.Advert)
 	}
 
 	update := bson.M{
-		"title":           advert.Title,
-		"description":     advert.Description,
-		"banner_image":    advert.BannerImage,
-		"advert_for":      advert.AdvertFor,
-		"date.started_at": advert.Date.StartedAt,
-		"date.expired_at": advert.Date.ExpiredAt,
-		"enabled":         advert.Enabled,
-		"last_updated_at": advert.LastUpdatedAt,
+		"title":                  advert.Title,
+		"description":            advert.Description,
+		"banner_image":           advert.BannerImage,
+		"advert_for":             advert.AdvertFor,
+		"advert_date.started_at": advert.Date.StartedAt,
+		"advert_date.expired_at": advert.Date.ExpiredAt,
+		"enabled":                advert.Enabled,
+		"last_updated_at":        advert.LastUpdatedAt,
 	}
 
 	filter := bson.M{"_id": objectID}
