@@ -33,11 +33,6 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maker, ok := core.ExtractUserAndMaker(w, r, a.logger)
-	if !ok {
-		return
-	}
-
 	domainReq, err := core.ToAdvert(req)
 	if err != nil {
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
@@ -45,7 +40,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage, maker)
+	err = a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage)
 	if err != nil { 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -95,11 +90,6 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maker, ok := core.ExtractUserAndMaker(w, r, a.logger)
-	if !ok {
-		return
-	}
-
 	domainReq, _ := core.ToAdvert(req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil && domainReq.Date.StartedAt.IsZero() && domainReq.Date.ExpiredAt.IsZero() {
@@ -108,8 +98,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-	err := a.advertApplication.UpdateAdvert(r.Context(), id, &domainReq, req.BannerImage, maker)
+	err := a.advertApplication.UpdateAdvert(r.Context(), id, &domainReq, req.BannerImage)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -123,12 +112,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maker, ok := core.ExtractUserAndMaker(w, r, a.logger)
-	if !ok {
-		return
-	}
-
-	err := a.advertApplication.DeleteAdvert(r.Context(), id, maker)
+	err := a.advertApplication.DeleteAdvert(r.Context(), id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -141,12 +125,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	maker, ok := core.ExtractUserAndMaker(w, r, a.logger)
-	if !ok {
-		return
-	}
-
-	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, maker, true)
+	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return	
@@ -160,12 +139,7 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maker, ok := core.ExtractUserAndMaker(w, r, a.logger)
-	if !ok {
-		return
-	}
-
-	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, maker, false)
+	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return	

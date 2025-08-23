@@ -1,7 +1,5 @@
 package cpsaction
 
-import "cbe-super-app-cps-action/internal/constants/model"
-
 type ActionStatus string
 
 const (
@@ -41,14 +39,6 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 
-type CreateCPSRequest struct {
-	User          model.CPSUser
-	CurData       any
-	PrevData      any
-	RequestAction RequestAction
-	ActionStatus  ActionStatus
-	ActionType    ActionType
-}
 
 
 const (

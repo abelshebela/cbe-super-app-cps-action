@@ -122,12 +122,12 @@ type ActionService interface {
 }
 
 type AdvertService interface {
-	CreateAdvert(ctx context.Context, advert *model.Advert,bannerImage *multipart.FileHeader, maker model.CPSUser)  error
-	FetchAdverts(ctx context.Context, filterParams types.Filter ) (*types.PaginatedResponse[[]*model.Advert], error)
+	CreateAdvert(ctx context.Context, advert *model.Advert, bannerImage *multipart.FileHeader) error
+	FetchAdverts(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
 	FetchAdvertByID(ctx context.Context, id string) (*model.Advert, error)
-	UpdateAdvert(ctx context.Context, id string, advert *model.Advert, bannerImage *multipart.FileHeader, maker model.CPSUser) error
-	DeleteAdvert(ctx context.Context, id string, maker model.CPSUser) error
-	EnableDisableAdvert(ctx context.Context, id string, maker model.CPSUser, enable bool) error
+	UpdateAdvert(ctx context.Context, id string, advert *model.Advert, bannerImage *multipart.FileHeader) error
+	DeleteAdvert(ctx context.Context, id string) error
+	EnableDisableAdvert(ctx context.Context, id string, enable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -153,10 +153,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 }
 
 type AccountSearchService interface {
