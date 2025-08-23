@@ -1,7 +1,6 @@
 package productcode
 
 import (
-	"strings"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -35,27 +34,26 @@ type ProductCodeRequest struct {
 }
 
 func (pc ProductCodes) validate() error {
-	pc.PRD = strings.TrimSpace(pc.PRD)
-	pc.VATPRD = strings.TrimSpace(pc.VATPRD)
-	pc.SFPRD = strings.TrimSpace(pc.SFPRD)
-
 	return validation.ValidateStruct(&pc,
 		validation.Field(&pc.PRD,
+			validation.By(utils.NotBlank),
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&pc.VATPRD,
+			validation.By(utils.NotBlank),
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&pc.SFPRD,
+			validation.By(utils.NotBlank),
 			validation.By(utils.NoSpecialChars),
 		),
 	)
 }
 
 func (u ProductCodeRequest) validate() error {
-	u.ProductName = strings.TrimSpace(u.ProductName)
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.ProductName,
+			validation.By(utils.NotBlank),
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&u.CBEProductCodes,

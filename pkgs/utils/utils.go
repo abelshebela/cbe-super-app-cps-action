@@ -371,3 +371,12 @@ func TrimWhiteSpace(value interface{}) error {
 	}
 	return nil
 }
+
+func NotBlank(value interface{}) error {
+	if str, ok := value.(string); ok {
+		if str != "" && strings.TrimSpace(str) == "" {
+			return errors.New("cannot be blank")
+		}
+	}
+	return nil
+}

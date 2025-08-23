@@ -15,7 +15,7 @@ import (
 )
 
 type BankHandlerService interface {
-	GetAllBank(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error)
+	GetAllBank(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Bank], error)
 	GetOneBank(ctx context.Context, id string) (*entity.Bank, error)
 	CreateOneBank(ctx context.Context, req model.CreateCPSAction) (*model.CPSAction, error)
 	UpdateOneBank(ctx context.Context, id string, req model.CreateCPSAction) (*model.CPSAction, error)
@@ -65,7 +65,7 @@ func (b *BankHandler) DeleteOneBank(ctx context.Context, id string, req model.Cr
 	return cpsAction, nil
 }
 
-func (b *BankHandler) GetAllBank(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
+func (b *BankHandler) GetAllBank(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entity.Bank], error) {
 	banks, err := b.bankDomain.GetAllBank(ctx, filterParams)
 	if err != nil {
 		return nil, err

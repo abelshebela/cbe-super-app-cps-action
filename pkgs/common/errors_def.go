@@ -59,6 +59,7 @@ type ErrorDefinitions struct {
 	Event       ErrorGroup
 	Donation    ErrorGroup
 	Avatar      ErrorGroup
+	Budget      ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -2487,6 +2488,13 @@ var DefineError = ErrorDefinitions{
 			Code:    "AVT_001",
 			Message: "Avatar label already exists",
 			Status:  StatusConflict,
+		},
+	},
+	Budget: ErrorGroup{
+		"NO_NEW_UPDATE_SENT": {
+			Code:    "BGT_001",
+			Message: "Entry already exist. No new updated",
+			Status:  StatusBadRequest,
 		},
 	},
 }

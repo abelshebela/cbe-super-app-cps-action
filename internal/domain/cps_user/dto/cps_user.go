@@ -17,15 +17,15 @@ type ApproveUserActionRequest struct {
 }
 
 type CreateUserRequest struct {
-	UserName           string          `json:"username" bson:"username,omitempty"`
-	FullName           string          `json:"full_name" bson:"full_name,omitempty"`
-	Department         bson.ObjectID   `json:"department" bson:"department,omitempty"`
-	PhoneNumber        string          `json:"phone_number" bson:"phone_number,omitempty"`
-	Role               string          `json:"role" bson:"role,omitempty"`
-	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
-	Email              string          `json:"email,omitempty" bson:"email,omitempty"`
-	PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty"`
-	PermissionGroups   []bson.ObjectID `json:"permission_groups" bson:"permission_groups,omitempty"`
+	UserName    string        `json:"username" bson:"username,omitempty"`
+	FullName    string        `json:"full_name" bson:"full_name,omitempty"`
+	Department  bson.ObjectID `json:"department" bson:"department,omitempty"`
+	PhoneNumber string        `json:"phone_number" bson:"phone_number,omitempty"`
+	Role        string        `json:"role" bson:"role,omitempty"`
+	Gender      string        `json:"gender,omitempty" bson:"gender,omitempty"`
+	Email       string        `json:"email,omitempty" bson:"email,omitempty"`
+	// PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty"`
+	PermissionGroups []bson.ObjectID `json:"permission_groups" bson:"permission_groups,omitempty"`
 }
 
 type UpdateUserRequest struct {
@@ -172,7 +172,7 @@ func (r CreateUserRequest) Validate() error {
 		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required"), validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.Role, validation.Required.Error("user role is required"), validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.Department, validation.By(IsRequired("department")), validation.By(IsObjectIDRequired)),
-		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
+		// validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
 		validation.Field(&r.PermissionGroups, validation.By(IsRequired("permission_group")), validation.By(IsObjectIDSliceRequired)),
 		validation.Field(&r.Gender, validation.Required.Error("gender is required"), validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.Email, validation.Required.Error("email is required")),
