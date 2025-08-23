@@ -51,5 +51,4 @@ type Persistence struct {
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	WalletPersistence                storage.WalletRepository
-	AccountValidation                storage.AccountValidationRepository
 }
