@@ -2019,14 +2019,7 @@ var (
 		Message:    MsgServiceUpdateFailedError,
 		Type:       "error",
 	}
-
-	ErrorNoDataProvidedForUpdate = ResponseCode{
-		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
-		StatusCode: StatusBadRequest,
-		Message:    MsgNoDataProvidedForUpdate,
-		Type:       "error",
-	}
-
+	
 	ErrorServiceAuthorizeDeleteFailed = ResponseCode{
 		Code:       "ERROR_SERVICE_AUTHORIZE_DELETE_FAILED",
 		StatusCode: StatusInternalServerError,

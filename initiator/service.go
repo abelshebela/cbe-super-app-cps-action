@@ -6,7 +6,6 @@ import (
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
-	"cbe-super-app-cps-action/internal/service/feedback"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -35,7 +34,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
-
+	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 
 	return ServiceLayer{
