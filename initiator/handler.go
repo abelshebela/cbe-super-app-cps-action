@@ -8,8 +8,10 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 
 	// Handler section
+	inbound "cbe-super-app-cps-action/internal/handlers/rest"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
-	cpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
@@ -21,16 +23,18 @@ import (
 type Handler struct {
 	CpsActionHandler actionInbound.CPSActionAdapter
 	UnlinkHandler    unlinkInbound.UnlinkAdapter
-	BpsHandler bpsInbound.BPSUserHandler
+	EventHandler     inbound.EventHandler
+	BpsHandler       bpsInbound.BPSUserHandler
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
 	AdvertHandler advertHandlerInterface.ADAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 	return Handler{
-		CpsActionHandler: cpsActionHandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
 		UnlinkHandler:    unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler: bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser,logger),
+		BpsHandler:       bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		CpsActionHandler: cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		EventHandler:     eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
 		FeedbackHandler:  feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
 		AdvertHandler: advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 	}

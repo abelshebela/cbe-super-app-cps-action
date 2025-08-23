@@ -1,6 +1,7 @@
 package cps_action
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -108,4 +109,29 @@ func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	return nil
+}
+func (a *CPSActionStorage) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
+	filter := bson.M{
+		"maker_phone_number": user.PhoneNumber,
+		"action_status":      constants.ActionPending,
+		"department":         user.Department,
+		"request_action":     user.RequestAction,
+	}
+
+	projection := bson.M{
+		"action_code": 1,
+		"_id":         1,
+	}
+
+	existingAction, err := a.dal.FindOne(ctx, filter, projection)
+	if err != nil && err != mongo.ErrNoDocuments {
+		a.logger.Errorf("failed to check cps action: %v", err)
+		return false, errors.New(localization.ErrorInternalServerError.Code)
+	}
+	if existingAction != nil {
+		a.logger.Infof("pending cps action present for user=%s, code=%s, dept=%s", user.FullName, user.UserCode, user.Department)
+		return true, errors.New(localization.ErrorPendingCPSAction.Code)
+	}
+
+	return false, nil
 }

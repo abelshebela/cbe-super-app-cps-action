@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 
+	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -17,6 +18,7 @@ type CPSActionService interface {
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
+	CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error)
 }
 
 type BranchService interface {
@@ -48,7 +50,13 @@ type DonationService interface {
 }
 
 type EventService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateEvent(ctx context.Context, event eventdto.EventRequest) error
+	UpdateEvent(ctx context.Context, id string, event eventdto.EventRequest) error
+	DeleteEvent(ctx context.Context, id string) error
+	EnableDisableEvent(ctx context.Context, id string, enable bool) error
+	FetchEventByID(ctx context.Context, id string) (*model.Event, error)
+	FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type FaydaAccountService interface {
@@ -71,6 +79,7 @@ type MiniAppService interface {
 }
 
 type MiniAppMerchantService interface {
+	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

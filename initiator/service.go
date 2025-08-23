@@ -5,6 +5,9 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
+	"cbe-super-app-cps-action/internal/service/event"
+	"cbe-super-app-cps-action/internal/service/feedback"
+	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
@@ -16,10 +19,12 @@ import (
 )
 
 type ServiceLayer struct {
+	EventService service.EventService
+
 	CPSAction service.CPSActionService
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
-	Unlink service.UnlinkService
+	Unlink  service.UnlinkService
 	BpsUser service.BPSUserService
 	Advert service.AdvertService
 }
@@ -29,14 +34,18 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
-	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
+
+	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 
 	return ServiceLayer{
+
 		CPSAction: cpsActionService,
 		BpsUser: bpsService.NewBPSUserService(persistence.BPSUserPersistence,cpsActionService,logger),
 		Feedback:  feedbackService,
-		// Services:  services,
+		EventService: eventService,
 		Unlink: unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 		Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
 	}
+
 }

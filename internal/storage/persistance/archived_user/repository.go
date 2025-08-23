@@ -4,18 +4,26 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-
-	"cbe-super-app-cps-action/internal/localization"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
+
+// 	"cbe-super-app-cps-action/internal/localization"
+// 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+// 	"go.mongodb.org/mongo-driver/v2/bson"
+// 	"go.mongodb.org/mongo-driver/v2/mongo"
+// )
 
 type archivedUserStorage struct {
 	dal    dal.MongoDal[model.ArchivedUser, model.ArchivedUser]
@@ -54,37 +62,6 @@ func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.A
 	return result, nil
 }
 
-// func (a *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
-// 	filter := bson.M{
-// 		"is_deleted": false,
-// 	}
-
-// 	if filterParam.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-// 		filter["key"] = searchRegex
-// 	}
-
-// 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-// 	limit := int64(filterParam.PerPage)
-
-// 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	total, err := a.dal.TotalCount(ctx, filter)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-// 	return &types.PaginatedResponse[[]*model.ArchivedUser]{
-// 		Data: data,
-// 		Meta: meta,
-// 	}, nil
-// }
-
 func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
@@ -117,7 +94,6 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.ArchivedUser]{
 		Data: data,
 		Meta: meta,
