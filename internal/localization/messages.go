@@ -95,6 +95,7 @@ const (
 	MsgInvalidEmail         = "Invalid email format"
 	MsgInvalidPhoneNumber   = "Invalid phone number format"
 	MsgInvalidDate          = "Invalid date format"
+	MsgInvalidID			= "Invalid ID format"
 	MsgFieldTooLong         = "Field value is too long"
 	MsgFieldTooShort        = "Field value is too short"
 

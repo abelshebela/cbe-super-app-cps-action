@@ -76,6 +76,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUserAlreadyDisabled,
 	ErrorUserCodeRequired,
 	ErrorPendingCpsActionExists,
+	ErrorUnexpectedError,
+	ErrorFileNotFound,
 	// Add more as needed...
 }
 

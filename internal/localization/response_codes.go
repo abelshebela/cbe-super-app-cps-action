@@ -412,6 +412,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidID = ResponseCode{	
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidID,
+		Type:       "error",
+	}
+
 	ErrorFieldTooLong = ResponseCode{
 		Code:       "ERROR_FIELD_TOO_LONG",
 		StatusCode: StatusBadRequest,
