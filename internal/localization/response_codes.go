@@ -44,7 +44,7 @@ var (
 		Message:    MsgUserLoginSuccessfully,
 		Type:       "success",
 	}
-
+	
 	SuccessUserLogout = ResponseCode{
 		Code:       "SUCCESS_USER_LOGOUT",
 		StatusCode: StatusOK,

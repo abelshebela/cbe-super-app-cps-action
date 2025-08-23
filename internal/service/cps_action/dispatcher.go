@@ -59,8 +59,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Permission"):
 		return d.app.PermissionContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
-		return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
+	// case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
+	// 	return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Wallet"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)

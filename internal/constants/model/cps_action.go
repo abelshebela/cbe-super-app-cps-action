@@ -30,3 +30,10 @@ type CPSAction struct {
 	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time,omitempty"`
 	CheckerActionTime  *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
+type CheckCPSAction struct {
+	UserCode      string
+	FullName      string
+	PhoneNumber   string
+	Department    string
+	RequestAction string
+}
