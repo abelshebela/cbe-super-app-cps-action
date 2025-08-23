@@ -2,6 +2,7 @@ package unlink
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto"
+	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
@@ -18,7 +19,7 @@ type unlinkAdapter struct {
 	unlinkApp service.UnlinkService
 }
 
-func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) *unlinkAdapter {
+func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inbound.UnlinkAdapter {
 	return &unlinkAdapter{
 		logger:    logger,
 		unlinkApp: unlinkApp,

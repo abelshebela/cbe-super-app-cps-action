@@ -3,6 +3,7 @@ module cbe-super-app-cps-action
 go 1.24.5
 
 require (
+	github.com/bsm/gomega v1.27.10
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.2
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0

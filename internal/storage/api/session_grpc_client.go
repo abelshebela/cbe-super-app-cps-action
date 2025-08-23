@@ -1,8 +1,8 @@
 package api
 
 import (
-	"cbe-super-app-cps-action/internal/constants/errors"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	session "cbe-super-app-cps-action/grpc"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -58,7 +59,7 @@ func (c *SessionGRPCClient) CreateSession(ctx context.Context, request *session.
 	response, err := c.client.CreateSession(ctx, request)
 	if err != nil {
 		c.logger.Errorf("Failed to create session via gRPC: %v", err)
-		return nil, errors.ErrSessionCreationFailed
+		return nil, errors.New(localization.ErrorSessionCreationFailed.Code)
 	}
 
 	c.logger.Infof("Successfully created session with ID: %s", response.GetId())
@@ -78,7 +79,7 @@ func (c *SessionGRPCClient) UpdateSession(ctx context.Context, request *session.
 	response, err := c.client.UpdateSession(ctx, request)
 	if err != nil {
 		c.logger.Errorf("Failed to update session via gRPC: %v", err)
-		return nil, errors.ErrSessionCreationFailed
+		return nil, errors.New(localization.ErrorSessionCreationFailed.Code)
 	}
 
 	c.logger.Infof("Successfully updated session with ID: %s", response.GetSessionId())
@@ -98,7 +99,7 @@ func (c *SessionGRPCClient) GetSession(ctx context.Context, request *session.Get
 	response, err := c.client.GetSession(ctx, request)
 	if err != nil {
 		c.logger.Errorf("Failed to get session via gRPC: %v", err)
-		return nil, errors.ErrSessionRetrivalFailed
+		return nil, errors.New(localization.ErrorSessionRetrievalFailed.Code)
 	}
 
 	c.logger.Infof("Successfully retrieved session with ID: %s", request.GetSessionId())
@@ -119,7 +120,7 @@ func (c *SessionGRPCClient) HealthCheck(ctx context.Context, opts ...grpc.CallOp
 	response, err := c.client.HealthCheck(ctx, request)
 	if err != nil {
 		c.logger.Errorf("Failed to perform health check via gRPC: %v", err)
-		return nil, errors.ErrHealthCheckFailed
+		return nil, errors.New(localization.ErrorHealthCheck.Code)
 	}
 
 	c.logger.Infof("Health check successful: %s", response.GetStatus())

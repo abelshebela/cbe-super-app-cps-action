@@ -18,9 +18,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"cbe-super-app-cps-action/internal/constants"
-	customErr "cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/response"
 )
 
 func CORS() func(http.Handler) http.Handler {
@@ -112,14 +110,14 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 
 		if !strings.HasPrefix(authHeader, bearer) {
 			a.logger.Warnf("bearer token is not provided")
-			response.SendErrorResponse(w, customErr.ErrUnauthorized)
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, bearer)
 		if tokenString == "" {
 			a.logger.Warnf("empty token string provided")
-			response.SendErrorResponse(w, customErr.ErrUnauthorized)
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
@@ -131,7 +129,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 
 		userPayload, err := a.extractUserPayload(r.Context(), data)
 		if err != nil {
-			response.SendErrorResponse(w, customErr.ErrUnauthorized)
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
@@ -153,14 +151,14 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 			role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
 			if !ok || role == "" {
 
-				response.SendErrorResponse(w, customErr.ErrActionNotAllowed)
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 
 				return
 			}
 
 			if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
 
-				response.SendErrorResponse(w, customErr.ErrActionNotAllowed)
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 
 				return
 			}
@@ -178,7 +176,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if !strings.HasPrefix(authHeader, bearer) {
 			a.logger.Warnf("bearer token is not present")
-			response.SendErrorResponse(w, customErr.ErrUnauthorized)
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
@@ -186,7 +184,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		if tokenString == "" {
 			a.logger.Warnf("empty token string provided")
-			response.SendErrorResponse(w, customErr.ErrUnauthorized)
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
@@ -198,7 +196,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		userPayload, err := a.extractUserPayload(r.Context(), data)
 		if err != nil {
-			response.SendErrorResponse(w, customErr.ErrUnauthorized)
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 		fmt.Println("user payload ****************", userPayload)
@@ -222,19 +220,20 @@ func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) 
 
 	if err != nil || !token.Valid {
 		a.logger.Errorf("invalid or expired token: %v", err)
-		return "", customErr.ErrUnauthorized
+		return "", errors.New(localization.ErrorUserUnauthorized.Code)
+
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		a.logger.Errorf("failed to cast to map claims")
-		return "", customErr.ErrUnauthorized
+		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	data, ok := claims["data"].(string)
 	if !ok || data == "" {
 		a.logger.Errorf("invalid token or data not present")
-		return "", customErr.ErrUnauthorized
+		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	return data, nil
@@ -243,14 +242,14 @@ func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) 
 func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (UserPayload, error) {
 	decryptedUser, err := a.decryptUserData(ctx, data)
 	if err != nil {
-		return UserPayload{}, customErr.ErrUnauthorized
+		return UserPayload{}, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	var userPayload UserPayload
 	err = json.Unmarshal([]byte(decryptedUser), &userPayload)
 	if err != nil {
 		a.logger.Errorf("failed to unmarshal user payload: %v", err)
-		return UserPayload{}, customErr.ErrUnauthorized
+		return UserPayload{}, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	return userPayload, nil

@@ -1,6 +1,7 @@
 package feedback
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/localization"
@@ -80,31 +81,33 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*model.Feedb
 	return result, nil
 }
 
-func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+func (s *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error) {
+	// 1. Base filter (only active records)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
 
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["user_id"] = searchRegex
-	}
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := f.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	// 5. Fetch data
+	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	total, err := f.dal.TotalCount(ctx, filter)
+	// 6. Count total
+	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
+	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.Feedback]{
 		Data: data,
 		Meta: meta,

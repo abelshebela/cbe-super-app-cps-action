@@ -57,7 +57,7 @@ func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *ty
 }
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(userData); incomplet {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 

@@ -56,6 +56,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
+	ErrorSessionRetrievalFailed,
+	ErrorHealthCheck,
 	// Add more as needed...
 }
 
@@ -1168,6 +1170,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorHealthCheck = ResponseCode{
+		Code:       "FAILED_HEALTH_CHECK",
+		StatusCode: StatusOK,
+		Message:    MsgHealthCheckFailed,
+		Type:       "error",
+	}
+
 	ErrorActionAlreadyExists = ResponseCode{
 		Code:       "ERROR_ACTION_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -1176,7 +1185,7 @@ var (
 	}
 
 	ErrorAccountNumberRequired = ResponseCode{
-		Code:       "ERROR_USER_NOT_FOUND",
+		Code:       "ERROR_USER_ACCOUNT_NOT_FOUND",
 		StatusCode: StatusBadRequest,
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
@@ -1396,6 +1405,13 @@ var (
 		Code:       "ERROR_SESSION_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgSessionInvalid,
+		Type:       "error",
+	}
+
+	ErrorSessionRetrievalFailed = ResponseCode{
+		Code:       "ERROR_SESSION_RETRIEVAL_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgSessionRetrievalFailed,
 		Type:       "error",
 	}
 

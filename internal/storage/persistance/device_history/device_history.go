@@ -2,8 +2,9 @@ package device_history
 
 import (
 	"context"
+	"errors"
 
-	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 
@@ -28,13 +29,13 @@ func NewDeviceLinkHistoryRepository(client *mongo.Client, dbName string, collect
 func (d *DeviceLinkHistoryRepository) Save(ctx context.Context, deviceLinkHistory *model.DeviceLinkHistroy) error {
 	if deviceLinkHistory == nil {
 		d.logger.Errorf("Save device link history failed: deviceLinkHistory is nil")
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_, err := d.deviceHistoryDal.InsertOne(ctx, *deviceLinkHistory)
 	if err != nil {
 		d.logger.Errorf("Unexpected error while saving device link history. error=%v, deviceLinkHistory=%+v", err, deviceLinkHistory)
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	d.logger.Infof("Device link history saved successfully. deviceLinkHistory=%+v", deviceLinkHistory)
 	return nil
@@ -43,7 +44,7 @@ func (d *DeviceLinkHistoryRepository) Save(ctx context.Context, deviceLinkHistor
 func (d *DeviceLinkHistoryRepository) Update(ctx context.Context, update *model.DeviceLinkHistroy) error {
 	if update == nil {
 		d.logger.Errorf("Update device link history failed: update is nil")
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	filter := bson.M{"_id": update.ID}
@@ -62,7 +63,7 @@ func (d *DeviceLinkHistoryRepository) Update(ctx context.Context, update *model.
 	_, err := d.deviceHistoryDal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
 		d.logger.Errorf("Unexpected error while updating device link history. error=%v, update=%+v", err, update)
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	d.logger.Infof("Device link history updated successfully. update=%+v", update)
 	return nil
