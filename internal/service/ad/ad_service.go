@@ -43,7 +43,13 @@ func NewAdvertService(repository storage.AdvertRepository, cpsService service.CP
 }
 
 // handleCPSAction encapsulates the common CPS action logic
-func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, maker  types.UserContext, requestAction cpsaction.RequestAction, curData, prevData interface{}, actionType cpsaction.ActionType) error {
+func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, requestAction cpsaction.RequestAction, curData, prevData interface{}, actionType cpsaction.ActionType) error {
+	maker := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(maker) {
+		s.logger.Errorf("Incomplete user context for advert creation | context = %v", maker)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
 	cpsAction := lib.CpsModelBuilder(uniqueID, maker,prevData,curData, string(requestAction),string(actionType))
 
 	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
@@ -58,12 +64,6 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, ma
 func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Creating advert, title: %s", ad.Title)
 
-	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
-		s.logger.Errorf("Incomplete user context for advert creation | context = %v", maker)
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
-
 	url, err := local_util.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
@@ -73,7 +73,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 	// update banner image url after uploading
 	ad.BannerImage = url
 
-	err = s.handleCPSAction(ctx, "", maker, cpsaction.RequestCreateAdvert, ad, nil, cpsaction.ActionCreate)
+	err = s.handleCPSAction(ctx, "", cpsaction.RequestCreateAdvert, ad, nil, cpsaction.ActionCreate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert creation, title: %s, error: %v", ad.Title, err)
 		return err
@@ -99,12 +99,6 @@ func (s *advertService) FetchAdvertByID(ctx context.Context, id string) (*model.
 func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Updating advert, id: %s", id)
 
-	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
-		s.logger.Errorf("Incomplete user context for advert creation | context = %v", maker)
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
-	
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch advert, id: %s, error: %v", id, err)
@@ -133,7 +127,7 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		LastUpdatedAt: time.Now(),
 	}
 
-	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), maker, cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
+	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert update, id: %s, error: %v", id, err)
 		return err
@@ -146,13 +140,6 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
 	s.logger.Infof("Deleting advert, id: %s", id)
 
-	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
-		s.logger.Errorf("Incomplete user context for advert creation | context = %v", maker)
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
-	
-
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch advert, id: %s, error: %v", id, err)
@@ -164,7 +151,7 @@ func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
 	curAdvert.DeletedAt = time.Now()
 	curAdvert.LastUpdatedAt = time.Now()
 
-	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), maker, cpsaction.RequestDeleteAdvert, curAdvert, prevAdvert, cpsaction.ActionDelete)
+	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), cpsaction.RequestDeleteAdvert, curAdvert, prevAdvert, cpsaction.ActionDelete)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert deletion, id: %s, error: %v", id, err)
 		return err
@@ -177,12 +164,6 @@ func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
 // EnableDisableAdvert enables or disables an advert without persisting
 func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enable bool) error {
 	s.logger.Infof("EnableDisable advert, id: %s, enable: %v", id, enable)
-
-	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
-		s.logger.Errorf("Incomplete user context for advert creation | context = %v", maker)
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
 
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
@@ -213,7 +194,7 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 		action = cpsaction.RequestDisableAdvert
 	}
 
-	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), maker, action, curAdvert, prevAdvert, cpsaction.ActionUpdate)
+	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), action, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert enable/disable, id: %s, error: %v", id, err)
 		return err
