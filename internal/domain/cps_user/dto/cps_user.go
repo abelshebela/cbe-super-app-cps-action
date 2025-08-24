@@ -65,23 +65,23 @@ type CPSUserDTO struct {
 
 func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {
 	return CPSUserDTO{
-		ID:                 user.ID,
-		UserCode:           user.UserCode,
-		FullName:           user.FullName,
-		Role:               user.Role,
-		Department:         user.Department,
-		Gender:             user.Gender,
-		PhoneNumber:        user.PhoneNumber,
-		Email:              user.Email,
-		UserName:           user.UserName,
-		Realm:              user.Realm,
-		PermissionCategory: user.PermissionCategory,
-		PermissionGroup:    user.PermissionGroup,
-		Enabled:            user.Enabled,
-		DateJoined:         user.DateJoined,
-		LastModified:       user.LastModified,
-		Country:            user.Country,
-		Region:             user.Region,
+		ID:          user.ID,
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		Role:        user.Role,
+		Department:  user.Department,
+		Gender:      user.Gender,
+		PhoneNumber: user.PhoneNumber,
+		Email:       user.Email,
+		UserName:    user.UserName,
+		Realm:       user.Realm,
+		// PermissionCategory: user.PermissionCategory,
+		PermissionGroup: user.PermissionGroup,
+		Enabled:         user.Enabled,
+		DateJoined:      user.DateJoined,
+		LastModified:    user.LastModified,
+		Country:         user.Country,
+		Region:          user.Region,
 	}
 }
 
@@ -167,22 +167,52 @@ func IsObjectIDSliceRequired(value interface{}) error {
 
 func (r CreateUserRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserName, validation.Required.Error("username is required"), validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.FullName, validation.Required.Error("full_name is required"), validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required"), validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.Role, validation.Required.Error("user role is required"), validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.Department, validation.By(IsRequired("department")), validation.By(IsObjectIDRequired)),
+		validation.Field(&r.UserName,
+			validation.Required.Error("username is required"),
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&r.FullName,
+			validation.Required.Error("full_name is required"),
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&r.PhoneNumber,
+			validation.Required.Error("phone_number is required"),
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&r.Role,
+			validation.Required.Error("user role is required"),
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&r.Department,
+			validation.By(IsRequired("department")),
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(IsObjectIDRequired),
+		),
 		// validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.PermissionGroups, validation.By(IsRequired("permission_group")), validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.Gender, validation.Required.Error("gender is required"), validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.Email, validation.Required.Error("email is required")),
+		validation.Field(&r.PermissionGroups,
+			validation.By(IsRequired("permission_group")),
+			validation.By(IsObjectIDSliceRequired),
+		),
+		validation.Field(&r.Gender,
+			validation.Required.Error("gender is required"),
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&r.Email,
+			validation.Required.Error("email is required"),
+			validation.By(utils.TrimWhiteSpace),
+		),
 	)
 }
 
 func (r UpdateUserRequest) Validate() error {
 	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" &&
 		r.Role == "" &&
-		r.PermissionCategory == nil && r.PermissionGroups == nil {
+		r.PermissionGroups == nil {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 
@@ -192,7 +222,7 @@ func (r UpdateUserRequest) Validate() error {
 		validation.Field(&r.PhoneNumber, validation.When(r.PhoneNumber != "", validation.Length(1, 20).Error("phone_number cannot be empty"))),
 		validation.Field(&r.Role, validation.When(r.Role != "", validation.Length(1, 50).Error("user_role cannot be empty"))),
 		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		validation.Field(&r.PermissionCategory),
+		// validation.Field(&r.PermissionCategory),
 		validation.Field(&r.PermissionGroups),
 	)
 }

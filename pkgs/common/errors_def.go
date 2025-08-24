@@ -1044,7 +1044,7 @@ var DefineError = ErrorDefinitions{
 		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
 			Code:    "GEN_172",
 			Status:  StatusBadRequest,
-			Message: "Only Ethiopian numbers in local or international format are acceptable",
+			Message: "Only local Ethiopian or international number formatting is accepted",
 		},
 		"NO_DOC_FOUND": {
 			Code:    "GEN_171	",
