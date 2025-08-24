@@ -7,6 +7,7 @@ import (
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
+	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
@@ -26,6 +27,7 @@ type ServiceLayer struct {
 	Unlink  service.UnlinkService
 	BpsUser service.BPSUserService
 	Advert service.AdvertService
+	PortalCard service.PortalCardService
 }
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
@@ -33,18 +35,19 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
+	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 
 	return ServiceLayer{
-
 		CPSAction: cpsActionService,
 		BpsUser: bpsService.NewBPSUserService(persistence.BPSUserPersistence,cpsActionService,logger),
 		Feedback:  feedbackService,
-		EventService: eventService,
+		EventService: eventService,		
+    PortalCard:   portalCardService,
 		Unlink: unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 		Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
 	}
-
 }
