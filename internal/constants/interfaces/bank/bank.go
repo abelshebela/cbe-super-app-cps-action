@@ -2,7 +2,7 @@ package bank
 
 import "net/http"
 
-type BankAdapter interface {
+type BankHandler interface {
 	GetAllBank(w http.ResponseWriter, r *http.Request)
 	GetOneBank(w http.ResponseWriter, r *http.Request)
 	CreateOneBank(w http.ResponseWriter, r *http.Request)

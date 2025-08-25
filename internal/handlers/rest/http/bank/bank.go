@@ -1,4 +1,4 @@
-package bank
+package bankHandler
 
 import (
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
@@ -17,6 +17,13 @@ import (
 type bankAdapter struct {
 	bankService service.BankService
 	logger      utils.Logger
+}
+
+func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) bank.BankHandler {
+	return &bankAdapter{
+		logger:      logger,
+		bankService: bankApplication,
+	}
 }
 
 // CreateOneBank implements bank.BankAdapter.
@@ -40,6 +47,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		b.logger.Errorf("bank create request failed", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
@@ -181,16 +189,9 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.UpdateOneBank(r.Context(), id, updateRequest)
 	if err != nil {
-		b.logger.Errorf("bank delete request failed", err)
+		b.logger.Errorf("bank update request failed", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorBankUpdateFailed.Code)
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
-}
-
-func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) bank.BankAdapter {
-	return &bankAdapter{
-		logger:      logger,
-		bankService: bankApplication,
-	}
 }

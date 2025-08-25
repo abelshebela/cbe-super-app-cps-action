@@ -385,6 +385,7 @@ const (
 	MsgCPSActionRejectionFailed      = "Failed to reject action"
 	MsgCPSActionInvalidStatus        = "Invalid action status"
 	MsgCPSActionInvalidRequestAction = "Invalid request action"
+	MsgBankInvalidRequestAction      = "Invalid request action"
 	MsgCPSActionUnsupportedAction    = "Unsupported request action"
 	MsgCPSActionInvalidFormat        = "Invalid action data format"
 	MsgCPSActionMissingData          = "Missing action data"

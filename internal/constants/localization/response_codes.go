@@ -75,9 +75,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorGetOneBank,
 	ErrorBankDisableRequest,
 	ErrorBankEnableRequestFailed,
-	// Add more as needed...
 	ErrorUserCodeRequired,
-
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
 	ErrorCoverImageRequired,
@@ -98,6 +96,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventCityRequired,
 	ErrorEventDescriptionRequired,
 	ErrorTicketsRequired,
+	ErrorBankAlreadyEnabled,
+	ErrorBankAlreadyDisabled,
+	// Add more as needed...
 }
 
 // Success Response Codes
@@ -1506,6 +1507,20 @@ var (
 		Code:       "ERROR_USER_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgBpsUserAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorBankAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_Bank_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorBankAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_Bank_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankAlreadyDisabled,
 		Type:       "error",
 	}
 

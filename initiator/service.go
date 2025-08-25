@@ -3,6 +3,7 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
+	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
@@ -24,6 +25,7 @@ type ServiceLayer struct {
 	// Services  service.ServiceContainer
 	Unlink  service.UnlinkService
 	BpsUser service.BPSUserService
+	Bank    service.BankService
 }
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
@@ -33,10 +35,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
 
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
+	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 
 	return ServiceLayer{
 		CPSAction:    cpsActionService,
 		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Bank:         bank_service,
 		EventService: eventService,
 		Feedback:     feedback.NewFeedbackService(persistence.FeedbackPersistence, logger),
 		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
