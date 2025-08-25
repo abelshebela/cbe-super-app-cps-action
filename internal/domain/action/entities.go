@@ -2,6 +2,8 @@ package action
 
 import (
 	"time"
+
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 )
 
 type UserType string
@@ -174,32 +176,31 @@ type Tier struct {
 }
 
 type Cap struct {
-	KYCLevel  KYCLevel `json:"kyc_level" bson:"kyc_level"`
-	SingleCap uint64   `json:"single_cap" bson:"single_cap"`
-	DailyCap  uint64   `json:"daily_cap" bson:"daily_cap"`
-	MinAmount uint64   `json:"min_amount" bson:"min_amount"`
+	SingleCap uint64 `json:"single_cap" bson:"single_cap"`
+	DailyCap  uint64 `json:"daily_cap" bson:"daily_cap"`
+	MinAmount uint64 `json:"min_amount" bson:"min_amount"`
 }
 
 type ServiceDetails struct {
-	ID                 *string      `json:"id" bson:"id"`
-	ServiceCode        string       `json:"service_code" bson:"service_code"`
-	ServiceName        string       `json:"service_name" bson:"service_name"`
-	ServiceType        string       `json:"service_type" bson:"service_type"`
-	Key                string       `json:"key" bson:"key"`
-	Cap                Cap          `json:"cap" bson:"cap"`
-	CBEProductCodes    ProductCodes `json:"cbe_product_codes" bson:"cbe_product_codes"`
-	CBEIFBProductCodes ProductCodes `json:"cbeifb_product_codes" bson:"cbeifb_product_codes"`
-	AboveAmount        uint64       `json:"above_amount" bson:"above_amount"`
-	AboveServiceFee    uint64       `json:"above_service_fee" bson:"above_service_fee"`
-	PaymentType        string       `json:"payment_type" bson:"payment_type"`
-	Tiers              []Tier       `json:"tiers" bson:"tiers"`
-	CBEGLEntry         GLEntry      `json:"cbegl_entry" bson:"cbegl_entry"`
-	CBEIFBGLEntry      GLEntry      `json:"cbeifbgl_entry" bson:"cbeifbgl_entry"`
-	Enabled            bool         `json:"enabled" bson:"enabled"`
-	IsDeleted          bool         `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt          time.Time    `json:"created_at" bson:"created_at"`
-	LastModifiedAt     time.Time    `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt          time.Time    `json:"deleted_at" bson:"deleted_at"`
+	ID                 *string              `json:"id" bson:"id"`
+	ServiceCode        string               `json:"service_code" bson:"service_code"`
+	ServiceName        string               `json:"service_name" bson:"service_name"`
+	ServiceType        string               `json:"service_type" bson:"service_type"`
+	Key                string               `json:"key" bson:"key"`
+	Cap                Cap                  `json:"cap" bson:"cap"`
+	CBEProductCodes    ProductCodes         `json:"cbe_product_codes" bson:"cbe_product_codes"`
+	CBEIFBProductCodes ProductCodes         `json:"cbeifb_product_codes" bson:"cbeifb_product_codes"`
+	AboveAmount        uint64               `json:"above_amount" bson:"above_amount"`
+	AboveServiceFee    uint64               `json:"above_service_fee" bson:"above_service_fee"`
+	PaymentType        entities.PaymentType `json:"payment_type" bson:"payment_type"`
+	Tiers              []Tier               `json:"tiers" bson:"tiers"`
+	CBEGLEntry         GLEntry              `json:"cbegl_entry" bson:"cbegl_entry"`
+	CBEIFBGLEntry      GLEntry              `json:"cbeifbgl_entry" bson:"cbeifbgl_entry"`
+	Enabled            bool                 `json:"enabled" bson:"enabled"`
+	IsDeleted          bool                 `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt          time.Time            `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time            `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt          time.Time            `json:"deleted_at" bson:"deleted_at"`
 }
 
 type RegistrationType string

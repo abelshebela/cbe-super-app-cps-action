@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func InteServiceRoute(router chi.Router, serviceHandler inbound.Service, authMiddleware middleware.AuthMiddleware) {
+func InitServiceRoute(router chi.Router, serviceHandler inbound.Service, authMiddleware middleware.AuthMiddleware, cpsMiddleware *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/service", func(r chi.Router) {
 		routes := []route.Route{
 			{
@@ -67,39 +67,43 @@ func InteServiceRoute(router chi.Router, serviceHandler inbound.Service, authMid
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/service_fee/update/{id}",
 				Handler: serviceHandler.UpdateServiceFee,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					cpsMiddleware.RequireNoPendingCPSActionGuard("UPDATE_SERVICE_FEE"),
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/single_transfer_max/update/{id}",
 				Handler: serviceHandler.UpdateSingleMaxTransfer,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					cpsMiddleware.RequireNoPendingCPSActionGuard("UPDATE_SERVICE_SINGLE_CAP"),
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/total_transfer_max/update/{id}",
 				Handler: serviceHandler.UpdateTotalMaxTransferCap,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					cpsMiddleware.RequireNoPendingCPSActionGuard("UPDATE_SERVICE_TOTAL_CAP"),
 				},
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPatch,
 				Path:    "/minimum_transfer/update/{id}",
 				Handler: serviceHandler.UpdateMinimumTransferCap,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					cpsMiddleware.RequireNoPendingCPSActionGuard("UPDATE_SERVICE_MIN_CAP"),
 				},
 			},
 			{
@@ -109,6 +113,7 @@ func InteServiceRoute(router chi.Router, serviceHandler inbound.Service, authMid
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{"maker", "checker"}),
+					cpsMiddleware.RequireNoPendingCPSActionGuard("DELETE_SERVICE_FEE"),
 				},
 			},
 		}

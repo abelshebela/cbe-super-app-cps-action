@@ -34,7 +34,7 @@ type ServiceRepository interface {
 	GetServiceFeeDetail(ctx context.Context, id string) (*any, error)
 	UpdateServiceFee(ctx context.Context, id string, req any) error
 	UpdateSingleMaxTransfer(ctx context.Context, id string, req any) error
-	UpdateTotalMaxTransferCap(ctx context.Context, id string, req any) error
+	UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap uint64) error
 	UpdateMinimumTransferCap(ctx context.Context, id string, req any) error
 	DeleteServiceFeeTire(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction any) (any, error)
@@ -286,9 +286,10 @@ func (sp *servicePersistence) GetAllTotalTransferCap(ctx context.Context) (*any,
 		"is_deleted": false,
 	}
 	projection := bson.M{
-		"_id":        1,
-		"total_cap":  1,
-		"created_at": 1,
+		"_id":                  1,
+		"total_cap":            1,
+		"created_at":           1,
+		"updated_at_total_cap": 1,
 	}
 
 	sp.logger.Infof("Fetching all total transfer caps with filter: %+v, projection: %+v, skip: %d, limit: %d", filter, projection, 0, 0)
@@ -334,18 +335,6 @@ func (sp *servicePersistence) GetServiceFeeDetail(ctx context.Context, id string
 
 func (sp *servicePersistence) UpdateServiceFee(ctx context.Context, id string, req any) error {
 	sp.logger.Infof("Updating service fee for id: %s", id)
-	actionExist, err := sp.checkPendingAction(ctx, string(model.RequestUpdateServiceFee))
-
-	if err != nil {
-		sp.logger.Errorf("error checking pending action: %v", err)
-		if err.Error() != "mongo: no documents in result" {
-			return err
-		}
-	}
-	if actionExist {
-		sp.logger.Warnf("pending request exists for update service fee, id: %s", id)
-		return fmt.Errorf("PENDING_REQUEST_EXISTS")
-	}
 	projection := bson.M{
 		"tire": 1,
 	}
@@ -370,18 +359,6 @@ func (sp *servicePersistence) UpdateServiceFee(ctx context.Context, id string, r
 
 func (sp *servicePersistence) UpdateSingleMaxTransfer(ctx context.Context, id string, req any) error {
 	sp.logger.Infof("Updating single max transfer for id: %s", id)
-	actionExist, err := sp.checkPendingAction(ctx, string(model.RequestUpdateServiceSingle))
-	if err != nil {
-		sp.logger.Errorf("error checking pending action: %v", err)
-		if err.Error() != "mongo: no documents in result" {
-			return err
-		}
-	}
-	if actionExist {
-		sp.logger.Warnf("pending request exists for update single max transfer, id: %s", id)
-		return fmt.Errorf("PENDING_REQUEST_EXISTS")
-	}
-
 	projection := bson.M{
 		"cap": 1,
 	}
@@ -397,18 +374,9 @@ func (sp *servicePersistence) UpdateSingleMaxTransfer(ctx context.Context, id st
 	}
 
 	if capData.CorporateDailyCap <= prev.Cap.MinAmount || capData.CorporateSingleCap <= prev.Cap.MinAmount || capData.IDailyCap <= prev.Cap.MinAmount || capData.ISingleCap <= prev.Cap.MinAmount {
-		return fmt.Errorf("SINGLE_MAX_TRANSFER_CAN_NOT_LESS_OR_EQUAL")
+		return fmt.Errorf("SINGLE_MAX_TRANSFER_CANNOT_BE_LESS_OR_EQUAL_TO_MIN_AMOUNT")
 	}
 
-	_, err = sp.ValidateMaxTotalCap(ctx, *capData)
-	// Remove empty (zero) fields from capData using a function
-	capData = removeEmptyFromCap(capData)
-
-	// Helper function to remove zero values from *model.Cap
-	if err != nil {
-		sp.logger.Errorf("validation failed for max total cap in update single max transfer: %v", err)
-		return err
-	}
 	capData.MinAmount = prev.Cap.MinAmount
 	err = sp.createCpsAction(ctx, id, prev, bson.M{"cap": capData}, string(model.RequestUpdateServiceSingle))
 	if err != nil {
@@ -420,45 +388,24 @@ func (sp *servicePersistence) UpdateSingleMaxTransfer(ctx context.Context, id st
 	return nil
 }
 
-func removeEmptyFromCap(cap *model.Cap) *model.Cap {
-	if cap == nil {
-		return nil
-	}
-	cleanCap := *cap
-	if cleanCap.KYCLevel == "" {
-		cleanCap.KYCLevel = cap.KYCLevel
-	}
-	if cleanCap.ISingleCap == 0 {
-		cleanCap.ISingleCap = 0
-	}
-	if cleanCap.IDailyCap == 0 {
-		cleanCap.IDailyCap = 0
-	}
-	if cleanCap.CorporateSingleCap == 0 {
-		cleanCap.CorporateSingleCap = 0
-	}
-	if cleanCap.CorporateDailyCap == 0 {
-		cleanCap.CorporateDailyCap = 0
-	}
-	if cleanCap.MinAmount == 0 {
-		cleanCap.MinAmount = 0
-	}
-	return &cleanCap
-}
-func (sp *servicePersistence) UpdateTotalMaxTransferCap(ctx context.Context, id string, req any) error {
+func (sp *servicePersistence) UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap uint64) error {
 	sp.logger.Infof("Updating total max transfer cap for id: %s", id)
-	actionExist, err := sp.checkPendingAction(ctx, string(model.RequestUpdateServiceTotal))
+
+	exceedingServices, err := sp.validateTotalCapAgainstServices(ctx, newTotalCap)
 	if err != nil {
-		sp.logger.Errorf("error checking pending action: %v", err)
-		if err.Error() != "mongo: no documents in result" {
-			return err
-		}
+		sp.logger.Errorf("error validating total cap against services: %v", err)
+		return err
 	}
 
-	if actionExist {
-		sp.logger.Warnf("pending request exists for update total max transfer cap, id: %s", id)
-		return fmt.Errorf("PENDING_REQUEST_EXISTS")
+	if len(exceedingServices) > 0 {
+		serviceNames := make([]string, len(exceedingServices))
+		for i, service := range exceedingServices {
+			serviceNames[i] = service.ServiceName
+		}
+		sp.logger.Warnf("New total cap %d is less than caps in services: %v", newTotalCap, serviceNames)
+		return fmt.Errorf(" The following services exceed the new total cap: %s", strings.Join(serviceNames, ", "))
 	}
+
 	projection := bson.M{
 		"total_cap": 1,
 		"_id":       1,
@@ -469,6 +416,7 @@ func (sp *servicePersistence) UpdateTotalMaxTransferCap(ctx context.Context, id 
 		return err
 	}
 
+	req := map[string]interface{}{"totaltransferlimit": newTotalCap}
 	err = sp.createCpsAction(ctx, id, prevHQ[0], req, string(model.RequestUpdateServiceTotal))
 	if err != nil {
 		sp.logger.Errorf("error creating CPS action for update total max transfer cap: %v", err)
@@ -481,24 +429,6 @@ func (sp *servicePersistence) UpdateTotalMaxTransferCap(ctx context.Context, id 
 
 func (sp *servicePersistence) UpdateMinimumTransferCap(ctx context.Context, id string, req any) error {
 	sp.logger.Infof("Updating minimum transfer cap for id: %s", id)
-	actionExist, err := sp.checkPendingAction(ctx, string(model.RequestUpdateServiceMinCap))
-	if err != nil {
-		sp.logger.Errorf("error checking pending action: %v", err)
-		if err.Error() != "mongo: no documents in result" {
-			return err
-		}
-	}
-
-	if actionExist {
-		sp.logger.Warnf("pending request exists for update minimum transfer cap, id: %s", id)
-		return fmt.Errorf("PENDING_REQUEST_EXISTS")
-	}
-	reqData, err := local_utils.JsonUnmarshal[model.Cap](req)
-	if err != nil {
-		sp.logger.Errorf("error unmarshalling request for update minimum transfer cap: %v", err)
-		return err
-	}
-
 	projection := bson.M{
 		"cap": 1,
 	}
@@ -507,10 +437,54 @@ func (sp *servicePersistence) UpdateMinimumTransferCap(ctx context.Context, id s
 		sp.logger.Errorf("error fetching previous service data for update minimum transfer cap: %v", err)
 		return err
 	}
-	newData := prev.Cap
-	newData.MinAmount = reqData.MinAmount
-	res, _ := local_utils.JsonUnmarshal[model.Cap](newData)
-	err = sp.createCpsAction(ctx, id, prev, bson.M{"cap": res}, string(model.RequestUpdateServiceMinCap))
+
+	// Extract the new minimum amount from the request
+	res, err := local_utils.JsonUnmarshal[map[string]interface{}](req)
+	if err != nil {
+		return err
+	}
+
+	// Get the new minimum amount value
+	newMinAmount, ok := (*res)["min_amount"]
+	if !ok {
+		return fmt.Errorf("min_amount field is required")
+	}
+
+	// Type assertion for the minimum amount
+	minAmount, ok := newMinAmount.(uint64)
+	if !ok {
+		// Try to convert from float64 if it comes as JSON number
+		if floatVal, ok := newMinAmount.(float64); ok {
+			minAmount = uint64(floatVal)
+		} else {
+			return fmt.Errorf("min_amount must be a valid number")
+		}
+	}
+
+	// Create a complete updated cap structure by copying the existing cap and updating only min_amount
+	updatedCap := model.Cap{
+		ISingleCap:         prev.Cap.ISingleCap,
+		IDailyCap:          prev.Cap.IDailyCap,
+		CorporateSingleCap: prev.Cap.CorporateSingleCap,
+		CorporateDailyCap:  prev.Cap.CorporateDailyCap,
+		MinAmount:          minAmount,
+	}
+
+	// Validate that the new minimum amount doesn't exceed any of the existing caps
+	if updatedCap.MinAmount >= updatedCap.ISingleCap {
+		return fmt.Errorf("min_amount cannot be greater than or equal to individual_single_cap")
+	}
+	if updatedCap.MinAmount >= updatedCap.IDailyCap {
+		return fmt.Errorf("min_amount cannot be greater than or equal to individual_daily_cap")
+	}
+	if updatedCap.MinAmount >= updatedCap.CorporateSingleCap {
+		return fmt.Errorf("min_amount cannot be greater than or equal to corporate_single_cap")
+	}
+	if updatedCap.MinAmount >= updatedCap.CorporateDailyCap {
+		return fmt.Errorf("min_amount cannot be greater than or equal to corporate_daily_cap")
+	}
+
+	err = sp.createCpsAction(ctx, id, prev, bson.M{"cap": updatedCap}, string(model.RequestUpdateServiceMinCap))
 	if err != nil {
 		sp.logger.Errorf("error creating CPS action for update minimum transfer cap: %v", err)
 		return err
@@ -522,19 +496,6 @@ func (sp *servicePersistence) UpdateMinimumTransferCap(ctx context.Context, id s
 
 func (sp *servicePersistence) DeleteServiceFeeTire(ctx context.Context, id string) error {
 	sp.logger.Infof("Deleting service fee tire for id: %s", id)
-	actionExist, err := sp.checkPendingAction(ctx, string(model.RequestDeleteServiceFee))
-
-	if err != nil {
-		sp.logger.Errorf("error checking pending action: %v", err)
-		if err.Error() != "mongo: no documents in result" {
-			return err
-		}
-	}
-	if actionExist {
-		sp.logger.Warnf("pending request exists for delete service fee tire, id: %s", id)
-		return fmt.Errorf("PENDING_REQUEST_EXISTS")
-	}
-
 	projection := bson.M{
 		"tier": 1,
 	}
@@ -551,31 +512,6 @@ func (sp *servicePersistence) DeleteServiceFeeTire(ctx context.Context, id strin
 
 	sp.logger.Infof("Successfully created CPS action for delete service fee tire, id: %s", id)
 	return nil
-}
-
-func (sp *servicePersistence) checkPendingAction(ctx context.Context, requestAction string) (bool, error) {
-	userData := contexts.ExtractContext(ctx)
-	filter := bson.M{
-		"maker_id":       userData.UserID,
-		"department":     userData.Department,
-		"action_status":  "PENDING",
-		"request_action": requestAction,
-	}
-
-	sp.logger.Infof("Checking for pending action with filter: %+v", filter)
-	dataCpsAction, err := sp.cpsDal.FindOne(ctx, filter, nil)
-	if err != nil {
-		sp.logger.Errorf("error finding pending action: %v", err)
-		return false, nil
-	}
-
-	if dataCpsAction == nil {
-		sp.logger.Infof("No pending action found for filter: %+v", filter)
-		return false, nil
-	}
-
-	sp.logger.Warnf("Pending action exists for filter: %+v", filter)
-	return true, nil
 }
 
 func (sp *servicePersistence) createCpsAction(ctx context.Context, id string, previousAction any, currentAction any, requestAction string) error {
@@ -607,46 +543,6 @@ func (sp *servicePersistence) createCpsAction(ctx context.Context, id string, pr
 	}
 
 	sp.logger.Infof("Successfully created CPS action for id: %s", id)
-	return nil
-}
-
-func (sp *servicePersistence) updateCpsAction(ctx context.Context, id string, prevAction any, currentAction any, requestAction string) error {
-	userData := contexts.ExtractContext(ctx)
-	objId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		sp.logger.Errorf("invalid object id for update CPS action: %v", err)
-		return err
-	}
-	filter := bson.M{
-		"_id": objId,
-	}
-	cpsAction := &model.CPSAction{
-		ActionCode:       local_utils.GenerateRandom(20),
-		MakerID:          userData.UserID,
-		MakerName:        userData.FullName,
-		MakerPhoneNumber: userData.PhoneNumber,
-		Department:       userData.Department,
-		ActionStatus:     "PENDING",
-		CurrentAction:    currentAction,
-		PreviousAction:   prevAction,
-		CreatedAt:        time.Now(),
-		LastModifiedAt:   time.Now(),
-		RequestAction:    requestAction,
-		MakerActionTime:  time.Now(),
-	}
-	data, err := local_utils.JsonUnmarshal[bson.M](cpsAction)
-	if err != nil {
-		sp.logger.Errorf("error unmarshalling CPS action for update: %v", err)
-		return err
-	}
-	sp.logger.Infof("Updating CPS action with filter: %+v, data: %+v", filter, data)
-	_, err = sp.cpsDal.UpdateOne(ctx, filter, *data)
-	if err != nil {
-		sp.logger.Errorf("failed to update CPS action: %v", err)
-		return common.DefineError.General["UNHANDLED_SERVER_ERROR"]
-	}
-
-	sp.logger.Infof("Successfully updated CPS action for id: %s", id)
 	return nil
 }
 
@@ -961,7 +857,7 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 			sp.logger.Errorf("invalid currentAction format for delete: %v", err)
 			return nil, fmt.Errorf("INVALID_CURRENT_ACTION_FORMAT")
 		}
-		currentData := (*current)
+		currentData := *current
 		id, ok := currentData["_id"]
 		if !ok {
 			sp.logger.Errorf("missing _id in currentAction for delete")
@@ -986,15 +882,36 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 			return nil, fmt.Errorf("FAILED_TO_AUTHORIZE_DELETE")
 		}
 	case string(model.RequestUpdateServiceTotal):
-		fmt.Println("===============Checkpoint")
+		sp.logger.Infof("Authorizing total cap update")
 		current, err := castToBsonM(action.CurrentAction)
 		if err != nil {
 			sp.logger.Errorf("invalid currentAction format for update: %v", err)
 			return nil, fmt.Errorf("INVALID_CURRENT_ACTION_FORMAT")
 		}
-		fmt.Println(current)
-		update := bson.M{}
 
+		val, ok := current["totaltransferlimit"].(float64)
+		if !ok {
+			sp.logger.Errorf("invalid total cap format during authorization")
+			return nil, fmt.Errorf("INVALID_TOTAL_CAP_FORMAT")
+		}
+		newTotalCap := uint64(val)
+
+		exceedingServices, err := sp.validateTotalCapAgainstServices(ctx, newTotalCap)
+		if err != nil {
+			sp.logger.Errorf("error validating total cap against services during authorization: %v", err)
+			return nil, fmt.Errorf("TOTAL_CAP_VALIDATION_FAILED")
+		}
+
+		if len(exceedingServices) > 0 {
+			serviceNames := make([]string, len(exceedingServices))
+			for i, service := range exceedingServices {
+				serviceNames[i] = service.ServiceName
+			}
+			sp.logger.Warnf("Cannot authorize: New total cap %d is less than caps in services: %v", newTotalCap, serviceNames)
+			return nil, fmt.Errorf("The following services exceed the new total cap: %s", strings.Join(serviceNames, ","))
+		}
+
+		update := bson.M{}
 		update["updated_at_total_cap"] = time.Now()
 		update["total_cap"] = current["totaltransferlimit"]
 		prev, err := castToBsonM(action.PreviousAction)
@@ -1016,11 +933,12 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 		filter := bson.M{"_id": objId, "is_deleted": false}
 
 		_, err = sp.hqDal.UpdateOne(ctx, filter, update)
-		fmt.Println(err)
 		if err != nil {
-			sp.logger.Errorf("failed to approve service update: %v", err)
+			sp.logger.Errorf("error approving service update: %v", err)
 			return nil, fmt.Errorf("SERVICE_UPDATE_FAILED")
 		}
+
+		sp.logger.Infof("Successfully authorized total cap update to %d", newTotalCap)
 	default:
 		sp.logger.Errorf("failed to authorize action: unknown request action %s", action.RequestAction)
 		return nil, fmt.Errorf("FAILED_TO_AUTHORIZE")
@@ -1043,4 +961,67 @@ func (sp *servicePersistence) Authorize(ctx context.Context, cpsAction any) (any
 	}
 
 	return action, nil
+}
+
+// validateTotalCapAgainstServices checks if the new total cap is less than any service caps
+func (sp *servicePersistence) validateTotalCapAgainstServices(ctx context.Context, newTotalCap uint64) ([]*model.Service, error) {
+	sp.logger.Infof("Validating new total cap %d against all service caps", newTotalCap)
+
+	// Get all services with their caps
+	filter := bson.M{
+		"is_deleted": false,
+	}
+	projection := bson.M{
+		"service_name": 1,
+		"service_code": 1,
+		"cap":          1,
+	}
+
+	services, err := sp.serviceDal.FindAll(ctx, filter, projection)
+	if err != nil {
+		sp.logger.Errorf("error fetching services for total cap validation: %v", err)
+		return nil, err
+	}
+
+	var exceedingServices []*model.Service
+
+	for _, service := range services {
+		// Check individual caps
+		if service.Cap.ISingleCap > newTotalCap {
+			sp.logger.Warnf("Service %s (ID: %s) has individual_single_cap %d which exceeds new total cap %d",
+				service.ServiceName, service.ID.Hex(), service.Cap.ISingleCap, newTotalCap)
+			exceedingServices = append(exceedingServices, service)
+			continue
+		}
+
+		if service.Cap.IDailyCap > newTotalCap {
+			sp.logger.Warnf("Service %s (ID: %s) has individual_daily_cap %d which exceeds new total cap %d",
+				service.ServiceName, service.ID.Hex(), service.Cap.IDailyCap, newTotalCap)
+			exceedingServices = append(exceedingServices, service)
+			continue
+		}
+
+		// Check corporate caps
+		if service.Cap.CorporateSingleCap > newTotalCap {
+			sp.logger.Warnf("Service %s (ID: %s) has corporate_single_cap %d which exceeds new total cap %d",
+				service.ServiceName, service.ID.Hex(), service.Cap.CorporateSingleCap, newTotalCap)
+			exceedingServices = append(exceedingServices, service)
+			continue
+		}
+
+		if service.Cap.CorporateDailyCap > newTotalCap {
+			sp.logger.Warnf("Service %s (ID: %s) has corporate_daily_cap %d which exceeds new total cap %d",
+				service.ServiceName, service.ID.Hex(), service.Cap.CorporateDailyCap, newTotalCap)
+			exceedingServices = append(exceedingServices, service)
+			continue
+		}
+	}
+
+	if len(exceedingServices) > 0 {
+		sp.logger.Warnf("Found %d services with caps exceeding new total cap %d", len(exceedingServices), newTotalCap)
+	} else {
+		sp.logger.Infof("All service caps are within the new total cap %d", newTotalCap)
+	}
+
+	return exceedingServices, nil
 }
