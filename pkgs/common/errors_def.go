@@ -2233,7 +2233,7 @@ var DefineError = ErrorDefinitions{
 			Message: "A pending service fee action already exists",
 			Status:  StatusConflict,
 		},
-		"TOTAL_CAP_VALIDATION_FAILED":{
+		"TOTAL_CAP_VALIDATION_FAILED": {
 			Code:    "SRV_010",
 			Message: "Total cap validation failed",
 			Status:  StatusBadRequest,
