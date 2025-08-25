@@ -1017,10 +1017,10 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusInternalServerError,
 			Message: "invalid object id",
 		},
-		"TIER_CAN_BE_UPDATED": {
+		"TIER_CANNOT_BE_UPDATED": {
 			Code:    "GEN_169",
 			Status:  StatusBadRequest,
-			Message: "tier can't be updated",
+			Message: "tier can't be updated. Only 'OPEN' and 'OTP_PIN' max_amount can be updated",
 		},
 		"MAX_NOT_BE_LESS": {
 			Code:    "GEN_168",
@@ -2233,7 +2233,7 @@ var DefineError = ErrorDefinitions{
 			Message: "A pending service fee action already exists",
 			Status:  StatusConflict,
 		},
-		"TOTAL_CAP_VALIDATION_FAILED":{
+		"TOTAL_CAP_VALIDATION_FAILED": {
 			Code:    "SRV_010",
 			Message: "Total cap validation failed",
 			Status:  StatusBadRequest,

@@ -16,7 +16,6 @@ import (
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -232,7 +231,6 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 	cpsAction model.CreateCPSAction) (*model.CpsActionNormalized, error) {
 	cpsAction.ActionType = "AUTHTIER"
 	if err := a.checkExistingAuthTier(ctx, cpsAction); err != nil {
-
 		return nil, err
 	}
 
@@ -258,9 +256,8 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
 	if string(authTier.Method) != "OPEN" && string(authTier.Method) != "PIN" {
-		fmt.Println("tier is %v", authTier.Method)
-		a.logger.Errorf("tier can be updated")
-		return nil, fmt.Errorf("TIER_CAN_BE_UPDATED")
+		a.logger.Errorf("tier cannot be updated")
+		return nil, fmt.Errorf("TIER_CANNOT_BE_UPDATED")
 	}
 	if authTier.Method == "OPEN" {
 		filter := bson.M{
@@ -290,7 +287,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		return nil, fmt.Errorf(common_util.MaxTireLessThanMIN)
 	}
 
-	actionInsert, err := a.cpsActionDal.InsertOne(ctx, model.CPSAction{
+	_, err = a.cpsActionDal.InsertOne(ctx, model.CPSAction{
 		ID:               bson.NewObjectID(),
 		ActionCode:       utils.RandomGenerator(20),
 		MakerID:          cpsAction.MakerUser.UserCode,
@@ -310,8 +307,6 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 		a.logger.Errorf("Failed to insert cps action: %v", err)
 		return nil, fmt.Errorf(common_util.UnhandledServerError)
 	}
-
-	log.Printf("actionInsert %v", actionInsert)
 
 	return nil, nil
 

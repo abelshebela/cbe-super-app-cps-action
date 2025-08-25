@@ -43,7 +43,6 @@ func InitBudget(client *mongo.Client, dbName string, collections []string, logge
 	}
 }
 
-// passed
 func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
@@ -72,7 +71,6 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	return &cps, nil
 }
 
-// passed
 func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Icon], error) {
 	filter := bson.M{
 		"is_deleted": false,
@@ -114,7 +112,6 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 	}, nil
 }
 
-// passed
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
@@ -510,8 +507,6 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 			}
 
 		case entities.ActionUpdate:
-			fmt.Println("----------KKKKKKKKKKKK-----------")
-
 			prev, err := castToBsonM(action.PreviousAction)
 			if err != nil {
 				b.logger.Errorf("invalid previousAction format for icon update: %v", err)
