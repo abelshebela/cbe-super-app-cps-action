@@ -37,30 +37,31 @@ type ErrorDefinition struct {
 type ErrorGroup map[string]ErrorDefinition
 
 type ErrorDefinitions struct {
-	General     ErrorGroup
-	Auth        ErrorGroup
-	User        ErrorGroup
-	Transaction ErrorGroup
-	Account     ErrorGroup
-	OTP         ErrorGroup
-	File        ErrorGroup
-	Branch      ErrorGroup
-	Region      ErrorGroup
-	District    ErrorGroup
-	City        ErrorGroup
-	Department  ErrorGroup
-	Bank        ErrorGroup
-	Action      ErrorGroup
-	Wallet      ErrorGroup
-	AD          ErrorGroup
-	BulkService ErrorGroup
-	Permission  ErrorGroup
-	MiniApp     ErrorGroup
-	Event       ErrorGroup
-	Service     ErrorGroup
-	Donation    ErrorGroup
-	Avatar      ErrorGroup
-	Budget      ErrorGroup
+	General      ErrorGroup
+	Auth         ErrorGroup
+	User         ErrorGroup
+	Transaction  ErrorGroup
+	Account      ErrorGroup
+	OTP          ErrorGroup
+	File         ErrorGroup
+	Branch       ErrorGroup
+	Region       ErrorGroup
+	District     ErrorGroup
+	City         ErrorGroup
+	Department   ErrorGroup
+	Bank         ErrorGroup
+	Action       ErrorGroup
+	Wallet       ErrorGroup
+	AD           ErrorGroup
+	BulkService  ErrorGroup
+	Permission   ErrorGroup
+	MiniApp      ErrorGroup
+	Event        ErrorGroup
+	Service      ErrorGroup
+	Donation     ErrorGroup
+	Avatar       ErrorGroup
+	Budget       ErrorGroup
+	Amount_Based ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -1001,11 +1002,6 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_171",
 			Status:  StatusBadRequest,
 			Message: "missing action data",
-		},
-		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
-			Code:    "GEN_166",
-			Status:  StatusBadRequest,
-			Message: "current max can not be greter than",
 		},
 		"INVALID_IMG_FORMAT": {
 			Code:    "GEN_167",
@@ -2553,6 +2549,18 @@ var DefineError = ErrorDefinitions{
 			Code:    "BGT_001",
 			Message: "Entry already exist. No new updated",
 			Status:  StatusBadRequest,
+		},
+	},
+	Amount_Based: ErrorGroup{
+		"MAX_TIER_CANNOT_BE_LESS_THAN_MIN_TIER": {
+			Code:    "AMT_001",
+			Status:  StatusBadRequest,
+			Message: "Maximum tier cannot be less than minimum tier amount",
+		},
+		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
+			Code:    "AMT_002",
+			Status:  StatusBadRequest,
+			Message: "Current maximum value cannot be greater than next auth tier",
 		},
 	},
 }

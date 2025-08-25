@@ -17,15 +17,15 @@ type ApproveUserActionRequest struct {
 }
 
 type CreateUserRequest struct {
-	UserName    string        `json:"username" bson:"username,omitempty"`
-	FullName    string        `json:"full_name" bson:"full_name,omitempty"`
-	Department  bson.ObjectID `json:"department" bson:"department,omitempty"`
-	PhoneNumber string        `json:"phone_number" bson:"phone_number,omitempty"`
-	Role        string        `json:"role" bson:"role,omitempty"`
-	Gender      string        `json:"gender,omitempty" bson:"gender,omitempty"`
-	Email       string        `json:"email,omitempty" bson:"email,omitempty"`
-	// PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty"`
-	PermissionGroups []bson.ObjectID `json:"permission_groups" bson:"permission_groups,omitempty"`
+	UserName           string          `json:"username" bson:"username,omitempty"`
+	FullName           string          `json:"full_name" bson:"full_name,omitempty"`
+	Department         bson.ObjectID   `json:"department" bson:"department,omitempty"`
+	PhoneNumber        string          `json:"phone_number" bson:"phone_number,omitempty"`
+	Role               string          `json:"role" bson:"role,omitempty"`
+	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
+	Email              string          `json:"email,omitempty" bson:"email,omitempty"`
+	PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group" bson:"permission_group,omitempty"`
 }
 
 type UpdateUserRequest struct {
@@ -38,7 +38,7 @@ type UpdateUserRequest struct {
 	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty"`
 	Email              string          `json:"email,omitempty" bson:"email,omitempty"`
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
-	PermissionGroups   []bson.ObjectID `json:"permission_groups,omitempty" bson:"permission_groups,omitempty"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group,omitempty"`
 }
 
 type CPSUserDTO struct {
@@ -65,23 +65,23 @@ type CPSUserDTO struct {
 
 func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {
 	return CPSUserDTO{
-		ID:          user.ID,
-		UserCode:    user.UserCode,
-		FullName:    user.FullName,
-		Role:        user.Role,
-		Department:  user.Department,
-		Gender:      user.Gender,
-		PhoneNumber: user.PhoneNumber,
-		Email:       user.Email,
-		UserName:    user.UserName,
-		Realm:       user.Realm,
-		// PermissionCategory: user.PermissionCategory,
-		PermissionGroup: user.PermissionGroup,
-		Enabled:         user.Enabled,
-		DateJoined:      user.DateJoined,
-		LastModified:    user.LastModified,
-		Country:         user.Country,
-		Region:          user.Region,
+		ID:                 user.ID,
+		UserCode:           user.UserCode,
+		FullName:           user.FullName,
+		Role:               user.Role,
+		Department:         user.Department,
+		Gender:             user.Gender,
+		PhoneNumber:        user.PhoneNumber,
+		Email:              user.Email,
+		UserName:           user.UserName,
+		Realm:              user.Realm,
+		PermissionCategory: user.PermissionCategory,
+		PermissionGroup:    user.PermissionGroup,
+		Enabled:            user.Enabled,
+		DateJoined:         user.DateJoined,
+		LastModified:       user.LastModified,
+		Country:            user.Country,
+		Region:             user.Region,
 	}
 }
 
@@ -192,8 +192,8 @@ func (r CreateUserRequest) Validate() error {
 			validation.By(utils.TrimWhiteSpace),
 			validation.By(IsObjectIDRequired),
 		),
-		// validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.PermissionGroups,
+		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.PermissionGroup,
 			validation.By(IsRequired("permission_group")),
 			validation.By(IsObjectIDSliceRequired),
 		),
@@ -211,8 +211,7 @@ func (r CreateUserRequest) Validate() error {
 
 func (r UpdateUserRequest) Validate() error {
 	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" &&
-		r.Role == "" &&
-		r.PermissionGroups == nil {
+		r.Role == "" && r.PermissionCategory == nil && r.PermissionGroup == nil {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 
@@ -222,8 +221,8 @@ func (r UpdateUserRequest) Validate() error {
 		validation.Field(&r.PhoneNumber, validation.When(r.PhoneNumber != "", validation.Length(1, 20).Error("phone_number cannot be empty"))),
 		validation.Field(&r.Role, validation.When(r.Role != "", validation.Length(1, 50).Error("user_role cannot be empty"))),
 		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		// validation.Field(&r.PermissionCategory),
-		validation.Field(&r.PermissionGroups),
+		validation.Field(&r.PermissionCategory),
+		validation.Field(&r.PermissionGroup),
 	)
 }
 

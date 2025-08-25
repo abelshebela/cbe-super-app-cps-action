@@ -284,7 +284,7 @@ func (a AmountBasedAuthRepo) UpdateAmountBasedAuth(ctx context.Context, request 
 
 	if authTier.MinAmount >= request.MaxAmount {
 		a.logger.Infof("max amount can not be less that or equal to min amount")
-		return nil, fmt.Errorf(common_util.MaxTireLessThanMIN)
+		return nil, fmt.Errorf("MAX_TIER_CANNOT_BE_LESS_THAN_MIN_TIER")
 	}
 
 	_, err = a.cpsActionDal.InsertOne(ctx, model.CPSAction{

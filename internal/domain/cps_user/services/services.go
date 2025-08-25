@@ -44,19 +44,21 @@ func NewCPSUserService(repo repository.CPSUserRepo, permissionService permission
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request, userData userDTO.CreateUserRequest) (*model.CPSAction, error) {
 	// Validate PermissionCategory
-	// categoryIDs := make([]string, len(userData.PermissionCategory))
-	// for i, id := range userData.PermissionCategory {
-	// 	categoryIDs[i] = id.Hex()
-	// }
+	categoryIDs := make([]string, len(userData.PermissionCategory))
+	for i, id := range userData.PermissionCategory {
+		categoryIDs[i] = id.Hex()
+	}
 
-	// _, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if len(categoryIDs) > 0 {
+		_, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	// Validate PermissionGroups
-	groupIDs := make([]string, len(userData.PermissionGroups))
-	for i, id := range userData.PermissionGroups {
+	groupIDs := make([]string, len(userData.PermissionGroup))
+	for i, id := range userData.PermissionGroup {
 		groupIDs[i] = id.Hex()
 	}
 	_, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs)
@@ -73,16 +75,16 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 	// Create the CPS action
 	actionCode := utils.RandomGenerator(24)
 	user := model.CPSUser{
-		UserCode:    "CPS_USER_" + utils.RandomGenerator(15),
-		FullName:    userData.FullName,
-		Role:        userData.Role,
-		Department:  userData.Department,
-		Gender:      userData.Gender,
-		PhoneNumber: phone_number,
-		Email:       userData.Email,
-		UserName:    userData.UserName,
-		// PermissionCategory: userData.PermissionCategory,
-		PermissionGroup: userData.PermissionGroups,
+		UserCode:           "CPS_USER_" + utils.RandomGenerator(15),
+		FullName:           userData.FullName,
+		Role:               userData.Role,
+		Department:         userData.Department,
+		Gender:             userData.Gender,
+		PhoneNumber:        phone_number,
+		Email:              userData.Email,
+		UserName:           userData.UserName,
+		PermissionCategory: userData.PermissionCategory,
+		PermissionGroup:    userData.PermissionGroup,
 	}
 
 	userPayload := ctx_util.ExtractContext(ctx)
@@ -107,7 +109,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, r *http.Request,
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request, userData userDTO.UpdateUserRequest, userCode string) (*model.CPSAction, error) {
-
 	if len(userData.PermissionCategory) > 0 {
 		categoryIDs := make([]string, len(userData.PermissionCategory))
 		for i, id := range userData.PermissionCategory {
@@ -119,9 +120,9 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		}
 	}
 
-	if len(userData.PermissionGroups) > 0 {
-		groupIDs := make([]string, len(userData.PermissionGroups))
-		for i, id := range userData.PermissionGroups {
+	if len(userData.PermissionGroup) > 0 {
+		groupIDs := make([]string, len(userData.PermissionGroup))
+		for i, id := range userData.PermissionGroup {
 			groupIDs[i] = id.Hex()
 		}
 		_, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs)
@@ -169,7 +170,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, r *http.Request,
 		MakerActionTime:  time.Now(),
 	}
 
-	fmt.Println("Incomming cps", cpsAction.CurrentAction)
 	return s.repo.UpdateUserRequest(ctx, cpsAction, userCode)
 }
 
