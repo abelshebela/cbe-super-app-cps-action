@@ -50,7 +50,6 @@ func (service *Service) GetAllAmountBasedDetail(ctx context.Context, filerParams
 }
 
 func (service *Service) Authorize(ctx context.Context, cpsAction *entities.CPSAction) (*entities.CPSAction, error) {
-	// fmt.Println("am hear for amount based tier")
 	return service.repo.Authorize(ctx, cpsAction)
 }
 
