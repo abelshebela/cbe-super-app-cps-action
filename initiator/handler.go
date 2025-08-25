@@ -9,15 +9,15 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 
 	// Handler section
+	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	inbound "cbe-super-app-cps-action/internal/handlers/rest"
+	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
-	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
-	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -28,9 +28,8 @@ type Handler struct {
 	EventHandler     inbound.EventHandler
 	BpsHandler       bpsInbound.BPSUserHandler
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
-	AdvertHandler advertHandlerInterface.ADAdapter
+	AdvertHandler    advertHandlerInterface.ADAdapter
 	PortalCardHander portalCardInterface.PortalCardAdapter
-	AdvertHandler advertHandlerInterface.ADAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -41,6 +40,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		EventHandler:     eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
 		FeedbackHandler:  feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
 		PortalCardHander: portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
-		AdvertHandler: advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		AdvertHandler:    advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 	}
 }
