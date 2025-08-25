@@ -310,6 +310,7 @@ const (
 	MsgInvalidActionData    = "Invalid action"
 	MsgUnsupportedAction    = "Unsupported action"
 	MsgInvalidID            = "Invalid ID"
+	MsgMissingFile          = "Missing file"
 	MsgFieldTooLong         = "Field value is too long"
 	MsgFieldTooShort        = "Field value is too short"
 

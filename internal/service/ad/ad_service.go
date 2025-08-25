@@ -64,7 +64,7 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Creating advert, title: %s", ad.Title)
 
-	url, err := local_util.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
+	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
 		return errors.New(localization.MsgFileUploadFailed)

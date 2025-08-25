@@ -1,6 +1,7 @@
 package advert
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -99,17 +100,17 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 }
 
 func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+
+	allowedKeys := []string{"title", "description", "enabled"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["title"] = searchRegex
+		filter["$or"] = []bson.M{
+			{"title": searchRegex},
+			{"description": searchRegex},
+		}
 	}
-
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

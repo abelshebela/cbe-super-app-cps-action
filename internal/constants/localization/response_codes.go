@@ -103,7 +103,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSessionRetrievalFailed,
 	ErrorHealthCheck,
 	ErrorInvalidToken,
-	
+
+	ErrorInvalidID,
+	ErrorMissingFile,
+
+
 	// Add more as needed...
 }
 
@@ -1818,6 +1822,13 @@ var (
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidID,
+		Type:       "error",
+	}
+
+	ErrorMissingFile = ResponseCode{
+		Code:       "ERROR_MISSING_FILE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingFile,
 		Type:       "error",
 	}
 
