@@ -460,9 +460,9 @@ var (
 	}
 
 	SuccessWalletDeleted = ResponseCode{
-		Code:       "SUCCESS_WALLET_DELETED",
+		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
-		Message:    MsgWalletDeletedSuccessfully,
+		Message:    MsgWalletDeleteRequestSent,
 		Type:       "success",
 	}
 

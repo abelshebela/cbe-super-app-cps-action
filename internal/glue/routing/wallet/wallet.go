@@ -1,4 +1,4 @@
-package eventhandler
+package wallet
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/",
+			Path:    "/wallets/",
 			Handler: wallet.CreateWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -26,7 +26,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/{id}",
+			Path:    "/wallets/{id}",
 			Handler: wallet.UpdateWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -35,7 +35,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/{id}",
+			Path:    "/wallets/{id}",
 			Handler: wallet.DeleteWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -44,7 +44,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/{id}",
+			Path:    "/wallets/{id}",
 			Handler: wallet.GetWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -53,7 +53,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/",
+			Path:    "/wallets/",
 			Handler: wallet.GetAllWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -62,7 +62,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/{id}/enable",
+			Path:    "/wallets/{id}/enable",
 			Handler: wallet.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -71,7 +71,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/{id}/disable",
+			Path:    "/wallets/{id}/disable",
 			Handler: wallet.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -17,7 +18,7 @@ type walletAdapter struct {
 	logger    utils.Logger
 }
 
-func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) *walletAdapter {
+func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) walletInbound.WalletAdapter {
 	return &walletAdapter{
 		walletApp: walletApp,
 		logger:    logger,
@@ -94,7 +95,7 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletDeleted, nil)
 }
 
-func (a *walletAdapter) EnableWallet(w http.ResponseWriter, r *http.Request) {
+func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
@@ -109,7 +110,7 @@ func (a *walletAdapter) EnableWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletEnableRequestSubmitted, nil)
 }
 
-func (a *walletAdapter) DisableWallet(w http.ResponseWriter, r *http.Request) {
+func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
@@ -124,7 +125,7 @@ func (a *walletAdapter) DisableWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletDisableRequestSubmitted, nil)
 }
 
-func (a *walletAdapter) FetchWalletByID(w http.ResponseWriter, r *http.Request) {
+func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
@@ -140,7 +141,7 @@ func (a *walletAdapter) FetchWalletByID(w http.ResponseWriter, r *http.Request) 
 	localization.SendSuccessResponse(w, localization.SuccessWalletRetrieved, wallet)
 }
 
-func (a *walletAdapter) FetchWallets(w http.ResponseWriter, r *http.Request) {
+func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching wallets with filter: %+v", filter)
 

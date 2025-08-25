@@ -84,6 +84,7 @@ const (
 	// Wallet related success messages
 	MsgWalletCreationRequestSent    = "Wallet creation request sent successfully"
 	MsgWalletUpdateRequestSent      = "Wallet update request sent successfully"
+	MsgWalletDeleteRequestSent      = "Wallet delete request sent successfully"
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
 	MsgWalletRetrievedSuccessfully  = "Wallet retrieved successfully"

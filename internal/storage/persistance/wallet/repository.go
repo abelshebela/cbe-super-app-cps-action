@@ -171,22 +171,16 @@ func (w *WalletStorage) FindByName(ctx context.Context, name string) (*model.Wal
 }
 
 func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
-	e.logger.Infof("FindAllWithPagination called with filter: %+v", filterParam)
-
-	filter := bson.M{"is_deleted": false}
-	searchKeys := bson.M{}
-
 	allowedKeys := []string{"name", "code", "enabled"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["name"] = searchRegex
+		filter["$or"] = []bson.M{
+			{"name": searchRegex},
+			{"code": searchRegex},
+		}
 	}
-
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
-	e.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
-
 	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		e.logger.Errorf("FindAllWithPagination Wallet failed", err)
