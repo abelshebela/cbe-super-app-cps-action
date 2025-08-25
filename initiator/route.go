@@ -10,7 +10,7 @@ import (
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
-	wallet "cbe-super-app-cps-action/internal/glue/routing/wallet"
+	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
