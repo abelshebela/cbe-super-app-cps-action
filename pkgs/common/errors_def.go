@@ -57,6 +57,7 @@ type ErrorDefinitions struct {
 	Permission  ErrorGroup
 	MiniApp     ErrorGroup
 	Event       ErrorGroup
+	Service     ErrorGroup
 	Donation    ErrorGroup
 	Avatar      ErrorGroup
 	Budget      ErrorGroup
@@ -1115,6 +1116,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_182",
 			Status:  http.StatusConflict,
 			Message: "You are requesting a duplicate action",
+		},
+		"NO_TOTAL_CAP_FOUND": {
+			Code:    "GEN_183",
+			Status:  http.StatusNotFound,
+			Message: "no total cap data found",
 		},
 	},
 	Auth: ErrorGroup{
@@ -2178,6 +2184,58 @@ var DefineError = ErrorDefinitions{
 		"EVENT_NAME_ALREADY_EXISTS": {
 			Code:    "EVE_001",
 			Message: "Event name already exists",
+			Status:  StatusBadRequest,
+		},
+	},
+	Service: ErrorGroup{
+		"SERVICE_FEE_VALIDATION_FAILED": {
+			Code:    "SRV_001",
+			Message: "Service fee validation failed",
+			Status:  StatusBadRequest,
+		},
+		"SERVICE_FEE_UPDATE_FAILED": {
+			Code:    "SRV_002",
+			Message: "Failed to update service fee",
+			Status:  StatusInternalServerError,
+		},
+		"SERVICE_FEE_NOT_FOUND": {
+			Code:    "SRV_003",
+			Message: "Service fee not found",
+			Status:  StatusNotFound,
+		},
+		"INVALID_TIER_STRUCTURE": {
+			Code:    "SRV_004",
+			Message: "Invalid tier structure provided",
+			Status:  StatusBadRequest,
+		},
+		"TIER_CONTINUITY_VIOLATION": {
+			Code:    "SRV_005",
+			Message: "Tier continuity violation: each tier's max must equal next tier's min",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_TRANSFER_CAP": {
+			Code:    "SRV_006",
+			Message: "Invalid transfer cap configuration",
+			Status:  StatusBadRequest,
+		},
+		"TRANSFER_CAP_EXCEEDS_TOTAL": {
+			Code:    "SRV_007",
+			Message: "Transfer cap cannot exceed total cap",
+			Status:  StatusBadRequest,
+		},
+		"GL_ENTRY_VALIDATION_FAILED": {
+			Code:    "SRV_008",
+			Message: "GL entry validation failed",
+			Status:  StatusBadRequest,
+		},
+		"PENDING_SERVICE_FEE_ACTION": {
+			Code:    "SRV_009",
+			Message: "A pending service fee action already exists",
+			Status:  StatusConflict,
+		},
+		"TOTAL_CAP_VALIDATION_FAILED":{
+			Code:    "SRV_010",
+			Message: "Total cap validation failed",
 			Status:  StatusBadRequest,
 		},
 	},

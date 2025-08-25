@@ -15,7 +15,7 @@ type ServiceRepo interface {
 	GetServiceFeeDetail(ctx context.Context, id string) (*any, error)
 	UpdateServiceFee(ctx context.Context, id string, req any) error
 	UpdateSingleMaxTransfer(ctx context.Context, id string, req any) error
-	UpdateTotalMaxTransferCap(ctx context.Context, id string, req any) error
+	UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap uint64) error
 	UpdateMinimumTransferCap(ctx context.Context, id string, req any) error
 	DeleteServiceFeeTire(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction any) (any, error)

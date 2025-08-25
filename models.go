@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -510,25 +511,25 @@ type Card struct {
 
 // Service represents service definitions
 type Service struct {
-	ID                 bson.ObjectID `json:"_id" bson:"_id"`
-	ServiceCode        string        `json:"service_code" bson:"service_code"`
-	ServiceName        string        `json:"service_name" bson:"service_name"`
-	ServiceType        string        `json:"service_type" bson:"service_type"`
-	Key                string        `json:"key" bson:"key"`
-	Cap                Cap           `json:"cap" bson:"cap"`
-	CBEProductCodes    ProductCodes  `json:"cbe_product_codes" bson:"cbe_product_codes"`
-	CBEIFBProductCodes ProductCodes  `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
-	AboveAmount        uint64        `json:"above_amount" bson:"above_amount"`
-	AboveServiceFee    uint64        `json:"above_service_fee" bson:"above_service_fee"`
-	PaymentType        string        `json:"payment_type" bson:"payment_type"`
-	Tiers              []Tier        `json:"tiers" bson:"tiers"`
-	CBEGLEntry         GLEntry       `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
-	CBEIFBGLEntry      GLEntry       `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
-	Enabled            bool          `json:"enabled" bson:"enabled"`
-	IsDeleted          bool          `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt          time.Time     `json:"created_at" bson:"created_at"`
-	LastModifiedAt     time.Time     `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt          time.Time     `json:"deleted_at" bson:"deleted_at"`
+	ID                 bson.ObjectID        `json:"_id" bson:"_id"`
+	ServiceCode        string               `json:"service_code" bson:"service_code"`
+	ServiceName        string               `json:"service_name" bson:"service_name"`
+	ServiceType        string               `json:"service_type" bson:"service_type"`
+	Key                string               `json:"key" bson:"key"`
+	Cap                Cap                  `json:"cap" bson:"cap"`
+	CBEProductCodes    ProductCodes         `json:"cbe_product_codes" bson:"cbe_product_codes"`
+	CBEIFBProductCodes ProductCodes         `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
+	AboveAmount        uint64               `json:"above_amount" bson:"above_amount"`
+	AboveServiceFee    uint64               `json:"above_service_fee" bson:"above_service_fee"`
+	PaymentType        entities.PaymentType `json:"payment_type" bson:"payment_type"`
+	Tiers              []Tier               `json:"tiers" bson:"tiers"`
+	CBEGLEntry         GLEntry              `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
+	CBEIFBGLEntry      GLEntry              `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
+	Enabled            bool                 `json:"enabled" bson:"enabled"`
+	IsDeleted          bool                 `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt          time.Time            `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time            `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt          time.Time            `json:"deleted_at" bson:"deleted_at"`
 }
 
 // ProductCode represents product codes
@@ -636,7 +637,6 @@ type AuthTier struct {
 
 // Cap represents capacity limits
 type Cap struct {
-	KYCLevel  string `json:"kyc_level" bson:"kyc_level"`
 	SingleCap uint64 `json:"single_cap" bson:"single_cap"`
 	DailyCap  uint64 `json:"daily_cap" bson:"daily_cap"`
 	MinAmount uint64 `json:"min_amount" bson:"min_amount"`

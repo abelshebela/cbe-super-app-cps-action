@@ -45,8 +45,8 @@ func (sd *serviceDomain) UpdateServiceFee(ctx context.Context, id string, req an
 func (sd *serviceDomain) UpdateSingleMaxTransfer(ctx context.Context, id string, req any) error {
 	return sd.serviceRepo.UpdateSingleMaxTransfer(ctx, id, req)
 }
-func (sd *serviceDomain) UpdateTotalMaxTransferCap(ctx context.Context, id string, req any) error {
-	return sd.serviceRepo.UpdateTotalMaxTransferCap(ctx, id, req)
+func (sd *serviceDomain) UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap uint64) error {
+	return sd.serviceRepo.UpdateTotalMaxTransferCap(ctx, id, newTotalCap)
 }
 func (sd *serviceDomain) UpdateMinimumTransferCap(ctx context.Context, id string, req any) error {
 	return sd.serviceRepo.UpdateMinimumTransferCap(ctx, id, req)

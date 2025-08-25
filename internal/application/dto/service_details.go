@@ -55,51 +55,52 @@ import (
 // }
 
 type UpdateServiceDetailsResponse struct {
-	ActionID string `json:"action_id"`
+	ActionID string `json:"action_id" bson:"action_id"`
 }
 
 type ApproveServiceDetailsRequest struct {
-	ActionID        string `json:"action_id"`
-	Approve         bool   `json:"approve"`
-	CheckerID       string `json:"checker_id"`
-	RejectionReason string `json:"rejection_reason,omitempty"`
+	ActionID        string `json:"action_id" bson:"action_id"`
+	Approve         bool   `json:"approve" bson:"approve"`
+	CheckerID       string `json:"checker_id" bson:"checker_id"`
+	RejectionReason string `json:"rejection_reason,omitempty" bson:"rejection_reason,omitempty"`
 }
 
 type ServiceDetailsErrorResponse struct {
-	Error string `json:"error"`
+	Error string `json:"error" bson:"error"`
 }
 
 type SingleCapServiceRequest struct {
-	ServiceId string `json:"service_id"`
-	SingleCap uint64 `json:"single_cap"`
+	ServiceId string `json:"service_id" bson:"service_id"`
+	SingleCap uint64 `json:"single_cap" bson:"single_cap"`
 }
 
 type DailyCapServiceRequest struct {
-	ServiceId string `json:"service_id"`
-	DailyCap  uint64 `json:"daily_cap"`
+	ServiceId string `json:"service_id" bson:"service_id"`
+	DailyCap  uint64 `json:"daily_cap" bson:"daily_cap"`
 }
 
 type Tier struct {
-	ID        string
-	Min       uint64
-	Max       uint64
-	FeeAmount uint64
+	ID        string `json:"id" bson:"id"`
+	Min       uint64 `json:"min" bson:"min"`
+	Max       uint64 `json:"max" bson:"max"`
+	FeeAmount uint64 `json:"fee_amount" bson:"fee_amount"`
 }
+
 type ServiceFeeMakerRequest struct {
-	ServiceID string `json:"service_id"`
-	Tries     []model.Tier
+	ServiceID string       `json:"service_id" bson:"service_id"`
+	Tries     []model.Tier `json:"tries" bson:"tries"`
 }
 
 type TotalTransferCapRequest struct {
-	ServiceId string `json:"service_id"`
-	TotalCap  uint64 `json:"total_cap"`
+	ServiceId string `json:"service_id" bson:"service_id"`
+	TotalCap  uint64 `json:"total_cap" bson:"total_cap"`
 }
 
 type WholeCapServiceRequest struct {
-	ServiceId string `json:"service_id"`
-	SingleCap uint64 `json:"single_cap"`
-	DailyCap  uint64 `json:"daily_cap"`
-	TotalCap  uint64 `json:"total_cap"`
+	ServiceId string `json:"service_id" bson:"service_id"`
+	SingleCap uint64 `json:"single_cap" bson:"single_cap"`
+	DailyCap  uint64 `json:"daily_cap" bson:"daily_cap"`
+	TotalCap  uint64 `json:"total_cap" bson:"total_cap"`
 }
 
 // type ServiceFeeMakerRequest struct {
@@ -108,9 +109,9 @@ type WholeCapServiceRequest struct {
 // }
 
 type User struct {
-	UserCode    string `json:"user_code,omitempty" bson:"user_code"`
-	FullName    string `json:"full_name,omitempty" bson:"user_code"`
-	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number"`
+	UserCode    string `json:"user_code,omitempty" bson:"user_code,omitempty"`
+	FullName    string `json:"full_name,omitempty" bson:"full_name,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
 }
 
 type ActionStatus string
@@ -136,7 +137,7 @@ const (
 )
 
 type ActionData struct {
-	Tier []model.Tier
+	Tier []model.Tier `json:"tier" bson:"tier"`
 }
 
 // func (a ActionData) Validate() error {
@@ -155,28 +156,29 @@ type ActionData struct {
 // 	if matches := re.FindStringSubmatch(phoneStr); matches != nil {
 // 		return nil
 // 	}
+// 	}
 // 	return fmt.Errorf("invalid phone number")
 // }
 
 type CPSAction struct {
-	ID                string        `json:"id,omitempty"`
-	ActionCode        string        `json:"action_code,omitempty"`
-	CheckerUser       User          `json:"checker_user"`
-	MakerUser         User          `json:"maker_user"`
-	RejectedReason    string        `json:"rejected_reason,omitempty"`
-	Department        string        `json:"department,omitempty"`
-	Status            ActionStatus  `json:"status,omitempty"`
-	RequestAction     RequestAction `json:"request_action,omitempty"`
-	ActionType        ActionType    `json:"action_type,omitempty"`
-	ActionData        []model.Tier  `json:"action_data"`
-	PreviousData      any           `json:"previous_action,omitempty"`
-	CurrentData       any           `json:"current_action,omitempty"`
-	MakerActionTime   time.Time     `json:"maker_action_time,omitzero"`
-	CheckerActionTime time.Time     `json:"checker_action_time,omitzero"`
+	ID                string        `json:"id,omitempty" bson:"id,omitempty"`
+	ActionCode        string        `json:"action_code,omitempty" bson:"action_code,omitempty"`
+	CheckerUser       User          `json:"checker_user" bson:"checker_user"`
+	MakerUser         User          `json:"maker_user" bson:"maker_user"`
+	RejectedReason    string        `json:"rejected_reason,omitempty" bson:"rejected_reason,omitempty"`
+	Department        string        `json:"department,omitempty" bson:"department,omitempty"`
+	Status            ActionStatus  `json:"status,omitempty" bson:"status,omitempty"`
+	RequestAction     RequestAction `json:"request_action,omitempty" bson:"request_action,omitempty"`
+	ActionType        ActionType    `json:"action_type,omitempty" bson:"action_type,omitempty"`
+	ActionData        []model.Tier  `json:"action_data" bson:"action_data"`
+	PreviousData      any           `json:"previous_action,omitempty" bson:"previous_action,omitempty"`
+	CurrentData       any           `json:"current_action,omitempty" bson:"current_action,omitempty"`
+	MakerActionTime   time.Time     `json:"maker_action_time,omitzero" bson:"maker_action_time,omitzero"`
+	CheckerActionTime time.Time     `json:"checker_action_time,omitzero" bson:"checker_action_time,omitzero"`
 }
 
 type RejectCPSAction struct {
-	RejectedReason string `json:"rejected_reason,omitempty"`
+	RejectedReason string `json:"rejected_reason,omitempty" bson:"rejected_reason,omitempty"`
 	ActionData
 }
 

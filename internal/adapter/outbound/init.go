@@ -18,6 +18,7 @@ import (
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -133,7 +134,6 @@ func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceD
 			ServiceType: "",
 			Key:         v.Key,
 			Cap: domain.Cap{
-				KYCLevel:  domain.KYCLevel(v.Cap.KYCLevel),
 				SingleCap: v.Cap.ISingleCap,
 				DailyCap:  v.Cap.IDailyCap,
 				MinAmount: v.Cap.MinAmount,
@@ -209,7 +209,6 @@ func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, l
 			ServiceType: "",
 			Key:         v.Key,
 			Cap: domain.Cap{
-				KYCLevel:  domain.KYCLevel(v.Cap.KYCLevel),
 				SingleCap: v.Cap.ISingleCap,
 				DailyCap:  v.Cap.IDailyCap,
 				MinAmount: v.Cap.MinAmount,
@@ -289,7 +288,6 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 		ServiceType: "",
 		Key:         data.Key,
 		Cap: domain.Cap{
-			KYCLevel:  domain.KYCLevel(data.Cap.KYCLevel),
 			SingleCap: data.Cap.ISingleCap,
 			DailyCap:  data.Cap.IDailyCap,
 			MinAmount: data.Cap.MinAmount,
@@ -359,7 +357,6 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 		"serviceName": service.ServiceName,
 		"serviceType": service.ServiceType,
 		"cap": bson.M{
-			"kyc_level":  service.Cap.KYCLevel,
 			"single_cap": service.Cap.SingleCap,
 			"daily_cap":  service.Cap.DailyCap,
 			"min_amount": service.Cap.MinAmount,
@@ -1711,7 +1708,6 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 			return model.Cap{}
 		}
 		return model.Cap{
-			KYCLevel:   model.KYCLevel(safeStringFromMap(capMap, "kyc_level")),
 			ISingleCap: safeUint64FromMap(capMap, "single_cap"),
 			IDailyCap:  safeUint64FromMap(capMap, "daily_cap"),
 			MinAmount:  safeUint64FromMap(capMap, "min_amount"),
@@ -1798,6 +1794,16 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 		}
 		return time.Time{}
 	}
+	// Helper for safe PaymentType
+	safePaymentType := func(key string) entities.PaymentType {
+		if v, ok := data[key].(string); ok {
+			if pt, err := entities.ParsePaymentType(v); err == nil {
+				return pt
+			}
+		}
+		// Return default value if parsing fails
+		return entities.PaymentTypeFlatFee
+	}
 
 	return model.Service{
 		ServiceCode:        safeString("service_code"),
@@ -1809,7 +1815,7 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 		CBEIFBProductCodes: parseProductCodes(data["cbe_ifb_product_codes"]),
 		AboveAmount:        safeUint64("above_amount"),
 		AboveServiceFee:    safeUint64("above_service_fee"),
-		PaymentType:        safeString("payment_type"),
+		PaymentType:        safePaymentType("payment_type"),
 		Tiers:              parseTiers(data["tiers"]),
 		CBEGLEntry:         parseGLEntry(data["cbe_gl_entry"]),
 		CBEIFBGLEntry:      parseGLEntry(data["cbe_ifb_gl_entry"]),
