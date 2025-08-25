@@ -188,6 +188,7 @@ type BankRepository interface {
 
 type PortalCardRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
+	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
 type ColorRepository interface {
@@ -363,3 +364,4 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
+
