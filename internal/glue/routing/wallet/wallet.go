@@ -21,7 +21,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				// middleware.RequireFormContentType(),
 			},
 		},
 		{
