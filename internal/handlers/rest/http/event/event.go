@@ -65,7 +65,7 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	if req.IsEmpty() {
 		a.logger.Warnf("no data provided for event update, event ID: %s", id)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorResponse(w, localization.ErrorUpdateEventEmptyPayload, nil, nil)
 		return
 	}
 
