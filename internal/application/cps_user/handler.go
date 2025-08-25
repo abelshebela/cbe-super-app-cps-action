@@ -82,7 +82,6 @@ func (h *Handler) UpdateUserRequest(ctx context.Context, r *http.Request) (*mode
 		return nil, err
 	}
 
-	fmt.Println("Permission groups", req.PermissionGroup)
 	return h.service.UpdateUserRequest(ctx, r, req, userCode)
 }
 
