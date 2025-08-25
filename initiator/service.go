@@ -42,12 +42,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
-		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Feedback:  feedbackService,
+		EventService: eventService,
+		Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
+		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 		PortalCard:   portalCardService,
-		EventService: eventService,
-				Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
-
 	}
 }

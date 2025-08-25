@@ -1,9 +1,9 @@
 package city
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -128,4 +128,4 @@ func (c *CityStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 		Data: data,
 		Meta: meta,
 	}, nil
-} 
+}
