@@ -163,6 +163,7 @@ func (h *DonationHttpStore) UpdateDonationCategory(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// Get form values - these can be empty strings for partial updates
 	categoryName := r.FormValue("category_name")
 	fileHeaders := r.MultipartForm.File["donation_icon"]
 
@@ -171,13 +172,25 @@ func (h *DonationHttpStore) UpdateDonationCategory(w http.ResponseWriter, r *htt
 		fileHeader = fileHeaders[0]
 	}
 
-	donationRequest := dto.DonationCategoryRequest{
-		CategoryName: categoryName,
-		Icon:         fileHeader,
+	// Debug logging to understand what's being received
+	h.logger.Infof("UpdateDonationCategory - ID: %s, CategoryName: '%s', HasIcon: %v", id, categoryName, fileHeader != nil)
+
+	// Check if at least one field is provided for the update
+	if categoryName == "" && fileHeader == nil {
+		utils.SendErrorResponse(w, "at least one field must be provided for update", http.StatusBadRequest, nil)
+		return
 	}
 
+	// Create request with provided values (empty strings are allowed for partial updates)
+	donationRequest := dto.DonationCategoryRequest{
+		CategoryName: categoryName, // Can be empty string for partial updates
+		Icon:         fileHeader,   // Can be nil for partial updates
+	}
+
+	// Validate the request (validation now allows partial updates)
 	if err := donationRequest.ValidateForUpdate(); err != nil {
 		h.logger.Errorf("validation failed: %v", err)
+		h.logger.Errorf("validation details - CategoryName: '%s', Icon: %v", donationRequest.CategoryName, donationRequest.Icon)
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
@@ -188,7 +201,7 @@ func (h *DonationHttpStore) UpdateDonationCategory(w http.ResponseWriter, r *htt
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Donation category updated successfully")
+	utils.WriteSuccessResponse(w, nil, "Donation category update request sent successfully")
 }
 
 func (h *DonationHttpStore) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
@@ -277,6 +290,7 @@ func (h *DonationHttpStore) UpdateDonationCompany(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Get form values - these can be empty strings for partial updates
 	companyName := r.FormValue("company_name")
 	accountNumber := r.FormValue("account_number")
 	fileHeaders := r.MultipartForm.File["company_logo"]
@@ -286,14 +300,26 @@ func (h *DonationHttpStore) UpdateDonationCompany(w http.ResponseWriter, r *http
 		fileHeader = fileHeaders[0]
 	}
 
-	companyRequest := dto.DonationCompanyRequest{
-		CompanyName:   companyName,
-		CompanyLogo:   fileHeader,
-		AccountNumber: accountNumber,
+	// Debug logging to understand what's being received
+	h.logger.Infof("UpdateDonationCompany - ID: %s, CompanyName: '%s', AccountNumber: '%s', HasLogo: %v", id, companyName, accountNumber, fileHeader != nil)
+
+	// Check if at least one field is provided for the update
+	if companyName == "" && accountNumber == "" && fileHeader == nil {
+		utils.SendErrorResponse(w, "at least one field must be provided for update", http.StatusBadRequest, nil)
+		return
 	}
 
+	// Create request with provided values (empty strings are allowed for partial updates)
+	companyRequest := dto.DonationCompanyRequest{
+		CompanyName:   companyName,   // Can be empty string for partial updates
+		CompanyLogo:   fileHeader,    // Can be nil for partial updates
+		AccountNumber: accountNumber, // Can be empty string for partial updates
+	}
+
+	// Validate the request (validation now allows partial updates)
 	if err := companyRequest.ValidateForUpdate(); err != nil {
 		h.logger.Errorf("validation failed: %v", err)
+		h.logger.Errorf("validation details - CompanyName: '%s', AccountNumber: '%s', HasLogo: %v", companyRequest.CompanyName, companyRequest.AccountNumber, companyRequest.CompanyLogo != nil)
 		utils.SendErrorResponse(w, "INVALID_INPUT", http.StatusBadRequest, map[string]interface{}{"errors": err})
 		return
 	}
@@ -304,7 +330,7 @@ func (h *DonationHttpStore) UpdateDonationCompany(w http.ResponseWriter, r *http
 		return
 	}
 
-	utils.WriteSuccessResponse(w, nil, "Donation company updated request sent successfully")
+	utils.WriteSuccessResponse(w, nil, "Donation company update request sent successfully")
 }
 
 func (h *DonationHttpStore) CreateDonation(w http.ResponseWriter, r *http.Request) {

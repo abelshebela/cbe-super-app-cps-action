@@ -37,7 +37,7 @@ import (
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 
 	// serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
+	// passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -59,7 +59,7 @@ type outboundStore struct {
 	MongoDalPortalCard        *infra_mongo.MongoDal[model.Card, model.Card]
 }
 
-func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectionNames []string) passwordRuleOutbound.OutboundPasswordRuleInfra {
+func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectionNames []string) userOutbound.OutboundPasswordRuleInfra {
 	mongoDalPasswordRule := infra_mongo.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
 	return &outboundStore{MongoDalPasswordRule: mongoDalPasswordRule, MongoDalCPSAction: mongoDalCPSAction}
@@ -786,7 +786,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, ids []string
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				return nil, fmt.Errorf(error_codes.AccountNotFound)
 			}
-			return nil, fmt.Errorf(err.Error())
+			return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 		}
 		result = append(result, domain.LinkedAccount{
 			ID:                stringToPointer(item.ID.Hex()),

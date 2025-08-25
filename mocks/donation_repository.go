@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"time"
 
 	dto "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/dto"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
@@ -47,6 +48,14 @@ func (m *DonationRepository) FetchDonationCategoryByID(ctx context.Context, id s
 
 func (m *DonationRepository) UpdateDonationCategory(ctx context.Context, id string, donation dto.DonationCategoryRequest) (*dto.DonationCategoryRequest, error) {
 	args := m.Called(ctx, id, donation)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*dto.DonationCategoryRequest), args.Error(1)
+}
+
+func (m *DonationRepository) UpdateDonationCategoryWithIconURL(ctx context.Context, id string, donation dto.DonationCategoryRequest, iconURL string) (*dto.DonationCategoryRequest, error) {
+	args := m.Called(ctx, id, donation, iconURL)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -164,10 +173,35 @@ func (m *DonationRepository) UpdateDonation(ctx context.Context, id string, dona
 	return args.Get(0).(*dto.DonationRequest), args.Error(1)
 }
 
-func (m *DonationRepository) UpdateDonationWithImageURLs(ctx context.Context, id string, donation dto.DonationRequest, imageURLs []string) (*dto.DonationRequest, error) {
-	args := m.Called(ctx, id, donation, imageURLs)
+func (m *DonationRepository) UpdateDonationWithCoverImage(ctx context.Context, id string, donation dto.DonationRequest, coverImageURL string) (*dto.DonationRequest, error) {
+	args := m.Called(ctx, id, donation, coverImageURL)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*dto.DonationRequest), args.Error(1)
+}
+
+func (m *DonationRepository) AddDonationImage(ctx context.Context, donationID string, image dto.DonationImage) error {
+	args := m.Called(ctx, donationID, image)
+	return args.Error(0)
+}
+
+func (m *DonationRepository) UpdateDonationCoverImage(ctx context.Context, donationID, coverImageURL string) error {
+	args := m.Called(ctx, donationID, coverImageURL)
+	return args.Error(0)
+}
+
+func (m *DonationRepository) IsDonationCategoryDataSimilar(ctx context.Context, id string, categoryName string, iconURL string) (bool, error) {
+	args := m.Called(ctx, id, categoryName, iconURL)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *DonationRepository) IsDonationCompanyDataSimilar(ctx context.Context, id string, companyName string, logoURL string, accountNumber string) (bool, error) {
+	args := m.Called(ctx, id, companyName, logoURL, accountNumber)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *DonationRepository) IsDonationDataSimilar(ctx context.Context, id string, companyID string, categoryID string, title string, isFeatured bool, target int, donationDescription string, endDate time.Time, startDate time.Time, coverImageURL string) (bool, error) {
+	args := m.Called(ctx, id, companyID, categoryID, title, isFeatured, target, donationDescription, endDate, startDate, coverImageURL)
+	return args.Bool(0), args.Error(1)
 }
