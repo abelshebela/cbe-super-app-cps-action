@@ -28,6 +28,7 @@ type Handler struct {
 	EventHandler     inbound.EventHandler
 	BpsHandler       bpsInbound.BPSUserHandler
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
+	AdvertHandler advertHandlerInterface.ADAdapter
 	PortalCardHander portalCardInterface.PortalCardAdapter
 	AdvertHandler advertHandlerInterface.ADAdapter
 }

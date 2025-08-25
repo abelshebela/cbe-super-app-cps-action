@@ -50,8 +50,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
-	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
-	
+	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

@@ -27,9 +27,7 @@ type ServiceLayer struct {
 	Unlink  service.UnlinkService
 	BpsUser service.BPSUserService
 	Advert service.AdvertService
-	BpsUser    service.BPSUserService
 	PortalCard service.PortalCardService
-	Unlink     service.UnlinkService
 }
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
@@ -43,7 +41,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 
 	return ServiceLayer{
-
 		CPSAction: cpsActionService,
 		Feedback:  feedbackService,
 		EventService: eventService,
