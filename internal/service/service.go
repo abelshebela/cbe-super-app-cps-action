@@ -5,7 +5,7 @@ import (
 	"mime/multipart"
 
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
-	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -18,7 +18,6 @@ type CPSActionService interface {
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
-	CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error)
 }
 
 type BranchService interface {
@@ -65,9 +64,9 @@ type FaydaAccountService interface {
 
 type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*model.Feedback, error)
-	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
 }
 
 type HQService interface {
@@ -96,8 +95,7 @@ type PermissionService interface {
 }
 
 type PortalCardService interface {
-	GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
-	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
+	// Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type ProductCodeService interface {
@@ -125,11 +123,6 @@ type AccountBlockService interface {
 
 type AccountValidationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, rule *model.ValidationRule) error
-	Update(ctx context.Context, id string, rule *model.ValidationRule) error
-	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.ValidationRule, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
 type ActionService interface {
@@ -137,13 +130,13 @@ type ActionService interface {
 }
 
 type AdvertService interface {
-	CreateAdvert(ctx context.Context, advert *model.Advert, bannerImage *multipart.FileHeader) error
-	FetchAdverts(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error
+	FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
 	FetchAdvertByID(ctx context.Context, id string) (*model.Advert, error)
-	UpdateAdvert(ctx context.Context, id string, advert *model.Advert, bannerImage *multipart.FileHeader) error
+	UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error
 	DeleteAdvert(ctx context.Context, id string) error
 	EnableDisableAdvert(ctx context.Context, id string, enable bool) error
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type AmountBasedAuthService interface {
@@ -169,9 +162,9 @@ type BudgetCategoryService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
 }
 
 type AccountSearchService interface {

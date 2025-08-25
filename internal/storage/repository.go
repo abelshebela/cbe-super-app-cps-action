@@ -89,7 +89,6 @@ type CPSActionRepository interface {
 	FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error)
 	Update(ctx context.Context, id string, update model.CPSAction) error
 	Delete(ctx context.Context, id string) error
-	CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error)
 }
 
 // Avatar persistence
@@ -364,4 +363,3 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
-
