@@ -252,7 +252,7 @@ func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
 	return step, nil
 }
 
-func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string) bson.M {
+func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string, handler map[string]func(interface{}) interface{}) bson.M {
 	filter := bson.M{}
 
 	allowedMap := make(map[string]bool)
@@ -279,7 +279,7 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 				filter[key] = bson.M{"$in": v}
 			}
 		case map[string]interface{}:
-			nested := BuildMongoFilterWithKeys(v, allowedKeys)
+			nested := BuildMongoFilterWithKeys(v, allowedKeys, handler)
 			for nestedKey, nestedVal := range nested {
 				filter[key+"."+nestedKey] = nestedVal
 			}

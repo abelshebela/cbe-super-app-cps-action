@@ -123,7 +123,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 
 		data, err := a.validateToken(r.Context(), tokenString)
 		if err != nil {
-			response.SendErrorResponse(w, err)
+			localization.SendErrorResponse(w, localization.ErrorInvalidToken, nil, nil)
 			return
 		}
 
@@ -190,7 +190,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		data, err := a.validateToken(r.Context(), tokenString)
 		if err != nil {
-			response.SendErrorResponse(w, err)
+			localization.SendErrorResponse(w, localization.ErrorInvalidToken, nil, nil)
 			return
 		}
 
