@@ -100,6 +100,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
+	ErrorSessionRetrievalFailed,
+	ErrorHealthCheck,
+	ErrorInvalidToken,
+	
 	// Add more as needed...
 }
 
@@ -1399,6 +1403,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorHealthCheck = ResponseCode{
+		Code:       "FAILED_HEALTH_CHECK",
+		StatusCode: StatusOK,
+		Message:    MsgHealthCheckFailed,
+		Type:       "error",
+	}
+
 	ErrorActionAlreadyExists = ResponseCode{
 		Code:       "ERROR_ACTION_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -1685,6 +1696,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorSessionRetrievalFailed = ResponseCode{
+		Code:       "ERROR_SESSION_RETRIEVAL_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgSessionRetrievalFailed,
+		Type:       "error",
+	}
+
 	ErrorSessionCreationFailed = ResponseCode{
 		Code:       "ERROR_SESSION_CREATION_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -1703,6 +1721,13 @@ var (
 		Code:       "ERROR_FILE_TOO_LARGE",
 		StatusCode: StatusRequestEntityTooLarge,
 		Message:    MsgFileTooLarge,
+		Type:       "error",
+	}
+
+	ErrorInvalidToken = ResponseCode{
+		Code:       "ERROR_INVALID_TOKEN",
+		StatusCode: StatusForbidden,
+		Message:    MsgInvalidToken,
 		Type:       "error",
 	}
 

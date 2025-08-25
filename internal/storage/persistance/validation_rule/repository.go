@@ -1,9 +1,9 @@
 package validation_rule
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -112,4 +112,4 @@ func (v *ValidationRuleStorage) FindAllWithPagination(ctx context.Context, filte
 		Data: data,
 		Meta: meta,
 	}, nil
-} 
+}

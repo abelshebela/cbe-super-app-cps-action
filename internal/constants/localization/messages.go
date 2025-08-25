@@ -44,6 +44,7 @@ const (
 	MsgDataDeletedSuccessfully   = "Data deleted successfully"
 	MsgValidationPassed          = "Validation passed successfully"
 	MsgHealthCheckPassed         = "Health check passed"
+	MsgHealthCheckFailed         = "Health check failed"
 	MsgBadRequest                = "Bad request"
 
 	// Bank related success messages
@@ -285,11 +286,12 @@ const (
 	MsgPINRedundant     = "PIN cannot be redundant"
 
 	// Session related error messages
-	MsgSessionNotFound       = "Session not found"
-	MsgSessionExpired        = "Session has expired"
-	MsgSessionInvalid        = "Invalid session"
-	MsgSessionCreationFailed = "Failed to create session"
-	MsgSessionUpdateFailed   = "Failed to update session"
+	MsgSessionNotFound        = "Session not found"
+	MsgSessionExpired         = "Session has expired"
+	MsgSessionInvalid         = "Invalid session"
+	MsgSessionCreationFailed  = "Failed to create session"
+	MsgSessionUpdateFailed    = "Failed to update session"
+	MsgSessionRetrievalFailed = "Failed to retrieval session"
 
 	// File related error messages
 	MsgFileTooLarge     = "file size is too large"
@@ -549,6 +551,7 @@ const (
 	MsgResourceMaintenanceMode    = "Resource in maintenance mode"
 	MsgInvalidRequestOnParam      = "Invalid request on page and per page"
 	MsgInvalidRequest             = "Invalid request"
+	MsgInvalidToken               = "Invalid token"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"

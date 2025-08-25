@@ -1,9 +1,10 @@
 package users
 
 import (
-	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -35,7 +36,7 @@ func UserProjection() bson.M {
 func UserIdFilterAttachMent(id string) (bson.M, error) {
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.ErrUnexpected
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return bson.M{
 		"_id":        objId,

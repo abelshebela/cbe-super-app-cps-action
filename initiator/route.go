@@ -10,6 +10,7 @@ import (
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
+	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
@@ -49,6 +50,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
+	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
