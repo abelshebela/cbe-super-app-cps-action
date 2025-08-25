@@ -43,6 +43,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.BIC = r.FormValue("bic")
 	bankRequest.Logo = fileHeader
 
+	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
+		b.logger.Errorf("invalid input", response_code)
+		localization.SendErrorResponse(w, response_code, nil, nil)
+		return
+	}
+
 	err = b.bankService.CreateOneBank(r.Context(), bankRequest)
 	if err != nil {
 		b.logger.Errorf("bank create request failed", err)
@@ -83,7 +89,8 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.EnableOrDisableBank(r.Context(), id, false)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, localization.ErrorBankDisableRequest.Code)
+		b.logger.Errorf("disable request failed", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDisableRequestCreated, nil)
@@ -100,7 +107,8 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.EnableOrDisableBank(r.Context(), id, true)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, localization.ErrorBankEnableRequestFailed.Code)
+		b.logger.Errorf("enable request failed", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessEnableRequestCreated, nil)
@@ -113,7 +121,7 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 	banks, err := b.bankService.GetAllBank(r.Context(), filterParams)
 	if err != nil {
 		b.logger.Errorf("get all banks failed", err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorGetAllBanksFailed.Code)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -133,7 +141,7 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		b.logger.Errorf("get bank by id failed", err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorGetOneBank.Code)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -164,7 +172,7 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		b.logger.Errorf("Error uploading bank logo", err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorFileUploadFailed.Code)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -187,10 +195,17 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
+		b.logger.Errorf("invalid input", response_code)
+		localization.SendErrorResponse(w, response_code, nil, nil)
+		return
+	}
+
 	err := b.bankService.UpdateOneBank(r.Context(), id, updateRequest)
 	if err != nil {
 		b.logger.Errorf("bank update request failed", err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorBankUpdateFailed.Code)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)

@@ -134,14 +134,17 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"branch_code", "branch_name", "enabled"}
+	allowedKeys := []string{"branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"full_name": searchRegex},
-			{"username": searchRegex},
+			{"name": searchRegex},
+			{"code": searchRegex},
+			{"bic": searchRegex},
+			{"created_at": searchRegex},
+			{"last_modified_at": searchRegex},
 		}
 
 	}

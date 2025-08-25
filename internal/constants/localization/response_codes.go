@@ -30,6 +30,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessGetOneBank,
 	SuccessBankDisableRequestCreated,
 	SuccessBankEnableRequestCreated,
+	SuccessBankUpdatedRequestSent,
 
 	// Error codes
 	ErrorUserNotFound,
@@ -101,6 +102,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSessionRetrievalFailed,
 	ErrorHealthCheck,
 	ErrorInvalidToken,
+	ErrorActionAlreadyExists,
+	ErrorGetOneBank,
+	ErrorNoDataProvidedForCreate,
+	ErrorNoDataProvidedForUpdate,
 	// Add more as needed...
 }
 
@@ -1548,10 +1553,45 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidBankRequest = ResponseCode{
+		Code:       "ERROR_INVALID_BANK_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidBankRequest,
+		Type:       "error",
+	}
+
 	ErrorNoDataProvidedForUpdate = ResponseCode{
 		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
 		StatusCode: StatusBadRequest,
-		Message:    "No data provided for update",
+		Message:    MsgNoDataProvidedForUpdate,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForName = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankName,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForCode = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_CODE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankCode,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForBIC = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_BIC",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankBIC,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForCreate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_CREATE",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for Create",
 		Type:       "error",
 	}
 
@@ -2348,7 +2388,7 @@ var (
 	ErrorBankUpdateFailed = ResponseCode{
 		Code:       "ERROR_BANK_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
-		Message:    MsgBankLogoUpdateFailed,
+		Message:    MsgBankUpdateFailed,
 		Type:       "error",
 	}
 

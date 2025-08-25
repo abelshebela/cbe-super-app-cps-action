@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service/bank/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"fmt"
@@ -96,7 +95,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := core.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.cfg.MinioEndPoint, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.cfg.MinioEndPoint, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -121,8 +120,8 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 
 func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if !local_util.IsIncomplete(makerData) {
-		b.logger.Errorf("Create Bank failed incomplete user data")
+	if local_util.IsIncomplete(makerData) {
+		b.logger.Errorf("Delete Bank failed incomplete user data")
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 	bank, err := b.repo.FindByID(ctx, id)
@@ -145,7 +144,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 
 func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enableDisable bool) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if !local_util.IsIncomplete(makerData) {
+	if local_util.IsIncomplete(makerData) {
 		b.logger.Errorf("Create Bank failed incomplete user data")
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
@@ -183,7 +182,7 @@ func (b *BankService) GetOneBank(ctx context.Context, id string) (*model.Bank, e
 
 func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if !local_util.IsIncomplete(makerData) {
+	if local_util.IsIncomplete(makerData) {
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
@@ -193,7 +192,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return err
 	}
 
-	URL, err := core.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.cfg.MinioEndPoint, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.cfg.MinioEndPoint, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -215,7 +214,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 
 func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request bank_dto.UpdateBankRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if !local_util.IsIncomplete(makerData) {
+	if local_util.IsIncomplete(makerData) {
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 

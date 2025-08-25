@@ -558,6 +558,11 @@ const (
 	MsgResourceConfigurationError = "Resource configuration error"
 	MsgResourceMaintenanceMode    = "Resource in maintenance mode"
 	MsgInvalidRequestOnParam      = "Invalid request on page and per page"
+	MsgInvalidBankRequest         = "Invalid bank request"
+	MsgInvalidRequestBankName     = "invalid format for Name: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankCode     = "invalid format for Code: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankBIC      = "invalid format for BIC: only letters, numbers, and spaces are allowed"
+	MsgNoDataProvidedForUpdate    = "No data provided for update"
 	MsgInvalidRequest             = "Invalid request"
 	MsgInvalidToken               = "Invalid token"
 
