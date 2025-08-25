@@ -1,6 +1,7 @@
 package unlink
 
 import (
+	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
@@ -15,7 +16,7 @@ type unlinkAdapter struct {
 	unlinkApp service.UnlinkService
 }
 
-func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) *unlinkAdapter {
+func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inbound.UnlinkAdapter {
 	return &unlinkAdapter{
 		logger:    logger,
 		unlinkApp: unlinkApp,
@@ -34,7 +35,7 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w,localization.SuccessUserRetrieved,archivedUser)
+	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, archivedUser)
 }
 
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {

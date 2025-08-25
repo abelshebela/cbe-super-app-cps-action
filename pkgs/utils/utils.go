@@ -14,8 +14,10 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
-	customErr "cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -189,7 +191,7 @@ func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
 	if elapsed < waitDuration {
 		// remaining := waitDuration - elapsed
 		// minutes := int(remaining.Minutes())
-		return customErr.ErrTooManyAttempt
+		return errors.New(localization.ErrorUserTooManyLoginAttempts.Code)
 	}
 
 	return nil
@@ -212,25 +214,25 @@ func ExtractUserInfo(ctx context.Context, log utils.Logger) (*types.UserInfo, er
 	userID, ok := ctx.Value(constants.ContextKey("user_id")).(string)
 	if !ok {
 		log.Errorf("failed to fetch user id from context: %v", ok)
-		return nil, customErr.ErrBadRequest
+		return nil, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	fullName, ok := ctx.Value(constants.ContextKey("full_name")).(string)
 	if !ok {
 		log.Errorf("failed to get full name from context: %v", ok)
-		return nil, customErr.ErrBadRequest
+		return nil, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	phoneNumber, ok := ctx.Value(constants.ContextKey("phone_number")).(string)
 	if !ok {
 		log.Errorf("failed to get full name from context", ok)
-		return nil, customErr.ErrBadRequest
+		return nil, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	action, ok := ctx.Value(constants.ContextKey("action")).(string)
 	if !ok {
 		log.Errorf("failed to get action from context", ok)
-		return nil, customErr.ErrBadRequest
+		return nil, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	return &types.UserInfo{
@@ -245,12 +247,12 @@ func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
 	step, ok := ctx.Value(constants.ContextKey("next_step")).(string)
 	if !ok {
 		log.Errorf("faile to get next step from context")
-		return "", customErr.ErrBadRequest
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	return step, nil
 }
 
-func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string) bson.M {
+func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string, handler map[string]func(interface{}) interface{}) bson.M {
 	filter := bson.M{}
 
 	allowedMap := make(map[string]bool)
@@ -277,7 +279,7 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 				filter[key] = bson.M{"$in": v}
 			}
 		case map[string]interface{}:
-			nested := BuildMongoFilterWithKeys(v, allowedKeys)
+			nested := BuildMongoFilterWithKeys(v, allowedKeys, handler)
 			for nestedKey, nestedVal := range nested {
 				filter[key+"."+nestedKey] = nestedVal
 			}

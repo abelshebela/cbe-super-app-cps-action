@@ -3,13 +3,14 @@ package external_call
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/dto"
-	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -42,14 +43,14 @@ func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody str
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		s.logger.Errorf("Failed to marshal SMS payload: %v", err)
-		return errors.ErrFailedToPrepareOTP
+		return errors.New(localization.ErrorOTPSendFailed.Code)
 	}
 
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", s.baseURL, strings.NewReader(string(payloadBytes)))
 	if err != nil {
 		s.logger.Errorf("Failed to create HTTP request: %v", err)
-		return errors.ErrFailedHttpCall
+		return errors.New(localization.ErrorExternalServiceError.Code)
 	}
 
 	req.Header.Add("Content-Type", "application/json")
@@ -61,7 +62,7 @@ func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody str
 
 	if err != nil {
 		s.logger.Errorf("SMS API call failed: %v, duration: %v", err, duration)
-		return errors.ErrFailedSMSApiCall
+		return errors.New(localization.ErrorExternalServiceError.Code)
 	}
 	defer resp.Body.Close()
 
