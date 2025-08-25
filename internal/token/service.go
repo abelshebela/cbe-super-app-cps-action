@@ -2,12 +2,12 @@ package token
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/pkgs/utils"
 
@@ -93,7 +93,7 @@ func (t *TokenService) LocalEncryptPassword(password string, dataType string, us
 	key := []byte(t.cfg.Key)
 	iv := []byte(t.cfg.IV)
 	if len(key) != 32 || len(iv) != aes.BlockSize {
-		return "", salt, errors.ErrInvalidKey
+		return "", salt, errors.New("invalid key")
 	}
 
 	block, err := aes.NewCipher(key)
@@ -117,7 +117,7 @@ func (t *TokenService) LocalDecryptPassword(encryptedHex string, env *config.Vau
 	iv := []byte(t.cfg.IV)
 
 	if len(key) != 32 || len(iv) != aes.BlockSize {
-		return "", errors.ErrInvalidKey
+		return "", errors.New("invalid key")
 	}
 
 	encrypted, err := hex.DecodeString(encryptedHex)
@@ -129,7 +129,7 @@ func (t *TokenService) LocalDecryptPassword(encryptedHex string, env *config.Vau
 		return "", err
 	}
 	if len(encrypted)%aes.BlockSize != 0 {
-		return "", errors.ErrInvalidEncData
+		return "", errors.New("invalid key")
 	}
 
 	mode := cipher.NewCBCDecrypter(block, iv)
@@ -138,7 +138,7 @@ func (t *TokenService) LocalDecryptPassword(encryptedHex string, env *config.Vau
 	// Remove PKCS#7 padding
 	padLen := int(decrypted[len(decrypted)-1])
 	if padLen > aes.BlockSize || padLen == 0 {
-		return "", errors.ErrInvalidPadding
+		return "", errors.New("invalid padding")
 	}
 	return string(decrypted[:len(decrypted)-padLen]), nil
 }

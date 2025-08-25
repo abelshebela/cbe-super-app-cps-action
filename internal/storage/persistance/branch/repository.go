@@ -1,9 +1,9 @@
 package branch
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -128,4 +128,4 @@ func (b *BranchStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		Data: data,
 		Meta: meta,
 	}, nil
-} 
+}

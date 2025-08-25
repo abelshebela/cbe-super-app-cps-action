@@ -1,9 +1,10 @@
 package advert
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -41,7 +42,7 @@ func (a *AdvertStorage) Create(ctx context.Context, advert *model.Advert) error 
 func (a *AdvertStorage) Update(ctx context.Context, id string, advert *model.Advert) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := AdvertMapper(*advert)
@@ -59,7 +60,7 @@ func (a *AdvertStorage) Update(ctx context.Context, id string, advert *model.Adv
 func (a *AdvertStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	return a.dal.DeleteOne(ctx, filter)
@@ -68,7 +69,7 @@ func (a *AdvertStorage) Delete(ctx context.Context, id string) error {
 func (a *AdvertStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$set": bson.M{"enabled": enable}}
@@ -84,38 +85,41 @@ func (a *AdvertStorage) EnableOrDisable(ctx context.Context, id string, enable b
 func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }
 
 func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+
+	allowedKeys := []string{"title", "description", "enabled"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["title"] = searchRegex
+		filter["$or"] = []bson.M{
+			{"title": searchRegex},
+			{"description": searchRegex},
+		}
 	}
-
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

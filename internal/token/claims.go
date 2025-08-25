@@ -19,12 +19,6 @@ func ClaimBuilder(user *model.User, sessionExpiry interface{}, action interface{
 		"action":         action,
 	}
 
-	if additional != nil {
-		for k, v := range additional {
-			claims[k] = v
-		}
-	}
-
 	return claims
 }
 
@@ -41,12 +35,6 @@ func PermanentClaimBuilder(user *model.User, sessionExpiry interface{}, addition
 		"kyc_level":               user.KYCLevel,
 		"user_device_linked_date": "",
 		"session_expiry":          sessionExpiry,
-	}
-
-	if additional != nil {
-		for k, v := range additional {
-			claims[k] = v
-		}
 	}
 
 	return claims

@@ -10,8 +10,10 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 
 	// Handler section
+	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	inbound "cbe-super-app-cps-action/internal/handlers/rest"
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
+	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
@@ -30,6 +32,7 @@ type Handler struct {
 	FeedbackHandler   feedbackinterface.FeedbackAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
+	AdvertHandler     advertHandlerInterface.ADAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -41,5 +44,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		FeedbackHandler:   feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
 		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 	}
 }
