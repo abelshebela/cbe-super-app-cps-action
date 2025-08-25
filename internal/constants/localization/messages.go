@@ -16,7 +16,10 @@ const (
 	MsgUserDeviceLinked          = "Device linked successfully"
 	MsgUserDeviceUnlinked        = "Device unlinked successfully"
 	MSGAccountNumberRequired     = "Account Number is required"
+	MsgFeedbackIDRequired        = "Feedback ID is required"
+	MsgInvalidIDFormat           = "Invalid ID format"
 	MSGIncompleteUserInfo        = "Incomplte user info"
+	MSGUserCodeIsRequired        = "User code is required"
 	MsgActionAlreadyExists       = "Action already requested wait for checker approval"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
@@ -361,6 +364,8 @@ const (
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
 	MsgCPSActionNotFound             = "CPS action not found"
+	MsgBpsUserAlreadyEnabled         = "BPS user already enabled"
+	MsgBpsUserAlreadyDisabled        = "BPS user already disabled"
 	MsgCPSActionNotPending           = "Action is not in pending status"
 	MsgCPSActionAlreadyApproved      = "Action already approved"
 	MsgCPSActionAlreadyRejected      = "Action already rejected"
@@ -541,6 +546,7 @@ const (
 	MsgResourceMaintenanceMode    = "Resource in maintenance mode"
 	MsgInvalidRequestOnParam      = "Invalid request on page and per page"
 	MsgInvalidRequest             = "Invalid request"
+	MsgInvalidToken               = "Invalid token"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"

@@ -72,6 +72,14 @@ const (
 	MEMBER_REALM   Realm = "MEMBER"
 )
 
+type ActionType string
+
+const (
+	ActionDelete ActionType = "DELETE"
+	ActionUpdate ActionType = "UPDATE"
+	ActionCreate ActionType = "CREATE"
+)
+
 type Gender string
 
 const (
@@ -156,9 +164,9 @@ const (
 )
 
 const (
-	Update = "UPDATE"
-	Delete = "DELETE"
-	Create = "CREATE"
+	UPDATE = "UPDATE"
+	DELETE = "DELETE"
+	CREATE = "CREATE"
 )
 
 type RequestAction string
@@ -268,6 +276,8 @@ const (
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
 
+	RequestDeleteEvent             RequestAction = "DELETE_EVENT"
+	RequestEnableEvent             RequestAction = "ENABLE_EVENT"
 	RequestCreateEvent             RequestAction = "CREATE_EVENT"
 	RequestUpdateEvent             RequestAction = "UPDATE_EVENT"
 	RequestCreateEventCategory     RequestAction = "CREATE_EVENT_CATEGORY"
@@ -292,6 +302,9 @@ const (
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
+	ActionPending            RequestAction = "PENDING"
+	ActionApproved           RequestAction = "APPROVED"
+	ActionRejected           RequestAction = "REJECTED"
 )
 
 type RegistrationType string

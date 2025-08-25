@@ -18,8 +18,8 @@ import (
 )
 
 type unlinkService struct {
-	logger                    utils.Logger
-	repo                      storage.UnlinkAccount
+	logger utils.Logger
+	// repo                      storage.UnlinkAccount
 	userRepo                  storage.UserRepository
 	archivedUserRepo          storage.ArchivedUserRepository
 	linkedAccountRepo         storage.LinkedAccountRepository
@@ -66,7 +66,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 		return err
 	}
 
-	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.Delete)
+	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
 
 	if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -90,7 +90,6 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
-	lib.CpsModelBuilder()
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
 
 	if archUserErr != nil || archLinkedAccErr != nil {

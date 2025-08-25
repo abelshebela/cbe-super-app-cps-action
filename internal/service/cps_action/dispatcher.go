@@ -59,8 +59,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Permission"):
 		return d.app.PermissionContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
-		return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
+	// case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
+	// 	return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Wallet"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)
@@ -89,8 +89,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "ProductCode"):
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "BPSUser"):
-		return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
+	// case IsActionInGroup(RequestAction(action), "BPSUser"):
+	// 	return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Avatar"):
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
