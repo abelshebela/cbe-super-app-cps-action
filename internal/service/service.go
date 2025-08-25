@@ -120,6 +120,7 @@ type WalletService interface {
 }
 
 type AccountBlockService interface {
+	GetBranch(ctx context.Context, branchCode string, filterParam *types.Filter) (*model.Branch, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
