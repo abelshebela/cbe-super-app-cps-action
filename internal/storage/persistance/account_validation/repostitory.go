@@ -1,6 +1,7 @@
 package accountvalidation
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -34,7 +35,7 @@ func NewAccountValidationStore(client *mongo.Client, dbName string, collection s
 func (l *AccountValidationStore) GetAccountValidationByID(ctx context.Context, id string) (*model.ValidationRule, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, err
 	}
 	filter := bson.M{"_id": objID}
 
@@ -42,6 +43,7 @@ func (l *AccountValidationStore) GetAccountValidationByID(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
@@ -68,24 +70,32 @@ func (a *AccountValidationStore) UpdateAccountValidation(ctx context.Context, id
 func (l *AccountValidationStore) GetAllAccountValidation(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
 	filter := bson.M{"is_deleted": false}
 
+	searchKeys := bson.M{}
+
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{}
+	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["name"] = searchRegex
+		searchKeys["validation_rule"] = searchRegex // choose your searchable field(s)
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
+	// 5. Fetch data
 	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 6. Count total
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]*model.ValidationRule]{

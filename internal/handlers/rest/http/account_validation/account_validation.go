@@ -25,7 +25,12 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 	}
 }
 func (h *accountValidationAdapter) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := chi.URLParam(r, "id") // get from path instead of query
+	if id == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequest.Code)
+		return
+	}
+
 	resp, err := h.accountValidationService.GetAccountValidation(r.Context(), id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -35,8 +40,9 @@ func (h *accountValidationAdapter) FetchAccountValidation(w http.ResponseWriter,
 	data, err := StructToMap(resp)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, data)
+	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, data)
 }
 
 func (h *accountValidationAdapter) UpdateAccountValidation(w http.ResponseWriter, r *http.Request) {

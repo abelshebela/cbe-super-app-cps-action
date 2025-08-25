@@ -899,7 +899,7 @@ var (
 	SuccessValidationRuleFetched = ResponseCode{
 		Code:       "SUCCESS_VALIDATION_RULE_FETCHED",
 		StatusCode: StatusOK,
-		Message:    MsgValidationRuleApprovedSuccess,
+		Message:    MsgValidationRuleSuccessFech,
 		Type:       "success",
 	}
 

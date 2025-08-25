@@ -13,7 +13,7 @@ func Init(router chi.Router, handler accountvalidation.AccountValidation, authMi
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/{id}",
+			Path:    "/account_validation/{id}",
 			Handler: handler.FetchAccountValidation,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -21,7 +21,7 @@ func Init(router chi.Router, handler accountvalidation.AccountValidation, authMi
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/",
+			Path:    "/account_validation",
 			Handler: handler.FetchAllAccountValidation,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -29,7 +29,7 @@ func Init(router chi.Router, handler accountvalidation.AccountValidation, authMi
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/update/{id}",
+			Path:    "/account_validation/update/{id}",
 			Handler: handler.UpdateAccountValidation,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
