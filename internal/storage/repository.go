@@ -350,11 +350,9 @@ type ServiceDetailsRepository interface {
 }
 
 type ValidationRuleRepository interface {
-	Create(ctx context.Context, rule *model.ValidationRule) error
-	Update(ctx context.Context, id string, rule *model.ValidationRule) error
-	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.ValidationRule, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
+	GetAccountValidationByID(ctx context.Context, id string) (*model.ValidationRule, error)
+	UpdateAccountValidation(ctx context.Context, id string, rule *model.ValidationRule) error
+	GetAllAccountValidation(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
 type WalletRepository interface {

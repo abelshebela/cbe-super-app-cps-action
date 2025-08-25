@@ -123,12 +123,10 @@ type AccountBlockService interface {
 }
 
 type AccountValidationService interface {
+	UpdateAccountValidation(ctx context.Context, id string, rule *model.ValidationRule) error
+	GetAccountValidation(ctx context.Context, id string) (*model.ValidationRule, error)
+	GetAllAccountValidation(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, rule *model.ValidationRule) error
-	Update(ctx context.Context, id string, rule *model.ValidationRule) error
-	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.ValidationRule, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
 type ActionService interface {

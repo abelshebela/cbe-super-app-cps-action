@@ -814,6 +814,13 @@ var (
 		Message:    MsgValidationRuleApprovedSuccessfully,
 		Type:       "success",
 	}
+	SuccessValidationRuleFetched = ResponseCode{
+		Code:       "SUCCESS_VALIDATION_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgValidationRuleApprovedSuccess,
+		Type:       "success",
+	}
+
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
@@ -1358,7 +1365,7 @@ var (
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
 	}
-	
+
 	ErrorUserCodeRequired = ResponseCode{
 		Code:       "ERROR_USER_CODE_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1442,7 +1449,7 @@ var (
 		Message:    MsgCPSActionNotFound,
 		Type:       "error",
 	}
-	
+
 	ErrorUserAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
@@ -2428,4 +2435,5 @@ var (
 		Message:    MsgValidationRuleApprovedSuccess,
 		Type:       "error",
 	}
+
 )

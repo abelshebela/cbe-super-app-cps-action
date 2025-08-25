@@ -674,4 +674,5 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
+	MsgValidationRuleSuccessFech = "Validation rule approved successfully"
 )
