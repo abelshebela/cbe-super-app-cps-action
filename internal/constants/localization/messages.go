@@ -695,4 +695,8 @@ const (
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 
 	MsgMissingOrInvalidImage = "Missing or invalid image"
+
+
+	MsgBranchSuccessfullyRetrieved = "Branch retrieved successfully"
+	MsgBranchesSuccessfullyRetrieved = "Branches retrieved successfully"
 )

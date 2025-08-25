@@ -38,6 +38,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
 
+	SuccessBranchRetrieved,
+	SuccessBranchesRetrieved,
+
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -1394,6 +1397,21 @@ var (
 		Code:       "SUCCESS_FEEDBACK_SAVED_TO_DATABASE",
 		StatusCode: StatusOK,
 		Message:    MsgFeedbackSavedToDatabaseSuccess,
+		Type:       "success",
+	}
+
+
+	SuccessBranchRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCH_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchSuccessfullyRetrieved,
+		Type:       "success",
+	} 
+
+	SuccessBranchesRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyRetrieved,		
 		Type:       "success",
 	}
 )

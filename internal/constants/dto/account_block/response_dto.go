@@ -1,0 +1,54 @@
+package accountblock
+
+import "time"
+
+type BranchResponse struct {
+	ID            string    `json:"id,omitempty"`
+	BranchCode    string    `json:"branch_code"`
+	BranchName    string    `json:"branch_name"`
+	BranchAddress string    `json:"branch_address"`
+	DistrictCode  string    `json:"district_code"`
+	DistrictName  string    `json:"district_name"`
+	BranchRegion  string    `json:"branch_region"`
+	RecordStat    string    `json:"record_stat"`
+	CreatedAt     time.Time `json:"created_at"`
+	IsDeleted     bool      `json:"-"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Enabled       bool      `json:"enabled"`
+}
+
+type RegionResponse struct {
+	ID            string    `json:"id,omitempty"`
+	RegionCode    string    `json:"region_code"`
+	RegionName    string    `json:"region_name"`
+	RegionAddress string    `json:"region_address"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Enabled       bool      `json:"enabled"`
+}
+
+type DistrictResponse struct {
+	ID              string    `json:"id,omitempty"`
+	DistrictCode    string    `json:"district_code"`
+	DistrictName    string    `json:"district_name"`
+	DistrictAddress string    `json:"district_address"`
+	RegionID        string    `json:"region_id"`
+	RegionName      string    `json:"region_name"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	Enabled         bool      `json:"enabled"`
+}
+
+type CityResponse struct {
+	ID           string    `json:"id,omitempty"`
+	CityCode     string    `json:"city_code"`
+	CityName     string    `json:"city_name"`
+	City         string    `json:"city_address"`
+	DistrictID   string    `json:"district_id"`
+	DistrictName string    `json:"district_name"`
+	RegionID     string    `json:"region_id"`
+	RegionName   string    `json:"region_name"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Enabled      bool      `json:"enabled"`
+}
