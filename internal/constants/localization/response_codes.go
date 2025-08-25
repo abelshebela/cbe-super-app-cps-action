@@ -87,6 +87,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDateFormat,
 	ErrorInvalidFileUpload,
 	ErrorInvalidNumberFormat,
+	ErrorUpdateEventEmptyPayload,
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
 	ErrorStartDateRequired,
@@ -1578,6 +1579,12 @@ var (
 		Code:       "ERROR_EVENT_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    "Event ID is required",
+		Type:       "error",
+	}
+	ErrorUpdateEventEmptyPayload = ResponseCode{
+		Code:       "ERROR_UPDATE_EVENT_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided to update the event",
 		Type:       "error",
 	}
 
