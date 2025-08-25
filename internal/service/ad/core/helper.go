@@ -1,4 +1,4 @@
-package ad
+package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -20,3 +20,5 @@ func GenerateAdvert(advert model.Advert) *model.Advert {
 		DeletedAt:     advert.DeletedAt,
 	}
 }
+
+
