@@ -6,11 +6,12 @@ import (
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
-	"cbe-super-app-cps-action/internal/service/feedback"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/storage/persistance"
+	feedback "cbe-super-app-cps-action/internal/service/feedback"
+	advert "cbe-super-app-cps-action/internal/service/ad"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,10 +24,12 @@ type ServiceLayer struct {
 	CPSAction service.CPSActionService
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
-	BpsUser    service.BPSUserService
+	Unlink  service.UnlinkService
+	BpsUser service.BPSUserService
+	Advert service.AdvertService
 	PortalCard service.PortalCardService
-	Unlink     service.UnlinkService
 }
+var advertBucketName = "advert-bucket" // TODO: Add to config
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
@@ -35,15 +38,15 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
-
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
-		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Feedback:  feedbackService,
+		EventService: eventService,
+		Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
+		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 		PortalCard:   portalCardService,
-		EventService: eventService,
 	}
 }

@@ -83,6 +83,7 @@ func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
 	responseCode, ok := GetResponseCodeByCode(code)
 	if !ok {
 		SendErrorResponse(w, ErrorValidationFailed, nil, nil)
+		return
 	}
 	SendSuccessResponse(w, responseCode, nil)
 }

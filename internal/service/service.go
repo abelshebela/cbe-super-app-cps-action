@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"mime/multipart"
 
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
@@ -136,6 +137,12 @@ type ActionService interface {
 }
 
 type AdvertService interface {
+	CreateAdvert(ctx context.Context, advert *model.Advert, bannerImage *multipart.FileHeader) error
+	FetchAdverts(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FetchAdvertByID(ctx context.Context, id string) (*model.Advert, error)
+	UpdateAdvert(ctx context.Context, id string, advert *model.Advert, bannerImage *multipart.FileHeader) error
+	DeleteAdvert(ctx context.Context, id string) error
+	EnableDisableAdvert(ctx context.Context, id string, enable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
