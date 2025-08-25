@@ -1,10 +1,13 @@
 package unlink
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/unlink/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -58,46 +61,45 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	// user, err := u.userRepo.FindByUserCode(ctx, userCode)
-	// if err != nil {
-	// 	return err
-	// }
+	user, err := u.userRepo.FindByUserCode(ctx, userCode)
+	if err != nil {
+		return err
+	}
 
-	// cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.Delete)
+	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
 
-	// if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-	// 	return err
-	// }
+	if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		return err
+	}
 
 	return nil
 }
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 
-	// if cpsAction.ActionStatus != constants.Approved {
-	// 	u.logger.Errorf("Try to authorize the collection without cps action approval")
-	// 	return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
-	// }
+	if cpsAction.ActionStatus != constants.Approved {
+		u.logger.Errorf("Try to authorize the collection without cps action approval")
+		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+	}
 
-	// userOldData, err := u.userRepo.FindByUserCode(ctx, cpsAction.UniqueId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	userOldData, err := u.userRepo.FindByUserCode(ctx, cpsAction.UniqueId)
+	if err != nil {
+		return nil, err
+	}
 
-	// linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorUnlinkFaild.Code)
-	// }
-	// lib.CpsModelBuilder()
-	// archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
+	linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+	}
+	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
 
-	// if archUserErr != nil || archLinkedAccErr != nil {
-	// 	return nil, archUserErr
-	// }
+	if archUserErr != nil || archLinkedAccErr != nil {
+		return nil, archUserErr
+	}
 
-	// userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
-	// if userErr != nil || linkedErr != nil {
-	// 	return nil, errors.New(localization.ErrorUnlinkFaild.Code)
-	// }
+	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
+	if userErr != nil || linkedErr != nil {
+		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+	}
 
 	return nil, nil
 
