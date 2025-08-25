@@ -361,7 +361,9 @@ type WalletRepository interface {
 	Create(ctx context.Context, wallet *model.Wallet) error
 	Update(ctx context.Context, id string, wallet *model.Wallet) error
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
+	FindByName(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
-

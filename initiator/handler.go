@@ -30,7 +30,6 @@ type Handler struct {
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
 	AdvertHandler advertHandlerInterface.ADAdapter
 	PortalCardHander portalCardInterface.PortalCardAdapter
-	AdvertHandler advertHandlerInterface.ADAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {

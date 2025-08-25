@@ -44,7 +44,7 @@ var (
 		Message:    MsgUserLoginSuccessfully,
 		Type:       "success",
 	}
-	
+
 	SuccessUserLogout = ResponseCode{
 		Code:       "SUCCESS_USER_LOGOUT",
 		StatusCode: StatusOK,
@@ -412,7 +412,7 @@ var (
 		Type:       "error",
 	}
 
-	ErrorInvalidID = ResponseCode{	
+	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidID,
