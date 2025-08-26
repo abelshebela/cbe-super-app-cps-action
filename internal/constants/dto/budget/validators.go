@@ -27,3 +27,4 @@ func (r UpdateColorRequest) Validate() error {
 		),
 	)
 }
+

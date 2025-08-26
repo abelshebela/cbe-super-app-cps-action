@@ -25,6 +25,7 @@ import (
 	// "cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	// "cbe-super-app-cps-action/internal/storage/persistance/event"
+	"cbe-super-app-cps-action/internal/storage/persistance/budget"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
@@ -87,5 +88,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
 		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		BudgetPersistence:          budget.NewBudgetRepository(client, dbName, []string{"icons", "colors"}, logger),
 	}
 }

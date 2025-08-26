@@ -10,7 +10,6 @@ import (
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -20,7 +19,7 @@ type budgetAdapter struct {
 	logger            utils.Logger
 }
 
-func InitbudgetAdapter(budgetApplication service.BudgetService, logger utils.Logger) budget.BudgetPortHandler {
+func InitBudgetAdapter(budgetApplication service.BudgetService, logger utils.Logger) budget.BudgetPortHandler {
 	return &budgetAdapter{
 		logger:            logger,
 		budgetApplication: budgetApplication,
@@ -39,6 +38,7 @@ func (b *budgetAdapter) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {
 		b.logger.Errorf("Incomplete user information")
@@ -81,7 +81,6 @@ func (b *budgetAdapter) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorResponse(w, localization.ErrorMissingOrInvalidImage, nil, nil)
 		return
 	}
-	defer file.Close()
 
 	if err := core.FileValidator(w, file, *fileHeader, b.logger); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -103,7 +102,7 @@ func (b *budgetAdapter) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessBudgetIconRequestSubmittedForApproval, 200)
+	localization.SendSuccessResponse(w, localization.SuccessBudgetIconRequestSubmittedForApproval, nil)
 }
 func (b *budgetAdapter) BudgetCreateColor(w http.ResponseWriter, r *http.Request) {
 	var req budget_dto.BudgetCreateColor
@@ -123,6 +122,15 @@ func (b *budgetAdapter) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 	if common_util.IsIncomplete(userContext) {
 		b.logger.Errorf("Incomplete user information")
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
+		return
+	}
+
+	color := &model.Color{
+		Color: req.Color,
+	}
+	err := b.budgetApplication.BudgetCreateColor(r.Context(), color)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -171,7 +179,11 @@ func (b *budgetAdapter) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := b.budgetApplication.BudgetUpdateColor(r.Context(), id, fileHeader, &file)
+	color := &model.Color{
+		Color: req.Color,
+	}
+
+	err := b.budgetApplication.BudgetUpdateColor(r.Context(), id, color)
 	if err != nil {
 		b.logger.Errorf("failed to update budget color: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -196,16 +208,7 @@ func (b *budgetAdapter) BudgetCheckerApproval(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	cpsAction := model.CPSAction{
-		ActionCode:         actionCode,
-		CheckerID:          userContext.UserCode,
-		CheckerName:        userContext.FullName,
-		CheckerPhoneNumber: userContext.PhoneNumber,
-		Department:         userContext.Department,
-		CheckerActionTime:  &time.Now(),
-	}
-
-	err := b.budgetApplication.BudgetCheckerApproval(r.Context(), cpsAction)
+	err := b.budgetApplication.BudgetCheckerApproval(r.Context(), actionCode)
 	if err != nil {
 		b.logger.Errorf("failed to approve action: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

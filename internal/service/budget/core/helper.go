@@ -56,7 +56,6 @@ func SaveIconToMinio(ctx context.Context, fileHeader *multipart.FileHeader, buck
 		os.Remove(filePath)
 	}()
 
-	// Copy the uploaded file to the temp file
 	if _, err := file.Seek(0, 0); err != nil {
 		logger.Errorf("failed to seek file: %v", err)
 		return nil, fmt.Errorf("failed to seek file")

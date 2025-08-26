@@ -306,8 +306,11 @@ const (
 	MsgInvalidEmail          = "Invalid email format"
 	MsgInvalidPhoneNumber    = "Invalid phone number format"
 	MsgInvalidDate           = "Invalid date format"
+	MsgInvalidAction         = "Invalid Action"
 	MsgFieldTooLong          = "Field value is too long"
 	MsgFieldTooShort         = "Field value is too short"
+	MsgInvalidID             = "Invalid ID format"
+	MsgInvalidActionFormat   = "Invalid action format"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -684,4 +687,7 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
+
+	MsgPendingActionExists  = "Pending action exists"
+	MsgDuplicateColorExists = "Duplicate color exists"
 )

@@ -112,6 +112,16 @@ type BPSUserRepository interface {
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
 
+type BudgetRepository interface {
+	CreateIcon(ctx context.Context, icon *model.Icon) error
+	FetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	UpdateIcon(ctx context.Context, id string, icon *model.Icon) error
+	CreateColor(ctx context.Context, color *model.Color) error
+	FetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	UpdateColor(ctx context.Context, id string, color *model.Color) error
+	AuthorizeCPSAction(ctx context.Context, cpsAction *model.CPSAction) error
+}
+
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
 	Update(ctx context.Context, id string, update *model.AuthTier) error

@@ -31,7 +31,7 @@ type BudgetService interface {
 	BudgetCreateColor(ctx context.Context, color *model.Color) error
 	BudgetFetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
 	BudgetUpdateColor(ctx context.Context, id string, color *model.Color) error
-	BudgetCheckerApproval(ctx context.Context)
+	BudgetCheckerApproval(ctx context.Context, actionCode string) error
 }
 
 type BulkService interface {
@@ -154,10 +154,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 }
 
 type AccountSearchService interface {

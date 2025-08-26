@@ -63,10 +63,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
 	ErrorActionNotFound,
+	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorUserCodeRequired,
 	ErrorInvalidJSONPayload,
+	ErrorInvalidAction,
+	ErrorIncompleteUserInfo,
+	ErrorPendingActionExists,
+	ErrorDuplicateColorExists,
+	ErrorInvalidActionFormat,
 	// Add more as needed...
 }
 
@@ -1241,6 +1247,14 @@ var (
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
 	}
+
+	ErrorDuplicateColorExists = ResponseCode{
+		Code:       "ERROR_DUPLICATE_COLOR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateColorExists,
+		Type:       "error",
+	}
+
 	ErrorFeedbackIDRequired = ResponseCode{
 		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1357,6 +1371,13 @@ var (
 		Code:       "ERROR_ACTION_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgCPSActionNotFound,
+		Type:       "error",
+	}
+
+	ErrorPendingCpsActionExists = ResponseCode{
+		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPendingCPSActionExists,
 		Type:       "error",
 	}
 
@@ -1576,6 +1597,12 @@ var (
 		Message:    MsgInvalidFormat,
 		Type:       "error",
 	}
+	ErrorInvalidID = ResponseCode{
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidID,
+		Type:       "error",
+	}
 
 	ErrorInvalidInputParameter = ResponseCode{
 		Code:       "ERROR_INVALID_INPUT_PARAMETER",
@@ -1602,6 +1629,19 @@ var (
 		Code:       "ERROR_INVALID_DATE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidDate,
+		Type:       "error",
+	}
+
+	ErrorInvalidAction = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidAction,
+		Type:       "error",
+	}
+	ErrorInvalidActionFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidActionFormat,
 		Type:       "error",
 	}
 
@@ -2330,6 +2370,13 @@ var (
 		Code:       "ERROR_VALIDATION_RULE_APPROVED",
 		StatusCode: StatusOK,
 		Message:    MsgValidationRuleApprovedSuccess,
+		Type:       "error",
+	}
+
+	ErrorPendingActionExists = ResponseCode{
+		Code:       "ERROR_PENDING_ACTION_EXISTS",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgPendingActionExists,
 		Type:       "error",
 	}
 )

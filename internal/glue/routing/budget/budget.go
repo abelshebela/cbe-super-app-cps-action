@@ -16,7 +16,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/icons",
+			Path:    "/budgets/icons",
 			Handler: handler.CreateBudgetIcon,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/icons",
+			Path:    "/budgets/icons",
 			Handler: handler.BudgetFetchIcons,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -34,7 +34,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 		},
 		{
 			Method:  http.MethodPut,
-			Path:    "/icons/{id}",
+			Path:    "/budgets/icons/{id}",
 			Handler: handler.BudgetUpdateIcon,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -43,7 +43,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/colors",
+			Path:    "/budgets/colors",
 			Handler: handler.BudgetCreateColor,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -52,7 +52,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/colors",
+			Path:    "/budgets/colors",
 			Handler: handler.BudgetFetchColors,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -62,7 +62,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 
 		{
 			Method:  http.MethodPut,
-			Path:    "/colors/{id}",
+			Path:    "/budgets/colors/{id}",
 			Handler: handler.BudgetUpdateColor,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -71,7 +71,7 @@ func Init(router chi.Router, handler budget.BudgetPortHandler, authMiddleware mi
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/actions/approve/{action_code}",
+			Path:    "/budgets/actions/approve/{action_code}",
 			Handler: handler.BudgetCheckerApproval,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

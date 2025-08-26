@@ -7,10 +7,11 @@ import (
 	"time"
 
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
+	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
+	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
-	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -42,6 +43,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	authMiddleware := customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
+	budget.Init(r, handlerLayer.BudgetHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
