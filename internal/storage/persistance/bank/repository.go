@@ -96,37 +96,17 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 	return result, nil
 }
 
-// func (b *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
-// 	filter := bson.M{"is_deleted": false}
+func (s *BankStorage) FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error) {
+	filter := bson.M{}
+	filter["$or"] = []bson.M{
+		{"name": name},
+		{"bic": bic},
+		{"code": code},
+	}
 
-// 	if filterParam.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-// 		filter["$or"] = []bson.M{
-// 			{"name": searchRegex},
-// 			{"code": searchRegex},
-// 		}
-// 	}
+	return s.dal.FindOne(ctx, filter, nil)
 
-// 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-// 	limit := int64(filterParam.PerPage)
-
-// 	data, err := b.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	total, err := b.dal.TotalCount(ctx, filter)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-// 	return &types.PaginatedResponse[[]*model.Bank]{
-// 		Data: data,
-// 		Meta: meta,
-// 	}, nil
-// }
+}
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
 	// 1. Base filter (only active records)

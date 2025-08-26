@@ -106,6 +106,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorGetOneBank,
 	ErrorNoDataProvidedForCreate,
 	ErrorNoDataProvidedForUpdate,
+	ErrorBankWithCodeAlreadyExists,
+	ErrorBankWithBICAlreadyExists,
+	ErrorBankWithNameAlreadyExists,
 	// Add more as needed...
 }
 
@@ -1536,6 +1539,25 @@ var (
 		Code:       "ERROR_Bank_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgBankAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorBankWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorBankWithBICAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_BIC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankBICAlreadyExists,
+		Type:       "error",
+	}
+	ErrorBankWithCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankCodeAlreadyExists,
 		Type:       "error",
 	}
 

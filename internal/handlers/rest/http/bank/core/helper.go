@@ -46,13 +46,13 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		return localization.ErrorInvalidBankRequest
 	}
 
-	if isInvalidFormat(name) {
+	if *name != "" && isInvalidFormat(name) {
 		return localization.ErrorInvalidFormatForName
 	}
-	if isInvalidFormat(code) {
+	if *code != "" && isInvalidFormat(code) {
 		return localization.ErrorInvalidFormatForCode
 	}
-	if isInvalidFormat(bic) {
+	if *bic != "" && isInvalidFormat(bic) {
 		return localization.ErrorInvalidFormatForBIC
 	}
 
