@@ -975,32 +975,43 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_EXISTING_USER")
 	}
 
-	// Convert incoming user to map
 	incomingBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("FAILED_TO_MARSHAL_INCOMING_USER")
 	}
+
 	var incomingMap map[string]interface{}
 	if err := json.Unmarshal(incomingBytes, &incomingMap); err != nil {
 		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_INCOMING_USER")
 	}
 
-	// Compare
+	allowedFields := []string{
+		"username",
+		"full_name",
+		"department",
+		"phone_number",
+		"role",
+		"gender",
+		"email",
+	}
+
 	changedFields := bson.M{}
 	unchangedFields := []string{}
 
-	for key, newVal := range incomingMap {
+	for _, key := range allowedFields {
+		newVal, hasNew := incomingMap[key]
+		if !hasNew {
+			continue
+		}
+
 		oldVal, exists := existingMap[key]
+
 		if !exists || !reflect.DeepEqual(oldVal, newVal) {
 			changedFields[key] = newVal
 		} else {
 			unchangedFields = append(unchangedFields, key)
 		}
 	}
-	unchangedFields = removeField(unchangedFields, "id")
-	unchangedFields = removeField(unchangedFields, "user_code")
-	unchangedFields = removeField(unchangedFields, "permission_category")
-	unchangedFields = removeField(unchangedFields, "permission_groups")
 
 	if len(unchangedFields) > 0 {
 		return nil, fmt.Errorf("NO_CHANGES: the following fields are unchanged. Remove from the payload and try again: %v", unchangedFields)
