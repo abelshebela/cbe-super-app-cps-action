@@ -250,7 +250,7 @@ type EventRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*model.Event, error)
-	FindByName(ctx context.Context, name string) (*model.Event, error)
+	Find(ctx context.Context, name string) (*model.Event, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
 }
 
@@ -364,6 +364,6 @@ type WalletRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
-	FindByName(ctx context.Context, name string) (*model.Wallet, error)
+	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }

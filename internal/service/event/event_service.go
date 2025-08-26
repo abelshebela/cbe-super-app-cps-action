@@ -50,7 +50,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return err
 	}
 
-	exist, err := e.repo.FindByName(ctx, event.EventName)
+	exist, err := e.repo.Find(ctx, event.EventName)
 	if err != nil {
 		e.logger.Errorf("FindByName failed: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)

@@ -144,7 +144,7 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 	return wallet, nil
 }
 
-func (w *WalletStorage) FindByName(ctx context.Context, name string) (*model.Wallet, error) {
+func (w *WalletStorage) Find(ctx context.Context, name string) (*model.Wallet, error) {
 	if name == "" {
 		w.logger.Warnf("FindByName called with empty name")
 		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)

@@ -26,22 +26,3 @@ type CPSActionAdapter interface {
 	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)
 }
 
-type EventHandler interface {
-	CreateEvent(w http.ResponseWriter, r *http.Request)
-	UpdateEvent(w http.ResponseWriter, r *http.Request)
-	DeleteEvent(w http.ResponseWriter, r *http.Request)
-	EnableEvent(w http.ResponseWriter, r *http.Request)
-	DisableEvent(w http.ResponseWriter, r *http.Request)
-
-	FetchEventByID(w http.ResponseWriter, r *http.Request)
-	FetchEvents(w http.ResponseWriter, r *http.Request)
-}
-type WalletHandler interface {
-	GetAllWallet(w http.ResponseWriter, r *http.Request)
-	GetWallet(w http.ResponseWriter, r *http.Request)
-	CreateWallet(w http.ResponseWriter, r *http.Request)
-	UpdateWallet(w http.ResponseWriter, r *http.Request)
-	DeleteWallet(w http.ResponseWriter, r *http.Request)
-	Enable(w http.ResponseWriter, r *http.Request)
-	Disable(w http.ResponseWriter, r *http.Request)
-}

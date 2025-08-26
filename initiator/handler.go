@@ -4,13 +4,14 @@ import (
 	// Inbound section
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
+	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
+	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 
 	// Handler section
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
-	inbound "cbe-super-app-cps-action/internal/handlers/rest"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
@@ -26,14 +27,13 @@ import (
 type Handler struct {
 	CpsActionHandler actionInbound.CPSActionAdapter
 	UnlinkHandler    unlinkInbound.UnlinkAdapter
-	EventHandler     inbound.EventHandler
-	WalletHandler    inbound.WalletHandler
+	EventHandler     eventInbound.EventAdapter
+	WalletHandler    walletInbound.WalletAdapter
 
 	BpsHandler       bpsInbound.BPSUserHandler
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
 	AdvertHandler    advertHandlerInterface.ADAdapter
 	PortalCardHander portalCardInterface.PortalCardAdapter
-	
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {

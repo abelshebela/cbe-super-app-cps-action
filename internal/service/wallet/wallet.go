@@ -41,7 +41,7 @@ func NewWalletService(repo storage.WalletRepository, cps service.CPSActionServic
 func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRequest) error {
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
-	exist, err := s.repo.FindByName(ctx, req.Name)
+	exist, err := s.repo.Find(ctx, req.Name)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -77,7 +77,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	if req.Name != "" {
-		exist, err := s.repo.FindByName(ctx, req.Name)
+		exist, err := s.repo.Find(ctx, req.Name)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
