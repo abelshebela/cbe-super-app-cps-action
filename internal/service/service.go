@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 
+	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
@@ -165,6 +166,16 @@ type AvatarService interface {
 
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
+
+	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
+
+	CreateOneBank(ctx context.Context, req bank_dto.CreateBankRequest) error
+	UpdateOneBank(ctx context.Context, id string, req bank_dto.UpdateBankRequest) error
+	DeleteOneBank(ctx context.Context, id string) error
+
+	EnableOrDisableBank(ctx context.Context, id string, enableDisable bool) error
+	UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error
 }
 
 type BudgetCategoryService interface {

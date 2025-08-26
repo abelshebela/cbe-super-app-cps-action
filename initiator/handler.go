@@ -3,6 +3,7 @@ package initiator
 import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
+	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
@@ -12,9 +13,11 @@ import (
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 
 	// Handler section
+
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
+	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
@@ -29,13 +32,14 @@ import (
 type Handler struct {
 	CpsActionHandler  actionInbound.CPSActionAdapter
 	UnlinkHandler     unlinkInbound.UnlinkAdapter
-	BpsHandler        bpsInbound.BPSUserHandler
-	FeedbackHandler   feedbackinterface.FeedbackAdapter
-	PortalCardHander  portalCardInterface.PortalCardAdapter
-	AccountValidation accountvalidationInterface.AccountValidation
-	AdvertHandler     advertHandlerInterface.ADAdapter
 	EventHandler      eventInbound.EventAdapter
 	WalletHandler     walletInbound.WalletAdapter
+	BpsHandler        bpsInbound.BPSUserHandler
+	BankHandler       bank.BankHandler
+	FeedbackHandler   feedbackinterface.FeedbackAdapter
+	AdvertHandler     advertHandlerInterface.ADAdapter
+	PortalCardHander  portalCardInterface.PortalCardAdapter
+	AccountValidation accountvalidationInterface.AccountValidation
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -43,12 +47,13 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 	return Handler{
 		UnlinkHandler:     unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler:        bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		BankHandler:       bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
 		CpsActionHandler:  cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
 		EventHandler:      eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
 		FeedbackHandler:   feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
 		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
-		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 	}
 }

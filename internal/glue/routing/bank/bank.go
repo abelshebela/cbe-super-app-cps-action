@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, bank bank.BankAdapter, authMiddleware middleware.AuthMiddleware) {
+func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
