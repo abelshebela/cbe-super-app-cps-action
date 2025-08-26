@@ -138,9 +138,6 @@ const (
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
-	// Ad related success messages
-	MsgAdvertConstructedSuccessfully = "Advert constructed successfully"
-
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully = "Validation rule approved successfully"
 
@@ -202,11 +199,16 @@ const (
 
 	// Ad related success messages
 	MsgAdvertCreatedSuccessfully     = "Advert created successfully"
+	MsgAdvertCreatedRequestSent      = "Advert create request sent successfully"
 	MsgAdvertUpdatedSuccessfully     = "Advert updated successfully"
+	MsgAdvertUpdateRequestSent       = "Advert update request sent successfully"
 	MsgAdvertDeletedSuccessfully     = "Advert deleted successfully"
+	MsgAdvertDeleteRequestSent       = "Advert delete request sent successfully"
 	MsgAdvertEnableDisableSuccessful = "Advert enable/disable successful"
 	MsgAdvertFetchedSuccessfully     = "Advert fetched successfully"
 	MsgAdvertsFetchedSuccessfully    = "Adverts fetched successfully"
+	MsgAdvertEnableRequestSent       = "Advert enable request sent successfully"
+	MsgAdvertDisableRequestSent      = "Advert disable request sent successfully"
 
 	// BPS Calls related success messages
 	MsgLinkedAccountFetchedSuccessfully = "Linked account fetched successfully"
@@ -292,11 +294,11 @@ const (
 	MsgSessionRetrievalFailed = "Failed to retrieval session"
 
 	// File related error messages
-	MsgFileTooLarge     = "File size is too large"
-	MsgFileInvalidType  = "Invalid file type"
-	MsgFileUploadFailed = "File upload failed"
-	MsgFileNotFound     = "File not found"
-	MsgFileDeleteFailed = "File deletion failed"
+	MsgFileTooLarge     = "file size is too large"
+	MsgFileInvalidType  = "invalid file type"
+	MsgFileUploadFailed = "file upload failed"
+	MsgFileNotFound     = "file not found"
+	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
 	MsgValidationFailed                      = "Validation failed"
@@ -314,6 +316,10 @@ const (
 
 	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
+	MsgInvalidActionData    = "Invalid action"
+	MsgUnsupportedAction    = "Unsupported action"
+	MsgInvalidID            = "Invalid ID"
+	MsgMissingFile          = "Missing file"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -582,6 +588,7 @@ const (
 	MsgServiceCPSActionStatusUpdateFailed = "Failed to update CPS action status"
 	MsgServiceUnhandledServerError        = "Unhandled server error occurred"
 	MsgServiceUpdateFailedError           = "Service update failed"
+	MsgNoDataProvidedForUpdate            = "No data provided for service update"
 	MsgServiceAuthorizeDeleteFailed       = "Failed to authorize service delete"
 	MsgServiceUnknownRequestAction        = "Unknown request action for service"
 
@@ -690,10 +697,21 @@ const (
 	MsgBPSUserApprovedSuccess = "BPS user approved successfully"
 
 	MsgUserUnlinkFailed = "User Unlink Failed"
+	// Ad Service related success messages
+	MsgAdvertCreatedSuccess = "Advert created successfully"
+	MsgAdvertUpdateSuccess  = "Advert updated successfully"
+
 	// Ad Service related error messages
-	MsgAdvertConstructedSuccess = "Advert constructed successfully"
-	MsgAdvertUpdateSuccess      = "Advert updated successfully"
+	MsgAdvertCreateError     = "Advert creation failed"
+	MsgAdvertUpdateError     = "Advert update failed"
+	MsgAdvertAlreadyEnabled  = "Advert already enabled"
+	MsgAdvertAlreadyDisabled = "Advert already disabled"
+	MsgAdvertNotFound        = "Advert not found"
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
+
+	MsgInvalidInputParameters = "Invalid input parameters provided"
+
+	MsgMissingOrInvalidImage = "Missing or invalid image"
 )

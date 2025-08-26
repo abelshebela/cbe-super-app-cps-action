@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
@@ -75,6 +76,7 @@ func (r *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 }
 func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error) {
 	filterMap := BuildCPSActionFilter(filter)
+	fmt.Println("filterMap==================", filterMap)
 	data, err := r.dal.FindOne(ctx, filterMap, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

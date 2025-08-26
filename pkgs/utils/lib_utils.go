@@ -2,13 +2,10 @@ package utils
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
-	"errors"
 	"fmt"
 	"math/rand"
-	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
@@ -242,22 +239,4 @@ func GenerateActionCode() string {
 	}
 
 	return prefix + string(b)
-}
-func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
-	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return nil, nil, errors.New(localization.ErrorFileNotFound.Code)
-	}
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
-	}
-
-	file, fileHeader, err := r.FormFile(key)
-	if err != nil {
-		if err == http.ErrMissingFile {
-			return nil, nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
-	}
-
-	return file, fileHeader, nil
 }

@@ -181,11 +181,16 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 		}
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
-
+	log.Println("  merchant details merchant", merchant)
 	event.MercahntName = merchant.MerchantName
-	event.MerchantEmail = merchant.PhoneNumber
+	event.MerchantEmail = merchant.Email
 	event.MerchantPhoneNumber = merchant.PhoneNumber
 	event.AccountNumber = merchant.BankAccountNumber
+
+	log.Println("  merchant details MercahntName: ", event.MercahntName)
+	log.Println("  merchant details MerchantPhoneNumber: ", event.MerchantPhoneNumber)
+	log.Println("  merchant details MerchantEmail: ", event.MerchantEmail)
+
 	return nil
 }
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -195,7 +200,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(userData.UserCode, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {

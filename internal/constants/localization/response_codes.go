@@ -32,6 +32,18 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBankEnableRequestCreated,
 	SuccessBankUpdatedRequestSent,
 
+	// Ad related success response codes
+	SuccessAdvertCreated,
+	SuccessAdvertCreateRequestSent,
+	SuccessAdvertUpdated,
+	SuccessAdvertUpdateRequestSent,
+	SuccessAdvertDeleted,
+	SuccessAdvertDeleteRequestSent,
+	SuccessAdvertFetched,
+	SuccessAdvertsFetched,
+	SuccessAdvertEnableRequestSent,
+	SuccessAdvertDisableRequestSent,
+
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -57,8 +69,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFeedbackSavedToDatabase,
 	ErrorHQApproved,
 	ErrorCPSActionStatusInvalid,
-	ErrorAdvertConstructed,
+	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
+	ErrorAdvertUpdate,
+	ErrorAdvertAlreadyEnabled,
+	ErrorAdvertAlreadyDisabled,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
@@ -88,6 +103,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDateFormat,
 	ErrorInvalidFileUpload,
 	ErrorInvalidNumberFormat,
+	ErrorUpdateEventEmptyPayload,
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
 	ErrorStartDateRequired,
@@ -97,7 +113,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventCityRequired,
 	ErrorEventDescriptionRequired,
 	ErrorTicketsRequired,
-	ErrorBankAlreadyEnabled,
+  ErrorBankAlreadyEnabled,
 	ErrorBankAlreadyDisabled,
 	ErrorSessionRetrievalFailed,
 	ErrorHealthCheck,
@@ -106,6 +122,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorGetOneBank,
 	ErrorNoDataProvidedForCreate,
 	ErrorNoDataProvidedForUpdate,
+  ErrorPendingCpsActionExists,
+	ErrorUnexpectedError,
+	ErrorFileNotFound,
+	ErrorInvalidID,
+	ErrorMissingFile,
 	// Add more as needed...
 }
 
@@ -833,10 +854,17 @@ var (
 	}
 
 	// Ad related success response codes
-	SuccessAdvertConstructed = ResponseCode{
-		Code:       "SUCCESS_ADVERT_CONSTRUCTED",
+	SuccessAdvertCreated = ResponseCode{
+		Code:       "SUCCESS_ADVERT_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgAdvertConstructedSuccessfully,
+		Message:    MsgAdvertCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgAdvertCreatedRequestSent,
 		Type:       "success",
 	}
 
@@ -847,6 +875,53 @@ var (
 		Type:       "success",
 	}
 
+	SuccessAdvertUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertDeleted = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessAdvertDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertFetched = ResponseCode{
+		Code:       "SUCCESS_ADVERT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertsFetched = ResponseCode{
+		Code:       "SUCCESS_ADVERTS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDisableRequestSent,
+		Type:       "success",
+	}
 	// Account Validation related success response codes
 	SuccessValidationRuleApproved = ResponseCode{
 		Code:       "SUCCESS_VALIDATION_RULE_APPROVED",
@@ -1401,7 +1476,7 @@ var (
 	}
 
 	ErrorAccountNumberRequired = ResponseCode{
-		Code:       "ERROR_USER_ACCOUNT_NOT_FOUND",
+		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
@@ -1511,6 +1586,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorPendingCpsActionExists =  ResponseCode{
+		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPendingCPSActionExists,
+		Type:       "error",
+	}
+
 	ErrorUserAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
@@ -1599,6 +1681,12 @@ var (
 		Code:       "ERROR_EVENT_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    "Event ID is required",
+		Type:       "error",
+	}
+	ErrorUpdateEventEmptyPayload = ResponseCode{
+		Code:       "ERROR_UPDATE_EVENT_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided to update the event",
 		Type:       "error",
 	}
 
@@ -1847,6 +1935,33 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidActionData = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_DATA",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidActionData,
+		Type:       "error",
+	}
+	ErrorUnsupportedAction = ResponseCode{
+		Code:       "ERROR_UNSUPPORTED_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgUnsupportedAction,
+		Type:       "error",
+	}
+
+	ErrorInvalidID = ResponseCode{
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidID,
+		Type:       "error",
+	}
+
+	ErrorMissingFile = ResponseCode{
+		Code:       "ERROR_MISSING_FILE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingFile,
+		Type:       "error",
+	}
+
 	ErrorFieldTooLong = ResponseCode{
 		Code:       "ERROR_FIELD_TOO_LONG",
 		StatusCode: StatusBadRequest,
@@ -2070,7 +2185,7 @@ var (
 		Message:    MsgServiceUpdateFailedError,
 		Type:       "error",
 	}
-
+	
 	ErrorServiceAuthorizeDeleteFailed = ResponseCode{
 		Code:       "ERROR_SERVICE_AUTHORIZE_DELETE_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -2565,17 +2680,30 @@ var (
 		Type:       "error",
 	}
 	// Ad Service related error response codes
-	ErrorAdvertConstructed = ResponseCode{
-		Code:       "ERROR_ADVERT_CONSTRUCTED",
+	ErrorAdvertCreated = ResponseCode{
+		Code:       "ERROR_ADVERT_CREATED",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertConstructedSuccess,
+		Message:    MsgAdvertCreateError,
 		Type:       "error",
 	}
 
 	ErrorAdvertUpdate = ResponseCode{
 		Code:       "ERROR_ADVERT_UPDATE",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertUpdateSuccess,
+		Message:    MsgAdvertUpdateError,
+		Type:       "error",
+	}
+
+	ErrorAdvertAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ADVERT_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAdvertAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorAdvertAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ADVERT_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAdvertAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -2586,6 +2714,7 @@ var (
 		Message:    MsgValidationRuleApprovedSuccess,
 		Type:       "error",
 	}
+  
 	ErrorGetOneBank = ResponseCode{
 		Code:       "ERROR_GET_ONE_BANK",
 		StatusCode: StatusInternalServerError,
@@ -2604,6 +2733,18 @@ var (
 		Code:       "ERROR_BANK_ENABLE_REQUEST",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgBankEnableRequestFailed,
+
+	ErrorInvalidInputParameters = ResponseCode{
+		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameters,
+		Type:       "error",
+	}
+
+	ErrorMissingOrInvalidImage = ResponseCode{
+		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingOrInvalidImage,
 		Type:       "error",
 	}
 )
