@@ -1602,6 +1602,121 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBranchRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCH_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessBranchesRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessBranchesEnabled = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessBranchesDisabled = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+
+
+	SuccessRegionRetrieved = ResponseCode{
+		Code:       "SUCCESS_REGION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessRegionsRetrieved = ResponseCode{
+		Code:       "SUCCESS_REGIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessRegionsEnabled = ResponseCode{
+		Code:       "SUCCESS_REGIONSS_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessRegionsDisabled = ResponseCode{
+		Code:       "SUCCESS_REGIONSS_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+
+	SuccessDistrictRetrieved = ResponseCode{
+		Code:       "SUCCESS_DISTRICT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessDistrictsRetrieved = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessDistrictsEnabled = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessDistrictsDisabled = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+
+	SuccessCityRetrieved = ResponseCode{
+		Code:       "SUCCESS_CITY_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCitySuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessCitiesRetrieved = ResponseCode{
+		Code:       "SUCCESS_CITIES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyRetrieved,
+		Type:       "success",
+	}
+	SuccessCitiesEnabled = ResponseCode{
+		Code:       "SUCCESS_CITIES_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessCitiesDisabled = ResponseCode{
+		Code:       "SUCCESS_CITIES_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyDisabled,
+				Type:       "success",
+	}
+	
 	SuccessGetAllBanks = ResponseCode{
 		Code:       "SUCCESS_GET_ALL_BANKS",
 		StatusCode: StatusOK,
