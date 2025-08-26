@@ -216,10 +216,9 @@ type Tier struct {
 }
 
 type Cap struct {
-	KYCLevel  enums.KYCLevel `json:"kyc_level" bson:"kyc_level"`
-	SingleCap uint64         `json:"single_cap" bson:"single_cap"`
-	DailyCap  uint64         `json:"daily_cap" bson:"daily_cap"`
-	MinAmount uint64         `json:"min_amount" bson:"min_amount"`
+	SingleCap uint64 `json:"single_cap" bson:"single_cap"`
+	DailyCap  uint64 `json:"daily_cap" bson:"daily_cap"`
+	MinAmount uint64 `json:"min_amount" bson:"min_amount"`
 }
 
 type Location struct {

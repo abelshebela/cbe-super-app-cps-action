@@ -2,10 +2,10 @@ package dto
 
 import (
 	"mime/multipart"
-	"regexp"
 	"strings"
 	"time"
 
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
@@ -74,7 +74,7 @@ func (d DonationCategoryRequest) Validate() error {
 		validation.Field(&d.CategoryName,
 			validation.Required.Error("category name is required"),
 			validation.Length(3, 100).Error("category name must be between 3 and 100 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-&]+$`)).Error("category name can only contain letters, numbers, spaces, hyphens, and ampersands"),
+			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&d.Icon,
 			validation.Required.Error("category icon is required"),
@@ -84,11 +84,16 @@ func (d DonationCategoryRequest) Validate() error {
 }
 
 func (d DonationCategoryRequest) ValidateForUpdate() error {
+	// First check if at least one field is provided
+	if d.CategoryName == "" && d.Icon == nil {
+		return validation.NewError("validation_at_least_one_field", "at least one field must be provided for update")
+	}
+
 	return validation.ValidateStruct(&d,
 		validation.Field(&d.CategoryName,
-			validation.Required.Error("category name is required"),
-			validation.Length(3, 100).Error("category name must be between 3 and 100 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-&]+$`)).Error("category name can only contain letters, numbers, spaces, hyphens, and ampersands"),
+			validation.When(d.CategoryName != "", validation.Required.Error("category name is required"),
+				validation.Length(3, 100).Error("category name must be between 3 and 100 characters"),
+				validation.By(utils.NoSpecialChars)),
 		),
 		validation.Field(&d.Icon,
 			validation.When(d.Icon != nil, validation.By(validateImage)),
@@ -107,7 +112,7 @@ func (d DonationCompanyRequest) Validate() error {
 		validation.Field(&d.CompanyName,
 			validation.Required.Error("company name is required"),
 			validation.Length(2, 200).Error("company name must be between 2 and 200 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-&.]+$`)).Error("company name can only contain letters, numbers, spaces, hyphens, periods, and ampersands"),
+			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&d.CompanyLogo,
 			validation.Required.Error("company logo is required"),
@@ -116,25 +121,30 @@ func (d DonationCompanyRequest) Validate() error {
 		validation.Field(&d.AccountNumber,
 			validation.Required.Error("account number is required"),
 			validation.Length(8, 50).Error("account number must be between 8 and 50 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)).Error("account number can only contain letters, numbers, and hyphens"),
+			validation.By(utils.NoSpecialChars),
 		),
 	)
 }
 
 func (d DonationCompanyRequest) ValidateForUpdate() error {
+	// First check if at least one field is provided
+	if d.CompanyName == "" && d.CompanyLogo == nil && d.AccountNumber == "" {
+		return validation.NewError("validation_company_at_least_one_field", "at least one field must be provided for company update")
+	}
+
 	return validation.ValidateStruct(&d,
 		validation.Field(&d.CompanyName,
-			validation.Required.Error("company name is required"),
-			validation.Length(2, 200).Error("company name must be between 2 and 200 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-&.]+$`)).Error("company name can only contain letters, numbers, spaces, hyphens, periods, and ampersands"),
+			validation.When(d.CompanyName != "", validation.Required.Error("company name is required"),
+				validation.Length(2, 200).Error("company name must be between 2 and 200 characters"),
+				validation.By(utils.NoSpecialChars)),
 		),
 		validation.Field(&d.CompanyLogo,
 			validation.When(d.CompanyLogo != nil, validation.By(validateImage)),
 		),
 		validation.Field(&d.AccountNumber,
-			validation.Required.Error("account number is required"),
-			validation.Length(8, 50).Error("account number must be between 8 and 50 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\-]+$`)).Error("account number can only contain letters, numbers, and hyphens"),
+			validation.When(d.AccountNumber != "", validation.Required.Error("account number is required"),
+				validation.Length(8, 50).Error("account number must be between 8 and 50 characters"),
+				validation.By(utils.NoSpecialChars)),
 		),
 	)
 }
@@ -214,11 +224,12 @@ func (d DonationRequest) Validate() error {
 		validation.Field(&d.Title,
 			validation.Required.Error("title is required"),
 			validation.Length(5, 200).Error("title must be between 5 and 200 characters"),
-			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-!?.&]+$`)).Error("title can only contain letters, numbers, spaces, and basic punctuation"),
+			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&d.Target,
-			validation.Required.Error("donation amount is required"),
-			validation.By(validateDonationAmount),
+			validation.When(d.Target != 0,
+				validation.Min(0).Error("donation amount must be greater than or equal to 0"),
+				validation.By(validateDonationAmount)),
 		),
 		validation.Field(&d.DonationDescription,
 			validation.Required.Error("donation description is required"),
@@ -253,10 +264,11 @@ func (d DonationRequest) ValidateForUpdate() error {
 		validation.Field(&d.Title,
 			validation.When(d.Title != "", validation.Required.Error("title is required"),
 				validation.Length(5, 200).Error("title must be between 5 and 200 characters"),
-				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9\s\-!?.&]+$`)).Error("title can only contain letters, numbers, spaces, and basic punctuation")),
+				validation.By(utils.NoSpecialChars)),
 		),
 		validation.Field(&d.Target,
-			validation.When(d.Target > 0, validation.By(validateDonationAmount)),
+			validation.When(d.Target != 0, validation.Min(0).Error("donation amount must be greater than or equal to 0"),
+				validation.By(validateDonationAmount)),
 		),
 		validation.Field(&d.DonationDescription,
 			validation.When(d.DonationDescription != "", validation.Required.Error("donation description is required")),

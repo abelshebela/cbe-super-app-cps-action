@@ -80,6 +80,15 @@ func (a *DonationStore) handleCPSAction(ctx context.Context, maker cps_entities.
 }
 
 func (a *DonationStore) CreateDonationCategory(ctx context.Context, donation dto.DonationCategoryRequest, maker cps_entities.User) error {
+	exist, err := a.service.DonationNameExists(ctx, donation.CategoryName)
+	if err != nil {
+		a.logger.Errorf("failed to check category name: %v", err)
+		return err
+	}
+	if exist {
+		return fmt.Errorf("CATEGORY_NAME_ALREADY_EXISTS")
+	}
+
 	iconURL, err := a.service.UploadIcon(ctx, donation.Icon)
 	if err != nil {
 		a.logger.Errorf("failed to upload icon: %v", err)
@@ -142,16 +151,35 @@ func (a *DonationStore) UpdateDonationCategory(ctx context.Context, id string, d
 	}
 
 	// Create CPS request with only the changed data
-	cpsRequest := dto.DonationCategoryCPSRequest{
-		CategoryName: donation.CategoryName,
-		Icon:         iconURL,
+	cpsRequest := dto.DonationCategoryCPSRequest{}
+
+	// Only include fields that are actually being updated
+	if donation.CategoryName != "" {
+		cpsRequest.CategoryName = donation.CategoryName
+	}
+	if iconURL != "" {
+		cpsRequest.Icon = iconURL
+	}
+
+	// Ensure at least one field is being updated
+	if cpsRequest.CategoryName == "" && cpsRequest.Icon == "" {
+		return fmt.Errorf("NO_FIELDS_TO_UPDATE")
+	}
+
+	isSimilar, err := a.service.IsDonationCategoryDataSimilar(ctx, id, cpsRequest.CategoryName, cpsRequest.Icon)
+	if err != nil {
+		a.logger.Errorf("failed to check data similarity: %v", err)
+		return err
+	}
+	if isSimilar {
+		return fmt.Errorf("NO_CHANGES_DETECTED")
 	}
 
 	// Create previous data from existing category
 	prevData := map[string]interface{}{
 		"id":            id,
 		"category_name": existingCategory.CategoryName,
-		"icon":          existingCategory.Icon,
+		"donation_icon": existingCategory.Icon, // Use consistent field name
 	}
 
 	uniqueID := id
@@ -289,10 +317,32 @@ func (a *DonationStore) UpdateDonationCompany(ctx context.Context, id string, co
 		}
 	}
 
-	cpsRequest := dto.DonationCompanyCPSRequest{
-		CompanyName:   company.CompanyName,
-		CompanyLogo:   logoURL,
-		AccountNumber: company.AccountNumber,
+	// Create CPS request with only the changed data
+	cpsRequest := dto.DonationCompanyCPSRequest{}
+
+	// Only include fields that are actually being updated
+	if company.CompanyName != "" {
+		cpsRequest.CompanyName = company.CompanyName
+	}
+	if logoURL != "" {
+		cpsRequest.CompanyLogo = logoURL
+	}
+	if company.AccountNumber != "" {
+		cpsRequest.AccountNumber = company.AccountNumber
+	}
+
+	// Ensure at least one field is being updated
+	if cpsRequest.CompanyName == "" && cpsRequest.CompanyLogo == "" && cpsRequest.AccountNumber == "" {
+		return fmt.Errorf("NO_FIELDS_TO_UPDATE")
+	}
+
+	isSimilar, err := a.service.IsDonationCompanyDataSimilar(ctx, id, cpsRequest.CompanyName, cpsRequest.CompanyLogo, cpsRequest.AccountNumber)
+	if err != nil {
+		a.logger.Errorf("failed to check data similarity: %v", err)
+		return err
+	}
+	if isSimilar {
+		return fmt.Errorf("NO_CHANGES_DETECTED")
 	}
 
 	// Create previous data from existing company
@@ -489,6 +539,15 @@ func (a *DonationStore) UpdateDonation(ctx context.Context, id string, donation 
 		cpsRequest.CoverImage = coverImageURL
 	}
 
+	isSimilar, err := a.service.IsDonationDataSimilar(ctx, id, cpsRequest.CompanyID, cpsRequest.CategoryID, cpsRequest.Title, cpsRequest.IsFeatured, cpsRequest.Target, cpsRequest.DonationDescription, donation.EndDate, startDate, coverImageURL)
+	if err != nil {
+		a.logger.Errorf("failed to check data similarity: %v", err)
+		return err
+	}
+	if isSimilar {
+		return fmt.Errorf("NO_CHANGES_DETECTED")
+	}
+
 	prevData := map[string]interface{}{
 		"id":                   id,
 		"company_id":           existingDonation.Company.ID,
@@ -523,6 +582,20 @@ func (a *DonationStore) UpdateDonationImage(ctx context.Context, donationID, ima
 		return err
 	}
 
+	// Validate that the image ID exists in the donation before attempting to update
+	imageExists := false
+	for _, existingImage := range existingDonation.DonationImages {
+		if existingImage.ID == imageID {
+			imageExists = true
+			break
+		}
+	}
+
+	if !imageExists {
+		a.logger.Errorf("Image ID %s not found in donation %s, cannot update", imageID, donationID)
+		return fmt.Errorf("IMAGE_NOT_FOUND")
+	}
+
 	var imageURL string
 	if image != nil {
 		imageURLs, err := a.service.UploadDonationImages(ctx, []*multipart.FileHeader{image})
@@ -535,6 +608,7 @@ func (a *DonationStore) UpdateDonationImage(ctx context.Context, donationID, ima
 		}
 	}
 
+	// Create CPS request for updating the specific image
 	cpsRequest := dto.DonationCPSRequest{
 		DonationImages: []dto.DonationImage{
 			{
@@ -553,7 +627,6 @@ func (a *DonationStore) UpdateDonationImage(ctx context.Context, donationID, ima
 	uniqueID := donationID
 
 	if err := a.handleCPSAction(ctx, maker, cps_const.RequestUpdateDonation, cpsRequest, prevData, cps_const.ActionUpdate, uniqueID); err != nil {
-		a.logger.Errorf("failed to create CPS action: %v", err)
 		return err
 	}
 	return nil
@@ -566,6 +639,21 @@ func (a *DonationStore) DeleteDonationImage(ctx context.Context, donationID, ima
 		return err
 	}
 
+	// Validate that the image ID exists in the donation before attempting to delete
+	imageExists := false
+	for _, existingImage := range existingDonation.DonationImages {
+		if existingImage.ID == imageID {
+			imageExists = true
+			break
+		}
+	}
+
+	if !imageExists {
+		a.logger.Errorf("Image ID %s not found in donation %s, cannot delete", imageID, donationID)
+		return fmt.Errorf("IMAGE_NOT_FOUND")
+	}
+
+	// Create CPS request for deleting the specific image
 	cpsRequest := dto.DonationCPSRequest{
 		DonationImages: []dto.DonationImage{},
 		// Store the image ID to delete in the current action
@@ -580,7 +668,6 @@ func (a *DonationStore) DeleteDonationImage(ctx context.Context, donationID, ima
 	uniqueID := donationID
 
 	if err := a.handleCPSAction(ctx, maker, cps_const.RequestUpdateDonation, cpsRequest, prevData, cps_const.ActionUpdate, uniqueID); err != nil {
-		a.logger.Errorf("failed to create CPS action: %v", err)
 		return err
 	}
 	return nil

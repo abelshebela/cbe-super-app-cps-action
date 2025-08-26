@@ -2,7 +2,6 @@ package budget_handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -28,7 +27,6 @@ func NewBudgetHTTPHandler(budgetService budget.BudgetService, logger utils.Logge
 }
 
 func (h *BudgetHandler) CreateBudgetIcon(w http.ResponseWriter, r *http.Request) {
-
 	file, fileHeader, err := common_util.ParseMultipartFormFile(r, "icons_image", 10<<20)
 	if err != nil {
 		h.logger.Errorf("error parsing file: %v", err)
@@ -177,7 +175,6 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 		RequestAction:    entities.RequestCreateBudgetColor,
 		MakerActionTime:  time.Now(),
 	}
-	fmt.Println("*************************Adapter**************************8")
 
 	_, err := h.budgetService.CreateColor(r.Context(), req.Color, cpsAction)
 	if err != nil {
@@ -185,12 +182,12 @@ func (h *BudgetHandler) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Color creattion request submitted for approval", 200)
+	common_util.BaseResponseMaker(map[string]interface{}{}, w, "Color creation request submitted for approval", 200)
 }
 
 func (h *BudgetHandler) BudgetFetchColors(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
-	if filterParams.Page < 1 || filterParams.Page < 1 {
+	if filterParams.Page < 1 || filterParams.PerPage < 1 {
 		common_util.SendErrorResponse(w, "INVALID_INPUT_PARAMETERS", 0, nil)
 		return
 	}

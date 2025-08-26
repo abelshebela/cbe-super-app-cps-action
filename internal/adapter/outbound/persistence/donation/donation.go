@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -52,12 +53,28 @@ func (d *DonationPersistence) generateDonationCode() string {
 }
 
 func (d *DonationPersistence) DonationNameExists(ctx context.Context, categoryName string) (bool, error) {
-	filter := bson.M{"category_name": categoryName, "is_deleted": false}
-	count, err := d.donationCategoryDal.CountDocuments(ctx, filter)
+
+	filter := bson.M{"is_deleted": false}
+	cursor, err := d.donationCategoryDal.Find(ctx, filter)
 	if err != nil {
 		return false, fmt.Errorf("CATEGORY_LOOKUP_FAILED")
 	}
-	return count > 0, nil
+	defer cursor.Close(ctx)
+
+	var categories []model.DonationCategory
+	if err := cursor.All(ctx, &categories); err != nil {
+		return false, fmt.Errorf("CATEGORY_LOOKUP_FAILED")
+	}
+
+	normalizedInput := strings.ToLower(strings.TrimSpace(categoryName))
+
+	for _, category := range categories {
+		if strings.ToLower(strings.TrimSpace(category.CategoryName)) == normalizedInput {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (d *DonationPersistence) CreateDonationCategory(ctx context.Context, donation dto.DonationCategoryRequest) error {
@@ -145,6 +162,37 @@ func (d *DonationPersistence) FetchDonationCategory(ctx context.Context, filterP
 		Meta: meta,
 	}, nil
 }
+func (d *DonationPersistence) UpdateDonationCategoryWithIconURL(
+	ctx context.Context,
+	id string,
+	donation dto.DonationCategoryRequest,
+	iconURL string,
+) (*dto.DonationCategoryRequest, error) {
+
+	objID, err := common_util.ParsePrimitiveObjectID(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{
+		"last_modified_at": time.Now(),
+	}
+
+	if donation.CategoryName != "" {
+		update["category_name"] = donation.CategoryName
+	}
+	if iconURL != "" {
+		update["donation_icon"] = iconURL
+	}
+
+	_, err = d.donationCategoryDal.UpdateOne(ctx, filter, bson.M{"$set": update})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update donation category: %v", err)
+	}
+
+	return &donation, nil
+}
 
 func (d *DonationPersistence) FetchDonationCategoryByID(ctx context.Context, id string) (*dto.DonationCategoryListResponse, error) {
 	objID, err := common_util.ParsePrimitiveObjectID(id)
@@ -173,13 +221,15 @@ func (d *DonationPersistence) UpdateDonationCategory(ctx context.Context, id str
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{
-		"$set": bson.M{
-			"category_name":    donation.CategoryName,
-			"last_modified_at": time.Now(),
-		},
+		"last_modified_at": time.Now(),
 	}
 
-	_, err = d.donationCategoryDal.UpdateOne(ctx, filter, update)
+	// Only update fields that are provided (not empty strings)
+	if donation.CategoryName != "" {
+		update["category_name"] = donation.CategoryName
+	}
+
+	_, err = d.donationCategoryDal.UpdateOne(ctx, filter, bson.M{"$set": update})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update donation category: %v", err)
 	}
@@ -188,12 +238,28 @@ func (d *DonationPersistence) UpdateDonationCategory(ctx context.Context, id str
 }
 
 func (d *DonationPersistence) DonationCompanyNameExists(ctx context.Context, companyName string) (bool, error) {
-	filter := bson.M{"company_name": companyName, "is_deleted": false}
-	count, err := d.donationCompanyDal.CountDocuments(ctx, filter)
+
+	filter := bson.M{"is_deleted": false}
+	cursor, err := d.donationCompanyDal.Find(ctx, filter)
 	if err != nil {
 		return false, fmt.Errorf("COMPANY_LOOKUP_FAILED")
 	}
-	return count > 0, nil
+	defer cursor.Close(ctx)
+
+	var companies []model.DonationCompany
+	if err := cursor.All(ctx, &companies); err != nil {
+		return false, fmt.Errorf("COMPANY_LOOKUP_FAILED")
+	}
+
+	normalizedInput := strings.ToLower(strings.TrimSpace(companyName))
+	fmt.Println("hoejfjfjfkf", normalizedInput)
+	for _, company := range companies {
+		if strings.ToLower(strings.TrimSpace(company.CompanyName)) == normalizedInput {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (d *DonationPersistence) DonationCompanyAccountExists(ctx context.Context, accountNumber string) (bool, error) {
@@ -319,13 +385,18 @@ func (d *DonationPersistence) UpdateDonationCompany(ctx context.Context, id stri
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{
-		"$set": bson.M{
-			"company_name":     company.CompanyName,
-			"account_number":   company.AccountNumber,
-			"last_modified_at": time.Now(),
-		}}
+		"last_modified_at": time.Now(),
+	}
 
-	_, err = d.donationCompanyDal.UpdateOne(ctx, filter, update)
+	// Only update fields that are provided (not empty strings)
+	if company.CompanyName != "" {
+		update["company_name"] = company.CompanyName
+	}
+	if company.AccountNumber != "" {
+		update["account_number"] = company.AccountNumber
+	}
+
+	_, err = d.donationCompanyDal.UpdateOne(ctx, filter, bson.M{"$set": update})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update donation company: %v", err)
 	}
@@ -355,7 +426,7 @@ func (d *DonationPersistence) UpdateDonationCompanyWithLogoURL(ctx context.Conte
 		update["company_logo"] = logoURL
 	}
 
-	_, err = d.donationCompanyDal.UpdateOne(ctx, filter, update)
+	_, err = d.donationCompanyDal.UpdateOne(ctx, filter, bson.M{"$set": update})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update donation company: %v", err)
 	}
@@ -711,6 +782,12 @@ func (d *DonationPersistence) UpdateDonation(ctx context.Context, id string, don
 		setUpdate["start_date"] = donation.StartDate
 	}
 
+	
+	if donation.CoverImage != nil {
+
+		setUpdate["cover_image"] = "" // This will be set by the service layer
+	}
+
 	// Use $set operator for proper MongoDB update syntax
 	update := bson.M{"$set": setUpdate}
 
@@ -722,7 +799,7 @@ func (d *DonationPersistence) UpdateDonation(ctx context.Context, id string, don
 	return &donation, nil
 }
 
-func (d *DonationPersistence) UpdateDonationWithImageURLs(ctx context.Context, id string, donation dto.DonationRequest, imageURLs []string) (*dto.DonationRequest, error) {
+func (d *DonationPersistence) UpdateDonationWithCoverImage(ctx context.Context, id string, donation dto.DonationRequest, coverImageURL string) (*dto.DonationRequest, error) {
 	objID, err := common_util.ParsePrimitiveObjectID(id)
 	if err != nil {
 		return nil, fmt.Errorf("INVALID_ID_FORMAT")
@@ -769,16 +846,9 @@ func (d *DonationPersistence) UpdateDonationWithImageURLs(ctx context.Context, i
 		update["start_date"] = donation.StartDate
 	}
 
-	if len(imageURLs) > 0 {
-		donationImages := make([]model.DonationImage, len(imageURLs))
-		for i, url := range imageURLs {
-			donationImages[i] = model.DonationImage{
-				ID:        d.generateImageID(),
-				PhotoURL:  url,
-				CreatedAt: time.Now(),
-			}
-		}
-		update["donation_images"] = donationImages
+	// Handle cover image update - if coverImageURL is provided, update the cover image
+	if coverImageURL != "" {
+		update["cover_image"] = coverImageURL
 	}
 
 	update["last_modified_at"] = time.Now()
@@ -850,16 +920,10 @@ func (d *DonationPersistence) DeleteDonationImage(ctx context.Context, donationI
 	return nil
 }
 
-func (d *DonationPersistence) AddDonationImage(ctx context.Context, donationID string, image dto.DonationImage) error {
+func (d *DonationPersistence) AddDonationImage(ctx context.Context, donationID string, donationImage dto.DonationImage) error {
 	objID, err := common_util.ParsePrimitiveObjectID(donationID)
 	if err != nil {
 		return fmt.Errorf("INVALID_DONATION_ID_FORMAT")
-	}
-
-	donationImage := model.DonationImage{
-		ID:        image.ID,
-		PhotoURL:  image.PhotoURL,
-		CreatedAt: time.Now(),
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -880,19 +944,29 @@ func (d *DonationPersistence) AddDonationImage(ctx context.Context, donationID s
 	return nil
 }
 
+func (d *DonationPersistence) UpdateDonationCoverImage(ctx context.Context, donationID, coverImageURL string) error {
+	objID, err := common_util.ParsePrimitiveObjectID(donationID)
+	if err != nil {
+		return fmt.Errorf("INVALID_DONATION_ID_FORMAT")
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{
+		"$set": bson.M{
+			"cover_image":      coverImageURL,
+			"last_modified_at": time.Now(),
+		},
+	}
+
+	_, err = d.donationDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update donation cover image: %v", err)
+	}
+
+	return nil
+}
+
 // Helper function to convert string IDs to ObjectIDs
 func (d *DonationPersistence) convertStringToObjectID(id string) (bson.ObjectID, error) {
 	return common_util.ParsePrimitiveObjectID(id)
-}
-
-// Helper function to safely convert string to ObjectID with fallback
-func (d *DonationPersistence) safeConvertToObjectID(value interface{}) (interface{}, error) {
-	if strValue, ok := value.(string); ok {
-		objID, err := common_util.ParsePrimitiveObjectID(strValue)
-		if err != nil {
-			return nil, fmt.Errorf("invalid ObjectID format: %v", err)
-		}
-		return objID, nil
-	}
-	return value, nil
 }
