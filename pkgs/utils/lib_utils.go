@@ -2,6 +2,7 @@ package utils
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
 	"fmt"
@@ -239,4 +240,18 @@ func GenerateActionCode() string {
 	}
 
 	return prefix + string(b)
+}
+
+func HandleMongoError(err error) (string, string) {
+	// Defensive: nil error means no error
+	if err == nil {
+		return "", ""
+	}
+
+	if err.Error() == "mongo: no documents in result" || err.Error() == "no documents in result" {
+		// Not found error
+		return localization.ErrorResourceNotFound.Code, localization.ErrorResourceNotFound.Message
+	}
+
+	return localization.ErrorUnexpectedError.Code, localization.ErrorUnexpectedError.Message
 }

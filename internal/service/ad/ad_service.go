@@ -51,7 +51,7 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, maker,prevData,curData, string(requestAction),string(actionType))
+	cpsAction := lib.CpsModelBuilder(uniqueID, maker, prevData, curData, string(requestAction), string(actionType))
 
 	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {

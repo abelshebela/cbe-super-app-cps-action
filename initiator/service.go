@@ -3,15 +3,18 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
+	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
+	advert "cbe-super-app-cps-action/internal/service/ad"
+	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
+	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 	"cbe-super-app-cps-action/internal/service/unlink"
+	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-	feedback "cbe-super-app-cps-action/internal/service/feedback"
-	advert "cbe-super-app-cps-action/internal/service/ad"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -24,11 +27,15 @@ type ServiceLayer struct {
 	CPSAction service.CPSActionService
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
-	BpsUser    service.BPSUserService
-	PortalCard service.PortalCardService
-	Unlink     service.UnlinkService
-	Advert service.AdvertService
+	Unlink            service.UnlinkService
+	BpsUser           service.BPSUserService
+	Bank              service.BankService
+	PortalCard        service.PortalCardService
+	Advert            service.AdvertService
+	ValidationService service.AccountValidationService
+	Wallet            service.WalletService
 }
+
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
@@ -38,15 +45,22 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
+	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
+
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
+	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
+	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 
 	return ServiceLayer{
-		CPSAction: cpsActionService,
-		Feedback:  feedbackService,
-		EventService: eventService,
-		Advert: advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient,advertBucketName, cfg, logger),
-		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-		PortalCard:   portalCardService,
+		Bank:              bank_service,
+		EventService:      eventService,
+		Feedback:          feedbackService,
+		CPSAction:         cpsActionService,
+		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
+		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		PortalCard:        portalCardService,
+		ValidationService: accountValidation,
+		Wallet:            walletService,
 	}
 }

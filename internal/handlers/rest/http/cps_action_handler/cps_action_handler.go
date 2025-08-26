@@ -2,10 +2,13 @@ package cpsactionhandler
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	cpsactionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
+	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -17,7 +20,7 @@ type cpsActionAdapter struct {
 	logger               utils.Logger
 }
 
-func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger utils.Logger) *cpsActionAdapter {
+func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger utils.Logger) cpsaction.CPSActionAdapter {
 	return &cpsActionAdapter{
 		logger:               logger,
 		cpsActionApplication: cpsActionApplication,
@@ -29,7 +32,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
+		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
 		return
 	}
 
@@ -41,7 +44,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		CheckerPhoneNumber: userData.PhoneNumber,
 		Department:         userData.Department,
 	}); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -50,22 +53,33 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
-
+	var req cpsactionDto.ActionRequest
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
 
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorCPSActionRejectionPayloadDecodeFailed.Message)
+		return
+	}
+
+	if req.Validate() != nil {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionRejectionReason)
+		return
+	}
+
 	if err := a.cpsActionApplication.RejectCPSAction(r.Context(), actionCode, &model.CPSAction{
 		ActionCode:         actionCode,
 		ActionStatus:       constants.Rejected,
+		RejectionReason:    req.RejectionReason,
 		CheckerID:          userData.UserID,
 		CheckerName:        userData.FullName,
 		CheckerPhoneNumber: userData.PhoneNumber,
 		Department:         userData.Department,
 	}); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

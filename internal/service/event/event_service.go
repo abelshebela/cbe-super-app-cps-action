@@ -50,7 +50,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return err
 	}
 
-	exist, err := e.repo.FindByName(ctx, event.EventName)
+	exist, err := e.repo.Find(ctx, event.EventName)
 	if err != nil {
 		e.logger.Errorf("FindByName failed: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -120,7 +120,11 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 	}
 
 	e.logger.Infof("Event updated successfully", "event_id", id)
-	core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestUpdateEvent, curAction, *prevEvent, constants.ActionUpdate)
+	err = core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestUpdateEvent, curAction, *prevEvent, constants.ActionUpdate)
+	if err != nil {
+		e.logger.Errorf("CPS action failed for event %s: %v", curAction.EventName, err)
+		return err
+	}
 	return nil
 }
 
@@ -138,7 +142,11 @@ func (e *eventService) DeleteEvent(ctx context.Context, id string) error {
 	curData.IsDeleted = true
 	curData.DeletedAt = time.Now()
 
-	core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestDeleteEvent, curData, *prevEvent, constants.ActionDelete)
+	err = core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestDeleteEvent, curData, *prevEvent, constants.ActionDelete)
+	if err != nil {
+		e.logger.Errorf("CPS action failed for event %s: %v", curData.EventName, err)
+		return err
+	}
 	return nil
 }
 
@@ -177,7 +185,11 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 	}
 
 	e.logger.Infof("Event enable/disable action handled", "event_id", id, "enable", enable)
-	core.HandleCPSAction(ctx, e.cpsService, id, action, curData, *prevEvent, constants.ActionUpdate)
+	err=core.HandleCPSAction(ctx, e.cpsService, id, action, curData, *prevEvent, constants.ActionUpdate)
+	if err != nil {
+		e.logger.Errorf("CPS action failed for event %s: %v", curData.EventName, err)
+		return err
+	}
 	return nil
 }
 

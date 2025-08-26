@@ -24,6 +24,7 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
+	fmt.Println("/////////////Authorize///////////////")
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
@@ -59,8 +60,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Permission"):
 		return d.app.PermissionContainer.Authorize(ctx, cpsAction)
 
-	// case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
-	// 	return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
+		return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Wallet"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)

@@ -90,7 +90,6 @@ type CPSActionRepository interface {
 	FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error)
 	Update(ctx context.Context, id string, update model.CPSAction) error
 	Delete(ctx context.Context, id string) error
-	CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error)
 }
 
 // Avatar persistence
@@ -199,6 +198,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
+	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
 
 type PortalCardRepository interface {
@@ -265,7 +265,7 @@ type EventRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*model.Event, error)
-	FindByName(ctx context.Context, name string) (*model.Event, error)
+	Find(ctx context.Context, name string) (*model.Event, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
 }
 
@@ -365,10 +365,8 @@ type ServiceDetailsRepository interface {
 }
 
 type ValidationRuleRepository interface {
-	Create(ctx context.Context, rule *model.ValidationRule) error
-	Update(ctx context.Context, id string, rule *model.ValidationRule) error
-	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.ValidationRule, error)
+	Update(ctx context.Context, id string, rule *model.ValidationRule) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
@@ -376,7 +374,9 @@ type WalletRepository interface {
 	Create(ctx context.Context, wallet *model.Wallet) error
 	Update(ctx context.Context, id string, wallet *model.Wallet) error
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
+	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
-

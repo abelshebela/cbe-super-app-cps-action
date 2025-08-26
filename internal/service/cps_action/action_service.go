@@ -10,11 +10,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type cpsActionService struct {
@@ -39,9 +39,13 @@ func NewCPSActionService(repo storage.CPSActionRepository, persistence persistan
 func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
 
 	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, cpsAction.Department)
-	if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-		return err
+
+	if err != nil {
+		if err.Error() != localization.ErrorActionNotFound.Code {
+			return err
+		}
 	}
+
 	if existing != nil {
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}
@@ -51,10 +55,9 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
-	if err := ca.repo.Save(ctx, action); err != nil {
+	if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
 		return err
 	}
-
 	approve, err := ca.dispatcher.Authorize(ctx, action)
 	if err != nil && approve == nil {
 		ca.RollBack(ctx, action.ActionCode)
@@ -64,10 +67,6 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	return nil
 }
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
-	data, err := ca.GetCPSActionByActionCode(ctx, action_code, action.Department)
-	if err != nil && data == nil {
-		return errors.New(localization.ErrorActionNotFound.Code)
-	}
 
 	return ca.repo.Update(ctx, action_code, *action)
 }
@@ -77,8 +76,9 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 }
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
 
-	objID, ok := local_util.StringToObjectID(id)
-	if !ok {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return ca.repo.FindOne(ctx, model.CPSAction{ID: objID})
@@ -94,6 +94,15 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 func (ca *cpsActionService) RollBack(ctx context.Context, action_code string) error {
 	return ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
 }
-func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
-	return s.repo.CPSActionExists(ctx, user)
-}
+
+// func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
+// 	_,err  := s.repo.FindOne(ctx, model.CPSAction{Department: user.Department,ActionStatus: string(constants.Pending),RequestAAction: })
+// 	if err != nil {
+// 		if err.Error() == localization.ErrorActionNotFound.Code{
+// 			return false,nil
+// 		}
+// 		return false,nil
+// 	}
+
+// 	return true,nil
+// }

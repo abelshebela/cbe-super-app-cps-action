@@ -25,6 +25,19 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
 	SuccessAvatarCreated,
+	SuccessDeleteBanksRequest,
+	SuccessDeleteRequestCreated,
+	SuccessGetOneBank,
+	SuccessBankDisableRequestCreated,
+	SuccessBankEnableRequestCreated,
+	SuccessBankUpdatedRequestSent,
+	SuccessWalletEnableRequestSubmitted,
+	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletCreationRequestSent,
+	SuccessWalletUpdateRequestSent,
+	SuccessWalletDeleted,
+	SuccessWalletsRetrieved,
+	SuccessWalletRetrieved,
 
 	// Ad related success response codes
 	SuccessAdvertCreated,
@@ -98,6 +111,17 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
+	ErrorBankImageMissingOrInvalid,
+	ErrorBankUpdateFailed,
+	ErrorValidationFailed,
+	ErrorRequiredFieldMissing,
+	ErrorBankDeleteRequestFailed,
+	ErrorBankImageMissingOrInvalid,
+	ErrorGetAllBanksFailed,
+	ErrorGetAllBanksFailed,
+	ErrorGetOneBank,
+	ErrorBankDisableRequest,
+	ErrorBankEnableRequestFailed,
 	ErrorUserCodeRequired,
 
 	ErrorEventNameRequired,
@@ -121,18 +145,42 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventCityRequired,
 	ErrorEventDescriptionRequired,
 	ErrorTicketsRequired,
-
+	ErrorBankAlreadyEnabled,
+	ErrorBankAlreadyDisabled,
+	ErrorHealthCheck,
+	ErrorActionAlreadyExists,
+	ErrorNoDataProvidedForCreate,
+	ErrorNoDataProvidedForUpdate,
+	ErrorNoDataProvidedForBankUpdate,
+	ErrorBankWithCodeAlreadyExists,
+	ErrorBankWithBICAlreadyExists,
+	ErrorBankWithNameAlreadyExists,
+	ErrorSessionRetrievalFailed,
+	ErrorInvalidToken,
+	ErrorMissingFile,
+	ErrorResourceNotFound,
+	ErrorInvalidInputParameters,
+	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
-	ErrorSessionRetrievalFailed,
-	ErrorHealthCheck,
-	ErrorInvalidToken,
-
 	ErrorInvalidID,
 	ErrorMissingFile,
 
 	// Add more as needed...
+	//wallet related error codes
+	ErrorWalletNameRequired,
+	ErrorWalletCodeRequired,
+	ErrorWalletAvatarRequired,
+	ErrorWalletAvatarInvalid,
+	ErrorWalletAvatarTooLarge,
+	ErrorWalletAvatarInvalidType,
+	ErrorWalletAlreadyExists,
+	ErrorWalletAlreadyDisabled,
+	ErrorWalletAlreadyEnabled,
+	ErrorWalletIDRequired,
+	ErrorWalletNotFound,
+	ErrorWalletUpdateEmptyPayload,
 }
 
 // Success Response Codes
@@ -464,9 +512,9 @@ var (
 	}
 
 	SuccessWalletDeleted = ResponseCode{
-		Code:       "SUCCESS_WALLET_DELETED",
+		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
-		Message:    MsgWalletDeletedSuccessfully,
+		Message:    MsgWalletDeleteRequestSent,
 		Type:       "success",
 	}
 
@@ -481,6 +529,27 @@ var (
 		Code:       "SUCCESS_WALLET_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgWalletRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	ErrorWalletIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet ID is required",
+		Type:       "error",
+	}
+
+	SuccessWalletEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disable request submitted successfully",
 		Type:       "success",
 	}
 
@@ -689,6 +758,97 @@ var (
 		Type:       "success",
 	}
 
+	//wallet related error codes
+
+	ErrorWalletAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+
+	ErrorWalletNotFound = ResponseCode{
+		Code:       "ERROR_WALLET_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Wallet not found",
+		Type:       "error",
+	}
+
+	ErrorWalletAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet is already enabled",
+		Type:       "error",
+	}
+	ErrorWalletUpdateEmptyPayload = ResponseCode{
+		Code:       "ERROR_WALLET_UPDATE_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for wallet update",
+		Type:       "error",
+	}
+
+	ErrorWalletAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+
+	ErrorInvalidID = ResponseCode{
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: 400,
+		Message:    "Invalid wallet ID",
+		Type:       "error",
+	}
+
+	ErrorNoDataProvided = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED",
+		StatusCode: 400,
+		Message:    "No data provided for update",
+		Type:       "error",
+	}
+
+	ErrorWalletNameRequired = ResponseCode{
+		Code:       "ERROR_WALLET_NAME_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet name is required",
+		Type:       "error",
+	}
+
+	ErrorWalletCodeRequired = ResponseCode{
+		Code:       "ERROR_WALLET_CODE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet code is required",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarRequired = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet avatar is required",
+		Type:       "error",
+	}
+	ErrorWalletAvatarInvalid = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_INVALID",
+		StatusCode: 400,
+		Message:    "Invalid wallet avatar",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarTooLarge = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_TOO_LARGE",
+		StatusCode: 400,
+		Message:    "Wallet avatar file size exceeds the limit",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarInvalidType = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_INVALID_TYPE",
+		StatusCode: 400,
+		Message:    "Wallet avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
+	}
+
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{
 		Code:       "SUCCESS_PORTAL_CARDS_FETCHED",
@@ -788,6 +948,20 @@ var (
 		Code:       "SUCCESS_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgDisableRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+
+	SuccessBankDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_BANK_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgBankDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessBankEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgBankEnableRequestSent,
 		Type:       "success",
 	}
 
@@ -920,6 +1094,13 @@ var (
 		Message:    MsgValidationRuleApprovedSuccessfully,
 		Type:       "success",
 	}
+	SuccessValidationRuleFetched = ResponseCode{
+		Code:       "SUCCESS_VALIDATION_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgValidationRuleSuccessFech,
+		Type:       "success",
+	}
+
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
@@ -1421,118 +1602,24 @@ var (
 		Type:       "success",
 	}
 
-	SuccessBranchRetrieved = ResponseCode{
-		Code:       "SUCCESS_BRANCH_RETRIEVED",
+	SuccessGetAllBanks = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_BANKS",
 		StatusCode: StatusOK,
-		Message:    MsgBranchSuccessfullyRetrieved,
+		Message:    msgGetAllBanksSuccess,
 		Type:       "success",
 	}
 
-	SuccessBranchesRetrieved = ResponseCode{
-		Code:       "SUCCESS_BRANCHES_RETRIEVED",
+	SuccessGetOneBank = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_BANK",
 		StatusCode: StatusOK,
-		Message:    MsgBranchesSuccessfullyRetrieved,
+		Message:    msgGetOneBankSuccess,
 		Type:       "success",
 	}
 
-	SuccessBranchesEnabled = ResponseCode{
-		Code:       "SUCCESS_BRANCHES_ENABLED",
-		StatusCode: StatusOK,
-		Message:    MsgBranchesSuccessfullyEnabled,
-		Type:       "success",
-	}
-
-	SuccessBranchesDisabled = ResponseCode{
-		Code:       "SUCCESS_BRANCHES_DISABLED",
-		StatusCode: StatusOK,
-		Message:    MsgBranchesSuccessfullyDisabled,
-		Type:       "success",
-	}
-
-
-
-	SuccessRegionRetrieved = ResponseCode{
-		Code:       "SUCCESS_REGION_RETRIEVED",
-		StatusCode: StatusOK,
-		Message:    MsgRegionSuccessfullyRetrieved,
-		Type:       "success",
-	}
-
-	SuccessRegionsRetrieved = ResponseCode{
-		Code:       "SUCCESS_REGIONS_RETRIEVED",
-		StatusCode: StatusOK,
-		Message:    MsgRegionsSuccessfullyRetrieved,
-		Type:       "success",
-	}
-
-	SuccessRegionsEnabled = ResponseCode{
-		Code:       "SUCCESS_REGIONSS_ENABLED",
-		StatusCode: StatusOK,
-		Message:    MsgRegionsSuccessfullyEnabled,
-		Type:       "success",
-	}
-
-	SuccessRegionsDisabled = ResponseCode{
-		Code:       "SUCCESS_REGIONSS_DISABLED",
-		StatusCode: StatusOK,
-		Message:    MsgRegionsSuccessfullyDisabled,
-		Type:       "success",
-	}
-
-
-	SuccessDistrictRetrieved = ResponseCode{
-		Code:       "SUCCESS_DISTRICT_RETRIEVED",
-		StatusCode: StatusOK,
-		Message:    MsgDistrictSuccessfullyRetrieved,
-		Type:       "success",
-	}
-
-	SuccessDistrictsRetrieved = ResponseCode{
-		Code:       "SUCCESS_DISTRICTS_RETRIEVED",
-		StatusCode: StatusOK,
-		Message:    MsgDistrictsSuccessfullyRetrieved,
-		Type:       "success",
-	}
-
-	SuccessDistrictsEnabled = ResponseCode{
-		Code:       "SUCCESS_DISTRICTS_ENABLED",
-		StatusCode: StatusOK,
-		Message:    MsgDistrictsSuccessfullyEnabled,
-		Type:       "success",
-	}
-
-	SuccessDistrictsDisabled = ResponseCode{
-		Code:       "SUCCESS_DISTRICTS_DISABLED",
-		StatusCode: StatusOK,
-		Message:    MsgDistrictsSuccessfullyDisabled,
-		Type:       "success",
-	}
-
-
-	SuccessCityRetrieved = ResponseCode{
-		Code:       "SUCCESS_CITY_RETRIEVED",
-		StatusCode: StatusOK,
-		Message:    MsgCitySuccessfullyRetrieved,
-		Type:       "success",
-	}
-
-	SuccessCitiesRetrieved = ResponseCode{
-		Code:       "SUCCESS_CITIES_RETRIEVED",
-		StatusCode: StatusOK,
-		Message:    MsgCitiesSuccessfullyRetrieved,
-		Type:       "success",
-	}
-	SuccessCitiesEnabled = ResponseCode{
-		Code:       "SUCCESS_CITIES_ENABLED",
-		StatusCode: StatusOK,
-		Message:    MsgCitiesSuccessfullyEnabled,
-		Type:       "success",
-	}
-
-	SuccessCitiesDisabled = ResponseCode{
-		Code:       "SUCCESS_CITIES_DISABLED",
-		StatusCode: StatusOK,
-		Message:    MsgCitiesSuccessfullyDisabled,
+	SuccessDeleteBanksRequest = ResponseCode{
+		Code:       "SUCCESS_DELETE_BANK_request",
+		StatusCode: StatusNoContent,
+		Message:    msgDeleteBankRequestSuccess,
 		Type:       "success",
 	}
 )
@@ -1712,6 +1799,39 @@ var (
 		Type:       "error",
 	}
 
+	ErrorBankAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_Bank_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorBankAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_Bank_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorBankWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorBankWithBICAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_BIC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankBICAlreadyExists,
+		Type:       "error",
+	}
+	ErrorBankWithCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankCodeAlreadyExists,
+		Type:       "error",
+	}
+
 	ErrorOTPNotFound = ResponseCode{
 		Code:       "ERROR_OTP_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -1726,10 +1846,52 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidBankRequest = ResponseCode{
+		Code:       "ERROR_INVALID_BANK_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidBankRequest,
+		Type:       "error",
+	}
+
 	ErrorNoDataProvidedForUpdate = ResponseCode{
 		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
 		StatusCode: StatusBadRequest,
-		Message:    "No data provided for update",
+		Message:    MsgNoDataProvidedForUpdate,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForBankUpdate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNoDataProvidedForBankUpdate,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForName = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankName,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForCode = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_CODE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankCode,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForBIC = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_BIC",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankBIC,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForCreate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_CREATE",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for Create",
 		Type:       "error",
 	}
 
@@ -1942,6 +2104,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorGetAllBanksFailed = ResponseCode{
+		Code:       "ERROR_GET_ALL_BANKS_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    msgGetAllBanksFailed,
+		Type:       "error",
+	}
+
+	ErrorBankDeleteRequestFailed = ResponseCode{
+		Code:       "ERROR_BANK_DELETE_REQUEST_FIELD",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankDeleteRequestFailed,
+		Type:       "error",
+	}
+
+	ErrorBankImageMissingOrInvalid = ResponseCode{
+		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankImageRequiredOrMissing,
+		Type:       "error",
+	}
+
 	ErrorInvalidFormat = ResponseCode{
 		Code:       "ERROR_INVALID_FORMAT",
 		StatusCode: StatusBadRequest,
@@ -1980,13 +2163,6 @@ var (
 		Code:       "ERROR_UNSUPPORTED_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgUnsupportedAction,
-		Type:       "error",
-	}
-
-	ErrorInvalidID = ResponseCode{
-		Code:       "ERROR_INVALID_ID",
-		StatusCode: StatusBadRequest,
-		Message:    MsgInvalidID,
 		Type:       "error",
 	}
 
@@ -2105,6 +2281,13 @@ var (
 		Code:       "ERROR_RESOURCE_BUSY",
 		StatusCode: StatusConflict,
 		Message:    MsgResourceBusy,
+		Type:       "error",
+	}
+
+	ErrorResourceNotFound = ResponseCode{
+		Code:       "ERROR_RESOURCE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
 
@@ -2535,6 +2718,12 @@ var (
 		Message:    MsgBankLogoUpdateFailed,
 		Type:       "error",
 	}
+	ErrorBankUpdateFailed = ResponseCode{
+		Code:       "ERROR_BANK_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankUpdateFailed,
+		Type:       "error",
+	}
 
 	// CPS Action related error response codes
 	ErrorCPSActionRejectionPayloadDecodeFailed = ResponseCode{
@@ -2744,8 +2933,29 @@ var (
 		Type:       "error",
 	}
 
+	ErrorGetOneBank = ResponseCode{
+		Code:       "ERROR_GET_ONE_BANK",
+		StatusCode: StatusInternalServerError,
+		Message:    msgGetOneBankFailed,
+		Type:       "error",
+	}
+
+	ErrorBankDisableRequest = ResponseCode{
+		Code:       "ERROR_BANK_DISABLE_REQUEST",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankDisableRequestFailed,
+		Type:       "error",
+	}
+
+	ErrorBankEnableRequestFailed = ResponseCode{
+		Code:       "ERROR_BANK_ENABLE_REQUEST",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankEnableRequestFailed,
+		Type:       "error",
+	}
+
 	ErrorInvalidInputParameters = ResponseCode{
-		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
+		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameters,
 		Type:       "error",
