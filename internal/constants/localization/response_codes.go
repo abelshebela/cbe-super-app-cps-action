@@ -130,16 +130,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithCodeAlreadyExists,
 	ErrorBankWithBICAlreadyExists,
 	ErrorBankWithNameAlreadyExists,
-	ErrorPendingCpsActionExists,
-	ErrorUnexpectedError,
-	ErrorFileNotFound,
 	ErrorSessionRetrievalFailed,
 	ErrorInvalidToken,
-	ErrorInvalidID,
 	ErrorMissingFile,
 	ErrorResourceNotFound,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
+	ErrorPendingCpsActionExists,
+	ErrorUnexpectedError,
+	ErrorFileNotFound,
+	ErrorInvalidID,
 	// Add more as needed...
 	//wallet related error codes
 	ErrorWalletNameRequired,
@@ -2878,6 +2878,7 @@ var (
 		Message:    MsgValidationRuleApprovedSuccess,
 		Type:       "error",
 	}
+
 	ErrorGetOneBank = ResponseCode{
 		Code:       "ERROR_GET_ONE_BANK",
 		StatusCode: StatusInternalServerError,

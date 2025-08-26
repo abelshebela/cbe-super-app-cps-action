@@ -39,6 +39,7 @@ func NewCPSActionService(repo storage.CPSActionRepository, persistence persistan
 func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
 
 	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, cpsAction.Department)
+
 	if err != nil {
 		if err.Error() != localization.ErrorActionNotFound.Code {
 			return err
