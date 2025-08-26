@@ -11,15 +11,15 @@ import (
 func BranchMapper(branch model.Branch) bson.M {
 	return bson.M{
 		"$set": bson.M{
-			"branch_code":     branch.BranchCode,
-			"branch_name":     branch.BranchName,
-			"branch_address":  branch.BranchAddress,
-			"district_code":   branch.DistrictCode,
-			"district_name":   branch.DistrictName,
-			"branch_region":   branch.BranchRegion,
-			"record_stat":     branch.RecordStat,
-			"enabled":         branch.Enabled,
-			"updated_at":      time.Now(),
+			"branch_code":    branch.BranchCode,
+			"branch_name":    branch.BranchName,
+			"branch_address": branch.BranchAddress,
+			"district_code":  branch.DistrictCode,
+			"district_name":  branch.DistrictName,
+			"branch_region":  branch.BranchRegion,
+			"record_stat":    branch.RecordStat,
+			"enabled":        branch.Enabled,
+			"updated_at":     time.Now(),
 		},
 	}
-} 
+}

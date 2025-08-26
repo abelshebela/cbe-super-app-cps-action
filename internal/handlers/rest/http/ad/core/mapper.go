@@ -7,14 +7,12 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
-
 	// local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 // ToDomainAdvertRequest converts an HTTP AdvertRequest to a domain-level dto.AdvertRequest
 func ToAdvert(httpRequest ad.AdvertRequest) (model.Advert, error) {
 	advertFor := constants.AdvertFor(httpRequest.AdvertFor)
-
 
 	return model.Advert{
 		Title:       httpRequest.Title,

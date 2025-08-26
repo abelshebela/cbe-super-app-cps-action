@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
 // AdvertMapper maps model.Advert to bson.M for MongoDB operations
 func AdvertMapper(advert model.Advert) bson.M {
 	result := bson.M{}

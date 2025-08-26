@@ -36,12 +36,12 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 	domainReq, err := core.ToAdvert(req)
 	if err != nil {
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)	
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
 		return
 	}
 
 	err = a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage)
-	if err != nil { 
+	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -117,9 +117,9 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w,localization.SuccessAdvertDeleteRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
 }
-func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request)  {
+func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, ok := core.ExtractID(w, r, a.logger)
 	if !ok {
 		return
@@ -128,7 +128,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request)  {
 	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
-		return	
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
@@ -142,7 +142,7 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
-		return	
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)

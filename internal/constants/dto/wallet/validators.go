@@ -41,19 +41,19 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		}
 	}
 
- 	if isCreate {
+	if isCreate {
 		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, true, localization.ErrorWalletNameRequired.Code))))
 	} else if w.Name != "" {
 		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, false, localization.ErrorWalletNameRequired.Code))))
 	}
 
- 	if isCreate {
+	if isCreate {
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, true, localization.ErrorWalletCodeRequired.Code))))
 	} else if w.Code != "" {
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, false, localization.ErrorWalletCodeRequired.Code))))
 	}
 
- 	if isCreate {
+	if isCreate {
 		rules = append(rules, validation.Field(&w.Avatar,
 			validation.Required.Error(localization.ErrorWalletAvatarRequired.Code),
 			validation.By(func(value interface{}) error { return validateAvatar(value) }),
