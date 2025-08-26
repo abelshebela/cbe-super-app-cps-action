@@ -122,8 +122,12 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
-	if err != nil && err.Error() != localization. {
-		return err
+
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code != localization.ErrorResourceNotFound.Code {
+			return err
+		}
 	}
 
 	if result != nil {
@@ -137,7 +141,6 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
-
 	action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
@@ -269,8 +272,12 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
-	if err != nil && err.Error() != localization.MsgFileNotFound {
-		return err
+
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code != localization.ErrorResourceNotFound.Code {
+			return err
+		}
 	}
 
 	if result != nil {

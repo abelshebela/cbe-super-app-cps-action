@@ -126,6 +126,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionAlreadyExists,
 	ErrorNoDataProvidedForCreate,
 	ErrorNoDataProvidedForUpdate,
+	ErrorNoDataProvidedForBankUpdate,
 	ErrorBankWithCodeAlreadyExists,
 	ErrorBankWithBICAlreadyExists,
 	ErrorBankWithNameAlreadyExists,
@@ -1802,6 +1803,13 @@ var (
 		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgNoDataProvidedForUpdate,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForBankUpdate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNoDataProvidedForBankUpdate,
 		Type:       "error",
 	}
 

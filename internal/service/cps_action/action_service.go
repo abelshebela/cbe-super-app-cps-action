@@ -45,10 +45,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-		return err
-	}
-
 	if existing != nil {
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}

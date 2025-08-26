@@ -34,12 +34,12 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 	switch v := data.(type) {
 	case *bank_dto.UpdateBankRequest:
 		if v == nil {
-			return localization.ErrorNoDataProvidedForUpdate
+			return localization.ErrorNoDataProvidedForBankUpdate
 		}
 		name, code, bic = &v.Name, &v.Code, &v.BIC
 	case *bank_dto.CreateBankRequest:
 		if v == nil {
-			return localization.ErrorNoDataProvidedForUpdate
+			return localization.ErrorNoDataProvidedForBankUpdate
 		}
 		name, code, bic = &v.Name, &v.Code, &v.BIC
 	default:
