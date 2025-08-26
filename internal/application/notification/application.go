@@ -22,7 +22,7 @@ type NotificationApplicationAbstracts interface {
 	EnableDisableNotification(ctx context.Context, id string, maker cps_entities.User, enable bool) error
 
 	FetchNotificationByID(ctx context.Context, id string) (*notification_entity.Notification, error)
-	FetchNotifications(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*notification_entity.Notification], error)
+	FetchNotifications(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*notification_entity.Notification], error)
 }
 
 // NotificationApplication implements NotificationApplicationAbstracts
@@ -128,6 +128,6 @@ func (a *NotificationApplication) FetchNotificationByID(ctx context.Context, id 
 }
 
 // FetchNotifications fetches notifications with pagination and filtering
-func (a *NotificationApplication) FetchNotifications(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*notification_entity.Notification], error) {
+func (a *NotificationApplication) FetchNotifications(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*notification_entity.Notification], error) {
 	return a.service.FetchNotifications(ctx, filterParam)
 }

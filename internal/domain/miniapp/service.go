@@ -32,7 +32,7 @@ type MiniAppService interface {
 	UpdateMiniApp(ctx context.Context, req MiniAppCreateRequest, maker entities.User, id string) (*MiniApp, *MiniApp, error)
 	DeleteMiniApp(ctx context.Context, maker entities.User, id string) (*MiniApp, *MiniApp, error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
-	ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
+	ListMiniApp(ctx context.Context, filterParam *util_constant.MongoFilter) (*common_util.PaginatedResponse[[]*MiniApp], error)
 	GetMiniAppByName(ctx context.Context, name string) (*MiniApp, error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
 	EnableDisableMiniApp(ctx context.Context, maker entities.User, id string, enabled bool) (*MiniApp, *MiniApp, error)
@@ -226,7 +226,7 @@ func (s *MiniAppStore) Authorize(ctx context.Context, action *entities.CPSAction
 	return action, nil
 }
 
-func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error) {
+func (s *MiniAppStore) ListMiniApp(ctx context.Context, filterParam *util_constant.MongoFilter) (*common_util.PaginatedResponse[[]*MiniApp], error) {
 	s.logger.Infof("Listing MiniApps with filter: %+v", filterParam)
 	result, err := s.repository.ListMiniApp(ctx, filterParam)
 	if err != nil {
@@ -243,8 +243,11 @@ func (s *MiniAppStore) DetailMiniAppByID(ctx context.Context, id string) (*MiniA
 		s.logger.Errorf("Failed to fetch MiniApp with ID %s: %v", id, err)
 		return nil, err
 	}
+	var decryptedSecret string
+	if miniApp.Credential.AppSecret != "" {
 
-	decryptedSecret, err := s.keyGenService.DecryptAppSecret(miniApp.Credential.AppSecret)
+		decryptedSecret, err = s.keyGenService.DecryptAppSecret(miniApp.Credential.AppSecret)
+	}
 	if err != nil {
 		s.logger.Errorf("Failed to decrypt AppSecret for MiniApp %s, Environment %v: %v", id, UatEnvironment, err)
 		return nil, err

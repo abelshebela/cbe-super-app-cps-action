@@ -12,7 +12,7 @@ type MiniRepository interface {
 	UpdateMinApp(ctx context.Context, action *MiniApp) (*MiniApp, error)
 	DeleteMiniAppAction(ctx context.Context, action *MiniApp) (*MiniApp, error)
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
-	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*MiniApp], error)
+	ListMiniApp(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*MiniApp, error)
 	GetMiniAppByName(ctx context.Context, name string) (*MiniApp, error)
 	EnableDisableMiniApp(ctx context.Context, id string, enabled bool) (*MiniApp, error)

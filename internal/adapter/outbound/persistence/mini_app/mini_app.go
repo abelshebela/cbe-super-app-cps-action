@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	dal "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/infra"
@@ -36,7 +37,7 @@ func InitMiniAppPersistence(client *mongo.Client, DB_name string, collections []
 	}
 }
 
-func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *constant.Filter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error) {
+func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error) {
 	filter := bson.M{"is_deleted": false}
 
 	if filterParams.Search != "" {
@@ -51,6 +52,25 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *cons
 			{"app_type.dev": searchRegex},
 			{"merchant_id": searchRegex},
 			{"product_code.product_code": searchRegex},
+		}
+	}
+
+	if filterParams.Filters != nil {
+		allowedKeys := []string{"enabled", "merchant_type"}
+		handlers := map[string]func(interface{}) interface{}{
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParams.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			filter[key] = value
 		}
 	}
 
@@ -83,11 +103,12 @@ func (o *MiniAppPersistence) ListMiniApp(ctx context.Context, filterParams *cons
 
 func (o *MiniAppPersistence) DetailMiniAppByID(ctx context.Context, id string) (*miniApp_domain.MiniApp, error) {
 
-	objectID, err := common_util.ParsePrimitiveObjectID(id)
+	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+
 		return nil, err
 	}
-	filter := bson.M{"_id": objectID, "is_deleted": false}
+	filter := bson.M{"_id": objectID}
 	miniApp, err := o.MongoDalMiniApp.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

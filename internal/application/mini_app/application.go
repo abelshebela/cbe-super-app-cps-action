@@ -23,7 +23,7 @@ type ApplicationAbstracts interface {
 	CreateMiniApp(ctx context.Context, miniApp *dto.MiniAppCreateRequest, maker entities.User) error
 	UpdateMiniApp(ctx context.Context, req *dto.MiniAppCreateRequest, maker entities.User) error
 	DeleteMiniApp(ctx context.Context, maker entities.User, id string) error
-	ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error)
+	ListMiniApp(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error)
 	DetailMiniAppByID(ctx context.Context, id string) (*miniApp_domain.MiniApp, error)
 	EnableDisableMiniAppByID(ctx context.Context, id string, enabled bool, maker entities.User) error
 }
@@ -193,7 +193,7 @@ func (a *ApplicationStore) DeleteMiniApp(ctx context.Context, maker entities.Use
 	return nil
 }
 
-func (a *ApplicationStore) ListMiniApp(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error) {
+func (a *ApplicationStore) ListMiniApp(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*miniApp_domain.MiniApp], error) {
 	list, err := a.service.ListMiniApp(ctx, filterParam)
 	if err != nil {
 		a.Logger.Errorf("[mini_app.ListMiniApp] %v", err)

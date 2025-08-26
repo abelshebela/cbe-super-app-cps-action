@@ -19,7 +19,7 @@ type NotificationService interface {
 	DeleteNotification(ctx context.Context, id string) (*Notification, *Notification, error)
 	EnableDisableNotification(ctx context.Context, id string, enable bool) (*Notification, *Notification, error)
 	FetchNotificationByID(ctx context.Context, id string) (*Notification, error)
-	FetchNotifications(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Notification], error)
+	FetchNotifications(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*Notification], error)
 	Authorize(ctx context.Context, action *entities.CPSAction) (*entities.CPSAction, error)
 }
 
@@ -277,7 +277,7 @@ func (s *Service) FetchNotificationByID(ctx context.Context, id string) (*Notifi
 }
 
 // FetchNotifications fetches notifications with pagination and filtering
-func (s *Service) FetchNotifications(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*Notification], error) {
+func (s *Service) FetchNotifications(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*Notification], error) {
 	s.logger.Infof("Fetching notifications with filter", "filter", filterParam)
 	return s.Repository.FetchNotifications(ctx, filterParam)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/mappers"
@@ -77,7 +78,7 @@ func (n *NotificationPersistence) FetchNotificationByID(ctx context.Context, id 
 }
 
 // FetchNotifications fetches notifications with pagination and filtering
-func (n *NotificationPersistence) FetchNotifications(ctx context.Context, filterParam *constant.Filter) (*common_util.PaginatedResponse[[]*entities.Notification], error) {
+func (n *NotificationPersistence) FetchNotifications(ctx context.Context, filterParam *constant.MongoFilter) (*common_util.PaginatedResponse[[]*entities.Notification], error) {
 	filter := bson.M{"is_deleted": false}
 
 	fmt.Println("I get called")
@@ -85,10 +86,29 @@ func (n *NotificationPersistence) FetchNotifications(ctx context.Context, filter
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"notificationType": searchRegex},
-			{"notificationBody": searchRegex},
+			{"notification_type": searchRegex},
+			{"notification_body": searchRegex},
 			{"for": searchRegex},
 			{"title": searchRegex},
+		}
+	}
+
+	if filterParam.Filters != nil {
+		allowedKeys := []string{"enabled", "notification_type"}
+		handlers := map[string]func(interface{}) interface{}{
+			"is_deleted": func(value interface{}) interface{} {
+				if str, ok := value.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						return parsed
+					}
+				}
+				return value
+			},
+		}
+
+		enhancedFilter := common_util.BuildMongoFilterWithHandlers(filterParam.Filters, allowedKeys, handlers)
+		for key, value := range enhancedFilter {
+			filter[key] = value
 		}
 	}
 
