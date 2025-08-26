@@ -106,13 +106,13 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 	}
 
 	var url string
-	// if bannerImage != nil {
-	// 	url, err = local_util.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
-	// 	if err != nil {
-	// 		s.logger.Errorf("Failed to upload banner image: %v", err)
-	// 		return err
-	// 	}
-	// }
+	if bannerImage != nil {
+		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
+		if err != nil {
+			s.logger.Errorf("Failed to upload banner image: %v", err)
+			return err
+		}
+	}
 
 	curAdvert := &model.Advert{
 		ID:            prevAdvert.ID,

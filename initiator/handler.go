@@ -5,13 +5,14 @@ import (
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
+	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
+	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 
 	// Handler section
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
-	inbound "cbe-super-app-cps-action/internal/handlers/rest"
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
@@ -20,6 +21,7 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
+	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -27,12 +29,13 @@ import (
 type Handler struct {
 	CpsActionHandler  actionInbound.CPSActionAdapter
 	UnlinkHandler     unlinkInbound.UnlinkAdapter
-	EventHandler      inbound.EventHandler
 	BpsHandler        bpsInbound.BPSUserHandler
 	FeedbackHandler   feedbackinterface.FeedbackAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
 	AdvertHandler     advertHandlerInterface.ADAdapter
+	EventHandler      eventInbound.EventAdapter
+	WalletHandler     walletInbound.WalletAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -45,5 +48,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 	}
 }

@@ -37,7 +37,7 @@ func ExtractID(w http.ResponseWriter, r *http.Request, logger utils.Logger) (str
 	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		logger.Errorf("[event.extractID] missing or invalid parameter 'id'")
-		localization.SendBadRequestResponse(w, "Missing id parametry")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return "", false
 	}
 	return id, true
@@ -62,7 +62,7 @@ func ParseTime(timeStr, fieldName string, isOptional bool, logger utils.Logger) 
 // parseBannerImage handles banner image parsing with size limit of 2MB
 func ParseBannerImage(r *http.Request, isUpdate bool, logger utils.Logger) (*multipart.FileHeader, error) {
 	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
-	if err != nil && (err.Error() != "Error missing file" && !isUpdate) {
+	if err != nil && (err.Error() != localization.ErrorMissingFile.Code && !isUpdate) {
 		logger.Errorf("[ad.parseBannerImage] error parsing file: %v", err)
 		return nil, err
 	}
