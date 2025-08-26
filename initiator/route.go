@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
@@ -55,5 +56,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
+	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

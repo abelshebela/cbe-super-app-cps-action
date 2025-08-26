@@ -3,6 +3,7 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
+	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
@@ -29,6 +30,7 @@ type ServiceLayer struct {
 	BpsUser    service.BPSUserService
 	Advert     service.AdvertService
 	PortalCard service.PortalCardService
+	ValidationService service.AccountValidationService
 	Wallet     service.WalletService
 }
 
@@ -41,6 +43,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
+	accountValidation:=accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
+
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 
@@ -52,6 +56,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 		PortalCard:   portalCardService,
+		ValidationService: accountValidation,
 		Wallet:       walletService,
 	}
 }

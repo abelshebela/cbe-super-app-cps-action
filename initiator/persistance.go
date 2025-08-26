@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
 	"cbe-super-app-cps-action/internal/storage/persistance/account_block"
+	accountvalidation "cbe-super-app-cps-action/internal/storage/persistance/account_validation"
 	"cbe-super-app-cps-action/internal/storage/persistance/advert"
 	"cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth"
 	"cbe-super-app-cps-action/internal/storage/persistance/auth_tier"
@@ -38,7 +39,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
-	"cbe-super-app-cps-action/internal/storage/persistance/validation_rule"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -84,7 +84,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),
 		PasswordRulePersistence:    password_rule.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
-		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
+		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
 	}
 
