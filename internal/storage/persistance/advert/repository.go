@@ -103,7 +103,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 
 	allowedKeys := []string{"title", "description", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
-
+	
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{

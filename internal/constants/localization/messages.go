@@ -253,6 +253,10 @@ const (
 
 // Error Messages
 const (
+	MsgInvalidKey     = "Invalid key"
+	MsgInvalidEncData = "Invalid encryption data"
+	MsgInvalidPadding = "Invalid padding"
+
 	// User related error messages
 	MsgUserNotFound             = "User not found"
 	MsgUserAlreadyExists        = "User already exists"
@@ -696,7 +700,24 @@ const (
 
 	MsgMissingOrInvalidImage = "Missing or invalid image"
 
+	MsgBranchSuccessfullyRetrieved    = "Branch retrieved successfully"
+	MsgBranchesSuccessfullyRetrieved  = "Branches retrieved successfully"
+	MsgBranchesSuccessfullyEnabled    = "Branches enabled successfully"
+	MsgBranchesSuccessfullyDisabled   = "Branches disabled successfully"
 
-	MsgBranchSuccessfullyRetrieved = "Branch retrieved successfully"
-	MsgBranchesSuccessfullyRetrieved = "Branches retrieved successfully"
+	MsgRegionSuccessfullyRetrieved    = "Region retrieved successfully"
+	MsgRegionsSuccessfullyRetrieved   = "Regions retrieved successfully"
+	MsgRegionsSuccessfullyEnabled     = "Regions enabled successfully"
+	MsgRegionsSuccessfullyDisabled   = "Regions disabled successfully"
+
+	MsgDistrictSuccessfullyRetrieved  = "District retrieved successfully"
+	MsgDistrictsSuccessfullyRetrieved = "Districts retrieved successfully"
+	MsgDistrictsSuccessfullyEnabled   = "Districts enabled successfully"
+	MsgDistrictsSuccessfullyDisabled   = "Districts disabled successfully"
+
+	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
+	MsgCitiesSuccessfullyRetrieved = "Cities retrieved successfully"
+	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
+	MsgCitiesSuccessfullyDisabled   = "Cities disabled successfully"
+	
 )

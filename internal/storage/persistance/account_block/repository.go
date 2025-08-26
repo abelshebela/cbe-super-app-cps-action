@@ -1,6 +1,7 @@
 package account_block
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -176,6 +177,30 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 }
 
 // Standard CRUD operations for City
+
+func (a *AccountBlockStorage) GetCityByCode(ctx context.Context, cityCode string) (*model.City, error) {
+
+	filter := bson.M{"city_code": cityCode}
+	cityDoc, err := a.cityDal.FindOne(ctx, filter, nil)
+
+	if err != nil || cityDoc == nil {
+		return &model.City{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return &model.City{
+		ID:           cityDoc.ID,
+		City:         cityDoc.City,
+		CityCode:     cityDoc.CityCode,
+		CityName:     cityDoc.CityName,
+		DistrictID:   cityDoc.DistrictID,
+		DistrictName: cityDoc.DistrictName,
+		RegionID:     cityDoc.RegionID,
+		RegionName:   cityDoc.RegionName,
+		CreatedAt:    cityDoc.CreatedAt,
+		UpdatedAt:    cityDoc.UpdatedAt,
+		Enabled:      cityDoc.Enabled,
+	}, nil
+}
+
 func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.City) error {
 	if city.ID.IsZero() {
 		city.ID = bson.NewObjectID()
@@ -308,6 +333,24 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 }
 
 // Standard CRUD operations for Region
+
+func (a *AccountBlockStorage) GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error) {
+	filter := bson.M{"region_code": regionCode}
+	regionDoc, err := a.regionDal.FindOne(ctx, filter, nil)
+	if err != nil || regionDoc == nil {
+		return &model.Region{}, errors.New("REGION_NOT_FOUND")
+	}
+	return &model.Region{
+		ID:            regionDoc.ID,
+		RegionCode:    regionDoc.RegionCode,
+		RegionName:    regionDoc.RegionName,
+		RegionAddress: regionDoc.RegionAddress,
+		CreatedAt:     regionDoc.CreatedAt,
+		UpdatedAt:     regionDoc.UpdatedAt,
+		Enabled:       regionDoc.Enabled,
+	}, nil
+}
+
 func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.Region) error {
 	if region.ID.IsZero() {
 		region.ID = bson.NewObjectID()
@@ -445,6 +488,26 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 }
 
 // Standard CRUD operations for District
+
+func (a *AccountBlockStorage) GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error) {
+	filter := bson.M{"district_code": districtCode}
+	districtDoc, err := a.districtDal.FindOne(ctx, filter, nil)
+	if err != nil || districtDoc == nil {
+		return &model.District{}, errors.New("FAILED_TO_GET_DISTRICT")
+	}
+	return &model.District{
+		ID:              districtDoc.ID,
+		DistrictCode:    districtDoc.DistrictCode,
+		DistrictName:    districtDoc.DistrictName,
+		DistrictAddress: districtDoc.DistrictAddress,
+		RegionID:        districtDoc.RegionID,
+		RegionName:      districtDoc.RegionName,
+		CreatedAt:       districtDoc.CreatedAt,
+		UpdatedAt:       districtDoc.UpdatedAt,
+		Enabled:         districtDoc.Enabled,
+	}, nil
+}
+
 func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *model.District) error {
 	if district.ID.IsZero() {
 		district.ID = bson.NewObjectID()
@@ -581,6 +644,318 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 		Data: results,
 		Meta: types.PaginationMeta{TotalDocs: totalCount},
 	}, nil
+}
+
+
+func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType string, codes []string, cpsAction model.CPSAction, requestType constants.RequestAction) error {
+	var filter bson.M
+
+	switch blockType {
+	case "BRANCH":
+		filter = bson.M{"branch_code": bson.M{"$in": codes}}
+
+		// Check branches exists
+		_, err := a.branchDal.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return errors.New("BRANCH_NOT_FOUND")
+			}
+			return errors.New("GENERAL_DB_QUERY_FAILED")
+		}
+
+		// Check if duplicate action is requested
+		var boolStatus bool
+		switch requestType {
+		case constants.RequestEnableBranches:
+			boolStatus = true
+		case constants.RequestDisableBranches:
+			boolStatus = false
+		}
+
+		for _, code := range codes {
+			dupFilter := bson.M{"branch_code": code, "enabled": boolStatus}
+			branch, err := a.branchDal.FindOne(ctx, dupFilter, nil)
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					continue
+				}
+				return errors.New("database error while finding user")
+			}
+
+			if branch.Enabled == boolStatus {
+				return errors.New("DUPLICATE_ACTION")
+			}
+		}
+	case "REGION":
+		filter = bson.M{"region_code": bson.M{"$in": codes}}
+
+		_, err := a.regionDal.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return errors.New("REGION_NOT_FOUND")
+			}
+			return errors.New("GENERAL_DB_QUERY_FAILED")
+		}
+
+		var boolStatus bool
+		switch requestType {
+		case constants.RequestEnableRegion:
+			boolStatus = true
+		case constants.RequestDisableRegion:
+			boolStatus = false
+		}
+
+		for _, code := range codes {
+			dupFilter := bson.M{"region_code": code, "enabled": boolStatus}
+			branch, err := a.regionDal.FindOne(ctx, dupFilter, nil)
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					continue
+				}
+				return errors.New("database error while finding user")
+			}
+
+			if branch.Enabled == boolStatus {
+				return errors.New("DUPLICATE_ACTION")
+			}
+		}
+	case "DISTRICT":
+		filter = bson.M{"district_code": bson.M{"$in": codes}}
+
+		_, err := a.districtDal.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return errors.New("DISTRICT_NOT_FOUND")
+			}
+			return errors.New("GENERAL_DB_QUERY_FAILED")
+		}
+
+		var boolStatus bool
+		switch requestType {
+		case constants.RequestEnableDistrict:
+			boolStatus = true
+		case constants.RequestDisableDistrict:
+			boolStatus = false
+		}
+
+		for _, code := range codes {
+			dupFilter := bson.M{"district_code": code, "enabled": boolStatus}
+			branch, err := a.districtDal.FindOne(ctx, dupFilter, nil)
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					continue
+				}
+				return errors.New("database error while finding user")
+			}
+
+			if branch.Enabled == boolStatus {
+				return errors.New("DUPLICATE_ACTION")
+			}
+		}
+	case "CITY":
+		filter = bson.M{"city_code": bson.M{"$in": codes}}
+
+		_, err := a.cityDal.FindOne(ctx, filter, bson.M{})
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				return errors.New("CITY_NOT_FOUND")
+			}
+			return errors.New("GENERAL_DB_QUERY_FAILED")
+		}
+		var boolStatus bool
+		switch requestType {
+		case constants.RequestEnableCity:
+			boolStatus = true
+		case constants.RequestDisableCity:
+			boolStatus = false
+		}
+
+		for _, code := range codes {
+			dupFilter := bson.M{"city_code": code, "enabled": boolStatus}
+			branch, err := a.cityDal.FindOne(ctx, dupFilter, nil)
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					continue
+				}
+				return errors.New("database error while finding user")
+			}
+
+			if branch.Enabled == boolStatus {
+				return errors.New("DUPLICATE_ACTION")
+			}
+		}
+	}
+
+	// Check for any pending action
+	maker := local_util.ExtractUserFromContext(ctx)
+	pendingFilter := bson.M{
+		"maker_id":       maker.UserID,
+		"department":     maker.Department,
+		"action_status":  "PENDING",
+		"request_action": requestType,
+	}
+
+	pendingAction, err := a.actionDal.FindOne(ctx, pendingFilter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return errors.New("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
+		return errors.New("PENDING_ACTION_EXISTS")
+	}
+
+	_, err = a.actionDal.InsertOne(ctx, cpsAction)
+	if err != nil {
+		return errors.New("database errorwhile creating CPS action")
+	}
+
+	return nil
+}
+
+func (a *AccountBlockStorage) AuthorizeEnableBranches(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.Branch](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"branch_code": service.BranchCode}
+		update := bson.M{"enabled": true}
+		_, err = a.branchDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeDisableBranches(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.Branch](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"branch_code": service.BranchCode}
+		update := bson.M{"enabled": false}
+		_, err = a.branchDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeEnableRegions(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.Region](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"region_code": service.RegionCode}
+		update := bson.M{"enabled": true}
+		_, err = a.regionDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeDisableRegions(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.Region](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"region_code": service.RegionCode}
+		update := bson.M{"enabled": false}
+		_, err = a.regionDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeEnableDistricts(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.District](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"district_code": service.DistrictCode}
+		update := bson.M{"enabled": true}
+		_, err = a.districtDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeDisableDistrict(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.District](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"district_code": service.DistrictCode}
+		update := bson.M{"enabled": false}
+		_, err = a.districtDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeEnableCities(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.City](action.CurrentAction)
+	a.logger.Infof("Data: %v\n", data)
+	if err != nil {
+		return nil, err
+	}
+	for _, code := range *data {
+		filter := bson.M{"city_code": code.CityCode}
+		update := bson.M{"enabled": true}
+		a.logger.Infof("Filter:", filter)
+		a.logger.Infof("Update:", update)
+		_, err = a.cityDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			a.logger.Errorf("Error", err)
+			return nil, err
+		}
+	}
+
+	return action, nil
+}
+
+func (a *AccountBlockStorage) AuthorizeDisableCities(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	data, err := local_util.JsonUnmarshal[[]model.City](action.CurrentAction)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, service := range *data {
+		filter := bson.M{"city_code": service.CityCode}
+		update := bson.M{"enabled": false}
+		_, err = a.cityDal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return action, nil
 }
 
 // The rest of the code remains unchanged (bulk enable/disable/approve methods)
