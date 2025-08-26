@@ -349,9 +349,9 @@ type ServiceDetailsRepository interface {
 }
 
 type ValidationRuleRepository interface {
-	GetAccountValidationByID(ctx context.Context, id string) (*model.ValidationRule, error)
-	UpdateAccountValidation(ctx context.Context, id string, rule *model.ValidationRule) error
-	GetAllAccountValidation(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
+	FindByID(ctx context.Context, id string) (*model.ValidationRule, error)
+	Update(ctx context.Context, id string, rule *model.ValidationRule) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
 type WalletRepository interface {

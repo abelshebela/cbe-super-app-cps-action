@@ -5,7 +5,7 @@ import (
 )
 
 type AccountValidation interface {
-	FetchAccountValidation(w http.ResponseWriter, r *http.Request)
-	FetchAllAccountValidation(w http.ResponseWriter, r *http.Request)
-	UpdateAccountValidation(w http.ResponseWriter, r *http.Request)
+	FindById(w http.ResponseWriter, r *http.Request)
+	FindAllWithPagination(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
 }

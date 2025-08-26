@@ -35,7 +35,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	localization.SendSuccessResponse(w,localization.SuccessAvatarCreated,nil,nil)
+	localization.SendSuccessResponse(w,localization.SuccessAvatarCreated,nil,)
 }
 func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	

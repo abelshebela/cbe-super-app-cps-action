@@ -22,16 +22,16 @@ func NewAccountValidationService(validationData storage.ValidationRuleRepository
 	}
 }
 
-func (s *accountValidationService) UpdateAccountValidation(ctx context.Context, id string, rule *model.ValidationRule) error {
-	return s.validationRule.UpdateAccountValidation(ctx, id, rule)
+func (s *accountValidationService) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
+	return s.validationRule.Update(ctx, id, rule)
 }
 
-func (s *accountValidationService) GetAccountValidation(ctx context.Context, id string) (*model.ValidationRule, error) {
-	return s.validationRule.GetAccountValidationByID(ctx, id)
+func (s *accountValidationService) FindById(ctx context.Context, id string) (*model.ValidationRule, error) {
+	return s.validationRule.FindByID(ctx, id)
 }
 
-func (s *accountValidationService) GetAllAccountValidation(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
-	return s.validationRule.GetAllAccountValidation(ctx, filterParam)
+func (s *accountValidationService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
+	return s.validationRule.FindAllWithPagination(ctx, filterParam)
 }
 
 func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {

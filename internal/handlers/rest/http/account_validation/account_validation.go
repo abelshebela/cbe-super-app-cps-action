@@ -24,28 +24,25 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 		logger:                   logger,
 	}
 }
-func (h *accountValidationAdapter) FetchAccountValidation(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id") // get from path instead of query
+
+func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id") 
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequest.Code)
 		return
 	}
 
-	resp, err := h.accountValidationService.GetAccountValidation(r.Context(), id)
+	resp, err := h.accountValidationService.FindById(r.Context(), id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	data, err := StructToMap(resp)
-	if err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, data)
+	// Send the struct directly instead of converting to map
+	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, resp)
 }
 
-func (h *accountValidationAdapter) UpdateAccountValidation(w http.ResponseWriter, r *http.Request) {
+func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// ─── Parse Request Body ───────────────────────────────────────────────
@@ -84,18 +81,18 @@ func (h *accountValidationAdapter) UpdateAccountValidation(w http.ResponseWriter
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := dto.ToModel(req)
 
-	if err := h.accountValidationService.UpdateAccountValidation(r.Context(), id, rule); err != nil {
+	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorValidationRuleUpdateFailed, nil, nil)
 		return
 	}
 
 	// ─── Success Response ────────────────────────────────────────────────
 	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, map[string]interface{}{
-		"maker": maker, // optional, if you want to include info
+		"maker": maker,
 	})
 }
 
-func (s *accountValidationAdapter) FetchAllAccountValidation(w http.ResponseWriter, r *http.Request) {
+func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
@@ -103,7 +100,7 @@ func (s *accountValidationAdapter) FetchAllAccountValidation(w http.ResponseWrit
 	}
 	ctx := r.Context()
 
-	accountValidation, err := s.accountValidationService.GetAllAccountValidation(ctx, *filterParams)
+	accountValidation, err := s.accountValidationService.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

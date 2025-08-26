@@ -32,7 +32,7 @@ func NewAccountValidationStore(client *mongo.Client, dbName string, collection s
 }
 
 // GetAccountValidationByID implements ValidationRuleRepository
-func (l *AccountValidationStore) GetAccountValidationByID(ctx context.Context, id string) (*model.ValidationRule, error) {
+func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*model.ValidationRule, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (l *AccountValidationStore) GetAccountValidationByID(ctx context.Context, i
 }
 
 // UpdateAccountValidation implements ValidationRuleRepository
-func (a *AccountValidationStore) UpdateAccountValidation(ctx context.Context, id string, rule *model.ValidationRule) error {
+func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -67,17 +67,20 @@ func (a *AccountValidationStore) UpdateAccountValidation(ctx context.Context, id
 }
 
 // GetAllAccountValidation implements ValidationRuleRepository
-func (l *AccountValidationStore) GetAllAccountValidation(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
+func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
 	filter := bson.M{"is_deleted": false}
 
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{}
+	allowedKeys := []string{"enabled"}
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["validation_rule"] = searchRegex // choose your searchable field(s)
+		searchKeys["$or"] = []bson.M{
+			{"validation_rule": searchRegex},
+			{"entity_type": searchRegex},
+		} // choose your searchable field(s)
 	}
 
 	// 4. Build filter, skip, limit

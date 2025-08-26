@@ -14,7 +14,7 @@ func Init(router chi.Router, handler accountvalidation.AccountValidation, authMi
 		{
 			Method:  http.MethodGet,
 			Path:    "/account_validation/{id}",
-			Handler: handler.FetchAccountValidation,
+			Handler: handler.FindById,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
@@ -22,7 +22,7 @@ func Init(router chi.Router, handler accountvalidation.AccountValidation, authMi
 		{
 			Method:  http.MethodGet,
 			Path:    "/account_validation",
-			Handler: handler.FetchAllAccountValidation,
+			Handler: handler.FindAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
@@ -30,7 +30,7 @@ func Init(router chi.Router, handler accountvalidation.AccountValidation, authMi
 		{
 			Method:  http.MethodPatch,
 			Path:    "/account_validation/update/{id}",
-			Handler: handler.UpdateAccountValidation,
+			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
