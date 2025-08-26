@@ -12,6 +12,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -65,7 +66,6 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	if err != nil {
 		return err
 	}
-
 	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
 
 	if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -76,6 +76,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 }
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 
+	fmt.Println("--------------Authorize--------------")
 	if cpsAction.ActionStatus != constants.Approved {
 		u.logger.Errorf("Try to authorize the collection without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)

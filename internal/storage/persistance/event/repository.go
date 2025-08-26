@@ -130,7 +130,7 @@ func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, e
 	return &result, nil
 }
 
-func (e *EventStorage) FindByName(ctx context.Context, name string) (*model.Event, error) {
+func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, error) {
 	if name == "" {
 		e.logger.Warnf("FindByName called with empty name")
 		return nil, errors.New(localization.ErrorEventNameRequired.Code)
@@ -155,24 +155,19 @@ func (e *EventStorage) FindByName(ctx context.Context, name string) (*model.Even
 	return &result, nil
 }
 
-
-
 func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
-	e.logger.Infof("FindAllWithPagination called with filter: %+v", filterParam)
-
-	filter := bson.M{"is_deleted": false}
-	searchKeys := bson.M{}
-
-	allowedKeys := []string{"event_code", "event_name", "event_city", "account_number", "event_venue"}
+	allowedKeys := []string{"event_city", "event_venue", "enabled", "status", "has_restriction"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["event_name"] = searchRegex
+		filter["$or"] = []bson.M{
+			{"event_code": searchRegex},
+			{"event_name": searchRegex},
+			{"event_city": searchRegex},
+			{"account_number": searchRegex},
+		}
 	}
-
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
-	e.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 
 	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

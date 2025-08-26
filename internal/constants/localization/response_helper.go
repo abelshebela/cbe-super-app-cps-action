@@ -38,7 +38,7 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:      true,
+		Ok:      false,
 		Status:  responseCode.StatusCode,
 		Message: responseCode.Message,
 		Data:    data,
@@ -83,6 +83,7 @@ func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
 	responseCode, ok := GetResponseCodeByCode(code)
 	if !ok {
 		SendErrorResponse(w, ErrorValidationFailed, nil, nil)
+		return
 	}
 	SendSuccessResponse(w, responseCode, nil)
 }

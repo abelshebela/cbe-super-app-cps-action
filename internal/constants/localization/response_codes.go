@@ -31,6 +31,25 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBankDisableRequestCreated,
 	SuccessBankEnableRequestCreated,
 	SuccessBankUpdatedRequestSent,
+	SuccessWalletEnableRequestSubmitted,
+	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletCreationRequestSent,
+	SuccessWalletUpdateRequestSent,
+	SuccessWalletDeleted,
+	SuccessWalletsRetrieved,
+	SuccessWalletRetrieved,
+
+	// Ad related success response codes
+	SuccessAdvertCreated,
+	SuccessAdvertCreateRequestSent,
+	SuccessAdvertUpdated,
+	SuccessAdvertUpdateRequestSent,
+	SuccessAdvertDeleted,
+	SuccessAdvertDeleteRequestSent,
+	SuccessAdvertFetched,
+	SuccessAdvertsFetched,
+	SuccessAdvertEnableRequestSent,
+	SuccessAdvertDisableRequestSent,
 
 	// Error codes
 	ErrorUserNotFound,
@@ -57,8 +76,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFeedbackSavedToDatabase,
 	ErrorHQApproved,
 	ErrorCPSActionStatusInvalid,
-	ErrorAdvertConstructed,
+	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
+	ErrorAdvertUpdate,
+	ErrorAdvertAlreadyEnabled,
+	ErrorAdvertAlreadyDisabled,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
@@ -88,6 +110,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDateFormat,
 	ErrorInvalidFileUpload,
 	ErrorInvalidNumberFormat,
+	ErrorUpdateEventEmptyPayload,
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
 	ErrorStartDateRequired,
@@ -99,17 +122,37 @@ var ResponseCodesList = []ResponseCode{
 	ErrorTicketsRequired,
 	ErrorBankAlreadyEnabled,
 	ErrorBankAlreadyDisabled,
-	ErrorSessionRetrievalFailed,
 	ErrorHealthCheck,
-	ErrorInvalidToken,
 	ErrorActionAlreadyExists,
-	ErrorGetOneBank,
 	ErrorNoDataProvidedForCreate,
 	ErrorNoDataProvidedForUpdate,
 	ErrorBankWithCodeAlreadyExists,
 	ErrorBankWithBICAlreadyExists,
 	ErrorBankWithNameAlreadyExists,
+	ErrorPendingCpsActionExists,
+	ErrorUnexpectedError,
+	ErrorFileNotFound,
+	ErrorSessionRetrievalFailed,
+	ErrorInvalidToken,
+	ErrorInvalidID,
+	ErrorMissingFile,
+	ErrorResourceNotFound,
+	ErrorInvalidInputParameters,
+	ErrorMissingOrInvalidImage,
 	// Add more as needed...
+	//wallet related error codes
+	ErrorWalletNameRequired,
+	ErrorWalletCodeRequired,
+	ErrorWalletAvatarRequired,
+	ErrorWalletAvatarInvalid,
+	ErrorWalletAvatarTooLarge,
+	ErrorWalletAvatarInvalidType,
+	ErrorWalletAlreadyExists,
+	ErrorWalletAlreadyDisabled,
+	ErrorWalletAlreadyEnabled,
+	ErrorWalletIDRequired,
+	ErrorWalletNotFound,
+	ErrorWalletUpdateEmptyPayload,
 }
 
 // Success Response Codes
@@ -441,9 +484,9 @@ var (
 	}
 
 	SuccessWalletDeleted = ResponseCode{
-		Code:       "SUCCESS_WALLET_DELETED",
+		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
-		Message:    MsgWalletDeletedSuccessfully,
+		Message:    MsgWalletDeleteRequestSent,
 		Type:       "success",
 	}
 
@@ -458,6 +501,27 @@ var (
 		Code:       "SUCCESS_WALLET_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgWalletRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	ErrorWalletIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet ID is required",
+		Type:       "error",
+	}
+
+	SuccessWalletEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disable request submitted successfully",
 		Type:       "success",
 	}
 
@@ -666,6 +730,97 @@ var (
 		Type:       "success",
 	}
 
+	//wallet related error codes
+
+	ErrorWalletAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+
+	ErrorWalletNotFound = ResponseCode{
+		Code:       "ERROR_WALLET_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Wallet not found",
+		Type:       "error",
+	}
+
+	ErrorWalletAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet is already enabled",
+		Type:       "error",
+	}
+	ErrorWalletUpdateEmptyPayload = ResponseCode{
+		Code:       "ERROR_WALLET_UPDATE_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for wallet update",
+		Type:       "error",
+	}
+
+	ErrorWalletAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+
+	ErrorInvalidID = ResponseCode{
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: 400,
+		Message:    "Invalid wallet ID",
+		Type:       "error",
+	}
+
+	ErrorNoDataProvided = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED",
+		StatusCode: 400,
+		Message:    "No data provided for update",
+		Type:       "error",
+	}
+
+	ErrorWalletNameRequired = ResponseCode{
+		Code:       "ERROR_WALLET_NAME_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet name is required",
+		Type:       "error",
+	}
+
+	ErrorWalletCodeRequired = ResponseCode{
+		Code:       "ERROR_WALLET_CODE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet code is required",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarRequired = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet avatar is required",
+		Type:       "error",
+	}
+	ErrorWalletAvatarInvalid = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_INVALID",
+		StatusCode: 400,
+		Message:    "Invalid wallet avatar",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarTooLarge = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_TOO_LARGE",
+		StatusCode: 400,
+		Message:    "Wallet avatar file size exceeds the limit",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarInvalidType = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_INVALID_TYPE",
+		StatusCode: 400,
+		Message:    "Wallet avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
+	}
+
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{
 		Code:       "SUCCESS_PORTAL_CARDS_FETCHED",
@@ -836,10 +991,17 @@ var (
 	}
 
 	// Ad related success response codes
-	SuccessAdvertConstructed = ResponseCode{
-		Code:       "SUCCESS_ADVERT_CONSTRUCTED",
+	SuccessAdvertCreated = ResponseCode{
+		Code:       "SUCCESS_ADVERT_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgAdvertConstructedSuccessfully,
+		Message:    MsgAdvertCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgAdvertCreatedRequestSent,
 		Type:       "success",
 	}
 
@@ -850,6 +1012,53 @@ var (
 		Type:       "success",
 	}
 
+	SuccessAdvertUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertDeleted = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessAdvertDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertFetched = ResponseCode{
+		Code:       "SUCCESS_ADVERT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertsFetched = ResponseCode{
+		Code:       "SUCCESS_ADVERTS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAdvertEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAdvertDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ADVERT_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAdvertDisableRequestSent,
+		Type:       "success",
+	}
 	// Account Validation related success response codes
 	SuccessValidationRuleApproved = ResponseCode{
 		Code:       "SUCCESS_VALIDATION_RULE_APPROVED",
@@ -1404,7 +1613,7 @@ var (
 	}
 
 	ErrorAccountNumberRequired = ResponseCode{
-		Code:       "ERROR_USER_ACCOUNT_NOT_FOUND",
+		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
@@ -1511,6 +1720,13 @@ var (
 		Code:       "ERROR_ACTION_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgCPSActionNotFound,
+		Type:       "error",
+	}
+
+	ErrorPendingCpsActionExists = ResponseCode{
+		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPendingCPSActionExists,
 		Type:       "error",
 	}
 
@@ -1621,6 +1837,12 @@ var (
 		Code:       "ERROR_EVENT_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    "Event ID is required",
+		Type:       "error",
+	}
+	ErrorUpdateEventEmptyPayload = ResponseCode{
+		Code:       "ERROR_UPDATE_EVENT_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided to update the event",
 		Type:       "error",
 	}
 
@@ -1869,6 +2091,26 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidActionData = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_DATA",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidActionData,
+		Type:       "error",
+	}
+	ErrorUnsupportedAction = ResponseCode{
+		Code:       "ERROR_UNSUPPORTED_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgUnsupportedAction,
+		Type:       "error",
+	}
+
+	ErrorMissingFile = ResponseCode{
+		Code:       "ERROR_MISSING_FILE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingFile,
+		Type:       "error",
+	}
+
 	ErrorFieldTooLong = ResponseCode{
 		Code:       "ERROR_FIELD_TOO_LONG",
 		StatusCode: StatusBadRequest,
@@ -1977,6 +2219,13 @@ var (
 		Code:       "ERROR_RESOURCE_BUSY",
 		StatusCode: StatusConflict,
 		Message:    MsgResourceBusy,
+		Type:       "error",
+	}
+
+	ErrorResourceNotFound = ResponseCode{
+		Code:       "ERROR_RESOURCE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
 
@@ -2587,17 +2836,30 @@ var (
 		Type:       "error",
 	}
 	// Ad Service related error response codes
-	ErrorAdvertConstructed = ResponseCode{
-		Code:       "ERROR_ADVERT_CONSTRUCTED",
+	ErrorAdvertCreated = ResponseCode{
+		Code:       "ERROR_ADVERT_CREATED",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertConstructedSuccess,
+		Message:    MsgAdvertCreateError,
 		Type:       "error",
 	}
 
 	ErrorAdvertUpdate = ResponseCode{
 		Code:       "ERROR_ADVERT_UPDATE",
 		StatusCode: StatusOK,
-		Message:    MsgAdvertUpdateSuccess,
+		Message:    MsgAdvertUpdateError,
+		Type:       "error",
+	}
+
+	ErrorAdvertAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ADVERT_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAdvertAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorAdvertAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ADVERT_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAdvertAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -2626,6 +2888,20 @@ var (
 		Code:       "ERROR_BANK_ENABLE_REQUEST",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgBankEnableRequestFailed,
+		Type:       "error",
+	}
+
+	ErrorInvalidInputParameters = ResponseCode{
+		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameters,
+		Type:       "error",
+	}
+
+	ErrorMissingOrInvalidImage = ResponseCode{
+		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingOrInvalidImage,
 		Type:       "error",
 	}
 )

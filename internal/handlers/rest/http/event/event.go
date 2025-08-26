@@ -1,6 +1,7 @@
 package eventhandler
 
 import (
+	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -17,7 +18,7 @@ type eventAdapter struct {
 	logger   utils.Logger
 }
 
-func InitEventAdapter(eventApp service.EventService, logger utils.Logger) *eventAdapter {
+func InitEventAdapter(eventApp service.EventService, logger utils.Logger) eventInbound.EventAdapter {
 	return &eventAdapter{
 		eventApp: eventApp,
 		logger:   logger,
@@ -65,7 +66,7 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	if req.IsEmpty() {
 		a.logger.Warnf("no data provided for event update, event ID: %s", id)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorResponse(w, localization.ErrorUpdateEventEmptyPayload, nil, nil)
 		return
 	}
 
