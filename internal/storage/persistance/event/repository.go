@@ -130,7 +130,7 @@ func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, e
 	return &result, nil
 }
 
-func (e *EventStorage) FindByName(ctx context.Context, name string) (*model.Event, error) {
+func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, error) {
 	if name == "" {
 		e.logger.Warnf("FindByName called with empty name")
 		return nil, errors.New(localization.ErrorEventNameRequired.Code)
