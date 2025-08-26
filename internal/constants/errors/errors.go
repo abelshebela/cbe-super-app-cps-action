@@ -104,6 +104,10 @@ var (
 	ErrSessionUpdateFailed        = errors.New("Failed to update Session")
 	ErrSessionRetrivalFailed      = errors.New("Failed to update Session")
 	ErrHealthCheckFailed          = errors.New("Failed to update Session")
+	
+	ErrInvalidID                  = errors.New("invalid id")
+	ErrGeneralDBQueryFailed       = errors.New("db query failed")
+	ErrProductCodeNotFound        = errors.New("db query failed")
 )
 
 var ErrorMap = map[error]int{
@@ -198,4 +202,8 @@ var ErrorMap = map[error]int{
 	ErrNoLinkedDevices:              http.StatusBadRequest,
 	ErrInvalidPassword:              http.StatusBadRequest,
 	ErrEmptyFilterParam:             http.StatusBadRequest,
+
+	ErrInvalidID:                    http.StatusBadRequest,
+	ErrGeneralDBQueryFailed:         http.StatusBadGateway,
+	ErrProductCodeNotFound:          http.StatusNotFound,
 }

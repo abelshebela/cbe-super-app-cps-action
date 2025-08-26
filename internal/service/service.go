@@ -1,6 +1,7 @@
 package service
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
 
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
@@ -90,7 +91,10 @@ type PortalCardService interface {
 }
 
 type ProductCodeService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	UpdateProductCode(ctx context.Context, request dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type ServiceService interface {
@@ -146,10 +150,10 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction)  error 
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error 
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) 
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) 
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 }
 
 type AccountSearchService interface {

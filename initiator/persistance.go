@@ -35,6 +35,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 	"cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
+	productcode "cbe-super-app-cps-action/internal/storage/persistance/product_code"
 	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
@@ -87,5 +88,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
 		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		ProductCodePersistence:     productcode.NewProductCodeRepository(client,dbName,"services",logger),
 	}
 }

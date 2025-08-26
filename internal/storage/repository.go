@@ -367,3 +367,9 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
+
+type ProductCodeRepository interface {
+	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	Update(ctx context.Context, productCode *model.ProductCode) (*model.ProductCode, error)
+}
