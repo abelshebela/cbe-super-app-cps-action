@@ -714,6 +714,7 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
+	MsgValidationRuleSuccessFech = "Validation rule feched successfully"
 
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 

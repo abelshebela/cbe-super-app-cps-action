@@ -131,6 +131,9 @@ type AccountBlockService interface {
 }
 
 type AccountValidationService interface {
+	Update(ctx context.Context, id string, rule *model.ValidationRule) error
+	FindById(ctx context.Context, id string) (*model.ValidationRule, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

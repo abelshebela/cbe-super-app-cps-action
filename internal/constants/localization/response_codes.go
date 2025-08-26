@@ -1067,6 +1067,13 @@ var (
 		Message:    MsgValidationRuleApprovedSuccessfully,
 		Type:       "success",
 	}
+	SuccessValidationRuleFetched = ResponseCode{
+		Code:       "SUCCESS_VALIDATION_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgValidationRuleSuccessFech,
+		Type:       "success",
+	}
+
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
