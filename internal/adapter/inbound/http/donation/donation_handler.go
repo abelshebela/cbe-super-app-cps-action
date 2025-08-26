@@ -360,6 +360,10 @@ func (h *DonationHttpStore) CreateDonation(w http.ResponseWriter, r *http.Reques
 		utils.SendErrorResponse(w, "DONATION_IMAGES_REQUIRED", http.StatusBadRequest, nil)
 		return
 	}
+		if len(coverImageFile) == 0 {
+		utils.SendErrorResponse(w, "COVER_IMAGES_REQUIRED", http.StatusBadRequest, nil)
+		return
+	}
 
 	target, err := parseDonationAmount(targetStr)
 	if err != nil {
