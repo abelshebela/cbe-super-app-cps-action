@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -36,9 +37,11 @@ type UserRepository interface {
 }
 
 type HQRepository interface {
-	FindOne(ctx context.Context, filter bson.M) (*model.HQ, error)
+	FindByID(ctx context.Context, id string) (*model.HQ, error)
+	Find(ctx context.Context) (*model.HQ, error)
+	Update(ctx context.Context, field string, value interface{}, now time.Time) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
 }
-
 type DeviceLinkHistoryRepository interface {
 	Save(ctx context.Context, deviceLinkHistory *model.DeviceLinkHistroy) error
 	Update(ctx context.Context, update *model.DeviceLinkHistroy) error

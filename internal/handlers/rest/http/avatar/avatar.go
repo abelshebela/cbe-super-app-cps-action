@@ -30,7 +30,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.CreateAvatar(r.Context(),&model.Avatar{Avatar: req.Avatar, Label: req.Label}); err !=nil  {
+	if err := a.avatarApplication.CreateAvatar(r.Context(),&model.Avatar{Avatar: req.Label}); err != nil{
 		localization.SendErrorByCodeResponse(w,err.Error())
 		return
 	}
@@ -38,7 +38,6 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w,localization.SuccessAvatarCreated,nil,)
 }
 func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
-	
 }
 func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {}
 func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {}

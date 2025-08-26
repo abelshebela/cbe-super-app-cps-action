@@ -40,10 +40,8 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, cpsAction.Department)
 
-	if err != nil {
-		if err.Error() != localization.ErrorActionNotFound.Code {
-			return err
-		}
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
 	}
 
 	if existing != nil {
