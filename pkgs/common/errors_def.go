@@ -2301,6 +2301,13 @@ var DefineError = ErrorDefinitions{
 			Message: "Donation images are required",
 			Status:  StatusBadRequest,
 		},
+		
+			"COVER_IMAGES_REQUIRED":{
+				Code:    "DON_013A",
+				Message: "Cover image is required",
+				Status:  StatusBadRequest,
+			},
+		
 		"COMPANY_NAME_ALREADY_EXISTS": {
 			Code:    "DON_014",
 			Message: "Company name already exists",
