@@ -369,3 +369,9 @@ type WalletRepository interface {
 	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
+
+type FaydaRepository interface {
+	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
+	AuthorizeEnableFaydaUser(ctx context.Context, user *model.User) error
+	AuthorizeDisableFaydaUser(ctx context.Context, user *model.User) error
+}

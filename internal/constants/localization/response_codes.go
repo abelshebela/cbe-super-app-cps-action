@@ -1669,6 +1669,20 @@ var (
 		Message:    msgDeleteBankRequestSuccess,
 		Type:       "success",
 	}
+
+	// Fayda Account
+	SuccessFaydaEnableActionCreated = ResponseCode{
+		Code:       "SUCCESS_FAYDA_ENABLE_ACTION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgFaydaAccountEnableCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessFaydaDisableActionCreated = ResponseCode{
+		Code:       "SUCCESS_FAYDA_DISABLE_ACTION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgFaydaAccountEnableCreatedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -3000,6 +3014,24 @@ var (
 		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgMissingOrInvalidImage,
+		Type:       "error",
+	}
+	ErrorFaydaUserAccountEnabled = ResponseCode{
+		Code:       "FAYDA_USER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgUserFaydaAccountAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorFaydaUserAccountDisabled = ResponseCode{
+		Code:       "FAYDA_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgUserFaydaAccountAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorNotFaydaUser = ResponseCode{
+		Code:       "USER_IS_NOT_FAYDA_USER",
+		StatusCode: StatusNotFound,
+		Message:    MsgNotFaydaUser,
 		Type:       "error",
 	}
 )

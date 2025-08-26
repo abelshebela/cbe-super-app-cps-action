@@ -727,4 +727,11 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// Fayda Account
+	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
+	MsgFaydaAccountDisableCreatedSuccessfully = "Fayda Account disable action submitted successfully"
+	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
+	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
+	MsgNotFaydaUser                           = "This user is not fayda user"
 )

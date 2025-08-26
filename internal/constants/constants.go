@@ -259,20 +259,12 @@ const (
 	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
 	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 
-	// Newly added for block_account
-	// Branch
-	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
-	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
-
-	// Region
-	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
-	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
-
-	// District
-	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
-	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
-
-	// City
+	RequestEnableBranches     RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches    RequestAction = "REQUEST_DISABLE_BRANCHES"
+	RequestEnableRegion       RequestAction = "REQUEST_ENABLE_REGION"
+	RequestDisableRegion      RequestAction = "REQUEST_DISABLE_REGION"
+	RequestEnableDistrict     RequestAction = "REQUEST_ENABLE_DISTRICT"
+	RequestDisableDistrict    RequestAction = "REQUEST_DISABLE_DISTRICT"
 	RequestEnableCity         RequestAction = "REQUEST_ENABLE_CITY"
 	RequestDisableCity        RequestAction = "REQUEST_DISABLE_CITY"
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
@@ -304,9 +296,13 @@ const (
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
-	ActionPending            RequestAction = "PENDING"
-	ActionApproved           RequestAction = "APPROVED"
-	ActionRejected           RequestAction = "REJECTED"
+
+	RequestDisableFaydaAccount RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount  RequestAction = "ENABLE_FAYDA_ACCOUNT"
+
+	ActionPending  RequestAction = "PENDING"
+	ActionApproved RequestAction = "APPROVED"
+	ActionRejected RequestAction = "REJECTED"
 )
 
 type RegistrationType string

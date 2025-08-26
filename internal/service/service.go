@@ -62,6 +62,7 @@ type EventService interface {
 }
 
 type FaydaAccountService interface {
+	EnableOrDisableFayda(ctx context.Context, user_code string, isEnable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
