@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/ad/core"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -50,7 +51,7 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, maker,prevData,curData, string(requestAction),string(actionType))
+	cpsAction := lib.CpsModelBuilder(uniqueID, maker, prevData, curData, string(requestAction), string(actionType))
 
 	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
@@ -146,7 +147,7 @@ func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
 		return err
 	}
 
-	curAdvert := GenerateAdvert(*prevAdvert)
+	curAdvert := core.GenerateAdvert(*prevAdvert)
 	curAdvert.IsDeleted = true
 	curAdvert.DeletedAt = time.Now()
 	curAdvert.LastUpdatedAt = time.Now()
@@ -181,7 +182,7 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 		return errors.New(localization.ErrorAdvertAlreadyDisabled.Code)
 	}
 
-	curAdvert := GenerateAdvert(*prevAdvert)
+	curAdvert := core.GenerateAdvert(*prevAdvert)
 	curAdvert.Enabled = enable
 	curAdvert.LastUpdatedAt = time.Now()
 

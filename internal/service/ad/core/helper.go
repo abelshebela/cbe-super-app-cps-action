@@ -1,4 +1,4 @@
-package ad
+package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"

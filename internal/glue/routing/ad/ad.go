@@ -1,84 +1,84 @@
 package ad
 
 import (
+	"net/http"
+
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/interfaces/ad"
+	ad "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
-	// local_util "cbe-super-app-cps-action/pkgs/utils"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, ad ad.ADAdapter, middleware middleware.AuthMiddleware ) {
-		routes := []glue.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/adverts/",
-				Handler: ad.CreateAdvert,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-					middleware.RequireFormContentType(),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/adverts/{id}",
-				Handler: ad.UpdateAdvert,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodDelete,
-				Path:    "/adverts/{id}",
-				Handler: ad.DeleteAdvert,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/adverts/{id}",
-				Handler: ad.FetchAdvertByID,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/adverts/",
-				Handler: ad.FetchAdverts,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/adverts/enable/{id}",
-				Handler: ad.EnableAdvert,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPatch,
-				Path:    "/adverts/disable/{id}",
-				Handler: ad.DisableAdvert,
-				Middlewares: []func(next http.Handler) http.Handler{
-					middleware.AuthenticateToken,
-					middleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				},
-			},
-		}
+func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.AuthMiddleware) {
 
-		glue.RegisterRoutes(router, routes)
-	
+	routes := []glue.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/",
+			Handler: handler.CreateAdvert,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/{id}",
+			Handler: handler.UpdateAdvert,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/{id}",
+			Handler: handler.DeleteAdvert,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/{id}",
+			Handler: handler.FetchAdvertByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/",
+			Handler: handler.FetchAdverts,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/enable/{id}",
+			Handler: handler.EnableAdvert,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/disable/{id}",
+			Handler: handler.DisableAdvert,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+	}
+
+	glue.RegisterRoutes(router, routes)
+
 }

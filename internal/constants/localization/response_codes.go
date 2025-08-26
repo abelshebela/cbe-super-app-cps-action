@@ -114,6 +114,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorInvalidID,
 	ErrorMissingFile,
+	ErrorResourceNotFound,
 
 	// Add more as needed...
 	//wallet related error codes
@@ -2078,6 +2079,13 @@ var (
 		Code:       "ERROR_RESOURCE_BUSY",
 		StatusCode: StatusConflict,
 		Message:    MsgResourceBusy,
+		Type:       "error",
+	}
+
+	ErrorResourceNotFound = ResponseCode{
+		Code:       "ERROR_RESOURCE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
 
