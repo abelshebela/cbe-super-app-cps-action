@@ -6,14 +6,16 @@ import (
 	"net/http"
 	"time"
 
+	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	"cbe-super-app-cps-action/internal/glue/routing/wallet"
+
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
-	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -48,6 +50,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
+	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)

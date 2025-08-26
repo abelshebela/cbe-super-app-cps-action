@@ -25,6 +25,13 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
 	SuccessAvatarCreated,
+	SuccessWalletEnableRequestSubmitted,
+	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletCreationRequestSent,
+	SuccessWalletUpdateRequestSent,
+	SuccessWalletDeleted,
+	SuccessWalletsRetrieved,
+	SuccessWalletRetrieved,
 
 	// Ad related success response codes
 	SuccessAdvertCreated,
@@ -110,6 +117,19 @@ var ResponseCodesList = []ResponseCode{
 	ErrorResourceNotFound,
 
 	// Add more as needed...
+	//wallet related error codes
+	ErrorWalletNameRequired,
+	ErrorWalletCodeRequired,
+	ErrorWalletAvatarRequired,
+	ErrorWalletAvatarInvalid,
+	ErrorWalletAvatarTooLarge,
+	ErrorWalletAvatarInvalidType,
+	ErrorWalletAlreadyExists,
+	ErrorWalletAlreadyDisabled,
+	ErrorWalletAlreadyEnabled,
+	ErrorWalletIDRequired,
+	ErrorWalletNotFound,
+	ErrorWalletUpdateEmptyPayload,
 }
 
 // Success Response Codes
@@ -441,9 +461,9 @@ var (
 	}
 
 	SuccessWalletDeleted = ResponseCode{
-		Code:       "SUCCESS_WALLET_DELETED",
+		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
-		Message:    MsgWalletDeletedSuccessfully,
+		Message:    MsgWalletDeleteRequestSent,
 		Type:       "success",
 	}
 
@@ -458,6 +478,27 @@ var (
 		Code:       "SUCCESS_WALLET_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgWalletRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	ErrorWalletIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet ID is required",
+		Type:       "error",
+	}
+
+	SuccessWalletEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disable request submitted successfully",
 		Type:       "success",
 	}
 
@@ -664,6 +705,97 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgProductCodesSuccessfullyRetrieved,
 		Type:       "success",
+	}
+
+	//wallet related error codes
+
+	ErrorWalletAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+
+	ErrorWalletNotFound = ResponseCode{
+		Code:       "ERROR_WALLET_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Wallet not found",
+		Type:       "error",
+	}
+
+	ErrorWalletAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet is already enabled",
+		Type:       "error",
+	}
+	ErrorWalletUpdateEmptyPayload = ResponseCode{
+		Code:       "ERROR_WALLET_UPDATE_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for wallet update",
+		Type:       "error",
+	}
+
+	ErrorWalletAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+
+	ErrorInvalidID = ResponseCode{
+		Code:       "ERROR_INVALID_ID",
+		StatusCode: 400,
+		Message:    "Invalid wallet ID",
+		Type:       "error",
+	}
+
+	ErrorNoDataProvided = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED",
+		StatusCode: 400,
+		Message:    "No data provided for update",
+		Type:       "error",
+	}
+
+	ErrorWalletNameRequired = ResponseCode{
+		Code:       "ERROR_WALLET_NAME_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet name is required",
+		Type:       "error",
+	}
+
+	ErrorWalletCodeRequired = ResponseCode{
+		Code:       "ERROR_WALLET_CODE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet code is required",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarRequired = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet avatar is required",
+		Type:       "error",
+	}
+	ErrorWalletAvatarInvalid = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_INVALID",
+		StatusCode: 400,
+		Message:    "Invalid wallet avatar",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarTooLarge = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_TOO_LARGE",
+		StatusCode: 400,
+		Message:    "Wallet avatar file size exceeds the limit",
+		Type:       "error",
+	}
+
+	ErrorWalletAvatarInvalidType = ResponseCode{
+		Code:       "ERROR_WALLET_AVATAR_INVALID_TYPE",
+		StatusCode: 400,
+		Message:    "Wallet avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
 	}
 
 	// Portal Card related success response codes
@@ -1822,13 +1954,6 @@ var (
 		Code:       "ERROR_UNSUPPORTED_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgUnsupportedAction,
-		Type:       "error",
-	}
-
-	ErrorInvalidID = ResponseCode{
-		Code:       "ERROR_INVALID_ID",
-		StatusCode: StatusBadRequest,
-		Message:    MsgInvalidID,
 		Type:       "error",
 	}
 

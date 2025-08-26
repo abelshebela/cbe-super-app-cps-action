@@ -6,6 +6,7 @@ import (
 
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -115,7 +116,13 @@ type UnlinkService interface {
 }
 
 type WalletService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
+	DeleteWallet(ctx context.Context, id string) error
+	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
+	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
+	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type AccountBlockService interface {

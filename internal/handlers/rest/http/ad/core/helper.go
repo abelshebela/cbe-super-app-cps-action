@@ -37,7 +37,7 @@ func ExtractID(w http.ResponseWriter, r *http.Request, logger utils.Logger) (str
 	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		logger.Errorf("[event.extractID] missing or invalid parameter 'id'")
-		localization.SendBadRequestResponse(w, localization.ErrorValidationFailed.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return "", false
 	}
 	return id, true

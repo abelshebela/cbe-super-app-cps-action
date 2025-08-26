@@ -17,7 +17,7 @@ func ParseEventRequestFromMultipartForm(r *http.Request, isCreate bool) (eventdt
 
 	_, fileHeader, err := utils.ParseMultipartFormFile(r, "cover_image", 2<<20)
 	if err != nil {
-		if err.Error() != localization.ErrorFileNotFound.Code || isCreate {
+		if err.Error() != localization.ErrorMissingFile.Code || isCreate {
 			return req, errors.New(localization.ErrorInvalidFileUpload.Code)
 		}
 	} else {
