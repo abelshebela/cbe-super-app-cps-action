@@ -46,7 +46,7 @@ import (
 )
 
 func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) persistance.Persistence {
-	return persistance.Persistence{
+	data := persistance.Persistence{
 		UserPersistence:              users.NewUserRepository(client, dbName, "users", logger),
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
@@ -87,4 +87,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
 	}
+
+	return data
 }

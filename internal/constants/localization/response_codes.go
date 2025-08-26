@@ -75,7 +75,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorUserCodeRequired,
-  
+
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
 	ErrorCoverImageRequired,
@@ -97,7 +97,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventCityRequired,
 	ErrorEventDescriptionRequired,
 	ErrorTicketsRequired,
-  
+
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
@@ -107,7 +107,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorInvalidID,
 	ErrorMissingFile,
-
+	ErrorResourceNotFound,
 
 	// Add more as needed...
 }
@@ -1533,7 +1533,7 @@ var (
 		Type:       "error",
 	}
 
-	ErrorPendingCpsActionExists =  ResponseCode{
+	ErrorPendingCpsActionExists = ResponseCode{
 		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgPendingCPSActionExists,
@@ -1950,6 +1950,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorResourceNotFound = ResponseCode{
+		Code:       "ERROR_RESOURCE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+
 	ErrorMaintenanceMode = ResponseCode{
 		Code:       "ERROR_MAINTENANCE_MODE",
 		StatusCode: StatusServiceUnavailable,
@@ -2062,7 +2069,7 @@ var (
 		Message:    MsgServiceUpdateFailedError,
 		Type:       "error",
 	}
-	
+
 	ErrorServiceAuthorizeDeleteFailed = ResponseCode{
 		Code:       "ERROR_SERVICE_AUTHORIZE_DELETE_FAILED",
 		StatusCode: StatusInternalServerError,

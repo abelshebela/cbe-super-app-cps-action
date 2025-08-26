@@ -33,6 +33,7 @@ type Handler struct {
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
+
 	return Handler{
 		UnlinkHandler:    unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler:       bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),

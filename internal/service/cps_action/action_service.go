@@ -51,10 +51,9 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
-	if err := ca.repo.Save(ctx, action); err != nil {
+	if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
 		return err
 	}
-
 	approve, err := ca.dispatcher.Authorize(ctx, action)
 	if err != nil && approve == nil {
 		ca.RollBack(ctx, action.ActionCode)
@@ -64,10 +63,6 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	return nil
 }
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
-	data, err := ca.GetCPSActionByActionCode(ctx, action_code, action.Department)
-	if err != nil && data == nil {
-		return errors.New(localization.ErrorActionNotFound.Code)
-	}
 
 	return ca.repo.Update(ctx, action_code, *action)
 }

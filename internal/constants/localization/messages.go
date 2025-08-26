@@ -632,6 +632,8 @@ const (
 
 	// CPS Action related error messages
 	MsgCPSActionRejectionPayloadDecodeFailed = "Failed to decode rejection payload"
+	MsgCPSActionRejectionReason              = "rejection_reason is required"
+	MsgCPSActionRejectionReasonLength        = "rejection_reason must be between 10 and 300 characters"
 
 	// Permission related error messages
 	MsgPermissionGroupRequestCreationFailed = "Failed to create permission group request"

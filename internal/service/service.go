@@ -95,7 +95,8 @@ type PermissionService interface {
 }
 
 type PortalCardService interface {
-	// Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
+	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
 type ProductCodeService interface {
