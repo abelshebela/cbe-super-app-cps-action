@@ -166,7 +166,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
 
-
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -180,7 +179,6 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceFetchSuccessfully,
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
-
 }
 
 // Success Response Codes
@@ -1101,7 +1099,6 @@ var (
 		Type:       "success",
 	}
 
-
 	// Password rule
 	SuccessFetchAllPasswordRules = ResponseCode{
 		Code:       "SUCCESS_ALL_PASSWORD_RULE_FETCHED",
@@ -1115,7 +1112,6 @@ var (
 		Message:    MsgUpdatePasswordRule,
 		Type:       "success",
 	}
-
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{

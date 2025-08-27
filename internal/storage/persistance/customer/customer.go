@@ -1,8 +1,10 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"context"
+	"errors"
 	"fmt"
 
 	"cbe-super-app-cps-action/internal/storage"
@@ -12,7 +14,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 type CustomerRepository struct {
@@ -32,80 +36,50 @@ func InitCustomerDetail(client *mongo.Client, database string, collection string
 }
 
 func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
-	// Build filter from filterParam
-	fmt.Println("perstistance 1")
-
-	filter := make(map[string]interface{})
-	// if filterParam.Search != "" {
-	// 	filter["$text"] = map[string]interface{}{"$search": filterParam.Search}
+	// 1. Base filter (only active records)
+	// filter := bson.M{"is_deleted": false}
+	// Add additional filters from filterParam.Filters if provided
+	// for k, v := range filterParam.Filters {
+	// 	filter[k] = v
 	// }
-	for k, v := range filterParam.Filters {
-		filter[k] = v
-	}
+	searchKeys := bson.M{}
 
-	// Pagination options
-	page := filterParam.Page
-	if page < 1 {
-		page = 1
-	}
-	limit := filterParam.PerPage
-	if limit < 1 {
-		limit = 10
-	}
-	skip := (page - 1) * limit
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{}
 
-	// Projection (if needed, otherwise pass nil or default)
-	var projection map[string]interface{}
-	// If you have projection in Filter, handle here
+	// 3. Add search (if provided)
+	// if filterParam.Search != "" {
+	// 	searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+	// 	searchKeys["field1"] = searchRegex // choose your searchable field(s)
+	// }
 
-	// Convert skip and limit to int64
-	skip64 := int64(skip)
-	limit64 := int64(limit)
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// Query database
-	users, err := p.mongoDal.FindAllWithPagination(ctx, filter, projection, skip64, limit64)
+	// 5. Fetch data
+	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+
 	if err != nil {
-		p.logger.Errorf("Failed to fetch users: ", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	fmt.Println("perstistance 2")
+	fmt.Printf("data: %v", data)
 
-	// Prepare paginated response
-	total := int64(len(users)) // You should ideally get the total count from DB, not just the current page length
-
-	totalPages := int((total + int64(limit) - 1) / int64(limit))
-	pagingCounter := skip + 1
-	hasPrevPage := page > 1
-	hasNextPage := page < totalPages
-
-	var prevPage *int
-	var nextPage *int
-	if hasPrevPage {
-		p := page - 1
-		prevPage = &p
-	}
-	if hasNextPage {
-		n := page + 1
-		nextPage = &n
+	// 6. Count total
+	total, err := p.mongoDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	resp := &types.PaginatedResponse[[]*model.User]{
-		Data: users,
-		Meta: types.PaginationMeta{
-			TotalDocs:     total,
-			Limit:         limit,
-			TotalPages:    totalPages,
-			Page:          page,
-			PagingCounter: pagingCounter,
-			HasPrevPage:   hasPrevPage,
-			HasNextPage:   hasNextPage,
-			PrevPage:      prevPage,
-			NextPage:      nextPage,
-		},
-	}
+	// 7. Build pagination metadata
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return resp, nil
+	// 8. Return standard paginated response
+	return &types.PaginatedResponse[[]*model.User]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }
+
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
 	fmt.Println("persistance 1")
 	objID, err := bson.ObjectIDFromHex(id)
