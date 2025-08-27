@@ -20,6 +20,7 @@ import (
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/department"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
@@ -40,6 +41,7 @@ type Handler struct {
 	AdvertHandler     advertHandlerInterface.ADAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
+	DepartmentHandler department.DepartmentHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -55,5 +57,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		DepartmentHandler: department.NewDepartmentHandler(serviceLayer.Department, logger),
 	}
 }

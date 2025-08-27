@@ -185,10 +185,19 @@ type BankRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
 	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
+type DepartmentRepository interface {
+	Create(ctx context.Context, department *model.Department) error
+	Update(ctx context.Context, id string, department *model.Department) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.Department, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+}
 
 type PortalCardRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
 	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
+	ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error)
 }
 
 type ColorRepository interface {
@@ -364,4 +373,8 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+}
+
+type PermissionGroupRepository interface {
+	ValidatePermissionGroupByID(ctx context.Context, ids []string) (bool, error)
 }

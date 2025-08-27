@@ -16,6 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/city"
 	"cbe-super-app-cps-action/internal/storage/persistance/color"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
+	"cbe-super-app-cps-action/internal/storage/persistance/department"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -86,6 +87,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
 		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 	}
 
 	return data

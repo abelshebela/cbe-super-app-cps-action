@@ -8,6 +8,7 @@ import (
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
+	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
@@ -34,6 +35,7 @@ type ServiceLayer struct {
 	Advert            service.AdvertService
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
+	Department        service.DepartmentService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -50,6 +52,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
+	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionGroupPersistence, logger)
 
 	return ServiceLayer{
 		Bank:              bank_service,
@@ -62,5 +65,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
+		Department:        departmentService,
 	}
 }
