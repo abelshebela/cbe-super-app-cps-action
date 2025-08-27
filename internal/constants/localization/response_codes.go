@@ -166,6 +166,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
 
+
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -179,6 +180,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceFetchSuccessfully,
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
+
 }
 
 // Success Response Codes
@@ -1098,6 +1100,22 @@ var (
 		Message:    MsgValidationRuleSuccessFech,
 		Type:       "success",
 	}
+
+
+	// Password rule
+	SuccessFetchAllPasswordRules = ResponseCode{
+		Code:       "SUCCESS_ALL_PASSWORD_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgFetchAllPasswordRules,
+		Type:       "success",
+	}
+	SuccessUpdatePasswordRule = ResponseCode{
+		Code:       "SUCCESS_UPDATE_PASSWORD_RULE",
+		StatusCode: StatusOK,
+		Message:    MsgUpdatePasswordRule,
+		Type:       "success",
+	}
+
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
@@ -2442,6 +2460,14 @@ var (
 		Code:       "ERROR_SERVICE_UNKNOWN_REQUEST_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgServiceUnknownRequestAction,
+		Type:       "error",
+	}
+
+	// Password Rule
+	ErrorNoPasswordRule = ResponseCode{
+		Code:       "ERROR_PASSWORD_RULE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgPasswordRuleNotFound,
 		Type:       "error",
 	}
 

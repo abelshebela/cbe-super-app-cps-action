@@ -722,7 +722,10 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-	MsgInvalidInputParameters = "Invalid input parameters provided"
+	MsgInvalidInputParameters        = "Invalid input parameters provided"
+	MsgMissingOrInvalidImage         = "Missing or invalid image"
 
-	MsgMissingOrInvalidImage = "Missing or invalid image"
+	// Password Rule
+	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
+	MsgUpdatePasswordRule    = "Update request submitted for approval"
 )

@@ -16,7 +16,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/wallets/",
+			Path:    "/wallets",
 			Handler: wallet.CreateWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -52,7 +52,7 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/wallets/",
+			Path:    "/wallets",
 			Handler: wallet.GetAllWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

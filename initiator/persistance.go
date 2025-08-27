@@ -34,6 +34,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 	"cbe-super-app-cps-action/internal/storage/persistance/password_rule"
+	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
 	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
@@ -81,9 +82,9 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		// DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
 		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
 		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
-
-		FeedbackPersistence: feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
-		IconPersistence:     icon.NewIconRepository(client, dbName, "icons", logger),
+		PasswordRulePersistent:     password.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
+		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
+		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
 		// LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
 		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchant", logger),
 		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),

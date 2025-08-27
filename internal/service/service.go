@@ -7,6 +7,7 @@ import (
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -77,7 +78,15 @@ type FeedbackService interface {
 }
 
 type HQService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
+	GetHQ(ctx context.Context, id string) (hqDto.HQ, error)
+	GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, error)
+	GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeResponse, error)
+	GetPasswordExpiry(ctx context.Context) (hqDto.PasswordExpiryResponse, error)
+	UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlockTimeRequest) error
+	UpdateArchiveTime(ctx context.Context, request hqDto.UpdateArchiveTimeRequest) error
+	UpdatePasswordExpiry(ctx context.Context, request hqDto.UpdatePasswordExpiryRequest) error
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppService interface {
@@ -94,6 +103,9 @@ type NotificationService interface {
 }
 
 type PasswordRuleService interface {
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
