@@ -248,10 +248,10 @@ const (
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
 
 	// HQ related success messages
-	MsgHQFetchedSuccessfully  = "HQ fetched successfully"
-	MsgHQsFetchedSuccessfully = "HQs fetched successfully"
-	MsgHQBlockTImeFetchedSuccessfully = "HQ BlockTime fetched successfully"
-	MsgHQArchiveTimeFetchedSuccessfully = "HQ ArchiveTime fetched successfully"
+	MsgHQFetchedSuccessfully               = "HQ fetched successfully"
+	MsgHQsFetchedSuccessfully              = "HQs fetched successfully"
+	MsgHQBlockTImeFetchedSuccessfully      = "HQ BlockTime fetched successfully"
+	MsgHQArchiveTimeFetchedSuccessfully    = "HQ ArchiveTime fetched successfully"
 	MsgHQPasswordExpiryFetchedSuccessfully = "HQ PasswordExpiry fetched successfully"
 
 	// Wallet related success messages
@@ -720,9 +720,11 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
-	MsgValidationRuleSuccessFech = "Validation rule feched successfully"
+	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+	MsgInvalidInputParameters        = "Invalid input parameters provided"
+	MsgMissingOrInvalidImage         = "Missing or invalid image"
 
-	MsgInvalidInputParameters = "Invalid input parameters provided"
-
-	MsgMissingOrInvalidImage = "Missing or invalid image"
+	// Password Rule
+	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
+	MsgUpdatePasswordRule    = "Update request submitted for approval"
 )
