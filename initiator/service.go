@@ -29,7 +29,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewproductCodeService(persistence.ProductCodePersistence, logger)
+	productService := productcode.NewproductCodeService(persistence.ProductCodePersistence,cpsActionService, logger)
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 		BpsUser:   bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),

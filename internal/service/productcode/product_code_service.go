@@ -2,9 +2,12 @@ package productcode
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -15,24 +18,26 @@ import (
 )
 
 // productCodeService implements Service
-type productCodeService struct {//todo: make the struct 
-	repo   storage.ProductCodeRepository
-	logger shared_utils.Logger
+type productCodeService struct { //todo: make the struct private
+	repo       storage.ProductCodeRepository
+	cpsService service.CPSActionService
+	logger     shared_utils.Logger
 }
 
 // NewService creates a new productCodeService
-func NewproductCodeService(repo storage.ProductCodeRepository, logger shared_utils.Logger) service.ProductCodeService {
+func NewproductCodeService(repo storage.ProductCodeRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.ProductCodeService {
 	return &productCodeService{
-		repo:   repo,
-		logger: logger,
+		repo:       repo,
+		cpsService: cpsService,
+		logger:     logger,
 	}
 }
-
 
 func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("Authorization requested for action: %s", cpsAction.RequestAction)
 	cpsAction.ActionStatus = "APPROVED"
-	return cpsAction, nil
+	s.repo.Update(ctx, cpsAction.CurrentAction.(*model.ProductCode))
+	return cpsAction, s.repo.Update(ctx, cpsAction.CurrentAction.(*model.ProductCode))
 }
 
 // FetchByID fetches a product code by ID
@@ -52,11 +57,13 @@ func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterPar
 		s.logger.Errorf("[ProductCode.FetchAll] failed to fetch product codes, error: %v", err)
 		return nil, err
 	}
+
 	return response, nil
 }
 
 // Update updates a product code
 func (s *productCodeService) UpdateProductCode(ctx context.Context, request productcode.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error) {
+	makerData := utils.ExtractUserFromContext(ctx)
 	existing, err := s.repo.FetchByID(ctx, request.ID)
 	if err != nil {
 		s.logger.Errorf("[ProductCode.Update] failed to fetch existing product code, id: %s, error: %v", request.ID, err)
@@ -64,23 +71,24 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	}
 
 	updated := &model.ProductCode{
-		ID:                 request.ID,
+		ID:                 existing.ID,
 		ProductName:        utils.NonEmptyString(request.ProductName, existing.ProductName),
 		CBEProductCodes:    model.NonEmptyProductCodes(request.CBEProductCodes, existing.CBEProductCodes),
 		CBEIFBProductCodes: model.NonEmptyProductCodes(request.CBEIFBProductCodes, existing.CBEIFBProductCodes),
 		CreatedAt:          existing.CreatedAt,
 		LastUpdatedAt:      time.Now(),
 	}
-
-	return updated, existing, nil
+	ThereIsUpdate := true
+	if existing.ProductName == updated.ProductName &&
+		existing.CBEIFBProductCodes == updated.CBEIFBProductCodes &&
+		existing.CBEProductCodes == updated.CBEProductCodes {
+		ThereIsUpdate = false
+	}
+	if ThereIsUpdate {
+		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, existing, updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
+		err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
+	} else {
+		err = fmt.Errorf("there is no update %v and %v have the same value", "existing product code", "new product code")
+	}
+	return existing, updated, err
 }
-
-// Helper functions
-
-
-// TODO: Add CPS action handling when the service is available
-// func (s *productCodeService) handleCPSAction(ctx context.Context, maker cps_entities.User, requestAction constant.RequestAction, curData, prevData interface{}, actionType constant.ActionType) error {
-//     // This method needs to be implemented when CPS action service is available
-//     // It should create CPS actions for approval workflow
-//     return fmt.Errorf("CPS action handling not yet implemented")
-// }

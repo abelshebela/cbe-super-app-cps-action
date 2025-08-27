@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	cps_errors "cbe-super-app-cps-action/internal/constants/errors"
 
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -22,14 +23,14 @@ import (
 )
 
 type ProductCodeStorage struct {
-	producCodeDal dal.MongoDal[model.ProductCode, model.ProductCode]
+	producCodeDal dal.MongoDal[model.ServiceDetails, model.ServiceDetails]
 	logger        utils.Logger
 }
 
 // NewProductCodeRepository creates a new repository instance
 func NewProductCodeRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ProductCodeRepository {
 	return &ProductCodeStorage{
-		producCodeDal: dal.NewMongoDal[model.ProductCode, model.ProductCode](client, dbName, collection),
+		producCodeDal: dal.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collection),
 		logger:        logger,
 	}
 }
@@ -49,7 +50,7 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 		"is_deleted": false,
 	}
 
-	pc, err := p.producCodeDal.FindOne(ctx, filter, bson.M{})
+	services, err := p.producCodeDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Errorf("[productcode.FetchByID] Product code not found for ID %s: %v", id, err)
@@ -58,6 +59,7 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 		p.logger.Errorf("[productcode.FetchByID] Database query failed for ID %s: %v", id, err)
 		return nil, cps_errors.ErrGeneralDBQueryFailed
 	}
+	pc := productcode.ToProducCode(*services)
 
 	p.logger.Infof("[productcode.FetchByID] Successfully fetched product code with ID: %s", id)
 	return pc, nil
@@ -73,22 +75,34 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 
 	skip := (filterParams.Page - 1) * filterParams.PerPage
 	limit := filterParams.PerPage
+	for k, v := range filterParams.Filters {
+		if k == "_id" {
+			val, ok := local_util.StringToObjectID(v.(string))
+			if !ok {
+				continue
+			}
+			v = val
+		}
+		filter[k] = v
+	}
+	fmt.Println("this is the final filter", filter)
 
-	productCodeDocs, err := r.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
+	services, err := r.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, int64(skip), int64(limit))
 	if err != nil {
 		r.logger.Errorf("[productcode.FetchAll] Failed to fetch product codes: %v", err)
 		return nil, cps_errors.ErrGeneralDBQueryFailed
 	}
 
 	var productCodes []*model.ProductCode
-	for _, doc := range productCodeDocs {
+	for _, doc := range services {
+		pc_response := productcode.ToProducCode(*doc)
 		productCodes = append(productCodes, &model.ProductCode{
-			ID:                 doc.ID,
-			ProductName:        doc.ProductName,
-			CBEProductCodes:    model.ProductCodes(doc.CBEProductCodes),
-			CBEIFBProductCodes: model.ProductCodes(doc.CBEIFBProductCodes),
-			CreatedAt:          doc.CreatedAt,
-			LastUpdatedAt:      doc.LastUpdatedAt,
+			ID:                 pc_response.ID,
+			ProductName:        pc_response.ProductName,
+			CBEProductCodes:    model.ProductCodes(pc_response.CBEProductCodes),
+			CBEIFBProductCodes: model.ProductCodes(pc_response.CBEIFBProductCodes),
+			CreatedAt:          pc_response.CreatedAt,
+			LastUpdatedAt:      pc_response.LastUpdatedAt,
 		})
 	}
 
@@ -106,13 +120,13 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	}, nil
 }
 
-func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.ProductCode) (*model.ProductCode, error) {
+func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.ProductCode) error {
 	p.logger.Infof("[productcode.Update] Updating product code with ID: %s", productCode.ID)
 
 	objID, ok := local_util.StringToObjectID(productCode.ID)
 	if !ok {
 		p.logger.Errorf("[productcode.Update] Failed to parse ID %s: %v", productCode.ID, "invalid product id")
-		return nil, fmt.Errorf("invalid product id")
+		return fmt.Errorf("invalid product id")
 	}
 
 	filter := bson.M{
@@ -127,16 +141,15 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 		"last_modified_at":      time.Now(),
 	}
 
-	res, err := p.producCodeDal.UpdateOne(ctx, filter, update)
+	_, err := p.producCodeDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Errorf("[productcode.Update] Product code not found for ID %s: %v", productCode.ID, err)
-			return nil, cps_errors.ErrProductCodeNotFound
+			return cps_errors.ErrProductCodeNotFound
 		}
 		p.logger.Errorf("[productcode.Update] Database update failed for ID %s: %v", productCode.ID, err)
-		return nil, cps_errors.ErrGeneralDBQueryFailed
+		return cps_errors.ErrGeneralDBQueryFailed
 	}
 
-	p.logger.Infof("[productcode.Update] Successfully updated product code with ID: %s", productCode.ID)
-	return &res, nil
+	return nil
 }

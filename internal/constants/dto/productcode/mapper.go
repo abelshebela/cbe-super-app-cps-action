@@ -13,8 +13,6 @@ func ToDomainProductCodeRequest(httpRequest UpdateProductCodeRequest) UpdateProd
 	}
 }
 
-
-
 // ToProductCodeResponse converts a domain ProductCode to a ProductCodeResponse
 func ToProductCodeResponse(productCode model.ProductCode) ProductCodeResponse {
 	return ProductCodeResponse{
@@ -41,4 +39,15 @@ func ToProductCodeResponses(productCodes []*model.ProductCode) []*ProductCodeRes
 		}
 	}
 	return responses
+}
+
+func ToProducCode(service model.ServiceDetails) *model.ProductCode {
+	return &model.ProductCode{
+		ID:                 service.ID.Hex(),
+		ProductName:        service.ServiceName,
+		CBEProductCodes:    model.ProductCodes(service.CBEProductCodes),
+		CBEIFBProductCodes: model.ProductCodes(service.CBEIFBProductCodes),
+		CreatedAt:          service.CreatedAt,
+		LastUpdatedAt:      service.LastModifiedAt,
+	}
 }

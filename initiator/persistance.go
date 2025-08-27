@@ -88,6 +88,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
 		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
-		ProductCodePersistence:     productcode.NewProductCodeRepository(client,dbName,"services",logger),
+		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
 	}
 }

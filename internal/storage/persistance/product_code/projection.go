@@ -9,6 +9,7 @@ import (
 func ProductCodeMapper(productCode model.ProductCode) bson.M {
 	return bson.M{
 		"$set": bson.M{
+			"_id":                   productCode.ID,
 			"service_name":          productCode.ProductName,
 			"cbe_product_codes":     productCode.CBEProductCodes,
 			"cbe_ifb_product_codes": productCode.CBEIFBProductCodes,

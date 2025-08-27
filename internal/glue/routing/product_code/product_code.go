@@ -6,7 +6,6 @@ import (
 	"cbe-super-app-cps-action/internal/glue"
 
 	"cbe-super-app-cps-action/internal/handlers/middleware"
-	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -23,7 +22,6 @@ func Init(router chi.Router, handler productcode.ProductCodeAdapter, authMiddlew
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-					cpsGuard.RequireNoPendingCPSActionGuard(string(cpsaction.RequestUpdateProductCode)),
 				},
 			},
 			{
