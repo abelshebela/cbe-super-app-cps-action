@@ -1085,7 +1085,6 @@ var (
 		Type:       "success",
 	}
 
-
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
 		Code:       "SUCCESS_FEEDBACK_SAVED",

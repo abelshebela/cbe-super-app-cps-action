@@ -85,7 +85,7 @@ func (a *hqAdapter) GetPasswordExpiry(w http.ResponseWriter, r *http.Request) {
 func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request hqDto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		localization.SendBadRequestResponse(w, "INVALID_JSON_PAYLOAD")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
 	var request hqDto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		localization.SendBadRequestResponse(w, "INVALID_JSON_PAYLOAD")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.Request) {
 	var request hqDto.UpdatePasswordExpiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		localization.SendBadRequestResponse(w, "INVALID_JSON_PAYLOAD")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
 		return
 	}
 
