@@ -18,4 +18,4 @@ func RegionMapper(region model.Region) bson.M {
 			"updated_at":     time.Now(),
 		},
 	}
-} 
+}

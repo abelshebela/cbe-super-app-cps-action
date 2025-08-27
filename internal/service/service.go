@@ -99,6 +99,9 @@ type NotificationService interface {
 }
 
 type PasswordRuleService interface {
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -197,15 +200,9 @@ type BudgetCategoryService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
-<<<<<<< HEAD
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
-=======
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
->>>>>>> 7178c8ec4e9dd451dbe035be6d29e8e7e730536c
 }
 
 type AccountSearchService interface {

@@ -8,8 +8,13 @@ import (
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
+	"cbe-super-app-cps-action/internal/service/event"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
-	 "cbe-super-app-cps-action/internal/service/productcode"
+	"cbe-super-app-cps-action/internal/service/hq"
+	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
+	password "cbe-super-app-cps-action/internal/service/password_rule"
+	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
+	"cbe-super-app-cps-action/internal/service/productcode"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -25,17 +30,26 @@ type ServiceLayer struct {
 	CPSAction service.CPSActionService
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
-	Unlink      service.UnlinkService
-	BpsUser     service.BPSUserService
-	ProductCode service.ProductCodeService
+	Unlink            service.UnlinkService
+	BpsUser           service.BPSUserService
+	Bank              service.BankService
+	PortalCard        service.PortalCardService
+	Advert            service.AdvertService
+	ValidationService service.AccountValidationService
+	Wallet            service.WalletService
+	PasswordRule      service.PasswordRuleService
+	HQService         service.HQService
+	ProductCode       service.ProductCodeService
 }
+
+var advertBucketName = "advert-bucket" // TODO: Add to config
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewproductCodeService(persistence.ProductCodePersistence,cpsActionService, logger)
+	productService := productcode.NewproductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
@@ -43,6 +57,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
+	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 
 	return ServiceLayer{
@@ -56,7 +71,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
+		PasswordRule:      passwordRule,
 		HQService:         hqService,
-		ProductCode: productService,
+		ProductCode:       productService,
 	}
 }

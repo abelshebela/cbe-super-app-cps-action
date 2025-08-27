@@ -24,24 +24,16 @@ type CPSAction struct {
 	ActionType         string        `bson:"action_type" json:"action_type,omitempty"`
 	IsDeleted          bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
 	RequestAction      string        `bson:"request_action" json:"request_action"`
-	
-	CreatedAt          time.Time     `bson:"created_at" json:"created_at,omitempty"`
-	LastModifiedAt     time.Time     `bson:"last_modified_at" json:"last_modified_at,omitempty"`
-	MakerActionTime    time.Time     `bson:"maker_action_time" json:"maker_action_time,omitempty"`
-	CheckerActionTime  *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
-}
-<<<<<<< HEAD
 
-=======
->>>>>>> 7178c8ec4e9dd451dbe035be6d29e8e7e730536c
+	CreatedAt         time.Time  `bson:"created_at" json:"created_at,omitempty"`
+	LastModifiedAt    time.Time  `bson:"last_modified_at" json:"last_modified_at,omitempty"`
+	MakerActionTime   time.Time  `bson:"maker_action_time" json:"maker_action_time,omitempty"`
+	CheckerActionTime *time.Time `bson:"checker_action_time" json:"checker_action_time,omitempty"`
+}
 type CheckCPSAction struct {
 	UserCode      string
 	FullName      string
 	PhoneNumber   string
 	Department    string
 	RequestAction string
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 7178c8ec4e9dd451dbe035be6d29e8e7e730536c

@@ -342,6 +342,7 @@ type PasswordRuleRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.PasswordRule, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	FindCurrentRule(ctx context.Context) (*model.PasswordRule, error)
 }
 
 type ServiceDetailsRepository interface {

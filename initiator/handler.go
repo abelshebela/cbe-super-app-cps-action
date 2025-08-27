@@ -11,6 +11,7 @@ import (
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	"cbe-super-app-cps-action/internal/constants/interfaces/productcode"
+	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
@@ -29,6 +30,7 @@ import (
 
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 
+	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
@@ -43,12 +45,15 @@ type Handler struct {
 	UnlinkHandler     unlinkInbound.UnlinkAdapter
 	EventHandler      eventInbound.EventAdapter
 	WalletHandler     walletInbound.WalletAdapter
+	PasswordHandler   passwordInbound.PasswordRule
 	BpsHandler        bpsInbound.BPSUserHandler
 	BankHandler       bank.BankHandler
 	FeedbackHandler   feedbackinterface.FeedbackAdapter
 	AdvertHandler     advertHandlerInterface.ADAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
+	HqHandler         hqInbound.HQAdapter
+	productCodeHandler productCodeHandler.ProductCodeAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -63,9 +68,10 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
 		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		PasswordHandler:   passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
-		HqHandler:        hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-
-		ProductCodeHandler: productCodeHandler.InitProductcodeAdapter(pcs, logger),
+		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
+		ProductCodeHandler: productCodeHandler.InitProductcodeAdapter(pcs,logger),
+	}
 }
 

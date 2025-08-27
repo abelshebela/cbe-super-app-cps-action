@@ -18,7 +18,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	customErr "cbe-super-app-cps-action/internal/constants/errors"
-	"cbe-super-app-cps-action/internal/constants/response"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -343,11 +342,10 @@ func TrimWhiteSpace(value interface{}) error {
 }
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
-	// TODO: Implement proper parameter extraction when utils.GetParam is available
-	// For now, use a simple approach
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		response.SendErrorResponse(w, customErr.ErrIdEmpty)
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return "", customErr.ErrIdEmpty
 	}
 	return id, nil
