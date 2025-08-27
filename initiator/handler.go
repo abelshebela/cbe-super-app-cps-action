@@ -5,7 +5,9 @@ import (
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
+	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
+	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
@@ -19,7 +21,9 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
+	// bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
@@ -30,16 +34,18 @@ import (
 )
 
 type Handler struct {
-	CpsActionHandler  actionInbound.CPSActionAdapter
-	UnlinkHandler     unlinkInbound.UnlinkAdapter
-	EventHandler      eventInbound.EventAdapter
-	WalletHandler     walletInbound.WalletAdapter
-	BpsHandler        bpsInbound.BPSUserHandler
-	BankHandler       bank.BankHandler
-	FeedbackHandler   feedbackinterface.FeedbackAdapter
-	AdvertHandler     advertHandlerInterface.ADAdapter
-	PortalCardHander  portalCardInterface.PortalCardAdapter
-	AccountValidation accountvalidationInterface.AccountValidation
+	CpsActionHandler   actionInbound.CPSActionAdapter
+	UnlinkHandler      unlinkInbound.UnlinkAdapter
+	EventHandler       eventInbound.EventAdapter
+	WalletHandler      walletInbound.WalletAdapter
+	BpsHandler         bpsInbound.BPSUserHandler
+	BankHandler        bank.BankHandler
+	FeedbackHandler    feedbackinterface.FeedbackAdapter
+	AdvertHandler      advertHandlerInterface.ADAdapter
+	PortalCardHander   portalCardInterface.PortalCardAdapter
+	AccountValidation  accountvalidationInterface.AccountValidation
+	bulkServiceHandler bulk_service_inbound.BulkServiceHandler
+	customerHandler    customerInbound.CustomerDetail
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -55,5 +61,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+
+		// bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
+		customerHandler: CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 	}
 }

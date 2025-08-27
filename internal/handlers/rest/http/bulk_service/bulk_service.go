@@ -29,7 +29,7 @@ type bulkService struct {
 	logger        utils.Logger
 }
 
-func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, logger utils.Logger) service.BulkService {
+func NewBulkServicwAdapter(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, logger utils.Logger) service.BulkService {
 	return &bulkService{
 		cpsActionRepo: CpsActionRepo,
 		repo:          repo,
@@ -163,3 +163,78 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 
 	return s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
 }
+
+// package bulk_service
+
+// import (
+// 	"cbe-super-app-cps-action/internal/constants/dto"
+// 	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
+
+// 	"cbe-super-app-cps-action/internal/service"
+// 	"encoding/json"
+// 	"net/http"
+
+// 	"cbe-super-app-cps-action/internal/constants/localization"
+// 	util "cbe-super-app-cps-action/pkgs/utils"
+
+// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+// )
+
+// type bulk_serviceAdapter struct {
+// 	bulkService service.BulkService
+// 	logger      utils.Logger
+// }
+
+// func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logger) bulk_service.BulkServiceHandler {
+// 	return &bulk_serviceAdapter{
+// 		logger:      logger,
+// 		bulkService: bulk_service,
+// 	}
+// }
+
+// func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
+// 	filter_params := util.ExtractFilterParams(r)
+// 	bulk_services, err := h.bulkService.GetAllBulkServices(r.Context(), filter_params)
+// 	if err != nil {
+// 		h.logger.Errorf("Error while fetch all bulk services: %v\n", err)
+// 		localization.SendErrorByCodeResponse(w, localization.MsgUnableToFetchBulkService.Code)
+// 		return
+// 	}
+
+// 	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, bulk_services)
+
+// }
+
+// func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
+
+// 	var req dto.BulkServiceDTO
+
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		h.logger.Errorf("failed to decode payload")
+// 	}
+
+// 	err := h.bulkService.EnableBulkService(r.Context(), req.Keys)
+// 	if err != nil {
+// 		h.logger.Errorf("Enable bulk service request failed: %v\n", err)
+// 		localization.SendBadRequestResponse(w, localization.MsgBadRequest)
+// 		return
+// 	}
+
+// 	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, nil)
+// }
+
+// func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
+// 	var req dto.BulkServiceDTO
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		h.logger.Errorf("failed to decode payload")
+// 	}
+
+// 	err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
+// 	if err != nil {
+// 		h.logger.Errorf("Disable bulk service request failed: %v\n", err)
+// 		localization.SendBadRequestResponse(w, localization.MsgBadRequest)
+// 		return
+// 	}
+
+// 	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, nil)
+// }

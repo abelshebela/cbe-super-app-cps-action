@@ -171,14 +171,85 @@ var (
 		Message:    MsgAvatarCreatedSuccessfully,
 		Type:       "success",
 	}
-
+	ErrorFailedToGetCustomerDetail = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_CUSTOMER_DETAIL",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get customer detail",
+		Type:       "error",
+	}
+	ErrorFailedToGetBlockedCustomer = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get blocked customer",
+		Type:       "error",
+	}
+	SuccessFullyFetchBlockCustomer = ResponseCode{
+		Code:       "SUCCESSFULLY_FETCH_BLOCKED_CUSTOMER",
+		StatusCode: StatusOK,
+		Message:    "Successfully fetched blocked customer(s)",
+		Type:       "success",
+	}
+	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_SUCCESSFULLY_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail successfully fetched",
+		Type:       "success",
+	}
 	SuccessUserUpdated = ResponseCode{
 		Code:       "SUCCESS_USER_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgUserUpdatedSuccessfully,
 		Type:       "success",
 	}
+	ErrorIdNotSetOnQueryParam = ResponseCode{
+		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
+		StatusCode: StatusBadRequest,
+		Message:    "ID not set on query parameter",
+		Type:       "error",
+	}
+	CustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_SUCCESSFULLY_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail successfully fetched",
+		Type:       "success",
+	}
+	BulkServiceFetchSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Bulk service(s) fetched successfully",
+		Type:       "success",
+	}
+	BulkServiceEnableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_ENABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service enable request processed successfully",
+		Type:       "success",
+	}
+	UnableToFetchBulkService = ResponseCode{
+		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unable to fetch bulk service",
+		Type:       "error",
+	}
+	BulkServiceDisableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_DISABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service disable request processed successfully",
+		Type:       "success",
+	}
+	ErrorKeyRequiredForBulkService = ResponseCode{
+		Code:       "ERROR_KEY_REQUIRED_FOR_BULK_SERVICE",
+		StatusCode: StatusBadRequest,
+		Message:    "Key is required for bulk service operation",
+		Type:       "error",
+	}
 
+	MsgUnableToFetchBulkService = ResponseCode{
+		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unable to fetch bulk service",
+		Type:       "error",
+	}
 	SuccessUserDeleted = ResponseCode{
 		Code:       "SUCCESS_USER_DELETED",
 		StatusCode: StatusOK,
@@ -1073,7 +1144,6 @@ var (
 		Message:    MsgValidationRuleSuccessFech,
 		Type:       "success",
 	}
-
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
