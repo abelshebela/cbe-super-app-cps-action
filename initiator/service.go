@@ -10,6 +10,8 @@ import (
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
+	"cbe-super-app-cps-action/internal/service/hq"
+
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
@@ -36,6 +38,7 @@ type ServiceLayer struct {
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
 	AccountBlock service.AccountBlockService
+	HQService         service.HQService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -53,6 +56,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 	accountBlockService:= accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
+	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 
 	return ServiceLayer{
 		Bank:              bank_service,
@@ -66,5 +70,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ValidationService: accountValidation,
 		Wallet:            walletService,
 		AccountBlock: accountBlockService,
+		HQService:         hqService,
 	}
 }

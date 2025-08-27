@@ -75,11 +75,6 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 
 	result := core.CreateEventMapper(event, code, URL)
 
-	if err := e.repo.Create(ctx, result); err != nil {
-		e.logger.Errorf("repo.Create failed", "error", err)
-		return err
-	}
-
 	e.logger.Infof("Event created successfully", "event_code", code)
 	if err := core.HandleCPSAction(ctx, e.cpsService, "", constants.RequestCreateEvent, result, nil, constants.ActionCreate); err != nil {
 		e.logger.Errorf("CPS action failed for event %s: %v", code, err)
@@ -114,11 +109,6 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 
 	curAction := core.EventMapperForUpdate(prevEvent, event, URL)
 
-	if err := e.repo.Update(ctx, id, &curAction); err != nil {
-		e.logger.Errorf("repo.Update failed", "event_id", id, "error", err)
-		return err
-	}
-
 	e.logger.Infof("Event updated successfully", "event_id", id)
 	err = core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestUpdateEvent, curAction, *prevEvent, constants.ActionUpdate)
 	if err != nil {
@@ -132,10 +122,6 @@ func (e *eventService) DeleteEvent(ctx context.Context, id string) error {
 	prevEvent, err := e.repo.FindByID(ctx, id)
 	if err != nil {
 		return errors.New(localization.ErrorEventNotFound.Code)
-	}
-
-	if err := e.repo.Delete(ctx, id); err != nil {
-		return err
 	}
 
 	curData := *prevEvent
@@ -168,11 +154,6 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorEventAlreadyDisabled.Code)
 	}
 
-	if err := e.repo.EnableOrDisable(ctx, id, enable); err != nil {
-		e.logger.Errorf("EnableOrDisable failed", "event_id", id, "enable", enable, "error", err)
-		return err
-	}
-
 	curData := *prevEvent
 	curData.Enabled = enable
 	curData.LastModifiedAt = time.Now()
@@ -185,7 +166,7 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 	}
 
 	e.logger.Infof("Event enable/disable action handled", "event_id", id, "enable", enable)
-	err=core.HandleCPSAction(ctx, e.cpsService, id, action, curData, *prevEvent, constants.ActionUpdate)
+	err = core.HandleCPSAction(ctx, e.cpsService, id, action, curData, *prevEvent, constants.ActionUpdate)
 	if err != nil {
 		e.logger.Errorf("CPS action failed for event %s: %v", curData.EventName, err)
 		return err
@@ -215,30 +196,15 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 		err = e.repo.Create(ctx, event)
 
 	case string(constants.RequestUpdateEvent):
-		if event.ID.IsZero() {
-			return nil, errors.New(localization.ErrorEventIDRequired.Code)
-		}
-		if event.EventName == "" && event.EventVenue == "" && event.EventCity == "" {
-			return nil, errors.New(localization.ErrorNoDataProvidedForUpdate.Code)
-		}
-		err = e.repo.Update(ctx, event.ID.Hex(), event)
+		err = e.repo.Update(ctx, event.ID.String(), event)
 
 	case string(constants.RequestDeleteEvent):
-		if event.ID.IsZero() {
-			return nil, errors.New(localization.ErrorEventIDRequired.Code)
-		}
 		err = e.repo.Delete(ctx, event.ID.Hex())
 
 	case string(constants.RequestEnableEvent):
-		if event.ID.IsZero() {
-			return nil, errors.New(localization.ErrorEventIDRequired.Code)
-		}
 		err = e.repo.EnableOrDisable(ctx, event.ID.Hex(), true)
 
 	case string(constants.RequestDisableEvent):
-		if event.ID.IsZero() {
-			return nil, errors.New(localization.ErrorEventIDRequired.Code)
-		}
 		err = e.repo.EnableOrDisable(ctx, event.ID.Hex(), false)
 
 	default:
