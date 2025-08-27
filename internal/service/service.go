@@ -79,8 +79,13 @@ type MiniAppService interface {
 }
 
 type MiniAppMerchantService interface {
-	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type NotificationService interface {

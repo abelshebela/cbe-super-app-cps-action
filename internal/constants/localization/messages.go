@@ -124,6 +124,9 @@ const (
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
+    MsgMiniAppMerchantDisable = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantEnableSuccessfully = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreatedSuccessfully = "Mini app merchant created successfully"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
@@ -592,7 +595,7 @@ const (
 	MsgMiniAppMerchantUnmarshalActionFailed  = "Failed to unmarshal action data"
 	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
-
+	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
 	MsgNotificationInsertFailed    = "Failed to insert notification"
@@ -694,7 +697,7 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
-	MsgValidationRuleSuccessFech = "Validation rule feched successfully"
+	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 

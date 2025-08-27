@@ -11,6 +11,7 @@ import (
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
@@ -57,5 +58,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
+	miniappmerchant.Init(r, handlerLayer.MiniAppMerchantHandler, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

@@ -26,12 +26,13 @@ type ServiceLayer struct {
 	CPSAction service.CPSActionService
 	Feedback  service.FeedbackService
 	// Services  service.ServiceContainer
-	Unlink     service.UnlinkService
-	BpsUser    service.BPSUserService
-	Advert     service.AdvertService
-	PortalCard service.PortalCardService
+	Unlink            service.UnlinkService
+	BpsUser           service.BPSUserService
+	Advert            service.AdvertService
+	PortalCard        service.PortalCardService
 	ValidationService service.AccountValidationService
-	Wallet     service.WalletService
+	Wallet            service.WalletService
+	MiniAppMerchant   service.MiniAppMerchantService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -42,21 +43,22 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
-	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
-	accountValidation:=accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
+	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
+	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 
-	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
+	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 
 	return ServiceLayer{
-		CPSAction:    cpsActionService,
-		Feedback:     feedbackService,
-		EventService: eventService,
-		Advert:       advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
-		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-		PortalCard:   portalCardService,
+		CPSAction:         cpsActionService,
+		Feedback:          feedbackService,
+		EventService:      eventService,
+		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
+		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
-		Wallet:       walletService,
+		Wallet:            walletService,
+		MiniAppMerchant:   miniAppMerchantService,
 	}
 }

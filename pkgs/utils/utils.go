@@ -10,6 +10,7 @@ import (
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ import (
 
 	"errors"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -308,8 +310,6 @@ func NonEmptyString(new, old string) string {
 	return old
 }
 
-
-
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
 func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
 	if new != "" {
@@ -319,7 +319,7 @@ func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
 }
 
 // nonEmptyAdvertDate returns the new date if non-zero, otherwise the old date
-func NonEmptyAdvertDate(new, old types.AdvertDate)types.AdvertDate {
+func NonEmptyAdvertDate(new, old types.AdvertDate) types.AdvertDate {
 	result := old
 	if !new.StartedAt.IsZero() {
 		result.StartedAt = new.StartedAt
@@ -336,4 +336,30 @@ func BindAction(source any, target any) error {
 		return err
 	}
 	return json.Unmarshal(bytes, target)
+}
+var allowedChars = "a-zA-Z0-9\\s._-"
+func NoSpecialChars(value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation", "invalid type")
+	}
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return nil
+	}
+
+	re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !re.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
+}
+
+func TrimWhiteSpace(value interface{}) error {
+	if s, ok := value.(string); ok {
+		if strings.TrimSpace(s) == "" {
+			return errors.New("value cannot be empty or whitespace")
+		}
+	}
+	return nil
 }

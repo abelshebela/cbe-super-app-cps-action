@@ -7,6 +7,7 @@ import (
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
+	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
@@ -19,6 +20,7 @@ import (
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
+	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
@@ -27,28 +29,30 @@ import (
 )
 
 type Handler struct {
-	CpsActionHandler  actionInbound.CPSActionAdapter
-	UnlinkHandler     unlinkInbound.UnlinkAdapter
-	BpsHandler        bpsInbound.BPSUserHandler
-	FeedbackHandler   feedbackinterface.FeedbackAdapter
-	PortalCardHander  portalCardInterface.PortalCardAdapter
-	AccountValidation accountvalidationInterface.AccountValidation
-	AdvertHandler     advertHandlerInterface.ADAdapter
-	EventHandler      eventInbound.EventAdapter
-	WalletHandler     walletInbound.WalletAdapter
+	CpsActionHandler       actionInbound.CPSActionAdapter
+	UnlinkHandler          unlinkInbound.UnlinkAdapter
+	BpsHandler             bpsInbound.BPSUserHandler
+	FeedbackHandler        feedbackinterface.FeedbackAdapter
+	PortalCardHander       portalCardInterface.PortalCardAdapter
+	AccountValidation      accountvalidationInterface.AccountValidation
+	AdvertHandler          advertHandlerInterface.ADAdapter
+	EventHandler           eventInbound.EventAdapter
+	WalletHandler          walletInbound.WalletAdapter
+	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 
 	return Handler{
-		UnlinkHandler:     unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler:        bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
-		CpsActionHandler:  cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
-		EventHandler:      eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
-		FeedbackHandler:   feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
-		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
-		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
-		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
-		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		UnlinkHandler:          unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
+		BpsHandler:             bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		CpsActionHandler:       cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		EventHandler:           eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
+		FeedbackHandler:        feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		PortalCardHander:       portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
+		AccountValidation:      accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		AdvertHandler:          advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		WalletHandler:          walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 	}
 }
