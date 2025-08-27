@@ -1,10 +1,16 @@
 package hq
 
 import (
-	"context"
-
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"context"
+	"errors"
+	"time"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -12,35 +18,92 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type hqRepository struct {
-	hqDal  dal.MongoDal[model.HQ, model.HQ]
+type HQStorage struct {
+	dal    dal.MongoDal[model.HQ, model.HQ]
+	client *mongo.Client
 	logger utils.Logger
 }
 
 func NewHQRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.HQRepository {
-	return &hqRepository{
-		hqDal:  dal.NewMongoDal[model.HQ, model.HQ](client, dbName, collection),
+	return &HQStorage{
+		dal:    dal.NewMongoDal[model.HQ, model.HQ](client, dbName, collection),
+		client: client,
 		logger: logger,
 	}
 }
 
-func (h *hqRepository) FindOne(ctx context.Context, filter bson.M) (*model.HQ, error) {
-	if filter == nil {
-		filter = bson.M{}
-	}
-	projection := HQProjection()
-
-	h.logger.Infof("Finding one HQ with filter: %v and projection: %v", filter, projection)
-
-	hq, err := h.hqDal.FindAll(ctx, filter, projection)
+func (h *HQStorage) FindByID(ctx context.Context, id string) (*model.HQ, error) {
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		h.logger.Errorf("Failed to find HQ: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+
+	result, err := h.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
 		return nil, err
 	}
-	if len(hq) == 0 {
-		h.logger.Warnf("No HQ found for filter: %v", filter)
-		return nil, mongo.ErrNoDocuments
+	return result, nil
+}
+func (p *HQStorage) Find(ctx context.Context) (*model.HQ, error) {
+	result, err := p.dal.FindOne(ctx, bson.M{}, bson.M{})
+	if err != nil {
+		p.logger.Errorf("failed to fetch HQ: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	h.logger.Infof("Successfully found HQ: %+v", hq[0])
-	return hq[0], nil
+	if result == nil {
+		p.logger.Errorf("HQ not found (single)")
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+	return result, nil
+}
+
+func (p *HQStorage) Update(ctx context.Context, field string, value interface{}, now time.Time) error {
+
+	hqDoc, err := p.Find(ctx)
+	if err != nil {
+		return err
+	}
+	updateDoc := bson.M{field: value}
+	switch field {
+	case "block_time":
+		updateDoc["updated_at_block"] = now
+	case "archive_time":
+		updateDoc["updated_at_archive"] = now
+	case "password_expiry":
+		updateDoc["updated_at_password_expiry"] = now
+	}
+	_, err = p.dal.UpdateOne(ctx, bson.M{"_id": hqDoc.ID}, updateDoc)
+	if err != nil {
+		p.logger.Errorf("failed to update HQ field %s: %v", field, err)
+		return err
+	}
+	return nil
+}
+
+func (h *HQStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.HQ], error) {
+
+	allowedKeys := []string{}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
+
+	data, err := h.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	total, err := h.dal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	return &types.PaginatedResponse[[]*model.HQ]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }
