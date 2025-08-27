@@ -149,6 +149,8 @@ type AdvertService interface {
 
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
+	Update(ctx context.Context, id string, authTier *model.AuthTier) error
 }
 
 type AvatarService interface {

@@ -4,6 +4,7 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
 	advert "cbe-super-app-cps-action/internal/service/ad"
+	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
@@ -30,6 +31,7 @@ type ServiceLayer struct {
 	Advert     service.AdvertService
 	PortalCard service.PortalCardService
 	Wallet     service.WalletService
+	AmountBasedAuth service.AmountBasedAuthService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -45,13 +47,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 
 	return ServiceLayer{
-		CPSAction:    cpsActionService,
-		Feedback:     feedbackService,
-		EventService: eventService,
-		Advert:       advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
-		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-		PortalCard:   portalCardService,
-		Wallet:       walletService,
+		CPSAction:                cpsActionService,
+		Feedback:                 feedbackService,
+		EventService:             eventService,
+		Advert:                   advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
+		BpsUser:                  bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Unlink:                   unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		PortalCard:               portalCardService,
+		Wallet:                   walletService,
+		AmountBasedAuth:          amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
 	}
 }

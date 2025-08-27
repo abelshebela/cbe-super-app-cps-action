@@ -4,7 +4,7 @@ import "net/http"
 
 
 type AmountBasedAuthAdapter interface {
-	GetAllAmountBasedDetail(w http.ResponseWriter, r *http.Request)
+	GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request)
 	UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request)
 	RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request)
 }

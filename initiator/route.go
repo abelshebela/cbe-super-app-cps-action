@@ -7,6 +7,7 @@ import (
 	"time"
 
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
+	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
@@ -51,6 +52,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
+	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)

@@ -2,6 +2,8 @@ package initiator
 
 import (
 	// Inbound section
+
+	amountBasedAuthInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
@@ -13,6 +15,7 @@ import (
 	// Handler section
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
+	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
@@ -25,10 +28,11 @@ import (
 )
 
 type Handler struct {
-	CpsActionHandler actionInbound.CPSActionAdapter
-	UnlinkHandler    unlinkInbound.UnlinkAdapter
-	EventHandler     eventInbound.EventAdapter
-	WalletHandler    walletInbound.WalletAdapter
+	CpsActionHandler      actionInbound.CPSActionAdapter
+	UnlinkHandler         unlinkInbound.UnlinkAdapter
+	EventHandler          eventInbound.EventAdapter
+	WalletHandler         walletInbound.WalletAdapter
+	AmountBasedAuthHandler amountBasedAuthInbound.AmountBasedAuthAdapter
 
 	BpsHandler       bpsInbound.BPSUserHandler
 	FeedbackHandler  feedbackinterface.FeedbackAdapter
@@ -39,13 +43,14 @@ type Handler struct {
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 
 	return Handler{
-		UnlinkHandler:    unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler:       bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
-		CpsActionHandler: cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
-		EventHandler:     eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
-		FeedbackHandler:  feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
-		PortalCardHander: portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
-		AdvertHandler:    advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
-		WalletHandler:    walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		UnlinkHandler:         unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
+		BpsHandler:            bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		CpsActionHandler:      cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		EventHandler:          eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
+		FeedbackHandler:       feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		PortalCardHander:      portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
+		AdvertHandler:         advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		WalletHandler:         walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 	}
 }
