@@ -1,13 +1,15 @@
 package wallet
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
-	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -18,21 +20,26 @@ import (
 
 type WalletStorage struct {
 	dal    dal.MongoDal[model.Wallet, model.Wallet]
-	client *mongo.Client
 	logger utils.Logger
 }
 
 func NewWalletRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.WalletRepository {
 	return &WalletStorage{
 		dal:    dal.NewMongoDal[model.Wallet, model.Wallet](client, dbName, collection),
-		client: client,
 		logger: logger,
 	}
 }
 
 func (w *WalletStorage) Create(ctx context.Context, wallet *model.Wallet) error {
-	_, err := w.dal.InsertOne(ctx, *wallet)
+	walletDoc, err := ToWalletDocument(*wallet)
 	if err != nil {
+		w.logger.Errorf("Failed to convert wallet to document: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	_, err = w.dal.InsertOne(ctx, *walletDoc)
+	if err != nil {
+		w.logger.Errorf("Failed to insert wallet: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -41,16 +48,31 @@ func (w *WalletStorage) Create(ctx context.Context, wallet *model.Wallet) error 
 func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wallet) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	updateData := WalletMapper(*wallet)
 
-	_, err = w.dal.UpdateOne(ctx, filter, updateData)
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"last_modified_at": time.Now()}
+	if wallet.Name != "" {
+		update["name"] = wallet.Name
+	}
+	if wallet.Code != "" {
+		update["code"] = wallet.Code
+	}
+	if wallet.Avatar != "" {
+		update["avatar"] = wallet.Avatar
+	}
+
+	if len(update) == 1 {
+		return errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return errors.New(localization.ErrorWalletNotFound.Code)
 		}
+		w.logger.Errorf("Failed to update wallet: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -59,31 +81,98 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
+
+	_, err = w.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return errors.New(localization.ErrorWalletNotFound.Code)
+		}
+		w.logger.Errorf("Failed to delete wallet: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	return nil
+}
+
+func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return w.dal.DeleteOne(ctx, filter)
+	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
+
+	_, err = w.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			w.logger.Warnf("Wallet ID %s not found for enable/disable", id)
+			return errors.New(localization.ErrorWalletNotFound.Code)
+		}
+		w.logger.Errorf("Failed to enable/disable wallet ID %s: %v", id, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	doc, err := w.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorWalletNotFound.Code)
+		}
+		w.logger.Errorf("FindByID wallet failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
 
-	result, err := w.dal.FindOne(ctx, filter, nil)
-
+	wallet, err := ToWallet(doc)
 	if err != nil {
-		return nil, err
+		w.logger.Errorf("Failed to convert document to wallet: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return result, nil
+
+	return wallet, nil
 }
 
-func (w *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
-	filter := bson.M{
-		"is_deleted": false,
+func (w *WalletStorage) Find(ctx context.Context, name string) (*model.Wallet, error) {
+	if name == "" {
+		w.logger.Warnf("FindByName called with empty name")
+		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
 	}
+
+	filter := bson.M{"name": name, "is_deleted": false}
+	doc, err := w.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			w.logger.Warnf("No wallet found with name: %s", name)
+			return nil, nil
+		}
+		w.logger.Errorf("FindByName wallet failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	wallet, err := ToWallet(doc)
+	if err != nil {
+		w.logger.Errorf("Failed to convert document to wallet: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return wallet, nil
+}
+
+func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
+	allowedKeys := []string{"name", "code", "enabled"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -92,24 +181,34 @@ func (w *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 			{"code": searchRegex},
 		}
 	}
-
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
-
-	data, err := w.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		e.logger.Errorf("FindAllWithPagination Wallet failed", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	total, err := w.dal.TotalCount(ctx, filter)
+	var wallets []*model.Wallet
+	for _, doc := range docs {
+		wallet, err := ToWallet(doc)
+		if err != nil {
+			e.logger.Errorf("Failed to convert document to wallet: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		wallets = append(wallets, wallet)
+	}
+
+	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		e.logger.Errorf("Count Wallet failed", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
+	e.logger.Infof("FindAllWithPagination returning %d wallets, total: %d", len(wallets), total)
+
 	return &types.PaginatedResponse[[]*model.Wallet]{
-		Data: data,
+		Data: wallets,
 		Meta: meta,
 	}, nil
-} 
+}

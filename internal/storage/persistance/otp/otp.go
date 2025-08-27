@@ -3,10 +3,12 @@ package otp
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -27,45 +29,33 @@ func NewOtpRepository(client *mongo.Client, dbName string, collection string, lo
 }
 
 func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*model.OTP, error) {
-	if filter == nil {
-		o.logger.Errorf("Find OTP failed: filter is not nil. filter=%+v", filter)
-		return nil, errors.ErrEmptyFilterParam
-	}
 
 	projection := OtpProjection()
 	otp, err := o.otpDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			o.logger.Errorf("OTP not found. filter=%+v", filter)
-			return nil, errors.ErrOTPNotFound
+			return nil, errors.New(localization.ErrorOTPNotFound.Code)
 		}
 		o.logger.Errorf("Unexpected error while finding OTP. error=%v, filter=%+v", err, filter)
-		return nil, errors.ErrUnexpected
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	o.logger.Infof("OTP found successfully. otp=%+v", otp)
 	return otp, nil
 }
 
 func (o *OTPRepository) Save(ctx context.Context, otp *model.OTP) error {
-	if otp == nil {
-		o.logger.Errorf("Save OTP failed: otp is nil")
-		return errors.ErrInvalidOTP
-	}
 
 	_, err := o.otpDal.InsertOne(ctx, *otp)
 	if err != nil {
 		o.logger.Errorf("Unexpected error while saving OTP. error=%v, otp=%+v", err, otp)
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	o.logger.Infof("OTP saved successfully. otp=%+v", otp)
 	return nil
 }
 
 func (o *OTPRepository) Delete(ctx context.Context, id string) error {
-	if id == "" {
-		o.logger.Errorf("Delete OTP failed: id is empty")
-		return errors.ErrIdEmpty
-	}
 
 	filter, err := local_util.FilterIdFor(id)
 	if err != nil {

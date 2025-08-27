@@ -8,8 +8,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/errors"
-	"cbe-super-app-cps-action/internal/constants/response"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/platform/logger"
 
 	"go.uber.org/zap"
@@ -52,7 +51,7 @@ func ChiCustomRecovery(logger logger.Logger, stack bool) func(next http.Handler)
 						)
 					}
 
-					response.SendErrorResponse(w, errors.ErrUnexpected)
+					localization.SendInternalServerErrorResponse(w, localization.ErrorUnexpectedError.Message)
 					return
 				}
 			}()

@@ -5,9 +5,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
 	"cbe-super-app-cps-action/internal/storage/persistance/account_block"
+	accountvalidation "cbe-super-app-cps-action/internal/storage/persistance/account_validation"
 	"cbe-super-app-cps-action/internal/storage/persistance/advert"
 	"cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth"
-	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/auth_tier"
 	"cbe-super-app-cps-action/internal/storage/persistance/avatar"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
@@ -16,6 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/city"
 	"cbe-super-app-cps-action/internal/storage/persistance/color"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
+	"cbe-super-app-cps-action/internal/storage/persistance/event"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
@@ -28,7 +29,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
-	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
@@ -40,7 +40,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
-	"cbe-super-app-cps-action/internal/storage/persistance/validation_rule"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -48,7 +47,7 @@ import (
 )
 
 func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) persistance.Persistence {
-	return persistance.Persistence{
+	data := persistance.Persistence{
 		UserPersistence:              users.NewUserRepository(client, dbName, "users", logger),
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
@@ -69,25 +68,27 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		AvatarPersistence:           avatar.NewAvatarRepository(client, dbName, "avatars", logger),
 		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "branch_user", logger),
 		AdvertRepositoryPersistence: advert.NewAdvertRepository(client, dbName, "adverts", logger),
-		ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
-		AuthTierPersistence:         auth_tier.NewAuthTierRepository(client, dbName, "auth_tiers", logger),
-		BankPersistence:             bank.NewBankRepository(client, dbName, "banks", logger),
-		ColorPersistence:            color.NewColorRepository(client, dbName, "colors", logger),
+		// ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
+		AuthTierPersistence: auth_tier.NewAuthTierRepository(client, dbName, "auth_tiers", logger),
+		BankPersistence:     bank.NewBankRepository(client, dbName, "banks", logger),
+		ColorPersistence:    color.NewColorRepository(client, dbName, "colors", logger),
 		// CpsUserPersistence:           cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
 		DonationPersistence: donation.NewDonationRepository(client, dbName, "donations", logger),
 		// DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
 		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
-		// EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
+		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
 
-		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
-		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
-		LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_account", logger),
-		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchants", logger),
+		FeedbackPersistence: feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
+		IconPersistence:     icon.NewIconRepository(client, dbName, "icons", logger),
+		// LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
+		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchant", logger),
 		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),
 		PasswordRulePersistence:    password_rule.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
-		ValidationRulePersistence:  validation_rule.NewValidationRuleRepository(client, dbName, "validation_rules", logger),
+		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
 		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
 	}
+
+	return data
 }

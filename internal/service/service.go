@@ -3,8 +3,13 @@ package service
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
+	"mime/multipart"
 
-	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
+	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
+	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -48,7 +53,13 @@ type DonationService interface {
 }
 
 type EventService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateEvent(ctx context.Context, event eventdto.EventRequest) error
+	UpdateEvent(ctx context.Context, id string, event eventdto.EventRequest) error
+	DeleteEvent(ctx context.Context, id string) error
+	EnableDisableEvent(ctx context.Context, id string, enable bool) error
+	FetchEventByID(ctx context.Context, id string) (*model.Event, error)
+	FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type FaydaAccountService interface {
@@ -57,13 +68,21 @@ type FaydaAccountService interface {
 
 type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*model.Feedback, error)
-	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
 }
 
 type HQService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
+	GetHQ(ctx context.Context, id string) (hqDto.HQ, error)
+	GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, error)
+	GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeResponse, error)
+	GetPasswordExpiry(ctx context.Context) (hqDto.PasswordExpiryResponse, error)
+	UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlockTimeRequest) error
+	UpdateArchiveTime(ctx context.Context, request hqDto.UpdateArchiveTimeRequest) error
+	UpdatePasswordExpiry(ctx context.Context, request hqDto.UpdatePasswordExpiryRequest) error
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppService interface {
@@ -71,6 +90,7 @@ type MiniAppService interface {
 }
 
 type MiniAppMerchantService interface {
+	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -87,7 +107,8 @@ type PermissionService interface {
 }
 
 type PortalCardService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
+	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
 type ProductCodeService interface {
@@ -109,7 +130,13 @@ type UnlinkService interface {
 }
 
 type WalletService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
+	DeleteWallet(ctx context.Context, id string) error
+	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
+	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
+	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type AccountBlockService interface {
@@ -117,6 +144,9 @@ type AccountBlockService interface {
 }
 
 type AccountValidationService interface {
+	Update(ctx context.Context, id string, rule *model.ValidationRule) error
+	FindById(ctx context.Context, id string) (*model.ValidationRule, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -125,7 +155,13 @@ type ActionService interface {
 }
 
 type AdvertService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error
+	FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FetchAdvertByID(ctx context.Context, id string) (*model.Advert, error)
+	UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error
+	DeleteAdvert(ctx context.Context, id string) error
+	EnableDisableAdvert(ctx context.Context, id string, enable bool) error
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type AmountBasedAuthService interface {
@@ -143,6 +179,16 @@ type AvatarService interface {
 
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
+
+	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
+
+	CreateOneBank(ctx context.Context, req bank_dto.CreateBankRequest) error
+	UpdateOneBank(ctx context.Context, id string, req bank_dto.UpdateBankRequest) error
+	DeleteOneBank(ctx context.Context, id string) error
+
+	EnableOrDisableBank(ctx context.Context, id string, enableDisable bool) error
+	UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error
 }
 
 type BudgetCategoryService interface {
@@ -151,9 +197,15 @@ type BudgetCategoryService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+<<<<<<< HEAD
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
+=======
+	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+>>>>>>> 7178c8ec4e9dd451dbe035be6d29e8e7e730536c
 }
 
 type AccountSearchService interface {

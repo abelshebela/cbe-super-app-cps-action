@@ -72,6 +72,14 @@ const (
 	MEMBER_REALM   Realm = "MEMBER"
 )
 
+type ActionType string
+
+const (
+	ActionDelete ActionType = "DELETE"
+	ActionUpdate ActionType = "UPDATE"
+	ActionCreate ActionType = "CREATE"
+)
+
 type Gender string
 
 const (
@@ -192,8 +200,10 @@ const (
 	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
 	RequestCreateBank               RequestAction = "CREATE_BANK"
 	RequestUpdateBank               RequestAction = "UPDATE_BANK"
+	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO	"
 	RequestDeleteBank               RequestAction = "DELETE_BANK"
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
+	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
 	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
@@ -269,6 +279,8 @@ const (
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
 
+	RequestDeleteEvent             RequestAction = "DELETE_EVENT"
+	RequestEnableEvent             RequestAction = "ENABLE_EVENT"
 	RequestCreateEvent             RequestAction = "CREATE_EVENT"
 	RequestUpdateEvent             RequestAction = "UPDATE_EVENT"
 	RequestCreateEventCategory     RequestAction = "CREATE_EVENT_CATEGORY"
@@ -284,7 +296,7 @@ const (
 	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
 	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
 	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
-	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+	RequestDeleteBudgetIcAdvertServiceon  RequestAction = "BUDGET_DELETE_ICON"
 
 	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
@@ -293,6 +305,9 @@ const (
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
+	ActionPending            RequestAction = "PENDING"
+	ActionApproved           RequestAction = "APPROVED"
+	ActionRejected           RequestAction = "REJECTED"
 )
 
 type RegistrationType string
