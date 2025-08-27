@@ -87,9 +87,9 @@ func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	var err error
 	switch cpsAction.RequestAction {
 	case string(cps_const.RequestEnableFaydaAccount):
-		err = f.faydaRepo.AuthorizeEnableFaydaUser(ctx, faydaUser)
+		err = f.faydaRepo.AuthorizeEnableOrDisableFaydaUser(ctx, faydaUser.UserCode, true)
 	case string(cps_const.RequestDisableFaydaAccount):
-		err = f.faydaRepo.AuthorizeDisableFaydaUser(ctx, faydaUser)
+		err = f.faydaRepo.AuthorizeEnableOrDisableFaydaUser(ctx, faydaUser.UserCode, false)
 	default:
 		f.logger.Errorf("Unsupported action request: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

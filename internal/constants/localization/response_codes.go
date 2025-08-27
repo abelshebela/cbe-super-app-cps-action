@@ -50,13 +50,6 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
-	//hq related success response codes
-	SuccessHQArchiveTimeFetched,
-	SuccessHQBlockTimeFetched,
-	SuccessHQPasswordExpiryFetched,
-	SuccessHQBlockTimeUpdateRequestSubmitted,
-	SuccessHQArchiveTimeUpdateRequestSubmitted,
-	SuccessHQPasswordExpiryUpdateRequestSubmitted,
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -159,13 +152,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
-	ErrorWalletUpdateEmptyPayload,
-
-	//hq related error response codes
-	ErrorHQNotFound,
-	ErrorInvalidHQRequest,
-	ErrorCPSActionFailed,
-}
+	ErrorWalletUpdateEmptyPayload}
 
 // Success Response Codes
 var (
@@ -3016,6 +3003,8 @@ var (
 		Message:    MsgMissingOrInvalidImage,
 		Type:       "error",
 	}
+
+	// fayda
 	ErrorFaydaUserAccountEnabled = ResponseCode{
 		Code:       "FAYDA_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,

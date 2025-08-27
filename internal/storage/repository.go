@@ -372,6 +372,5 @@ type WalletRepository interface {
 
 type FaydaRepository interface {
 	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
-	AuthorizeEnableFaydaUser(ctx context.Context, user *model.User) error
-	AuthorizeDisableFaydaUser(ctx context.Context, user *model.User) error
+	AuthorizeEnableOrDisableFaydaUser(ctx context.Context, userCode string, isEnabled bool) error
 }

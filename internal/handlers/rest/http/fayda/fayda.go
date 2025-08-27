@@ -3,7 +3,7 @@ package faydaaccount
 import (
 	faydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/ad/core"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/fayda/core"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/service"

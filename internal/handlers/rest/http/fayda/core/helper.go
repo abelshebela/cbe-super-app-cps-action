@@ -9,11 +9,11 @@ import (
 )
 
 func ExtractID(w http.ResponseWriter, r *http.Request, logger utils.Logger) (string, bool) {
-	id, ok := local_util.GetParam(r, "user_code")
+	user_code, ok := local_util.GetParam(r, "user_code")
 	if !ok {
 		logger.Errorf("[fayda.extractID] missing or invalid parameter 'id'")
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return "", false
 	}
-	return id, true
+	return user_code, true
 }

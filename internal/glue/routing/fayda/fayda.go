@@ -16,7 +16,7 @@ func Init(router chi.Router, handler fayda_account.FaydaAccount, authMiddleware 
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/disable/{user_code}",
+			Path:    "/fayda_account/disable/{user_code}",
 			Handler: handler.InitiateDisableFaydaAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func Init(router chi.Router, handler fayda_account.FaydaAccount, authMiddleware 
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/enable/{user_code}",
+			Path:    "/fayda_account/enable/{user_code}",
 			Handler: handler.InitiateEnableFaydaAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

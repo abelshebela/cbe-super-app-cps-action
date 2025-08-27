@@ -9,9 +9,9 @@ import (
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/event"
-	"cbe-super-app-cps-action/internal/service/hq"
-
+	"cbe-super-app-cps-action/internal/service/fayda"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
+	"cbe-super-app-cps-action/internal/service/hq"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
@@ -39,6 +39,7 @@ type ServiceLayer struct {
 	Wallet            service.WalletService
 	PasswordRule      service.PasswordRuleService
 	HQService         service.HQService
+	Fayda             service.FaydaAccountService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -57,6 +58,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
+	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
 
 	return ServiceLayer{
 		Bank:              bank_service,
@@ -71,5 +73,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Wallet:            walletService,
 		PasswordRule:      passwordRule,
 		HQService:         hqService,
+		Fayda:             fayda,
 	}
 }
