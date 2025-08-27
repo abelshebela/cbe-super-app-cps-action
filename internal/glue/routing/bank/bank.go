@@ -1,14 +1,14 @@
 package bank
 
-// import (
-// 	"cbe-super-app-cps-action/internal/constants"
-// 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
-// 	"cbe-super-app-cps-action/internal/glue"
-// 	"cbe-super-app-cps-action/internal/handlers/middleware"
-// 	"net/http"
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
+	"cbe-super-app-cps-action/internal/glue"
+	"cbe-super-app-cps-action/internal/handlers/middleware"
+	"net/http"
 
-// 	"github.com/go-chi/chi/v5"
-// )
+	"github.com/go-chi/chi/v5"
+)
 
 func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
@@ -86,5 +86,5 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 		},
 	}
 
-// 	glue.RegisterRoutes(router, routes)
-// }
+	glue.RegisterRoutes(router, routes)
+}

@@ -1770,13 +1770,6 @@ var (
 		Type:       "error",
 	}
 
-	ErrorMissingOrInvalidImage = ResponseCode{
-		Code:       "ERROR_MISSING_OR_INVALID_IMAGE",
-		StatusCode: StatusBadRequest,
-		Message:    MsgMissingOrInvalidImage,
-		Type:       "error",
-	}
-
 	ErrorInvalidJSONPayload = ResponseCode{
 		Code:       "ERROR_INVALID_JSON_PAYLOAD",
 		StatusCode: StatusBadRequest,
@@ -2226,12 +2219,6 @@ var (
 		Code:       "ERROR_INVALID_FORMAT",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidFormat,
-		Type:       "error",
-	}
-	ErrorInvalidID = ResponseCode{
-		Code:       "ERROR_INVALID_ID",
-		StatusCode: StatusBadRequest,
-		Message:    MsgInvalidID,
 		Type:       "error",
 	}
 
