@@ -248,10 +248,10 @@ const (
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
 
 	// HQ related success messages
-	MsgHQFetchedSuccessfully  = "HQ fetched successfully"
-	MsgHQsFetchedSuccessfully = "HQs fetched successfully"
-	MsgHQBlockTImeFetchedSuccessfully = "HQ BlockTime fetched successfully"
-	MsgHQArchiveTimeFetchedSuccessfully = "HQ ArchiveTime fetched successfully"
+	MsgHQFetchedSuccessfully               = "HQ fetched successfully"
+	MsgHQsFetchedSuccessfully              = "HQs fetched successfully"
+	MsgHQBlockTImeFetchedSuccessfully      = "HQ BlockTime fetched successfully"
+	MsgHQArchiveTimeFetchedSuccessfully    = "HQ ArchiveTime fetched successfully"
 	MsgHQPasswordExpiryFetchedSuccessfully = "HQ PasswordExpiry fetched successfully"
 
 	// Wallet related success messages
@@ -774,4 +774,8 @@ const (
 	MsgDistrictNotFound = "District not found"
 	MsgRegionNotFound   = "Region not found"
 	MsgCityNotFound     = "City not found"
+
+	// Password Rule
+	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
+	MsgUpdatePasswordRule    = "Update request submitted for approval"
 )

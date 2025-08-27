@@ -22,4 +22,4 @@ func CityMapper(city model.City) bson.M {
 			"updated_at":     time.Now(),
 		},
 	}
-} 
+}

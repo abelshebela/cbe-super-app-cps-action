@@ -98,6 +98,9 @@ type NotificationService interface {
 }
 
 type PasswordRuleService interface {
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

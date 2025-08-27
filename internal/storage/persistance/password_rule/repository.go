@@ -110,3 +110,12 @@ func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterP
 		Meta: meta,
 	}, nil
 }
+
+func (p *PasswordRuleStorage) FindCurrentRule(ctx context.Context) (*model.PasswordRule, error) {
+	ruleModel, err := p.dal.FindOne(ctx, bson.M{}, bson.M{})
+	if err != nil || ruleModel == nil {
+		return nil, err
+	}
+
+	return ruleModel, nil
+}

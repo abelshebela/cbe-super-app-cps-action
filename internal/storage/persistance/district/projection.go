@@ -20,4 +20,4 @@ func DistrictMapper(district model.District) bson.M {
 			"updated_at":       time.Now(),
 		},
 	}
-} 
+}
