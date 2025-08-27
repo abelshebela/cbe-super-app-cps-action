@@ -1,7 +1,6 @@
 package core
 
 import (
-	local_errors "cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
 	"fmt"
@@ -23,7 +22,7 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 	file, fileHeader, err := r.FormFile(key)
 	if err != nil {
 		if err == http.ErrMissingFile {
-			return nil, nil, errors.New(local_errors.ErrMissingFile.Error())
+			return nil, nil, errors.New(localization.ErrorMissingFile.Code)
 		}
 		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
 	}
