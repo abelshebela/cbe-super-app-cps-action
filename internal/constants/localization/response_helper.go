@@ -38,14 +38,16 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:      false,
+		Ok:      true,
 		Status:  responseCode.StatusCode,
 		Message: responseCode.Message,
 		Data:    data,
 	}
+	if responseCode.Type == "error"{
+		response.Ok = false
+	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		// Fallback to error response if encoding fails
 		SendErrorResponse(w, ErrorUnexpectedError, nil, nil)
 	}
 }

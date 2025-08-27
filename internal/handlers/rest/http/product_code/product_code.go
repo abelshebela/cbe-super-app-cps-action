@@ -63,7 +63,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 		return
 	}
 	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Code:       err.Error(),
+		Type: "success",
 		StatusCode: 200,
 	}, map[string]*model.ProductCode{
 		"old": old,
@@ -85,7 +85,7 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 	}
 	res := dto.ToProductCodeResponse(*data)
 	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Code:       err.Error(),
+		Type: "success",
 		StatusCode: 200,
 	}, res)
 }
@@ -104,7 +104,7 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 		Meta: list.Meta,
 	}
 	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Code:       err.Error(),
+		Type: "success",
 		StatusCode: 200,
 	}, res)
 }
