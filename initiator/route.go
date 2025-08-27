@@ -16,6 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
+	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
@@ -61,5 +62,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
+	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
+
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

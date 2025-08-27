@@ -16,7 +16,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/events/",
+			Path:    "/events",
 			Handler: handler.CreateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -70,7 +70,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/events/",
+			Path:    "/events",
 			Handler: handler.FetchEvents,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

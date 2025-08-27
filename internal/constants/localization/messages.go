@@ -149,7 +149,10 @@ const (
 	MsgFeedbackSavedSuccessfully = "Feedback saved successfully"
 
 	// HQ related success messages
-	MsgHQApprovedSuccessfully = "HQ approved successfully"
+	MsgHQApprovedSuccessfully                 = "HQ approved successfully"
+	MsgHQArchiveTimeUpdateRequestSubmitted    = "HQ archive time update request submitted successfully"
+	MsgHQPasswordExpiryUpdateRequestSubmitted = "HQ password expiry update request submitted successfully"
+	MsgHQBlockTimeUpdateRequestSubmitted      = "HQ block time update request submitted successfully"
 
 	// Mini App related success messages
 	MsgMiniAppDetailsFetchedSuccessfully = "MiniApp details fetched successfully"
@@ -250,6 +253,9 @@ const (
 	// HQ related success messages
 	MsgHQFetchedSuccessfully  = "HQ fetched successfully"
 	MsgHQsFetchedSuccessfully = "HQs fetched successfully"
+	MsgHQBlockTImeFetchedSuccessfully = "HQ BlockTime fetched successfully"
+	MsgHQArchiveTimeFetchedSuccessfully = "HQ ArchiveTime fetched successfully"
+	MsgHQPasswordExpiryFetchedSuccessfully = "HQ PasswordExpiry fetched successfully"
 
 	// Wallet related success messages
 	MsgWalletActionRequestSentSuccessfully = "Wallet action request sent successfully"

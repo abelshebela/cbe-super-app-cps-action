@@ -11,12 +11,12 @@ type HQ struct {
 	UniqueID                string        `bson:"unique_id" json:"unique_id"`
 	LatestiOSVersion        string        `bson:"latest_ios_version" json:"latest_ios_version"`
 	LatestAndroidVersion    string        `bson:"latest_android_version" json:"latest_android_version"`
-	ArchiveExpiry           uint          `json:"archive_expiry" bson:"archive_expiry"`
-	BlockTime               uint          `json:"block_time" bson:"block_time"`
+	ArchiveExpiry           uint32          `json:"archive_expiry" bson:"archive_expiry"`
+	BlockTime               uint32          `json:"block_time" bson:"block_time"`
 	BlockTimeStatus         string        `bson:"block_time_status" json:"block_time_status"`
-	ArchiveTime             uint          `bson:"archive_time" json:"archive_time"`
+	ArchiveTime             uint32          `bson:"archive_time" json:"archive_time"`
 	ArchiveTimeStatus       string        `bson:"archive_time_status" json:"archive_time_status"`
-	PasswordExpiry          uint32        `json:"password_expiry" bson:"password_expiry"`
+	PasswordExpiry          uint32          `json:"password_expiry" bson:"password_expiry"`
 	CreatedAtPasswordExpiry time.Time     `json:"created_at_password_expiry" bson:"created_at_password_expiry"`
 	UpdatedAtPasswordExpiry time.Time     `json:"updated_at_password_expiry" bson:"updated_at_password_expiry"`
 	CreatedAtBlock          time.Time     `json:"created_at_block" bson:"created_at_block"`
