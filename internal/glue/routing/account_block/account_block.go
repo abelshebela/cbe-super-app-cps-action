@@ -28,7 +28,7 @@ func Init(
 			{
 				Method:  http.MethodGet,
 				Path:    "/branches/{branch_code}",
-				Handler: handler.GetBranch,
+				Handler: handler.GetBranchByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -109,7 +109,7 @@ func Init(
 			{
 				Method:  http.MethodPost,
 				Path:    "/regions/enable",
-				Handler: handler.EnableRegion,
+				Handler: handler.EnableRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -118,7 +118,7 @@ func Init(
 			{
 				Method:  http.MethodPost,
 				Path:    "/regions/disable",
-				Handler: handler.DisableRegion,
+				Handler: handler.DisableRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -127,7 +127,7 @@ func Init(
 			{
 				Method:  http.MethodPost,
 				Path:    "/districts/enable",
-				Handler: handler.EnableDistrict,
+				Handler: handler.EnableDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -136,7 +136,7 @@ func Init(
 			{
 				Method:  http.MethodPost,
 				Path:    "/districts/disable",
-				Handler: handler.DisableDistrict,
+				Handler: handler.DisableDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -145,7 +145,7 @@ func Init(
 			{
 				Method:  http.MethodPost,
 				Path:    "/cities/enable",
-				Handler: handler.EnableCity,
+				Handler: handler.EnableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -154,7 +154,7 @@ func Init(
 			{
 				Method:  http.MethodPost,
 				Path:    "/cities/disable",
-				Handler: handler.DisableCity,
+				Handler: handler.DisableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),

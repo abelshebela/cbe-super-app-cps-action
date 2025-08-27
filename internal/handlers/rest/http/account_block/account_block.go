@@ -28,7 +28,7 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 	}
 }
 
-func (a *accountBlockAdapter) GetBranch(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	branchCode, ok := local_util.GetParam(r, "branch_code")
 	if !ok {
@@ -36,7 +36,7 @@ func (a *accountBlockAdapter) GetBranch(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	branch, err := a.accountBlockApplication.GetBranch(r.Context(), branchCode, filterParams)
+	branch, err := a.accountBlockApplication.GetBranchByCode(r.Context(), branchCode, filterParams)
 	if err != nil {
 		a.logger.Errorf("FetchUserRequest failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -267,7 +267,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 	localization.SendSuccessResponse(w, localization.SuccessBranchesDisabled, nil)
 }
 
-func (a *accountBlockAdapter) EnableRegion(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
@@ -282,7 +282,7 @@ func (a *accountBlockAdapter) EnableRegion(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := a.accountBlockApplication.EnableRegion(r.Context(), req.RegionsCodes, true)
+	err := a.accountBlockApplication.EnableRegions(r.Context(), req.RegionsCodes, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -291,7 +291,7 @@ func (a *accountBlockAdapter) EnableRegion(w http.ResponseWriter, r *http.Reques
 	localization.SendSuccessResponse(w, localization.SuccessRegionsEnabled, nil)
 }
 
-func (a *accountBlockAdapter) DisableRegion(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
@@ -307,7 +307,7 @@ func (a *accountBlockAdapter) DisableRegion(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := a.accountBlockApplication.DisableRegion(r.Context(), req.RegionsCodes, false)
+	err := a.accountBlockApplication.DisableRegions(r.Context(), req.RegionsCodes, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -316,7 +316,7 @@ func (a *accountBlockAdapter) DisableRegion(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessRegionsDisabled, nil)
 }
 
-func (a *accountBlockAdapter) EnableDistrict(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
@@ -331,7 +331,7 @@ func (a *accountBlockAdapter) EnableDistrict(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err := a.accountBlockApplication.EnableDistrict(r.Context(), req.DistrictCodes, true)
+	err := a.accountBlockApplication.EnableDistricts(r.Context(), req.DistrictCodes, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -340,7 +340,7 @@ func (a *accountBlockAdapter) EnableDistrict(w http.ResponseWriter, r *http.Requ
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsEnabled, nil)
 }
 
-func (a *accountBlockAdapter) DisableDistrict(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
@@ -355,7 +355,7 @@ func (a *accountBlockAdapter) DisableDistrict(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := a.accountBlockApplication.DisableDistrict(r.Context(), req.DistrictCodes, false)
+	err := a.accountBlockApplication.DisableDistricts(r.Context(), req.DistrictCodes, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -364,7 +364,7 @@ func (a *accountBlockAdapter) DisableDistrict(w http.ResponseWriter, r *http.Req
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsDisabled, nil)
 }
 
-func (a *accountBlockAdapter) EnableCity(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
@@ -378,7 +378,7 @@ func (a *accountBlockAdapter) EnableCity(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableCity(r.Context(), req.CitiesCode, true)
+	err := a.accountBlockApplication.EnableCities(r.Context(), req.CitiesCode, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -387,7 +387,7 @@ func (a *accountBlockAdapter) EnableCity(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessCitiesEnabled, nil)
 }
 
-func (a *accountBlockAdapter) DisableCity(w http.ResponseWriter, r *http.Request) {
+func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
@@ -401,7 +401,7 @@ func (a *accountBlockAdapter) DisableCity(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := a.accountBlockApplication.DisableCity(r.Context(), req.CitiesCode, true)
+	err := a.accountBlockApplication.DisableCities(r.Context(), req.CitiesCode, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
