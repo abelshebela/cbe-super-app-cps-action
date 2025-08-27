@@ -40,6 +40,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	router.Use(customeMiddleware.HandlePanic(logger))
 	router.Use(customeMiddleware.CORS())
 	router.Use(middleware.Timeout(30 * time.Second))
+	router.Use(middleware.Compress(5, "application/json"))
 
 	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)

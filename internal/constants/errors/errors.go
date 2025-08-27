@@ -107,7 +107,7 @@ var (
 	
 	ErrInvalidID                  = errors.New("invalid id")
 	ErrGeneralDBQueryFailed       = errors.New("db query failed")
-	ErrProductCodeNotFound        = errors.New("db query failed")
+	ErrProductCodeNotFound        = errors.New("product code not found")
 )
 
 var ErrorMap = map[error]int{
@@ -206,4 +206,5 @@ var ErrorMap = map[error]int{
 	ErrInvalidID:                    http.StatusBadRequest,
 	ErrGeneralDBQueryFailed:         http.StatusBadGateway,
 	ErrProductCodeNotFound:          http.StatusNotFound,
+	ErrNoUpdate:                     http.StatusNotModified,
 }

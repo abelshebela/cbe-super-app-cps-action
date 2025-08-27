@@ -49,7 +49,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewproductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
