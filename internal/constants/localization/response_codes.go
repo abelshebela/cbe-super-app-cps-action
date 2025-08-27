@@ -192,6 +192,13 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDistrictCodeRequired,
 	ErrorRegionCodeRequired,
 	ErrorCityCodeRequired,
+
+	ErrorBranchNotFound,
+	ErrorDistrictNotFound,
+	ErrorRegionNotFound,
+	ErrorCityNotFound,
+
+	ErrorDuplicateAction,
 }
 
 // Success Response Codes
@@ -3102,7 +3109,6 @@ var (
 		Message:    MsgInvalidPaginationParams,
 		Type:       "error",
 	}
-	
 
 	ErrorInvalidDistrict = ResponseCode{
 		Code:       "ERROR_INVALID_DISTRICT",
@@ -3150,6 +3156,41 @@ var (
 		Code:       "ERROR_CITY_CODE_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorBranchNotFound = ResponseCode{
+		Code:       "ERROR_BRANCH_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBranchNotFound,
+		Type:       "error",
+	}
+
+	ErrorDistrictNotFound = ResponseCode{
+		Code:       "ERROR_DISTRICT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDistrictNotFound,
+		Type:       "error",
+	}
+
+	ErrorRegionNotFound = ResponseCode{
+		Code:       "ERROR_REGION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRegionNotFound,
+		Type:       "error",
+	}
+
+	ErrorCityNotFound = ResponseCode{
+		Code:       "ERROR_CITY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCityNotFound,
+		Type:       "error",
+	}
+
+	ErrorDuplicateAction = ResponseCode{
+		Code:       "ERROR_DUPLICATE_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateAction,
 		Type:       "error",
 	}
 )

@@ -49,7 +49,7 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode st
 	result, err := a.branchDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorBranchNotFound.Code)
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -70,12 +70,12 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, region, distri
 	branches, err := a.branchDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
 	if err != nil {
 		a.logger.Errorf("failed to fetch branches: %v", err)
-		return nil, errors.New("FAILED_TO_FETCH_BRANCHES")
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(branches) == 0 {
 		a.logger.Warnf("No branches found for region: %s, district: %s", region, district)
-		return nil, errors.New("BRANCH_NOT_FOUND")
+		return nil, errors.New(localization.ErrorBranchNotFound.Code)
 	}
 
 	total, err := a.branchDal.TotalCount(ctx, filter)
@@ -94,8 +94,10 @@ func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.Br
 	if branch.ID.IsZero() {
 		branch.ID = bson.NewObjectID()
 	}
-	branch.CreatedAt = time.Now()
-	branch.UpdatedAt = time.Now()
+
+	now := time.Now()
+	branch.CreatedAt = now
+	branch.UpdatedAt = now
 
 	_, err := a.branchDal.InsertOne(ctx, *branch)
 	if err != nil {
@@ -109,7 +111,7 @@ func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.Br
 func (a *AccountBlockStorage) UpdateBranch(ctx context.Context, id string, branch *model.Branch) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -127,7 +129,7 @@ func (a *AccountBlockStorage) UpdateBranch(ctx context.Context, id string, branc
 func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -144,7 +146,7 @@ func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error
 func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -170,7 +172,7 @@ func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*m
 	branch, err := a.branchDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorBranchNotFound.Code)
 		}
 		a.logger.Errorf("Error finding branch by ID: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -238,8 +240,10 @@ func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.City) 
 	if city.ID.IsZero() {
 		city.ID = bson.NewObjectID()
 	}
-	city.CreatedAt = time.Now()
-	city.UpdatedAt = time.Now()
+
+	now := time.Now()
+	city.CreatedAt = now
+	city.UpdatedAt = now
 
 	_, err := a.cityDal.InsertOne(ctx, *city)
 	if err != nil {
@@ -253,7 +257,7 @@ func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.City) 
 func (a *AccountBlockStorage) UpdateCity(ctx context.Context, id string, city *model.City) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -271,7 +275,7 @@ func (a *AccountBlockStorage) UpdateCity(ctx context.Context, id string, city *m
 func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -288,7 +292,7 @@ func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
 func (a *AccountBlockStorage) EnableOrDisableCity(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -314,7 +318,7 @@ func (a *AccountBlockStorage) FindCityByID(ctx context.Context, id string) (*mod
 	city, err := a.cityDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorCityNotFound.Code)
 		}
 		a.logger.Errorf("Error finding city by ID: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -371,7 +375,7 @@ func (a *AccountBlockStorage) GetRegionByCode(ctx context.Context, regionCode st
 	filter := bson.M{"region_code": regionCode}
 	regionDoc, err := a.regionDal.FindOne(ctx, filter, nil)
 	if err != nil || regionDoc == nil {
-		return &model.Region{}, errors.New("REGION_NOT_FOUND")
+		return &model.Region{}, errors.New(localization.ErrorRegionNotFound.Code)
 	}
 	return &model.Region{
 		ID:            regionDoc.ID,
@@ -388,8 +392,9 @@ func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.Re
 	if region.ID.IsZero() {
 		region.ID = bson.NewObjectID()
 	}
-	region.CreatedAt = time.Now()
-	region.UpdatedAt = time.Now()
+	now := time.Now()
+	region.CreatedAt = now
+	region.UpdatedAt = now
 
 	_, err := a.regionDal.InsertOne(ctx, *region)
 	if err != nil {
@@ -403,7 +408,7 @@ func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.Re
 func (a *AccountBlockStorage) UpdateRegion(ctx context.Context, id string, region *model.Region) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -427,7 +432,7 @@ func (a *AccountBlockStorage) UpdateRegion(ctx context.Context, id string, regio
 func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -444,7 +449,7 @@ func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error
 func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -470,7 +475,7 @@ func (a *AccountBlockStorage) FindRegionByID(ctx context.Context, id string) (*m
 	region, err := a.regionDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorRegionNotFound.Code)
 		}
 		a.logger.Errorf("Error finding region by ID: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -526,7 +531,7 @@ func (a *AccountBlockStorage) GetDistrictByCode(ctx context.Context, districtCod
 	filter := bson.M{"district_code": districtCode}
 	districtDoc, err := a.districtDal.FindOne(ctx, filter, nil)
 	if err != nil || districtDoc == nil {
-		return &model.District{}, errors.New("FAILED_TO_GET_DISTRICT")
+		return &model.District{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &model.District{
 		ID:              districtDoc.ID,
@@ -545,8 +550,9 @@ func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *mode
 	if district.ID.IsZero() {
 		district.ID = bson.NewObjectID()
 	}
-	district.CreatedAt = time.Now()
-	district.UpdatedAt = time.Now()
+	now := time.Now()
+	district.CreatedAt = now
+	district.UpdatedAt = now
 
 	_, err := a.districtDal.InsertOne(ctx, *district)
 	if err != nil {
@@ -560,7 +566,7 @@ func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *mode
 func (a *AccountBlockStorage) UpdateDistrict(ctx context.Context, id string, district *model.District) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -586,7 +592,7 @@ func (a *AccountBlockStorage) UpdateDistrict(ctx context.Context, id string, dis
 func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -603,7 +609,7 @@ func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) err
 func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
@@ -629,7 +635,7 @@ func (a *AccountBlockStorage) FindDistrictByID(ctx context.Context, id string) (
 	district, err := a.districtDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorDistrictNotFound.Code)
 		}
 		a.logger.Errorf("Error finding district by ID: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -679,7 +685,6 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	}, nil
 }
 
-
 func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType string, codes []string, cpsAction model.CPSAction, requestType constants.RequestAction) error {
 	var filter bson.M
 
@@ -691,9 +696,9 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 		_, err := a.branchDal.FindOne(ctx, filter, bson.M{})
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				return errors.New("BRANCH_NOT_FOUND")
+				return errors.New(localization.ErrorBranchNotFound.Code)
 			}
-			return errors.New("GENERAL_DB_QUERY_FAILED")
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		// Check if duplicate action is requested
@@ -712,11 +717,11 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 				if err == mongo.ErrNoDocuments {
 					continue
 				}
-				return errors.New("database error while finding user")
+				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 
 			if branch.Enabled == boolStatus {
-				return errors.New("DUPLICATE_ACTION")
+				return errors.New(localization.ErrorDuplicateAction.Code)
 			}
 		}
 	case "REGION":
@@ -725,9 +730,9 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 		_, err := a.regionDal.FindOne(ctx, filter, bson.M{})
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				return errors.New("REGION_NOT_FOUND")
+				return errors.New(localization.ErrorRegionNotFound.Code)
 			}
-			return errors.New("GENERAL_DB_QUERY_FAILED")
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		var boolStatus bool
@@ -745,11 +750,11 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 				if err == mongo.ErrNoDocuments {
 					continue
 				}
-				return errors.New("database error while finding user")
+				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 
 			if branch.Enabled == boolStatus {
-				return errors.New("DUPLICATE_ACTION")
+				return errors.New(localization.ErrorDuplicateAction.Code)
 			}
 		}
 	case "DISTRICT":
@@ -758,9 +763,9 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 		_, err := a.districtDal.FindOne(ctx, filter, bson.M{})
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				return errors.New("DISTRICT_NOT_FOUND")
+				return errors.New(localization.ErrorDistrictNotFound.Code)
 			}
-			return errors.New("GENERAL_DB_QUERY_FAILED")
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		var boolStatus bool
@@ -778,11 +783,11 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 				if err == mongo.ErrNoDocuments {
 					continue
 				}
-				return errors.New("database error while finding user")
+				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 
 			if branch.Enabled == boolStatus {
-				return errors.New("DUPLICATE_ACTION")
+				return errors.New(localization.ErrorDuplicateAction.Code)
 			}
 		}
 	case "CITY":
@@ -791,9 +796,9 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 		_, err := a.cityDal.FindOne(ctx, filter, bson.M{})
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				return errors.New("CITY_NOT_FOUND")
+				return errors.New(localization.ErrorCityNotFound.Code)
 			}
-			return errors.New("GENERAL_DB_QUERY_FAILED")
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		var boolStatus bool
 		switch requestType {
@@ -810,11 +815,11 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 				if err == mongo.ErrNoDocuments {
 					continue
 				}
-				return errors.New("database error while finding user")
+				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 
 			if branch.Enabled == boolStatus {
-				return errors.New("DUPLICATE_ACTION")
+				return errors.New(localization.ErrorDuplicateAction.Code)
 			}
 		}
 	}
@@ -830,15 +835,15 @@ func (a *AccountBlockStorage) EnableOrDisable(ctx context.Context, blockType str
 
 	pendingAction, err := a.actionDal.FindOne(ctx, pendingFilter, bson.M{})
 	if err != nil && err != mongo.ErrNoDocuments {
-		return errors.New("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if pendingAction != nil {
-		return errors.New("PENDING_ACTION_EXISTS")
+		return errors.New(localization.ErrorPendingCPSAction.Code)
 	}
 
 	_, err = a.actionDal.InsertOne(ctx, cpsAction)
 	if err != nil {
-		return errors.New("database errorwhile creating CPS action")
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
@@ -990,5 +995,3 @@ func (a *AccountBlockStorage) AuthorizeDisableCities(ctx context.Context, action
 
 	return action, nil
 }
-
-// The rest of the code remains unchanged (bulk enable/disable/approve methods)

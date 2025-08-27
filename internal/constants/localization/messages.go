@@ -543,6 +543,7 @@ const (
 
 	// General business error messages
 	MsgDuplicateKey                = "Duplicate key error"
+	MsgDuplicateAction             = "Duplicate action error"
 	MsgInvalidInput                = "Invalid input provided"
 	MsgMissingRequiredFields       = "Missing required fields"
 	MsgResourceNotFound            = "Resource not found"
@@ -754,4 +755,9 @@ const (
 	MsgDistrictCodeRequired              = "District code is required"
 	MsgRegionCodeRequired                = "Region code is required"
 	MsgCityCodeRequired                  = "City code is required"
+
+	MsgBranchNotFound   = "Branch not found"
+	MsgDistrictNotFound = "District not found"
+	MsgRegionNotFound   = "Region not found"
+	MsgCityNotFound     = "City not found"
 )
