@@ -46,6 +46,7 @@ const (
 	MsgDataDeletedSuccessfully   = "Data deleted successfully"
 	MsgValidationPassed          = "Validation passed successfully"
 	MsgHealthCheckPassed         = "Health check passed"
+	MsgHealthCheckFailed         = "Health check failed"
 	MsgBadRequest                = "Bad request"
 
 	// Bank related success messages
@@ -85,6 +86,7 @@ const (
 	// Wallet related success messages
 	MsgWalletCreationRequestSent    = "Wallet creation request sent successfully"
 	MsgWalletUpdateRequestSent      = "Wallet update request sent successfully"
+	MsgWalletDeleteRequestSent      = "Wallet delete request sent successfully"
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
 	MsgWalletRetrievedSuccessfully  = "Wallet retrieved successfully"
@@ -139,9 +141,6 @@ const (
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
-	// Ad related success messages
-	MsgAdvertConstructedSuccessfully = "Advert constructed successfully"
-
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully = "Validation rule approved successfully"
 
@@ -149,7 +148,10 @@ const (
 	MsgFeedbackSavedSuccessfully = "Feedback saved successfully"
 
 	// HQ related success messages
-	MsgHQApprovedSuccessfully = "HQ approved successfully"
+	MsgHQApprovedSuccessfully                 = "HQ approved successfully"
+	MsgHQArchiveTimeUpdateRequestSubmitted    = "HQ archive time update request submitted successfully"
+	MsgHQPasswordExpiryUpdateRequestSubmitted = "HQ password expiry update request submitted successfully"
+	MsgHQBlockTimeUpdateRequestSubmitted      = "HQ block time update request submitted successfully"
 
 	// Mini App related success messages
 	MsgMiniAppDetailsFetchedSuccessfully = "MiniApp details fetched successfully"
@@ -203,11 +205,16 @@ const (
 
 	// Ad related success messages
 	MsgAdvertCreatedSuccessfully     = "Advert created successfully"
+	MsgAdvertCreatedRequestSent      = "Advert create request sent successfully"
 	MsgAdvertUpdatedSuccessfully     = "Advert updated successfully"
+	MsgAdvertUpdateRequestSent       = "Advert update request sent successfully"
 	MsgAdvertDeletedSuccessfully     = "Advert deleted successfully"
+	MsgAdvertDeleteRequestSent       = "Advert delete request sent successfully"
 	MsgAdvertEnableDisableSuccessful = "Advert enable/disable successful"
 	MsgAdvertFetchedSuccessfully     = "Advert fetched successfully"
 	MsgAdvertsFetchedSuccessfully    = "Adverts fetched successfully"
+	MsgAdvertEnableRequestSent       = "Advert enable request sent successfully"
+	MsgAdvertDisableRequestSent      = "Advert disable request sent successfully"
 
 	// BPS Calls related success messages
 	MsgLinkedAccountFetchedSuccessfully = "Linked account fetched successfully"
@@ -243,8 +250,11 @@ const (
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
 
 	// HQ related success messages
-	MsgHQFetchedSuccessfully  = "HQ fetched successfully"
-	MsgHQsFetchedSuccessfully = "HQs fetched successfully"
+	MsgHQFetchedSuccessfully               = "HQ fetched successfully"
+	MsgHQsFetchedSuccessfully              = "HQs fetched successfully"
+	MsgHQBlockTImeFetchedSuccessfully      = "HQ BlockTime fetched successfully"
+	MsgHQArchiveTimeFetchedSuccessfully    = "HQ ArchiveTime fetched successfully"
+	MsgHQPasswordExpiryFetchedSuccessfully = "HQ PasswordExpiry fetched successfully"
 
 	// Wallet related success messages
 	MsgWalletActionRequestSentSuccessfully = "Wallet action request sent successfully"
@@ -285,32 +295,44 @@ const (
 	MsgPINRedundant     = "PIN cannot be redundant"
 
 	// Session related error messages
-	MsgSessionNotFound       = "Session not found"
-	MsgSessionExpired        = "Session has expired"
-	MsgSessionInvalid        = "Invalid session"
-	MsgSessionCreationFailed = "Failed to create session"
-	MsgSessionUpdateFailed   = "Failed to update session"
+	MsgSessionNotFound        = "Session not found"
+	MsgSessionExpired         = "Session has expired"
+	MsgSessionInvalid         = "Invalid session"
+	MsgSessionCreationFailed  = "Failed to create session"
+	MsgSessionUpdateFailed    = "Failed to update session"
+	MsgSessionRetrievalFailed = "Failed to retrieval session"
 
 	// File related error messages
-	MsgFileTooLarge     = "File size is too large"
-	MsgFileInvalidType  = "Invalid file type"
-	MsgFileUploadFailed = "File upload failed"
-	MsgFileNotFound     = "File not found"
-	MsgFileDeleteFailed = "File deletion failed"
+	MsgFileTooLarge     = "file size is too large"
+	MsgFileInvalidType  = "invalid file type"
+	MsgFileUploadFailed = "file upload failed"
+	MsgFileNotFound     = "file not found"
+	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
-	MsgValidationFailed      = "Validation failed"
-	MsgRequiredFieldMissing  = "Required field is missing"
-	MsgInvalidFormat         = "Invalid format"
-	MsgInvalidInputParameter = "Invalid input parameter"
-	MsgInvalidEmail          = "Invalid email format"
-	MsgInvalidPhoneNumber    = "Invalid phone number format"
-	MsgInvalidDate           = "Invalid date format"
-	MsgInvalidAction         = "Invalid Action"
-	MsgFieldTooLong          = "Field value is too long"
-	MsgFieldTooShort         = "Field value is too short"
-	MsgInvalidID             = "Invalid ID format"
-	MsgInvalidActionFormat   = "Invalid action format"
+	MsgBankDeleteRequestFailed               = "Bank delete request failed"
+	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
+	MsgValidationFailed                      = "Validation failed"
+	MsgRequiredFieldMissing                  = "Required field is missing"
+	MsgInvalidFormat                         = "Invalid format"
+	MsgInvalidInputParameter                 = "Invalid input parameter"
+	MsgInvalidEmail                          = "Invalid email format"
+	MsgInvalidPhoneNumber                    = "Invalid phone number format"
+	MsgInvalidDate                           = "Invalid date format"
+	MsgInvalidAction                         = "Invalid Action"
+	MsgFieldTooLong                          = "Field value is too long"
+	MsgFieldTooShort                         = "Field value is too short"
+	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
+	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
+
+	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
+	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
+	MsgInvalidActionData                    = "Invalid action"
+	MsgUnsupportedAction                    = "Unsupported action"
+	MsgInvalidID                            = "Invalid ID"
+	MsgMissingFile                          = "Missing file"
+	MsgInvalidID                            = "Invalid ID format"
+	MsgInvalidActionFormat                  = "Invalid action format"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -335,7 +357,8 @@ const (
 	MsgBankAlreadyEnabled        = "Bank already enabled"
 	MsgBankAlreadyDisabled       = "Bank already disabled"
 	MsgBankNameAlreadyExists     = "Bank name already exists"
-	MsgBankBICCodeAlreadyExists  = "Bank BIC code already exists"
+	MsgBankBICAlreadyExists      = "Bank BIC already exists"
+	MsgBankCodeAlreadyExists     = "Bank Code already exists"
 	MsgBankFetchFailed           = "Bank fetch failed"
 	MsgBankIDRequired            = "Bank ID is required"
 	MsgBankNameRequired          = "Bank name is required"
@@ -345,6 +368,11 @@ const (
 	MsgBankNameTooShort          = "Bank name too short"
 	MsgBankNameTooLong           = "Bank name too long"
 	MsgBankNameInvalidCharacters = "Bank name contains invalid characters"
+	msgGetAllBanksFailed         = "Get all banks failed"
+	msgGetAllBanksSuccess        = "Successfully got all banks"
+	msgGetOneBankSuccess         = "Successfully got one bank"
+	msgDeleteBankRequestSuccess  = "Successfully bank delete request created"
+	msgGetOneBankFailed          = "Get one bank failed"
 
 	// Donation related error messages
 	MsgDonationCategoryNameAlreadyExists  = "Category name already exists"
@@ -379,6 +407,7 @@ const (
 	MsgCPSActionRejectionFailed      = "Failed to reject action"
 	MsgCPSActionInvalidStatus        = "Invalid action status"
 	MsgCPSActionInvalidRequestAction = "Invalid request action"
+	MsgBankInvalidRequestAction      = "Invalid request action"
 	MsgCPSActionUnsupportedAction    = "Unsupported request action"
 	MsgCPSActionInvalidFormat        = "Invalid action data format"
 	MsgCPSActionMissingData          = "Missing action data"
@@ -521,35 +550,41 @@ const (
 	MsgSMSRequired      = "SMS is required"
 
 	// General business error messages
-	MsgDuplicateKey               = "Duplicate key error"
-	MsgInvalidInput               = "Invalid input provided"
-	MsgMissingRequiredFields      = "Missing required fields"
-	MsgResourceNotFound           = "Resource not found"
-	MsgResourceAlreadyExists      = "Resource already exists"
-	MsgResourceUpdateFailed       = "Failed to update resource"
-	MsgResourceCreationFailed     = "Failed to create resource"
-	MsgResourceDeletionFailed     = "Failed to delete resource"
-	MsgResourceFetchFailed        = "Failed to fetch resource"
-	MsgResourceInvalidFormat      = "Invalid resource format"
-	MsgResourceRequired           = "Resource is required"
-	MsgResourceBusy               = "Resource is busy"
-	MsgResourceLocked             = "Resource is locked"
-	MsgResourceExpired            = "Resource has expired"
-	MsgResourceInvalid            = "Resource is invalid"
-	MsgResourceUnauthorized       = "Resource access unauthorized"
-	MsgResourceForbidden          = "Resource access forbidden"
-	MsgResourceConflict           = "Resource conflict"
-	MsgResourceTooManyRequests    = "Too many requests for resource"
-	MsgResourceUnprocessable      = "Resource cannot be processed"
-	MsgResourceNotImplemented     = "Resource operation not implemented"
-	MsgResourceBadGateway         = "Resource gateway error"
-	MsgResourceServiceUnavailable = "Resource service unavailable"
-	MsgResourceGatewayTimeout     = "Resource gateway timeout"
-	MsgResourceNetworkError       = "Resource network error"
-	MsgResourceConfigurationError = "Resource configuration error"
-	MsgResourceMaintenanceMode    = "Resource in maintenance mode"
-	MsgInvalidRequestOnParam      = "Invalid request on page and per page"
-	MsgInvalidRequest             = "Invalid request"
+	MsgDuplicateKey                = "Duplicate key error"
+	MsgInvalidInput                = "Invalid input provided"
+	MsgMissingRequiredFields       = "Missing required fields"
+	MsgResourceNotFound            = "Resource not found"
+	MsgResourceAlreadyExists       = "Resource already exists"
+	MsgResourceUpdateFailed        = "Failed to update resource"
+	MsgResourceCreationFailed      = "Failed to create resource"
+	MsgResourceDeletionFailed      = "Failed to delete resource"
+	MsgResourceFetchFailed         = "Failed to fetch resource"
+	MsgResourceInvalidFormat       = "Invalid resource format"
+	MsgResourceRequired            = "Resource is required"
+	MsgResourceBusy                = "Resource is busy"
+	MsgResourceLocked              = "Resource is locked"
+	MsgResourceExpired             = "Resource has expired"
+	MsgResourceInvalid             = "Resource is invalid"
+	MsgResourceUnauthorized        = "Resource access unauthorized"
+	MsgResourceForbidden           = "Resource access forbidden"
+	MsgResourceConflict            = "Resource conflict"
+	MsgResourceTooManyRequests     = "Too many requests for resource"
+	MsgResourceUnprocessable       = "Resource cannot be processed"
+	MsgResourceNotImplemented      = "Resource operation not implemented"
+	MsgResourceBadGateway          = "Resource gateway error"
+	MsgResourceServiceUnavailable  = "Resource service unavailable"
+	MsgResourceGatewayTimeout      = "Resource gateway timeout"
+	MsgResourceNetworkError        = "Resource network error"
+	MsgResourceConfigurationError  = "Resource configuration error"
+	MsgResourceMaintenanceMode     = "Resource in maintenance mode"
+	MsgInvalidRequestOnParam       = "Invalid request on page and per page"
+	MsgInvalidBankRequest          = "Invalid bank request"
+	MsgInvalidRequestBankName      = "invalid format for Name: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankCode      = "invalid format for Code: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankBIC       = "invalid format for BIC: only letters, numbers, and spaces are allowed"
+	MsgNoDataProvidedForBankUpdate = "No data provided for Bank update"
+	MsgInvalidRequest              = "Invalid request"
+	MsgInvalidToken                = "Invalid token"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
@@ -567,6 +602,7 @@ const (
 	MsgServiceCPSActionStatusUpdateFailed = "Failed to update CPS action status"
 	MsgServiceUnhandledServerError        = "Unhandled server error occurred"
 	MsgServiceUpdateFailedError           = "Service update failed"
+	MsgNoDataProvidedForUpdate            = "No data provided for service update"
 	MsgServiceAuthorizeDeleteFailed       = "Failed to authorize service delete"
 	MsgServiceUnknownRequestAction        = "Unknown request action for service"
 
@@ -625,9 +661,12 @@ const (
 	MsgBankFileParseFailed              = "Failed to parse bank file"
 	MsgBankRejectionPayloadDecodeFailed = "Failed to decode rejection payload"
 	MsgBankLogoUpdateFailed             = "Failed to update bank logo"
+	MsgBankUpdateFailed                 = "Failed to update bank"
 
 	// CPS Action related error messages
 	MsgCPSActionRejectionPayloadDecodeFailed = "Failed to decode rejection payload"
+	MsgCPSActionRejectionReason              = "rejection_reason is required"
+	MsgCPSActionRejectionReasonLength        = "rejection_reason must be between 10 and 300 characters"
 
 	// Permission related error messages
 	MsgPermissionGroupRequestCreationFailed = "Failed to create permission group request"
@@ -681,12 +720,24 @@ const (
 	MsgBPSUserApprovedSuccess = "BPS user approved successfully"
 
 	MsgUserUnlinkFailed = "User Unlink Failed"
+	// Ad Service related success messages
+	MsgAdvertCreatedSuccess = "Advert created successfully"
+	MsgAdvertUpdateSuccess  = "Advert updated successfully"
+
 	// Ad Service related error messages
-	MsgAdvertConstructedSuccess = "Advert constructed successfully"
-	MsgAdvertUpdateSuccess      = "Advert updated successfully"
+	MsgAdvertCreateError     = "Advert creation failed"
+	MsgAdvertUpdateError     = "Advert update failed"
+	MsgAdvertAlreadyEnabled  = "Advert already enabled"
+	MsgAdvertAlreadyDisabled = "Advert already disabled"
+	MsgAdvertNotFound        = "Advert not found"
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
+	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+
+	MsgInvalidInputParameters = "Invalid input parameters provided"
+
+	MsgMissingOrInvalidImage = "Missing or invalid image"
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"

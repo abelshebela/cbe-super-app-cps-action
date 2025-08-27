@@ -6,10 +6,18 @@ import (
 	"net/http"
 	"time"
 
+	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
+	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
+	"cbe-super-app-cps-action/internal/glue/routing/bank"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
+	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	"cbe-super-app-cps-action/internal/glue/routing/wallet"
+
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
+	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
+	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
@@ -46,6 +54,15 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	budget.Init(r, handlerLayer.BudgetHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
+	bank.Init(r, handlerLayer.BankHandler, authMiddleware)
+	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
+	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
+
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
+	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
+	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
+	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
+	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
+
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

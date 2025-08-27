@@ -176,6 +176,7 @@ type Restriction struct {
 	Description string                    `json:"description" bson:"description"`
 }
 
+
 type ProductCode struct {
 	ID             string               `bson:"id"`
 	BranchType     constants.BranchType `bson:"branch_type"`

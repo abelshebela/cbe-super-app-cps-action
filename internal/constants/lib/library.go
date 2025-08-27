@@ -2,11 +2,19 @@ package lib
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"errors"
+	"fmt"
+	"mime/multipart"
+	"strconv"
 	"sync"
 	"time"
+
+	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -76,7 +84,40 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	if filterParam.Filters != nil {
 
-		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys)
+		handler := map[string]func(interface{}) interface{}{}
+		includedKeys := []string{
+			"enabled",
+			"is_deleted",
+			"is_blocked",
+			"ussd_enabled",
+			"is_account_active",
+			"is_main",
+			"last_linked_status",
+			"is_verified",
+			"is_blocked",
+			"active_account",
+			"account_frozen",
+			"account_dormant",
+			"debit_allowed",
+			"credit_allowed",
+			"has_restriction",
+		}
+		for _, key := range includedKeys {
+			for _, allowedKey := range allowedKeys {
+				if allowedKey == key {
+					handler[key] = func(value interface{}) interface{} {
+						if str, ok := value.(string); ok {
+							if parsed, err := strconv.ParseBool(str); err == nil {
+								return parsed
+							}
+						}
+						return value
+					}
+				}
+			}
+		}
+		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
+
 		for key, value := range enhancedFilter {
 			filter[key] = value
 		}
@@ -86,4 +127,59 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 	limit = int64(filterParam.PerPage)
 
 	return filter, skip, limit
+}
+
+func UploadFileToMinio(
+	ctx context.Context,
+	uploader config.MinioClientInterface,
+	bucketName string,
+	fileHeader *multipart.FileHeader,
+	prefix string,
+	minioEndpoint string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+	// Ensure bucket exists
+	exist, err := uploader.BucketExist(ctx, bucketName)
+	if err != nil {
+		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if !exist {
+		created, err := uploader.MakeBucket(ctx, bucketName)
+		if err != nil || !created {
+			logger.Errorf("failed to create bucket '%s': %v", bucketName, err)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
+
+	// Open file
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.Errorf("failed to open file: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer file.Close()
+
+	// Generate file name
+	fileName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+
+	// Upload file
+	saveObj, err := uploader.SaveObjectN(ctx, config.SaveObjectBodyN{
+		BucketName:  bucketName,
+		ObjectName:  fileName,
+		Reader:      file,
+		Size:        fileHeader.Size,
+		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
+	})
+	if err != nil {
+		logger.Errorf("failed to upload file to MinIO: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Return full URL
+	url := fmt.Sprintf("%s/%s/%s", minioEndpoint, saveObj.Bucket, saveObj.Key)
+	return url, nil
 }

@@ -29,3 +29,10 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	cpsAction.ActionStatus = "APPROVED"
 	return cpsAction, nil
 }
+
+func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+
+	m.logger.Infof("Mini App Merchant service authorizing action: %s", id)
+
+	return m.repo.DetailMiniAppByID(ctx, id)
+}

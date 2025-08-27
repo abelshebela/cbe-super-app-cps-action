@@ -2,9 +2,9 @@ package bps_user
 
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -40,10 +40,6 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*m
 	return result, nil
 }
 
-func (b *BPSUserStorage) GetAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.BPSUser, error) {
-	return b.dal.FindAll(ctx, filter, projection)
-}
-
 func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
@@ -56,8 +52,8 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"full_name":searchRegex},
-			{"username":searchRegex},
+			{"full_name": searchRegex},
+			{"username": searchRegex},
 		}
 	}
 	// 4. Build filter, skip, limit
@@ -85,33 +81,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	}, nil
 }
 
-func (b *BPSUserStorage) DisableUser(ctx context.Context, userCode string) error {
-	filter := bson.M{"user_code": userCode, "is_deleted": false}
-	update := bson.M{"$set": bson.M{"enabled": false}}
-	_, err := b.dal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return nil
-}
-
-func (b *BPSUserStorage) EnableUser(ctx context.Context, userCode string) error {
-	filter := bson.M{"user_code": userCode, "is_deleted": false}
-	update := bson.M{"$set": bson.M{"enabled": true}}
-	_, err := b.dal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return nil
-}
-
-func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) error{
+func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) error {
 	filter := bson.M{"user_code": BpsUser.UserCode, "is_deleted": false}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
@@ -121,5 +91,5 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) err
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
-	
+
 }

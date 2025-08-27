@@ -1,7 +1,8 @@
 package device_history
 
 import (
-	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -22,7 +23,7 @@ func DeviceLinkHistoryProjection() bson.M {
 func DeviceLinkHistoryIdFilterAttachment(id string, filter bson.M) error {
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter["_id"] = objId
 	return nil
@@ -31,7 +32,7 @@ func DeviceLinkHistoryIdFilterAttachment(id string, filter bson.M) error {
 func DeviceLinkHistoryUserFilterAttachment(userID string, filter bson.M) error {
 	objId, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		return errors.ErrUnexpected
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter["user_id"] = objId
 	return nil

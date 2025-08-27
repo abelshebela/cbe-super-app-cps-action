@@ -1,15 +1,15 @@
 package external_call
 
 import (
+	smsDto "cbe-super-app-cps-action/internal/constants/dto/sms"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"cbe-super-app-cps-action/internal/constants/dto"
-	"cbe-super-app-cps-action/internal/constants/errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -20,7 +20,7 @@ type SMSPersistence struct {
 	baseURL    string
 }
 
-// baseURL : "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+// // baseURL : "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
 func NewSMSPersistence(baseUrl string, logger utils.Logger) *SMSPersistence {
 	return &SMSPersistence{
 		httpClient: &http.Client{
@@ -34,7 +34,7 @@ func NewSMSPersistence(baseUrl string, logger utils.Logger) *SMSPersistence {
 // SendSMS sends an SMS using the external API
 func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody string) error {
 
-	payload := dto.SMSRequest{
+	payload := smsDto.SMSRequest{
 		Recipient:   recipient,
 		MessageBody: messageBody,
 	}
@@ -42,14 +42,14 @@ func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody str
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		s.logger.Errorf("Failed to marshal SMS payload: %v", err)
-		return errors.ErrFailedToPrepareOTP
+		return errors.New(localization.ErrorOTPSendFailed.Code)
 	}
 
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", s.baseURL, strings.NewReader(string(payloadBytes)))
 	if err != nil {
 		s.logger.Errorf("Failed to create HTTP request: %v", err)
-		return errors.ErrFailedHttpCall
+		return errors.New(localization.ErrorExternalServiceError.Code)
 	}
 
 	req.Header.Add("Content-Type", "application/json")
@@ -61,7 +61,7 @@ func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody str
 
 	if err != nil {
 		s.logger.Errorf("SMS API call failed: %v, duration: %v", err, duration)
-		return errors.ErrFailedSMSApiCall
+		return errors.New(localization.ErrorExternalServiceError.Code)
 	}
 	defer resp.Body.Close()
 
