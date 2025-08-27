@@ -43,7 +43,7 @@ type CityResponse struct {
 	ID           string    `json:"id,omitempty"`
 	CityCode     string    `json:"city_code"`
 	CityName     string    `json:"city_name"`
-	City         string    `json:"city_address"`
+	CityAddress        string    `json:"city_address"`
 	DistrictID   string    `json:"district_id"`
 	DistrictName string    `json:"district_name"`
 	RegionID     string    `json:"region_id"`

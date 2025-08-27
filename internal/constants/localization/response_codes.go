@@ -55,21 +55,29 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBranchesRetrieved,
 	SuccessBranchesEnabled,
 	SuccessBranchesDisabled,
+	SuccessEnableBranchesRequestSent,
+	SuccessDisableBranchesRequestSent,
 
 	SuccessRegionRetrieved,
 	SuccessRegionsRetrieved,
 	SuccessRegionsEnabled,
 	SuccessRegionsDisabled,
-
+	SuccessEnableRegionsRequestSent,
+	SuccessDisableRegionsRequestSent,
+	
 	SuccessDistrictRetrieved,
 	SuccessDistrictsRetrieved,
 	SuccessDistrictsEnabled,
 	SuccessDistrictsDisabled,
+	SuccessEnableDistrictsRequestSent,
+	SuccessDisableDistrictsRequestSent,
 
 	SuccessCityRetrieved,
 	SuccessCitiesRetrieved,
 	SuccessCitiesEnabled,
 	SuccessCitiesDisabled,
+	SuccessEnableCitiesRequestSent,
+	SuccessDisableCitiesRequestSent,
 
 	// Error codes
 	ErrorInvalidKey,
@@ -1647,6 +1655,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessEnableBranchesRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_BRANCHES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableBranchesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableBranchesRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_BRANCHES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableBranchesRequestSent,
+		Type:       "success",
+	}
+
 	SuccessRegionRetrieved = ResponseCode{
 		Code:       "SUCCESS_REGION_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1672,6 +1694,20 @@ var (
 		Code:       "SUCCESS_REGIONSS_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgRegionsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableRegionsRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_REGIONS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableRegionsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableRegionsRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_REGIONS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableRegionsRequestSent,
 		Type:       "success",
 	}
 
@@ -1703,6 +1739,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessEnableDistrictsRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_DISTRICTS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableDistrictsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableDistrictsRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_DISTRICTS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableDistrictsRequestSent,
+		Type:       "success",
+	}
+
 	SuccessCityRetrieved = ResponseCode{
 		Code:       "SUCCESS_CITY_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1727,6 +1777,19 @@ var (
 		Code:       "SUCCESS_CITIES_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgCitiesSuccessfullyDisabled,
+		Type:       "success",
+	}
+	SuccessEnableCitiesRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_CITIES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableCitiesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableCitiesRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_CITIES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableCitiesRequestSent,
 		Type:       "success",
 	}
 

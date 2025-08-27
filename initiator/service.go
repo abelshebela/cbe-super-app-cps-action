@@ -52,7 +52,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
-	accountBlockService:= accountblock.NewAccountService(persistence.AccountBlockPersistence)
+	accountBlockService:= accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
 
 	return ServiceLayer{
 		Bank:              bank_service,

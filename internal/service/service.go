@@ -127,8 +127,8 @@ type WalletService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchByCode(ctx context.Context, branchCode string, filterParam *types.Filter) (*model.Branch, error)
-	GetAllBranches(ctx context.Context, region string, district string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
 	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
 	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)

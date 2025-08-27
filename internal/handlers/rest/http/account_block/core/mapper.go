@@ -81,7 +81,7 @@ func ToCityResponse(city *model.City) *ab_dto.CityResponse {
 		ID:           city.ID.Hex(),
 		CityCode:     city.CityCode,
 		CityName:     city.CityName,
-		City:         city.City,
+		CityAddress:  city.CityAddress,
 		DistrictID:   city.DistrictID,
 		DistrictName: city.DistrictName,
 		RegionID:     city.RegionID,

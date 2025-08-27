@@ -4,7 +4,6 @@ import (
 	"context"
 
 	session "cbe-super-app-cps-action/grpc"
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -121,7 +120,6 @@ type AmountBasedAuthRepository interface {
 // AccountBlock persistence
 type AccountBlockRepository interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
-	GetAllBranches(ctx context.Context, region, district string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error) 
 	CreateBranch(ctx context.Context, branch *model.Branch) error
 	UpdateBranch(ctx context.Context, id string, branch *model.Branch) error
 	DeleteBranch(ctx context.Context, id string) error
@@ -152,17 +150,7 @@ type AccountBlockRepository interface {
 	EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-
-	EnableOrDisable(ctx context.Context, blockType string, codes []string, cpsAction model.CPSAction, requestType constants.RequestAction) error
-
-	AuthorizeEnableBranches(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeDisableBranches(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeEnableRegions(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeDisableRegions(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeEnableDistricts(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeDisableDistrict(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeEnableCities(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	AuthorizeDisableCities(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+	
 }
 
 type AdvertRepository interface {

@@ -29,14 +29,13 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 }
 
 func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
 	branchCode, ok := local_util.GetParam(r, "branch_code")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
-	branch, err := a.accountBlockApplication.GetBranchByCode(r.Context(), branchCode, filterParams)
+	branch, err := a.accountBlockApplication.GetBranchByCode(r.Context(), branchCode)
 	if err != nil {
 		a.logger.Errorf("FetchUserRequest failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -49,36 +48,9 @@ func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Req
 }
 
 func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Region   string `json:"region"`
-		District string `json:"district"`
-	}
-
-	// Decode JSON request body
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
-		return
-	}
-
-	// Validate required fields
-	if req.District == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidDistrict.Code)
-		return
-	}
-
-	if req.Region == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidRegion.Code)
-		return
-	}
-
 	filterParams := local_util.ExtractFilterParams(r)
 
-	if len(req.Region) < 3 || len(req.District) < 3 {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidDistrictOrRegionCodeLength.Code)
-		return
-	}
-
-	branches, err := a.accountBlockApplication.GetAllBranches(r.Context(), req.Region, req.District, filterParams)
+	branches, err := a.accountBlockApplication.GetAllBranches(r.Context(), filterParams)
 	if err != nil {
 		a.logger.Errorf("GetAllBranches failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -114,10 +86,6 @@ func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Req
 
 func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
-		localization.SendBadRequestResponse(w, "Invalid pagination parameters")
-		return
-	}
 
 	regions, err := a.accountBlockApplication.GetAllRegions(r.Context(), filterParams)
 	if err != nil {
@@ -156,10 +124,6 @@ func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.R
 
 func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidPaginationParams.Code)
-		return
-	}
 
 	districts, err := a.accountBlockApplication.GetAllDistricts(r.Context(), filterParams)
 	if err != nil {
@@ -193,15 +157,11 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 
 	data := core.ToCityResponse(city)
 
-	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, data)
+	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
 }
 
 func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidPaginationParams.Code)
-		return
-	}
 
 	cities, err := a.accountBlockApplication.GetAllCities(r.Context(), filterParams)
 	if err != nil {
@@ -240,7 +200,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessBranchesEnabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEnableBranchesRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Request) {
@@ -264,7 +224,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessBranchesDisabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDisableBranchesRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Request) {
@@ -288,7 +248,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessRegionsEnabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEnableRegionsRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Request) {
@@ -313,7 +273,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessRegionsDisabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDisableRegionsRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Request) {
@@ -327,7 +287,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 	req.Clean()
 
 	if len(req.DistrictCodes) == 0 {
-		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
@@ -337,7 +297,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessDistrictsEnabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEnableDistrictsRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Request) {
@@ -351,7 +311,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 	req.Clean()
 
 	if len(req.DistrictCodes) == 0 {
-		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
@@ -361,7 +321,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessDistrictsDisabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDisableDistrictsRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Request) {
@@ -373,6 +333,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 
 	// Trim any whitespace
 	req.Clean()
+
 	if len(req.CitiesCode) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
@@ -384,7 +345,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCitiesEnabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEnableCitiesRequestSent, nil)
 }
 
 func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Request) {
@@ -396,16 +357,17 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 
 	// Trim any whitespace
 	req.Clean()
+
 	if len(req.CitiesCode) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
-	err := a.accountBlockApplication.DisableCities(r.Context(), req.CitiesCode, true)
+	err := a.accountBlockApplication.DisableCities(r.Context(), req.CitiesCode, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCitiesDisabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDisableCitiesRequestSent, nil)
 }

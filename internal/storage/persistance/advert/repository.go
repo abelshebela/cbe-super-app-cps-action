@@ -102,16 +102,21 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error) {
 
 	allowedKeys := []string{"title", "description", "enabled"}
-	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
-	
+
+	// Build search keys for $or search on title & description
+	searchKeys := bson.M{}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
 			{"description": searchRegex},
 		}
 	}
 
+	// Use FilterBuilder to construct filter + pagination
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	// Fetch data with final filter
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
