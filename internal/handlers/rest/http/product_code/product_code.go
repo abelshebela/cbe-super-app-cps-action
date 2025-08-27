@@ -7,8 +7,8 @@ import (
 
 	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/response"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/pkgs/utils"
@@ -42,14 +42,14 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("[productcode.UpdateProductCode] failed to parse JSON: %v", err)
-		response.SendErrorResponse(w, errors.ErrBadRequest)
+		localization.SendErrorByCodeResponse(w, errors.ErrBadRequest.Error())
 		return
 	}
 
 	err = req.Validate()
 	if err != nil {
 		h.logger.Errorf("[productcode.UpdateProductCode] validation error: %v", err)
-		response.SendErrorResponse(w, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -57,15 +57,18 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 
 	// For now, we'll skip the maker parameter until user context is implemented
 	old, new, err := h.productCodeApplication.UpdateProductCode(r.Context(), domainReq)
-	fmt.Println("the error:",err)
+	fmt.Println("the error:", err)
 	if err != nil {
-		response.SendErrorResponse(w, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	response.SendSuccessResponse(w, http.StatusOK, "Product code update request submitted successfully", map[string]*model.ProductCode{
+	localization.SendSuccessResponse(w, localization.ResponseCode{
+		Code:       err.Error(),
+		StatusCode: 200,
+	}, map[string]*model.ProductCode{
 		"old": old,
 		"new": new,
-	}, nil)
+	})
 }
 
 // FetchProductCodeByID retrieves a single product code
@@ -77,11 +80,14 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 
 	data, err := h.productCodeApplication.FetchProductCodeByID(r.Context(), id)
 	if err != nil {
-		response.SendErrorResponse(w, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	res := dto.ToProductCodeResponse(*data)
-	response.SendSuccessResponse(w, http.StatusOK, "Product code successfully retrieved", res, nil)
+	localization.SendSuccessResponse(w, localization.ResponseCode{
+		Code:       err.Error(),
+		StatusCode: 200,
+	}, res)
 }
 
 // FetchProductCodes retrieves all product codes
@@ -89,7 +95,7 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 	filterParams := utils.ExtractFilterParams(r)
 	list, err := h.productCodeApplication.FetchAllProductCodes(r.Context(), filterParams)
 	if err != nil {
-		response.SendErrorResponse(w, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	docs := dto.ToProductCodeResponses(list.Data)
@@ -97,5 +103,8 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 		Data: docs,
 		Meta: list.Meta,
 	}
-	response.SendSuccessResponse(w, http.StatusOK, "Product codes successfully retrieved", res, nil)
+	localization.SendSuccessResponse(w, localization.ResponseCode{
+		Code:       err.Error(),
+		StatusCode: 200,
+	}, res)
 }
