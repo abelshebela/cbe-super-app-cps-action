@@ -12,45 +12,54 @@ import (
 
 func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMiddleware middleware.AuthMiddleware) {
 
-
 	routes := []glue.Route{
-			{
-				Method:  http.MethodPatch,
-				Path:    "/update/{id}",
-				Handler: handler.UpdateAmountBasedAuth,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker}),
-				},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/amount_based_auth/update/{id}",
+			Handler: handler.UpdateAmountBasedAuth,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/",
-				Handler: handler.GetAllAmountBasedAuth,
-				Middlewares: []func(next http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker}),
-				},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/amount_based_auth/",
+			Handler: handler.GetAllAmountBasedAuth,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
-			// {
-			// 	Method:  http.MethodPatch,
-			// 	Path:    "/approve/{id}",
-			// 	Handler: handler.ApproveAmountBasedAuth,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Checker}),
-			// 	},
-			// },
-			// {
-			// 	Method:  http.MethodPatch,
-			// 	Path:    "/reject/{id}",
-			// 	Handler: handler.RejectAmountBasedAuth,
-			// 	Middlewares: []func(next http.Handler) http.Handler{
-			// 		authMiddleware.AuthenticateToken,
-			// 		authMiddleware.AccessControl([]string{role.Checker}),
-			// 	},
-			// },
-		}
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/amount_based_auth/reject/{id}",
+			Handler: handler.RejectAmountBasedAuth,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Checker}),
+			},
+		},
+
+		// {
+            //  Method:  http.MethodPatch,
+            //  Path:    "/approve/{id}",
+            //  Handler: handler.ApproveAmountBasedAuth,
+            //  Middlewares: []func(next http.Handler) http.Handler{
+            //      authMiddleware.AuthenticateToken,
+            //      authMiddleware.AccessControl([]string{role.Checker}),
+            //  },
+            // },
+            // {
+            //  Method:  http.MethodPatch,
+            //  Path:    "/reject/{id}",
+            //  Handler: handler.RejectAmountBasedAuth,
+            //  Middlewares: []func(next http.Handler) http.Handler{
+            //      authMiddleware.AuthenticateToken,
+            //      authMiddleware.AccessControl([]string{role.Checker}),
+            //  },
+            // },
+	}
 
 	glue.RegisterRoutes(router, routes)
 }
