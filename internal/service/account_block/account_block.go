@@ -21,7 +21,7 @@ func NewAccountService(repo storage.AccountBlockRepository) service.AccountBlock
 	return &accountBlockService{repo: repo}
 }
 
-func (s *accountBlockService) GetBranch(ctx context.Context, branchCode string, filterParams *types.Filter) (*model.Branch, error) {
+func (s *accountBlockService) GetBranchByCode(ctx context.Context, branchCode string, filterParams *types.Filter) (*model.Branch, error) {
 	return s.repo.GetBranchByCode(ctx, branchCode)
 }
 
@@ -39,7 +39,7 @@ func (s *accountBlockService) GetCityByCode(ctx context.Context, cityCode string
 
 func (s *accountBlockService) GetAllBranches(ctx context.Context, region, district string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error) {
 	// NEEDS FIX
-	return s.repo.FindAllBranchesWithPagination(ctx, *filterParams)
+	return s.repo.GetAllBranches(ctx, region, district, filterParams)
 }
 
 func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.City], error) {
@@ -64,32 +64,32 @@ func (s *accountBlockService) DisableBranches(ctx context.Context, branchCodes [
 	return s.repo.EnableOrDisable(ctx, "BRANCH", branchCodes, cpsAction, constants.RequestDisableBranches)
 }
 
-func (s *accountBlockService) EnableRegion(ctx context.Context, regionsCode []string, enabled bool) error {
+func (s *accountBlockService) EnableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
 	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableRegion)
 	return s.repo.EnableOrDisable(ctx, "REGION", regionsCode, cpsAction, constants.RequestEnableRegion)
 }
 
-func (s *accountBlockService) DisableRegion(ctx context.Context, regionsCode []string, enabled bool) error {
+func (s *accountBlockService) DisableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
 	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableRegion)
 	return s.repo.EnableOrDisable(ctx, "REGION", regionsCode, cpsAction, constants.RequestDisableRegion)
 }
 
-func (s *accountBlockService) EnableDistrict(ctx context.Context, districtsCode []string, enabled bool) error {
+func (s *accountBlockService) EnableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
 	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableDistrict)
 	return s.repo.EnableOrDisable(ctx, "DISTRICT", districtsCode, cpsAction, constants.RequestEnableDistrict)
 }
 
-func (s *accountBlockService) DisableDistrict(ctx context.Context, districtsCode []string, enabled bool) error {
+func (s *accountBlockService) DisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
 	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableDistrict)
 	return s.repo.EnableOrDisable(ctx, "DISTRICT", districtsCode, cpsAction, constants.RequestDisableDistrict)
 }
 
-func (s *accountBlockService) EnableCity(ctx context.Context, citiesCode []string, enabled bool) error {
+func (s *accountBlockService) EnableCities(ctx context.Context, citiesCode []string, enabled bool) error {
 	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableCity)
 	return s.repo.EnableOrDisable(ctx, "CITY", citiesCode, cpsAction, constants.RequestEnableCity)
 }
 
-func (s *accountBlockService) DisableCity(ctx context.Context, citiesCode []string, enabled bool) error {
+func (s *accountBlockService) DisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
 	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableCity)
 	return s.repo.EnableOrDisable(ctx, "CITY", citiesCode, cpsAction, constants.RequestDisableCity)
 }

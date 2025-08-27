@@ -181,6 +181,17 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	ErrorInvalidRequestBody,
+	ErrorInvalidPaginationParams,
+	ErrorInvalidDistrict,
+	ErrorInvalidRegion,
+	ErrorInvalidDistrictOrRegionCodeLength,
+
+	ErrorBranchCodeRequired,
+	ErrorDistrictCodeRequired,
+	ErrorRegionCodeRequired,
+	ErrorCityCodeRequired,
 }
 
 // Success Response Codes
@@ -1101,7 +1112,6 @@ var (
 		Type:       "success",
 	}
 
-
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
 		Code:       "SUCCESS_FEEDBACK_SAVED",
@@ -1630,8 +1640,6 @@ var (
 		Type:       "success",
 	}
 
-
-
 	SuccessRegionRetrieved = ResponseCode{
 		Code:       "SUCCESS_REGION_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1659,7 +1667,6 @@ var (
 		Message:    MsgRegionsSuccessfullyDisabled,
 		Type:       "success",
 	}
-
 
 	SuccessDistrictRetrieved = ResponseCode{
 		Code:       "SUCCESS_DISTRICT_RETRIEVED",
@@ -1689,7 +1696,6 @@ var (
 		Type:       "success",
 	}
 
-
 	SuccessCityRetrieved = ResponseCode{
 		Code:       "SUCCESS_CITY_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1714,9 +1720,9 @@ var (
 		Code:       "SUCCESS_CITIES_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgCitiesSuccessfullyDisabled,
-				Type:       "success",
+		Type:       "success",
 	}
-	
+
 	SuccessGetAllBanks = ResponseCode{
 		Code:       "SUCCESS_GET_ALL_BANKS",
 		StatusCode: StatusOK,
@@ -3083,4 +3089,67 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidRequestBody = ResponseCode{
+		Code:       "ERROR_INVALID_REQUEST_BODY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBody,
+		Type:       "error",
+	}
+
+	ErrorInvalidPaginationParams = ResponseCode{
+		Code:       "ERROR_INVALID_PAGINATION_PARAMS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidPaginationParams,
+		Type:       "error",
+	}
+	
+
+	ErrorInvalidDistrict = ResponseCode{
+		Code:       "ERROR_INVALID_DISTRICT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDistrict,
+		Type:       "error",
+	}
+
+	ErrorInvalidRegion = ResponseCode{
+		Code:       "ERROR_INVALID_REGION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRegion,
+		Type:       "error",
+	}
+
+	ErrorInvalidDistrictOrRegionCodeLength = ResponseCode{
+		Code:       "ERROR_INVALID_DISTRICT_OR_REGION_CODE_LENGTH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDistrictOrRegionCodeLength,
+		Type:       "error",
+	}
+
+	ErrorBranchCodeRequired = ResponseCode{
+		Code:       "ERROR_BRANCH_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorDistrictCodeRequired = ResponseCode{
+		Code:       "ERROR_DISTRICT_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorRegionCodeRequired = ResponseCode{
+		Code:       "ERROR_REGION_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCityCodeRequired = ResponseCode{
+		Code:       "ERROR_CITY_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
 )

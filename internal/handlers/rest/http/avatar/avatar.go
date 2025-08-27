@@ -30,7 +30,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.CreateAvatar(r.Context(),&model.Avatar{Avatar: req.Avatar, Label: req.Label}); err !=nil  {
+	if err := a.avatarApplication.CreateAvatar(r.Context(),&model.Avatar{Avatar: req.Avatar.Filename, Label: req.Label}); err !=nil  {
 		localization.SendErrorByCodeResponse(w,err.Error())
 		return
 	}

@@ -127,7 +127,7 @@ type WalletService interface {
 }
 
 type AccountBlockService interface {
-	GetBranch(ctx context.Context, branchCode string, filterParam *types.Filter) (*model.Branch, error)
+	GetBranchByCode(ctx context.Context, branchCode string, filterParam *types.Filter) (*model.Branch, error)
 	GetAllBranches(ctx context.Context, region string, district string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
 	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
@@ -137,12 +137,12 @@ type AccountBlockService interface {
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
 	EnableBranches(ctx context.Context, branchCodes []string, enabled bool) error
 	DisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
-	EnableRegion(ctx context.Context, regionsCode []string, enabled bool) error
-	DisableRegion(ctx context.Context, regionsCode []string, enabled bool) error
-	EnableDistrict(ctx context.Context, districtsCode []string, enabled bool) error
-	DisableDistrict(ctx context.Context, districtsCode []string, enabled bool) error
-	EnableCity(ctx context.Context, citiesCode []string, enabled bool) error
-	DisableCity(ctx context.Context, citiesCode []string, enabled bool) error
+	EnableRegions(ctx context.Context, regionsCode []string, enabled bool) error
+	DisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
+	EnableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
+	DisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
+	EnableCities(ctx context.Context, citiesCode []string, enabled bool) error
+	DisableCities(ctx context.Context, citiesCode []string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

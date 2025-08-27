@@ -32,7 +32,8 @@ func (a *accountBlockAdapter) GetBranch(w http.ResponseWriter, r *http.Request) 
 	filterParams := local_util.ExtractFilterParams(r)
 	branchCode, ok := local_util.GetParam(r, "branch_code")
 	if !ok {
-		localization.SendBadRequestResponse(w, "Branch code is required")
+		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		return
 	}
 
 	branch, err := a.accountBlockApplication.GetBranch(r.Context(), branchCode, filterParams)
@@ -48,26 +49,36 @@ func (a *accountBlockAdapter) GetBranch(w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Request) {
-	region, ok := local_util.GetParam(r, "region")
-	if !ok {
-		localization.SendBadRequestResponse(w, "Invalid region")
+	var req struct {
+		Region   string `json:"region"`
+		District string `json:"district"`
+	}
+
+	// Decode JSON request body
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
-	district, ok := local_util.GetParam(r, "district")
-	if !ok {
-		localization.SendBadRequestResponse(w, "Invalid district")
+	// Validate required fields
+	if req.District == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidDistrict.Code)
+		return
+	}
+
+	if req.Region == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRegion.Code)
 		return
 	}
 
 	filterParams := local_util.ExtractFilterParams(r)
 
-	if len(region) < 3 || len(district) < 3 {
-		localization.SendBadRequestResponse(w, "Region and District codes must be at least 3 characters long")
+	if len(req.Region) < 3 || len(req.District) < 3 {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidDistrictOrRegionCodeLength.Code)
 		return
 	}
 
-	branches, err := a.accountBlockApplication.GetAllBranches(r.Context(), region, district, filterParams)
+	branches, err := a.accountBlockApplication.GetAllBranches(r.Context(), req.Region, req.District, filterParams)
 	if err != nil {
 		a.logger.Errorf("GetAllBranches failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -85,12 +96,7 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
 	regionCode, ok := local_util.GetParam(r, "region_code")
 	if !ok {
-		localization.SendBadRequestResponse(w, "Region code is required")
-		return
-	}
-	
-	if len(regionCode) < 3 {
-		localization.SendBadRequestResponse(w, "Region code must be at least 3 characters long")
+		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
@@ -132,7 +138,7 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.Request) {
 	districtCode, ok := local_util.GetParam(r, "district_code")
 	if !ok {
-		localization.SendBadRequestResponse(w, "District code is required")
+		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Type)
 		return
 	}
 
@@ -151,7 +157,7 @@ func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.R
 func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
-		localization.SendBadRequestResponse(w, "INVALID_PAGINATION_PARAMS")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidPaginationParams.Code)
 		return
 	}
 
@@ -174,7 +180,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Request) {
 	cityCode, ok := local_util.GetParam(r, "city_code")
 	if !ok {
-		localization.SendBadRequestResponse(w, "City code is required")
+		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
 
@@ -193,7 +199,7 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams == nil || filterParams.Page < 1 || filterParams.PerPage < 1 {
-		localization.SendBadRequestResponse(w, "INVALID_PAGINATION_PARAMS")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidPaginationParams.Code)
 		return
 	}
 
@@ -216,19 +222,22 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "Invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 
 	if len(req.BranchCodes) == 0 {
-		localization.SendBadRequestResponse(w, "BRANCH_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		return
 	}
 
 	err := a.accountBlockApplication.EnableBranches(r.Context(), req.BranchCodes, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessBranchesEnabled, nil)
@@ -237,19 +246,22 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "Invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 
 	if len(req.BranchCodes) == 0 {
-		localization.SendBadRequestResponse(w, "BRANCH_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		return
 	}
 
 	err := a.accountBlockApplication.DisableBranches(r.Context(), req.BranchCodes, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessBranchesDisabled, nil)
@@ -258,19 +270,22 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 func (a *accountBlockAdapter) EnableRegion(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "Invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 
 	if len(req.RegionsCodes) == 0 {
-		localization.SendBadRequestResponse(w, "REGION_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		return
 	}
 
 	err := a.accountBlockApplication.EnableRegion(r.Context(), req.RegionsCodes, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessRegionsEnabled, nil)
@@ -279,7 +294,8 @@ func (a *accountBlockAdapter) EnableRegion(w http.ResponseWriter, r *http.Reques
 func (a *accountBlockAdapter) DisableRegion(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "Invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 
 	}
 
@@ -287,12 +303,14 @@ func (a *accountBlockAdapter) DisableRegion(w http.ResponseWriter, r *http.Reque
 	req.Clean()
 
 	if len(req.RegionsCodes) == 0 {
-		localization.SendBadRequestResponse(w, "REGION_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		return
 	}
 
 	err := a.accountBlockApplication.DisableRegion(r.Context(), req.RegionsCodes, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessRegionsDisabled, nil)
@@ -301,19 +319,22 @@ func (a *accountBlockAdapter) DisableRegion(w http.ResponseWriter, r *http.Reque
 func (a *accountBlockAdapter) EnableDistrict(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "Invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 
 	if len(req.DistrictCodes) == 0 {
-		localization.SendBadRequestResponse(w, "DISTRICT_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		return
 	}
 
 	err := a.accountBlockApplication.EnableDistrict(r.Context(), req.DistrictCodes, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsEnabled, nil)
@@ -322,19 +343,22 @@ func (a *accountBlockAdapter) EnableDistrict(w http.ResponseWriter, r *http.Requ
 func (a *accountBlockAdapter) DisableDistrict(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 
 	if len(req.DistrictCodes) == 0 {
-		localization.SendBadRequestResponse(w, "DISTRICT_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		return
 	}
 
 	err := a.accountBlockApplication.DisableDistrict(r.Context(), req.DistrictCodes, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsDisabled, nil)
@@ -343,18 +367,21 @@ func (a *accountBlockAdapter) DisableDistrict(w http.ResponseWriter, r *http.Req
 func (a *accountBlockAdapter) EnableCity(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 	if len(req.CitiesCode) == 0 {
-		localization.SendBadRequestResponse(w, "CITY_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
+		return
 	}
 
 	err := a.accountBlockApplication.EnableCity(r.Context(), req.CitiesCode, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessCitiesEnabled, nil)
@@ -363,18 +390,21 @@ func (a *accountBlockAdapter) EnableCity(w http.ResponseWriter, r *http.Request)
 func (a *accountBlockAdapter) DisableCity(w http.ResponseWriter, r *http.Request) {
 	var req ab_dto.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		localization.SendBadRequestResponse(w, "invalid request body")
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	// Trim any whitespace
 	req.Clean()
 	if len(req.CitiesCode) == 0 {
-		localization.SendBadRequestResponse(w, "CITY_CODE_IS_REQUIRED")
+		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
+		return
 	}
 
 	err := a.accountBlockApplication.DisableCity(r.Context(), req.CitiesCode, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessCitiesDisabled, nil)

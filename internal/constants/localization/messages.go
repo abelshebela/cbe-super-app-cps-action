@@ -718,30 +718,40 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
-	MsgValidationRuleSuccessFech = "Validation rule feched successfully"
+	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 
 	MsgMissingOrInvalidImage = "Missing or invalid image"
 
-	MsgBranchSuccessfullyRetrieved    = "Branch retrieved successfully"
-	MsgBranchesSuccessfullyRetrieved  = "Branches retrieved successfully"
-	MsgBranchesSuccessfullyEnabled    = "Branches enabled successfully"
-	MsgBranchesSuccessfullyDisabled   = "Branches disabled successfully"
+	MsgInvalidRequestBody      = "Invalid request body"
+	MsgInvalidPaginationParams = "Invalid pagination parameters"
 
-	MsgRegionSuccessfullyRetrieved    = "Region retrieved successfully"
-	MsgRegionsSuccessfullyRetrieved   = "Regions retrieved successfully"
-	MsgRegionsSuccessfullyEnabled     = "Regions enabled successfully"
-	MsgRegionsSuccessfullyDisabled   = "Regions disabled successfully"
+	MsgBranchSuccessfullyRetrieved   = "Branch retrieved successfully"
+	MsgBranchesSuccessfullyRetrieved = "Branches retrieved successfully"
+	MsgBranchesSuccessfullyEnabled   = "Branches enabled successfully"
+	MsgBranchesSuccessfullyDisabled  = "Branches disabled successfully"
+
+	MsgRegionSuccessfullyRetrieved  = "Region retrieved successfully"
+	MsgRegionsSuccessfullyRetrieved = "Regions retrieved successfully"
+	MsgRegionsSuccessfullyEnabled   = "Regions enabled successfully"
+	MsgRegionsSuccessfullyDisabled  = "Regions disabled successfully"
 
 	MsgDistrictSuccessfullyRetrieved  = "District retrieved successfully"
 	MsgDistrictsSuccessfullyRetrieved = "Districts retrieved successfully"
 	MsgDistrictsSuccessfullyEnabled   = "Districts enabled successfully"
-	MsgDistrictsSuccessfullyDisabled   = "Districts disabled successfully"
+	MsgDistrictsSuccessfullyDisabled  = "Districts disabled successfully"
 
 	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
 	MsgCitiesSuccessfullyRetrieved = "Cities retrieved successfully"
 	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
-	MsgCitiesSuccessfullyDisabled   = "Cities disabled successfully"
-	
+	MsgCitiesSuccessfullyDisabled  = "Cities disabled successfully"
+
+	MsgInvalidDistrict                   = "Invalid district"
+	MsgInvalidRegion                     = "Invalid region"
+	MsgInvalidDistrictOrRegionCodeLength = "Region and District codes must be at least 3 characters long"
+	MsgBranchCodeRequired                = "Branch code is required"
+	MsgDistrictCodeRequired              = "District code is required"
+	MsgRegionCodeRequired                = "Region code is required"
+	MsgCityCodeRequired                  = "City code is required"
 )

@@ -57,6 +57,39 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode st
 	return result, nil
 }
 
+func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, region, district string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error) {
+	skip := (filterParams.Page - 1) * filterParams.PerPage
+	limit := filterParams.PerPage
+	projection := bson.M{}
+
+	filter := bson.M{
+		"branch_region": bson.M{"$regex": region, "$options": "i"},
+		"district_name": bson.M{"$regex": district, "$options": "i"},
+	}
+
+	branches, err := a.branchDal.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	if err != nil {
+		a.logger.Errorf("failed to fetch branches: %v", err)
+		return nil, errors.New("FAILED_TO_FETCH_BRANCHES")
+	}
+
+	if len(branches) == 0 {
+		a.logger.Warnf("No branches found for region: %s, district: %s", region, district)
+		return nil, errors.New("BRANCH_NOT_FOUND")
+	}
+
+	total, err := a.branchDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	meta := local_util.BuildPaginationMeta(total, filterParams.Page, limit)
+
+	return &types.PaginatedResponse[[]*model.Branch]{
+		Data: branches,
+		Meta: meta,
+	}, nil
+}
+
 func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.Branch) error {
 	if branch.ID.IsZero() {
 		branch.ID = bson.NewObjectID()
