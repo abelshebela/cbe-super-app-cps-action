@@ -50,7 +50,13 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
-
+	//hq related success response codes
+	SuccessHQArchiveTimeFetched,
+	SuccessHQBlockTimeFetched,
+	SuccessHQPasswordExpiryFetched,
+	SuccessHQBlockTimeUpdateRequestSubmitted,
+	SuccessHQArchiveTimeUpdateRequestSubmitted,
+	SuccessHQPasswordExpiryUpdateRequestSubmitted,
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -154,6 +160,25 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	//hq related error response codes
+	ErrorHQNotFound,
+	ErrorInvalidHQRequest,
+	ErrorCPSActionFailed,
+
+	//customer  and bulk relatedcode
+	UserNotFoundWithGivenID,
+	ErrorFailedToGetCustomerDetail,
+	ErrorKeyRequiredForBulkService,
+	SuccessCustomerDetailSuccessfullyFetched,
+	ErrorIdNotSetOnQueryParam,
+	CustomerDetailSuccessfullyFetched,
+	ErrorFailedToGetBlockedCustomer,
+	SuccessFullyFetchBlockCustomer,
+	UnableToFetchBulkService,
+	BulkServiceFetchSuccessfully,
+	BulkServiceEnableRequestSuccess,
+	BulkServiceDisableRequestSuccess,
 }
 
 // Success Response Codes
@@ -171,85 +196,14 @@ var (
 		Message:    MsgAvatarCreatedSuccessfully,
 		Type:       "success",
 	}
-	ErrorFailedToGetCustomerDetail = ResponseCode{
-		Code:       "ERROR_FAILED_TO_GET_CUSTOMER_DETAIL",
-		StatusCode: StatusInternalServerError,
-		Message:    "Failed to get customer detail",
-		Type:       "error",
-	}
-	ErrorFailedToGetBlockedCustomer = ResponseCode{
-		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
-		StatusCode: StatusInternalServerError,
-		Message:    "Failed to get blocked customer",
-		Type:       "error",
-	}
-	SuccessFullyFetchBlockCustomer = ResponseCode{
-		Code:       "SUCCESSFULLY_FETCH_BLOCKED_CUSTOMER",
-		StatusCode: StatusOK,
-		Message:    "Successfully fetched blocked customer(s)",
-		Type:       "success",
-	}
-	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
-		Code:       "SUCCESS_CUSTOMER_DETAIL_SUCCESSFULLY_FETCHED",
-		StatusCode: StatusOK,
-		Message:    "Customer detail successfully fetched",
-		Type:       "success",
-	}
+
 	SuccessUserUpdated = ResponseCode{
 		Code:       "SUCCESS_USER_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgUserUpdatedSuccessfully,
 		Type:       "success",
 	}
-	ErrorIdNotSetOnQueryParam = ResponseCode{
-		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
-		StatusCode: StatusBadRequest,
-		Message:    "ID not set on query parameter",
-		Type:       "error",
-	}
-	CustomerDetailSuccessfullyFetched = ResponseCode{
-		Code:       "SUCCESS_CUSTOMER_DETAIL_SUCCESSFULLY_FETCHED",
-		StatusCode: StatusOK,
-		Message:    "Customer detail successfully fetched",
-		Type:       "success",
-	}
-	BulkServiceFetchSuccessfully = ResponseCode{
-		Code:       "SUCCESS_BULK_SERVICE_FETCHED",
-		StatusCode: StatusOK,
-		Message:    "Bulk service(s) fetched successfully",
-		Type:       "success",
-	}
-	BulkServiceEnableRequestSuccess = ResponseCode{
-		Code:       "SUCCESS_BULK_SERVICE_ENABLE_REQUEST",
-		StatusCode: StatusOK,
-		Message:    "Bulk service enable request processed successfully",
-		Type:       "success",
-	}
-	UnableToFetchBulkService = ResponseCode{
-		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
-		StatusCode: StatusInternalServerError,
-		Message:    "Unable to fetch bulk service",
-		Type:       "error",
-	}
-	BulkServiceDisableRequestSuccess = ResponseCode{
-		Code:       "SUCCESS_BULK_SERVICE_DISABLE_REQUEST",
-		StatusCode: StatusOK,
-		Message:    "Bulk service disable request processed successfully",
-		Type:       "success",
-	}
-	ErrorKeyRequiredForBulkService = ResponseCode{
-		Code:       "ERROR_KEY_REQUIRED_FOR_BULK_SERVICE",
-		StatusCode: StatusBadRequest,
-		Message:    "Key is required for bulk service operation",
-		Type:       "error",
-	}
 
-	MsgUnableToFetchBulkService = ResponseCode{
-		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
-		StatusCode: StatusInternalServerError,
-		Message:    "Unable to fetch bulk service",
-		Type:       "error",
-	}
 	SuccessUserDeleted = ResponseCode{
 		Code:       "SUCCESS_USER_DELETED",
 		StatusCode: StatusOK,
@@ -1563,6 +1517,56 @@ var (
 		Message:    MsgHQsFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessHQBlockTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTImeFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessHQPasswordExpiryFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQBlockTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQPasswordExpiryUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	// HQ related error response codes
+
+	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
+	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
+
+	ErrorInvalidBlockTime      = ResponseCode{Code: "ERROR_INVALID_BLOCK_TIME", StatusCode: 400, Message: "BlockTime must be greater than 0", Type: "error"}
+	ErrorInvalidArchiveTime    = ResponseCode{Code: "ERROR_INVALID_ARCHIVE_TIME", StatusCode: 400, Message: "ArchiveTime must be greater than 0", Type: "error"}
+	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 0", Type: "error"}
 
 	// Wallet related success response codes
 	SuccessWalletActionRequestSent = ResponseCode{
@@ -2989,5 +2993,87 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgMissingOrInvalidImage,
 		Type:       "error",
+	}
+
+	ErrorKeyRequiredForBulkService = ResponseCode{
+		Code:       "ERROR_KEY_REQUIRED_FOR_BULK_SERVICE",
+		StatusCode: StatusBadRequest,
+		Message:    "Key is required for bulk service operation",
+		Type:       "error",
+	}
+
+	ErrorFailedToGetCustomerDetail = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_CUSTOMER_DETAIL",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get customer detail",
+		Type:       "error",
+	}
+	UserNotFoundWithGivenID = ResponseCode{
+		Code:       "USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "user not found for given id",
+		Type:       "error",
+	}
+
+	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail(s) fetched successfully",
+		Type:       "success",
+	}
+
+	ErrorIdNotSetOnQueryParam = ResponseCode{
+		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
+		StatusCode: StatusBadRequest,
+		Message:    "ID not set on query parameter",
+		Type:       "error",
+	}
+
+	CustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail fetched successfully",
+		Type:       "success",
+	}
+	ErrorFailedToGetBlockedCustomer = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get blocked customer",
+		Type:       "error",
+	}
+
+	SuccessFullyFetchBlockCustomer = ResponseCode{
+		Code:       "SUCCESSFULLY_FETCH_BLOCKED_CUSTOMER",
+		StatusCode: StatusOK,
+		Message:    "Successfully fetched blocked customer(s)",
+		Type:       "success",
+	}
+
+	UnableToFetchBulkService = ResponseCode{
+		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unable to fetch bulk service",
+		Type:       "error",
+	}
+
+	BulkServiceFetchSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Bulk service(s) fetched successfully",
+		Type:       "success",
+	}
+
+	BulkServiceEnableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_ENABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service enable request processed successfully",
+		Type:       "success",
+	}
+
+	BulkServiceDisableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_DISABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service disable request processed successfully",
+		Type:       "success",
 	}
 )

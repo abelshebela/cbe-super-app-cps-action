@@ -21,7 +21,7 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
-	// bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
+	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
@@ -62,7 +62,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 
-		// bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
-		customerHandler: CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
+		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
+		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 	}
 }

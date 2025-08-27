@@ -47,7 +47,7 @@ func (s *HTTPServer) HTTPServerStop(ctx context.Context, log utils.Logger) {
 
 func NewHTTPServer(config *config.VaultConfig, handler http.Handler) *HTTPServer {
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":8082",
 		Handler:      handler,
 		ReadTimeout:  time.Duration(config.ServerTimeout) * time.Second,
 		WriteTimeout: time.Duration(config.ServerTimeout) * time.Second,

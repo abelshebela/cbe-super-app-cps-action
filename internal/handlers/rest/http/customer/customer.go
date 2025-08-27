@@ -3,13 +3,16 @@ package customer
 import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
-	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
+	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type customerAdapter struct {
@@ -27,12 +30,14 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
 	kycLevel := r.URL.Query().Get("kyc_level")
 	filterParams := util.ExtractFilterParams(r)
-
+	fmt.Println("handler 1")
 	kycLevelInt, err := strconv.Atoi(kycLevel)
 	if err != nil {
 		localization.SendBadRequestResponse(w, "Invalid kyc_level parameter")
 		return
 	}
+	fmt.Println("handler 2")
+
 	customers, err := c.customerService.GetCustomersDetail(r.Context(), kycLevelInt, filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetCustomerDetail.Code)
@@ -43,7 +48,7 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 }
 
 func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		c.logger.Errorf("id not set on param")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
@@ -53,7 +58,7 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 	userDetail, err := c.customerService.GetCustomerByID(ctx, id)
 	if err != nil {
 		c.logger.Errorf("error while fetching get customer detail:", err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetCustomerDetail.Code)
+		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
 		return
 	}
 	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)

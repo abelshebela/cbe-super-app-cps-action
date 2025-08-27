@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"errors"
+
 	// "strconv"
 	"strings"
 	"time"
@@ -15,6 +16,10 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"fmt"
+
+	//   "fmt"
+	"math/rand"
+	// "time"
 
 	// "time"
 
@@ -129,11 +134,13 @@ func validaterAccessKey(validAccessMap map[string]bool, accessList []*model.APPA
 }
 
 func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
-	return s.repo.FindAllWithPagination(ctx, filterParams)
+	fmt.Println("service 1")
+
+	return s.repo.FindAllWithPagination(ctx, *filterParams)
 }
-func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) error {
+func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) (string, error) {
 	if len(keys) == 0 {
-		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
+		return "", errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
@@ -144,22 +151,41 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 		Keys: keys,
 	}, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
 
-	return s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
+	return "", s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
 }
 
-func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) error {
+func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) (string, error) {
+	fmt.Println("service 1")
 	if len(keys) == 0 {
-		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
+		return "", errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
+
+	fmt.Println("service 2")
 
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
 	type currAction struct {
 		Keys []string
 	}
-	cpsAction := lib.CpsModelBuilder("", userPayload, nil, currAction{
+	unicode := GenerateUnique14DigitCode()
+	cpsAction := lib.CpsModelBuilder(unicode, userPayload, nil, currAction{
 		Keys: keys,
 	}, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
+	fmt.Println("service 4")
+	// Department:684eafae9d97e395eba3003e
+	//  UniqueId:17563028473906
+	fmt.Println("+++++++++++++++++++++++++++++++++++++---------------------------------------")
+	fmt.Printf("cpsAction: %+v\n", cpsAction)
+	fmt.Println("+++++++++++++++++++++++++++++++++++---------------------------------------")
 
-	return s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
+	err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
+	fmt.Printf("\nerror : %v", err)
+	return "", err
+}
+
+func GenerateUnique14DigitCode() string {
+	timestamp := time.Now().UnixNano() / int64(time.Millisecond) // 13 digits
+	rand.Seed(time.Now().UnixNano())
+	randomDigit := rand.Intn(10) // 1 digit
+	return fmt.Sprintf("%013d%d", timestamp, randomDigit)
 }

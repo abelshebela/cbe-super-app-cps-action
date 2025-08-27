@@ -10,6 +10,7 @@ import (
 	"fmt"
 	// "strings"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -38,40 +39,105 @@ func InitBulkServicePersistence(client *mongo.Client, dbName string, collections
 	}
 }
 
-func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
-	filter := bson.M{}
-	projection := bson.M{}
+func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
+	// 1. Base filter (only active records)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
 
-	// Add search functionality
-	if filterParams.Search != "" {
-		filter = bson.M{
-			"$or": []bson.M{
-				{"key": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-				{"accessListName": bson.M{"$regex": filterParams.Search, "$options": "i"}},
-			},
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{}
+
+	// 3. Add search (if provided)
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["field1"] = searchRegex // choose your searchable field(s)
+	}
+
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	// 5. Fetch data
+	data, err := b.mongoDalbulkService.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	fmt.Println("_____________________________________________________________")
+	for i, svc := range data {
+		if svc != nil {
+			fmt.Printf("BulkService[%d]: %+v\n", i, *svc)
+		} else {
+			fmt.Printf("BulkService[%d]: nil\n", i)
 		}
 	}
+	// fmt.Printf("access_List: %v", bulkServices)
+	fmt.Println("_____________________________________________________________")
 
-	page := filterParams.Page
-	limit := filterParams.PerPage
-	skip := (page - 1) * limit
-
-	bulkServices, err := b.mongoDalbulkService.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+	// 6. Count total
+	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	totalDocs, err := b.mongoDalbulkService.TotalCount(ctx, filter)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
-	meta := local_util.BuildPaginationMeta(totalDocs, page, limit)
+	// 7. Build pagination metadata
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
+	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.APPAccessList]{
-		Data: bulkServices,
+		Data: data,
 		Meta: meta,
 	}, nil
 }
+
+// func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
+// 	filter := bson.M{}
+// 	projection := bson.M{}
+
+// 	// Add search functionality
+// 	// if filterParams.Search != "" {
+// 	// 	filter = bson.M{
+// 	// 		"$or": []bson.M{
+// 	// 			{"key": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+// 	// 			{"accessListName": bson.M{"$regex": filterParams.Search, "$options": "i"}},
+// 	// 		},
+// 	// 	}
+// 	// }
+
+// 	page := filterParams.Page
+// 	limit := filterParams.PerPage
+// 	skip := (page - 1) * limit
+// 	fmt.Println("persistance 1")
+
+// 	bulkServices, err := b.mongoDalbulkService.FindAllWithPagination(ctx, filter, projection, int64(skip), int64(limit))
+// 	if err != nil {
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+// 	}
+
+// 	fmt.Println("_____________________________________________________________")
+// 	for i, svc := range bulkServices {
+// 		if svc != nil {
+// 			fmt.Printf("BulkService[%d]: %+v\n", i, *svc)
+// 		} else {
+// 			fmt.Printf("BulkService[%d]: nil\n", i)
+// 		}
+// 	}
+// 	// fmt.Printf("access_List: %v", bulkServices)
+// 	fmt.Println("_____________________________________________________________")
+
+// 	fmt.Println("persistance 2")
+
+// 	totalDocs, err := b.mongoDalbulkService.TotalCount(ctx, filter)
+// 	if err != nil {
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+// 	}
+// 	meta := local_util.BuildPaginationMeta(totalDocs, page, limit)
+
+//		return &types.PaginatedResponse[[]*model.APPAccessList]{
+//			Data: bulkServices,
+//			Meta: meta,
+//		}, nil
+//	}
 func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccessList, error) {
 	filter := bson.M{}
 

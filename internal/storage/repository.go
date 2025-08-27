@@ -372,7 +372,7 @@ type CustomerRepository interface {
 }
 
 type BulkServiceRepository interface {
-	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
 	Update(ctx context.Context, keys []string, state bool) error
 	FindAll(ctx context.Context) ([]*model.APPAccessList, error)
 }

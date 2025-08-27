@@ -84,7 +84,6 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 	return ca.repo.FindOne(ctx, model.CPSAction{ID: objID})
 }
 func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
-
 	return ca.repo.FindOne(ctx, model.CPSAction{Department: department, ActionStatus: string(constants.Pending), RequestAction: requestAction})
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {

@@ -14,7 +14,7 @@ func Init(router chi.Router, handler bulk_service.BulkServiceHandler, authMiddle
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/bulk_service/",
+			Path:    "/bulk_services",
 			Handler: handler.GetAllBulkServices,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -23,7 +23,7 @@ func Init(router chi.Router, handler bulk_service.BulkServiceHandler, authMiddle
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/bulk_service/disable",
+			Path:    "/bulk_services/disable",
 			Handler: handler.DisableBulkService,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

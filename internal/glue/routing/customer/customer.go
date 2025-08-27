@@ -14,7 +14,7 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "customer/",
+			Path:    "/customers",
 			Handler: handler.GetCustomerDetail,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -23,7 +23,7 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "customer/{id}",
+			Path:    "/customers/{id}",
 			Handler: handler.GetCustomerByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -32,7 +32,7 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "customer/blocked",
+			Path:    "/customers/blocked",
 			Handler: handler.GetBlockedCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

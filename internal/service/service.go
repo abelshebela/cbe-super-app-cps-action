@@ -32,8 +32,8 @@ type BudgetService interface {
 
 type BulkService interface {
 	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
-	EnableBulkService(ctx context.Context, keys []string) error
-	DisableBulkService(ctx context.Context, keys []string) error
+	EnableBulkService(ctx context.Context, keys []string) (string, error)
+	DisableBulkService(ctx context.Context, keys []string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

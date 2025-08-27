@@ -3,11 +3,13 @@ package customer
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"context"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -31,10 +33,12 @@ func InitCustomerDetail(client *mongo.Client, database string, collection string
 
 func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
 	// Build filter from filterParam
+	fmt.Println("perstistance 1")
+
 	filter := make(map[string]interface{})
-	if filterParam.Search != "" {
-		filter["$text"] = map[string]interface{}{"$search": filterParam.Search}
-	}
+	// if filterParam.Search != "" {
+	// 	filter["$text"] = map[string]interface{}{"$search": filterParam.Search}
+	// }
 	for k, v := range filterParam.Filters {
 		filter[k] = v
 	}
@@ -64,6 +68,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 		p.logger.Errorf("Failed to fetch users: ", err)
 		return nil, err
 	}
+	fmt.Println("perstistance 2")
 
 	// Prepare paginated response
 	total := int64(len(users)) // You should ideally get the total count from DB, not just the current page length
@@ -102,11 +107,19 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	return resp, nil
 }
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
-	filter := map[string]interface{}{"_id": id}
+	fmt.Println("persistance 1")
+	objID, err := bson.ObjectIDFromHex(id)
+	filter := map[string]interface{}{"_id": objID}
 	user, err := p.mongoDal.FindOne(ctx, filter, nil)
+	fmt.Println("persistance 2")
+
 	if err != nil {
 		p.logger.Errorf("Failed to fetch user by ID: %v", err)
 		return nil, err
+	}
+	if user != nil {
+		p.logger.Infof("no user found for given id: %v", id)
+		return nil, fmt.Errorf("no user found for given id")
 	}
 	return user, nil
 }
