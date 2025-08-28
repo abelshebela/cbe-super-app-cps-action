@@ -134,7 +134,6 @@ func validaterAccessKey(validAccessMap map[string]bool, accessList []*model.APPA
 }
 
 func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
-	fmt.Println("service 1")
 
 	return s.repo.FindAllWithPagination(ctx, *filterParams)
 }
@@ -155,12 +154,9 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) (str
 }
 
 func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) (string, error) {
-	fmt.Println("service 1")
 	if len(keys) == 0 {
 		return "", errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
-
-	fmt.Println("service 2")
 
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
@@ -171,15 +167,8 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) (st
 	cpsAction := lib.CpsModelBuilder(unicode, userPayload, nil, currAction{
 		Keys: keys,
 	}, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
-	fmt.Println("service 4")
-	// Department:684eafae9d97e395eba3003e
-	//  UniqueId:17563028473906
-	fmt.Println("+++++++++++++++++++++++++++++++++++++---------------------------------------")
-	fmt.Printf("cpsAction: %+v\n", cpsAction)
-	fmt.Println("+++++++++++++++++++++++++++++++++++---------------------------------------")
 
 	err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
-	fmt.Printf("\nerror : %v", err)
 	return "", err
 }
 
