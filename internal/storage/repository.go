@@ -343,13 +343,13 @@ type BranchRepository interface {
 }
 
 type MiniAppMerchantRepository interface {
-	Create(ctx context.Context, merchant *model.MiniAppMerchant) error
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
+	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant,error)
+	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant,error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (bool, error)
 }
 
 type NotificationRepository interface {

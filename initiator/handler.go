@@ -16,6 +16,7 @@ import (
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
+	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
@@ -40,6 +41,7 @@ import (
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
+	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
@@ -51,18 +53,19 @@ import (
 )
 
 type Handler struct {
-	CpsActionHandler  actionInbound.CPSActionAdapter
-	UnlinkHandler     unlinkInbound.UnlinkAdapter
-	EventHandler      eventInbound.EventAdapter
-	WalletHandler     walletInbound.WalletAdapter
-	PasswordHandler   passwordInbound.PasswordRule
-	BpsHandler        bpsInbound.BPSUserHandler
-	BankHandler       bank.BankHandler
-	FeedbackHandler   feedbackinterface.FeedbackAdapter
+	CpsActionHandler       actionInbound.CPSActionAdapter
+	UnlinkHandler          unlinkInbound.UnlinkAdapter
+	BpsHandler             bpsInbound.BPSUserHandler
+	FeedbackHandler        feedbackinterface.FeedbackAdapter
+	PortalCardHander       portalCardInterface.PortalCardAdapter
+	AccountValidation      accountvalidationInterface.AccountValidation
+	AdvertHandler          advertHandlerInterface.ADAdapter
+	EventHandler           eventInbound.EventAdapter
+	WalletHandler          walletInbound.WalletAdapter
+	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
+	PasswordHandler        passwordInbound.PasswordRule
+	BankHandler            bank.BankHandler
 	BudgetHandler     budget.BudgetPortHandler
-	AdvertHandler     advertHandlerInterface.ADAdapter
-	PortalCardHander  portalCardInterface.PortalCardAdapter
-	AccountValidation accountvalidationInterface.AccountValidation
 	AccountBlockHandler accountBlockHandlerInterface.AccountBlockAdapter
 
 	DepartmentHandler department.DepartmentHandler
@@ -79,21 +82,22 @@ type Handler struct {
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 
 	return Handler{
-		UnlinkHandler:     unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler:        bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
-		BankHandler:       bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
-		CpsActionHandler:  cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
-		EventHandler:      eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
-		FeedbackHandler:   feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		UnlinkHandler:          unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
+		BpsHandler:             bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		CpsActionHandler:       cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		EventHandler:           eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
+		FeedbackHandler:        feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		PortalCardHander:       portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
+		AccountValidation:      accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		AdvertHandler:          advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		WalletHandler:          walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
+		BankHandler:            bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
+		PasswordHandler:        passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
+		HqHandler:              hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 		BudgetHandler:     budgetHandler.InitBudgetAdapter(serviceLayer.Budget, logger),
-		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
-		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
-		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
-		PasswordHandler:   passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
-		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 		DepartmentHandler: department.NewDepartmentHandler(serviceLayer.Department, logger),
-		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
 		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),

@@ -250,6 +250,8 @@ const (
 	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	RequestEnableMiniAppMerchant    RequestAction = "ENABLE_MINIAPP_MERCHANT"
+	RequestDisableMiniAppMerchant   RequestAction = "DISABLE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
 	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"

@@ -46,6 +46,7 @@ type ServiceLayer struct {
 	Advert            service.AdvertService
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
+	MiniAppMerchant   service.MiniAppMerchantService
 	AccountBlock      service.AccountBlockService
 	Department        service.DepartmentService
 	PasswordRule      service.PasswordRuleService
@@ -63,11 +64,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
-	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
+	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
+
+	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
+
 	bulkService := bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
-	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
@@ -90,12 +93,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	)
 
 	return ServiceLayer{
-		Bank:              bank_service,
-		EventService:      eventService,
-		Feedback:          feedbackService,
 		CPSAction:         cpsActionService,
-		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Feedback:          feedbackService,
+		EventService:      eventService,
 		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
+		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Bank:              bank_service,
 		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
 
 		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
@@ -103,13 +106,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 		ValidationService: accountValidation,
 		Wallet:            walletService,
-		AccountBlock:      accountBlockService,
+		MiniAppMerchant:   miniAppMerchantService,
+		PasswordRule:      passwordRule,
+		HQService:         hqService,
+		AccountBlock: accountBlockService,
 		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
 
-		PasswordRule: passwordRule,
-		HQService:    hqService,
 		Fayda:        fayda,
 		Permission:   permissionService,
 		CPSUser:      cpsUserService,
