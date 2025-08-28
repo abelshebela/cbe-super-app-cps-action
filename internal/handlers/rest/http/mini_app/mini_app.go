@@ -26,7 +26,7 @@ func InitMiniAppAdapter(app service.MiniAppService, logger utils.Logger) miniApp
 	}
 }
 
-func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
+func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	req, err := miniappcore.ParseMiniAppRequestFromMultipartForm(r, true)
 	if err != nil {
 		h.logger.Errorf("failed to parse mini app request from multipart form: %v", err)
@@ -57,7 +57,7 @@ func (h *HttpStore) MakerCreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
 }
 
-func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
+func (h *HttpStore) UpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		h.logger.Errorf("mini app ID is required for update")
@@ -106,7 +106,7 @@ func (h *HttpStore) MakerUpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessUpdateMiniAppRequestCreated, nil)
 }
 
-func (h *HttpStore) MakerDeleteMiniApp(w http.ResponseWriter, r *http.Request) {
+func (h *HttpStore) DeleteMiniApp(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		h.logger.Errorf("mini app ID is required for delete")
@@ -190,7 +190,6 @@ func (h *HttpStore) ListMiniApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	h.logger.Infof("mini apps fetched successfully")
 	localization.SendSuccessResponse(w, localization.SuccessMiniAppsRetrieved, list)
 }

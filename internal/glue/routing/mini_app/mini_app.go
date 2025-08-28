@@ -17,7 +17,7 @@ func Init(router chi.Router, handler miniappRoute.MiniAppInbound, authMiddleware
 		{
 			Method:  http.MethodPost,
 			Path:    "/mini-apps",
-			Handler: handler.MakerCreateMiniApp,
+			Handler: handler.CreateMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -26,7 +26,7 @@ func Init(router chi.Router, handler miniappRoute.MiniAppInbound, authMiddleware
 		{
 			Method:  http.MethodPatch,
 			Path:    "/mini-apps/{id}",
-			Handler: handler.MakerUpdateMiniApp,
+			Handler: handler.UpdateMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -44,7 +44,7 @@ func Init(router chi.Router, handler miniappRoute.MiniAppInbound, authMiddleware
 		{
 			Method:  http.MethodDelete,
 			Path:    "/mini-apps/{id}",
-			Handler: handler.MakerDeleteMiniApp,
+			Handler: handler.DeleteMiniApp,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
