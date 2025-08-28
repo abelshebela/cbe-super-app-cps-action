@@ -29,6 +29,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	req, err := ReqFileParse(r)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -37,6 +38,8 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 
 	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 }
@@ -61,7 +64,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: true}); err != nil {
+	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: true}, nil); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -75,7 +78,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: false}); err != nil {
+	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: false}, nil); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

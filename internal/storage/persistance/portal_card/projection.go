@@ -10,9 +10,9 @@ import (
 func CardMapper(card model.Card) bson.M {
 	return bson.M{
 		"$set": bson.M{
-			"card_name":   card.CardName,
-			"sub_cards":   card.SubCards,
-			"updated_at":  time.Now(),
+			"card_name":  card.CardName,
+			"sub_cards":  card.SubCards,
+			"updated_at": time.Now(),
 		},
 	}
 }

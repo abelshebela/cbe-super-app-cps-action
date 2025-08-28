@@ -54,7 +54,62 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAvatarDisabled,
 	SuccessAvatarDeleted,
 
+	SuccessBranchRetrieved,
+	SuccessBranchesRetrieved,
+	SuccessBranchesEnabled,
+	SuccessBranchesDisabled,
+	SuccessEnableBranchesRequestSent,
+	SuccessDisableBranchesRequestSent,
+
+	SuccessRegionRetrieved,
+	SuccessRegionsRetrieved,
+	SuccessRegionsEnabled,
+	SuccessRegionsDisabled,
+	SuccessEnableRegionsRequestSent,
+	SuccessDisableRegionsRequestSent,
+
+	SuccessDistrictRetrieved,
+	SuccessDistrictsRetrieved,
+	SuccessDistrictsEnabled,
+	SuccessDistrictsDisabled,
+	SuccessEnableDistrictsRequestSent,
+	SuccessDisableDistrictsRequestSent,
+
+	SuccessCityRetrieved,
+	SuccessCitiesRetrieved,
+	SuccessCitiesEnabled,
+	SuccessCitiesDisabled,
+	SuccessEnableCitiesRequestSent,
+	SuccessDisableCitiesRequestSent,
+
+	// department related success response
+	SuccessGetAllDepartments,
+	SuccessDepartmentCreateRequestCreated,
+	SuccessDepartmentUpdateRequestCreated,
+	SuccessDepartmentDisableRequestCreated,
+	SuccessDepartmentEnableRequestCreated,
+	SuccessDepartmentUpdateRequestCreated,
+	SuccessDepartmentCreateRequestCreated,
+
+	//hq related success response codes
+	SuccessHQArchiveTimeFetched,
+	SuccessHQBlockTimeFetched,
+	SuccessHQPasswordExpiryFetched,
+	SuccessHQBlockTimeUpdateRequestSubmitted,
+	SuccessHQArchiveTimeUpdateRequestSubmitted,
+	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+	SuccessBudgetColorsFetched,
+	SuccessBudgetIconsFetched,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
 	// Error codes
+
+	// Error codes
+	ErrorInvalidKey,
+	ErrorInvalidEncData,
+	ErrorInvalidPadding,
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
 	ErrorUserUnauthorized,
@@ -88,6 +143,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
 	ErrorActionNotFound,
+	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
@@ -102,6 +158,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankDisableRequest,
 	ErrorBankEnableRequestFailed,
 	ErrorUserCodeRequired,
+
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
 	ErrorCoverImageRequired,
@@ -143,6 +200,14 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
+	ErrorInvalidJSONPayload,
+	ErrorInvalidAction,
+	ErrorIncompleteUserInfo,
+	ErrorPendingActionExists,
+	ErrorDuplicateColorExists,
+	ErrorInvalidActionFormat,
+	ErrorMissingFile,
+
 	// Add more as needed...
 	//wallet related error codes
 	ErrorWalletNameRequired,
@@ -157,6 +222,57 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	ErrorInvalidRequestBody,
+	ErrorInvalidPaginationParams,
+	ErrorInvalidDistrict,
+	ErrorInvalidRegion,
+	ErrorInvalidDistrictOrRegionCodeLength,
+
+	ErrorBranchCodeRequired,
+	ErrorDistrictCodeRequired,
+	ErrorRegionCodeRequired,
+	ErrorCityCodeRequired,
+
+	ErrorBranchNotFound,
+	ErrorDistrictNotFound,
+	ErrorRegionNotFound,
+	ErrorCityNotFound,
+
+	ErrorDuplicateAction,
+	ErrorOneOrMoreInvalidCodes,
+
+	// department related error
+	ErrorDepartmentCreateRequest,
+	ErrorInvalidFormatForDepartmentPermissionGroups,
+	ErrorInvalidFormatForDepartmentPortalCards,
+	ErrorInvalidDepartmentPortalCard,
+	ErrorInvalidDepartmentPermissionGroup,
+	ErrorDepartmentAlreadyDisabled,
+	ErrorDepartmentAlreadyEnabled,
+	// Fayda
+	ErrorFaydaUserAccountEnabled,
+	ErrorFaydaUserAccountDisabled,
+	ErrorNotFaydaUser,
+
+	//hq related error response codes
+	ErrorHQNotFound,
+	ErrorInvalidHQRequest,
+	ErrorCPSActionFailed,
+
+	//customer  and bulk relatedcode
+	UserNotFoundWithGivenID,
+	ErrorFailedToGetCustomerDetail,
+	ErrorKeyRequiredForBulkService,
+	SuccessCustomerDetailSuccessfullyFetched,
+	ErrorIdNotSetOnQueryParam,
+	CustomerDetailSuccessfullyFetched,
+	ErrorFailedToGetBlockedCustomer,
+	SuccessFullyFetchBlockCustomer,
+	UnableToFetchBulkService,
+	BulkServiceFetchSuccessfully,
+	BulkServiceEnableRequestSuccess,
+	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
 }
 
@@ -1013,11 +1129,42 @@ var (
 		Type:       "success",
 	}
 
-	// Department related success response codes
-	SuccessDepartmentCreated = ResponseCode{
-		Code:       "SUCCESS_DEPARTMENT_CREATED",
+	// department related success response codes
+	SuccessGetAllDepartments = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_DEPARTMENTS",
+		StatusCode: StatusOK,
+		Message:    msgGetAllDepartmentsSuccess,
+		Type:       "success",
+	}
+
+	SuccessGetDepartments = ResponseCode{
+		Code:       "SUCCESS_GET_DEPARTMENTS",
+		StatusCode: StatusOK,
+		Message:    msgGetDepartmentsSuccess,
+		Type:       "success",
+	}
+	SuccessDepartmentCreateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_CREATE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgDepartmentCreatedSuccessfully,
+		Message:    MsgDepartmentCreateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentUpdateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentEnableRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentDisableRequestedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1124,6 +1271,20 @@ var (
 		Code:       "SUCCESS_VALIDATION_RULE_FETCHED",
 		StatusCode: StatusOK,
 		Message:    MsgValidationRuleSuccessFech,
+		Type:       "success",
+	}
+
+	// Password rule
+	SuccessFetchAllPasswordRules = ResponseCode{
+		Code:       "SUCCESS_ALL_PASSWORD_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgFetchAllPasswordRules,
+		Type:       "success",
+	}
+	SuccessUpdatePasswordRule = ResponseCode{
+		Code:       "SUCCESS_UPDATE_PASSWORD_RULE",
+		StatusCode: StatusOK,
+		Message:    MsgUpdatePasswordRule,
 		Type:       "success",
 	}
 
@@ -1545,6 +1706,56 @@ var (
 		Message:    MsgHQsFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessHQBlockTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTImeFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessHQPasswordExpiryFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQBlockTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQPasswordExpiryUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	// HQ related error response codes
+
+	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
+	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
+
+	ErrorInvalidBlockTime      = ResponseCode{Code: "ERROR_INVALID_BLOCK_TIME", StatusCode: 400, Message: "BlockTime must be greater than 0", Type: "error"}
+	ErrorInvalidArchiveTime    = ResponseCode{Code: "ERROR_INVALID_ARCHIVE_TIME", StatusCode: 400, Message: "ArchiveTime must be greater than 0", Type: "error"}
+	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 0", Type: "error"}
 
 	// Wallet related success response codes
 	SuccessWalletActionRequestSent = ResponseCode{
@@ -1590,6 +1801,55 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBudgetIconRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetCheckerActionApproved = ResponseCode{
+		Code:       "BUDGET_ICON_CHECKER_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCheckerActionApprovedSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconsFetched = ResponseCode{
+		Code:       "BUDGET_ICONS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorsFetched = ResponseCode{
+		Code:       "BUDGET_COLORS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorsFetchedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessDonationImageUploaded = ResponseCode{
 		Code:       "SUCCESS_DONATION_IMAGE_UPLOADED",
 		StatusCode: StatusOK,
@@ -1627,6 +1887,172 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBranchRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCH_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessBranchesRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessBranchesEnabled = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessBranchesDisabled = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableBranchesRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_BRANCHES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableBranchesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableBranchesRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_BRANCHES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableBranchesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRegionRetrieved = ResponseCode{
+		Code:       "SUCCESS_REGION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessRegionsRetrieved = ResponseCode{
+		Code:       "SUCCESS_REGIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessRegionsEnabled = ResponseCode{
+		Code:       "SUCCESS_REGIONSS_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessRegionsDisabled = ResponseCode{
+		Code:       "SUCCESS_REGIONSS_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableRegionsRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_REGIONS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableRegionsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableRegionsRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_REGIONS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableRegionsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDistrictRetrieved = ResponseCode{
+		Code:       "SUCCESS_DISTRICT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessDistrictsRetrieved = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessDistrictsEnabled = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessDistrictsDisabled = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableDistrictsRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_DISTRICTS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableDistrictsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableDistrictsRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_DISTRICTS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableDistrictsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessCityRetrieved = ResponseCode{
+		Code:       "SUCCESS_CITY_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCitySuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessCitiesRetrieved = ResponseCode{
+		Code:       "SUCCESS_CITIES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyRetrieved,
+		Type:       "success",
+	}
+	SuccessCitiesEnabled = ResponseCode{
+		Code:       "SUCCESS_CITIES_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessCitiesDisabled = ResponseCode{
+		Code:       "SUCCESS_CITIES_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyDisabled,
+		Type:       "success",
+	}
+	SuccessEnableCitiesRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_CITIES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableCitiesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableCitiesRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_CITIES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableCitiesRequestSent,
+		Type:       "success",
+	}
+
 	SuccessGetAllBanks = ResponseCode{
 		Code:       "SUCCESS_GET_ALL_BANKS",
 		StatusCode: StatusOK,
@@ -1647,10 +2073,44 @@ var (
 		Message:    msgDeleteBankRequestSuccess,
 		Type:       "success",
 	}
+
+	// Fayda Account
+	SuccessFaydaEnableActionCreated = ResponseCode{
+		Code:       "SUCCESS_FAYDA_ENABLE_ACTION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgFaydaAccountEnableCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessFaydaDisableActionCreated = ResponseCode{
+		Code:       "SUCCESS_FAYDA_DISABLE_ACTION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgFaydaAccountDisableCreatedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
 var (
+	ErrorInvalidKey = ResponseCode{
+		Code:       "ERROR_INVALID_KEY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidKey,
+		Type:       "error",
+	}
+	ErrorInvalidEncData = ResponseCode{
+		Code:       "ERROR_INVALID_ENC_DATA",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidEncData,
+		Type:       "error",
+	}
+
+	ErrorInvalidPadding = ResponseCode{
+		Code:       "ERROR_INVALID_PADDING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidPadding,
+		Type:       "error",
+	}
+
 	ErrorUserNotFound = ResponseCode{
 		Code:       "ERROR_USER_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -1678,6 +2138,14 @@ var (
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
 	}
+
+	ErrorDuplicateColorExists = ResponseCode{
+		Code:       "ERROR_DUPLICATE_COLOR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateColorExists,
+		Type:       "error",
+	}
+
 	ErrorFeedbackIDRequired = ResponseCode{
 		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1692,8 +2160,15 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidJSONPayload = ResponseCode{
+		Code:       "ERROR_INVALID_JSON_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidJSONPayload,
+		Type:       "error",
+	}
+
 	ErrorIncompleteUserInfo = ResponseCode{
-		Code:       "ERROR_INCOMPLET_USER_INFO",
+		Code:       "ERROR_INCOMPLTE_USER_INFO",
 		StatusCode: StatusBadRequest,
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
@@ -2137,6 +2612,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidInputParameter = ResponseCode{
+		Code:       "ERROR_INVALID_INPUT_PARAMETER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameter,
+		Type:       "error",
+	}
+
 	ErrorInvalidEmail = ResponseCode{
 		Code:       "ERROR_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
@@ -2175,6 +2657,19 @@ var (
 		Code:       "ERROR_MISSING_FILE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgMissingFile,
+		Type:       "error",
+	}
+
+	ErrorInvalidAction = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidAction,
+		Type:       "error",
+	}
+	ErrorInvalidActionFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidActionFormat,
 		Type:       "error",
 	}
 
@@ -2420,6 +2915,14 @@ var (
 		Code:       "ERROR_SERVICE_UNKNOWN_REQUEST_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgServiceUnknownRequestAction,
+		Type:       "error",
+	}
+
+	// Password Rule
+	ErrorNoPasswordRule = ResponseCode{
+		Code:       "ERROR_PASSWORD_RULE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgPasswordRuleNotFound,
 		Type:       "error",
 	}
 
@@ -2753,14 +3256,6 @@ var (
 		Type:       "error",
 	}
 
-	// Department related error response codes
-	ErrorDepartmentCreationSuccess = ResponseCode{
-		Code:       "ERROR_DEPARTMENT_CREATION_SUCCESS",
-		StatusCode: StatusCreated,
-		Message:    MsgDepartmentCreationSuccess,
-		Type:       "error",
-	}
-
 	ErrorDepartmentUpdateCPSActionCreated = ResponseCode{
 		Code:       "ERROR_DEPARTMENT_UPDATE_CPS_ACTION_CREATED",
 		StatusCode: StatusCreated,
@@ -2971,5 +3466,268 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgMissingOrInvalidImage,
 		Type:       "error",
+	}
+
+	ErrorPendingActionExists = ResponseCode{
+		Code:       "ERROR_PENDING_ACTION_EXISTS",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgPendingActionExists,
+		Type:       "error",
+	}
+	ErrorInvalidRequestBody = ResponseCode{
+		Code:       "ERROR_INVALID_REQUEST_BODY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBody,
+		Type:       "error",
+	}
+
+	ErrorInvalidPaginationParams = ResponseCode{
+		Code:       "ERROR_INVALID_PAGINATION_PARAMS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidPaginationParams,
+		Type:       "error",
+	}
+
+	ErrorInvalidDistrict = ResponseCode{
+		Code:       "ERROR_INVALID_DISTRICT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDistrict,
+		Type:       "error",
+	}
+
+	ErrorInvalidRegion = ResponseCode{
+		Code:       "ERROR_INVALID_REGION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRegion,
+		Type:       "error",
+	}
+
+	ErrorInvalidDistrictOrRegionCodeLength = ResponseCode{
+		Code:       "ERROR_INVALID_DISTRICT_OR_REGION_CODE_LENGTH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDistrictOrRegionCodeLength,
+		Type:       "error",
+	}
+
+	ErrorBranchCodeRequired = ResponseCode{
+		Code:       "ERROR_BRANCH_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorDistrictCodeRequired = ResponseCode{
+		Code:       "ERROR_DISTRICT_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorRegionCodeRequired = ResponseCode{
+		Code:       "ERROR_REGION_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCityCodeRequired = ResponseCode{
+		Code:       "ERROR_CITY_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorBranchNotFound = ResponseCode{
+		Code:       "ERROR_BRANCH_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBranchNotFound,
+		Type:       "error",
+	}
+
+	ErrorDistrictNotFound = ResponseCode{
+		Code:       "ERROR_DISTRICT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDistrictNotFound,
+		Type:       "error",
+	}
+
+	ErrorRegionNotFound = ResponseCode{
+		Code:       "ERROR_REGION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRegionNotFound,
+		Type:       "error",
+	}
+
+	ErrorCityNotFound = ResponseCode{
+		Code:       "ERROR_CITY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCityNotFound,
+		Type:       "error",
+	}
+
+	ErrorDuplicateAction = ResponseCode{
+		Code:       "ERROR_DUPLICATE_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateAction,
+		Type:       "error",
+	}
+
+	ErrorOneOrMoreInvalidCodes = ResponseCode{
+		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
+		StatusCode: StatusBadRequest,
+		Message:    MsgOneOrMoreInvalidCodes,
+		Type:       "error",
+	}
+
+	// department related error
+	ErrorInvalidFormatForDepartmentName = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentName,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForDepartmentPortalCards = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_PORTAL_CARDS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentPortalCards,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForDepartmentPermissionGroups = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_PERMISSION_GROUPS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentPermissionGroups,
+		Type:       "error",
+	}
+	ErrorInvalidDepartmentPermissionGroup = ResponseCode{
+		Code:       "ERROR_INVALID_DEPARTMENT_PERMISSION_GROUP",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDepartmentPermissionGroup,
+		Type:       "error",
+	}
+	ErrorInvalidDepartmentPortalCard = ResponseCode{
+		Code:       "ERROR_INVALID_DEPARTMENT_PORTAL_CARD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDepartmentPortalCard,
+		Type:       "error",
+	}
+	ErrorDepartmentCreateRequest = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_CREATION_REQUEST",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentCreateRequestFail,
+		Type:       "error",
+	}
+
+	ErrorDepartmentAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDepartmentAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDepartmentAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
+	// fayda
+	ErrorFaydaUserAccountEnabled = ResponseCode{
+		Code:       "FAYDA_USER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgUserFaydaAccountAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorFaydaUserAccountDisabled = ResponseCode{
+		Code:       "FAYDA_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgUserFaydaAccountAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorNotFaydaUser = ResponseCode{
+		Code:       "USER_IS_NOT_FAYDA_USER",
+		StatusCode: StatusNotFound,
+		Message:    MsgNotFaydaUser,
+		Type:       "error",
+	}
+
+	ErrorKeyRequiredForBulkService = ResponseCode{
+		Code:       "ERROR_KEY_REQUIRED_FOR_BULK_SERVICE",
+		StatusCode: StatusBadRequest,
+		Message:    "Key is required for bulk service operation",
+		Type:       "error",
+	}
+
+	ErrorFailedToGetCustomerDetail = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_CUSTOMER_DETAIL",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get customer detail",
+		Type:       "error",
+	}
+	UserNotFoundWithGivenID = ResponseCode{
+		Code:       "USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "user not found for given id",
+		Type:       "error",
+	}
+
+	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail(s) fetched successfully",
+		Type:       "success",
+	}
+
+	ErrorIdNotSetOnQueryParam = ResponseCode{
+		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
+		StatusCode: StatusBadRequest,
+		Message:    "ID not set on query parameter",
+		Type:       "error",
+	}
+
+	CustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail fetched successfully",
+		Type:       "success",
+	}
+	ErrorFailedToGetBlockedCustomer = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get blocked customer",
+		Type:       "error",
+	}
+
+	SuccessFullyFetchBlockCustomer = ResponseCode{
+		Code:       "SUCCESSFULLY_FETCH_BLOCKED_CUSTOMER",
+		StatusCode: StatusOK,
+		Message:    "Successfully fetched blocked customer(s)",
+		Type:       "success",
+	}
+
+	UnableToFetchBulkService = ResponseCode{
+		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unable to fetch bulk service",
+		Type:       "error",
+	}
+
+	BulkServiceFetchSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Bulk service(s) fetched successfully",
+		Type:       "success",
+	}
+
+	BulkServiceEnableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_ENABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service enable request processed successfully",
+		Type:       "success",
+	}
+
+	BulkServiceDisableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_DISABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service disable request processed successfully",
+		Type:       "success",
 	}
 )

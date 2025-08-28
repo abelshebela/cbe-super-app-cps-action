@@ -5,8 +5,10 @@ import (
 	"mime/multipart"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
+	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -28,22 +30,39 @@ type BranchService interface {
 
 type BudgetService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateBudgetIcon(ctx context.Context, fileHeader *multipart.FileHeader, file *multipart.File) error
+	BudgetFetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	BudgetUpdateIcon(ctx context.Context, id string, fileHeader *multipart.FileHeader, file *multipart.File) error
+	BudgetCreateColor(ctx context.Context, color *model.Color) error
+	BudgetFetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	BudgetUpdateColor(ctx context.Context, id string, color *model.Color) error
+	BudgetCheckerApproval(ctx context.Context, actionCode string) error
 }
 
 type BulkService interface {
+	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
+	EnableBulkService(ctx context.Context, keys []string) (string, error)
+	DisableBulkService(ctx context.Context, keys []string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type CPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	// Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type CustomerService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 }
 
 type DepartmentService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
+	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
+	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
 type DonationService interface {
@@ -61,6 +80,7 @@ type EventService interface {
 }
 
 type FaydaAccountService interface {
+	EnableOrDisableFayda(ctx context.Context, user_code string, isEnable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -72,7 +92,15 @@ type FeedbackService interface {
 }
 
 type HQService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
+	GetHQ(ctx context.Context, id string) (hqDto.HQ, error)
+	GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, error)
+	GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeResponse, error)
+	GetPasswordExpiry(ctx context.Context) (hqDto.PasswordExpiryResponse, error)
+	UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlockTimeRequest) error
+	UpdateArchiveTime(ctx context.Context, request hqDto.UpdateArchiveTimeRequest) error
+	UpdatePasswordExpiry(ctx context.Context, request hqDto.UpdatePasswordExpiryRequest) error
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppService interface {
@@ -89,6 +117,9 @@ type NotificationService interface {
 }
 
 type PasswordRuleService interface {
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -127,6 +158,18 @@ type WalletService interface {
 }
 
 type AccountBlockService interface {
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
+	EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

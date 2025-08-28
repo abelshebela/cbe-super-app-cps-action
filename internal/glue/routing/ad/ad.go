@@ -16,7 +16,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/adverts/",
+			Path:    "/advert",
 			Handler: handler.CreateAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -25,7 +25,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/adverts/{id}",
+			Path:    "/advert/{id}",
 			Handler: handler.UpdateAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -43,7 +43,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/adverts/{id}",
+			Path:    "/advert/{id}",
 			Handler: handler.FetchAdvertByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -52,7 +52,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/adverts/",
+			Path:    "/advert",
 			Handler: handler.FetchAdverts,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -61,7 +61,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/adverts/enable/{id}",
+			Path:    "/advert/enable/{id}",
 			Handler: handler.EnableAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -70,7 +70,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/adverts/disable/{id}",
+			Path:    "/advert/disable/{id}",
 			Handler: handler.DisableAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

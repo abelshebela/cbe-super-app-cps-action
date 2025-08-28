@@ -13,7 +13,7 @@ func CityMapper(city model.City) bson.M {
 		"$set": bson.M{
 			"city_code":      city.CityCode,
 			"city_name":      city.CityName,
-			"city_address":   city.City,
+			"city_address":   city.CityAddress,
 			"district_id":    city.DistrictID,
 			"district_name":  city.DistrictName,
 			"region_id":      city.RegionID,
@@ -22,4 +22,4 @@ func CityMapper(city model.City) bson.M {
 			"updated_at":     time.Now(),
 		},
 	}
-} 
+}

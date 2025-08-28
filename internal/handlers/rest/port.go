@@ -25,4 +25,3 @@ type CPSActionAdapter interface {
 	GetCPSActionByID(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)
 }
-

@@ -16,4 +16,4 @@ func IconMapper(icon model.Icon) bson.M {
 			"last_modified": time.Now(),
 		},
 	}
-} 
+}
