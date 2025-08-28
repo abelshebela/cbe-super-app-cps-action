@@ -46,22 +46,15 @@ func (w *WalletStorage) Create(ctx context.Context, wallet *model.Wallet) error 
 }
 
 func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wallet) error {
+	var update bson.M
 	objID, err := bson.ObjectIDFromHex(id)
+
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{"last_modified_at": time.Now()}
-	if wallet.Name != "" {
-		update["name"] = wallet.Name
-	}
-	if wallet.Code != "" {
-		update["code"] = wallet.Code
-	}
-	if wallet.Avatar != "" {
-		update["avatar"] = wallet.Avatar
-	}
+	update = UpdateMapper(*wallet)
 
 	if len(update) == 1 {
 		return errors.New(localization.ErrorNoDataProvided.Code)

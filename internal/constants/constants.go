@@ -48,6 +48,7 @@ const (
 	BucketUserProfilePicture          = "USER-PROFILE-PICTURES"
 	OtpExpirationTime                 = 3 * time.Minute
 	ActionCode                        = "action_code"
+	Avatar                            = "avatar"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"
