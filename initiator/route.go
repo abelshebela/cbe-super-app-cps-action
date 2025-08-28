@@ -12,13 +12,13 @@ import (
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
-	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
+	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
@@ -28,10 +28,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger) {
+
 	r := chi.NewRouter()
 	cfg, _ := config.Load()
 
@@ -73,4 +75,13 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+	// Serve swagger.json directly
+	router.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./docs/swagger.json")
+	})
+
+	router.Get("/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/docs/swagger.json"),
+		
+	))
 }
