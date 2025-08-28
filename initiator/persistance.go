@@ -62,7 +62,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		SMSSenderApi:                 *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
 		CPSAction:                    cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
 		AmountBasedAuthPersistence:   amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tier", logger),
-		AccountBlockPersistence:      account_block.NewAccountBlockRepository(client, dbName, "branches", "cps_actions", logger),
+		AccountBlockPersistence:      account_block.NewAccountBlockRepository(client, dbName, logger),
 		PortalCardPersistence:        portal_card.NewPortalCardRepository(client, dbName, "cards", logger),
 		MiniAppPersistence:           mini_app.NewMiniAppRepository(client, dbName, "mini_apps", logger),
 		CityPersistence:              city.NewCityRepository(client, dbName, "cities", logger),

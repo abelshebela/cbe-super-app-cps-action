@@ -3551,8 +3551,7 @@ var (
 		StatusCode: StatusBadRequest,
 		Message: MsgOneOrMoreInvalidCodes,
 		Type: "error",
-
-  ErrorKeyRequiredForBulkService = ResponseCode{
+	}
 
     // department related error
 	ErrorInvalidFormatForDepartmentName = ResponseCode{
