@@ -26,6 +26,7 @@ import (
 	// "cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	// "cbe-super-app-cps-action/internal/storage/persistance/event"
+	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
@@ -92,6 +93,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
 		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "users", logger),
 	}
 
 	return data

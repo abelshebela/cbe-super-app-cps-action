@@ -54,4 +54,5 @@ type Persistence struct {
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
+	FaydaPersistence                 storage.FaydaRepository
 }
