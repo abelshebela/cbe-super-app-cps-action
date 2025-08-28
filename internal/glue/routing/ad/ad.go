@@ -34,7 +34,7 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/{id}",
+			Path:    "/adverts/{id}",
 			Handler: handler.DeleteAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
