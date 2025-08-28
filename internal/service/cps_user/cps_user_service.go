@@ -48,7 +48,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	if _, err := s.departmentRepo.FindByID(ctx, req.Department.Hex()); err != nil {
 		return err
 	}
-	
+
 	if len(req.PermissionCategory) > 0 {
 		categoryIDs := make([]string, len(req.PermissionCategory))
 		for i, id := range req.PermissionCategory {
@@ -58,7 +58,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 			return err
 		}
 	}
-	
+
 	if len(req.PermissionGroups) > 0 {
 		groupIDs := make([]string, len(req.PermissionGroups))
 		for i, id := range req.PermissionGroups {
@@ -88,7 +88,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 	if _, err := s.departmentRepo.FindByID(ctx, req.Department.Hex()); err != nil {
 		return err
 	}
-	
+
 	if len(req.PermissionCategory) > 0 {
 		categoryIDs := make([]string, len(req.PermissionCategory))
 		for i, id := range req.PermissionCategory {
@@ -99,7 +99,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		}
 	}
 
-	
 	if len(req.PermissionGroups) > 0 {
 		groupIDs := make([]string, len(req.PermissionGroups))
 		for i, id := range req.PermissionGroups {
@@ -115,7 +114,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		return errors.New("MAKER_OR_CHECKER")
 	}
 
-	
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		if normalized == "" {
@@ -124,7 +122,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		req.PhoneNumber = normalized
 	}
 
-	
 	makerData := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder(
 		req.UserCode,
@@ -181,7 +178,7 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
 	}
 
-	updated := *prev
+	updated := prev
 	updated.Enabled = true
 
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -207,7 +204,7 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
 	}
 
-	updated := *prev
+	updated := prev
 	updated.Enabled = false
 
 	maker := local_util.ExtractUserFromContext(ctx)

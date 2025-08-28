@@ -279,8 +279,8 @@ const (
 	RequestDisableDistricts RequestAction = "REQUEST_DISABLE_DISTRICTS"
 
 	// City
-	RequestEnableCities        RequestAction = "REQUEST_ENABLE_CITIES"
-	RequestDisableCities        RequestAction = "REQUEST_DISABLE_CITIES"
+	RequestEnableCities  RequestAction = "REQUEST_ENABLE_CITIES"
+	RequestDisableCities RequestAction = "REQUEST_DISABLE_CITIES"
 
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"

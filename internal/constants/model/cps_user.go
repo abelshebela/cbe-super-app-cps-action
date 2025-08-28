@@ -3,15 +3,11 @@ package model
 import (
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/types"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type Password struct {
-	Salt             string    `json:"salt" bson:"salt"`
-	CurrentPassword  string    `json:"current_password" bson:"current_password"`
-	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
-	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
-}
 type CPSUser struct {
 	ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode           string          `json:"user_code,omitempty" bson:"user_code,omitempty"`
@@ -26,17 +22,17 @@ type CPSUser struct {
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty"`
 	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group,omitempty"`
 
-	Password                 Password  `json:"password" bson:"password,omitempty"`
-	PasswordDisable          bool      `json:"password_disable,omitempty" bson:"password_disable,omitempty"`
-	SyncDisabled             bool      `json:"sync_disabled,omitempty" bson:"sync_disabled,omitempty"`
-	LoginAttemptCount        uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`
-	LastLoginAttempt         time.Time `json:"last_login_attempt,omitempty" bson:"last_login_attempt,omitempty"`
-	NextLoginAttempt         time.Time `json:"next_login_attempt,omitempty" bson:"next_login_attempt,omitempty"`
-	LastOnlineDate           time.Time `json:"last_online_date,omitempty" bson:"last_online_date,omitempty"`
-	LastLogin                time.Time `json:"last_login,omitempty" bson:"last_login,omitempty"`
-	LoginPassword            string    `json:"login_password,omitempty" bson:"login_password,omitempty"`
-	AccountAuthorizationCode string    `json:"account_authorization_code,omitempty" bson:"account_authorization_code,omitempty"`
-	UnlockAccountRequested   bool      `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested,omitempty"`
+	Password                 types.Password `json:"password" bson:"password,omitempty"`
+	PasswordDisable          bool           `json:"password_disable,omitempty" bson:"password_disable,omitempty"`
+	SyncDisabled             bool           `json:"sync_disabled,omitempty" bson:"sync_disabled,omitempty"`
+	LoginAttemptCount        uint8          `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`
+	LastLoginAttempt         time.Time      `json:"last_login_attempt,omitempty" bson:"last_login_attempt,omitempty"`
+	NextLoginAttempt         time.Time      `json:"next_login_attempt,omitempty" bson:"next_login_attempt,omitempty"`
+	LastOnlineDate           time.Time      `json:"last_online_date,omitempty" bson:"last_online_date,omitempty"`
+	LastLogin                time.Time      `json:"last_login,omitempty" bson:"last_login,omitempty"`
+	LoginPassword            string         `json:"login_password,omitempty" bson:"login_password,omitempty"`
+	AccountAuthorizationCode string         `json:"account_authorization_code,omitempty" bson:"account_authorization_code,omitempty"`
+	UnlockAccountRequested   bool           `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested,omitempty"`
 
 	PasswordChangedAt *time.Time `json:"password_changed_at,omitempty" bson:"password_changed_at"`
 	OTPStatus         string     `json:"otp_status,omitempty" bson:"otp_status"`
