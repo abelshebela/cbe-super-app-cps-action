@@ -15,7 +15,6 @@ type AdvertRequest struct {
 	Date        AdvertDate            `form:"date" json:"date"`
 }
 
-
 // AdvertDate represents the start and end dates for an advert
 type AdvertDate struct {
 	StartedAt time.Time `form:"started_at" json:"started_at"`
