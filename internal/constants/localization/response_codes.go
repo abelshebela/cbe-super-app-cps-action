@@ -51,6 +51,34 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
 
+	SuccessBranchRetrieved,
+	SuccessBranchesRetrieved,
+	SuccessBranchesEnabled,
+	SuccessBranchesDisabled,
+	SuccessEnableBranchesRequestSent,
+	SuccessDisableBranchesRequestSent,
+
+	SuccessRegionRetrieved,
+	SuccessRegionsRetrieved,
+	SuccessRegionsEnabled,
+	SuccessRegionsDisabled,
+	SuccessEnableRegionsRequestSent,
+	SuccessDisableRegionsRequestSent,
+	
+	SuccessDistrictRetrieved,
+	SuccessDistrictsRetrieved,
+	SuccessDistrictsEnabled,
+	SuccessDistrictsDisabled,
+	SuccessEnableDistrictsRequestSent,
+	SuccessDisableDistrictsRequestSent,
+
+	SuccessCityRetrieved,
+	SuccessCitiesRetrieved,
+	SuccessCitiesEnabled,
+	SuccessCitiesDisabled,
+	SuccessEnableCitiesRequestSent,
+	SuccessDisableCitiesRequestSent,
+  
 	// department related success response
 	SuccessGetAllDepartments,
 	SuccessDepartmentCreateRequestCreated,
@@ -67,7 +95,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQBlockTimeUpdateRequestSubmitted,
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
-	// Error codes
+
+  // Error codes
+	ErrorInvalidKey,
+	ErrorInvalidEncData,
+	ErrorInvalidPadding,
+
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
 	ErrorUserUnauthorized,
@@ -115,6 +148,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankDisableRequest,
 	ErrorBankEnableRequestFailed,
 	ErrorUserCodeRequired,
+
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
 	ErrorCoverImageRequired,
@@ -156,6 +190,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
+	ErrorMissingFile,
+
 	// Add more as needed...
 	//wallet related error codes
 	ErrorWalletNameRequired,
@@ -170,6 +206,25 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	ErrorInvalidRequestBody,
+	ErrorInvalidPaginationParams,
+	ErrorInvalidDistrict,
+	ErrorInvalidRegion,
+	ErrorInvalidDistrictOrRegionCodeLength,
+
+	ErrorBranchCodeRequired,
+	ErrorDistrictCodeRequired,
+	ErrorRegionCodeRequired,
+	ErrorCityCodeRequired,
+
+	ErrorBranchNotFound,
+	ErrorDistrictNotFound,
+	ErrorRegionNotFound,
+	ErrorCityNotFound,
+
+	ErrorDuplicateAction,
+	ErrorOneOrMoreInvalidCodes,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -1717,6 +1772,172 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBranchRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCH_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessBranchesRetrieved = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessBranchesEnabled = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessBranchesDisabled = ResponseCode{
+		Code:       "SUCCESS_BRANCHES_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableBranchesRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_BRANCHES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableBranchesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableBranchesRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_BRANCHES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableBranchesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRegionRetrieved = ResponseCode{
+		Code:       "SUCCESS_REGION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessRegionsRetrieved = ResponseCode{
+		Code:       "SUCCESS_REGIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessRegionsEnabled = ResponseCode{
+		Code:       "SUCCESS_REGIONSS_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessRegionsDisabled = ResponseCode{
+		Code:       "SUCCESS_REGIONSS_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRegionsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableRegionsRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_REGIONS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableRegionsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableRegionsRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_REGIONS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableRegionsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDistrictRetrieved = ResponseCode{
+		Code:       "SUCCESS_DISTRICT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessDistrictsRetrieved = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessDistrictsEnabled = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessDistrictsDisabled = ResponseCode{
+		Code:       "SUCCESS_DISTRICTS_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDistrictsSuccessfullyDisabled,
+		Type:       "success",
+	}
+
+	SuccessEnableDistrictsRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_DISTRICTS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableDistrictsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableDistrictsRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_DISTRICTS_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableDistrictsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessCityRetrieved = ResponseCode{
+		Code:       "SUCCESS_CITY_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCitySuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	SuccessCitiesRetrieved = ResponseCode{
+		Code:       "SUCCESS_CITIES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyRetrieved,
+		Type:       "success",
+	}
+	SuccessCitiesEnabled = ResponseCode{
+		Code:       "SUCCESS_CITIES_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyEnabled,
+		Type:       "success",
+	}
+
+	SuccessCitiesDisabled = ResponseCode{
+		Code:       "SUCCESS_CITIES_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCitiesSuccessfullyDisabled,
+		Type:       "success",
+	}
+	SuccessEnableCitiesRequestSent = ResponseCode{
+		Code:       "SUCCESS_ENABLE_CITIES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEnableCitiesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDisableCitiesRequestSent = ResponseCode{
+		Code:       "SUCCESS_DISABLE_CITIES_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDisableCitiesRequestSent,
+		Type:       "success",
+	}
+
 	SuccessGetAllBanks = ResponseCode{
 		Code:       "SUCCESS_GET_ALL_BANKS",
 		StatusCode: StatusOK,
@@ -1755,6 +1976,26 @@ var (
 
 // Error Response Codes
 var (
+	ErrorInvalidKey = ResponseCode{
+		Code:       "ERROR_INVALID_KEY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidKey,
+		Type:       "error",
+	}
+	ErrorInvalidEncData = ResponseCode{
+		Code:       "ERROR_INVALID_ENC_DATA",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidEncData,
+		Type:       "error",
+	}
+
+	ErrorInvalidPadding = ResponseCode{
+		Code:       "ERROR_INVALID_PADDING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidPadding,
+		Type:       "error",
+	}
+
 	ErrorUserNotFound = ResponseCode{
 		Code:       "ERROR_USER_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -3077,7 +3318,113 @@ var (
 		Type:       "error",
 	}
 
-	// department related error
+	ErrorInvalidRequestBody = ResponseCode{
+		Code:       "ERROR_INVALID_REQUEST_BODY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBody,
+		Type:       "error",
+	}
+
+	ErrorInvalidPaginationParams = ResponseCode{
+		Code:       "ERROR_INVALID_PAGINATION_PARAMS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidPaginationParams,
+		Type:       "error",
+	}
+
+	ErrorInvalidDistrict = ResponseCode{
+		Code:       "ERROR_INVALID_DISTRICT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDistrict,
+		Type:       "error",
+	}
+
+	ErrorInvalidRegion = ResponseCode{
+		Code:       "ERROR_INVALID_REGION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRegion,
+		Type:       "error",
+	}
+
+	ErrorInvalidDistrictOrRegionCodeLength = ResponseCode{
+		Code:       "ERROR_INVALID_DISTRICT_OR_REGION_CODE_LENGTH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDistrictOrRegionCodeLength,
+		Type:       "error",
+	}
+
+	ErrorBranchCodeRequired = ResponseCode{
+		Code:       "ERROR_BRANCH_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorDistrictCodeRequired = ResponseCode{
+		Code:       "ERROR_DISTRICT_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorRegionCodeRequired = ResponseCode{
+		Code:       "ERROR_REGION_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCityCodeRequired = ResponseCode{
+		Code:       "ERROR_CITY_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorBranchNotFound = ResponseCode{
+		Code:       "ERROR_BRANCH_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBranchNotFound,
+		Type:       "error",
+	}
+
+	ErrorDistrictNotFound = ResponseCode{
+		Code:       "ERROR_DISTRICT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDistrictNotFound,
+		Type:       "error",
+	}
+
+	ErrorRegionNotFound = ResponseCode{
+		Code:       "ERROR_REGION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRegionNotFound,
+		Type:       "error",
+	}
+
+	ErrorCityNotFound = ResponseCode{
+		Code:       "ERROR_CITY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCityNotFound,
+		Type:       "error",
+	}
+
+	ErrorDuplicateAction = ResponseCode{
+		Code:       "ERROR_DUPLICATE_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateAction,
+		Type:       "error",
+	}
+
+	ErrorOneOrMoreInvalidCodes = ResponseCode{
+		Code: "ERROR_ONE_OR_MORE_INVALID_CODES",
+		StatusCode: StatusBadRequest,
+		Message: MsgOneOrMoreInvalidCodes,
+		Type: "error",
+
+  ErrorKeyRequiredForBulkService = ResponseCode{
+
+    // department related error
 	ErrorInvalidFormatForDepartmentName = ResponseCode{
 		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_NAME",
 		StatusCode: StatusBadRequest,

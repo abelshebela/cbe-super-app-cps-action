@@ -151,6 +151,18 @@ type WalletService interface {
 }
 
 type AccountBlockService interface {
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
+	EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

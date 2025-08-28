@@ -18,9 +18,10 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 
-	// Handler section
-
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
+	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
+
+	// Handler section
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
@@ -38,6 +39,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
+	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -54,6 +56,8 @@ type Handler struct {
 	AdvertHandler     advertHandlerInterface.ADAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
+	AccountBlockHandler accountBlockHandlerInterface.AccountBlockAdapter
+
 	DepartmentHandler department.DepartmentHandler
 
 	HqHandler          hqInbound.HQAdapter
@@ -76,6 +80,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		PasswordHandler:   passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 		DepartmentHandler: department.NewDepartmentHandler(serviceLayer.Department, logger),
 		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 

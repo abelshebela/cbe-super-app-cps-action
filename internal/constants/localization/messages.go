@@ -263,6 +263,10 @@ const (
 
 // Error Messages
 const (
+	MsgInvalidKey     = "Invalid key"
+	MsgInvalidEncData = "Invalid encryption data"
+	MsgInvalidPadding = "Invalid padding"
+
 	// User related error messages
 	MsgUserNotFound             = "User not found"
 	MsgUserAlreadyExists        = "User already exists"
@@ -553,6 +557,8 @@ const (
 
 	// General business error messages
 	MsgDuplicateKey                = "Duplicate key error"
+	MsgDuplicateAction             = "Duplicate action error"
+	MsgOneOrMoreInvalidCodes       = "One or more invalid codes"
 	MsgInvalidInput                = "Invalid input provided"
 	MsgMissingRequiredFields       = "Missing required fields"
 	MsgResourceNotFound            = "Resource not found"
@@ -739,6 +745,50 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
+
+	MsgInvalidRequestBody      = "Invalid request body"
+	MsgInvalidPaginationParams = "Invalid pagination parameters"
+
+	MsgBranchSuccessfullyRetrieved   = "Branch retrieved successfully"
+	MsgBranchesSuccessfullyRetrieved = "Branches retrieved successfully"
+	MsgBranchesSuccessfullyEnabled   = "Branches enabled successfully"
+	MsgBranchesSuccessfullyDisabled  = "Branches disabled successfully"
+	MsgEnableBranchesRequestSent     = "Request to enable branches sent successfully"
+	MsgDisableBranchesRequestSent    = "Request to disable branches sent successfully"
+
+	MsgRegionSuccessfullyRetrieved  = "Region retrieved successfully"
+	MsgRegionsSuccessfullyRetrieved = "Regions retrieved successfully"
+	MsgRegionsSuccessfullyEnabled   = "Regions enabled successfully"
+	MsgRegionsSuccessfullyDisabled  = "Regions disabled successfully"
+	MsgEnableRegionsRequestSent     = "Request to enable regions sent successfully"
+	MsgDisableRegionsRequestSent    = "Request to disable regions sent successfully"
+
+	MsgDistrictSuccessfullyRetrieved  = "District retrieved successfully"
+	MsgDistrictsSuccessfullyRetrieved = "Districts retrieved successfully"
+	MsgDistrictsSuccessfullyEnabled   = "Districts enabled successfully"
+	MsgDistrictsSuccessfullyDisabled  = "Districts disabled successfully"
+	MsgEnableDistrictsRequestSent     = "Request to enable districts sent successfully"
+	MsgDisableDistrictsRequestSent    = "Request to disable districts sent successfully"
+
+	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
+	MsgCitiesSuccessfullyRetrieved = "Cities retrieved successfully"
+	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
+	MsgCitiesSuccessfullyDisabled  = "Cities disabled successfully"
+	MsgEnableCitiesRequestSent     = "Request to enable cities sent successfully"
+	MsgDisableCitiesRequestSent    = "Request to disable cities sent successfully"
+
+	MsgInvalidDistrict                   = "Invalid district"
+	MsgInvalidRegion                     = "Invalid region"
+	MsgInvalidDistrictOrRegionCodeLength = "Region and District codes must be at least 3 characters long"
+	MsgBranchCodeRequired                = "Branch code is required"
+	MsgDistrictCodeRequired              = "District code is required"
+	MsgRegionCodeRequired                = "Region code is required"
+	MsgCityCodeRequired                  = "City code is required"
+
+	MsgBranchNotFound   = "Branch not found"
+	MsgDistrictNotFound = "District not found"
+	MsgRegionNotFound   = "Region not found"
+	MsgCityNotFound     = "City not found"
 	MsgInvalidInputParameters        = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage         = "Missing or invalid image"
 
