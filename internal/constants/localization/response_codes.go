@@ -50,6 +50,23 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
+
+	// department related success response
+	SuccessGetAllDepartments,
+	SuccessDepartmentCreateRequestCreated,
+	SuccessDepartmentUpdateRequestCreated,
+	SuccessDepartmentDisableRequestCreated,
+	SuccessDepartmentEnableRequestCreated,
+	SuccessDepartmentUpdateRequestCreated,
+	SuccessDepartmentCreateRequestCreated,
+
+	//hq related success response codes
+	SuccessHQArchiveTimeFetched,
+	SuccessHQBlockTimeFetched,
+	SuccessHQPasswordExpiryFetched,
+	SuccessHQBlockTimeUpdateRequestSubmitted,
+	SuccessHQArchiveTimeUpdateRequestSubmitted,
+	SuccessHQPasswordExpiryUpdateRequestSubmitted,
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -154,11 +171,19 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
 
+	// department related error
+	ErrorDepartmentCreateRequest,
+	ErrorInvalidFormatForDepartmentPermissionGroups,
+	ErrorInvalidFormatForDepartmentPortalCards,
+	ErrorInvalidDepartmentPortalCard,
+	ErrorInvalidDepartmentPermissionGroup,
+	ErrorDepartmentAlreadyDisabled,
+	ErrorDepartmentAlreadyEnabled,
 	// Fayda
 	ErrorFaydaUserAccountEnabled,
 	ErrorFaydaUserAccountDisabled,
 	ErrorNotFaydaUser,
-  
+
 	//hq related error response codes
 	ErrorHQNotFound,
 	ErrorInvalidHQRequest,
@@ -983,11 +1008,42 @@ var (
 		Type:       "success",
 	}
 
-	// Department related success response codes
-	SuccessDepartmentCreated = ResponseCode{
-		Code:       "SUCCESS_DEPARTMENT_CREATED",
+	// department related success response codes
+	SuccessGetAllDepartments = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_DEPARTMENTS",
+		StatusCode: StatusOK,
+		Message:    msgGetAllDepartmentsSuccess,
+		Type:       "success",
+	}
+
+	SuccessGetDepartments = ResponseCode{
+		Code:       "SUCCESS_GET_DEPARTMENTS",
+		StatusCode: StatusOK,
+		Message:    msgGetDepartmentsSuccess,
+		Type:       "success",
+	}
+	SuccessDepartmentCreateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_CREATE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgDepartmentCreatedSuccessfully,
+		Message:    MsgDepartmentCreateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentUpdateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentEnableRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentDisableRequestedSuccessfully,
 		Type:       "success",
 	}
 
@@ -2809,14 +2865,6 @@ var (
 		Type:       "error",
 	}
 
-	// Department related error response codes
-	ErrorDepartmentCreationSuccess = ResponseCode{
-		Code:       "ERROR_DEPARTMENT_CREATION_SUCCESS",
-		StatusCode: StatusCreated,
-		Message:    MsgDepartmentCreationSuccess,
-		Type:       "error",
-	}
-
 	ErrorDepartmentUpdateCPSActionCreated = ResponseCode{
 		Code:       "ERROR_DEPARTMENT_UPDATE_CPS_ACTION_CREATED",
 		StatusCode: StatusCreated,
@@ -3029,6 +3077,56 @@ var (
 		Type:       "error",
 	}
 
+	// department related error
+	ErrorInvalidFormatForDepartmentName = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentName,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForDepartmentPortalCards = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_PORTAL_CARDS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentPortalCards,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForDepartmentPermissionGroups = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_PERMISSION_GROUPS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentPermissionGroups,
+		Type:       "error",
+	}
+	ErrorInvalidDepartmentPermissionGroup = ResponseCode{
+		Code:       "ERROR_INVALID_DEPARTMENT_PERMISSION_GROUP",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDepartmentPermissionGroup,
+		Type:       "error",
+	}
+	ErrorInvalidDepartmentPortalCard = ResponseCode{
+		Code:       "ERROR_INVALID_DEPARTMENT_PORTAL_CARD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDepartmentPortalCard,
+		Type:       "error",
+	}
+	ErrorDepartmentCreateRequest = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_CREATION_REQUEST",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentCreateRequestFail,
+		Type:       "error",
+	}
+
+	ErrorDepartmentAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDepartmentAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDepartmentAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
 	// fayda
 	ErrorFaydaUserAccountEnabled = ResponseCode{
 		Code:       "FAYDA_USER_ALREADY_ENABLED",

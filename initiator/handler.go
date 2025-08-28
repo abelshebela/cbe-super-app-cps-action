@@ -28,6 +28,7 @@ import (
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/department"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
@@ -53,8 +54,10 @@ type Handler struct {
 	AdvertHandler     advertHandlerInterface.ADAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
-	HqHandler         hqInbound.HQAdapter
-	FaydaHandler      FaydaInbound.FaydaAccount
+	DepartmentHandler department.DepartmentHandler
+
+	HqHandler          hqInbound.HQAdapter
+	FaydaHandler       FaydaInbound.FaydaAccount
 	bulkServiceHandler bulk_service_inbound.BulkServiceHandler
 	customerHandler    customerInbound.CustomerDetail
 }
@@ -73,10 +76,11 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		PasswordHandler:   passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		DepartmentHandler: department.NewDepartmentHandler(serviceLayer.Department, logger),
+		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 
 		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
 		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
-		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-		FaydaHandler:      faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
+		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
 	}
 }

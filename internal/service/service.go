@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
+	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
@@ -50,6 +51,11 @@ type CustomerService interface {
 
 type DepartmentService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
+	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
+	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
 type DonationService interface {

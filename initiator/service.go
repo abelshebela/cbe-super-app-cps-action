@@ -10,6 +10,7 @@ import (
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	customer "cbe-super-app-cps-action/internal/service/customer"
+	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
 	"cbe-super-app-cps-action/internal/service/fayda"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
@@ -40,6 +41,7 @@ type ServiceLayer struct {
 	Advert            service.AdvertService
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
+	Department        service.DepartmentService
 	PasswordRule      service.PasswordRuleService
 	HQService         service.HQService
 	Fayda             service.FaydaAccountService
@@ -60,6 +62,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
+	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionGroupPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
@@ -75,11 +78,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
+		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
 
-		PasswordRule:      passwordRule,
-		HQService:         hqService,
-		Fayda:             fayda,
+		PasswordRule: passwordRule,
+		HQService:    hqService,
+		Fayda:        fayda,
 	}
 }

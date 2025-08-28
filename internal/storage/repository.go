@@ -188,10 +188,19 @@ type BankRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
 	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
+type DepartmentRepository interface {
+	Create(ctx context.Context, department *model.Department) error
+	Update(ctx context.Context, id string, department *model.Department) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.Department, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+}
 
 type PortalCardRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
 	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
+	ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error)
 }
 
 type ColorRepository interface {
@@ -370,6 +379,9 @@ type WalletRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
 
+type PermissionGroupRepository interface {
+	ValidatePermissionGroupByID(ctx context.Context, ids []string) (bool, error)
+}
 type FaydaRepository interface {
 	Update(ctx context.Context, user *model.User, isEnabled bool) error
 	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
