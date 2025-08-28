@@ -256,24 +256,3 @@ func HandleMongoError(err error) (string, string) {
 
 	return localization.ErrorUnexpectedError.Code, localization.ErrorUnexpectedError.Message
 }
-
-func BuildFilter(filterParams *types.Filter, logger utils.Logger) bson.M {
-	filter := bson.M{"is_deleted": false}
-	for k, v := range filterParams.Filters {
-		if k == "_id" {
-			s, ok := v.(string)
-			if !ok {
-				logger.Warnf("[productcode.buildFilter] _id filter value is not a string: %v", v)
-				continue
-			}
-			val, ok := StringToObjectID(s)
-			if !ok {
-				continue
-			}
-			filter[k] = val
-		} else {
-			filter[k] = v
-		}
-	}
-	return filter
-}
