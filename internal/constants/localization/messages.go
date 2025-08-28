@@ -122,6 +122,7 @@ const (
 	MsgPermissionGroupsFetched       = "Permission groups fetched successfully"
 	MsgPermissionGroupFetched        = "Permission group fetched successfully"
 	MsgPermissionGroupRequestUpdated = "Permission group Request updated successfully"
+	MsgPermissionGroupRequestDeleted = "Permission group Request deleted successfully"
 	MsgPermissionCategoriesFetched   = "Permission categories fetched successfully"
 
 	// Mini App Merchant related success messages
@@ -252,6 +253,15 @@ const (
 	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
 	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
 
+	// cps_user related success messages
+	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
+	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
+	MsgCpsUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
+	MsgCpsUserRetrievedSuccessfully    = "CPS user retrieved successfully"
+	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
+	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
@@ -265,6 +275,9 @@ const (
 
 	// Wallet related success messages
 	MsgWalletActionRequestSentSuccessfully = "Wallet action request sent successfully"
+
+	// permission related error messages
+	MsgGroupNameRequired = "Group name is required"
 )
 
 // Error Messages
@@ -466,13 +479,15 @@ const (
 	MsgPasswordRuleInvalidFormat = "Invalid password rule format"
 
 	// Permission related error messages
-	MsgPermissionGroupNotFound       = "Permission group not found"
-	MsgPermissionGroupAlreadyExists  = "Permission group already exists"
-	MsgPermissionGroupCreationFailed = "Failed to create permission group"
-	MsgPermissionGroupUpdateFailed   = "Failed to update permission group"
-	MsgPermissionGroupFetchFailed    = "Failed to fetch permission groups"
-	MsgPermissionCategoryNotFound    = "Permission category not found"
-	MsgPermissionCategoryFetchFailed = "Failed to fetch permission categories"
+	MsgPermissionGroupNotFound         = "Permission group not found"
+	MsgPermissionGroupAlreadyExists    = "Permission group already exists"
+	MsgPermissionGroupCreationFailed   = "Failed to create permission group"
+	MsgPermissionGroupUpdateFailed     = "Failed to update permission group"
+	MsgPermissionGroupFetchFailed      = "Failed to fetch permission groups"
+	MsgPermissionCategoryNotFound      = "Permission category not found"
+	MsgPermissionCategoryFetchFailed   = "Failed to fetch permission categories"
+	MsgPermissionGroupValidationFailed = "Permission group validation failed"
+	MsgPermissionGroupRequired         = "Permission group is required"
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
@@ -760,6 +775,7 @@ const (
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"

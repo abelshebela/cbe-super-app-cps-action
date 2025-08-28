@@ -58,4 +58,5 @@ type Persistence struct {
 	DepartmentPersistence            storage.DepartmentRepository
 	PermissionGroupPersistence       storage.PermissionGroupRepository
 	FaydaPersistence                 storage.FaydaRepository
+	PermissionPersistence            storage.PermissionRepository
 }

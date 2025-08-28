@@ -623,6 +623,49 @@ var (
 		Message:    MsgCPSActionsRetrieved,
 		Type:       "success",
 	}
+	// cps_user related success response codes
+	SuccessCpsUserCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgCpsUserCreationRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessCpsUserUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessCpsUserDeleted = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCpsUsersRetrieved = ResponseCode{
+		Code:       "SUCCESS_CPS_USERS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUsersRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCpsUserRetrieved = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SucessCpsUserEnabled = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessCpsUserDisabled = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserDisabledSuccessfully,
+		Type:       "success",
+	}
 
 	// Wallet related success response codes
 	SuccessWalletCreationRequestSent = ResponseCode{
@@ -894,7 +937,6 @@ var (
 		Message:    "Wallet with the given name already exists",
 		Type:       "error",
 	}
-
 	ErrorWalletNotFound = ResponseCode{
 		Code:       "ERROR_WALLET_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -1019,6 +1061,13 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgUpdateActionFetchedSuccessfully,
 		Type:       "success",
+	}
+	// cps user related success response codes
+	ErrorGroupNameRequired = ResponseCode{
+		Code:       "ERROR_GROUP_NAME_REQUIRED",
+		StatusCode: StatusNotFound,
+		Message:    MsgGroupNameRequired,
+		Type:       "error",
 	}
 
 	// Permission related success response codes
@@ -2318,6 +2367,12 @@ var (
 		Message:    MsgOTPNotFound,
 		Type:       "error",
 	}
+	ErrorFailedToDecodeRequest = ResponseCode{
+		Code:       "ERROR_FAILED_TO_DECODE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "Failed to decode request",
+		Type:       "error",
+	}
 
 	ErrorInvalidRequest = ResponseCode{
 		Code:       "ERROR_INVALID_REQUEST",
@@ -3248,6 +3303,30 @@ var (
 		Message:    MsgPermissionGroupRequestCreationFailed,
 		Type:       "error",
 	}
+	ErrorPermissionGroupNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgPermissionGroupNotFound,
+		Type:       "error",
+	}
+	ErrorPermissionGroupValidationFailed = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_VALIDATION_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPermissionGroupValidationFailed,
+		Type:       "error",
+	}
+	ErrorPermissionCategoryNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_CATEGORY_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPermissionCategoryNotFound,
+		Type:       "error",
+	}
+	ErrorPermissionGroupRequired = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPermissionGroupRequired,
+		Type:       "error",
+	}
 
 	ErrorPermissionGroupRequestUpdateFailed = ResponseCode{
 		Code:       "ERROR_PERMISSION_GROUP_REQUEST_UPDATE_FAILED",
@@ -3578,6 +3657,7 @@ var (
 		Message:    MsgOneOrMoreInvalidCodes,
 		Type:       "error",
 	}
+
 
 	// department related error
 	ErrorInvalidFormatForDepartmentName = ResponseCode{
