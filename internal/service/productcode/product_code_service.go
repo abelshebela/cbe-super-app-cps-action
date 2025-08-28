@@ -18,14 +18,14 @@ import (
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-// productCodeService implements Service
+
 type productCodeService struct {
 	repo       storage.ProductCodeRepository
 	cpsService service.CPSActionService
 	logger     shared_utils.Logger
 }
 
-// NewProductCodeService creates a new productCodeService
+
 func NewProductCodeService(repo storage.ProductCodeRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.ProductCodeService {
 	return &productCodeService{
 		repo:       repo,
@@ -41,7 +41,7 @@ func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPS
 	return cpsAction, s.repo.Update(ctx, cpsAction.CurrentAction.(*model.ProductCode))
 }
 
-// FetchProductCodeByID fetches a product code by ID
+
 func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error) {
 	productCode, err := s.repo.FetchByID(ctx, id)
 	if err != nil {
@@ -54,7 +54,6 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 	return productCode, nil
 }
 
-// FetchAllProductCodes fetches all product codes with pagination and filtering
 func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
 	response, err := s.repo.FetchAll(ctx, filterParams)
 	if err != nil {
@@ -65,7 +64,6 @@ func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterPar
 	return response, nil
 }
 
-// UpdateProductCode updates a product code
 func (s *productCodeService) UpdateProductCode(ctx context.Context, request productcode.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error) {
 	makerData := utils.ExtractUserFromContext(ctx)
 	existing, err := s.repo.FetchByID(ctx, request.ID)
@@ -100,34 +98,34 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	return existing, updated, err
 }
 
-// CreateProductCode creates a new product code
-func (s *productCodeService) CreateProductCode(ctx context.Context, request productcode.CreateProductCodeRequest) (*model.ProductCode, error) {
-	makerData := utils.ExtractUserFromContext(ctx)
-	productCode := &model.ProductCode{
-		ID:                 utils.GenerateUUID(),
-		ProductName:        request.ProductName,
-		CBEProductCodes:    request.CBEProductCodes,
-		CBEIFBProductCodes: request.CBEIFBProductCodes,
-		CreatedAt:          time.Now(),
-		LastUpdatedAt:      time.Now(),
-	}
-	cpsActionData := lib.CpsModelBuilder(productCode.ID, makerData, nil, productCode, string(constants.RequestCreateProductCode), constants.CREATE)
-	err := s.cpsService.CreateCPSAction(ctx, &cpsActionData)
-	return productCode, err
-}
+// // CreateProductCode creates a new product code
+// func (s *productCodeService) CreateProductCode(ctx context.Context, request productcode.CreateProductCodeRequest) (*model.ProductCode, error) {
+// 	makerData := utils.ExtractUserFromContext(ctx)
+// 	productCode := &model.ProductCode{
+// 		ID:                 utils.GenerateUUID(),
+// 		ProductName:        request.ProductName,
+// 		CBEProductCodes:    request.CBEProductCodes,
+// 		CBEIFBProductCodes: request.CBEIFBProductCodes,
+// 		CreatedAt:          time.Now(),
+// 		LastUpdatedAt:      time.Now(),
+// 	}
+// 	cpsActionData := lib.CpsModelBuilder(productCode.ID, makerData, nil, productCode, string(constants.RequestCreateProductCode), constants.CREATE)
+// 	err := s.cpsService.CreateCPSAction(ctx, &cpsActionData)
+// 	return productCode, err
+// }
 
-// DeleteProductCode deletes a product code
-func (s *productCodeService) DeleteProductCode(ctx context.Context, id string) error {
-	makerData := utils.ExtractUserFromContext(ctx)
-	existing, err := s.repo.FetchByID(ctx, id)
-	if err != nil {
-		s.logger.Errorf("[ProductCode.Delete] failed to fetch existing product code, id: %s, error: %v", id, err)
-		if err == mongo.ErrNoDocuments {
-			return errors.ErrProductCodeNotFound
-		}
-		return err
-	}
-	cpsActionData := lib.CpsModelBuilder(id, makerData, existing, nil, string(constants.RequestDeleteProductCode), constants.DELETE)
-	err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
-	return err
-}
+// // DeleteProductCode deletes a product code
+// func (s *productCodeService) DeleteProductCode(ctx context.Context, id string) error {
+// 	makerData := utils.ExtractUserFromContext(ctx)
+// 	existing, err := s.repo.FetchByID(ctx, id)
+// 	if err != nil {
+// 		s.logger.Errorf("[ProductCode.Delete] failed to fetch existing product code, id: %s, error: %v", id, err)
+// 		if err == mongo.ErrNoDocuments {
+// 			return errors.ErrProductCodeNotFound
+// 		}
+// 		return err
+// 	}
+// 	cpsActionData := lib.CpsModelBuilder(id, makerData, existing, nil, string(constants.RequestDeleteProductCode), constants.DELETE)
+// 	err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
+// 	return err
+// }

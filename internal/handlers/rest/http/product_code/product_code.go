@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
-	"cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -34,6 +33,8 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ExtractID(w, r)
 	if err != nil {
+		h.logger.Errorf("[productcode.UpdateProductCode] failed to extract ID: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -42,7 +43,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("[productcode.UpdateProductCode] failed to parse JSON: %v", err)
-		localization.SendErrorByCodeResponse(w, errors.ErrBadRequest.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -63,7 +64,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 		return
 	}
 	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Type: "success",
+		Type:       "success",
 		StatusCode: 200,
 	}, map[string]*model.ProductCode{
 		"old": old,
@@ -85,7 +86,7 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 	}
 	res := dto.ToProductCodeResponse(*data)
 	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Type: "success",
+		Type:       "success",
 		StatusCode: 200,
 	}, res)
 }
@@ -104,7 +105,7 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 		Meta: list.Meta,
 	}
 	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Type: "success",
+		Type:       "success",
 		StatusCode: 200,
 	}, res)
 }
