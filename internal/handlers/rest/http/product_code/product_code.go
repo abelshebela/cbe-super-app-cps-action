@@ -21,8 +21,8 @@ type ProductCodeAdapter struct {
 	logger                 shared.Logger
 }
 
-func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Logger) *ProductCodeAdapter {
-	return &ProductCodeAdapter{
+func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Logger) ProductCodeAdapter {
+	return ProductCodeAdapter{
 		productCodeApplication: service,
 		logger:                 logger,
 	}

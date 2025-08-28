@@ -3,6 +3,8 @@ package productcode
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	cps_errors "cbe-super-app-cps-action/internal/constants/errors"
@@ -102,6 +104,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 }
 
 func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
+	fmt.Println("find all with pagination is called")
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at"}
@@ -110,6 +113,9 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 		searchKeys["service_name"] = searchRegex
 	}
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+	fmt.Println(strings.Repeat("_", 20))
+	fmt.Println("this is the filter that is being used", filter)
+	fmt.Println("this is the filter that is being used", filter)
 	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)

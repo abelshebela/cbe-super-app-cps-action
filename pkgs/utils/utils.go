@@ -4,13 +4,16 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,6 +31,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+const alphanumberic string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func IsWeakPin(pin string) bool {
 	// Check for repeated digits
@@ -313,33 +318,6 @@ func NonEmptyString(s, fallback string) string {
 	return fallback
 }
 
-var allowedChars = "a-zA-Z0-9\\s._-"
-
-func NoSpecialChars(value any) error {
-	str, ok := value.(string)
-	if !ok {
-		return validation.NewError("validation", "invalid type")
-	}
-	str = strings.TrimSpace(str)
-	if str == "" {
-		return nil
-	}
-
-	re := regexp.MustCompile("^[" + allowedChars + "]+$")
-	if !re.MatchString(str) {
-		return validation.NewError("validation", "contains invalid characters")
-	}
-	return nil
-}
-
-func TrimWhiteSpace(value interface{}) error {
-	if s, ok := value.(string); ok {
-		if strings.TrimSpace(s) == "" {
-			return errors.New("value cannot be empty or whitespace")
-		}
-	}
-	return nil
-}
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 
@@ -378,8 +356,77 @@ func BindAction(source any, target any) error {
 	}
 	return json.Unmarshal(bytes, target)
 }
+func RandomGenerator(length uint8) string {
+	if length <= 0 {
+		panic("length must be greater than 0")
+	}
 
+	entropy := fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
+	hash := sha256.Sum256([]byte(entropy))
+	seed := int64(binary.LittleEndian.Uint64(hash[:8]))
+	r := rand.New(rand.NewSource(seed))
 
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = alphanumberic[r.Intn(len(alphanumberic))]
+	}
+
+	return string(result)
+}
+var allowedChars = "a-zA-Z0-9\\s._-"
+func NoSpecialChars(value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation", "invalid type")
+	}
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return nil
+	}
+
+	re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !re.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
+}
+func FormatPhoneNumber(phoneNumber string) string {
+	phoneNumber = strings.TrimSpace(phoneNumber)
+
+	// Remove all non-digit and non-plus characters
+	re := regexp.MustCompile(`[^\d\+]`)
+	phoneNumber = re.ReplaceAllString(phoneNumber, "")
+
+	if strings.HasPrefix(phoneNumber, "+2510") {
+		phoneNumber = "+251" + phoneNumber[5:]
+	} else if strings.HasPrefix(phoneNumber, "2510") {
+		phoneNumber = "+251" + phoneNumber[4:]
+	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
+		phoneNumber = "+251" + phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
+		phoneNumber = "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
+		phoneNumber = "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "251") {
+		phoneNumber = "+" + phoneNumber
+	}
+
+	if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
+		return phoneNumber
+	}
+
+	return ""
+}
+
+func TrimWhiteSpace(value interface{}) error {
+	if s, ok := value.(string); ok {
+		if strings.TrimSpace(s) == "" {
+			return errors.New("value cannot be empty or whitespace")
+		}
+	}
+	return nil
+
+}
 
 func JsonUnmarshal[T any](data any) (*T, error) {
 

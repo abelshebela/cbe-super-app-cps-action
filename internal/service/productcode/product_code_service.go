@@ -2,6 +2,7 @@ package productcode
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -13,6 +14,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/pkgs/utils"
+
 	"go.mongodb.org/mongo-driver/mongo"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -55,6 +57,7 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 
 func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
 	// response, err := s.repo.FetchAll(ctx, filterParams)//info: this uses aggregation pipeline
+	fmt.Println()
 	response, err := s.repo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		s.logger.Errorf("[ProductCode.FetchAll] failed to fetch product codes, error: %v", err)

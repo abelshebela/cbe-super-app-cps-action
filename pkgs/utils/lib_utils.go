@@ -256,3 +256,22 @@ func HandleMongoError(err error) (string, string) {
 
 	return localization.ErrorUnexpectedError.Code, localization.ErrorUnexpectedError.Message
 }
+func GenerateCPSUserCode() string {
+	const (
+		prefix  = "CBECPSUSER_"
+		codeLen = 10
+		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	)
+
+	randomPart := codeLen - len(prefix)
+	b := make([]byte, randomPart)
+
+	// Seed once with high-resolution time
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := range b {
+		b[i] = charset[rnd.Intn(len(charset))]
+	}
+
+	return prefix + string(b)
+}

@@ -4,12 +4,14 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
 	"mime/multipart"
-
+    cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -48,7 +50,14 @@ type BulkService interface {
 }
 
 type CPSUserService interface {
-	// Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
+	UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error
+	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error)
+	DeleteUserRequest(ctx context.Context, userCode string) error
+	DisableUser(ctx context.Context, userCode string) error
+	EnableUser(ctx context.Context, userCode string) error
 }
 
 type CustomerService interface {
@@ -105,12 +114,26 @@ type HQService interface {
 }
 
 type MiniAppService interface {
+	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	DeleteMiniApp(ctx context.Context, id string) error
+	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppMerchantService interface {
-	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
+	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type NotificationService interface {
@@ -126,6 +149,15 @@ type PasswordRuleService interface {
 
 type PermissionService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreatePermissionGroup(ctx context.Context, req permission_dto.CreatePermissionGroupRequest) error
+	UpdatePermissionGroup(ctx context.Context, req permission_dto.UpdatePermissionGroupRequest) error
+	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
+
+	// Validation methods
+	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
+	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
 }
 
 type PortalCardService interface {
