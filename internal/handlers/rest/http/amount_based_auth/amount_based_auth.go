@@ -84,7 +84,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	// For rejection, we just return success since the actual rejection
+	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system
 	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, cpsReq)
 } 

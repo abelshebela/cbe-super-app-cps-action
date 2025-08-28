@@ -85,7 +85,7 @@ func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
 		SendErrorResponse(w, ErrorValidationFailed, nil, nil)
 		return
 	}
-	SendSuccessResponse(w, responseCode, nil)
+	SendErrorResponse(w, responseCode, nil, nil)
 }
 
 // SendUnauthorizedResponse sends an unauthorized error response

@@ -1,12 +1,11 @@
 package amount_based_auth
 
 import (
-	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -49,51 +48,19 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 
 // Update updates an amount-based auth tier
 func (s *amountBasedAuthService) Update(ctx context.Context, id string, authTier *model.AuthTier) error {
+	// Validate Method value
+	if authTier.Method != constants.OPEN && authTier.Method != constants.PIN && authTier.Method != constants.OTPANDPIN {
+		return errors.New(localization.ErrorInvalidMethod.Code)
+	}
+	
+	// Validate amounts
+	if authTier.MinAmount >= authTier.MaxAmount {
+		return errors.New(localization.ErrorInvalidAmounts.Code)
+	}
+	
 	return s.Repository.Update(ctx, id, authTier)
 }
 
-// handleCPSAction encapsulates the common CPS action logic
-func (s *amountBasedAuthService) handleCPSAction(ctx context.Context, uniqueID string, requestAction cpsaction.RequestAction, curData, prevData interface{}, actionType cpsaction.ActionType) error {
-	// Extract user context from the context
-	userContext := extractUserFromContext(ctx)
-	if isIncomplete(userContext) {
-		s.logger.Errorf("Incomplete user context for amount based auth creation | context = %v", userContext)
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
-
-	cpsAction := lib.CpsModelBuilder(uniqueID, userContext, prevData, curData, string(requestAction), string(actionType))
-
-	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
-		s.logger.Errorf("[amount_based_auth.handleCPSAction] failed to create CPS action, action: %s, error: %v", requestAction, err)
-		return err
-	}
-	return nil
-}
-
-// Helper functions to replace the missing local_util package
-func extractUserFromContext(ctx context.Context) types.UserContext {
-	// This is a simplified version - you may need to adjust based on your actual context structure
-	return types.UserContext{
-		UserCode:    getFromContext(ctx, "user_code"),
-		UserID:      getFromContext(ctx, "user_id"),
-		FullName:    getFromContext(ctx, "full_name"),
-		PhoneNumber: getFromContext(ctx, "phone_number"),
-		Department:  getFromContext(ctx, "department"),
-		UserRole:    getFromContext(ctx, "user_role"),
-	}
-}
-
-func getFromContext(ctx context.Context, key string) string {
-	if val, ok := ctx.Value(key).(string); ok {
-		return val
-	}
-	return ""
-}
-
-func isIncomplete(userContext types.UserContext) bool {
-	return userContext.UserID == "" || userContext.FullName == "" || userContext.PhoneNumber == "" || userContext.Department == ""
-}
 
 
 
