@@ -27,6 +27,8 @@ type Persistence struct {
 	DistrictPersistence          storage.DistrictRepository
 	BranchPersistence            storage.BranchRepository
 	EventPersistence             storage.EventRepository
+	CustomerService              storage.CustomerRepository
+	BulkService                  storage.BulkServiceRepository
 
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository

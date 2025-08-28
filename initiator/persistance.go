@@ -43,6 +43,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
+	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
+	"cbe-super-app-cps-action/internal/storage/persistance/customer"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -73,6 +76,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		AuthTierPersistence: auth_tier.NewAuthTierRepository(client, dbName, "auth_tiers", logger),
 		BankPersistence:     bank.NewBankRepository(client, dbName, "banks", logger),
 		ColorPersistence:    color.NewColorRepository(client, dbName, "colors", logger),
+		BulkService:         bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
+		CustomerService:     customer.InitCustomerDetail(client, dbName, "users", logger),
 		// CpsUserPersistence:           cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
 		DonationPersistence: donation.NewDonationRepository(client, dbName, "donations", logger),
 		// DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
