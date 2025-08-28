@@ -4,12 +4,15 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,6 +28,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+const alphanumberic string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func IsWeakPin(pin string) bool {
 	// Check for repeated digits
@@ -336,6 +341,23 @@ func BindAction(source any, target any) error {
 		return err
 	}
 	return json.Unmarshal(bytes, target)
+}
+func RandomGenerator(length uint8) string {
+	if length <= 0 {
+		panic("length must be greater than 0")
+	}
+
+	entropy := fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
+	hash := sha256.Sum256([]byte(entropy))
+	seed := int64(binary.LittleEndian.Uint64(hash[:8]))
+	r := rand.New(rand.NewSource(seed))
+
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = alphanumberic[r.Intn(len(alphanumberic))]
+	}
+
+	return string(result)
 }
 var allowedChars = "a-zA-Z0-9\\s._-"
 func NoSpecialChars(value any) error {
