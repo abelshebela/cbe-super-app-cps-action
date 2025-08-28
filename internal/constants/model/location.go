@@ -47,7 +47,7 @@ type City struct {
 	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	CityCode     string        `json:"city_code" bson:"city_code"`
 	CityName     string        `json:"city_name" bson:"city_name"`
-	City         string        `json:"city_address" bson:"city_address"`
+	CityAddress  string        `json:"city_address" bson:"city_address"`
 	DistrictID   string        `json:"district_id" bson:"district_id"`
 	DistrictName string        `json:"district_name" bson:"district_name"`
 	RegionID     string        `json:"region_id" bson:"region_id"`

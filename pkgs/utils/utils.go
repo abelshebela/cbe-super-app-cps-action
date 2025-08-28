@@ -357,3 +357,20 @@ func RandomGenerator(length uint8) string {
 
 	return string(result)
 }
+
+
+
+func JsonUnmarshal[T any](data any) (*T, error) {
+
+	var jsonData *T
+	byte, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(byte, &jsonData); err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
+}

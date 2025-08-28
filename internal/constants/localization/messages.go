@@ -15,6 +15,7 @@ const (
 	MsgUserPINChanged            = "PIN changed successfully"
 	MsgUserDeviceLinked          = "Device linked successfully"
 	MsgUserDeviceUnlinked        = "Device unlinked successfully"
+	MsgInvalidJSONPayload        = "Invalid JSON payload"
 	MSGAccountNumberRequired     = "Account Number is required"
 	MsgFeedbackIDRequired        = "Feedback ID is required"
 	MsgInvalidIDFormat           = "Invalid ID format"
@@ -131,7 +132,10 @@ const (
 	MsgNotificationDeleteRequestSubmitted   = "Notification delete request submitted successfully"
 
 	// Department related success messages
-	MsgDepartmentCreatedSuccessfully = "Department created successfully"
+	MsgDepartmentCreateRequestedSuccessfully  = "Department create requested successfully"
+	MsgDepartmentUpdateRequestedSuccessfully  = "Department update requested successfully"
+	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
+	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
@@ -262,6 +266,10 @@ const (
 
 // Error Messages
 const (
+	MsgInvalidKey     = "Invalid key"
+	MsgInvalidEncData = "Invalid encryption data"
+	MsgInvalidPadding = "Invalid padding"
+
 	// User related error messages
 	MsgUserNotFound             = "User not found"
 	MsgUserAlreadyExists        = "User already exists"
@@ -315,9 +323,11 @@ const (
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
 	MsgInvalidFormat                         = "Invalid format"
+	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgInvalidDate                           = "Invalid date format"
+	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
 	MsgFieldTooShort                         = "Field value is too short"
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
@@ -327,8 +337,9 @@ const (
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
 	MsgInvalidActionData                    = "Invalid action"
 	MsgUnsupportedAction                    = "Unsupported action"
-	MsgInvalidID                            = "Invalid ID"
 	MsgMissingFile                          = "Missing file"
+	MsgInvalidID                            = "Invalid ID format"
+	MsgInvalidActionFormat                  = "Invalid action format"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -477,13 +488,18 @@ const (
 	MsgNotificationInvalidFormat  = "Invalid notification format"
 	MsgNotificationRequired       = "Notification is required"
 
-	// Department related error messages
-	MsgDepartmentNotFound       = "Department not found"
-	MsgDepartmentAlreadyExists  = "Department already exists"
-	MsgDepartmentCreationFailed = "Failed to create department"
-	MsgDepartmentUpdateFailed   = "Failed to update department"
-	MsgDepartmentInvalidFormat  = "Invalid department format"
-	MsgDepartmentRequired       = "Department is required"
+	// department related error messages
+	MsgDepartmentNotFound             = "Department not found"
+	MsgDepartmentAlreadyExists        = "Department already exists"
+	MsgDepartmentCreationFailed       = "Failed to create department"
+	MsgDepartmentUpdateFailed         = "Failed to update department"
+	MsgDepartmentInvalidFormat        = "Invalid department format"
+	MsgDepartmentRequired             = "Department is required"
+	msgGetAllDepartmentsSuccess       = "Successfully got all Departments"
+	msgGetDepartmentsSuccess          = "Successfully got a Department"
+	MsgDepartmentAlreadyEnabled       = "Department already enabled"
+	MsgDepartmentAlreadyDisabled      = "Department already disabled"
+	MsgDepartmentInvalidRequestAction = "Invalid request action"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryNotFound       = "Budget category not found"
@@ -547,6 +563,8 @@ const (
 
 	// General business error messages
 	MsgDuplicateKey                = "Duplicate key error"
+	MsgDuplicateAction             = "Duplicate action error"
+	MsgOneOrMoreInvalidCodes       = "One or more invalid codes"
 	MsgInvalidInput                = "Invalid input provided"
 	MsgMissingRequiredFields       = "Missing required fields"
 	MsgResourceNotFound            = "Resource not found"
@@ -581,6 +599,13 @@ const (
 	MsgNoDataProvidedForBankUpdate = "No data provided for Bank update"
 	MsgInvalidRequest              = "Invalid request"
 	MsgInvalidToken                = "Invalid token"
+
+	// DEPARTMENT RELATED MESSAGES
+	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or permission group not found"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
@@ -669,20 +694,29 @@ const (
 	MsgPermissionGroupRequestUpdateFailed   = "Failed to update permission group request"
 
 	// Department related error messages
-	MsgDepartmentCreationSuccess        = "Department created successfully"
+	MsgDepartmentCreateRequestSuccess = "Department created Request successfully"
+	MsgDepartmentCreateRequestFail    = "Department created Request successfully"
+
 	MsgDepartmentUpdateCPSActionCreated = "Department update CPS action created successfully"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryUpdateSuccess = "Budget category updated successfully"
 
 	// Donation Service related error messages
-	MsgDonationCategoryIconUploadSuccess = "Successfully uploaded donation category icon"
-	MsgDonationCategoryIconUpdateSuccess = "Successfully uploaded updated donation category icon"
-	MsgDonationCPSActionApprovedSuccess  = "Successfully approved and authorized CPS action"
-	MsgDonationCompanyLogoUploadSuccess  = "Successfully uploaded donation company logo"
-	MsgDonationCompanyLogoUpdateSuccess  = "Successfully uploaded updated donation company logo"
-	MsgDonationImageUploadSuccess        = "Successfully uploaded donation image"
-	MsgDonationImagesUpdateSuccess       = "Successfully uploaded updated donation images"
+	MsgDonationCategoryIconUploadSuccess             = "Successfully uploaded donation category icon"
+	MsgDonationCategoryIconUpdateSuccess             = "Successfully uploaded updated donation category icon"
+	MsgDonationCPSActionApprovedSuccess              = "Successfully approved and authorized CPS action"
+	MsgDonationCompanyLogoUploadSuccess              = "Successfully uploaded donation company logo"
+	MsgBudgetIconRequestSubmittedForApprovalSuccess  = "Successfully budget icon request submitted for approval"
+	MsgBudgetCheckerActionApprovedSuccess            = "Successfully budget icon checker submitted for approval"
+	MsgBudgetColorUpdateSubmittedForApprovalSuccess  = "Successfully budget color request submitted for approval"
+	MsgBudgetIconUpdateSubmittedForApprovalSuccess   = "Successfully budget icon update submitted for approval"
+	MsgBudgetColorRequestSubmittedForApprovalSuccess = "Successfully budget color request submitted for approval"
+	MsgBudgetIconsFetchedSuccessfully                = "Successfully fetched budget icons"
+	MsgBudgetColorsFetchedSuccessfully               = "Successfully fetched budget colors"
+	MsgDonationCompanyLogoUpdateSuccess              = "Successfully uploaded updated donation company logo"
+	MsgDonationImageUploadSuccess                    = "Successfully uploaded donation image"
+	MsgDonationImagesUpdateSuccess                   = "Successfully uploaded updated donation images"
 
 	// Notification Service related error messages
 	MsgNotificationConstructedSuccess = "Notification constructed successfully"
@@ -723,10 +757,66 @@ const (
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
-	MsgInvalidInputParameters        = "Invalid input parameters provided"
-	MsgMissingOrInvalidImage         = "Missing or invalid image"
+
+	MsgInvalidInputParameters = "Invalid input parameters provided"
+
+	MsgMissingOrInvalidImage = "Missing or invalid image"
+
+	MsgPendingActionExists  = "Pending action exists"
+	MsgDuplicateColorExists = "Duplicate color exists"
+
+	MsgInvalidRequestBody      = "Invalid request body"
+	MsgInvalidPaginationParams = "Invalid pagination parameters"
+
+	MsgBranchSuccessfullyRetrieved   = "Branch retrieved successfully"
+	MsgBranchesSuccessfullyRetrieved = "Branches retrieved successfully"
+	MsgBranchesSuccessfullyEnabled   = "Branches enabled successfully"
+	MsgBranchesSuccessfullyDisabled  = "Branches disabled successfully"
+	MsgEnableBranchesRequestSent     = "Request to enable branches sent successfully"
+	MsgDisableBranchesRequestSent    = "Request to disable branches sent successfully"
+
+	MsgRegionSuccessfullyRetrieved  = "Region retrieved successfully"
+	MsgRegionsSuccessfullyRetrieved = "Regions retrieved successfully"
+	MsgRegionsSuccessfullyEnabled   = "Regions enabled successfully"
+	MsgRegionsSuccessfullyDisabled  = "Regions disabled successfully"
+	MsgEnableRegionsRequestSent     = "Request to enable regions sent successfully"
+	MsgDisableRegionsRequestSent    = "Request to disable regions sent successfully"
+
+	MsgDistrictSuccessfullyRetrieved  = "District retrieved successfully"
+	MsgDistrictsSuccessfullyRetrieved = "Districts retrieved successfully"
+	MsgDistrictsSuccessfullyEnabled   = "Districts enabled successfully"
+	MsgDistrictsSuccessfullyDisabled  = "Districts disabled successfully"
+	MsgEnableDistrictsRequestSent     = "Request to enable districts sent successfully"
+	MsgDisableDistrictsRequestSent    = "Request to disable districts sent successfully"
+
+	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
+	MsgCitiesSuccessfullyRetrieved = "Cities retrieved successfully"
+	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
+	MsgCitiesSuccessfullyDisabled  = "Cities disabled successfully"
+	MsgEnableCitiesRequestSent     = "Request to enable cities sent successfully"
+	MsgDisableCitiesRequestSent    = "Request to disable cities sent successfully"
+
+	MsgInvalidDistrict                   = "Invalid district"
+	MsgInvalidRegion                     = "Invalid region"
+	MsgInvalidDistrictOrRegionCodeLength = "Region and District codes must be at least 3 characters long"
+	MsgBranchCodeRequired                = "Branch code is required"
+	MsgDistrictCodeRequired              = "District code is required"
+	MsgRegionCodeRequired                = "Region code is required"
+	MsgCityCodeRequired                  = "City code is required"
+
+	MsgBranchNotFound   = "Branch not found"
+	MsgDistrictNotFound = "District not found"
+	MsgRegionNotFound   = "Region not found"
+	MsgCityNotFound     = "City not found"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// Fayda Account
+	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
+	MsgFaydaAccountDisableCreatedSuccessfully = "Fayda Account disable action submitted successfully"
+	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
+	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
+	MsgNotFaydaUser                           = "This user is not fayda user"
 )
