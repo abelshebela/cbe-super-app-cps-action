@@ -60,12 +60,10 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
 	var req dto.BulkServiceDTO
-	fmt.Println("handelr 1")
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("failed to decode payload")
 	}
-	fmt.Println("handelr 2")
 	action_code, err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
 	fmt.Println(err)
 	if err != nil {
@@ -73,6 +71,5 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	fmt.Println("handelr 3")
 	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, action_code)
 }

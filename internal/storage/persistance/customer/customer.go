@@ -45,13 +45,19 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{}
+	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
 	// 3. Add search (if provided)
-	// if filterParam.Search != "" {
-	// 	searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-	// 	searchKeys["field1"] = searchRegex // choose your searchable field(s)
-	// }
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"full_name": searchRegex},
+			{"phone_number": searchRegex},
+			{"gender": searchRegex},
+			{"user_name": searchRegex},
+			{"user_code": searchRegex},
+		}
+	}
 
 	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -81,11 +87,9 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 }
 
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
-	fmt.Println("persistance 1")
 	objID, err := bson.ObjectIDFromHex(id)
 	filter := map[string]interface{}{"_id": objID}
 	user, err := p.mongoDal.FindOne(ctx, filter, nil)
-	fmt.Println("persistance 2")
 
 	if err != nil {
 		p.logger.Errorf("Failed to fetch user by ID: %v", err)

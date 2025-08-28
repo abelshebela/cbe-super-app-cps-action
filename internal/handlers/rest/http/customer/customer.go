@@ -3,7 +3,6 @@ package customer
 import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
@@ -30,13 +29,11 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
 	kycLevel := r.URL.Query().Get("kyc_level")
 	filterParams := util.ExtractFilterParams(r)
-	fmt.Println("handler 1")
 	kycLevelInt, err := strconv.Atoi(kycLevel)
 	if err != nil {
 		localization.SendBadRequestResponse(w, "Invalid kyc_level parameter")
 		return
 	}
-	fmt.Println("handler 2")
 
 	customers, err := c.customerService.GetCustomersDetail(r.Context(), kycLevelInt, filterParams)
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -33,24 +32,20 @@ func (c *customerService) GetCustomersDetail(ctx context.Context, kyc_level int,
 			"kyc_level": kyc_level,
 		},
 	}
-	fmt.Println("service 1")
 
 	customers, err := c.repo.FindAllWithPagination(ctx, *filter)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("service 2")
 
 	return customers, nil
 }
 
 func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*model.User, error) {
-	fmt.Println("service 1")
 	customer, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("service 2")
 
 	return customer, nil
 }
