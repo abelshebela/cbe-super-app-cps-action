@@ -8,6 +8,7 @@ import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -85,6 +86,12 @@ type HQService interface {
 }
 
 type MiniAppService interface {
+	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	DeleteMiniApp(ctx context.Context, id string) error
+	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

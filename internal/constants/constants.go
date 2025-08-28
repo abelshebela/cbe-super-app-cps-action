@@ -300,6 +300,13 @@ const (
 	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
 	RequestBudgetDelete RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestCreateMiniApp RequestAction = "CREATE_MINIAPP"
+	RequestUpdateMiniApp RequestAction = "UPDATE_MINIAPP"
+	RequestDeleteMiniApp RequestAction = "DELETE_MINIAPP"
+	RequestEnableMiniApp RequestAction = "ENABLE_MINIAPP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
+
+
 
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
@@ -356,10 +363,27 @@ const (
 type AppType string
 
 const (
+	URL AppType = "URL"
+)
+const (
 	UATApp     AppType = "UAT"
 	Production AppType = "PRODUCATION"
 	Test       AppType = "TEST"
 	Dev        AppType = "DEV"
+)
+
+type AppViewType string
+
+const (
+	AppViewTypeBoth AppViewType = "BOTH"
+	AppViewTypeCB   AppViewType = "CB"
+	AppViewTypeIFB  AppViewType = "IFB"
+)
+
+type Stage string
+
+const (
+	StageUat Stage = "UAT"
 )
 
 type EnvironmentType string

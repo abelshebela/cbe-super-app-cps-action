@@ -238,14 +238,14 @@ type DonationCompanyRepository interface {
 
 type MiniAppRepository interface {
 	Create(ctx context.Context, miniApp *model.MiniApp) error
-	Update(ctx context.Context, miniApp *model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
-	FindByCode(ctx context.Context, code string) (*model.MiniApp, error)
-	FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
+	Find(ctx context.Context, name string) (*model.MiniApp, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
+	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
-
 type EventRepository interface {
 	Create(ctx context.Context, event *model.Event) error
 	Update(ctx context.Context, id string, event *model.Event) error

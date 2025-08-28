@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
+	miniAppInbound "cbe-super-app-cps-action/internal/constants/interfaces/mini_app"
 
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
@@ -26,6 +27,7 @@ import (
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
+	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
 
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
@@ -48,6 +50,7 @@ type Handler struct {
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
 	HqHandler         hqInbound.HQAdapter
+	MiniAPPHandler    miniAppInbound.MiniAppInbound
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -65,5 +68,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		PasswordHandler:   passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
+		MiniAPPHandler:    miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
 	}
 }
