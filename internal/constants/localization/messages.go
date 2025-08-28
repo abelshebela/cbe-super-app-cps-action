@@ -728,9 +728,6 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-	MsgInvalidInputParameters = "Invalid input parameters provided"
-
-	MsgMissingOrInvalidImage = "Missing or invalid image"
 
 	MsgInvalidRequestBody      = "Invalid request body"
 	MsgInvalidPaginationParams = "Invalid pagination parameters"
@@ -775,6 +772,8 @@ const (
 	MsgDistrictNotFound = "District not found"
 	MsgRegionNotFound   = "Region not found"
 	MsgCityNotFound     = "City not found"
+	MsgInvalidInputParameters        = "Invalid input parameters provided"
+	MsgMissingOrInvalidImage         = "Missing or invalid image"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"

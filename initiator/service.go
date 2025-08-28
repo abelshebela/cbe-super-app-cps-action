@@ -8,7 +8,9 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
+	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
+	customer "cbe-super-app-cps-action/internal/service/customer"
 	"cbe-super-app-cps-action/internal/service/event"
 	"cbe-super-app-cps-action/internal/service/hq"
 
@@ -26,10 +28,11 @@ import (
 )
 
 type ServiceLayer struct {
-	EventService service.EventService
-
-	CPSAction service.CPSActionService
-	Feedback  service.FeedbackService
+	EventService    service.EventService
+	BulkService     service.BulkService
+	CustomerService service.CustomerService
+	CPSAction       service.CPSActionService
+	Feedback        service.FeedbackService
 	// Services  service.ServiceContainer
 	Unlink            service.UnlinkService
 	BpsUser           service.BPSUserService
@@ -53,7 +56,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	merchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
-
+	bulkService := bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
+	customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
@@ -73,7 +77,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ValidationService: accountValidation,
 		Wallet:            walletService,
 		AccountBlock: accountBlockService,
+		BulkService:       bulkService,
+		CustomerService:   customerSerice,
+
 		PasswordRule:      passwordRule,
 		HQService:         hqService,
+
 	}
 }

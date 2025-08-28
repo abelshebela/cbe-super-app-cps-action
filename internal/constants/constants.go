@@ -395,3 +395,9 @@ const (
 	StatusSent    NotificationStatus = "SENT"
 	StatusSeen    NotificationStatus = "SEEN"
 )
+
+const (
+	UpdateAction ActionType = "UPDATE"
+	CreateAction ActionType = "CREATE"
+	DeleteAction ActionType = "DELETE"
+)
