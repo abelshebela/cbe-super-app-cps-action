@@ -131,9 +131,9 @@ const (
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
-    MsgMiniAppMerchantDisable = "Create MiniAppMerchant request successfully created"
-	MsgMiniAppMerchantEnableSuccessfully = "Create MiniAppMerchant request successfully created"
-	MsgMiniAppMerchantCreatedSuccessfully = "Mini app merchant created successfully"
+	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
@@ -625,8 +625,8 @@ const (
 	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
-	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group not found"
-	MsgInvalidDepartmentPortalCard              = "invalid portal card id or permission group not found"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group with id not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or portal card with id not found"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
@@ -778,7 +778,6 @@ const (
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
-
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
