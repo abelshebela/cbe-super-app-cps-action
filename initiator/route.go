@@ -14,7 +14,9 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
+	"cbe-super-app-cps-action/internal/glue/routing/department"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
@@ -69,7 +71,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
 	accountblock.Init(r, handlerLayer.AccountBlockHandler, authMiddleware)
+	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
+	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

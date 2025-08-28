@@ -16,6 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/city"
 	"cbe-super-app-cps-action/internal/storage/persistance/color"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
+	"cbe-super-app-cps-action/internal/storage/persistance/department"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -26,6 +27,7 @@ import (
 	// "cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	// "cbe-super-app-cps-action/internal/storage/persistance/event"
+	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
@@ -92,6 +94,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
 		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
+		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "users", logger),
 	}
 
 	return data

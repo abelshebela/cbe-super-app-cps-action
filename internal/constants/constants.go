@@ -205,6 +205,12 @@ const (
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
+	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
+	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
+	RequestDeleteDepartment         RequestAction = "DELETE_DEPARTMENT"
+	RequestEnableDepartment         RequestAction = "ENABLE_DEPARTMENT"
+	RequestDisableDepartment        RequestAction = "DISABLE_DEPARTMENT"
+	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
 	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
 	RequestDeleteWallet             RequestAction = "DELETE_WALLET"
@@ -305,9 +311,13 @@ const (
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
-	ActionPending            RequestAction = "PENDING"
-	ActionApproved           RequestAction = "APPROVED"
-	ActionRejected           RequestAction = "REJECTED"
+
+	RequestDisableFaydaAccount RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount  RequestAction = "ENABLE_FAYDA_ACCOUNT"
+
+	ActionPending  RequestAction = "PENDING"
+	ActionApproved RequestAction = "APPROVED"
+	ActionRejected RequestAction = "REJECTED"
 )
 
 type RegistrationType string

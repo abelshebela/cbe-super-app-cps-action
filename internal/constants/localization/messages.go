@@ -131,7 +131,10 @@ const (
 	MsgNotificationDeleteRequestSubmitted   = "Notification delete request submitted successfully"
 
 	// Department related success messages
-	MsgDepartmentCreatedSuccessfully = "Department created successfully"
+	MsgDepartmentCreateRequestedSuccessfully  = "Department create requested successfully"
+	MsgDepartmentUpdateRequestedSuccessfully  = "Department update requested successfully"
+	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
+	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
@@ -479,13 +482,18 @@ const (
 	MsgNotificationInvalidFormat  = "Invalid notification format"
 	MsgNotificationRequired       = "Notification is required"
 
-	// Department related error messages
-	MsgDepartmentNotFound       = "Department not found"
-	MsgDepartmentAlreadyExists  = "Department already exists"
-	MsgDepartmentCreationFailed = "Failed to create department"
-	MsgDepartmentUpdateFailed   = "Failed to update department"
-	MsgDepartmentInvalidFormat  = "Invalid department format"
-	MsgDepartmentRequired       = "Department is required"
+	// department related error messages
+	MsgDepartmentNotFound             = "Department not found"
+	MsgDepartmentAlreadyExists        = "Department already exists"
+	MsgDepartmentCreationFailed       = "Failed to create department"
+	MsgDepartmentUpdateFailed         = "Failed to update department"
+	MsgDepartmentInvalidFormat        = "Invalid department format"
+	MsgDepartmentRequired             = "Department is required"
+	msgGetAllDepartmentsSuccess       = "Successfully got all Departments"
+	msgGetDepartmentsSuccess          = "Successfully got a Department"
+	MsgDepartmentAlreadyEnabled       = "Department already enabled"
+	MsgDepartmentAlreadyDisabled      = "Department already disabled"
+	MsgDepartmentInvalidRequestAction = "Invalid request action"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryNotFound       = "Budget category not found"
@@ -586,6 +594,13 @@ const (
 	MsgInvalidRequest              = "Invalid request"
 	MsgInvalidToken                = "Invalid token"
 
+	// DEPARTMENT RELATED MESSAGES
+	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or permission group not found"
+
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
 	MsgServiceCountFailed                 = "Failed to count total services"
@@ -673,7 +688,9 @@ const (
 	MsgPermissionGroupRequestUpdateFailed   = "Failed to update permission group request"
 
 	// Department related error messages
-	MsgDepartmentCreationSuccess        = "Department created successfully"
+	MsgDepartmentCreateRequestSuccess = "Department created Request successfully"
+	MsgDepartmentCreateRequestFail    = "Department created Request successfully"
+
 	MsgDepartmentUpdateCPSActionCreated = "Department update CPS action created successfully"
 
 	// Budget Category related error messages
@@ -778,4 +795,11 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// Fayda Account
+	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
+	MsgFaydaAccountDisableCreatedSuccessfully = "Fayda Account disable action submitted successfully"
+	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
+	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
+	MsgNotFaydaUser                           = "This user is not fayda user"
 )
