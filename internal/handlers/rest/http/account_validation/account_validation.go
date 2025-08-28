@@ -26,7 +26,7 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 }
 
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id") 
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequest.Code)
 		return

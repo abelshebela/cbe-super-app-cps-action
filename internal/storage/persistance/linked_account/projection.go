@@ -24,4 +24,4 @@ func LinkedAccountMapper(account model.LinkedAccount) bson.M {
 			"updated_at":          time.Now(),
 		},
 	}
-} 
+}

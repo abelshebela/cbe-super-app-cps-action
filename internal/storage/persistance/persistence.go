@@ -27,6 +27,8 @@ type Persistence struct {
 	DistrictPersistence          storage.DistrictRepository
 	BranchPersistence            storage.BranchRepository
 	EventPersistence             storage.EventRepository
+	CustomerService              storage.CustomerRepository
+	BulkService                  storage.BulkServiceRepository
 
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
@@ -50,7 +52,9 @@ type Persistence struct {
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
 	ValidationRulePersistence        storage.ValidationRuleRepository
+	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
 	DepartmentPersistence            storage.DepartmentRepository
 	PermissionGroupPersistence       storage.PermissionGroupRepository
+	FaydaPersistence                 storage.FaydaRepository
 }

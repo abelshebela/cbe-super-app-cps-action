@@ -251,10 +251,10 @@ const (
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
 
 	// HQ related success messages
-	MsgHQFetchedSuccessfully  = "HQ fetched successfully"
-	MsgHQsFetchedSuccessfully = "HQs fetched successfully"
-	MsgHQBlockTImeFetchedSuccessfully = "HQ BlockTime fetched successfully"
-	MsgHQArchiveTimeFetchedSuccessfully = "HQ ArchiveTime fetched successfully"
+	MsgHQFetchedSuccessfully               = "HQ fetched successfully"
+	MsgHQsFetchedSuccessfully              = "HQs fetched successfully"
+	MsgHQBlockTImeFetchedSuccessfully      = "HQ BlockTime fetched successfully"
+	MsgHQArchiveTimeFetchedSuccessfully    = "HQ ArchiveTime fetched successfully"
 	MsgHQPasswordExpiryFetchedSuccessfully = "HQ PasswordExpiry fetched successfully"
 
 	// Wallet related success messages
@@ -739,7 +739,17 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-	MsgInvalidInputParameters = "Invalid input parameters provided"
+	MsgInvalidInputParameters        = "Invalid input parameters provided"
+	MsgMissingOrInvalidImage         = "Missing or invalid image"
 
-	MsgMissingOrInvalidImage = "Missing or invalid image"
+	// Password Rule
+	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
+	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// Fayda Account
+	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
+	MsgFaydaAccountDisableCreatedSuccessfully = "Fayda Account disable action submitted successfully"
+	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
+	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
+	MsgNotFaydaUser                           = "This user is not fayda user"
 )

@@ -308,8 +308,6 @@ func NonEmptyString(new, old string) string {
 	return old
 }
 
-
-
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
 func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
 	if new != "" {
@@ -319,7 +317,7 @@ func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
 }
 
 // nonEmptyAdvertDate returns the new date if non-zero, otherwise the old date
-func NonEmptyAdvertDate(new, old types.AdvertDate)types.AdvertDate {
+func NonEmptyAdvertDate(new, old types.AdvertDate) types.AdvertDate {
 	result := old
 	if !new.StartedAt.IsZero() {
 		result.StartedAt = new.StartedAt
