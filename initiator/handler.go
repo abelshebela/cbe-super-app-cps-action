@@ -5,6 +5,7 @@ import (
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
+	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
 	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 
@@ -26,6 +27,7 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
+	budgetHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget"
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
@@ -53,12 +55,14 @@ type Handler struct {
 	BpsHandler        bpsInbound.BPSUserHandler
 	BankHandler       bank.BankHandler
 	FeedbackHandler   feedbackinterface.FeedbackAdapter
+	BudgetHandler     budget.BudgetPortHandler
 	AdvertHandler     advertHandlerInterface.ADAdapter
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
 	AccountBlockHandler accountBlockHandlerInterface.AccountBlockAdapter
 
 	DepartmentHandler department.DepartmentHandler
+
 
 	HqHandler          hqInbound.HQAdapter
 	FaydaHandler       FaydaInbound.FaydaAccount
@@ -75,6 +79,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		CpsActionHandler:  cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
 		EventHandler:      eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
 		FeedbackHandler:   feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		BudgetHandler:     budgetHandler.InitBudgetAdapter(serviceLayer.Budget, logger),
 		PortalCardHander:  portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
 		AdvertHandler:     advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
@@ -83,7 +88,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 		DepartmentHandler: department.NewDepartmentHandler(serviceLayer.Department, logger),
 		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-
 		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
 		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),

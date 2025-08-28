@@ -11,6 +11,7 @@ import (
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
+	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
@@ -55,6 +56,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	authMiddleware := customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
+	budget.Init(r, handlerLayer.BudgetHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
 	bank.Init(r, handlerLayer.BankHandler, authMiddleware)

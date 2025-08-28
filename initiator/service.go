@@ -8,6 +8,7 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
+	"cbe-super-app-cps-action/internal/service/budget"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	customer "cbe-super-app-cps-action/internal/service/customer"
@@ -37,6 +38,7 @@ type ServiceLayer struct {
 	// Services  service.ServiceContainer
 	Unlink            service.UnlinkService
 	BpsUser           service.BPSUserService
+	Budget            service.BudgetService
 	Bank              service.BankService
 	PortalCard        service.PortalCardService
 	Advert            service.AdvertService
@@ -78,6 +80,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
 		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		Budget:            budget.NewBudgetService(persistence.BudgetPersistence, cpsActionService, "budget", minioClient, cfg, logger),
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,

@@ -15,6 +15,7 @@ const (
 	MsgUserPINChanged            = "PIN changed successfully"
 	MsgUserDeviceLinked          = "Device linked successfully"
 	MsgUserDeviceUnlinked        = "Device unlinked successfully"
+	MsgInvalidJSONPayload        = "Invalid JSON payload"
 	MSGAccountNumberRequired     = "Account Number is required"
 	MsgFeedbackIDRequired        = "Feedback ID is required"
 	MsgInvalidIDFormat           = "Invalid ID format"
@@ -320,9 +321,11 @@ const (
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
 	MsgInvalidFormat                         = "Invalid format"
+	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgInvalidDate                           = "Invalid date format"
+	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
 	MsgFieldTooShort                         = "Field value is too short"
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
@@ -332,8 +335,9 @@ const (
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
 	MsgInvalidActionData                    = "Invalid action"
 	MsgUnsupportedAction                    = "Unsupported action"
-	MsgInvalidID                            = "Invalid ID"
 	MsgMissingFile                          = "Missing file"
+	MsgInvalidID                            = "Invalid ID format"
+	MsgInvalidActionFormat                  = "Invalid action format"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -697,13 +701,20 @@ const (
 	MsgBudgetCategoryUpdateSuccess = "Budget category updated successfully"
 
 	// Donation Service related error messages
-	MsgDonationCategoryIconUploadSuccess = "Successfully uploaded donation category icon"
-	MsgDonationCategoryIconUpdateSuccess = "Successfully uploaded updated donation category icon"
-	MsgDonationCPSActionApprovedSuccess  = "Successfully approved and authorized CPS action"
-	MsgDonationCompanyLogoUploadSuccess  = "Successfully uploaded donation company logo"
-	MsgDonationCompanyLogoUpdateSuccess  = "Successfully uploaded updated donation company logo"
-	MsgDonationImageUploadSuccess        = "Successfully uploaded donation image"
-	MsgDonationImagesUpdateSuccess       = "Successfully uploaded updated donation images"
+	MsgDonationCategoryIconUploadSuccess             = "Successfully uploaded donation category icon"
+	MsgDonationCategoryIconUpdateSuccess             = "Successfully uploaded updated donation category icon"
+	MsgDonationCPSActionApprovedSuccess              = "Successfully approved and authorized CPS action"
+	MsgDonationCompanyLogoUploadSuccess              = "Successfully uploaded donation company logo"
+	MsgBudgetIconRequestSubmittedForApprovalSuccess  = "Successfully budget icon request submitted for approval"
+	MsgBudgetCheckerActionApprovedSuccess            = "Successfully budget icon checker submitted for approval"
+	MsgBudgetColorUpdateSubmittedForApprovalSuccess  = "Successfully budget color request submitted for approval"
+	MsgBudgetIconUpdateSubmittedForApprovalSuccess   = "Successfully budget icon update submitted for approval"
+	MsgBudgetColorRequestSubmittedForApprovalSuccess = "Successfully budget color request submitted for approval"
+	MsgBudgetIconsFetchedSuccessfully                = "Successfully fetched budget icons"
+	MsgBudgetColorsFetchedSuccessfully               = "Successfully fetched budget colors"
+	MsgDonationCompanyLogoUpdateSuccess              = "Successfully uploaded updated donation company logo"
+	MsgDonationImageUploadSuccess                    = "Successfully uploaded donation image"
+	MsgDonationImagesUpdateSuccess                   = "Successfully uploaded updated donation images"
 
 	// Notification Service related error messages
 	MsgNotificationConstructedSuccess = "Notification constructed successfully"
@@ -745,6 +756,12 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
+	MsgInvalidInputParameters = "Invalid input parameters provided"
+
+	MsgMissingOrInvalidImage = "Missing or invalid image"
+
+	MsgPendingActionExists  = "Pending action exists"
+	MsgDuplicateColorExists = "Duplicate color exists"
 
 	MsgInvalidRequestBody      = "Invalid request body"
 	MsgInvalidPaginationParams = "Invalid pagination parameters"

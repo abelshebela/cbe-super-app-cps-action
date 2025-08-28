@@ -95,12 +95,19 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQBlockTimeUpdateRequestSubmitted,
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+	SuccessBudgetColorsFetched,
+	SuccessBudgetIconsFetched,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	// Error codes
+
 
   // Error codes
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
-
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
 	ErrorUserUnauthorized,
@@ -134,6 +141,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
 	ErrorActionNotFound,
+	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
@@ -190,6 +198,12 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
+	ErrorInvalidJSONPayload,
+	ErrorInvalidAction,
+	ErrorIncompleteUserInfo,
+	ErrorPendingActionExists,
+	ErrorDuplicateColorExists,
+	ErrorInvalidActionFormat,
 	ErrorMissingFile,
 
 	// Add more as needed...
@@ -1735,6 +1749,55 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBudgetIconRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetCheckerActionApproved = ResponseCode{
+		Code:       "BUDGET_ICON_CHECKER_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCheckerActionApprovedSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconsFetched = ResponseCode{
+		Code:       "BUDGET_ICONS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorsFetched = ResponseCode{
+		Code:       "BUDGET_COLORS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorsFetchedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessDonationImageUploaded = ResponseCode{
 		Code:       "SUCCESS_DONATION_IMAGE_UPLOADED",
 		StatusCode: StatusOK,
@@ -2023,6 +2086,14 @@ var (
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
 	}
+
+	ErrorDuplicateColorExists = ResponseCode{
+		Code:       "ERROR_DUPLICATE_COLOR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateColorExists,
+		Type:       "error",
+	}
+
 	ErrorFeedbackIDRequired = ResponseCode{
 		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -2037,8 +2108,15 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidJSONPayload = ResponseCode{
+		Code:       "ERROR_INVALID_JSON_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidJSONPayload,
+		Type:       "error",
+	}
+
 	ErrorIncompleteUserInfo = ResponseCode{
-		Code:       "ERROR_INCOMPLET_USER_INFO",
+		Code:       "ERROR_INCOMPLTE_USER_INFO",
 		StatusCode: StatusBadRequest,
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
@@ -2482,6 +2560,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidInputParameter = ResponseCode{
+		Code:       "ERROR_INVALID_INPUT_PARAMETER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameter,
+		Type:       "error",
+	}
+
 	ErrorInvalidEmail = ResponseCode{
 		Code:       "ERROR_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
@@ -2520,6 +2605,19 @@ var (
 		Code:       "ERROR_MISSING_FILE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgMissingFile,
+		Type:       "error",
+	}
+
+	ErrorInvalidAction = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidAction,
+		Type:       "error",
+	}
+	ErrorInvalidActionFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidActionFormat,
 		Type:       "error",
 	}
 
@@ -3318,6 +3416,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorPendingActionExists = ResponseCode{
+		Code:       "ERROR_PENDING_ACTION_EXISTS",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgPendingActionExists,
+		Type:       "error",
+	}
 	ErrorInvalidRequestBody = ResponseCode{
 		Code:       "ERROR_INVALID_REQUEST_BODY",
 		StatusCode: StatusBadRequest,

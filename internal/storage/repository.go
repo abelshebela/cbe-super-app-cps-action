@@ -112,6 +112,17 @@ type BPSUserRepository interface {
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
 
+type BudgetRepository interface {
+	CreateIcon(ctx context.Context, icon *model.Icon) error
+	FetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	UpdateIcon(ctx context.Context, id string, icon *model.Icon) error
+	CreateColor(ctx context.Context, color *model.Color) error
+	FetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	UpdateColor(ctx context.Context, id string, color *model.Color) error
+	AuthorizeCPSAction(ctx context.Context, cpsAction *model.CPSAction) error
+	CheckColorExist(ctx context.Context, colorName string) (bool, error)
+}
+
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
 	Update(ctx context.Context, id string, update *model.AuthTier) error
@@ -213,7 +224,7 @@ type ColorRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Color, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
 }
 
 type CpsUserRepository interface {
@@ -282,7 +293,7 @@ type IconRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
 }
 
 type LinkedAccountRepository interface {
