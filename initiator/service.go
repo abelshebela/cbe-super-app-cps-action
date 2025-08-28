@@ -78,7 +78,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
-	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionGroupPersistence, logger)
+	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 	keygenService := keygen.NewKeyGenerator(logger, cfg)
@@ -100,30 +100,27 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	)
 
 	return ServiceLayer{
-		Bank:         bank_service,
-		EventService: eventService,
-		Feedback:     feedbackService,
-		CPSAction:    cpsActionService,
-		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		Advert:       advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
-		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-	
-		Budget:     budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
-		PortalCard: portalCardService,
-
+		CPSAction:         cpsActionService,
+		Feedback:          feedbackService,
+		EventService:      eventService,
+		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
+		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Bank:              bank_service,
+		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
+		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
 		PasswordRule:      passwordRule,
 		HQService:         hqService,
-		MiniAppService:    miniAppService,
 		AccountBlock:      accountBlockService,
+		MiniAppService:    miniAppService,
 		MiniAppMerchant:   miniAppMerchantService,
 		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
 		Fayda:             fayda,
-
-		Permission: permissionService,
-		CPSUser:    cpsUserService,
+		Permission:        permissionService,
+		CPSUser:           cpsUserService,
 	}
 }
