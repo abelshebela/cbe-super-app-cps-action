@@ -1,6 +1,7 @@
 package color
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -95,25 +96,22 @@ func (c *ColorStorage) FindByID(ctx context.Context, id string) (*model.Color, e
 	return result, nil
 }
 
-func (c *ColorStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Color], error) {
+func (s *ColorStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Color], error) {
 	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
 
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["name"] = searchRegex
+	allowedKeys := []string{}
+
+	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+
+	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
-
-	data, err := c.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
-	}
-
-	total, err := c.dal.TotalCount(ctx, filter)
-	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

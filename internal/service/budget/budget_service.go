@@ -19,7 +19,8 @@ import (
 )
 
 type BudgetService struct {
-	repo       storage.BudgetRepository
+	colorRepo  storage.ColorRepository
+	iconRepo   storage.IconRepository
 	cpsService service.CPSActionService
 	bucketName string
 	minio      config.MinioClientInterface
@@ -29,7 +30,8 @@ type BudgetService struct {
 
 // Constructor
 func NewBudgetService(
-	repo storage.BudgetRepository,
+	iconRepo storage.IconRepository,
+	colorRepo storage.ColorRepository,
 	cpsService service.CPSActionService,
 	bucketName string,
 	minio config.MinioClientInterface,
@@ -37,7 +39,8 @@ func NewBudgetService(
 	logger utils.Logger,
 ) service.BudgetService {
 	return &BudgetService{
-		repo:       repo,
+		iconRepo:   iconRepo,
+		colorRepo:  colorRepo,
 		cpsService: cpsService,
 		bucketName: bucketName,
 		minio:      minio,
@@ -60,13 +63,13 @@ func (b *BudgetService) Authorize(ctx context.Context, action *model.CPSAction) 
 	var err error
 	switch action.RequestAction {
 	case string(constants.RequestCreateBudgetColor):
-		err = b.repo.CreateColor(ctx, color)
+		err = b.colorRepo.Create(ctx, color)
 	case string(constants.RequestUpdateBudgetColor):
-		err = b.repo.UpdateColor(ctx, color.ID.Hex(), color)
+		err = b.colorRepo.Update(ctx, color.ID.Hex(), color)
 	case string(constants.RequestCreateBudgetIcon):
-		err = b.repo.CreateIcon(ctx, icon)
+		err = b.iconRepo.Create(ctx, icon)
 	case string(constants.RequestUpdateBudgetIcon):
-		err = b.repo.UpdateIcon(ctx, icon.ID.Hex(), icon)
+		err = b.iconRepo.Update(ctx, icon.ID.Hex(), icon)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
@@ -111,7 +114,7 @@ func (b *BudgetService) CreateBudgetIcon(ctx context.Context, fileHeader *multip
 	return nil
 }
 func (b *BudgetService) BudgetFetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error) {
-	icons, err := b.repo.FetchIcons(ctx, filterParams)
+	icons, err := b.iconRepo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		b.logger.Errorf("failed to fetch budget icons: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -159,11 +162,11 @@ func (b *BudgetService) BudgetCreateColor(ctx context.Context, color *model.Colo
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 
-	exists, err := b.repo.CheckColorExist(ctx, color.Color)
+	exists, err := b.colorRepo.FindByID(ctx, color.ID.Hex())
 	if err != nil {
 		return err
 	}
-	if exists {
+	if exists != nil {
 		return errors.New(localization.ErrorDuplicateColorExists.Code)
 	}
 
@@ -179,7 +182,7 @@ func (b *BudgetService) BudgetCreateColor(ctx context.Context, color *model.Colo
 }
 
 func (b *BudgetService) BudgetFetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error) {
-	colors, err := b.repo.FetchColors(ctx, filterParams)
+	colors, err := b.colorRepo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		b.logger.Errorf("failed to fetch budget colors: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -196,11 +199,11 @@ func (b *BudgetService) BudgetUpdateColor(ctx context.Context, id string, color 
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 
-	exists, err := b.repo.CheckColorExist(ctx, color.Color)
+	exists, err := b.colorRepo.FindByID(ctx, color.Color)
 	if err != nil {
 		return err
 	}
-	if exists {
+	if exists != nil {
 		return errors.New(localization.ErrorDuplicateColorExists.Code)
 	}
 
