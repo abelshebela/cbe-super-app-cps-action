@@ -25,6 +25,7 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 }
 
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debugf(">>> Entered Create endpoint")
 	var reqDTO miniappmerchant.MiniAppMerchantDTO
 
 	// Decode request body
@@ -44,14 +45,14 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Extract User Context
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
-		h.logger.Warnf("Incomplete user context")
+		h.logger.Warnf("Incomplete user context: %+v", userContext)
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
 
 	// Convert DTO → Domain Model
 	merchantDomain := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
-
+	h.logger.Debugf("Converted to domain model: %+v", merchantDomain)
 	// Call service to create merchant
 	createdMerchant, err := h.miniappMerchantService.Create(r.Context(), merchantDomain)
 	if err != nil {
@@ -59,12 +60,13 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantCreateFromActionFailed, nil, nil)
 		return
 	}
+	h.logger.Debugf("Created merchant: %+v", createdMerchant)
 
 	// Convert domain → response DTO
 	responseDTO := ToMiniAppMerchantResponseDTO(createdMerchant)
-
+	h.logger.Debugf("Response DTO: %+v", responseDTO)
 	// Send success response
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreated, responseDTO)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, responseDTO)
 }
 
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -218,5 +220,5 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessPortalCardsFetched, miniAppMerchant)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, miniAppMerchant)
 }

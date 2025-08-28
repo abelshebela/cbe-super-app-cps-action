@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -82,15 +83,26 @@ func (m *MiniAppMerchantStorage) Delete(ctx context.Context, id string) error {
 }
 
 // EnableOrDisable toggles the merchant's active status.
+// EnableOrDisable toggles the Mini App Merchant's active status.
 func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable}}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
+
 	_, err = m.dal.UpdateOne(ctx, filter, update)
-	return err
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			m.logger.Warnf("Mini App Merchant ID %s not found for enable/disable", id)
+			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+		}
+		m.logger.Errorf("Failed to enable/disable Mini App Merchant ID %s: %v", id, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {

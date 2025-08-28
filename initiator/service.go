@@ -43,7 +43,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
-	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, logger)
+	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)

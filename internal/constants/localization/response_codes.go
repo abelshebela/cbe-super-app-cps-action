@@ -2297,6 +2297,12 @@ var (
 		Message:    MsgMiniAppMerchantMarshalFailed,
 		Type:       "error",
 	}
+	ErrorMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "MiniApp merchant not found",
+		Type:       "error",
+	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",

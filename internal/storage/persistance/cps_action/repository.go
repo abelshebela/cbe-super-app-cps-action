@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
@@ -35,11 +36,13 @@ func NewCPSActionRepository(client *mongo.Client, dbName string, collection stri
 
 func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction) error {
 	r.logger.Infof("Attempting to save CPSAction: %+v", cpsAction)
-	_, err := r.dal.InsertOne(ctx, *cpsAction)
+	fmt.Printf("Cps file of id is fff:%s\n\n\n", cpsAction.ID)
+	cps, err := r.dal.InsertOne(ctx, *cpsAction)
 	if err != nil {
 		r.logger.Errorf("Failed to save CPSAction: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Message)
 	}
+	fmt.Printf("Cps file of id is:%s", cps.ID)
 	r.logger.Infof("Successfully saved CPSAction with ActionCode: %s", cpsAction.ActionCode)
 	return nil
 }
