@@ -3,7 +3,8 @@ package service
 import (
 	"context"
 	"mime/multipart"
-
+    cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
@@ -48,7 +49,14 @@ type BulkService interface {
 }
 
 type CPSUserService interface {
-	// Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
+	UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error
+	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error)
+	DeleteUserRequest(ctx context.Context, userCode string) error
+	DisableUser(ctx context.Context, userCode string) error
+	EnableUser(ctx context.Context, userCode string) error
 }
 
 type CustomerService interface {
@@ -135,6 +143,15 @@ type PasswordRuleService interface {
 
 type PermissionService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreatePermissionGroup(ctx context.Context, req permission_dto.CreatePermissionGroupRequest) error
+	UpdatePermissionGroup(ctx context.Context, req permission_dto.UpdatePermissionGroupRequest) error
+	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
+
+	// Validation methods
+	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
+	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
 }
 
 type PortalCardService interface {

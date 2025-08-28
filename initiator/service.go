@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/budget"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
+	cpsusersvc "cbe-super-app-cps-action/internal/service/cps_user"
 	customer "cbe-super-app-cps-action/internal/service/customer"
 	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
@@ -22,6 +23,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/hq"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	password "cbe-super-app-cps-action/internal/service/password_rule"
+	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
@@ -53,6 +55,8 @@ type ServiceLayer struct {
 	HQService         service.HQService
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
+	Permission        service.PermissionService
+	CPSUser           service.CPSUserService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -78,17 +82,32 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, merchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger)
 	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
+	permissionService := permission.InitPermissionService(
+		persistence.PermissionPersistence,
+		cpsActionService,
+		logger,
+	)
+
+	cpsUserService := cpsusersvc.NewCPSUserService(
+		persistence.CpsUserPersistence,
+		persistence.AccessListPersistence, // temporary it will replaced by department repo
+		permissionService,
+		cpsActionService,
+		logger,
+	)
 
 	return ServiceLayer{
-		Bank:              bank_service,
-		EventService:      eventService,
-		Feedback:          feedbackService,
-		CPSAction:         cpsActionService,
-		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
-		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
-		PortalCard:        portalCardService,
+		Bank:         bank_service,
+		EventService: eventService,
+		Feedback:     feedbackService,
+		CPSAction:    cpsActionService,
+		BpsUser:      bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Advert:       advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
+		Unlink:       unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+
+		Budget:     budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
+		PortalCard: portalCardService,
+
 		ValidationService: accountValidation,
 		Wallet:            walletService,
 		PasswordRule:      passwordRule,
@@ -98,6 +117,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
-		Fayda: fayda,
+		Fayda:             fayda,
+
+		Permission: permissionService,
+		CPSUser:    cpsUserService,
 	}
 }

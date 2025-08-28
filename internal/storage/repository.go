@@ -415,3 +415,19 @@ type BulkServiceRepository interface {
 	Update(ctx context.Context, keys []string, state bool) error
 	FindAll(ctx context.Context) ([]*model.APPAccessList, error)
 }
+type PermissionRepository interface {
+	Create(ctx context.Context, permissionGroup *model.PermissionGroup) error
+	Update(ctx context.Context, id string, permissionGroup *model.PermissionGroup) error
+	Delete(ctx context.Context, id string) error
+	// FindByID(ctx context.Context, id string) (*model.PermissionGroup, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
+
+	// Permission category operations
+	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
+
+	// Permission group operations
+	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
+	CheckPermissionGroupExists(groupName string) bool
+	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+}

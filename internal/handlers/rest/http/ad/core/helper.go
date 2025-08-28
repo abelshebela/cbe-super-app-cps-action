@@ -27,7 +27,7 @@ func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Lo
 		UserCode:    userContext.UserID,
 		FullName:    userContext.FullName,
 		PhoneNumber: userContext.PhoneNumber,
-		Department:  userContext.Department,
+		// Department:  userContext.Department,
 	}
 	return maker, true
 }
