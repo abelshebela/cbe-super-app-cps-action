@@ -50,6 +50,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
+	SuccessAvatarEnabled,
+	SuccessAvatarDisabled,
+	SuccessAvatarDeleted,
 
 	// Error codes
 	ErrorUserNotFound,
@@ -154,6 +157,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+	ErrorAvatarNotExist,
 }
 
 // Success Response Codes
@@ -169,6 +173,41 @@ var (
 		Code:       "SUCCESS_AVATAR_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgAvatarCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarUpdated = ResponseCode{
+		Code:       "SUCCESS_AVATAR_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarUpdateSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarRetrieved = ResponseCode{
+		Code:       "SUCCESS_AVATAR_RETRIVED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarEnabled = ResponseCode{
+		Code:       "SUCCESS_AVATAR_ENABLED",
+		StatusCode: StatusAccepted,
+		Message:    MsgAvatarEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarDisabled = ResponseCode{
+		Code:       "SUCCESS_AVATAR_DISABLED",
+		StatusCode: StatusAccepted,
+		Message:    MsgAvatarDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarDeleted = ResponseCode{
+		Code:       "SUCCESS_AVATAR_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    MsgAvatarDeletedSuccessfully,
 		Type:       "success",
 	}
 
@@ -822,6 +861,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAvatarAlreadyExist = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_EXIST",
+		StatusCode: StatusConflict,
+		Message:    "Avatar label already exist",
+		Type:       "error",
+	}
+
+	ErrorAvatarNotExist = ResponseCode{
+		Code:       "ERROR_AVATAR_NOT_EXIST",
+		StatusCode: StatusConflict,
+		Message:    "Avatar label not exist",
+		Type:       "error",
+	}
+
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{
 		Code:       "SUCCESS_PORTAL_CARDS_FETCHED",
@@ -1073,7 +1126,6 @@ var (
 		Message:    MsgValidationRuleSuccessFech,
 		Type:       "success",
 	}
-
 
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{

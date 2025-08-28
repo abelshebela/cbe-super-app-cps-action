@@ -48,6 +48,7 @@ const (
 	BucketUserProfilePicture          = "USER-PROFILE-PICTURES"
 	OtpExpirationTime                 = 3 * time.Minute
 	ActionCode                        = "action_code"
+	Avatar                            = "avatar"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"
@@ -290,12 +291,12 @@ const (
 	RequestUpdateHQBlockTime       RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 
-	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
-	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
-	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
-	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
-	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
-	RequestDeleteBudgetIcAdvertServiceon  RequestAction = "BUDGET_DELETE_ICON"
+	RequestCreateBudgetColor             RequestAction = "BUDGET_CREATE_COLOR"
+	RequestUpdateBudgetColor             RequestAction = "BUDGET_UPDATE_COLOR"
+	RequestDeleteBudgetColor             RequestAction = "BUDGET_DELETE_COLOR"
+	RequestCreateBudgetIcon              RequestAction = "BUDGET_CREATE_ICON"
+	RequestUpdateBudgetIcon              RequestAction = "BUDGET_UPDATE_ICON"
+	RequestDeleteBudgetIcAdvertServiceon RequestAction = "BUDGET_DELETE_ICON"
 
 	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
