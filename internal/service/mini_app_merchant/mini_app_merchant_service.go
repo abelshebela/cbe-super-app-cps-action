@@ -36,3 +36,13 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 
 	return m.repo.DetailMiniAppByID(ctx, id)
 }
+
+func (s *miniAppMerchantService) AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error {
+	return s.repo.AddMiniApp(ctx, merchantID, miniApp)
+}
+func (s *miniAppMerchantService) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
+	return s.repo.UpdateMiniAppEnabledState(ctx, merchantID, miniAppID, enabled)
+}
+func (s *miniAppMerchantService) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
+	return s.repo.SoftDeleteMiniApp(ctx, merchantID, miniAppID)
+}

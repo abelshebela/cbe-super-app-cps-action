@@ -117,6 +117,9 @@ type MiniAppService interface {
 type MiniAppMerchantService interface {
 	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 }
 
 type NotificationService interface {

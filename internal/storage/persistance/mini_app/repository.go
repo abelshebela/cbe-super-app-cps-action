@@ -3,7 +3,6 @@ package mini_app
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -223,7 +222,7 @@ func (p *MiniAppStorage) RunInTransaction(ctx context.Context, fn func(ctx conte
 	session, err := p.client.StartSession()
 	if err != nil {
 		p.logger.Errorf("failed to start MongoDB session: %v", err)
-		return fmt.Errorf(localization.ErrorUnhandledServer.Code)
+		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	defer session.EndSession(ctx)
 
@@ -232,7 +231,7 @@ func (p *MiniAppStorage) RunInTransaction(ctx context.Context, fn func(ctx conte
 
 		if err := session.StartTransaction(); err != nil {
 			p.logger.Errorf("failed to start transaction: %v", err)
-			return fmt.Errorf(localization.ErrorUnhandledServer.Code)
+			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 
 		err := fn(txCtx)
@@ -248,7 +247,7 @@ func (p *MiniAppStorage) RunInTransaction(ctx context.Context, fn func(ctx conte
 
 		if err := session.CommitTransaction(txCtx); err != nil {
 			p.logger.Errorf("failed to commit transaction: %v", err)
-			return fmt.Errorf(localization.ErrorUnhandledServer.Code)
+			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 
 		p.logger.Debugf("Transaction committed successfully")

@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -15,19 +14,24 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MiniAppMerchantStorage struct {
-	dal    dal.MongoDal[model.MiniAppMerchant, model.MiniAppMerchant]
-	client *mongo.Client
-	logger utils.Logger
+	dal        dal.MongoDal[model.MiniAppMerchant, model.MiniAppMerchant]
+	client     *mongo.Client
+	logger     utils.Logger
+	dbName     string
+	collection string
 }
 
 func NewMiniAppMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppMerchantRepository {
 	return &MiniAppMerchantStorage{
-		dal:    dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, dbName, collection),
+		client:     client,
+		logger:     logger,
+		dbName:     dbName,
+		collection: collection,
 	}
 }
 
@@ -132,7 +136,7 @@ func (p *MiniAppMerchantStorage) DetailMiniAppByID(ctx context.Context, merchant
 	objID, err := bson.ObjectIDFromHex(merchantID)
 	if err != nil {
 		p.logger.Errorf("invalid merchant ObjectID %s: %v", merchantID, err)
-		return nil, fmt.Errorf(localization.ErrorMerchantNotFound.Code)
+		return nil, errors.New(localization.ErrorMerchantNotFound.Code)
 	}
 
 	doc, err := p.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
@@ -146,4 +150,98 @@ func (p *MiniAppMerchantStorage) DetailMiniAppByID(ctx context.Context, merchant
 	}
 
 	return ToMiniAppMerchantDomain(doc), nil
+}
+
+func (p *MiniAppMerchantStorage) AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error {
+	p.logger.Infof("AddMiniApp: merchant_id=%s, mini_app_id=%s", merchantID, miniApp.ID)
+
+	objID, err := bson.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Warnf("AddMiniApp: invalid merchant_id=%s, error=%v", merchantID, err)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+
+	update := bson.M{"$push": bson.M{"mini_apps": miniApp}}
+	var result model.MiniAppMerchant
+	err = p.client.Database(p.dbName).Collection(p.collection).FindOneAndUpdate(
+		ctx,
+		filter,
+		update,
+		options.FindOneAndUpdate().SetReturnDocument(options.After),
+	).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("AddMiniApp: merchant not found, merchant_id=%s", merchantID)
+			return errors.New(localization.ErrorMerchantNotFound.Code)
+		}
+		p.logger.Warnf("AddMiniApp: failed to add mini app, merchant_id=%s, mini_app_id=%s, error=%v", merchantID, miniApp.ID, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	p.logger.Infof("AddMiniApp: successfully added mini app, merchant_id=%s, mini_app_id=%s", merchantID, miniApp.ID)
+	return nil
+}
+
+func (p *MiniAppMerchantStorage) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
+	p.logger.Infof("UpdateMiniAppEnabledState: merchant_id=%s, mini_app_id=%s, enabled=%v", merchantID, miniAppID, enabled)
+
+	objID, err := bson.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Errorf("invalid merchant ObjectID %s: %v", merchantID, err)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+
+	filter := bson.M{
+		"_id":                  objID,
+		"mini_apps.id":         miniAppID,
+		"mini_apps.is_deleted": false,
+		"is_deleted":           false,
+	}
+	update := bson.M{"mini_apps.$.enabled": enabled}
+
+	_, err = p.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("UpdateMiniAppEnabledState: mini app not found, merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+			return errors.New(localization.ErrorMiniAppNotFound.Code)
+		}
+		p.logger.Warnf("UpdateMiniAppEnabledState: failed to update enabled state, merchant_id=%s, mini_app_id=%s, error=%v", merchantID, miniAppID, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	p.logger.Infof("UpdateMiniAppEnabledState: successfully updated enabled=%v, merchant_id=%s, mini_app_id=%s", enabled, merchantID, miniAppID)
+	return nil
+}
+
+func (p *MiniAppMerchantStorage) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
+	p.logger.Infof("SoftDeleteMiniApp: merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+
+	objID, err := bson.ObjectIDFromHex(merchantID)
+	if err != nil {
+		p.logger.Errorf("invalid merchant ObjectID %s: %v", merchantID, err)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+
+	filter := bson.M{
+		"_id":                  objID,
+		"mini_apps.id":         miniAppID,
+		"mini_apps.is_deleted": false,
+		"is_deleted":           false,
+	}
+	update := bson.M{"mini_apps.$.is_deleted": true}
+
+	_, err = p.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Warnf("SoftDeleteMiniApp: mini app not found, merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+			return errors.New(localization.ErrorMiniAppNotFound.Code)
+		}
+		p.logger.Warnf("SoftDeleteMiniApp: failed to soft delete mini app, merchant_id=%s, mini_app_id=%s, error=%v", merchantID, miniAppID, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	p.logger.Infof("SoftDeleteMiniApp: successfully soft deleted mini app, merchant_id=%s, mini_app_id=%s", merchantID, miniAppID)
+	return nil
 }
