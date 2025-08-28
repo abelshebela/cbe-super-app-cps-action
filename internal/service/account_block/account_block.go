@@ -56,44 +56,105 @@ func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *ty
 	return s.repo.FindAllCitiesWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) EnableBranches(ctx context.Context, branchCodes []string, enabled bool) error {
+func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error {
+
+	for _, code := range branchCodes {
+		branch, err := s.repo.GetBranchByCode(ctx, code)
+		if err != nil {
+			if err.Error() == localization.ErrorBranchNotFound.Code {
+				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
+			}
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		if branch.Enabled == enabled {
+			return errors.New(localization.ErrorDuplicateAction.Code)
+		}
+	}
+
 	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, branchCodes, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableBranches)
-	return s.enableOrDisable(ctx, "BRANCH", branchCodes, cpsAction, constants.RequestEnableBranches)
+
+	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *accountBlockService) DisableBranches(ctx context.Context, branchCodes []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, branchCodes, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableBranches)
-	return s.enableOrDisable(ctx, "BRANCH", branchCodes, cpsAction, constants.RequestDisableBranches)
+func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
+	for _, code := range regionsCode {
+		branch, err := s.repo.GetRegionByCode(ctx, code)
+		if err != nil {
+			if err.Error() == localization.ErrorRegionNotFound.Code {
+				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
+			}
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		if branch.Enabled == enabled {
+			return errors.New(localization.ErrorDuplicateAction.Code)
+		}
+	}
+	
+	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableRegions)
+
+	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *accountBlockService) EnableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableRegion)
-	return s.enableOrDisable(ctx, "REGION", regionsCode, cpsAction, constants.RequestEnableRegion)
+func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
+	for _, code := range districtsCode {
+		branch, err := s.repo.GetDistrictByCode(ctx, code)
+		if err != nil {
+			if err.Error() == localization.ErrorDistrictNotFound.Code {
+				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
+			}
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		if branch.Enabled == enabled {
+			return errors.New(localization.ErrorDuplicateAction.Code)
+		}
+	}
+
+	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableDistricts)
+
+	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *accountBlockService) DisableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableRegion)
-	return s.enableOrDisable(ctx, "REGION", regionsCode, cpsAction, constants.RequestDisableRegion)
-}
+func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
+	for _, code := range citiesCode {
+		branch, err := s.repo.GetCityByCode(ctx, code)
+		if err != nil {
+			if err.Error() == localization.ErrorCityNotFound.Code {
+				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
+			}
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 
-func (s *accountBlockService) EnableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableDistrict)
-	return s.enableOrDisable(ctx, "DISTRICT", districtsCode, cpsAction, constants.RequestEnableDistrict)
-}
+		if branch.Enabled == enabled {
+			return errors.New(localization.ErrorDuplicateAction.Code)
+		}
+	}
 
-func (s *accountBlockService) DisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableDistrict)
-	return s.enableOrDisable(ctx, "DISTRICT", districtsCode, cpsAction, constants.RequestDisableDistrict)
-}
+	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableCities)
 
-func (s *accountBlockService) EnableCities(ctx context.Context, citiesCode []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableCity)
-	return s.enableOrDisable(ctx, "CITY", citiesCode, cpsAction, constants.RequestEnableCity)
-}
+	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
+		return err
+	}
 
-func (s *accountBlockService) DisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
-	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, constants.ActionType(cps_constants.ActionDisable), constants.RequestDisableCity)
-	return s.enableOrDisable(ctx, "CITY", citiesCode, cpsAction, constants.RequestDisableCity)
+	return nil
 }
 
 func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
@@ -111,7 +172,6 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
 	case constants.RequestDisableBranches:
 		branches, err := local_util.JsonUnmarshal[[]model.Branch](action.CurrentAction)
@@ -125,9 +185,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
-	case constants.RequestEnableRegion:
+	case constants.RequestEnableRegions:
 		regions, err := local_util.JsonUnmarshal[[]model.Region](action.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -139,9 +198,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
-	case constants.RequestDisableRegion:
+	case constants.RequestDisableRegions:
 		regions, err := local_util.JsonUnmarshal[[]model.Region](action.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -153,9 +211,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
-	case constants.RequestEnableDistrict:
+	case constants.RequestEnableDistricts:
 		districts, err := local_util.JsonUnmarshal[[]model.District](action.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -167,9 +224,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
-	case constants.RequestDisableDistrict:
+	case constants.RequestDisableDistricts:
 		districts, err := local_util.JsonUnmarshal[[]model.District](action.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -181,9 +237,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
-	case constants.RequestEnableCity:
+	case constants.RequestEnableCities:
 		cities, err := local_util.JsonUnmarshal[[]model.City](action.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -195,9 +250,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
-	case constants.RequestDisableCity:
+	case constants.RequestDisableCities:
 		cities, err := local_util.JsonUnmarshal[[]model.City](action.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -209,111 +263,11 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 				return nil, err
 			}
 		}
-		return action, nil
 
 	default:
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
-}
 
-func (s *accountBlockService) enableOrDisable(ctx context.Context, blockType string, codes []string, cpsAction model.CPSAction, requestType constants.RequestAction) error {
-	// Check if duplicate action is requested
-	switch blockType {
-	case "BRANCH":
-		var boolStatus bool
-		switch requestType {
-		case constants.RequestEnableBranches:
-			boolStatus = true
-		case constants.RequestDisableBranches:
-			boolStatus = false
-		}
-
-		for _, code := range codes {
-			branch, err := s.repo.GetBranchByCode(ctx, code)
-			if err != nil {
-				if err.Error() == localization.ErrorBranchNotFound.Code {
-					continue
-				}
-				return errors.New(localization.ErrorUnexpectedError.Code)
-			}
-
-			if branch.Enabled == boolStatus {
-				return errors.New(localization.ErrorDuplicateAction.Code)
-			}
-		}
-	case "REGION":
-
-		var boolStatus bool
-		switch requestType {
-		case constants.RequestEnableRegion:
-			boolStatus = true
-		case constants.RequestDisableRegion:
-			boolStatus = false
-		}
-
-		for _, code := range codes {
-			branch, err := s.repo.GetRegionByCode(ctx, code)
-			if err != nil {
-				if err.Error() == localization.ErrorRegionNotFound.Code {
-					continue
-				}
-				return errors.New(localization.ErrorUnexpectedError.Code)
-			}
-
-			if branch.Enabled == boolStatus {
-				return errors.New(localization.ErrorDuplicateAction.Code)
-			}
-		}
-	case "DISTRICT":
-		var boolStatus bool
-		switch requestType {
-		case constants.RequestEnableDistrict:
-			boolStatus = true
-		case constants.RequestDisableDistrict:
-			boolStatus = false
-		}
-
-		for _, code := range codes {
-			branch, err := s.repo.GetDistrictByCode(ctx, code)
-			if err != nil {
-				if err.Error() == localization.ErrorDistrictNotFound.Code {
-					continue
-				}
-				return errors.New(localization.ErrorUnexpectedError.Code)
-			}
-
-			if branch.Enabled == boolStatus {
-				return errors.New(localization.ErrorDuplicateAction.Code)
-			}
-		}
-	case "CITY":
-		var boolStatus bool
-		switch requestType {
-		case constants.RequestEnableCity:
-			boolStatus = true
-		case constants.RequestDisableCity:
-			boolStatus = false
-		}
-
-		for _, code := range codes {
-			branch, err := s.repo.GetCityByCode(ctx, code)
-			if err != nil {
-				if err.Error() == localization.ErrorCityNotFound.Code {
-					continue
-				}
-				return errors.New(localization.ErrorUnexpectedError.Code)
-			}
-
-			if branch.Enabled == boolStatus {
-				return errors.New(localization.ErrorDuplicateAction.Code)
-			}
-		}
-	}
-
-	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	action.ActionStatus = string(constants.ActionApproved)
+	return action, nil
 }

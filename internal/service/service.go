@@ -135,14 +135,10 @@ type AccountBlockService interface {
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
 	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
-	EnableBranches(ctx context.Context, branchCodes []string, enabled bool) error
-	DisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
-	EnableRegions(ctx context.Context, regionsCode []string, enabled bool) error
-	DisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
-	EnableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
-	DisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
-	EnableCities(ctx context.Context, citiesCode []string, enabled bool) error
-	DisableCities(ctx context.Context, citiesCode []string, enabled bool) error
+	EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

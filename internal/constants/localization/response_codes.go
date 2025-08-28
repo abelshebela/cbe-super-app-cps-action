@@ -207,6 +207,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCityNotFound,
 
 	ErrorDuplicateAction,
+	ErrorOneOrMoreInvalidCodes,
 }
 
 // Success Response Codes
@@ -3255,5 +3256,12 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgDuplicateAction,
 		Type:       "error",
+	}
+
+	ErrorOneOrMoreInvalidCodes = ResponseCode{
+		Code: "ERROR_ONE_OR_MORE_INVALID_CODES",
+		StatusCode: StatusBadRequest,
+		Message: MsgOneOrMoreInvalidCodes,
+		Type: "error",
 	}
 )
