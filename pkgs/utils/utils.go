@@ -24,6 +24,7 @@ import (
 
 	"errors"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -358,7 +359,23 @@ func RandomGenerator(length uint8) string {
 
 	return string(result)
 }
+var allowedChars = "a-zA-Z0-9\\s._-"
+func NoSpecialChars(value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation", "invalid type")
+	}
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return nil
+	}
 
+	re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !re.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
+}
 func FormatPhoneNumber(phoneNumber string) string {
 	phoneNumber = strings.TrimSpace(phoneNumber)
 
@@ -387,23 +404,14 @@ func FormatPhoneNumber(phoneNumber string) string {
 	return ""
 }
 
-func NoSpecialChars(value any) error {
-	str, ok := value.(string)
-	if !ok {
-		return errors.New(strings.ToLower(localization.MsgInvalidFormat))
+func TrimWhiteSpace(value interface{}) error {
+	if s, ok := value.(string); ok {
+		if strings.TrimSpace(s) == "" {
+			return errors.New("value cannot be empty or whitespace")
+		}
 	}
-
-	str = strings.TrimSpace(str)
-	if str == "" {
-		return nil
-	}
-
-	re := regexp.MustCompile(`^[a-zA-Z0-9\s]+$`)
-	if !re.MatchString(str) {
-		return errors.New(strings.ToLower(localization.MsgInvalidFormat))
-	}
-
 	return nil
+
 }
 
 func JsonUnmarshal[T any](data any) (*T, error) {

@@ -79,7 +79,7 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 		return nil
 	}
 
-	_, err := merchantService.DetailMiniAppByID(ctx, miniApp.MerchantID)
+	_, err := merchantService.FindByID(ctx, miniApp.MerchantID)
 	if err != nil {
 		log.Println("Failed to get merchant details", "merchantID", miniApp.MerchantID, "error", err)
 		if err.Error() == "No Mini App merchant with these merchant!" {

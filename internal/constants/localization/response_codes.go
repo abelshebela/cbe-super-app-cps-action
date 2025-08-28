@@ -1157,6 +1157,12 @@ var (
 		Message:    MsgMiniAppMerchantCreateRequestSuccessfully,
 		Type:       "success",
 	}
+	SuccessMiniAppMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgMiniAppMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessUpdateRequestCreated = ResponseCode{
 		Code:       "SUCCESS_UPDATE_REQUEST_CREATED",
@@ -1182,6 +1188,18 @@ var (
 	SuccessDisableRequestCreated = ResponseCode{
 		Code:       "SUCCESS_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
+		Message:    MsgDisableRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+	SuccessMiniAppEnable = ResponseCode{
+		Code:       "SUCCESS_ENABLE_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgMiniAppMerchantEnableSuccessfully,
+		Type:       "success",
+	}
+	SuccessMiniAppDesable = ResponseCode{
+		Code:       "SUCCESS_DISABLE_SUCCESS",
+		StatusCode: StatusOK,
 		Message:    MsgDisableRequestSuccessfullyCreated,
 		Type:       "success",
 	}
@@ -3244,6 +3262,12 @@ var (
 		Message:    MsgMiniAppMerchantMarshalFailed,
 		Type:       "error",
 	}
+	ErrorMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "MiniApp merchant not found",
+		Type:       "error",
+	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",
@@ -3277,6 +3301,26 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_FETCH_PERMISSIONS_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgMiniAppMerchantFetchPermissionsFailed,
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantDeleteFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDeleteFailed,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantEnableFailed,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDisableFailed,
 		Type:       "error",
 	}
 
@@ -3853,8 +3897,8 @@ var (
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
 		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
-		Message:    MsgOneOrMoreInvalidCodes,
-		Type:       "error",
+		Message: MsgOneOrMoreInvalidCodes,
+		Type: "error",
 	}
 
 

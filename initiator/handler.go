@@ -17,6 +17,7 @@ import (
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
+	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
@@ -41,6 +42,7 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
+	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
 
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
@@ -53,21 +55,22 @@ import (
 )
 
 type Handler struct {
-	CpsActionHandler    actionInbound.CPSActionAdapter
-	UnlinkHandler       unlinkInbound.UnlinkAdapter
-	EventHandler        eventInbound.EventAdapter
-	WalletHandler       walletInbound.WalletAdapter
-	PasswordHandler     passwordInbound.PasswordRule
-	BpsHandler          bpsInbound.BPSUserHandler
-	BankHandler         bank.BankHandler
-	FeedbackHandler     feedbackinterface.FeedbackAdapter
-	BudgetHandler       budget.BudgetPortHandler
-	AdvertHandler       advertHandlerInterface.ADAdapter
-	PortalCardHander    portalCardInterface.PortalCardAdapter
-	AccountValidation   accountvalidationInterface.AccountValidation
-	HqHandler           hqInbound.HQAdapter
-	MiniAPPHandler      miniAppInbound.MiniAppInbound
-	AccountBlockHandler accountBlockHandlerInterface.AccountBlockAdapter
+	CpsActionHandler       actionInbound.CPSActionAdapter
+	UnlinkHandler          unlinkInbound.UnlinkAdapter
+	EventHandler           eventInbound.EventAdapter
+	WalletHandler          walletInbound.WalletAdapter
+	PasswordHandler        passwordInbound.PasswordRule
+	BpsHandler             bpsInbound.BPSUserHandler
+	BankHandler            bank.BankHandler
+	FeedbackHandler        feedbackinterface.FeedbackAdapter
+	BudgetHandler          budget.BudgetPortHandler
+	AdvertHandler          advertHandlerInterface.ADAdapter
+	PortalCardHander       portalCardInterface.PortalCardAdapter
+	AccountValidation      accountvalidationInterface.AccountValidation
+	HqHandler              hqInbound.HQAdapter
+	MiniAPPHandler         miniAppInbound.MiniAppInbound
+	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
+	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
 
 	DepartmentHandler department.DepartmentHandler
 
@@ -102,5 +105,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		FaydaHandler:        faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
 		Permission:          permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
+
+		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 	}
 }
