@@ -98,6 +98,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQBlockTimeUpdateRequestSubmitted,
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+	//mini app related success response codes
+	SuccessMiniAppDisableRequestSubmitted,
+	SuccessMiniAppEnableRequestSubmitted,
+	SuccessMiniAppMerchantCreateRequestCreated,
+	SuccessUpdateMiniAppRequestCreated,
+	SuccessMiniAppDeletedRequestCreated,
+	SuccessMiniAppsRetrieved,
+	SuccessMiniAppFetchedByID,
+	SuccessMiniAppActionCompleted,
 	SuccessBudgetColorsFetched,
 	SuccessBudgetIconsFetched,
 	SuccessBudgetIconRequestSubmittedForApproval,
@@ -200,6 +209,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
+	ErrorInvalidBooleanFormat,
 	ErrorInvalidJSONPayload,
 	ErrorInvalidAction,
 	ErrorIncompleteUserInfo,
@@ -260,6 +270,34 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
 
+	//miniapp related errors
+	ErrorMiniAppNotFound,
+	ErrorMiniAppAlreadyExists,
+	ErrorMiniAppAlreadyEnabled,
+	ErrorMiniAppAlreadyDisabled,
+	ErrorMiniAppAlreadyDeleted,
+	ErrorMiniAppIDRequired,
+	ErrorMiniAppMerchantIDRequired,
+	ErrorMiniAppNameRequired,
+	ErrorMiniAppDescriptionRequired,
+	ErrorAppIconRequired,
+	ErrorInvalidAppNameFormat,
+	ErrorAppViewTypeRequired,
+	ErrorBannerImageRequired,
+	ErrorMiniAppURLRequired,
+	ErrorMiniAppMerchantIDRequired,
+	ErrorMiniAppNameRequired,
+	ErrorInvalidBooleanFormat,
+	ErrorInvalidImageFormat,
+	ErrorFileTooLarge,
+	ErrorInvalidURL,
+	ErrorIncompleteBranchProductCodes,
+	ErrorNoProductCodesProvided,
+	ErrorBothProductCodesRequired,
+	ErrorAppViewTypeInvalidOrMissing,
+	ErrorInvalidAppViewType,
+	ErrorExclusiveAppFlags,
+	ErrorUpdateMiniAppEmptyPayload,
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -840,6 +878,12 @@ var (
 		Code:       "ERROR_INVALID_FILE_UPLOAD",
 		StatusCode: StatusBadRequest,
 		Message:    "Invalid or corrupted file upload",
+		Type:       "error",
+	}
+	ErrorInvalidBooleanFormat = ResponseCode{
+		Code:       "ERROR_INVALID_BOOLEAN_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid boolean format",
 		Type:       "error",
 	}
 
@@ -1723,6 +1767,18 @@ var (
 		Type:       "success",
 	}
 
+	SuccessMiniAppDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgMiniAppDisableRequestSubmittedSuccessfully,
+		Type:       "success",
+	}
+	SuccessMiniAppEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgMiniAppEnableRequestSubmittedSuccessfully,
+		Type:       "success",
+	}
 	SuccessMiniAppsRetrieved = ResponseCode{
 		Code:       "SUCCESS_MINI_APPS_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1742,6 +1798,149 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgMiniAppActionCompletedSuccessfully,
 		Type:       "success",
+	}
+	// mini app handler related error response codes
+
+	ErrorMiniAppNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Mini App not found",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyExists = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "A Mini App with this name already exists",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App is already enabled",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App is already disabled",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App is already deleted",
+		Type:       "error",
+	}
+	ErrorMiniAppIDRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App ID is required",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantIDRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App Merchant ID is required",
+		Type:       "error",
+	}
+	ErrorMiniAppNameRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_NAME_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App Name is required",
+		Type:       "error",
+	}
+	ErrorMiniAppDescriptionRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_DESCRIPTION_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App Description is required",
+		Type:       "error",
+	}
+	ErrorMiniAppURLRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_URL_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App URL is required",
+		Type:       "error",
+	}
+
+	ErrorAppIconRequired = ResponseCode{
+		Code:       "ERROR_APP_ICON_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "App Icon is required",
+		Type:       "error",
+	}
+	ErrorInvalidAppNameFormat = ResponseCode{
+		Code:       "ERROR_INVALID_APP_NAME_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "App Name must not contain special characters",
+		Type:       "error",
+	}
+	ErrorAppViewTypeRequired = ResponseCode{
+		Code:       "ERROR_APP_VIEW_TYPE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "App View Type is required",
+		Type:       "error",
+	}
+	ErrorBannerImageRequired = ResponseCode{
+		Code:       "ERROR_BANNER_IMAGE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Banner Image is required",
+		Type:       "error",
+	}
+
+	ErrorInvalidImageFormat = ResponseCode{
+		Code:       "ERROR_INVALID_IMAGE_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "Image must be a valid format (jpeg, png, gif)",
+		Type:       "error",
+	}
+
+	ErrorInvalidURL = ResponseCode{
+		Code:       "ERROR_INVALID_URL",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid URL format",
+		Type:       "error",
+	}
+	ErrorIncompleteBranchProductCodes = ResponseCode{
+		Code:       "ERROR_INCOMPLETE_BRANCH_PRODUCT_CODES",
+		StatusCode: StatusBadRequest,
+		Message:    "Incomplete product codes for branch",
+		Type:       "error",
+	}
+	ErrorNoProductCodesProvided = ResponseCode{
+		Code:       "ERROR_NO_PRODUCT_CODES_PROVIDED",
+		StatusCode: StatusBadRequest,
+		Message:    "No product codes provided",
+		Type:       "error",
+	}
+	ErrorBothProductCodesRequired = ResponseCode{
+		Code:       "ERROR_BOTH_PRODUCT_CODES_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Product codes for both branches required",
+		Type:       "error",
+	}
+	ErrorAppViewTypeInvalidOrMissing = ResponseCode{
+		Code:       "ERROR_APP_VIEW_TYPE_INVALID_OR_MISSING",
+		StatusCode: StatusBadRequest,
+		Message:    "App View Type is invalid or missing",
+		Type:       "error",
+	}
+	ErrorInvalidAppViewType = ResponseCode{
+		Code:       "ERROR_INVALID_APP_VIEW_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid App View Type",
+		Type:       "error",
+	}
+	ErrorExclusiveAppFlags = ResponseCode{
+		Code:       "ERROR_EXCLUSIVE_APP_FLAGS",
+		StatusCode: StatusBadRequest,
+		Message:    "IsEventMiniApp and IsThreeClick cannot both be true",
+		Type:       "error",
+	}
+	ErrorUpdateMiniAppEmptyPayload = ResponseCode{
+		Code:       "ERROR_UPDATE_MINI_APP_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for mini app update",
+		Type:       "error",
 	}
 
 	// Feedback Handler related success response codes

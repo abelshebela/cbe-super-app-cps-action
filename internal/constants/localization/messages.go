@@ -252,6 +252,8 @@ const (
 	// Mini App Handler related success messages
 	MsgUpdateMiniAppRequestCreatedSuccessfully  = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully = "Mini App deleted request created successfully"
+	MsgMiniAppDisableRequestSubmittedSuccessfully= "Mini App disable request submitted successfully"
+	MsgMiniAppEnableRequestSubmittedSuccessfully = "Mini App enable request submitted successfully"
 	MsgMiniAppsSuccessfullyRetrieved            = "Mini Apps successfully retrieved"
 	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
 	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
@@ -822,10 +824,10 @@ const (
 	MsgRegionCodeRequired                = "Region code is required"
 	MsgCityCodeRequired                  = "City code is required"
 
-	MsgBranchNotFound         = "Branch not found"
-	MsgDistrictNotFound       = "District not found"
-	MsgRegionNotFound         = "Region not found"
-	MsgCityNotFound           = "City not found"
+	MsgBranchNotFound   = "Branch not found"
+	MsgDistrictNotFound = "District not found"
+	MsgRegionNotFound   = "Region not found"
+	MsgCityNotFound     = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 
