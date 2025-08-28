@@ -386,6 +386,7 @@ type FaydaRepository interface {
 	Update(ctx context.Context, user *model.User, isEnabled bool) error
 	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
 }
+
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
