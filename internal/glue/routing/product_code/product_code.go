@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// InitProductCodeHandlerRoutes sets up HTTP routes for product code-related endpoints
+
 func Init(router chi.Router, handler productcode.ProductCodeAdapter, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
 	router.Route("/productcodes", func(r chi.Router) {
 		routes := []glue.Route{

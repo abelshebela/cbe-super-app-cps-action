@@ -18,7 +18,6 @@ import (
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-
 type productCodeService struct {
 	repo       storage.ProductCodeRepository
 	cpsService service.CPSActionService
@@ -97,35 +96,3 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	}
 	return existing, updated, err
 }
-
-// // CreateProductCode creates a new product code
-// func (s *productCodeService) CreateProductCode(ctx context.Context, request productcode.CreateProductCodeRequest) (*model.ProductCode, error) {
-// 	makerData := utils.ExtractUserFromContext(ctx)
-// 	productCode := &model.ProductCode{
-// 		ID:                 utils.GenerateUUID(),
-// 		ProductName:        request.ProductName,
-// 		CBEProductCodes:    request.CBEProductCodes,
-// 		CBEIFBProductCodes: request.CBEIFBProductCodes,
-// 		CreatedAt:          time.Now(),
-// 		LastUpdatedAt:      time.Now(),
-// 	}
-// 	cpsActionData := lib.CpsModelBuilder(productCode.ID, makerData, nil, productCode, string(constants.RequestCreateProductCode), constants.CREATE)
-// 	err := s.cpsService.CreateCPSAction(ctx, &cpsActionData)
-// 	return productCode, err
-// }
-
-// // DeleteProductCode deletes a product code
-// func (s *productCodeService) DeleteProductCode(ctx context.Context, id string) error {
-// 	makerData := utils.ExtractUserFromContext(ctx)
-// 	existing, err := s.repo.FetchByID(ctx, id)
-// 	if err != nil {
-// 		s.logger.Errorf("[ProductCode.Delete] failed to fetch existing product code, id: %s, error: %v", id, err)
-// 		if err == mongo.ErrNoDocuments {
-// 			return errors.ErrProductCodeNotFound
-// 		}
-// 		return err
-// 	}
-// 	cpsActionData := lib.CpsModelBuilder(id, makerData, existing, nil, string(constants.RequestDeleteProductCode), constants.DELETE)
-// 	err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
-// 	return err
-// }
