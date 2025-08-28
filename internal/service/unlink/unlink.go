@@ -68,7 +68,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	}
 	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
 
-	if u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+	if err := u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
 

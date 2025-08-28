@@ -3,7 +3,7 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/account_block"
+	accountblock "cbe-super-app-cps-action/internal/service/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
@@ -45,7 +45,7 @@ type ServiceLayer struct {
 	Advert            service.AdvertService
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
-	AccountBlock service.AccountBlockService
+	AccountBlock      service.AccountBlockService
 	Department        service.DepartmentService
 	PasswordRule      service.PasswordRuleService
 	HQService         service.HQService
@@ -69,7 +69,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
-	accountBlockService:= accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
+	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionGroupPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
@@ -83,11 +83,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
 		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-		Budget:            budget.NewBudgetService(persistence.BudgetPersistence, cpsActionService, "budget", minioClient, cfg, logger),
+		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
-		AccountBlock: accountBlockService,
+		AccountBlock:      accountBlockService,
 		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,

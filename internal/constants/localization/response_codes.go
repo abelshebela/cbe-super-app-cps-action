@@ -50,6 +50,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
+	SuccessAvatarEnabled,
+	SuccessAvatarDisabled,
+	SuccessAvatarDeleted,
 
 	SuccessBranchRetrieved,
 	SuccessBranchesRetrieved,
@@ -64,7 +67,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessRegionsDisabled,
 	SuccessEnableRegionsRequestSent,
 	SuccessDisableRegionsRequestSent,
-	
+
 	SuccessDistrictRetrieved,
 	SuccessDistrictsRetrieved,
 	SuccessDistrictsEnabled,
@@ -78,7 +81,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCitiesDisabled,
 	SuccessEnableCitiesRequestSent,
 	SuccessDisableCitiesRequestSent,
-  
+
 	// department related success response
 	SuccessGetAllDepartments,
 	SuccessDepartmentCreateRequestCreated,
@@ -103,8 +106,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBudgetIconRequestSubmittedForApproval,
 	// Error codes
 
-
-  // Error codes
+	// Error codes
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -272,6 +274,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceFetchSuccessfully,
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
+	ErrorAvatarNotExist,
 }
 
 // Success Response Codes
@@ -287,6 +290,41 @@ var (
 		Code:       "SUCCESS_AVATAR_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgAvatarCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarUpdated = ResponseCode{
+		Code:       "SUCCESS_AVATAR_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarUpdateSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarRetrieved = ResponseCode{
+		Code:       "SUCCESS_AVATAR_RETRIVED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarEnabled = ResponseCode{
+		Code:       "SUCCESS_AVATAR_ENABLED",
+		StatusCode: StatusAccepted,
+		Message:    MsgAvatarEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarDisabled = ResponseCode{
+		Code:       "SUCCESS_AVATAR_DISABLED",
+		StatusCode: StatusAccepted,
+		Message:    MsgAvatarDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarDeleted = ResponseCode{
+		Code:       "SUCCESS_AVATAR_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    MsgAvatarDeletedSuccessfully,
 		Type:       "success",
 	}
 
@@ -937,6 +975,20 @@ var (
 		Code:       "ERROR_WALLET_AVATAR_INVALID_TYPE",
 		StatusCode: 400,
 		Message:    "Wallet avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
+	}
+
+	ErrorAvatarAlreadyExist = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_EXIST",
+		StatusCode: StatusConflict,
+		Message:    "Avatar label already exist",
+		Type:       "error",
+	}
+
+	ErrorAvatarNotExist = ResponseCode{
+		Code:       "ERROR_AVATAR_NOT_EXIST",
+		StatusCode: StatusConflict,
+		Message:    "Avatar label not exist",
 		Type:       "error",
 	}
 
@@ -3526,13 +3578,13 @@ var (
 	}
 
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
-		Code: "ERROR_ONE_OR_MORE_INVALID_CODES",
+		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
-		Message: MsgOneOrMoreInvalidCodes,
-		Type: "error",
+		Message:    MsgOneOrMoreInvalidCodes,
+		Type:       "error",
 	}
 
-    // department related error
+	// department related error
 	ErrorInvalidFormatForDepartmentName = ResponseCode{
 		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_NAME",
 		StatusCode: StatusBadRequest,
