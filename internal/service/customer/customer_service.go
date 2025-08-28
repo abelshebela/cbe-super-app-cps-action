@@ -6,26 +6,58 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 
+	"cbe-super-app-cps-action/internal/constants/types"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type customerService struct {
-	repo   storage.UserRepository
+	repo   storage.CustomerRepository
 	logger utils.Logger
 }
 
-func NewCustomerService(repo storage.UserRepository, logger utils.Logger) service.CustomerService {
+func NewCustomerService(repo storage.CustomerRepository, logger utils.Logger) service.CustomerService {
 	return &customerService{
 		repo:   repo,
 		logger: logger,
 	}
 }
 
-func (c *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (c *customerService) GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+	filter := &types.Filter{
+		Page:    1,
+		PerPage: 10,
+		Search:  "searchTerm",
+		Filters: map[string]interface{}{
+			"kyc_level": kyc_level,
+		},
+	}
 
-	c.logger.Infof("Customer service authorizing action: %s", cpsAction.ActionCode)
+	customers, err := c.repo.FindAllWithPagination(ctx, *filter)
+	if err != nil {
+		return nil, err
+	}
 
-	// For now, return the action as approved
-	cpsAction.ActionStatus = "APPROVED"
-	return cpsAction, nil
+	return customers, nil
+}
+
+func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*model.User, error) {
+	customer, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
+}
+
+func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+	if filterParams.Filters == nil {
+		filterParams.Filters = make(map[string]interface{})
+	}
+	filterParams.Filters["is_blocked"] = true
+	customers, err := s.repo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		return nil, err
+	}
+	return customers, nil
 }
