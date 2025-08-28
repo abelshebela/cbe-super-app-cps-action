@@ -3,6 +3,7 @@ package localization
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // StandardResponse represents the standardized API response structure
@@ -43,7 +44,7 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 		Message: responseCode.Message,
 		Data:    data,
 	}
-	if responseCode.Type == "error"{
+	if responseCode.Type == "error" {
 		response.Ok = false
 	}
 
@@ -195,4 +196,20 @@ func GetResponseCodeByCode(code string) (ResponseCode, bool) {
 		}
 	}
 	return ResponseCode{}, false
+}
+
+func ErrorToResponseCode(err string, statusCode int, message string) ResponseCode {
+	resp, ok := GetResponseCodeByCode(err)
+	if !ok {
+		new_resp := ResponseCode{
+			Code:       strings.ToUpper(strings.Join(strings.Split(err, " "), "_")),
+			StatusCode: statusCode,
+			Message:    message,
+			Type:       "error",
+		}
+		ResponseCodesList = append(ResponseCodesList, new_resp)
+		resp = new_resp
+	}
+	return resp
+
 }
