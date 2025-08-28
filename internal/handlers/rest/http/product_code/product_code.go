@@ -118,7 +118,7 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 type ProductCodePaginatedResponse types.PaginatedResponse[[]*dto.ProductCodeResponse]
 
 // @Summary Fetch all product codes
-// @Description Retrieves a paginated list of product codes.
+// @Description Retrieves a paginated list of product codes. Search using service_name.Filter using {_id,service_name,created_at,...}
 // @Tags Product Code
 // @Produce json
 // @Security BearerAuth

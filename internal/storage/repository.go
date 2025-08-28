@@ -112,6 +112,17 @@ type BPSUserRepository interface {
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
 
+type BudgetRepository interface {
+	CreateIcon(ctx context.Context, icon *model.Icon) error
+	FetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	UpdateIcon(ctx context.Context, id string, icon *model.Icon) error
+	CreateColor(ctx context.Context, color *model.Color) error
+	FetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	UpdateColor(ctx context.Context, id string, color *model.Color) error
+	AuthorizeCPSAction(ctx context.Context, cpsAction *model.CPSAction) error
+	CheckColorExist(ctx context.Context, colorName string) (bool, error)
+}
+
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
 	Update(ctx context.Context, id string, update *model.AuthTier) error
@@ -130,6 +141,7 @@ type AccountBlockRepository interface {
 	FindBranchByID(ctx context.Context, id string) (*model.Branch, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 
+	GetCityByCode(ctx context.Context, cityCode string)(*model.City, error)
 	CreateCity(ctx context.Context, city *model.City) error
 	UpdateCity(ctx context.Context, id string, city *model.City) error
 	DeleteCity(ctx context.Context, id string) error
@@ -137,6 +149,7 @@ type AccountBlockRepository interface {
 	FindCityByID(ctx context.Context, id string) (*model.City, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
 
+	GetRegionByCode(ctx context.Context, regionCode string)(*model.Region, error)
 	CreateRegion(ctx context.Context, region *model.Region) error
 	UpdateRegion(ctx context.Context, id string, region *model.Region) error
 	DeleteRegion(ctx context.Context, id string) error
@@ -144,12 +157,14 @@ type AccountBlockRepository interface {
 	FindRegionByID(ctx context.Context, id string) (*model.Region, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
 
+	GetDistrictByCode(ctx context.Context, districtCode string)(*model.District, error)
 	CreateDistrict(ctx context.Context, district *model.District) error
 	UpdateDistrict(ctx context.Context, id string, district *model.District) error
 	DeleteDistrict(ctx context.Context, id string) error
 	EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
+	
 }
 
 type AdvertRepository interface {
@@ -188,10 +203,19 @@ type BankRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
 	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
+type DepartmentRepository interface {
+	Create(ctx context.Context, department *model.Department) error
+	Update(ctx context.Context, id string, department *model.Department) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.Department, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+}
 
 type PortalCardRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
 	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
+	ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error)
 }
 
 type ColorRepository interface {
@@ -200,7 +224,7 @@ type ColorRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Color, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
 }
 
 type CpsUserRepository interface {
@@ -269,7 +293,7 @@ type IconRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
 }
 
 type LinkedAccountRepository interface {
@@ -374,6 +398,15 @@ type ProductCodeRepository interface {
 	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
 	Update(ctx context.Context, productCode *model.ProductCode) error
 }
+
+type PermissionGroupRepository interface {
+	ValidatePermissionGroupByID(ctx context.Context, ids []string) (bool, error)
+}
+type FaydaRepository interface {
+	Update(ctx context.Context, user *model.User, isEnabled bool) error
+	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
+}
+
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)

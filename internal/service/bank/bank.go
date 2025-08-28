@@ -109,18 +109,6 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		Logo: URL,
 	}
 
-	searchParams := ""
-
-	if bank_request.BIC != "" {
-		searchParams += fmt.Sprintf("bic=%s&", bank_request.BIC)
-	}
-	if bank_request.Code != "" {
-		searchParams += fmt.Sprintf("code=%s&", bank_request.Code)
-	}
-	if bank_request.Name != "" {
-		searchParams += fmt.Sprintf("name=%s", bank_request.Name)
-	}
-
 	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 
 	if err != nil {
@@ -256,19 +244,15 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	updatedBank := *bank
-	searchParams := ""
 
 	if bank_request.BIC != "" {
 		updatedBank.BIC = bank_request.BIC
-		searchParams += fmt.Sprintf("bic=%s&", bank_request.BIC)
 	}
 	if bank_request.Code != "" {
 		updatedBank.Code = bank_request.Code
-		searchParams += fmt.Sprintf("code=%s&", bank_request.Code)
 	}
 	if bank_request.Name != "" {
 		updatedBank.Name = bank_request.Name
-		searchParams += fmt.Sprintf("name=%s", bank_request.Name)
 	}
 
 	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)

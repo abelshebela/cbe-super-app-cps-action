@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
+	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
@@ -30,6 +31,13 @@ type BranchService interface {
 
 type BudgetService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateBudgetIcon(ctx context.Context, fileHeader *multipart.FileHeader, file *multipart.File) error
+	BudgetFetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	BudgetUpdateIcon(ctx context.Context, id string, fileHeader *multipart.FileHeader, file *multipart.File) error
+	BudgetCreateColor(ctx context.Context, color *model.Color) error
+	BudgetFetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	BudgetUpdateColor(ctx context.Context, id string, color *model.Color) error
+	BudgetCheckerApproval(ctx context.Context, actionCode string) error
 }
 
 type BulkService interface {
@@ -51,6 +59,11 @@ type CustomerService interface {
 
 type DepartmentService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
+	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
+	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
 type DonationService interface {
@@ -68,6 +81,7 @@ type EventService interface {
 }
 
 type FaydaAccountService interface {
+	EnableOrDisableFayda(ctx context.Context, user_code string, isEnable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -148,6 +162,18 @@ type WalletService interface {
 }
 
 type AccountBlockService interface {
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
+	EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

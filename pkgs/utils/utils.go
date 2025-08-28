@@ -378,3 +378,20 @@ func BindAction(source any, target any) error {
 	}
 	return json.Unmarshal(bytes, target)
 }
+
+
+
+func JsonUnmarshal[T any](data any) (*T, error) {
+
+	var jsonData *T
+	byte, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(byte, &jsonData); err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
+}

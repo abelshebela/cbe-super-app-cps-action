@@ -3,14 +3,18 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
+	"cbe-super-app-cps-action/internal/service/budget"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	customer "cbe-super-app-cps-action/internal/service/customer"
+	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
+	"cbe-super-app-cps-action/internal/service/fayda"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	"cbe-super-app-cps-action/internal/service/hq"
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
@@ -35,14 +39,18 @@ type ServiceLayer struct {
 	// Services  service.ServiceContainer
 	Unlink            service.UnlinkService
 	BpsUser           service.BPSUserService
+	Budget            service.BudgetService
 	Bank              service.BankService
 	PortalCard        service.PortalCardService
 	Advert            service.AdvertService
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
+	AccountBlock service.AccountBlockService
+	Department        service.DepartmentService
 	PasswordRule      service.PasswordRuleService
 	HQService         service.HQService
 	ProductCode       service.ProductCodeService
+	Fayda             service.FaydaAccountService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -61,8 +69,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, merchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
+	accountBlockService:= accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
+	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionGroupPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
+	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
 
 	return ServiceLayer{
 		Bank:              bank_service,
@@ -72,9 +83,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
 		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
+		Budget:            budget.NewBudgetService(persistence.BudgetPersistence, cpsActionService, "budget", minioClient, cfg, logger),
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
+		AccountBlock: accountBlockService,
+		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
 
@@ -82,5 +96,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		HQService:         hqService,
 		ProductCode:       productService,
 
+		Fayda:        fayda,
 	}
 }
