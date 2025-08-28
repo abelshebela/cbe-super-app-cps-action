@@ -79,7 +79,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEnableCitiesRequestSent,
 	SuccessDisableCitiesRequestSent,
 
-	// Error codes
+	//hq related success response codes
+	SuccessHQArchiveTimeFetched,
+	SuccessHQBlockTimeFetched,
+	SuccessHQPasswordExpiryFetched,
+	SuccessHQBlockTimeUpdateRequestSubmitted,
+	SuccessHQArchiveTimeUpdateRequestSubmitted,
+	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+
+  // Error codes
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -208,6 +216,11 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
+
+  //hq related error response codes
+	ErrorHQNotFound,
+	ErrorInvalidHQRequest,
+	ErrorCPSActionFailed,
 }
 
 // Success Response Codes
@@ -1128,6 +1141,20 @@ var (
 		Type:       "success",
 	}
 
+	// Password rule
+	SuccessFetchAllPasswordRules = ResponseCode{
+		Code:       "SUCCESS_ALL_PASSWORD_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgFetchAllPasswordRules,
+		Type:       "success",
+	}
+	SuccessUpdatePasswordRule = ResponseCode{
+		Code:       "SUCCESS_UPDATE_PASSWORD_RULE",
+		StatusCode: StatusOK,
+		Message:    MsgUpdatePasswordRule,
+		Type:       "success",
+	}
+
 	// Feedback related success response codes
 	SuccessFeedbackSaved = ResponseCode{
 		Code:       "SUCCESS_FEEDBACK_SAVED",
@@ -1546,6 +1573,56 @@ var (
 		Message:    MsgHQsFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessHQBlockTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTImeFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessHQPasswordExpiryFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQBlockTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQPasswordExpiryUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	// HQ related error response codes
+
+	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
+	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
+
+	ErrorInvalidBlockTime      = ResponseCode{Code: "ERROR_INVALID_BLOCK_TIME", StatusCode: 400, Message: "BlockTime must be greater than 0", Type: "error"}
+	ErrorInvalidArchiveTime    = ResponseCode{Code: "ERROR_INVALID_ARCHIVE_TIME", StatusCode: 400, Message: "ArchiveTime must be greater than 0", Type: "error"}
+	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 0", Type: "error"}
 
 	// Wallet related success response codes
 	SuccessWalletActionRequestSent = ResponseCode{
@@ -2607,6 +2684,14 @@ var (
 		Code:       "ERROR_SERVICE_UNKNOWN_REQUEST_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgServiceUnknownRequestAction,
+		Type:       "error",
+	}
+
+	// Password Rule
+	ErrorNoPasswordRule = ResponseCode{
+		Code:       "ERROR_PASSWORD_RULE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgPasswordRuleNotFound,
 		Type:       "error",
 	}
 

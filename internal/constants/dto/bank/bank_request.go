@@ -11,7 +11,6 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
-
 type CreateBankRequest struct {
 	Name string                `form:"name" json:"name"`
 	Logo *multipart.FileHeader `form:"logo" json:"logo"`

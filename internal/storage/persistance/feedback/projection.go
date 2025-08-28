@@ -11,9 +11,9 @@ import (
 func FeedbackMapper(feedback model.Feedback) bson.M {
 	return bson.M{
 		"$set": bson.M{
-			"user_id":   feedback.UserID,
-			"responses": feedback.Responses,
+			"user_id":    feedback.UserID,
+			"responses":  feedback.Responses,
 			"updated_at": time.Now(),
 		},
 	}
-} 
+}

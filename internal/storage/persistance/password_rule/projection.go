@@ -21,4 +21,4 @@ func PasswordRuleMapper(rule model.PasswordRule) bson.M {
 			"updated_at":      time.Now(),
 		},
 	}
-} 
+}

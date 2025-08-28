@@ -50,5 +50,6 @@ type Persistence struct {
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
 	ValidationRulePersistence        storage.ValidationRuleRepository
+	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
 }
