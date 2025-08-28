@@ -6,6 +6,8 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	cps_errors "cbe-super-app-cps-action/internal/constants/errors"
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -31,41 +33,18 @@ func NewProductCodeRepository(client *mongo.Client, dbName string, collection st
 	}
 }
 
-func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.ProductCode, error) {
-	p.logger.Infof("[productcode.FetchByID] Fetching product code with ID: %s", id)
-
-	objID, ok := local_util.StringToObjectID(id)
-	if !ok {
-		return nil, cps_errors.ErrInvalidID
-	}
-	filter := bson.M{
-		"_id":        objID,
-		"is_deleted": false,
-	}
-	services, err := p.producCodeDal.FindOne(ctx, filter, bson.M{})
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			p.logger.Errorf("[productcode.FetchByID] Product code not found for ID %s: %v", id, err)
-			return nil, cps_errors.ErrProductCodeNotFound
-		}
-		p.logger.Errorf("[productcode.FetchByID] Database query failed for ID %s: %v", id, err)
-		return nil, cps_errors.ErrGeneralDBQueryFailed
-	}
-	pc := productcode.ToProducCode(*services)
-
-	p.logger.Infof("[productcode.FetchByID] Successfully fetched product code with ID: %s", id)
-	return pc, nil
-}
-
 func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
 	r.logger.Infof("[productcode.FetchAll] Fetching product codes with filter: %+v", filterParams)
 
-	filter := local_util.BuildFilter(filterParams, r.logger)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
 	if filterParams.Search != "" {
-		filter["service_name"] = bson.M{"$regex": filterParams.Search, "$options": "i"}
+		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
+		searchKeys["service_name"] = searchRegex
 	}
-	skip := (filterParams.Page - 1) * filterParams.PerPage
-	limit := filterParams.PerPage
+	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at"}
+
+	filter, skip, limit := lib.FilterBuilder(*filterParams, searchKeys, allowedKeys)
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$facet", Value: bson.M{
@@ -100,7 +79,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	if len(results) == 0 {
 		return &types.PaginatedResponse[[]*model.ProductCode]{
 			Data: []*model.ProductCode{},
-			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, limit),
+			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, int(limit)),
 		}, nil
 	}
 
@@ -114,12 +93,66 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 		total = results[0].Total[0].Count
 	}
 
-	meta := local_util.BuildPaginationMeta(total, filterParams.Page, limit)
+	meta := local_util.BuildPaginationMeta(total, filterParams.Page, int(limit))
 	r.logger.Infof("[productcode.FetchAll] Successfully fetched %d product codes, total: %d", len(productCodes), total)
 	return &types.PaginatedResponse[[]*model.ProductCode]{
 		Data: productCodes,
 		Meta: meta,
 	}, nil
+}
+
+func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
+	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at"}
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["service_name"] = searchRegex
+	}
+	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	pdata := []*model.ProductCode{}
+	for i := range data {
+		pdata = append(pdata, productcode.ToProducCode(*data[i]))
+	}
+	total, err := s.producCodeDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	return &types.PaginatedResponse[[]*model.ProductCode]{
+		Data: pdata,
+		Meta: meta,
+	}, nil
+}
+
+func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.ProductCode, error) {
+	p.logger.Infof("[productcode.FetchByID] Fetching product code with ID: %s", id)
+
+	objID, ok := local_util.StringToObjectID(id)
+	if !ok {
+		return nil, cps_errors.ErrInvalidID
+	}
+	filter := bson.M{
+		"_id":        objID,
+		"is_deleted": false,
+	}
+	services, err := p.producCodeDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Errorf("[productcode.FetchByID] Product code not found for ID %s: %v", id, err)
+			return nil, cps_errors.ErrProductCodeNotFound
+		}
+		p.logger.Errorf("[productcode.FetchByID] Database query failed for ID %s: %v", id, err)
+		return nil, cps_errors.ErrGeneralDBQueryFailed
+	}
+	pc := productcode.ToProducCode(*services)
+
+	p.logger.Infof("[productcode.FetchByID] Successfully fetched product code with ID: %s", id)
+	return pc, nil
 }
 
 func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.ProductCode) error {
