@@ -7,30 +7,109 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func BranchMapper(branch model.Branch) bson.M {
-	return bson.M{
-		"branch_code":    branch.BranchCode,
-		"branch_name":    branch.BranchName,
-		"branch_address": branch.BranchAddress,
-		"district_code":  branch.DistrictCode,
-		"district_name":  branch.DistrictName,
-		"branch_region":  branch.BranchRegion,
-		"record_stat":    branch.RecordStat,
-		"enabled":        branch.Enabled,
-		"updated_at":     time.Now(),
+func BranchMapperForUpdate(branch model.Branch) bson.M {
+	update := bson.M{}
+	now := time.Now()
+	update["updated_at"] = now
+
+	if branch.BranchCode != "" {
+		update["branch_code"] = branch.BranchCode
 	}
+	if branch.BranchName != "" {
+		update["branch_name"] = branch.BranchName
+	}
+	if branch.BranchAddress != "" {
+		update["branch_address"] = branch.BranchAddress
+	}
+	if branch.DistrictCode != "" {
+		update["district_code"] = branch.DistrictCode
+	}
+	if branch.DistrictName != "" {
+		update["district_name"] = branch.DistrictName
+	}
+	if branch.BranchRegion != "" {
+		update["branch_region"] = branch.BranchRegion
+	}
+	if branch.RecordStat != "" {
+		update["record_stat"] = branch.RecordStat
+	}
+	// Booleans are tricky: include them only if they are explicitly meant to be updated
+	update["enabled"] = branch.Enabled
+
+	return bson.M{"$set": update}
 }
 
-func CityMapper(city model.City) bson.M {
-	return bson.M{
-		"city_code":     city.CityCode,
-		"city_name":     city.CityName,
-		"city_address":  city.City,
-		"district_id":   city.DistrictID,
-		"district_name": city.DistrictName,
-		"region_id":     city.RegionID,
-		"region_name":   city.RegionName,
-		"enabled":       city.Enabled,
-		"updated_at":    time.Now(),
+func RegionMapperForUpdate(region model.Region) bson.M {
+	update := bson.M{}
+	now := time.Now()
+	update["updated_at"] = now
+
+	if region.RegionCode != "" {
+		update["region_code"] = region.RegionCode
 	}
+	if region.RegionName != "" {
+		update["region_name"] = region.RegionName
+	}
+	if region.RegionAddress != "" {
+		update["region_address"] = region.RegionAddress
+	}
+	update["enabled"] = region.Enabled
+
+	return bson.M{"$set": update}
+}
+
+func DistrictMapperForUpdate(district model.District) bson.M {
+	update := bson.M{}
+	now := time.Now()
+	update["updated_at"] = now
+
+	if district.DistrictCode != "" {
+		update["district_code"] = district.DistrictCode
+	}
+	if district.DistrictName != "" {
+		update["district_name"] = district.DistrictName
+	}
+	if district.DistrictAddress != "" {
+		update["district_address"] = district.DistrictAddress
+	}
+	if district.RegionID != "" {
+		update["region_id"] = district.RegionID
+	}
+	if district.RegionName != "" {
+		update["region_name"] = district.RegionName
+	}
+	update["enabled"] = district.Enabled
+
+	return bson.M{"$set": update}
+}
+
+func CityMapperForUpdate(city model.City) bson.M {
+	update := bson.M{}
+	now := time.Now()
+	update["updated_at"] = now
+
+	if city.CityCode != "" {
+		update["city_code"] = city.CityCode
+	}
+	if city.CityName != "" {
+		update["city_name"] = city.CityName
+	}
+	if city.CityAddress != "" {
+		update["city_address"] = city.CityAddress
+	}
+	if city.DistrictID != "" {
+		update["district_id"] = city.DistrictID
+	}
+	if city.DistrictName != "" {
+		update["district_name"] = city.DistrictName
+	}
+	if city.RegionID != "" {
+		update["region_id"] = city.RegionID
+	}
+	if city.RegionName != "" {
+		update["region_name"] = city.RegionName
+	}
+	update["enabled"] = city.Enabled
+
+	return bson.M{"$set": update}
 }

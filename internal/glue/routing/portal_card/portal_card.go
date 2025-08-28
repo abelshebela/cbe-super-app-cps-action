@@ -13,10 +13,12 @@ import (
 func Init(router chi.Router, portalHander portal_card.PortalCardAdapter, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
-			Method:      http.MethodGet,
-			Path:        "/portal_card/get_all",
-			Handler:     portalHander.GetAllPortalCard,
-			Middlewares: []func(next http.Handler) http.Handler{},
+			Method:  http.MethodGet,
+			Path:    "/portal_card/get_all",
+			Handler: portalHander.GetAllPortalCard,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
 		},
 	}
 	glue.RegisterRoutes(router, routes)

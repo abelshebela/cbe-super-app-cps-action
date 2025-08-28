@@ -38,9 +38,6 @@ func IsValidActionType(actionType string) bool {
 
 type RequestAction string
 
-
-
-
 const (
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"

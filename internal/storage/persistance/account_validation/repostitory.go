@@ -1,6 +1,7 @@
 package accountvalidation
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -21,7 +22,8 @@ type AccountValidationStore struct {
 	logger utils.Logger
 }
 
-func NewAccountValidationService(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ValidationRuleRepository {
+// NewAccountValidationStore returns a ValidationRuleRepository
+func NewAccountValidationStore(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ValidationRuleRepository {
 	return &AccountValidationStore{
 		dal:    dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collection),
 		client: client,
@@ -29,27 +31,11 @@ func NewAccountValidationService(client *mongo.Client, dbName string, collection
 	}
 }
 
-func (l *AccountValidationStore) Create(ctx context.Context, validationRule *model.ValidationRule) error {
-	_, err := l.dal.InsertOne(ctx, *validationRule)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return nil
-}
-
-func (l *AccountValidationStore) Delete(ctx context.Context, id string) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	return l.dal.DeleteOne(ctx, filter)
-}
-
+// GetAccountValidationByID implements ValidationRuleRepository
 func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*model.ValidationRule, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, err
 	}
 	filter := bson.M{"_id": objID}
 
@@ -57,45 +43,18 @@ func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*mode
 	if err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
-func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
-	filter := bson.M{"is_deleted": false}
-
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["name"] = searchRegex
-	}
-
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
-
-	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	total, err := l.dal.TotalCount(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-	return &types.PaginatedResponse[[]*model.ValidationRule]{
-		Data: data,
-		Meta: meta,
-	}, nil
-}
-
-func (a *AccountValidationStore) Update(ctx context.Context, id string, accountValidation *model.ValidationRule) error {
+// UpdateAccountValidation implements ValidationRuleRepository
+func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	updateData := AccountValidationMapper(*accountValidation)
+	updateData := AccountValidationMapper(*rule)
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
@@ -105,4 +64,45 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, accountV
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
+}
+
+// GetAllAccountValidation implements ValidationRuleRepository
+func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
+	filter := bson.M{"is_deleted": false}
+
+	searchKeys := bson.M{}
+
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{"enabled"}
+	// 3. Add search (if provided)
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"validation_rule": searchRegex},
+			{"entity_type": searchRegex},
+		} // choose your searchable field(s)
+	}
+
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	// 5. Fetch data
+	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	// 6. Count total
+	total, err := l.dal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	// 7. Build pagination metadata
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	return &types.PaginatedResponse[[]*model.ValidationRule]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }
