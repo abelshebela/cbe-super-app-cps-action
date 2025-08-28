@@ -8,6 +8,8 @@ import (
 	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
 	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
+	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
+			permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
@@ -31,6 +33,8 @@ import (
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
+	cpsUserHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_user"
+			permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/department"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
@@ -68,6 +72,8 @@ type Handler struct {
 	FaydaHandler       FaydaInbound.FaydaAccount
 	bulkServiceHandler bulk_service_inbound.BulkServiceHandler
 	customerHandler    customerInbound.CustomerDetail
+	Permission       permissionInbound.PermissionHandler
+	CPSUser          cpsUserInbound.CPSUserHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -91,5 +97,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
 		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
+		Permission:       permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
+		CPSUser:          cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 	}
 }
