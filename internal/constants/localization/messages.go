@@ -756,9 +756,6 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-	MsgInvalidInputParameters = "Invalid input parameters provided"
-
-	MsgMissingOrInvalidImage = "Missing or invalid image"
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
