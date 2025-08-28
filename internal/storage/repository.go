@@ -120,6 +120,7 @@ type BudgetRepository interface {
 	FetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
 	UpdateColor(ctx context.Context, id string, color *model.Color) error
 	AuthorizeCPSAction(ctx context.Context, cpsAction *model.CPSAction) error
+	CheckColorExist(ctx context.Context, colorName string) (bool, error)
 }
 
 // AmountBasedAuth persistence

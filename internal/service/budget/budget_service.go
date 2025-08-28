@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/budget/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -47,13 +46,38 @@ func NewBudgetService(
 	}
 }
 
-func (b *BudgetService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (b *BudgetService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	color, ok := action.CurrentAction.(*model.Color)
+	if !ok || color == nil {
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
 
-	err := b.repo.AuthorizeCPSAction(ctx, cpsAction)
+	icon, ok := action.CurrentAction.(*model.Icon)
+	if !ok || icon == nil {
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	var err error
+	switch action.RequestAction {
+	case string(constants.RequestCreateBudgetColor):
+		err = b.repo.CreateColor(ctx, color)
+	case string(constants.RequestUpdateBudgetColor):
+		err = b.repo.UpdateColor(ctx, color.ID.Hex(), color)
+	case string(constants.RequestCreateBudgetIcon):
+		err = b.repo.CreateIcon(ctx, icon)
+	case string(constants.RequestUpdateBudgetIcon):
+		err = b.repo.UpdateIcon(ctx, icon.ID.Hex(), icon)
+	default:
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	return cpsAction, nil
+
+	action.CurrentAction = color
+	action.CurrentAction = icon
+	return action, nil
 }
 
 func (b *BudgetService) CreateBudgetIcon(ctx context.Context, fileHeader *multipart.FileHeader, file *multipart.File) error {
@@ -68,11 +92,11 @@ func (b *BudgetService) CreateBudgetIcon(ctx context.Context, fileHeader *multip
 		return nil
 	}
 
-	saveObj, err := core.SaveIconToMinio(ctx, fileHeader, b.bucketName, b.minio, b.logger)
+	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.cfg.MinioEndPoint, b.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	iconURL := "https://" + b.cfg.MinioEndPoint + "/" + saveObj.Bucket + "/" + saveObj.Key
+
 	cpsAction.CurrentAction = model.Icon{
 		Icon:      iconURL,
 		CreatedAt: time.Now(),
@@ -108,17 +132,17 @@ func (b *BudgetService) BudgetUpdateIcon(ctx context.Context, id string, fileHea
 		return nil
 	}
 
-	saveObj, err := core.SaveIconToMinio(ctx, fileHeader, b.bucketName, b.minio, b.logger)
+	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.cfg.MinioEndPoint, b.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	iconURL := "https://" + b.cfg.MinioEndPoint + "/" + saveObj.Bucket + "/" + saveObj.Key
+
 	cpsAction.CurrentAction = model.Icon{
 		Icon:      iconURL,
 		CreatedAt: time.Now(),
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, cpsAction.CurrentAction, string(constants.RequestUpdateBudgetIcon), constants.CREATE)
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, cpsAction.CurrentAction, string(constants.RequestUpdateBudgetIcon), constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
@@ -133,6 +157,14 @@ func (b *BudgetService) BudgetCreateColor(ctx context.Context, color *model.Colo
 	if color.Color == "" {
 		b.logger.Errorf("color cannot be empty")
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	exists, err := b.repo.CheckColorExist(ctx, color.Color)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New(localization.ErrorDuplicateColorExists.Code)
 	}
 
 	color.CreatedAt = time.Now()
@@ -162,6 +194,14 @@ func (b *BudgetService) BudgetUpdateColor(ctx context.Context, id string, color 
 	if color.Color == "" {
 		b.logger.Errorf("color cannot be empty")
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	exists, err := b.repo.CheckColorExist(ctx, color.Color)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New(localization.ErrorDuplicateColorExists.Code)
 	}
 
 	color.UpdatedAt = time.Now()
