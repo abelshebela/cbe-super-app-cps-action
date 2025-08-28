@@ -182,11 +182,11 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, false); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantEnableFailed, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantDisableFailed, nil, nil)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppEnabledStateUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDesable, nil)
 }
 
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {

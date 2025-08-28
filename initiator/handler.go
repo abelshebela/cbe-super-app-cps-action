@@ -3,24 +3,33 @@ package initiator
 import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
+	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
+	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
+
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
+	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 
 	// Handler section
+
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
+	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
+	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
+
+	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
@@ -39,6 +48,9 @@ type Handler struct {
 	EventHandler           eventInbound.EventAdapter
 	WalletHandler          walletInbound.WalletAdapter
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
+	PasswordHandler        passwordInbound.PasswordRule
+	BankHandler            bank.BankHandler
+	HqHandler              hqInbound.HQAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -54,5 +66,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AdvertHandler:          advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		WalletHandler:          walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
+		BankHandler:            bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
+		PasswordHandler:        passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
+		HqHandler:              hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 	}
 }

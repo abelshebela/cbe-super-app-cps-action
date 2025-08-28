@@ -449,7 +449,6 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	return errors.New("UnlinkUserCif: not implemented")
 }
 
- 
 // Wallet Service
 type walletService struct {
 	repo   storage.WalletRepository

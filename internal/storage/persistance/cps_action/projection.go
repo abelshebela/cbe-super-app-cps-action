@@ -33,7 +33,7 @@ func BuildCPSActionFilter(cps model.CPSAction) bson.M {
 	}
 	addString("action_code", cps.ActionCode)
 	addString("department", cps.Department)
-
+	addString("request_action", cps.RequestAction)
 	addString("action_status", string(constants.Pending))
 
 	return filter

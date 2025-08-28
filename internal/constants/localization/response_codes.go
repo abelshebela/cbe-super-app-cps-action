@@ -25,6 +25,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
 	SuccessAvatarCreated,
+	SuccessDeleteBanksRequest,
+	SuccessDeleteRequestCreated,
+	SuccessGetOneBank,
+	SuccessBankDisableRequestCreated,
+	SuccessBankEnableRequestCreated,
+	SuccessBankUpdatedRequestSent,
 	SuccessWalletEnableRequestSubmitted,
 	SuccessWalletDisableRequestSubmitted,
 	SuccessWalletCreationRequestSent,
@@ -44,7 +50,13 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
-
+	//hq related success response codes
+	SuccessHQArchiveTimeFetched,
+	SuccessHQBlockTimeFetched,
+	SuccessHQPasswordExpiryFetched,
+	SuccessHQBlockTimeUpdateRequestSubmitted,
+	SuccessHQArchiveTimeUpdateRequestSubmitted,
+	SuccessHQPasswordExpiryUpdateRequestSubmitted,
 	// Error codes
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
@@ -81,8 +93,18 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
+	ErrorBankImageMissingOrInvalid,
+	ErrorBankUpdateFailed,
+	ErrorValidationFailed,
+	ErrorRequiredFieldMissing,
+	ErrorBankDeleteRequestFailed,
+	ErrorBankImageMissingOrInvalid,
+	ErrorGetAllBanksFailed,
+	ErrorGetAllBanksFailed,
+	ErrorGetOneBank,
+	ErrorBankDisableRequest,
+	ErrorBankEnableRequestFailed,
 	ErrorUserCodeRequired,
-
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
 	ErrorCoverImageRequired,
@@ -104,18 +126,26 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventCityRequired,
 	ErrorEventDescriptionRequired,
 	ErrorTicketsRequired,
-
+	ErrorBankAlreadyEnabled,
+	ErrorBankAlreadyDisabled,
+	ErrorHealthCheck,
+	ErrorActionAlreadyExists,
+	ErrorNoDataProvidedForCreate,
+	ErrorNoDataProvidedForUpdate,
+	ErrorNoDataProvidedForBankUpdate,
+	ErrorBankWithCodeAlreadyExists,
+	ErrorBankWithBICAlreadyExists,
+	ErrorBankWithNameAlreadyExists,
+	ErrorSessionRetrievalFailed,
+	ErrorInvalidToken,
+	ErrorMissingFile,
+	ErrorResourceNotFound,
+	ErrorInvalidInputParameters,
+	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
-	ErrorSessionRetrievalFailed,
-	ErrorHealthCheck,
-	ErrorInvalidToken,
-
 	ErrorInvalidID,
-	ErrorMissingFile,
-	ErrorResourceNotFound,
-
 	// Add more as needed...
 	//wallet related error codes
 	ErrorWalletNameRequired,
@@ -130,6 +160,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	//hq related error response codes
+	ErrorHQNotFound,
+	ErrorInvalidHQRequest,
+	ErrorCPSActionFailed,
 }
 
 // Success Response Codes
@@ -918,6 +953,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBankDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_BANK_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgBankDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessBankEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgBankEnableRequestSent,
+		Type:       "success",
+	}
+
 	// Notification related success response codes
 	SuccessNotificationCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATION_REQUEST_SUBMITTED",
@@ -1051,6 +1100,20 @@ var (
 		Code:       "SUCCESS_VALIDATION_RULE_FETCHED",
 		StatusCode: StatusOK,
 		Message:    MsgValidationRuleSuccessFech,
+		Type:       "success",
+	}
+
+	// Password rule
+	SuccessFetchAllPasswordRules = ResponseCode{
+		Code:       "SUCCESS_ALL_PASSWORD_RULE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgFetchAllPasswordRules,
+		Type:       "success",
+	}
+	SuccessUpdatePasswordRule = ResponseCode{
+		Code:       "SUCCESS_UPDATE_PASSWORD_RULE",
+		StatusCode: StatusOK,
+		Message:    MsgUpdatePasswordRule,
 		Type:       "success",
 	}
 
@@ -1472,6 +1535,56 @@ var (
 		Message:    MsgHQsFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessHQBlockTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTImeFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessHQPasswordExpiryFetched = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessHQBlockTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQPasswordExpiryUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	// HQ related error response codes
+
+	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
+	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
+
+	ErrorInvalidBlockTime      = ResponseCode{Code: "ERROR_INVALID_BLOCK_TIME", StatusCode: 400, Message: "BlockTime must be greater than 0", Type: "error"}
+	ErrorInvalidArchiveTime    = ResponseCode{Code: "ERROR_INVALID_ARCHIVE_TIME", StatusCode: 400, Message: "ArchiveTime must be greater than 0", Type: "error"}
+	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 0", Type: "error"}
 
 	// Wallet related success response codes
 	SuccessWalletActionRequestSent = ResponseCode{
@@ -1551,6 +1664,27 @@ var (
 		Code:       "SUCCESS_FEEDBACK_SAVED_TO_DATABASE",
 		StatusCode: StatusOK,
 		Message:    MsgFeedbackSavedToDatabaseSuccess,
+		Type:       "success",
+	}
+
+	SuccessGetAllBanks = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_BANKS",
+		StatusCode: StatusOK,
+		Message:    msgGetAllBanksSuccess,
+		Type:       "success",
+	}
+
+	SuccessGetOneBank = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_BANK",
+		StatusCode: StatusOK,
+		Message:    msgGetOneBankSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeleteBanksRequest = ResponseCode{
+		Code:       "SUCCESS_DELETE_BANK_request",
+		StatusCode: StatusNoContent,
+		Message:    msgDeleteBankRequestSuccess,
 		Type:       "success",
 	}
 )
@@ -1710,6 +1844,39 @@ var (
 		Type:       "error",
 	}
 
+	ErrorBankAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_Bank_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorBankAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_Bank_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorBankWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorBankWithBICAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_BIC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankBICAlreadyExists,
+		Type:       "error",
+	}
+	ErrorBankWithCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_Bank_WITH_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBankCodeAlreadyExists,
+		Type:       "error",
+	}
+
 	ErrorOTPNotFound = ResponseCode{
 		Code:       "ERROR_OTP_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -1724,10 +1891,52 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidBankRequest = ResponseCode{
+		Code:       "ERROR_INVALID_BANK_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidBankRequest,
+		Type:       "error",
+	}
+
 	ErrorNoDataProvidedForUpdate = ResponseCode{
 		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
 		StatusCode: StatusBadRequest,
-		Message:    "No data provided for update",
+		Message:    MsgNoDataProvidedForUpdate,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForBankUpdate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_UPDATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNoDataProvidedForBankUpdate,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForName = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankName,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForCode = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_CODE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankCode,
+		Type:       "error",
+	}
+
+	ErrorInvalidFormatForBIC = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_BIC",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankBIC,
+		Type:       "error",
+	}
+
+	ErrorNoDataProvidedForCreate = ResponseCode{
+		Code:       "ERROR_NO_DATA_PROVIDED_FOR_CREATE",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for Create",
 		Type:       "error",
 	}
 
@@ -1937,6 +2146,27 @@ var (
 		Code:       "ERROR_REQUIRED_FIELD_MISSING",
 		StatusCode: StatusBadRequest,
 		Message:    MsgRequiredFieldMissing,
+		Type:       "error",
+	}
+
+	ErrorGetAllBanksFailed = ResponseCode{
+		Code:       "ERROR_GET_ALL_BANKS_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    msgGetAllBanksFailed,
+		Type:       "error",
+	}
+
+	ErrorBankDeleteRequestFailed = ResponseCode{
+		Code:       "ERROR_BANK_DELETE_REQUEST_FIELD",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankDeleteRequestFailed,
+		Type:       "error",
+	}
+
+	ErrorBankImageMissingOrInvalid = ResponseCode{
+		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankImageRequiredOrMissing,
 		Type:       "error",
 	}
 
@@ -2230,6 +2460,14 @@ var (
 		Code:       "ERROR_SERVICE_UNKNOWN_REQUEST_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgServiceUnknownRequestAction,
+		Type:       "error",
+	}
+
+	// Password Rule
+	ErrorNoPasswordRule = ResponseCode{
+		Code:       "ERROR_PASSWORD_RULE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgPasswordRuleNotFound,
 		Type:       "error",
 	}
 
@@ -2559,6 +2797,12 @@ var (
 		Message:    MsgBankLogoUpdateFailed,
 		Type:       "error",
 	}
+	ErrorBankUpdateFailed = ResponseCode{
+		Code:       "ERROR_BANK_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankUpdateFailed,
+		Type:       "error",
+	}
 
 	// CPS Action related error response codes
 	ErrorCPSActionRejectionPayloadDecodeFailed = ResponseCode{
@@ -2768,8 +3012,29 @@ var (
 		Type:       "error",
 	}
 
+	ErrorGetOneBank = ResponseCode{
+		Code:       "ERROR_GET_ONE_BANK",
+		StatusCode: StatusInternalServerError,
+		Message:    msgGetOneBankFailed,
+		Type:       "error",
+	}
+
+	ErrorBankDisableRequest = ResponseCode{
+		Code:       "ERROR_BANK_DISABLE_REQUEST",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankDisableRequestFailed,
+		Type:       "error",
+	}
+
+	ErrorBankEnableRequestFailed = ResponseCode{
+		Code:       "ERROR_BANK_ENABLE_REQUEST",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBankEnableRequestFailed,
+		Type:       "error",
+	}
+
 	ErrorInvalidInputParameters = ResponseCode{
-		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
+		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameters,
 		Type:       "error",

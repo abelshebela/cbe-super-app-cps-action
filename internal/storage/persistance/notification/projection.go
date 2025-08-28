@@ -24,4 +24,4 @@ func NotificationMapper(notification model.Notification) bson.M {
 			"last_modified":      time.Now(),
 		},
 	}
-} 
+}

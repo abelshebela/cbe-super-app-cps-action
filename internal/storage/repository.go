@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -36,9 +37,11 @@ type UserRepository interface {
 }
 
 type HQRepository interface {
-	FindOne(ctx context.Context, filter bson.M) (*model.HQ, error)
+	FindByID(ctx context.Context, id string) (*model.HQ, error)
+	Find(ctx context.Context) (*model.HQ, error)
+	Update(ctx context.Context, field string, value interface{}, now time.Time) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
 }
-
 type DeviceLinkHistoryRepository interface {
 	Save(ctx context.Context, deviceLinkHistory *model.DeviceLinkHistroy) error
 	Update(ctx context.Context, update *model.DeviceLinkHistroy) error
@@ -183,6 +186,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
+	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
 
 type PortalCardRepository interface {
@@ -338,6 +342,7 @@ type PasswordRuleRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.PasswordRule, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	FindCurrentRule(ctx context.Context) (*model.PasswordRule, error)
 }
 
 type ServiceDetailsRepository interface {

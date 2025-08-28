@@ -150,34 +150,48 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 
 // EnableOrDisable toggles merchant active status.
 func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	m.logger.Debugf(">>> EnableOrDisable called with id=%s, enable=%v", id, enable)
+
+	// Fetch existing merchant
 	prevMiniApp, err := m.repo.FindByID(ctx, id)
 	if err != nil {
+		m.logger.Errorf("Failed to find miniAppMerchant by ID=%s: %v", id, err)
 		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 	}
+	m.logger.Debugf("Found miniAppMerchant: %+v", prevMiniApp)
 
+	// Check current status
 	if enable && prevMiniApp.Enabled {
+		m.logger.Warnf("Merchant already enabled: ID=%s", id)
 		return errors.New(localization.ErrorMiniAppMerchantEnableFailed.Code)
 	}
 	if !enable && !prevMiniApp.Enabled {
+		m.logger.Warnf("Merchant already disabled: ID=%s", id)
 		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
 	}
 
+	// Prepare updated data
 	updatedMiniApp := *prevMiniApp
 	updatedMiniApp.Enabled = enable
 	updatedMiniApp.LastModifiedAt = time.Now()
+	m.logger.Debugf("Prepared updated miniAppMerchant for CPS action: %+v", updatedMiniApp)
 
 	var action constants.RequestAction
 	if enable {
-		action = constants.RequestEnableWallet
+		action = constants.RequestEnableMiniAppMerchant
 	} else {
-		action = constants.RequestDisableWallet
+		action = constants.RequestDisableMiniAppMerchant
 	}
+	m.logger.Debugf("Selected CPS action: %s", action)
 
-	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, action, updatedMiniApp, *prevMiniApp, constants.ActionUpdate); err != nil {
-		m.logger.Errorf("CPS action failed for miniAppMerchant %m: %v", updatedMiniApp.Code, err)
+	// Handle CPS action
+	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, action, updatedMiniApp, *prevMiniApp, constants.ActionUpdate)
+	if err != nil {
+		m.logger.Errorf("CPS action failed for miniAppMerchant ID=%s, Code=%s, err=%v", id, updatedMiniApp.Code, err)
 		return err
 	}
 
+	m.logger.Infof("EnableOrDisable completed successfully for ID=%s, new enabled state=%v", id, enable)
 	return nil
 }
 
