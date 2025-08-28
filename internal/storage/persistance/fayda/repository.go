@@ -40,15 +40,16 @@ func (f *FaydaStorage) FindByUserCode(ctx context.Context, user_code string) (*m
 	return user, nil
 }
 
-func (f *FaydaStorage) AuthorizeEnableOrDisableFaydaUser(ctx context.Context, userCode string, isEnabled bool) error {
-	filter := bson.M{"user_code": userCode}
+func (p *FaydaStorage) Update(ctx context.Context, user *model.User, isEnabled bool) error {
+	filter := bson.M{"user_code": user.UserCode}
 	update := bson.M{"$set": bson.M{"enabled": isEnabled}}
 
-	_, err := f.dal.UpdateOne(ctx, filter, update)
+	_, err := p.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorUserNotFound.Code)
+			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }

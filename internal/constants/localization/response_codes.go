@@ -152,7 +152,13 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
-	ErrorWalletUpdateEmptyPayload}
+	ErrorWalletUpdateEmptyPayload,
+
+	// Fayda
+	ErrorFaydaUserAccountEnabled,
+	ErrorFaydaUserAccountDisabled,
+	ErrorNotFaydaUser,
+}
 
 // Success Response Codes
 var (
@@ -1667,7 +1673,7 @@ var (
 	SuccessFaydaDisableActionCreated = ResponseCode{
 		Code:       "SUCCESS_FAYDA_DISABLE_ACTION_CREATED",
 		StatusCode: StatusOK,
-		Message:    MsgFaydaAccountEnableCreatedSuccessfully,
+		Message:    MsgFaydaAccountDisableCreatedSuccessfully,
 		Type:       "success",
 	}
 )
