@@ -5,9 +5,11 @@ import (
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
+	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
+	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	"cbe-super-app-cps-action/internal/constants/interfaces/productcode"
@@ -23,7 +25,9 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
+	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
@@ -54,6 +58,8 @@ type Handler struct {
 	AccountValidation accountvalidationInterface.AccountValidation
 	HqHandler         hqInbound.HQAdapter
 	productCodeHandler productCodeHandler.ProductCodeAdapter
+	bulkServiceHandler bulk_service_inbound.BulkServiceHandler
+	customerHandler    customerInbound.CustomerDetail
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -70,6 +76,9 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		WalletHandler:     walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		PasswordHandler:   passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation: accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+
+		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
+		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 		HqHandler:         hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 		ProductCodeHandler: productCodeHandler.InitProductcodeAdapter(pcs,logger),
 	}

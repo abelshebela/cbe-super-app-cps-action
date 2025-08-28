@@ -369,9 +369,18 @@ type WalletRepository interface {
 	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
-
 type ProductCodeRepository interface {
 	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)
 	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
 	Update(ctx context.Context, productCode *model.ProductCode) error
+}
+type CustomerRepository interface {
+	FindByID(ctx context.Context, id string) (*model.User, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+}
+
+type BulkServiceRepository interface {
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
+	Update(ctx context.Context, keys []string, state bool) error
+	FindAll(ctx context.Context) ([]*model.APPAccessList, error)
 }
