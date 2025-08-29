@@ -113,6 +113,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBudgetIconRequestSubmittedForApproval,
 	SuccessBudgetIconRequestSubmittedForApproval,
 	SuccessBudgetIconRequestSubmittedForApproval,
+	ErrorMiniAppMerchantNotFound,
 	// Error codes
 
 	// Error codes
@@ -269,6 +270,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorHQNotFound,
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
+	ErrorFailedToParseJson,
 
 	//miniapp related errors
 	ErrorMiniAppNotFound,
@@ -312,6 +314,10 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
+	//service details
+	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
+	ErrorTotalMaxTransferCannotBeLessExistTransfers,
+	ErrorMinAmountCanNotBeGreaterThanCap,
 }
 
 // Success Response Codes
@@ -959,18 +965,57 @@ var (
 		Type:       "success",
 	}
 
-	SuccessProductCodeRetrieved = ResponseCode{
-		Code:       "SUCCESS_PRODUCT_CODE_RETRIEVED",
+	SuccessProductCodeFetched = ResponseCode{
+		Code:       "SUCCESS_PRODUCT_CODE_FETCHED",
 		StatusCode: StatusOK,
-		Message:    MsgProductCodeSuccessfullyRetrieved,
+		Message:    MsgProductCodeFetchedSuccessfully,
 		Type:       "success",
 	}
 
-	SuccessProductCodesRetrieved = ResponseCode{
-		Code:       "SUCCESS_PRODUCT_CODES_RETRIEVED",
+	SuccessProductCodesFetched = ResponseCode{
+		Code:       "SUCCESS_PRODUCT_CODES_FETCHED",
 		StatusCode: StatusOK,
-		Message:    MsgProductCodesSuccessfullyRetrieved,
+		Message:    MsgProductCodesFetchedSuccessfully,
 		Type:       "success",
+	}
+
+	SuccessProductCodeUpdated = ResponseCode{
+		Code:       "SUCCESS_PRODUCT_CODE_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgProductCodeUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	// product code related error response codes
+	ErrorNoProductCodesProvided = ResponseCode{
+		Code:       "ERROR_NO_PRODUCT_CODES_PROVIDED",
+		StatusCode: StatusBadRequest,
+		Message:    "No product codes provided",
+		Type:       "error",
+	}
+	ErrorProductCodeValidationError = ResponseCode{
+		Code:       "ERROR_PRODUCT_CODE_VALIDATION_ERROR",
+		StatusCode: StatusBadRequest,
+		Message:    "error validating product code ",
+		Type:       "error",
+	}
+	ErrorProductCodesValidationError = ResponseCode{
+		Code:       "ERROR_PRODUCT_CODES_VALIDATION_ERROR",
+		StatusCode: StatusBadRequest,
+		Message:    "error validating product codes ",
+		Type:       "error",
+	}
+	ErrorProductCodeUpdateRequestValidationErrorAtLeastOne = ResponseCode{
+		Code:       "ERROR_PRODUCT_CODE_UPDATE_REQUEST_VALIDATION_ERROR_ATLEAST_ONE",
+		StatusCode: StatusBadRequest,
+		Message:    "at least one of ProductName,CBEProductCodes,CBEIFBProductCodes should be present",
+		Type:       "error",
+	}
+	ErrorBothProductCodesRequired = ResponseCode{
+		Code:       "ERROR_BOTH_PRODUCT_CODES_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Product codes for both branches required",
+		Type:       "error",
 	}
 
 	//wallet related error codes
@@ -1627,29 +1672,6 @@ var (
 		Message:    MsgMaxTotalCapValidatedSuccessfully,
 		Type:       "success",
 	}
-
-	// Product Code related success response codes
-	SuccessProductCodeFetched = ResponseCode{
-		Code:       "SUCCESS_PRODUCT_CODE_FETCHED",
-		StatusCode: StatusOK,
-		Message:    MsgProductCodeFetchedSuccessfully,
-		Type:       "success",
-	}
-
-	SuccessProductCodesFetched = ResponseCode{
-		Code:       "SUCCESS_PRODUCT_CODES_FETCHED",
-		StatusCode: StatusOK,
-		Message:    MsgProductCodesFetchedSuccessfully,
-		Type:       "success",
-	}
-
-	SuccessProductCodeUpdated = ResponseCode{
-		Code:       "SUCCESS_PRODUCT_CODE_UPDATED",
-		StatusCode: StatusOK,
-		Message:    MsgProductCodeUpdatedSuccessfully,
-		Type:       "success",
-	}
-
 	// Mini App Merchant related success response codes
 	SuccessMiniAppAdded = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_ADDED",
@@ -1906,18 +1928,7 @@ var (
 		Message:    "Incomplete product codes for branch",
 		Type:       "error",
 	}
-	ErrorNoProductCodesProvided = ResponseCode{
-		Code:       "ERROR_NO_PRODUCT_CODES_PROVIDED",
-		StatusCode: StatusBadRequest,
-		Message:    "No product codes provided",
-		Type:       "error",
-	}
-	ErrorBothProductCodesRequired = ResponseCode{
-		Code:       "ERROR_BOTH_PRODUCT_CODES_REQUIRED",
-		StatusCode: StatusBadRequest,
-		Message:    "Product codes for both branches required",
-		Type:       "error",
-	}
+
 	ErrorAppViewTypeInvalidOrMissing = ResponseCode{
 		Code:       "ERROR_APP_VIEW_TYPE_INVALID_OR_MISSING",
 		StatusCode: StatusBadRequest,
@@ -2012,6 +2023,9 @@ var (
 		Message:    MsgHQPasswordExpiryUpdateRequestSubmitted,
 		Type:       "success",
 	}
+
+	ErrorFailedToParseJson = ResponseCode{Code: "ERROR_FAILED_TO_PARSE_JSON", StatusCode: 500, Message: "Failed to parse json", Type: "error"}
+
 	// HQ related error response codes
 
 	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
@@ -2416,6 +2430,12 @@ var (
 		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFeedbackIDRequired,
+		Type:       "error",
+	}
+	ErrorServiceDetailIDRequired = ResponseCode{
+		Code:       "ERROR_SERVICE_DETAIL_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgServiceIdRequered,
 		Type:       "error",
 	}
 
@@ -3227,6 +3247,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorProductCodeNotFound = ResponseCode{
+		Code:       "ERROR_PRODCUT_CODE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgProductCodeNotFound,
+		Type:       "error",
+	}
 	// Mini App Merchant related error response codes
 	ErrorMiniAppMerchantCheckPendingFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_CHECK_PENDING_FAILED",
@@ -3897,10 +3923,9 @@ var (
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
 		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
-		Message: MsgOneOrMoreInvalidCodes,
-		Type: "error",
+		Message:    MsgOneOrMoreInvalidCodes,
+		Type:       "error",
 	}
-
 
 	// department related error
 	ErrorInvalidFormatForDepartmentName = ResponseCode{
@@ -4052,5 +4077,24 @@ var (
 		StatusCode: StatusOK,
 		Message:    "Bulk service disable request processed successfully",
 		Type:       "success",
+	}
+	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount = ResponseCode{
+		Code:       "ERROR_MAX_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "single max transfer can not be less or equal to min amount",
+		Type:       "error",
+	}
+
+	ErrorTotalMaxTransferCannotBeLessExistTransfers = ResponseCode{
+		Code:       "ERROR_TOTAL_CAP_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "total max transfer can not be less from existing service transfers",
+		Type:       "error",
+	}
+	ErrorMinAmountCanNotBeGreaterThanCap = ResponseCode{
+		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
 	}
 )

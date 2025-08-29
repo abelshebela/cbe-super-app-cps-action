@@ -7,24 +7,28 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
+
 	"os"
+
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-	"errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
+	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -307,12 +311,81 @@ func MapSlice[T any, R any](items []T, mapper func(T) R) []R {
 	return results
 }
 
-// nonEmptyString returns the new value if non-empty, otherwise the old value
-func NonEmptyString(new, old string) string {
-	if new != "" {
-		return new
+// nonEmptyString returns if non-empty, otherwise fallback
+func NonEmptyString(s, fallback string) string {
+	if s != "" {
+		return s
 	}
-	return old
+	return fallback
+}
+
+func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return "", fmt.Errorf(localization.ErrorInvalidID.Code)
+	}
+	return id, nil
+}
+
+func NonEmptyBool(newVal, oldVal bool) bool {
+	// Handles updates correctly (req can explicitly override old value)
+	if newVal != oldVal {
+		return newVal
+	}
+	return oldVal
+}
+
+// MergeProductCodes merges by ProductCode value (not index)
+func MergeProductCodes(newPCs []types.ProductCode, oldPCs []types.ProductCode) []types.ProductCode {
+	if len(newPCs) == 0 {
+		return oldPCs
+	}
+
+	// Map old codes by ProductCode for quick lookup
+	oldMap := make(map[string]types.ProductCode)
+	for _, pc := range oldPCs {
+		oldMap[pc.ProductCode] = pc
+	}
+
+	updated := make([]types.ProductCode, 0, len(newPCs))
+	for _, pc := range newPCs {
+		if existing, found := oldMap[pc.ProductCode]; found {
+			updated = append(updated, types.ProductCode{
+				ID:             existing.ID,
+				BranchType:     constants.BranchType(pc.BranchType),
+				ProductCode:    NonEmptyString(pc.ProductCode, existing.ProductCode),
+				VATCode:        NonEmptyString(pc.VATCode, existing.VATCode),
+				ServiceFeeCode: NonEmptyString(pc.ServiceFeeCode, existing.ServiceFeeCode),
+			})
+		} else {
+			// New ProductCode → assign new ID
+			updated = append(updated, types.ProductCode{
+				ID:             utils.RandomGenerator(20),
+				BranchType:     constants.BranchType(pc.BranchType),
+				ProductCode:    pc.ProductCode,
+				VATCode:        pc.VATCode,
+				ServiceFeeCode: pc.ServiceFeeCode,
+			})
+		}
+	}
+
+	return updated
+}
+
+func NonZeroTime(t, fallback time.Time) time.Time {
+	if !t.IsZero() {
+		return t
+	}
+	return fallback
+}
+
+func NonZeroUint64(n, fallback uint64) uint64 {
+	if n != 0 {
+		return n
+	}
+	return fallback
 }
 
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
@@ -342,6 +415,9 @@ func BindAction(source any, target any) error {
 	}
 	return json.Unmarshal(bytes, target)
 }
+
+
+
 func RandomGenerator(length uint8) string {
 	if length <= 0 {
 		panic("length must be greater than 0")
@@ -359,7 +435,9 @@ func RandomGenerator(length uint8) string {
 
 	return string(result)
 }
+
 var allowedChars = "a-zA-Z0-9\\s._-"
+
 func NoSpecialChars(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -427,4 +505,8 @@ func JsonUnmarshal[T any](data any) (*T, error) {
 	}
 
 	return jsonData, nil
+}
+
+func ExtraSpaceRemover(s string) string{
+	return strings.TrimSpace(strings.Join(strings.Split(s," ")," "))
 }

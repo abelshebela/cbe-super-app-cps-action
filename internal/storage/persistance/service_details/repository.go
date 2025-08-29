@@ -1,6 +1,7 @@
 package service_details
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -65,51 +66,62 @@ func (s *ServiceDetailsStorage) Delete(ctx context.Context, id string) error {
 	return s.dal.DeleteOne(ctx, filter)
 }
 
-func (s *ServiceDetailsStorage) FindByID(ctx context.Context, id string) (*model.ServiceDetails, error) {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+func (s *ServiceDetailsStorage) FindByID(ctx context.Context,projection bson.M, id string) (*model.ServiceDetails, error) {
+	idObj, ok := local_util.StringToObjectID(id)
+	if !ok {
+		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": idObj, "is_deleted": false}
 
-	result, err := s.dal.FindOne(ctx, filter, nil)
-
+	result, err := s.dal.FindOne(ctx, filter, projection)
 	if err != nil {
-		return nil, err
+		s.logger.Errorf("Error finding CPSAction: %v", err)
+		code, _ := local_util.HandleMongoError(err)
+		return nil, errors.New(code)
 	}
+	s.logger.Infof("Successfully found ServiceDetails: %+v", result)
 	return result, nil
+	
 }
 
-func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
 
+func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context,projection  bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
+	// 1. Base filter (only active records)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
+
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{"payment_type", "min_amount", "enabled","service_type"}
+
+	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
-			{"service_name": searchRegex},
-			{"service_code": searchRegex},
-		}
+		searchKeys["$or"] = []bson.M{{"service_name": searchRegex}, {"service_code": searchRegex}, {"service_type": searchRegex}, {"product_codes": searchRegex}}
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	// 5. Fetch data
+	data, err := s.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
+	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.ServiceDetails]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
+

@@ -7,54 +7,28 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func ToWallet(domain *model.Wallet) (*model.Wallet, error) {
-	var objectID bson.ObjectID
-	if !domain.ID.IsZero() {
-		objectID = domain.ID
-	} else {
-		objectID = bson.NewObjectID()
-	}
 
-	deletedAt := time.Time{}
-	if !domain.DeletedAt.IsZero() {
-		deletedAt = domain.DeletedAt
-	}
-
-	return &model.Wallet{
-		ID:             objectID,
-		Name:           domain.Name,
-		Code:           domain.Code,
-		Avatar:         domain.Avatar,
-		Enabled:        domain.Enabled,
-		IsDeleted:      domain.IsDeleted,
-		CreatedAt:      domain.CreatedAt,
-		LastModifiedAt: domain.LastModifiedAt,
-		DeletedAt:      deletedAt,
-	}, nil
-}
 
 func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
-	var deletedAt *time.Time
-	if !wallet.DeletedAt.IsZero() {
-		deletedAt = &wallet.DeletedAt
+	if wallet.ID == bson.NilObjectID {
+		wallet.ID = bson.NewObjectID()
 	}
 
-	return &model.Wallet{
-		ID:             wallet.ID,
-		Name:           wallet.Name,
-		Code:           wallet.Code,
-		Avatar:         wallet.Avatar,
-		Enabled:        wallet.Enabled,
-		IsDeleted:      wallet.IsDeleted,
-		CreatedAt:      wallet.CreatedAt,
-		LastModifiedAt: wallet.LastModifiedAt,
-		DeletedAt: func() time.Time {
-			if deletedAt != nil {
-				return *deletedAt
-			}
-			return time.Time{}
-		}(),
-	}, nil
+	if wallet.CreatedAt.IsZero() {
+		wallet.CreatedAt = time.Now()
+	}
+	if wallet.LastModifiedAt.IsZero() {
+		wallet.LastModifiedAt = time.Now()
+	}
+	if wallet.IsDeleted {
+		wallet.IsDeleted = false
+	}
+	if wallet.Enabled {
+		wallet.Enabled = false
+
+	}
+
+	return &wallet, nil
 }
 
 func UpdateMapper(wallet model.Wallet) bson.M {

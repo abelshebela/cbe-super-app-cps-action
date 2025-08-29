@@ -25,6 +25,11 @@ import (
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
+
+	service_details "cbe-super-app-cps-action/internal/service/service_details"
+
+	"cbe-super-app-cps-action/internal/service/productcode"
+
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -56,8 +61,14 @@ type ServiceLayer struct {
 	HQService         service.HQService
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
+
 	Permission        service.PermissionService
 	CPSUser           service.CPSUserService
+
+  ServiceDetails    service.ServiceService
+
+	ProductCode       service.ProductCodeService
+
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -67,6 +78,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
@@ -85,6 +97,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger)
 	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
+
+	serviceDetails := service_details.NewServiceDetailsService(mongoClient , persistence.ServiceDetailsPersistence,persistence.HQPersistence,cpsActionService,logger)
+
 	permissionService := permission.InitPermissionService(
 		persistence.PermissionPersistence,
 		cpsActionService,
@@ -98,6 +113,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		cpsActionService,
 		logger,
 	)
+
 
 	return ServiceLayer{
 		CPSAction:         cpsActionService,
@@ -122,5 +138,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Fayda:             fayda,
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
+
+    ServiceDetails:serviceDetails,
+
+		ProductCode:       productService,
+
 	}
 }

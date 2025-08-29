@@ -649,6 +649,7 @@ const (
 	MsgNoDataProvidedForUpdate            = "No data provided for service update"
 	MsgServiceAuthorizeDeleteFailed       = "Failed to authorize service delete"
 	MsgServiceUnknownRequestAction        = "Unknown request action for service"
+	MsgServiceIdRequered				  = "Service ID is required"
 
 	// Product Code related error messages
 	MsgProductCodeParseFailed          = "Failed to parse product code ID"
@@ -780,6 +781,7 @@ const (
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"

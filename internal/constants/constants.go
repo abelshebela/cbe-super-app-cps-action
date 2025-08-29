@@ -234,6 +234,7 @@ const (
 	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
 	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
 	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
+	RequestUpdateProductCode        RequestAction = "UPDATE_PRODUCT_CODE"
 	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
 	RequestArchiveUser              RequestAction = "ARCHIVE_USER"
 	RequestCreatePasswordRule       RequestAction = "CREATE_PASSWORD_RULE"
