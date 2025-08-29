@@ -28,7 +28,7 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 }
 
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	req, err := core.ParseAndValidateAdvertRequest(w, r, false, a.logger)
+	req, err := core.ParseAndValidateAdvertRequest(r, false, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}
@@ -65,7 +65,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertsFetched, res)
 }
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
-	id, err := core.ExtractID(w, r, a.logger)
+	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}
@@ -80,12 +80,12 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 	localization.SendSuccessResponse(w, localization.SuccessAdvertFetched, res)
 }
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
-	id, err := core.ExtractID(w, r, a.logger)
+	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	req, err := core.ParseAndValidateAdvertRequest(w, r, true, a.logger)
+	req, err := core.ParseAndValidateAdvertRequest(r, true, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}
@@ -107,7 +107,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 }
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
-	id, err := core.ExtractID(w, r, a.logger)
+	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}
@@ -120,7 +120,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
 }
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
-	id, err := core.ExtractID(w, r, a.logger)
+	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}
@@ -134,7 +134,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
 }
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
-	id, err := core.ExtractID(w, r, a.logger)
+	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 	}

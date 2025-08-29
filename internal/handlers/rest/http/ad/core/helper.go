@@ -16,7 +16,7 @@ import (
 )
 
 // extractUserAndMaker extracts user context and creates a maker, sending an error response if incomplete
-func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Logger) (*cps_entities.CPSUser, error) {
+func ExtractUserAndMaker(r *http.Request, logger utils.Logger) (*cps_entities.CPSUser, error) {
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
 		logger.Errorf("[event.extractUserAndMaker] incomplete user context")
@@ -32,7 +32,7 @@ func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Lo
 }
 
 // extractID extracts and validates the ID parameter, sending an error response if invalid
-func ExtractID(w http.ResponseWriter, r *http.Request, logger utils.Logger) (string, error) {
+func ExtractID(r *http.Request, logger utils.Logger) (string, error) {
 	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		logger.Errorf("[event.extractID] missing or invalid parameter 'id'")
@@ -68,7 +68,7 @@ func ParseBannerImage(r *http.Request, isUpdate bool, logger utils.Logger) (*mul
 }
 
 // parseAndValidateAdvertRequest parses and validates the advert request from multipart form
-func ParseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpdate bool, logger utils.Logger) (*ad.AdvertRequest, error) {
+func ParseAndValidateAdvertRequest(r *http.Request, isUpdate bool, logger utils.Logger) (*ad.AdvertRequest, error) {
 	var req ad.AdvertRequest
 
 	// Parse banner image
@@ -89,20 +89,17 @@ func ParseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpd
 	startedAt, err := ParseTime(r.FormValue("started_at"), "START_DATE", isUpdate, logger)
 	if err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse started_at: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidDate, nil, nil)
 		return nil, errors.New(localization.ErrorInvalidDate.Code)
 	}
 	expiredAt, err := ParseTime(r.FormValue("expired_at"), "EXPIRE_DATE", isUpdate, logger)
 	if err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse expired_at: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidDate, nil, nil)
 		return nil, errors.New(localization.ErrorInvalidDate.Code)
 	}
 	req.Date = ad.AdvertDate{StartedAt: startedAt, ExpiredAt: expiredAt}
 
 	if err := req.Validate(isUpdate); err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	return &req, nil
