@@ -21,6 +21,7 @@ import (
 	"time"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -148,7 +149,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -177,7 +178,7 @@ func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, 
 			StartDate:   NonZeroTime(update.StartDate, prevEvent.EventInformation.StartDate),
 			DueDate:     NonZeroTime(update.DueDate, prevEvent.EventInformation.DueDate),
 			Description: NonEmptyString(update.EventDescription, prevEvent.EventInformation.Description),
-			Cover:       coverURL,
+			Cover:       NonEmptyString(coverURL, prevEvent.EventInformation.Cover),
 		},
 		TicketInformation: types.TicketInformation{
 			TotalNumberOfTicket: NonZeroUint64(uint64(update.TotalTicketCount), prevEvent.TicketInformation.TotalNumberOfTicket),
@@ -191,6 +192,7 @@ func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, 
 
 func CreateEventMapper(event eventdto.EventRequest, code string, coverURL string) *model.Event {
 	return &model.Event{
+		ID:            bson.NewObjectID(),
 		EventCode:     code,
 		EventName:     event.EventName,
 		EventCity:     event.EventCity,

@@ -99,9 +99,12 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	updatedWallet := model.Wallet{
 		ID:             prevWallet.ID,
 		Name:           core.NonEmptyString(req.Name, prevWallet.Name),
-		Code:           prevWallet.Code,
-		Avatar:         avatarURL,
+		Code:           core.NonEmptyString(req.Code, prevWallet.Code),
+		Avatar:         core.NonEmptyString(avatarURL, prevWallet.Avatar),
+		Enabled:        prevWallet.Enabled,
+		IsDeleted:      prevWallet.IsDeleted,
 		CreatedAt:      prevWallet.CreatedAt,
+		DeletedAt:      prevWallet.DeletedAt,
 		LastModifiedAt: time.Now(),
 	}
 

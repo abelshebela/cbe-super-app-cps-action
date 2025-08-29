@@ -18,6 +18,7 @@ import (
 	"time"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -71,11 +72,15 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 func ToWalletDoc(name, code, URL string) *model.Wallet {
 	return &model.Wallet{
+		ID:             bson.NewObjectID(),
 		Name:           name,
 		Code:           code,
 		Avatar:         URL,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
+		Enabled:        true,
+		IsDeleted:      false,
+		DeletedAt:      time.Time{},
 	}
 }
 
@@ -86,7 +91,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Println("Failed to create CPS action", "error", err)

@@ -18,7 +18,6 @@ import (
 	"strings"
 	"time"
 
-	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -74,6 +73,39 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 	return miniApp
 }
 
+func MiniAppMapperForUpdate(prev *model.MiniApp, req miniappdto.MiniAppCreateRequest, appIconURL, bannerImageURL string) model.MiniApp {
+	return model.MiniApp{
+		ID:                  prev.ID,
+		AppName:             local_util.NonEmptyString(req.AppName, prev.AppName),
+		CommissionGLAccount: local_util.NonEmptyString(req.CommissionGLAccount, prev.CommissionGLAccount),
+		AppType:             constants.AppType(local_util.NonEmptyString(string(req.AppType), string(prev.AppType))),
+		MerchantID:          local_util.NonEmptyString(req.MerchantID, prev.MerchantID),
+		IsEventMiniApp:      local_util.NonEmptyBool(req.IsEventMiniApp, prev.IsEventMiniApp),
+		IsThreeClick:        local_util.NonEmptyBool(req.IsThreeClick, prev.IsThreeClick),
+		URL:                 local_util.NonEmptyString(req.URL, prev.URL),
+		Stage:               constants.Stage(local_util.NonEmptyString(string(req.Stage), string(prev.Stage))),
+		AppViewType:         constants.AppViewType(local_util.NonEmptyString(string(req.AppViewType), string(prev.AppViewType))),
+
+		AppIcon:     local_util.NonEmptyString(appIconURL, prev.AppIcon),
+		BannerImage: local_util.NonEmptyString(bannerImageURL, prev.BannerImage),
+		ProductCode: local_util.MergeProductCodes(req.ProductCode, prev.ProductCode),
+		Credential: types.CredentialInformation{
+			ID:            prev.Credential.ID,
+			Environment:   constants.EnvironmentType(local_util.NonEmptyString(string(req.Credential.Environment), string(prev.Credential.Environment))),
+			MerchantAppID: local_util.NonEmptyString(req.Credential.MerchantAppID, prev.Credential.MerchantAppID),
+			FabricAppID:   local_util.NonEmptyString(req.Credential.FabricAppID, prev.Credential.FabricAppID),
+			ShortCode:     local_util.NonEmptyString(req.Credential.ShortCode, prev.Credential.ShortCode),
+			AppSecret:     local_util.NonEmptyString(req.Credential.AppSecret, prev.Credential.AppSecret),
+			PrivateKey:    local_util.NonEmptyString(req.Credential.PrivateKey, prev.Credential.PrivateKey),
+			PublicKey:     local_util.NonEmptyString(req.Credential.PublicKey, prev.Credential.PublicKey),
+		},
+
+		CreatedAt:      prev.CreatedAt,
+		LastModifiedAt: time.Now(),
+		DeletedAt:      prev.DeletedAt,
+	}
+}
+
 func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, miniApp *miniappdto.MiniAppCreateRequest) error {
 	if miniApp.MerchantID == "" {
 		return nil
@@ -97,7 +129,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -108,7 +140,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
+func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, error) {
 	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
 
 	if prefix == "" || value == "" {
