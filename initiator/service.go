@@ -15,6 +15,9 @@ import (
 	customer "cbe-super-app-cps-action/internal/service/customer"
 	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
+	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
+	"cbe-super-app-cps-action/pkgs/keygen"
+
 	"cbe-super-app-cps-action/internal/service/fayda"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	"cbe-super-app-cps-action/internal/service/hq"
@@ -51,6 +54,7 @@ type ServiceLayer struct {
 	Department        service.DepartmentService
 	PasswordRule      service.PasswordRuleService
 	HQService         service.HQService
+	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
 	Permission        service.PermissionService
 	CPSUser           service.CPSUserService
@@ -74,9 +78,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
-	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionGroupPersistence, logger)
+	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
+	keygenService := keygen.NewKeyGenerator(logger, cfg)
+
+	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger)
 	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
 	permissionService := permission.InitPermissionService(
 		persistence.PermissionPersistence,
@@ -100,22 +107,20 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Bank:              bank_service,
 		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-
 		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
 		PortalCard:        portalCardService,
-
 		ValidationService: accountValidation,
 		Wallet:            walletService,
-		MiniAppMerchant:   miniAppMerchantService,
 		PasswordRule:      passwordRule,
 		HQService:         hqService,
-		AccountBlock: accountBlockService,
+		AccountBlock:      accountBlockService,
+		MiniAppService:    miniAppService,
+		MiniAppMerchant:   miniAppMerchantService,
 		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
-
-		Fayda:        fayda,
-		Permission:   permissionService,
-		CPSUser:      cpsUserService,
+		Fayda:             fayda,
+		Permission:        permissionService,
+		CPSUser:           cpsUserService,
 	}
 }

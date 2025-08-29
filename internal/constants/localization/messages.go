@@ -131,9 +131,9 @@ const (
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
-    MsgMiniAppMerchantDisable = "Create MiniAppMerchant request successfully created"
-	MsgMiniAppMerchantEnableSuccessfully = "Create MiniAppMerchant request successfully created"
-	MsgMiniAppMerchantCreatedSuccessfully = "Mini app merchant created successfully"
+	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
@@ -252,6 +252,8 @@ const (
 	// Mini App Handler related success messages
 	MsgUpdateMiniAppRequestCreatedSuccessfully  = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully = "Mini App deleted request created successfully"
+	MsgMiniAppDisableRequestSubmittedSuccessfully= "Mini App disable request submitted successfully"
+	MsgMiniAppEnableRequestSubmittedSuccessfully = "Mini App enable request submitted successfully"
 	MsgMiniAppsSuccessfullyRetrieved            = "Mini Apps successfully retrieved"
 	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
 	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
@@ -625,8 +627,8 @@ const (
 	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
-	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group not found"
-	MsgInvalidDepartmentPortalCard              = "invalid portal card id or permission group not found"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group with id not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or portal card with id not found"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
@@ -779,7 +781,6 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
 
@@ -822,10 +823,10 @@ const (
 	MsgRegionCodeRequired                = "Region code is required"
 	MsgCityCodeRequired                  = "City code is required"
 
-	MsgBranchNotFound         = "Branch not found"
-	MsgDistrictNotFound       = "District not found"
-	MsgRegionNotFound         = "Region not found"
-	MsgCityNotFound           = "City not found"
+	MsgBranchNotFound   = "Branch not found"
+	MsgDistrictNotFound = "District not found"
+	MsgRegionNotFound   = "Region not found"
+	MsgCityNotFound     = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 

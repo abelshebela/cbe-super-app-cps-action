@@ -261,14 +261,14 @@ type DonationCompanyRepository interface {
 
 type MiniAppRepository interface {
 	Create(ctx context.Context, miniApp *model.MiniApp) error
-	Update(ctx context.Context, miniApp *model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
-	FindByCode(ctx context.Context, code string) (*model.MiniApp, error)
-	FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
+	Find(ctx context.Context, name string) (*model.MiniApp, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
+	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
-
 type EventRepository interface {
 	Create(ctx context.Context, event *model.Event) error
 	Update(ctx context.Context, id string, event *model.Event) error
@@ -349,6 +349,9 @@ type MiniAppMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
 	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (*model.MiniAppMerchant, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 }
 
 type NotificationRepository interface {
@@ -393,9 +396,6 @@ type WalletRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
 
-type PermissionGroupRepository interface {
-	ValidatePermissionGroupByID(ctx context.Context, ids []string) (bool, error)
-}
 type FaydaRepository interface {
 	Update(ctx context.Context, user *model.User, isEnabled bool) error
 	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)

@@ -20,13 +20,13 @@ import (
 
 type DepartmentService struct {
 	portal_card      storage.PortalCardRepository
-	permission_group storage.PermissionGroupRepository
+	permission_group storage.PermissionRepository
 	repo             storage.DepartmentRepository
 	cpsService       service.CPSActionService
 	logger           utils.Logger
 }
 
-func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.CPSActionService, portal_card storage.PortalCardRepository, permission_group storage.PermissionGroupRepository, logger utils.Logger) service.DepartmentService {
+func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.CPSActionService, portal_card storage.PortalCardRepository, permission_group storage.PermissionRepository, logger utils.Logger) service.DepartmentService {
 	return &DepartmentService{
 		repo:             repo,
 		cpsService:       cpsService,
@@ -91,7 +91,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 		PortalCards:      department.PortalCards,
 		PermissionGroups: department.PermissionGroups,
 	}
-	if all_valid, err := d.permission_group.ValidatePermissionGroupByID(ctx, department.PermissionGroups); !all_valid || err != nil {
+	if ids, err := d.permission_group.ValidatePermissionGroups(ctx, department.PermissionGroups); ids == nil || len(ids) != len(department.PermissionGroups) || err != nil {
 		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPermissionGroup.Code)
 	}
 
@@ -186,7 +186,7 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 		updatedDepartment.PermissionGroups = department_request.PermissionGroups
 	}
 
-	if all_valid, err := d.permission_group.ValidatePermissionGroupByID(ctx, department.PermissionGroups); !all_valid || err != nil {
+	if ids, err := d.permission_group.ValidatePermissionGroups(ctx, department.PermissionGroups); ids == nil || len(ids) != len(department.PermissionGroups) || err != nil {
 		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPermissionGroup.Code)
 	}
 

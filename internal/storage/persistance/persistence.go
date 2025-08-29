@@ -56,7 +56,6 @@ type Persistence struct {
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
 	DepartmentPersistence            storage.DepartmentRepository
-	PermissionGroupPersistence       storage.PermissionGroupRepository
 	FaydaPersistence                 storage.FaydaRepository
 	PermissionPersistence            storage.PermissionRepository
 }

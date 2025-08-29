@@ -33,7 +33,6 @@ func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsServic
 
 // Create a new Mini App Merchant.
 func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
-	m.logger.Debugf(">>> Entered Service.Create with data: %+v", data)
 
 	// Validate bank account number
 	if data.BankAccountNumber == "" {
@@ -59,7 +58,6 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		m.logger.Debugf("ID is empty, generating new ObjectID")
 		data.ID = bson.NewObjectID()
 	}
-	m.logger.Debugf("New generated id: %s", data.ID.Hex())
 
 	// Prepare fields
 	now := time.Now()
@@ -67,7 +65,6 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	data.CreatedAt = now
 	data.LastModifiedAt = now
 	data.KYC.Status = model.KYCStatusComplete
-	m.logger.Debugf("Prepared data for repo.Create: %+v", data)
 
 	// Merge (create mode just uses its own values)
 	miniApp := data
@@ -87,7 +84,6 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		return nil, err
 	}
 
-	m.logger.Debugf("Successfully finished Service.Create")
 	return miniApp, nil
 }
 
@@ -213,4 +209,21 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 
 	cpsAction.CurrentAction = miniAppMerchant
 	return cpsAction, nil
+}
+
+func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+
+	m.logger.Infof("Mini App Merchant service authorizing action: %s", id)
+
+	return m.repo.FindByID(ctx, id)
+}
+
+func (s *miniAppMerchantService) AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error {
+	return s.repo.AddMiniApp(ctx, merchantID, miniApp)
+}
+func (s *miniAppMerchantService) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
+	return s.repo.UpdateMiniAppEnabledState(ctx, merchantID, miniAppID, enabled)
+}
+func (s *miniAppMerchantService) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
+	return s.repo.SoftDeleteMiniApp(ctx, merchantID, miniAppID)
 }

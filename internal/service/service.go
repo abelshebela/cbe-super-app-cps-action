@@ -8,6 +8,7 @@ import (
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -112,11 +113,20 @@ type HQService interface {
 }
 
 type MiniAppService interface {
+	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	DeleteMiniApp(ctx context.Context, id string) error
+	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
 	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
