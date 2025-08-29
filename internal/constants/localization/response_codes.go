@@ -202,7 +202,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorSessionRetrievalFailed,
 	ErrorInvalidToken,
-	ErrorMissingFile,
+	ErrorFileParseFailed,
 	ErrorResourceNotFound,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
@@ -2950,6 +2950,13 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgMissingFile,
 		Type:       "error",
+	}
+
+	ErrorFileParseFailed = ResponseCode{
+		Code:       "ERROR_FILE_PARSE_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgFileParseFailed,
+    Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{

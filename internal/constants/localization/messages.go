@@ -359,6 +359,7 @@ const (
 	MsgInvalidActionData                    = "Invalid action"
 	MsgUnsupportedAction                    = "Unsupported action"
 	MsgMissingFile                          = "Missing file"
+	MsgFileParseFailed                      = "Failed to parse file"
 	MsgInvalidID                            = "Invalid ID format"
 	MsgInvalidActionFormat                  = "Invalid action format"
 
