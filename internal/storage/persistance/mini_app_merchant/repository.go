@@ -54,7 +54,7 @@ func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID, "is_deleted": nil}
 	updateData := MiniAppMerchantMapper(*merchant)
 
 	_, err = m.dal.UpdateOne(ctx, filter, bson.M{"$set": updateData})
@@ -95,7 +95,7 @@ func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string,
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID, "is_deleted": nil}
 	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
@@ -125,7 +125,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 }
 
 func (m *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
-	filter := bson.M{"is_deleted": false}
+	filter := bson.M{"is_deleted": nil}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -156,46 +156,36 @@ func (m *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 	}, nil
 }
 
-func (m *MiniAppMerchantStorage) Exists(
-	ctx context.Context,
-	data *model.CheckMiniAppMerchant,
-	opts *model.MiniAppMerchantExistOptions,
-) (bool, error) {
+func (m *MiniAppMerchantStorage) Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (*model.MiniAppMerchant, error) {
+	if data.BankAccountNumber == "" {
+		return nil, errors.New("bank account number is required")
+	}
+
 	filter := bson.M{
-		"is_deleted": false,
-		"$or":        []bson.M{},
+		"is_deleted":          nil,
+		"bank_account_number": data.BankAccountNumber,
 	}
 
-	if data.BankAccountNumber != "" {
-		filter["$or"] = append(filter["$or"].([]bson.M), bson.M{"bank_account_number": data.BankAccountNumber})
-	}
-	if data.Email != "" {
-		filter["$or"] = append(filter["$or"].([]bson.M), bson.M{"email": data.Email})
-	}
-	if data.PhoneNumber != "" {
-		filter["$or"] = append(filter["$or"].([]bson.M), bson.M{"phone_number": data.PhoneNumber})
-	}
-
-	if len(filter["$or"].([]bson.M)) == 0 {
-		return false, nil
-	}
-
+	// Exclude a specific ID (useful for updates)
 	if opts != nil && opts.ExcludeID != "" {
 		objID, err := primitive.ObjectIDFromHex(opts.ExcludeID)
 		if err != nil {
 			m.logger.Errorf("invalid exclude ID: %v", err)
-			return false, errors.New(localization.ErrorInvalidID.Code)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		filter["_id"] = bson.M{"$ne": objID}
 	}
 
-	count, err := m.dal.TotalCount(ctx, filter)
+	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		m.logger.Errorf("failed to check merchant info exists: %v", err)
-		return false, errors.New(localization.ErrorUnexpectedError.Code)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // not found is fine
+		}
+		m.logger.Errorf("failed to check merchant by bank account number: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return count > 0, nil
+	return result, nil
 }
 
 func (p *MiniAppMerchantStorage) AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error {
