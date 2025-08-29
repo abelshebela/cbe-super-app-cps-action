@@ -3,7 +3,6 @@ package utils
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
-	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -28,28 +27,16 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 		return nil, nil, errors.New(localization.ErrorMissingFile.Code)
 	}
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
+		return nil, nil, errors.New(localization.ErrorFileParseFailed.Code)
 	}
 
 	file, fileHeader, err := r.FormFile(key)
 	if err != nil {
-		if err == http.ErrMissingFile {
-			return nil, nil, errors.New(localization.ErrorMissingFile.Code)
-		}
-		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
+		return nil, nil, err
 	}
 
 	return file, fileHeader, nil
 }
-
-// func UserContextToModel(userContext ctx_util.UserContext) model.User {
-// 	return model.User{
-// 		UserCode:    userContext.UserCode,
-// 		FullName:    userContext.FullName,
-// 		PhoneNumber: userContext.PhoneNumber,
-// 		Department:  userContext.Department,
-// 	}
-// }
 
 func ParsePrimitiveObjectID(ID string) (bson.ObjectID, error) {
 	objectID, err := bson.ObjectIDFromHex(ID)

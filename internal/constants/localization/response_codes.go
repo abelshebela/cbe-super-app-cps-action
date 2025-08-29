@@ -64,7 +64,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessRegionsDisabled,
 	SuccessEnableRegionsRequestSent,
 	SuccessDisableRegionsRequestSent,
-	
+
 	SuccessDistrictRetrieved,
 	SuccessDistrictsRetrieved,
 	SuccessDistrictsEnabled,
@@ -87,7 +87,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
 
-  // Error codes
+	// Error codes
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -173,7 +173,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorSessionRetrievalFailed,
 	ErrorInvalidToken,
-	ErrorMissingFile,
+	ErrorFileParseFailed,
 	ErrorResourceNotFound,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
@@ -217,7 +217,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
-  //hq related error response codes
+	//hq related error response codes
 	ErrorHQNotFound,
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
@@ -2442,6 +2442,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorFileParseFailed = ResponseCode{
+		Code:       "ERROR_FILE_PARSE_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgFileParseFailed,
+		Type:       "error",
+	}
+
 	ErrorFieldTooLong = ResponseCode{
 		Code:       "ERROR_FIELD_TOO_LONG",
 		StatusCode: StatusBadRequest,
@@ -3344,9 +3351,9 @@ var (
 	}
 
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
-		Code: "ERROR_ONE_OR_MORE_INVALID_CODES",
+		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
-		Message: MsgOneOrMoreInvalidCodes,
-		Type: "error",
+		Message:    MsgOneOrMoreInvalidCodes,
+		Type:       "error",
 	}
 )

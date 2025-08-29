@@ -331,6 +331,7 @@ const (
 	MsgUnsupportedAction                    = "Unsupported action"
 	MsgInvalidID                            = "Invalid ID"
 	MsgMissingFile                          = "Missing file"
+	MsgFileParseFailed                      = "Failed to parse file"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"

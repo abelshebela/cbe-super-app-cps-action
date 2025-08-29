@@ -4,7 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/ad"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"fmt"
+	"errors"
 	"mime/multipart"
 	"time"
 
@@ -16,12 +16,11 @@ import (
 )
 
 // extractUserAndMaker extracts user context and creates a maker, sending an error response if incomplete
-func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Logger) (cps_entities.CPSUser, bool) {
+func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Logger) (*cps_entities.CPSUser, error) {
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
 		logger.Errorf("[event.extractUserAndMaker] incomplete user context")
-		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
-		return cps_entities.CPSUser{}, false
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	maker := cps_entities.CPSUser{
 		UserCode:    userContext.UserID,
@@ -29,18 +28,17 @@ func ExtractUserAndMaker(w http.ResponseWriter, r *http.Request, logger utils.Lo
 		PhoneNumber: userContext.PhoneNumber,
 		Department:  userContext.Department,
 	}
-	return maker, true
+	return &maker, nil
 }
 
 // extractID extracts and validates the ID parameter, sending an error response if invalid
-func ExtractID(w http.ResponseWriter, r *http.Request, logger utils.Logger) (string, bool) {
+func ExtractID(w http.ResponseWriter, r *http.Request, logger utils.Logger) (string, error) {
 	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		logger.Errorf("[event.extractID] missing or invalid parameter 'id'")
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
-		return "", false
+		return "", errors.New(localization.ErrorInvalidInputParameters.Code)
 	}
-	return id, true
+	return id, nil
 }
 
 // parseTime parses a time string in RFC3339 format
@@ -49,12 +47,12 @@ func ParseTime(timeStr, fieldName string, isOptional bool, logger utils.Logger) 
 		return time.Time{}, nil
 	}
 	if timeStr == "" {
-		return time.Time{}, fmt.Errorf("%s_REQUIRED", fieldName)
+		return time.Time{}, errors.New(localization.ErrorRequiredFieldMissing.Code)
 	}
 	t, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
 		logger.Errorf("[event.parseTime] invalid %s format: %v", fieldName, err)
-		return time.Time{}, fmt.Errorf("INVALID_%s_FORMAT", fieldName)
+		return time.Time{}, errors.New(localization.ErrorInvalidDate.Code)
 	}
 	return t, nil
 }
@@ -70,15 +68,14 @@ func ParseBannerImage(r *http.Request, isUpdate bool, logger utils.Logger) (*mul
 }
 
 // parseAndValidateAdvertRequest parses and validates the advert request from multipart form
-func ParseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpdate bool, logger utils.Logger) (ad.AdvertRequest, bool) {
+func ParseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpdate bool, logger utils.Logger) (*ad.AdvertRequest, error) {
 	var req ad.AdvertRequest
 
 	// Parse banner image
 	bannerImage, err := ParseBannerImage(r, isUpdate, logger)
 	if err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse banner image: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorMissingOrInvalidImage, nil, nil)
-		return ad.AdvertRequest{}, false
+		return nil, errors.New(localization.ErrorMissingOrInvalidImage.Code)
 	}
 	req.BannerImage = bannerImage
 
@@ -93,20 +90,20 @@ func ParseAndValidateAdvertRequest(w http.ResponseWriter, r *http.Request, isUpd
 	if err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse started_at: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidDate, nil, nil)
-		return ad.AdvertRequest{}, false
+		return nil, errors.New(localization.ErrorInvalidDate.Code)
 	}
 	expiredAt, err := ParseTime(r.FormValue("expired_at"), "EXPIRE_DATE", isUpdate, logger)
 	if err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse expired_at: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidDate, nil, nil)
-		return ad.AdvertRequest{}, false
+		return nil, errors.New(localization.ErrorInvalidDate.Code)
 	}
 	req.Date = ad.AdvertDate{StartedAt: startedAt, ExpiredAt: expiredAt}
 
 	if err := req.Validate(isUpdate); err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
-		return ad.AdvertRequest{}, false
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-	return req, true
+	return &req, nil
 }

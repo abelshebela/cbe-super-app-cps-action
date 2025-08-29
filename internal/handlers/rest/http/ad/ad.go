@@ -28,12 +28,12 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 }
 
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	req, ok := core.ParseAndValidateAdvertRequest(w, r, false, a.logger)
-	if !ok {
-		return
+	req, err := core.ParseAndValidateAdvertRequest(w, r, false, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	domainReq, err := core.ToAdvert(req)
+	domainReq, err := core.ToAdvert(*req)
 	if err != nil {
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
@@ -65,9 +65,9 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertsFetched, res)
 }
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
-	id, ok := core.ExtractID(w, r, a.logger)
-	if !ok {
-		return
+	id, err := core.ExtractID(w, r, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
 	data, err := a.advertApplication.FetchAdvertByID(r.Context(), id)
@@ -80,17 +80,17 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 	localization.SendSuccessResponse(w, localization.SuccessAdvertFetched, res)
 }
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := core.ExtractID(w, r, a.logger)
-	if !ok {
-		return
+	id, err := core.ExtractID(w, r, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	req, ok := core.ParseAndValidateAdvertRequest(w, r, true, a.logger)
-	if !ok {
-		return
+	req, err := core.ParseAndValidateAdvertRequest(w, r, true, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	domainReq, _ := core.ToAdvert(req)
+	domainReq, _ := core.ToAdvert(*req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil && domainReq.Date.StartedAt.IsZero() && domainReq.Date.ExpiredAt.IsZero() {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)
@@ -98,7 +98,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := a.advertApplication.UpdateAdvert(r.Context(), id, &domainReq, req.BannerImage)
+	err = a.advertApplication.UpdateAdvert(r.Context(), id, &domainReq, req.BannerImage)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -107,12 +107,12 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 }
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := core.ExtractID(w, r, a.logger)
-	if !ok {
-		return
+	id, err := core.ExtractID(w, r, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	err := a.advertApplication.DeleteAdvert(r.Context(), id)
+	err = a.advertApplication.DeleteAdvert(r.Context(), id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -120,12 +120,12 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
 }
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := core.ExtractID(w, r, a.logger)
-	if !ok {
-		return
+	id, err := core.ExtractID(w, r, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
+	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -134,12 +134,12 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
 }
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
-	id, ok := core.ExtractID(w, r, a.logger)
-	if !ok {
-		return
+	id, err := core.ExtractID(w, r, a.logger)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 	}
 
-	err := a.advertApplication.EnableDisableAdvert(r.Context(), id, false)
+	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
