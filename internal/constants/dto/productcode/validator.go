@@ -1,16 +1,16 @@
 package productcode
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
-	"errors"
-	"strings"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"fmt"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func (u *UpdateProductCodeRequest) Validate() error {
-
-	u.ProductName = strings.TrimSpace(u.ProductName)
+	u.ProductName = local_util.ExtraSpaceRemover(u.ProductName)
 	return atLeastOne(u)
 }
 
@@ -21,12 +21,12 @@ func validateOptionalProductCodes(value interface{}) error {
 		}
 		return pc.Validate()
 	}
-	return validation.NewError("invalid_product_codes", "ProductCodes is required and must be valid.")
+	return fmt.Errorf(localization.ErrorProductCodeValidationError.Code)
 }
 
 func atLeastOne(u *UpdateProductCodeRequest) error {
 	var validationErrors []error
-	u.ProductName = strings.TrimSpace(u.ProductName)
+	u.ProductName = local_util.ExtraSpaceRemover(u.ProductName)
 	if (u.CBEProductCodes == (model.ProductCodes{})) && (u.CBEIFBProductCodes == (model.ProductCodes{})) && u.ProductName == "" {
 		validationErrors = append(validationErrors, validation.NewError("missing_product_codes", "At least one of CBEProductCodes or CBEIFBProductCodes must be present"))
 	}
@@ -42,12 +42,8 @@ func atLeastOne(u *UpdateProductCodeRequest) error {
 			validationErrors = append(validationErrors, e)
 		}
 	}
-	errString := ""
-	for i := range validationErrors {
-		errString += validationErrors[i].Error()
-	}
-	if len(errString) > 0 {
-		return errors.New(errString)
+	if len(validationErrors) > 0 {
+		return fmt.Errorf(localization.ErrorProductCodeUpdateRequestValidationErrorAtLeastOne.Code)
 	}
 	return nil
 }

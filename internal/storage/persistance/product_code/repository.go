@@ -4,10 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
-	cps_errors "cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -63,7 +60,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[productcode.FetchAll] Failed to execute aggregation: %v", err)
-		return nil, cps_errors.ErrGeneralDBQueryFailed
+		return nil, fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 	defer cursor.Close(ctx)
 
@@ -75,7 +72,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	}
 	if err = cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("[productcode.FetchAll] Failed to decode aggregation results: %v", err)
-		return nil, cps_errors.ErrGeneralDBQueryFailed
+		return nil, fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
 	if len(results) == 0 {
@@ -104,7 +101,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 }
 
 func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
-	fmt.Println("find all with pagination is called")
+
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at"}
@@ -113,12 +110,9 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 		searchKeys["service_name"] = searchRegex
 	}
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
-	fmt.Println(strings.Repeat("_", 20))
-	fmt.Println("this is the filter that is being used", filter)
-	fmt.Println("this is the filter that is being used", filter)
 	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, fmt.Errorf(localization.ErrorUnexpectedError.Code)
 	}
 	pdata := []*model.ProductCode{}
 	for i := range data {
@@ -126,7 +120,7 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 	}
 	total, err := s.producCodeDal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, fmt.Errorf(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]*model.ProductCode]{
@@ -140,7 +134,7 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 
 	objID, ok := local_util.StringToObjectID(id)
 	if !ok {
-		return nil, cps_errors.ErrInvalidID
+		return nil, fmt.Errorf("ERROR_INVALID_ID")
 	}
 	filter := bson.M{
 		"_id":        objID,
@@ -150,10 +144,10 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Errorf("[productcode.FetchByID] Product code not found for ID %s: %v", id, err)
-			return nil, cps_errors.ErrProductCodeNotFound
+			return nil, fmt.Errorf("ERROR_PRODCUT_CODE_NOT_FOUND")
 		}
 		p.logger.Errorf("[productcode.FetchByID] Database query failed for ID %s: %v", id, err)
-		return nil, cps_errors.ErrGeneralDBQueryFailed
+		return nil, fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 	pc := productcode.ToProducCode(*services)
 
@@ -166,7 +160,7 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 
 	objID, ok := local_util.StringToObjectID(productCode.ID)
 	if !ok {
-		return cps_errors.ErrInvalidID
+		return fmt.Errorf("ERROR_INVALID_ID")
 	}
 	filter := bson.M{
 		"_id":        objID,
@@ -178,10 +172,10 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Errorf("[productcode.Update] Product code not found for ID %s: %v", productCode.ID, err)
-			return cps_errors.ErrProductCodeNotFound
+			return fmt.Errorf("ERROR_PRODCUT_CODE_NOT_FOUND")
 		}
 		p.logger.Errorf("[productcode.Update] Database update failed for ID %s: %v", productCode.ID, err)
-		return cps_errors.ErrGeneralDBQueryFailed
+		return fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
 	return nil

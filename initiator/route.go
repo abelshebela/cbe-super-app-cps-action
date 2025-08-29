@@ -76,7 +76,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
-	productcode.Init(r, handlerLayer.ProductCodeHandler, authMiddleware, nil) //todo: add cps action factory
+	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware, nil) 
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)

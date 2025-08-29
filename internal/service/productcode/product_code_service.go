@@ -7,7 +7,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
-	"cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -48,7 +47,7 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 	if err != nil {
 		s.logger.Errorf("[ProductCode.FetchByID] failed to fetch product code, id: %s, error: %v", id, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.ErrProductCodeNotFound
+			return nil, err
 		}
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	if err != nil {
 		s.logger.Errorf("[ProductCode.Update] failed to fetch existing product code, id: %s, error: %v", request.ID, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, nil, errors.ErrProductCodeNotFound
+			return nil, nil, err
 		}
 		return nil, nil, err
 	}
@@ -96,7 +95,7 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, existing, updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
 		err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
 	} else {
-		return nil, nil, errors.ErrNoUpdate
+		return nil, nil, err
 	}
 	return existing, updated, err
 }

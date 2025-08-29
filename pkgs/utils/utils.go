@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
-	customErr "cbe-super-app-cps-action/internal/constants/errors"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -318,13 +317,12 @@ func NonEmptyString(s, fallback string) string {
 	return fallback
 }
 
-
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
-		return "", customErr.ErrIdEmpty
+		return "", fmt.Errorf(localization.ErrorInvalidID.Code)
 	}
 	return id, nil
 }
@@ -373,7 +371,9 @@ func RandomGenerator(length uint8) string {
 
 	return string(result)
 }
+
 var allowedChars = "a-zA-Z0-9\\s._-"
+
 func NoSpecialChars(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -441,4 +441,8 @@ func JsonUnmarshal[T any](data any) (*T, error) {
 	}
 
 	return jsonData, nil
+}
+
+func ExtraSpaceRemover(s string) string{
+	return strings.TrimSpace(strings.Join(strings.Split(s," ")," "))
 }

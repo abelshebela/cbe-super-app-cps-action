@@ -1,8 +1,10 @@
 package model
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
-	"strings"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"fmt"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -34,11 +36,11 @@ func NonEmptyProductCodes(request, existing ProductCodes) ProductCodes {
 }
 
 func (pc *ProductCodes) Validate() error {
-	pc.PRD = strings.TrimSpace(pc.PRD)
-	pc.VATPRD = strings.TrimSpace(pc.VATPRD)
-	pc.SFPRD = strings.TrimSpace(pc.SFPRD)
+	pc.PRD = local_util.ExtraSpaceRemover(pc.PRD)
+	pc.VATPRD = local_util.ExtraSpaceRemover(pc.VATPRD)
+	pc.SFPRD = local_util.ExtraSpaceRemover(pc.SFPRD)
 
-	return validation.ValidateStruct(&pc,
+	err := validation.ValidateStruct(&pc,
 		validation.Field(&pc.PRD,
 			validation.By(utils.NoSpecialChars),
 		),
@@ -49,4 +51,8 @@ func (pc *ProductCodes) Validate() error {
 			validation.By(utils.NoSpecialChars),
 		),
 	)
+	if err!= nil{
+		err = fmt.Errorf(localization.ErrorProductCodesValidationError.Code)
+	}
+	return err
 }

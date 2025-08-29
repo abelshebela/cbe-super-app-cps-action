@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
