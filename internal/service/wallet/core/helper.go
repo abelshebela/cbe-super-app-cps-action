@@ -15,10 +15,8 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	"time"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -58,14 +56,9 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 func ToWalletDoc(name, code, URL string) *model.Wallet {
 	return &model.Wallet{
-		ID:             bson.NewObjectID(),
-		Name:           name,
-		Code:           code,
-		Avatar:         URL,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
-		Enabled:        false,
-		IsDeleted:      false,
+		Name:   name,
+		Code:   code,
+		Avatar: URL,
 	}
 }
 

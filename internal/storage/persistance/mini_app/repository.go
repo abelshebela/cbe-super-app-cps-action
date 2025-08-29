@@ -34,10 +34,6 @@ func NewMiniAppRepository(client *mongo.Client, dbName string, collection string
 }
 
 func (m *MiniAppStorage) Create(ctx context.Context, miniApp *model.MiniApp) error {
-	if miniApp.CreatedAt.IsZero() {
-		miniApp.CreatedAt = time.Now()
-	}
-	miniApp.LastModifiedAt = time.Now()
 
 	miniAppDoc := MiniAppDocumentMapper(*miniApp)
 

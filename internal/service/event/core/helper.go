@@ -21,7 +21,6 @@ import (
 	"time"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -192,7 +191,6 @@ func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, 
 
 func CreateEventMapper(event eventdto.EventRequest, code string, coverURL string) *model.Event {
 	return &model.Event{
-		ID:            bson.NewObjectID(),
 		EventCode:     code,
 		EventName:     event.EventName,
 		EventCity:     event.EventCity,
