@@ -49,8 +49,12 @@ func (h *HQStorage) FindByID(ctx context.Context, id string) (*model.HQ, error) 
 	}
 	return result, nil
 }
-func (p *HQStorage) Find(ctx context.Context) (*model.HQ, error) {
-	result, err := p.dal.FindOne(ctx, bson.M{}, bson.M{})
+func (p *HQStorage) Find(ctx context.Context, projections ...bson.M) (*model.HQ, error) {
+	projection := bson.M{}
+	if len(projections) > 0 {
+		projection = projections[0]
+	}
+	result, err := p.dal.FindOne(ctx, bson.M{}, projection)
 	if err != nil {
 		p.logger.Errorf("failed to fetch HQ: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -76,6 +80,8 @@ func (p *HQStorage) Update(ctx context.Context, field string, value interface{},
 		updateDoc["updated_at_archive"] = now
 	case "password_expiry":
 		updateDoc["updated_at_password_expiry"] = now
+	case "total_cap":
+		updateDoc["updated_at_total_cap"] = now
 	}
 	_, err = p.dal.UpdateOne(ctx, bson.M{"_id": hqDoc.ID}, updateDoc)
 	if err != nil {

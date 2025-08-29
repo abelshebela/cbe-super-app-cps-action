@@ -29,7 +29,7 @@ import (
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
-
+	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -86,6 +86,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	miniapp.Init(r, handlerLayer.MiniAPPHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
+	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// Serve swagger.json directly

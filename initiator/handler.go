@@ -23,6 +23,8 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 
+	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
+
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 
@@ -53,10 +55,14 @@ import (
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
+	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
+
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Handler struct {
+
 	CpsActionHandler       actionInbound.CPSActionAdapter
 	UnlinkHandler          unlinkInbound.UnlinkAdapter
 	EventHandler           eventInbound.EventAdapter
@@ -73,6 +79,8 @@ type Handler struct {
 	MiniAPPHandler         miniAppInbound.MiniAppInbound
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
+  ServiceDetailsHandler service_details.ServiceAdapter
+
 
 	DepartmentHandler department.DepartmentHandler
 
@@ -100,6 +108,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		PasswordHandler:     passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
+
 		DepartmentHandler:   department.NewDepartmentHandler(serviceLayer.Department, logger),
 		HqHandler:           hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
 		MiniAPPHandler:      miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
@@ -110,6 +119,10 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
+
+    ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
+
 		ProductCodeHandler:     productCodeHandler.InitProductcodeAdapter(pcs, logger),
+
 	}
 }
