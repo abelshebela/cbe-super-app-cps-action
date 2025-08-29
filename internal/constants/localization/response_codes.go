@@ -113,6 +113,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBudgetIconRequestSubmittedForApproval,
 	SuccessBudgetIconRequestSubmittedForApproval,
 	SuccessBudgetIconRequestSubmittedForApproval,
+	ErrorMiniAppMerchantNotFound,
 	// Error codes
 
 	// Error codes

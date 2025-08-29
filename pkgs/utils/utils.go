@@ -315,6 +315,65 @@ func NonEmptyString(new, old string) string {
 	return old
 }
 
+func NonEmptyBool(newVal, oldVal bool) bool {
+	// Handles updates correctly (req can explicitly override old value)
+	if newVal != oldVal {
+		return newVal
+	}
+	return oldVal
+}
+
+// MergeProductCodes merges by ProductCode value (not index)
+func MergeProductCodes(newPCs []types.ProductCode, oldPCs []types.ProductCode) []types.ProductCode {
+	if len(newPCs) == 0 {
+		return oldPCs
+	}
+
+	// Map old codes by ProductCode for quick lookup
+	oldMap := make(map[string]types.ProductCode)
+	for _, pc := range oldPCs {
+		oldMap[pc.ProductCode] = pc
+	}
+
+	updated := make([]types.ProductCode, 0, len(newPCs))
+	for _, pc := range newPCs {
+		if existing, found := oldMap[pc.ProductCode]; found {
+			updated = append(updated, types.ProductCode{
+				ID:             existing.ID,
+				BranchType:     constants.BranchType(pc.BranchType),
+				ProductCode:    NonEmptyString(pc.ProductCode, existing.ProductCode),
+				VATCode:        NonEmptyString(pc.VATCode, existing.VATCode),
+				ServiceFeeCode: NonEmptyString(pc.ServiceFeeCode, existing.ServiceFeeCode),
+			})
+		} else {
+			// New ProductCode → assign new ID
+			updated = append(updated, types.ProductCode{
+				ID:             utils.RandomGenerator(20),
+				BranchType:     constants.BranchType(pc.BranchType),
+				ProductCode:    pc.ProductCode,
+				VATCode:        pc.VATCode,
+				ServiceFeeCode: pc.ServiceFeeCode,
+			})
+		}
+	}
+
+	return updated
+}
+
+func NonZeroTime(t, fallback time.Time) time.Time {
+	if !t.IsZero() {
+		return t
+	}
+	return fallback
+}
+
+func NonZeroUint64(n, fallback uint64) uint64 {
+	if n != 0 {
+		return n
+	}
+	return fallback
+}
+
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
 func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
 	if new != "" {
@@ -359,7 +418,9 @@ func RandomGenerator(length uint8) string {
 
 	return string(result)
 }
+
 var allowedChars = "a-zA-Z0-9\\s._-"
+
 func NoSpecialChars(value any) error {
 	str, ok := value.(string)
 	if !ok {
