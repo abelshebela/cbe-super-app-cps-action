@@ -782,6 +782,7 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
+
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
 

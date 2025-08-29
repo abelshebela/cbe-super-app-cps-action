@@ -1,6 +1,7 @@
 package service
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
 	"mime/multipart"
     cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -166,7 +167,10 @@ type PortalCardService interface {
 }
 
 type ProductCodeService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	UpdateProductCode(ctx context.Context, request dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type ServiceService interface {
