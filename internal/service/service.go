@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 	"mime/multipart"
-
+    cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
+	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -29,22 +32,46 @@ type BranchService interface {
 
 type BudgetService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateBudgetIcon(ctx context.Context, fileHeader *multipart.FileHeader, file *multipart.File) error
+	BudgetFetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+	BudgetUpdateIcon(ctx context.Context, id string, fileHeader *multipart.FileHeader, file *multipart.File) error
+	BudgetCreateColor(ctx context.Context, color *model.Color) error
+	BudgetFetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
+	BudgetUpdateColor(ctx context.Context, id string, color *model.Color) error
+	BudgetCheckerApproval(ctx context.Context, actionCode string) error
 }
 
 type BulkService interface {
+	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
+	EnableBulkService(ctx context.Context, keys []string) (string, error)
+	DisableBulkService(ctx context.Context, keys []string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type CPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
+	UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error
+	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
+	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error)
+	DeleteUserRequest(ctx context.Context, userCode string) error
+	DisableUser(ctx context.Context, userCode string) error
+	EnableUser(ctx context.Context, userCode string) error
 }
 
 type CustomerService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 }
 
 type DepartmentService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
+	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
+	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
 type DonationService interface {
@@ -62,6 +89,7 @@ type EventService interface {
 }
 
 type FaydaAccountService interface {
+	EnableOrDisableFayda(ctx context.Context, user_code string, isEnable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -85,12 +113,26 @@ type HQService interface {
 }
 
 type MiniAppService interface {
+	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
+	DeleteMiniApp(ctx context.Context, id string) error
+	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
+	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppMerchantService interface {
-	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
+	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type NotificationService interface {
@@ -106,6 +148,15 @@ type PasswordRuleService interface {
 
 type PermissionService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreatePermissionGroup(ctx context.Context, req permission_dto.CreatePermissionGroupRequest) error
+	UpdatePermissionGroup(ctx context.Context, req permission_dto.UpdatePermissionGroupRequest) error
+	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
+
+	// Validation methods
+	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
+	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
 }
 
 type PortalCardService interface {
@@ -180,8 +231,8 @@ type AmountBasedAuthService interface {
 }
 
 type AvatarService interface {
-	CreateAvatar(ctx context.Context, avatar *model.Avatar) error
-	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar) error
+	CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
+	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
 	DeleteAvatar(ctx context.Context, id string) error
 	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
 	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)

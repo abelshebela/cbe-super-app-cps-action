@@ -3,24 +3,30 @@ package localization
 // Success Messages
 const (
 	// User related success messages
-	MsgUserCreatedSuccessfully   = "User created successfully"
-	MsgAvatarCreatedSuccessfully = "Avatar created successfully"
-	MsgUserUpdatedSuccessfully   = "User updated successfully"
-	MsgUserDeletedSuccessfully   = "User deleted successfully"
-	MsgUserRetrievedSuccessfully = "User retrieved successfully"
-	MsgUserLoginSuccessfully     = "User logged in successfully"
-	MsgUserLogoutSuccessfully    = "User logged out successfully"
-	MsgUserProfileUpdated        = "User profile updated successfully"
-	MsgUserPasswordChanged       = "Password changed successfully"
-	MsgUserPINChanged            = "PIN changed successfully"
-	MsgUserDeviceLinked          = "Device linked successfully"
-	MsgUserDeviceUnlinked        = "Device unlinked successfully"
-	MSGAccountNumberRequired     = "Account Number is required"
-	MsgFeedbackIDRequired        = "Feedback ID is required"
-	MsgInvalidIDFormat           = "Invalid ID format"
-	MSGIncompleteUserInfo        = "Incomplte user info"
-	MSGUserCodeIsRequired        = "User code is required"
-	MsgActionAlreadyExists       = "Action already requested wait for checker approval"
+	MsgUserCreatedSuccessfully     = "User create request sent  successfully"
+	MsgAvatarCreatedSuccessfully   = "Avatar create request sent successfully"
+	MsgAvatarUpdateSuccessfully    = "Avatar update request sent successfully"
+	MsgAvatarEnabledSuccessfully   = "Avatar enable request sent successfully"
+	MsgAvatarDisabledSuccessfully  = "Avatar diabled request sent successfully"
+	MsgAvatarDeletedSuccessfully   = "Avatar delete request sent successfully"
+	MsgAvatarRetrievedSuccessfully = "Avatar retrieved successfully"
+	MsgUserUpdatedSuccessfully     = "User update request sent successfully"
+	MsgUserDeletedSuccessfully     = "User delete request sent successfully"
+	MsgUserRetrievedSuccessfully   = "User retrieved successfully"
+	MsgUserLoginSuccessfully       = "User logged in successfully"
+	MsgUserLogoutSuccessfully      = "User logged out successfully"
+	MsgUserProfileUpdated          = "User profile updated successfully"
+	MsgUserPasswordChanged         = "Password changed successfully"
+	MsgUserPINChanged              = "PIN changed successfully"
+	MsgUserDeviceLinked            = "Device linked successfully"
+	MsgUserDeviceUnlinked          = "Device unlinked successfully"
+	MSGAccountNumberRequired       = "Account Number is required"
+	MsgFeedbackIDRequired          = "Feedback ID is required"
+	MsgInvalidIDFormat             = "Invalid ID format"
+	MSGIncompleteUserInfo          = "Incomplte user info"
+	MsgInvalidJSONPayload          = "Invalid json payload"
+	MSGUserCodeIsRequired          = "User code is required"
+	MsgActionAlreadyExists         = "Action already requested wait for checker approval"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
 	MsgOTPVerifiedSuccessfully = "OTP verified successfully"
@@ -116,6 +122,7 @@ const (
 	MsgPermissionGroupsFetched       = "Permission groups fetched successfully"
 	MsgPermissionGroupFetched        = "Permission group fetched successfully"
 	MsgPermissionGroupRequestUpdated = "Permission group Request updated successfully"
+	MsgPermissionGroupRequestDeleted = "Permission group Request deleted successfully"
 	MsgPermissionCategoriesFetched   = "Permission categories fetched successfully"
 
 	// Mini App Merchant related success messages
@@ -124,6 +131,9 @@ const (
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
+	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
@@ -131,7 +141,10 @@ const (
 	MsgNotificationDeleteRequestSubmitted   = "Notification delete request submitted successfully"
 
 	// Department related success messages
-	MsgDepartmentCreatedSuccessfully = "Department created successfully"
+	MsgDepartmentCreateRequestedSuccessfully  = "Department create requested successfully"
+	MsgDepartmentUpdateRequestedSuccessfully  = "Department update requested successfully"
+	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
+	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
@@ -239,9 +252,20 @@ const (
 	// Mini App Handler related success messages
 	MsgUpdateMiniAppRequestCreatedSuccessfully  = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully = "Mini App deleted request created successfully"
+	MsgMiniAppDisableRequestSubmittedSuccessfully= "Mini App disable request submitted successfully"
+	MsgMiniAppEnableRequestSubmittedSuccessfully = "Mini App enable request submitted successfully"
 	MsgMiniAppsSuccessfullyRetrieved            = "Mini Apps successfully retrieved"
 	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
 	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
+
+	// cps_user related success messages
+	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
+	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
+	MsgCpsUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
+	MsgCpsUserRetrievedSuccessfully    = "CPS user retrieved successfully"
+	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
+	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
@@ -256,6 +280,9 @@ const (
 
 	// Wallet related success messages
 	MsgWalletActionRequestSentSuccessfully = "Wallet action request sent successfully"
+
+	// permission related error messages
+	MsgGroupNameRequired = "Group name is required"
 )
 
 // Error Messages
@@ -317,9 +344,11 @@ const (
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
 	MsgInvalidFormat                         = "Invalid format"
+	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgInvalidDate                           = "Invalid date format"
+	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
 	MsgFieldTooShort                         = "Field value is too short"
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
@@ -329,9 +358,10 @@ const (
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
 	MsgInvalidActionData                    = "Invalid action"
 	MsgUnsupportedAction                    = "Unsupported action"
-	MsgInvalidID                            = "Invalid ID"
 	MsgMissingFile                          = "Missing file"
 	MsgFileParseFailed                      = "Failed to parse file"
+	MsgInvalidID                            = "Invalid ID format"
+	MsgInvalidActionFormat                  = "Invalid action format"
 
 	// System error messages
 	MsgInternalServerError  = "Internal server error occurred"
@@ -455,13 +485,15 @@ const (
 	MsgPasswordRuleInvalidFormat = "Invalid password rule format"
 
 	// Permission related error messages
-	MsgPermissionGroupNotFound       = "Permission group not found"
-	MsgPermissionGroupAlreadyExists  = "Permission group already exists"
-	MsgPermissionGroupCreationFailed = "Failed to create permission group"
-	MsgPermissionGroupUpdateFailed   = "Failed to update permission group"
-	MsgPermissionGroupFetchFailed    = "Failed to fetch permission groups"
-	MsgPermissionCategoryNotFound    = "Permission category not found"
-	MsgPermissionCategoryFetchFailed = "Failed to fetch permission categories"
+	MsgPermissionGroupNotFound         = "Permission group not found"
+	MsgPermissionGroupAlreadyExists    = "Permission group already exists"
+	MsgPermissionGroupCreationFailed   = "Failed to create permission group"
+	MsgPermissionGroupUpdateFailed     = "Failed to update permission group"
+	MsgPermissionGroupFetchFailed      = "Failed to fetch permission groups"
+	MsgPermissionCategoryNotFound      = "Permission category not found"
+	MsgPermissionCategoryFetchFailed   = "Failed to fetch permission categories"
+	MsgPermissionGroupValidationFailed = "Permission group validation failed"
+	MsgPermissionGroupRequired         = "Permission group is required"
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
@@ -480,13 +512,18 @@ const (
 	MsgNotificationInvalidFormat  = "Invalid notification format"
 	MsgNotificationRequired       = "Notification is required"
 
-	// Department related error messages
-	MsgDepartmentNotFound       = "Department not found"
-	MsgDepartmentAlreadyExists  = "Department already exists"
-	MsgDepartmentCreationFailed = "Failed to create department"
-	MsgDepartmentUpdateFailed   = "Failed to update department"
-	MsgDepartmentInvalidFormat  = "Invalid department format"
-	MsgDepartmentRequired       = "Department is required"
+	// department related error messages
+	MsgDepartmentNotFound             = "Department not found"
+	MsgDepartmentAlreadyExists        = "Department already exists"
+	MsgDepartmentCreationFailed       = "Failed to create department"
+	MsgDepartmentUpdateFailed         = "Failed to update department"
+	MsgDepartmentInvalidFormat        = "Invalid department format"
+	MsgDepartmentRequired             = "Department is required"
+	msgGetAllDepartmentsSuccess       = "Successfully got all Departments"
+	msgGetDepartmentsSuccess          = "Successfully got a Department"
+	MsgDepartmentAlreadyEnabled       = "Department already enabled"
+	MsgDepartmentAlreadyDisabled      = "Department already disabled"
+	MsgDepartmentInvalidRequestAction = "Invalid request action"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryNotFound       = "Budget category not found"
@@ -587,6 +624,13 @@ const (
 	MsgInvalidRequest              = "Invalid request"
 	MsgInvalidToken                = "Invalid token"
 
+	// DEPARTMENT RELATED MESSAGES
+	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group with id not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or portal card with id not found"
+
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
 	MsgServiceCountFailed                 = "Failed to count total services"
@@ -624,7 +668,7 @@ const (
 	MsgMiniAppMerchantUnmarshalActionFailed  = "Failed to unmarshal action data"
 	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
-
+	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
 	MsgNotificationInsertFailed    = "Failed to insert notification"
@@ -674,20 +718,29 @@ const (
 	MsgPermissionGroupRequestUpdateFailed   = "Failed to update permission group request"
 
 	// Department related error messages
-	MsgDepartmentCreationSuccess        = "Department created successfully"
+	MsgDepartmentCreateRequestSuccess = "Department created Request successfully"
+	MsgDepartmentCreateRequestFail    = "Department created Request successfully"
+
 	MsgDepartmentUpdateCPSActionCreated = "Department update CPS action created successfully"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryUpdateSuccess = "Budget category updated successfully"
 
 	// Donation Service related error messages
-	MsgDonationCategoryIconUploadSuccess = "Successfully uploaded donation category icon"
-	MsgDonationCategoryIconUpdateSuccess = "Successfully uploaded updated donation category icon"
-	MsgDonationCPSActionApprovedSuccess  = "Successfully approved and authorized CPS action"
-	MsgDonationCompanyLogoUploadSuccess  = "Successfully uploaded donation company logo"
-	MsgDonationCompanyLogoUpdateSuccess  = "Successfully uploaded updated donation company logo"
-	MsgDonationImageUploadSuccess        = "Successfully uploaded donation image"
-	MsgDonationImagesUpdateSuccess       = "Successfully uploaded updated donation images"
+	MsgDonationCategoryIconUploadSuccess             = "Successfully uploaded donation category icon"
+	MsgDonationCategoryIconUpdateSuccess             = "Successfully uploaded updated donation category icon"
+	MsgDonationCPSActionApprovedSuccess              = "Successfully approved and authorized CPS action"
+	MsgDonationCompanyLogoUploadSuccess              = "Successfully uploaded donation company logo"
+	MsgBudgetIconRequestSubmittedForApprovalSuccess  = "Successfully budget icon request submitted for approval"
+	MsgBudgetCheckerActionApprovedSuccess            = "Successfully budget icon checker submitted for approval"
+	MsgBudgetColorUpdateSubmittedForApprovalSuccess  = "Successfully budget color request submitted for approval"
+	MsgBudgetIconUpdateSubmittedForApprovalSuccess   = "Successfully budget icon update submitted for approval"
+	MsgBudgetColorRequestSubmittedForApprovalSuccess = "Successfully budget color request submitted for approval"
+	MsgBudgetIconsFetchedSuccessfully                = "Successfully fetched budget icons"
+	MsgBudgetColorsFetchedSuccessfully               = "Successfully fetched budget colors"
+	MsgDonationCompanyLogoUpdateSuccess              = "Successfully uploaded updated donation company logo"
+	MsgDonationImageUploadSuccess                    = "Successfully uploaded donation image"
+	MsgDonationImagesUpdateSuccess                   = "Successfully uploaded updated donation images"
 
 	// Notification Service related error messages
 	MsgNotificationConstructedSuccess = "Notification constructed successfully"
@@ -729,9 +782,8 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-	MsgInvalidInputParameters = "Invalid input parameters provided"
-
-	MsgMissingOrInvalidImage = "Missing or invalid image"
+	MsgPendingActionExists  = "Pending action exists"
+	MsgDuplicateColorExists = "Duplicate color exists"
 
 	MsgInvalidRequestBody      = "Invalid request body"
 	MsgInvalidPaginationParams = "Invalid pagination parameters"
@@ -776,8 +828,17 @@ const (
 	MsgDistrictNotFound = "District not found"
 	MsgRegionNotFound   = "Region not found"
 	MsgCityNotFound     = "City not found"
+	MsgInvalidInputParameters = "Invalid input parameters provided"
+	MsgMissingOrInvalidImage  = "Missing or invalid image"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// Fayda Account
+	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
+	MsgFaydaAccountDisableCreatedSuccessfully = "Fayda Account disable action submitted successfully"
+	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
+	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
+	MsgNotFaydaUser                           = "This user is not fayda user"
 )

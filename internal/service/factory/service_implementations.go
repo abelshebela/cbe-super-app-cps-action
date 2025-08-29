@@ -353,7 +353,7 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 
 	m.logger.Infof("Mini App Merchant service authorizing action: %s", constants.ActionCode)
 
-	return m.repo.DetailMiniAppByID(ctx, id)
+	return m.repo.FindByID(ctx, id)
 }
 
 // Notification Service

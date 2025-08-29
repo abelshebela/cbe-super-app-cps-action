@@ -1,6 +1,7 @@
 package icon
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -96,27 +97,22 @@ func (i *IconStorage) FindByID(ctx context.Context, id string) (*model.Icon, err
 	return result, nil
 }
 
-func (i *IconStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Icon], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error) {
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
 
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["icon"] = searchRegex
-	}
+	allowedKeys := []string{}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
-	data, err := i.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	total, err := i.dal.TotalCount(ctx, filter)
+	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

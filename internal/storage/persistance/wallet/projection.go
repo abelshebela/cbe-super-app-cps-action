@@ -56,3 +56,19 @@ func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
 		}(),
 	}, nil
 }
+
+func UpdateMapper(wallet model.Wallet) bson.M {
+
+	update := bson.M{"last_modified_at": time.Now()}
+	if wallet.Name != "" {
+		update["name"] = wallet.Name
+	}
+	if wallet.Code != "" {
+		update["code"] = wallet.Code
+	}
+	if wallet.Avatar != "" {
+		update["avatar"] = wallet.Avatar
+	}
+
+	return update
+}

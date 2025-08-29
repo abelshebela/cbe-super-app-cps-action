@@ -19,7 +19,6 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if data.MerchantType != "" {
 		result["merchant_type"] = data.MerchantType
 	}
-	// KYC is a struct, include if not zero value
 	if data.KYC != (model.KYC{}) {
 		result["kyc"] = data.KYC
 	}
@@ -38,10 +37,14 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if len(data.MiniApps) > 0 {
 		result["mini_apps"] = data.MiniApps
 	}
+
+	// MUST include enabled and is_deleted
 	result["enabled"] = data.Enabled
+	result["is_deleted"] = data.IsDeleted
 
 	return result
 }
+
 func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.MiniAppMerchant {
 
 	miniApps := []model.MiniApps{}
