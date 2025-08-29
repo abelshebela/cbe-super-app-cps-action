@@ -26,7 +26,7 @@ func ExtractUserAndMaker(r *http.Request, logger utils.Logger) (*cps_entities.CP
 		UserCode:    userContext.UserID,
 		FullName:    userContext.FullName,
 		PhoneNumber: userContext.PhoneNumber,
-		Department:  userContext.Department,
+		// Department:  userContext.Department,
 	}
 	return &maker, nil
 }

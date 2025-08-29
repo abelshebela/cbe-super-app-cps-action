@@ -48,6 +48,7 @@ const (
 	BucketUserProfilePicture          = "USER-PROFILE-PICTURES"
 	OtpExpirationTime                 = 3 * time.Minute
 	ActionCode                        = "action_code"
+	Avatar                            = "avatar"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"
@@ -205,6 +206,12 @@ const (
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
+	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
+	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
+	RequestDeleteDepartment         RequestAction = "DELETE_DEPARTMENT"
+	RequestEnableDepartment         RequestAction = "ENABLE_DEPARTMENT"
+	RequestDisableDepartment        RequestAction = "DISABLE_DEPARTMENT"
+	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
 	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
 	RequestDeleteWallet             RequestAction = "DELETE_WALLET"
@@ -243,6 +250,8 @@ const (
 	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
 	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
+	RequestEnableMiniAppMerchant    RequestAction = "ENABLE_MINIAPP_MERCHANT"
+	RequestDisableMiniAppMerchant   RequestAction = "DISABLE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
 	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
@@ -273,8 +282,8 @@ const (
 	RequestDisableDistricts RequestAction = "REQUEST_DISABLE_DISTRICTS"
 
 	// City
-	RequestEnableCities        RequestAction = "REQUEST_ENABLE_CITIES"
-	RequestDisableCities        RequestAction = "REQUEST_DISABLE_CITIES"
+	RequestEnableCities  RequestAction = "REQUEST_ENABLE_CITIES"
+	RequestDisableCities RequestAction = "REQUEST_DISABLE_CITIES"
 
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
@@ -301,13 +310,24 @@ const (
 	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
 	RequestBudgetDelete RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestCreateMiniApp RequestAction = "CREATE_MINIAPP"
+	RequestUpdateMiniApp RequestAction = "UPDATE_MINIAPP"
+	RequestDeleteMiniApp RequestAction = "DELETE_MINIAPP"
+	RequestEnableMiniApp RequestAction = "ENABLE_MINIAPP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
+
+
 
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
-	ActionPending            RequestAction = "PENDING"
-	ActionApproved           RequestAction = "APPROVED"
-	ActionRejected           RequestAction = "REJECTED"
+
+	RequestDisableFaydaAccount RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount  RequestAction = "ENABLE_FAYDA_ACCOUNT"
+
+	ActionPending  RequestAction = "PENDING"
+	ActionApproved RequestAction = "APPROVED"
+	ActionRejected RequestAction = "REJECTED"
 )
 
 type RegistrationType string
@@ -357,10 +377,27 @@ const (
 type AppType string
 
 const (
+	URL AppType = "URL"
+)
+const (
 	UATApp     AppType = "UAT"
 	Production AppType = "PRODUCATION"
 	Test       AppType = "TEST"
 	Dev        AppType = "DEV"
+)
+
+type AppViewType string
+
+const (
+	AppViewTypeBoth AppViewType = "BOTH"
+	AppViewTypeCB   AppViewType = "CB"
+	AppViewTypeIFB  AppViewType = "IFB"
+)
+
+type Stage string
+
+const (
+	StageUat Stage = "UAT"
 )
 
 type EnvironmentType string
@@ -394,4 +431,10 @@ const (
 	StatusPending NotificationStatus = "PENDING"
 	StatusSent    NotificationStatus = "SENT"
 	StatusSeen    NotificationStatus = "SEEN"
+)
+
+const (
+	UpdateAction ActionType = "UPDATE"
+	CreateAction ActionType = "CREATE"
+	DeleteAction ActionType = "DELETE"
 )

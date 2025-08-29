@@ -50,6 +50,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAdvertsFetched,
 	SuccessAdvertEnableRequestSent,
 	SuccessAdvertDisableRequestSent,
+	SuccessAvatarEnabled,
+	SuccessAvatarDisabled,
+	SuccessAvatarDeleted,
 
 	SuccessBranchRetrieved,
 	SuccessBranchesRetrieved,
@@ -79,6 +82,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEnableCitiesRequestSent,
 	SuccessDisableCitiesRequestSent,
 
+	// department related success response
+	SuccessGetAllDepartments,
+	SuccessDepartmentCreateRequestCreated,
+	SuccessDepartmentUpdateRequestCreated,
+	SuccessDepartmentDisableRequestCreated,
+	SuccessDepartmentEnableRequestCreated,
+	SuccessDepartmentUpdateRequestCreated,
+	SuccessDepartmentCreateRequestCreated,
+
 	//hq related success response codes
 	SuccessHQArchiveTimeFetched,
 	SuccessHQBlockTimeFetched,
@@ -86,12 +98,27 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQBlockTimeUpdateRequestSubmitted,
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+	//mini app related success response codes
+	SuccessMiniAppDisableRequestSubmitted,
+	SuccessMiniAppEnableRequestSubmitted,
+	SuccessMiniAppMerchantCreateRequestCreated,
+	SuccessUpdateMiniAppRequestCreated,
+	SuccessMiniAppDeletedRequestCreated,
+	SuccessMiniAppsRetrieved,
+	SuccessMiniAppFetchedByID,
+	SuccessMiniAppActionCompleted,
+	SuccessBudgetColorsFetched,
+	SuccessBudgetIconsFetched,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	SuccessBudgetIconRequestSubmittedForApproval,
+	// Error codes
 
 	// Error codes
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
-
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
 	ErrorUserUnauthorized,
@@ -125,6 +152,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
 	ErrorActionNotFound,
+	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
@@ -181,6 +209,13 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUnexpectedError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
+	ErrorInvalidBooleanFormat,
+	ErrorInvalidJSONPayload,
+	ErrorInvalidAction,
+	ErrorIncompleteUserInfo,
+	ErrorPendingActionExists,
+	ErrorDuplicateColorExists,
+	ErrorInvalidActionFormat,
 	ErrorMissingFile,
 
 	// Add more as needed...
@@ -217,10 +252,66 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
+	// department related error
+	ErrorDepartmentCreateRequest,
+	ErrorInvalidFormatForDepartmentPermissionGroups,
+	ErrorInvalidFormatForDepartmentPortalCards,
+	ErrorInvalidDepartmentPortalCard,
+	ErrorInvalidDepartmentPermissionGroup,
+	ErrorDepartmentAlreadyDisabled,
+	ErrorDepartmentAlreadyEnabled,
+	// Fayda
+	ErrorFaydaUserAccountEnabled,
+	ErrorFaydaUserAccountDisabled,
+	ErrorNotFaydaUser,
+
 	//hq related error response codes
 	ErrorHQNotFound,
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
+
+	//miniapp related errors
+	ErrorMiniAppNotFound,
+	ErrorMiniAppAlreadyExists,
+	ErrorMiniAppAlreadyEnabled,
+	ErrorMiniAppAlreadyDisabled,
+	ErrorMiniAppAlreadyDeleted,
+	ErrorMiniAppIDRequired,
+	ErrorMiniAppMerchantIDRequired,
+	ErrorMiniAppNameRequired,
+	ErrorMiniAppDescriptionRequired,
+	ErrorAppIconRequired,
+	ErrorInvalidAppNameFormat,
+	ErrorAppViewTypeRequired,
+	ErrorBannerImageRequired,
+	ErrorMiniAppURLRequired,
+	ErrorMiniAppMerchantIDRequired,
+	ErrorMiniAppNameRequired,
+	ErrorInvalidBooleanFormat,
+	ErrorInvalidImageFormat,
+	ErrorFileTooLarge,
+	ErrorInvalidURL,
+	ErrorIncompleteBranchProductCodes,
+	ErrorNoProductCodesProvided,
+	ErrorBothProductCodesRequired,
+	ErrorAppViewTypeInvalidOrMissing,
+	ErrorInvalidAppViewType,
+	ErrorExclusiveAppFlags,
+	ErrorUpdateMiniAppEmptyPayload,
+	//customer  and bulk relatedcode
+	UserNotFoundWithGivenID,
+	ErrorFailedToGetCustomerDetail,
+	ErrorKeyRequiredForBulkService,
+	SuccessCustomerDetailSuccessfullyFetched,
+	ErrorIdNotSetOnQueryParam,
+	CustomerDetailSuccessfullyFetched,
+	ErrorFailedToGetBlockedCustomer,
+	SuccessFullyFetchBlockCustomer,
+	UnableToFetchBulkService,
+	BulkServiceFetchSuccessfully,
+	BulkServiceEnableRequestSuccess,
+	BulkServiceDisableRequestSuccess,
+	ErrorAvatarNotExist,
 }
 
 // Success Response Codes
@@ -236,6 +327,41 @@ var (
 		Code:       "SUCCESS_AVATAR_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgAvatarCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarUpdated = ResponseCode{
+		Code:       "SUCCESS_AVATAR_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarUpdateSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarRetrieved = ResponseCode{
+		Code:       "SUCCESS_AVATAR_RETRIVED",
+		StatusCode: StatusCreated,
+		Message:    MsgAvatarRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarEnabled = ResponseCode{
+		Code:       "SUCCESS_AVATAR_ENABLED",
+		StatusCode: StatusAccepted,
+		Message:    MsgAvatarEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarDisabled = ResponseCode{
+		Code:       "SUCCESS_AVATAR_DISABLED",
+		StatusCode: StatusAccepted,
+		Message:    MsgAvatarDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAvatarDeleted = ResponseCode{
+		Code:       "SUCCESS_AVATAR_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    MsgAvatarDeletedSuccessfully,
 		Type:       "success",
 	}
 
@@ -535,6 +661,49 @@ var (
 		Message:    MsgCPSActionsRetrieved,
 		Type:       "success",
 	}
+	// cps_user related success response codes
+	SuccessCpsUserCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgCpsUserCreationRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessCpsUserUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessCpsUserDeleted = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCpsUsersRetrieved = ResponseCode{
+		Code:       "SUCCESS_CPS_USERS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUsersRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCpsUserRetrieved = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SucessCpsUserEnabled = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessCpsUserDisabled = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserDisabledSuccessfully,
+		Type:       "success",
+	}
 
 	// Wallet related success response codes
 	SuccessWalletCreationRequestSent = ResponseCode{
@@ -711,6 +880,12 @@ var (
 		Message:    "Invalid or corrupted file upload",
 		Type:       "error",
 	}
+	ErrorInvalidBooleanFormat = ResponseCode{
+		Code:       "ERROR_INVALID_BOOLEAN_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid boolean format",
+		Type:       "error",
+	}
 
 	ErrorInvalidNumberFormat = ResponseCode{
 		Code:       "ERROR_INVALID_NUMBER_FORMAT",
@@ -806,7 +981,6 @@ var (
 		Message:    "Wallet with the given name already exists",
 		Type:       "error",
 	}
-
 	ErrorWalletNotFound = ResponseCode{
 		Code:       "ERROR_WALLET_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -889,6 +1063,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAvatarAlreadyExist = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_EXIST",
+		StatusCode: StatusConflict,
+		Message:    "Avatar label already exist",
+		Type:       "error",
+	}
+
+	ErrorAvatarNotExist = ResponseCode{
+		Code:       "ERROR_AVATAR_NOT_EXIST",
+		StatusCode: StatusConflict,
+		Message:    "Avatar label not exist",
+		Type:       "error",
+	}
+
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{
 		Code:       "SUCCESS_PORTAL_CARDS_FETCHED",
@@ -917,6 +1105,13 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgUpdateActionFetchedSuccessfully,
 		Type:       "success",
+	}
+	// cps user related success response codes
+	ErrorGroupNameRequired = ResponseCode{
+		Code:       "ERROR_GROUP_NAME_REQUIRED",
+		StatusCode: StatusNotFound,
+		Message:    MsgGroupNameRequired,
+		Type:       "error",
 	}
 
 	// Permission related success response codes
@@ -962,6 +1157,12 @@ var (
 		Message:    MsgMiniAppMerchantCreateRequestSuccessfully,
 		Type:       "success",
 	}
+	SuccessMiniAppMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgMiniAppMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessUpdateRequestCreated = ResponseCode{
 		Code:       "SUCCESS_UPDATE_REQUEST_CREATED",
@@ -987,6 +1188,18 @@ var (
 	SuccessDisableRequestCreated = ResponseCode{
 		Code:       "SUCCESS_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
+		Message:    MsgDisableRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+	SuccessMiniAppEnable = ResponseCode{
+		Code:       "SUCCESS_ENABLE_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgMiniAppMerchantEnableSuccessfully,
+		Type:       "success",
+	}
+	SuccessMiniAppDesable = ResponseCode{
+		Code:       "SUCCESS_DISABLE_SUCCESS",
+		StatusCode: StatusOK,
 		Message:    MsgDisableRequestSuccessfullyCreated,
 		Type:       "success",
 	}
@@ -1027,11 +1240,42 @@ var (
 		Type:       "success",
 	}
 
-	// Department related success response codes
-	SuccessDepartmentCreated = ResponseCode{
-		Code:       "SUCCESS_DEPARTMENT_CREATED",
+	// department related success response codes
+	SuccessGetAllDepartments = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_DEPARTMENTS",
+		StatusCode: StatusOK,
+		Message:    msgGetAllDepartmentsSuccess,
+		Type:       "success",
+	}
+
+	SuccessGetDepartments = ResponseCode{
+		Code:       "SUCCESS_GET_DEPARTMENTS",
+		StatusCode: StatusOK,
+		Message:    msgGetDepartmentsSuccess,
+		Type:       "success",
+	}
+	SuccessDepartmentCreateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_CREATE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgDepartmentCreatedSuccessfully,
+		Message:    MsgDepartmentCreateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentUpdateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentEnableRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentDisableRequestedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1523,6 +1767,18 @@ var (
 		Type:       "success",
 	}
 
+	SuccessMiniAppDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgMiniAppDisableRequestSubmittedSuccessfully,
+		Type:       "success",
+	}
+	SuccessMiniAppEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgMiniAppEnableRequestSubmittedSuccessfully,
+		Type:       "success",
+	}
 	SuccessMiniAppsRetrieved = ResponseCode{
 		Code:       "SUCCESS_MINI_APPS_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1542,6 +1798,149 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgMiniAppActionCompletedSuccessfully,
 		Type:       "success",
+	}
+	// mini app handler related error response codes
+
+	ErrorMiniAppNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Mini App not found",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyExists = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "A Mini App with this name already exists",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App is already enabled",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App is already disabled",
+		Type:       "error",
+	}
+	ErrorMiniAppAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_MINI_APP_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App is already deleted",
+		Type:       "error",
+	}
+	ErrorMiniAppIDRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App ID is required",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantIDRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App Merchant ID is required",
+		Type:       "error",
+	}
+	ErrorMiniAppNameRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_NAME_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App Name is required",
+		Type:       "error",
+	}
+	ErrorMiniAppDescriptionRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_DESCRIPTION_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App Description is required",
+		Type:       "error",
+	}
+	ErrorMiniAppURLRequired = ResponseCode{
+		Code:       "ERROR_MINI_APP_URL_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Mini App URL is required",
+		Type:       "error",
+	}
+
+	ErrorAppIconRequired = ResponseCode{
+		Code:       "ERROR_APP_ICON_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "App Icon is required",
+		Type:       "error",
+	}
+	ErrorInvalidAppNameFormat = ResponseCode{
+		Code:       "ERROR_INVALID_APP_NAME_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "App Name must not contain special characters",
+		Type:       "error",
+	}
+	ErrorAppViewTypeRequired = ResponseCode{
+		Code:       "ERROR_APP_VIEW_TYPE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "App View Type is required",
+		Type:       "error",
+	}
+	ErrorBannerImageRequired = ResponseCode{
+		Code:       "ERROR_BANNER_IMAGE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Banner Image is required",
+		Type:       "error",
+	}
+
+	ErrorInvalidImageFormat = ResponseCode{
+		Code:       "ERROR_INVALID_IMAGE_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    "Image must be a valid format (jpeg, png, gif)",
+		Type:       "error",
+	}
+
+	ErrorInvalidURL = ResponseCode{
+		Code:       "ERROR_INVALID_URL",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid URL format",
+		Type:       "error",
+	}
+	ErrorIncompleteBranchProductCodes = ResponseCode{
+		Code:       "ERROR_INCOMPLETE_BRANCH_PRODUCT_CODES",
+		StatusCode: StatusBadRequest,
+		Message:    "Incomplete product codes for branch",
+		Type:       "error",
+	}
+	ErrorNoProductCodesProvided = ResponseCode{
+		Code:       "ERROR_NO_PRODUCT_CODES_PROVIDED",
+		StatusCode: StatusBadRequest,
+		Message:    "No product codes provided",
+		Type:       "error",
+	}
+	ErrorBothProductCodesRequired = ResponseCode{
+		Code:       "ERROR_BOTH_PRODUCT_CODES_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Product codes for both branches required",
+		Type:       "error",
+	}
+	ErrorAppViewTypeInvalidOrMissing = ResponseCode{
+		Code:       "ERROR_APP_VIEW_TYPE_INVALID_OR_MISSING",
+		StatusCode: StatusBadRequest,
+		Message:    "App View Type is invalid or missing",
+		Type:       "error",
+	}
+	ErrorInvalidAppViewType = ResponseCode{
+		Code:       "ERROR_INVALID_APP_VIEW_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid App View Type",
+		Type:       "error",
+	}
+	ErrorExclusiveAppFlags = ResponseCode{
+		Code:       "ERROR_EXCLUSIVE_APP_FLAGS",
+		StatusCode: StatusBadRequest,
+		Message:    "IsEventMiniApp and IsThreeClick cannot both be true",
+		Type:       "error",
+	}
+	ErrorUpdateMiniAppEmptyPayload = ResponseCode{
+		Code:       "ERROR_UPDATE_MINI_APP_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for mini app update",
+		Type:       "error",
 	}
 
 	// Feedback Handler related success response codes
@@ -1665,6 +2064,55 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_LOGO_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationCompanyLogoUpdateSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetCheckerActionApproved = ResponseCode{
+		Code:       "BUDGET_ICON_CHECKER_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCheckerActionApprovedSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_ICON_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_COLOR_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetIconsFetched = ResponseCode{
+		Code:       "BUDGET_ICONS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetIconsFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessBudgetColorsFetched = ResponseCode{
+		Code:       "BUDGET_COLORS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetColorsFetchedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1891,6 +2339,20 @@ var (
 		Message:    msgDeleteBankRequestSuccess,
 		Type:       "success",
 	}
+
+	// Fayda Account
+	SuccessFaydaEnableActionCreated = ResponseCode{
+		Code:       "SUCCESS_FAYDA_ENABLE_ACTION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgFaydaAccountEnableCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessFaydaDisableActionCreated = ResponseCode{
+		Code:       "SUCCESS_FAYDA_DISABLE_ACTION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgFaydaAccountDisableCreatedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -1942,6 +2404,14 @@ var (
 		Message:    MSGAccountNumberRequired,
 		Type:       "error",
 	}
+
+	ErrorDuplicateColorExists = ResponseCode{
+		Code:       "ERROR_DUPLICATE_COLOR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateColorExists,
+		Type:       "error",
+	}
+
 	ErrorFeedbackIDRequired = ResponseCode{
 		Code:       "ERROR_FEEDBACK_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1956,8 +2426,15 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidJSONPayload = ResponseCode{
+		Code:       "ERROR_INVALID_JSON_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidJSONPayload,
+		Type:       "error",
+	}
+
 	ErrorIncompleteUserInfo = ResponseCode{
-		Code:       "ERROR_INCOMPLET_USER_INFO",
+		Code:       "ERROR_INCOMPLTE_USER_INFO",
 		StatusCode: StatusBadRequest,
 		Message:    MSGIncompleteUserInfo,
 		Type:       "error",
@@ -2105,6 +2582,12 @@ var (
 		Code:       "ERROR_OTP_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgOTPNotFound,
+		Type:       "error",
+	}
+	ErrorFailedToDecodeRequest = ResponseCode{
+		Code:       "ERROR_FAILED_TO_DECODE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "Failed to decode request",
 		Type:       "error",
 	}
 
@@ -2401,6 +2884,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidInputParameter = ResponseCode{
+		Code:       "ERROR_INVALID_INPUT_PARAMETER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidInputParameter,
+		Type:       "error",
+	}
+
 	ErrorInvalidEmail = ResponseCode{
 		Code:       "ERROR_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
@@ -2446,6 +2936,19 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
+    Type:       "error",
+	}
+
+	ErrorInvalidAction = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidAction,
+		Type:       "error",
+	}
+	ErrorInvalidActionFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidActionFormat,
 		Type:       "error",
 	}
 
@@ -2766,6 +3269,12 @@ var (
 		Message:    MsgMiniAppMerchantMarshalFailed,
 		Type:       "error",
 	}
+	ErrorMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "MiniApp merchant not found",
+		Type:       "error",
+	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",
@@ -2799,6 +3308,26 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_FETCH_PERMISSIONS_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgMiniAppMerchantFetchPermissionsFailed,
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantDeleteFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDeleteFailed,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantEnableFailed,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDisableFailed,
 		Type:       "error",
 	}
 
@@ -3024,19 +3553,35 @@ var (
 		Message:    MsgPermissionGroupRequestCreationFailed,
 		Type:       "error",
 	}
+	ErrorPermissionGroupNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgPermissionGroupNotFound,
+		Type:       "error",
+	}
+	ErrorPermissionGroupValidationFailed = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_VALIDATION_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPermissionGroupValidationFailed,
+		Type:       "error",
+	}
+	ErrorPermissionCategoryNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_CATEGORY_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPermissionCategoryNotFound,
+		Type:       "error",
+	}
+	ErrorPermissionGroupRequired = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPermissionGroupRequired,
+		Type:       "error",
+	}
 
 	ErrorPermissionGroupRequestUpdateFailed = ResponseCode{
 		Code:       "ERROR_PERMISSION_GROUP_REQUEST_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgPermissionGroupRequestUpdateFailed,
-		Type:       "error",
-	}
-
-	// Department related error response codes
-	ErrorDepartmentCreationSuccess = ResponseCode{
-		Code:       "ERROR_DEPARTMENT_CREATION_SUCCESS",
-		StatusCode: StatusCreated,
-		Message:    MsgDepartmentCreationSuccess,
 		Type:       "error",
 	}
 
@@ -3252,6 +3797,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorPendingActionExists = ResponseCode{
+		Code:       "ERROR_PENDING_ACTION_EXISTS",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgPendingActionExists,
+		Type:       "error",
+	}
 	ErrorInvalidRequestBody = ResponseCode{
 		Code:       "ERROR_INVALID_REQUEST_BODY",
 		StatusCode: StatusBadRequest,
@@ -3355,5 +3906,158 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgOneOrMoreInvalidCodes,
 		Type:       "error",
+	}
+
+
+	// department related error
+	ErrorInvalidFormatForDepartmentName = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentName,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForDepartmentPortalCards = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_PORTAL_CARDS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentPortalCards,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForDepartmentPermissionGroups = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_DEPARTMENT_PERMISSION_GROUPS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestDepartmentPermissionGroups,
+		Type:       "error",
+	}
+	ErrorInvalidDepartmentPermissionGroup = ResponseCode{
+		Code:       "ERROR_INVALID_DEPARTMENT_PERMISSION_GROUP",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDepartmentPermissionGroup,
+		Type:       "error",
+	}
+	ErrorInvalidDepartmentPortalCard = ResponseCode{
+		Code:       "ERROR_INVALID_DEPARTMENT_PORTAL_CARD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDepartmentPortalCard,
+		Type:       "error",
+	}
+	ErrorDepartmentCreateRequest = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_CREATION_REQUEST",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentCreateRequestFail,
+		Type:       "error",
+	}
+
+	ErrorDepartmentAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDepartmentAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDepartmentAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
+	// fayda
+	ErrorFaydaUserAccountEnabled = ResponseCode{
+		Code:       "FAYDA_USER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgUserFaydaAccountAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorFaydaUserAccountDisabled = ResponseCode{
+		Code:       "FAYDA_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgUserFaydaAccountAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorNotFaydaUser = ResponseCode{
+		Code:       "USER_IS_NOT_FAYDA_USER",
+		StatusCode: StatusNotFound,
+		Message:    MsgNotFaydaUser,
+		Type:       "error",
+	}
+
+	ErrorKeyRequiredForBulkService = ResponseCode{
+		Code:       "ERROR_KEY_REQUIRED_FOR_BULK_SERVICE",
+		StatusCode: StatusBadRequest,
+		Message:    "Key is required for bulk service operation",
+		Type:       "error",
+	}
+
+	ErrorFailedToGetCustomerDetail = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_CUSTOMER_DETAIL",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get customer detail",
+		Type:       "error",
+	}
+	UserNotFoundWithGivenID = ResponseCode{
+		Code:       "USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "user not found for given id",
+		Type:       "error",
+	}
+
+	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail(s) fetched successfully",
+		Type:       "success",
+	}
+
+	ErrorIdNotSetOnQueryParam = ResponseCode{
+		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
+		StatusCode: StatusBadRequest,
+		Message:    "ID not set on query parameter",
+		Type:       "error",
+	}
+
+	CustomerDetailSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer detail fetched successfully",
+		Type:       "success",
+	}
+	ErrorFailedToGetBlockedCustomer = ResponseCode{
+		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get blocked customer",
+		Type:       "error",
+	}
+
+	SuccessFullyFetchBlockCustomer = ResponseCode{
+		Code:       "SUCCESSFULLY_FETCH_BLOCKED_CUSTOMER",
+		StatusCode: StatusOK,
+		Message:    "Successfully fetched blocked customer(s)",
+		Type:       "success",
+	}
+
+	UnableToFetchBulkService = ResponseCode{
+		Code:       "ERROR_UNABLE_TO_FETCH_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unable to fetch bulk service",
+		Type:       "error",
+	}
+
+	BulkServiceFetchSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Bulk service(s) fetched successfully",
+		Type:       "success",
+	}
+
+	BulkServiceEnableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_ENABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service enable request processed successfully",
+		Type:       "success",
+	}
+
+	BulkServiceDisableRequestSuccess = ResponseCode{
+		Code:       "SUCCESS_BULK_SERVICE_DISABLE_REQUEST",
+		StatusCode: StatusOK,
+		Message:    "Bulk service disable request processed successfully",
+		Type:       "success",
 	}
 )
