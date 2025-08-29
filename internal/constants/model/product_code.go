@@ -12,11 +12,11 @@ import (
 
 type ProductCode struct {
 	ID                 string       `json:"id" bson:"_id"`
-	ProductName        string       `json:"product_name" bson:"product_name"`
+	ProductName        string       `json:"product_name" bson:"service_name"`
 	CBEProductCodes    ProductCodes `json:"cbe_product_codes" bson:"cbe_product_codes"`
 	CBEIFBProductCodes ProductCodes `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
 	CreatedAt          time.Time    `json:"created_at" bson:"created_at"`
-	LastUpdatedAt      time.Time    `json:"last_updated_at" bson:"last_updated_at"`
+	LastUpdatedAt      time.Time    `json:"last_modified_at" bson:"last_modified_at"`
 }
 
 type ProductCodes struct {

@@ -37,14 +37,7 @@ func NewProductCodeService(repo storage.ProductCodeRepository, cpsService servic
 func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("Authorization requested for action: %s", cpsAction.RequestAction)
 	cpsAction.ActionStatus = "APPROVED"
-	err := s.repo.Update(ctx, cpsAction.CurrentAction.(*model.ProductCode))
-	if err == nil{
-		err =  s.cpsService.ApproveCPSAction(ctx,cpsAction)
-		if err != nil{
-			err = s.RollBack(ctx,cpsAction)
-		}
-	}
-	return cpsAction,err
+	return cpsAction,s.repo.Update(ctx, cpsAction.CurrentAction.(*model.ProductCode))
 }
 
 

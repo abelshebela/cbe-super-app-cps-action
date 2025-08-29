@@ -1,9 +1,6 @@
 package productcode
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -11,6 +8,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -60,7 +60,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[productcode.FetchAll] Failed to execute aggregation: %v", err)
-		return nil, fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 	defer cursor.Close(ctx)
 
@@ -72,7 +72,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	}
 	if err = cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("[productcode.FetchAll] Failed to decode aggregation results: %v", err)
-		return nil, fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
 	if len(results) == 0 {
@@ -110,9 +110,11 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 		searchKeys["service_name"] = searchRegex
 	}
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+	fmt.Println("this is the data from the filter builder")
+	fmt.Println(filter)
 	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, fmt.Errorf(localization.ErrorUnexpectedError.Code)
+		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
 	}
 	pdata := []*model.ProductCode{}
 	for i := range data {
@@ -120,7 +122,7 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 	}
 	total, err := s.producCodeDal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, fmt.Errorf(localization.ErrorUnexpectedError.Code)
+		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]*model.ProductCode]{
@@ -134,7 +136,7 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 
 	objID, ok := local_util.StringToObjectID(id)
 	if !ok {
-		return nil, fmt.Errorf("ERROR_INVALID_ID")
+		return nil, fmt.Errorf("%s", "ERROR_INVALID_ID")
 	}
 	filter := bson.M{
 		"_id":        objID,
@@ -144,10 +146,10 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Errorf("[productcode.FetchByID] Product code not found for ID %s: %v", id, err)
-			return nil, fmt.Errorf("ERROR_PRODCUT_CODE_NOT_FOUND")
+			return nil, fmt.Errorf("%s", "ERROR_PRODCUT_CODE_NOT_FOUND")
 		}
 		p.logger.Errorf("[productcode.FetchByID] Database query failed for ID %s: %v", id, err)
-		return nil, fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 	pc := productcode.ToProducCode(*services)
 
@@ -160,7 +162,7 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 
 	objID, ok := local_util.StringToObjectID(productCode.ID)
 	if !ok {
-		return fmt.Errorf("ERROR_INVALID_ID")
+		return fmt.Errorf("%s", "ERROR_INVALID_ID")
 	}
 	filter := bson.M{
 		"_id":        objID,
@@ -172,10 +174,10 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Errorf("[productcode.Update] Product code not found for ID %s: %v", productCode.ID, err)
-			return fmt.Errorf("ERROR_PRODCUT_CODE_NOT_FOUND")
+			return fmt.Errorf("%s", "ERROR_PRODCUT_CODE_NOT_FOUND")
 		}
 		p.logger.Errorf("[productcode.Update] Database update failed for ID %s: %v", productCode.ID, err)
-		return fmt.Errorf("ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+		return fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
 	return nil
