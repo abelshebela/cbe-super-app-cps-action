@@ -28,20 +28,6 @@ func NonEmptyString(s, fallback string) string {
 	return fallback
 }
 
-func NonZeroTime(t, fallback time.Time) time.Time {
-	if !t.IsZero() {
-		return t
-	}
-	return fallback
-}
-
-func NonZeroUint64(n, fallback uint64) uint64 {
-	if n != 0 {
-		return n
-	}
-	return fallback
-}
-
 func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
 	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
 
@@ -78,7 +64,7 @@ func ToWalletDoc(name, code, URL string) *model.Wallet {
 		Avatar:         URL,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
-		Enabled:        true,
+		Enabled:        false,
 		IsDeleted:      false,
 		DeletedAt:      time.Time{},
 	}

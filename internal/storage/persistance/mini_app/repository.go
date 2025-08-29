@@ -141,8 +141,7 @@ func (m *MiniAppStorage) FindByID(ctx context.Context, id string) (*model.MiniAp
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	result := MiniAppMapper(doc)
-	return &result, nil
+	return doc, nil
 }
 
 func (m *MiniAppStorage) Find(ctx context.Context, name string) (*model.MiniApp, error) {
@@ -166,8 +165,7 @@ func (m *MiniAppStorage) Find(ctx context.Context, name string) (*model.MiniApp,
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	result := MiniAppMapper(doc)
-	return &result, nil
+	return doc, nil
 }
 
 func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error) {
@@ -194,12 +192,6 @@ func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	var miniApps []*model.MiniApp
-	for _, doc := range docs {
-		miniApp := MiniAppMapper(doc)
-		miniApps = append(miniApps, &miniApp)
-	}
-
 	total, err := m.dal.TotalCount(ctx, filter)
 	if err != nil {
 		m.logger.Errorf("Count MiniApp failed: %v", err)
@@ -208,10 +200,10 @@ func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.PerPage, filterParam.Page)
 
-	m.logger.Infof("FindAllWithPagination returning %d MiniApps, total: %d", len(miniApps), total)
+	m.logger.Infof("FindAllWithPagination returning %d MiniApps, total: %d", len(docs), total)
 
 	return &types.PaginatedResponse[[]*model.MiniApp]{
-		Data: miniApps,
+		Data: docs,
 		Meta: meta,
 	}, nil
 }

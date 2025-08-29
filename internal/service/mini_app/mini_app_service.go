@@ -127,6 +127,7 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Errorf("FindByID failed, app_id: %s, error: %v", req.ID, err)
 		return errors.New(localization.ErrorMiniAppNotFound.Code)
 	}
+	miniApp := miniappcore.BuildMiniAppFromRequest(*req, false)
 
 	var appIconURL, bannerImageURL string
 	if req.AppIcon != nil {
@@ -151,7 +152,8 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		bannerImageURL = prevMiniApp.BannerImage
 	}
 
-	miniApp := miniappcore.MiniAppMapperForUpdate(prevMiniApp, *req, appIconURL, bannerImageURL)
+	miniApp.AppIcon = appIconURL
+	miniApp.BannerImage = bannerImageURL
 
 	s.logger.Infof("MiniApp updated successfully, app_id: %s", req.ID)
 	err = miniappcore.HandleCPSAction(ctx, s.cpsService, req.ID, constants.RequestUpdateMiniApp, miniApp, prevMiniApp, constants.ActionUpdate)

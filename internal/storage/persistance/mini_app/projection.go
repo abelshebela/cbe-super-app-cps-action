@@ -9,13 +9,25 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MiniAppMapper(doc *model.MiniApp) model.MiniApp {
-	return *doc
-}
+
 
 func MiniAppDocumentMapper(miniApp model.MiniApp) *model.MiniApp {
 	if miniApp.ID == bson.NilObjectID {
 		miniApp.ID = bson.NewObjectID()
+	}
+
+	if miniApp.CreatedAt.IsZero() {
+		miniApp.CreatedAt = time.Now()
+	}
+	if miniApp.LastModifiedAt.IsZero() {
+		miniApp.LastModifiedAt = time.Now()
+	}
+	if miniApp.IsDeleted {
+		miniApp.IsDeleted = false
+	}
+	if miniApp.Enabled {
+		miniApp.Enabled = false
+
 	}
 	return &miniApp
 }
@@ -102,7 +114,7 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["stage"] = miniApp.Stage
 	}
 	if miniApp.IsEventMiniApp {
-		update["is_event_mini_app"] = miniApp.IsEventMiniApp
+		update["is_miniApp_mini_app"] = miniApp.IsEventMiniApp
 	}
 	if miniApp.IsThreeClick {
 		update["is_three_click"] = miniApp.IsThreeClick
