@@ -141,7 +141,7 @@ type AccountBlockRepository interface {
 	FindBranchByID(ctx context.Context, id string) (*model.Branch, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 
-	GetCityByCode(ctx context.Context, cityCode string)(*model.City, error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
 	CreateCity(ctx context.Context, city *model.City) error
 	UpdateCity(ctx context.Context, id string, city *model.City) error
 	DeleteCity(ctx context.Context, id string) error
@@ -149,7 +149,7 @@ type AccountBlockRepository interface {
 	FindCityByID(ctx context.Context, id string) (*model.City, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
 
-	GetRegionByCode(ctx context.Context, regionCode string)(*model.Region, error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
 	CreateRegion(ctx context.Context, region *model.Region) error
 	UpdateRegion(ctx context.Context, id string, region *model.Region) error
 	DeleteRegion(ctx context.Context, id string) error
@@ -157,14 +157,13 @@ type AccountBlockRepository interface {
 	FindRegionByID(ctx context.Context, id string) (*model.Region, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
 
-	GetDistrictByCode(ctx context.Context, districtCode string)(*model.District, error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
 	CreateDistrict(ctx context.Context, district *model.District) error
 	UpdateDistrict(ctx context.Context, id string, district *model.District) error
 	DeleteDistrict(ctx context.Context, id string) error
 	EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-	
 }
 
 type AdvertRepository interface {
@@ -262,14 +261,14 @@ type DonationCompanyRepository interface {
 
 type MiniAppRepository interface {
 	Create(ctx context.Context, miniApp *model.MiniApp) error
-	Update(ctx context.Context, miniApp *model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
-	FindByCode(ctx context.Context, code string) (*model.MiniApp, error)
-	FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
+	Find(ctx context.Context, name string) (*model.MiniApp, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
+	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
-
 type EventRepository interface {
 	Create(ctx context.Context, event *model.Event) error
 	Update(ctx context.Context, id string, event *model.Event) error
@@ -343,13 +342,16 @@ type BranchRepository interface {
 }
 
 type MiniAppMerchantRepository interface {
-	Create(ctx context.Context, merchant *model.MiniAppMerchant) error
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
+	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
+	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
+	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
+	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (bool, error)
 }
 
 type NotificationRepository interface {
@@ -394,9 +396,6 @@ type WalletRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
 }
 
-type PermissionGroupRepository interface {
-	ValidatePermissionGroupByID(ctx context.Context, ids []string) (bool, error)
-}
 type FaydaRepository interface {
 	Update(ctx context.Context, user *model.User, isEnabled bool) error
 	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
@@ -411,4 +410,20 @@ type BulkServiceRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
 	Update(ctx context.Context, keys []string, state bool) error
 	FindAll(ctx context.Context) ([]*model.APPAccessList, error)
+}
+type PermissionRepository interface {
+	Create(ctx context.Context, permissionGroup *model.PermissionGroup) error
+	Update(ctx context.Context, id string, permissionGroup *model.PermissionGroup) error
+	Delete(ctx context.Context, id string) error
+	// FindByID(ctx context.Context, id string) (*model.PermissionGroup, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
+
+	// Permission category operations
+	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
+	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
+
+	// Permission group operations
+	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
+	CheckPermissionGroupExists(groupName string) bool
+	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
 }

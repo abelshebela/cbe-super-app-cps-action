@@ -124,10 +124,14 @@ func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []st
 		return false, fmt.Errorf("PORTAL_CARD_ARRAY_EMPTY")
 	}
 
-	var cleaned []string
+	var cleaned []bson.ObjectID
 	for _, id := range ids {
 		if trimmed := strings.TrimSpace(id); trimmed != "" {
-			cleaned = append(cleaned, trimmed)
+			objID, err := bson.ObjectIDFromHex(trimmed)
+			if err != nil {
+				return false, errors.New(localization.ErrorInvalidID.Code)
+			}
+			cleaned = append(cleaned, objID)
 		}
 	}
 
@@ -143,7 +147,11 @@ func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []st
 		return false, fmt.Errorf("DB_ERROR: %w", err)
 	}
 
-	if len(cleaned) != len(cards) {
+	for _, card := range cards {
+		fmt.Println(card)
+	}
+
+	if len(ids) != len(cards) {
 		return false, fmt.Errorf("PORTAL_CARD_NOT_FOUND")
 	}
 
