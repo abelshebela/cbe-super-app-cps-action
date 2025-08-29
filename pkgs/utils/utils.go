@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	mathrand "math/rand"
@@ -19,12 +20,13 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-	"errors"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
+	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -307,12 +309,22 @@ func MapSlice[T any, R any](items []T, mapper func(T) R) []R {
 	return results
 }
 
-// nonEmptyString returns the new value if non-empty, otherwise the old value
-func NonEmptyString(new, old string) string {
-	if new != "" {
-		return new
+// nonEmptyString returns if non-empty, otherwise fallback
+func NonEmptyString(s, fallback string) string {
+	if s != "" {
+		return s
 	}
-	return old
+	return fallback
+}
+
+func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return "", fmt.Errorf(localization.ErrorInvalidID.Code)
+	}
+	return id, nil
 }
 
 func NonEmptyBool(newVal, oldVal bool) bool {
@@ -488,4 +500,8 @@ func JsonUnmarshal[T any](data any) (*T, error) {
 	}
 
 	return jsonData, nil
+}
+
+func ExtraSpaceRemover(s string) string{
+	return strings.TrimSpace(strings.Join(strings.Split(s," ")," "))
 }
