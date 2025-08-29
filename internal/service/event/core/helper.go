@@ -20,6 +20,8 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/v2/mongo"
+
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -123,11 +125,11 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 
 	merchant, err := merchantService.FindByID(ctx, event.MerchantID)
 	if err != nil {
-		log.Println("Failed to get merchant details", "merchantID", event.MerchantID, "error", err)
-		if err.Error() == "No Mini App merchant with these merchant!" {
-			return errors.New(localization.ErrorMerchantNotFound.Code)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Println("Failed to get merchant details", "merchantID", event.MerchantID, "error", err)
+			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	log.Println("  merchant details merchant", merchant)
 	event.MercahntName = merchant.MerchantName
