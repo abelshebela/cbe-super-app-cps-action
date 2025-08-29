@@ -2,8 +2,6 @@ package event
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -52,7 +50,6 @@ func EventDocumentMapper(event model.Event) *model.EventDocument {
 	}
 	if event.Enabled {
 		event.Enabled = false
-
 	}
 
 	return &model.EventDocument{
@@ -79,6 +76,7 @@ func EventDocumentMapper(event model.Event) *model.EventDocument {
 		LastModifiedAt:      event.LastModifiedAt,
 	}
 }
+
 func EventDocumentToUpdateBsonM(event model.EventDocument) bson.M {
 	update := bson.M{
 		"last_modified_at": time.Now(),
@@ -110,7 +108,7 @@ func EventDocumentToUpdateBsonM(event model.EventDocument) bson.M {
 		update["ticket"] = event.Ticket
 	}
 
- 	if !reflect.DeepEqual(event.Restriction, types.Restriction{}) {
+	if event.Restriction.Type != "" || event.Restriction.Description != "" {
 		restriction := bson.M{}
 		if event.Restriction.Type != "" {
 			restriction["type"] = event.Restriction.Type
@@ -121,80 +119,78 @@ func EventDocumentToUpdateBsonM(event model.EventDocument) bson.M {
 		update["restriction"] = restriction
 	}
 
- 	if string(event.Status) != "" {
+	// Status
+	if string(event.Status) != "" {
 		update["status"] = event.Status
 	}
 
- 	if !reflect.DeepEqual(event.EventInformation, types.EventInformation{}) {
-		info := bson.M{}
-		if !event.EventInformation.StartDate.IsZero() {
-			info["start_date"] = event.EventInformation.StartDate
-		}
-		if !event.EventInformation.DueDate.IsZero() {
-			info["due_date"] = event.EventInformation.DueDate
-		}
-		if event.EventInformation.Description != "" {
-			info["description"] = event.EventInformation.Description
-		}
-		if event.EventInformation.Cover != "" {
-			info["cover"] = event.EventInformation.Cover
-		}
-		if event.EventInformation.VideoLink != "" {
-			info["video_link"] = event.EventInformation.VideoLink
-		}
+	info := bson.M{}
+	if !event.EventInformation.StartDate.IsZero() {
+		info["start_date"] = event.EventInformation.StartDate
+	}
+	if !event.EventInformation.DueDate.IsZero() {
+		info["due_date"] = event.EventInformation.DueDate
+	}
+	if event.EventInformation.Description != "" {
+		info["description"] = event.EventInformation.Description
+	}
+	if event.EventInformation.Cover != "" {
+		info["cover"] = event.EventInformation.Cover
+	}
+	if event.EventInformation.VideoLink != "" {
+		info["video_link"] = event.EventInformation.VideoLink
+	}
+	if len(info) > 0 {
 		update["event_information"] = info
 	}
 
- 	if !reflect.DeepEqual(event.TicketStatistics, types.TicketStatistics{}) {
-		stats := bson.M{}
-		if event.TicketStatistics.Category != "" {
-			stats["category"] = event.TicketStatistics.Category
-		}
-		if event.TicketStatistics.Revenue != 0 {
-			stats["revenue"] = event.TicketStatistics.Revenue
-		}
-		if event.TicketStatistics.NumberOfSoldTicket != 0 {
-			stats["number_of_sold_ticket"] = event.TicketStatistics.NumberOfSoldTicket
-		}
+	stats := bson.M{}
+	if event.TicketStatistics.Category != "" {
+		stats["category"] = event.TicketStatistics.Category
+	}
+	if event.TicketStatistics.Revenue != 0 {
+		stats["revenue"] = event.TicketStatistics.Revenue
+	}
+	if event.TicketStatistics.NumberOfSoldTicket != 0 {
+		stats["number_of_sold_ticket"] = event.TicketStatistics.NumberOfSoldTicket
+	}
+	if len(stats) > 0 {
 		update["ticket_statistics"] = stats
 	}
 
- 	if !reflect.DeepEqual(event.TicketInformation, types.TicketInformation{}) {
-		info := bson.M{}
-		if event.TicketInformation.TotalNumberOfTicket != 0 {
-			info["total_number_of_ticket"] = event.TicketInformation.TotalNumberOfTicket
-		}
-		if event.TicketInformation.TotalNumberOfAvailableTicket != 0 {
-			info["total_number_of_available_ticket"] = event.TicketInformation.TotalNumberOfAvailableTicket
-		}
-		if event.TicketInformation.TotalNumberOFUnsoldTicket != 0 {
-			info["total_number_of_unsold_ticket"] = event.TicketInformation.TotalNumberOFUnsoldTicket
-		}
-		update["ticket_information"] = info
+	tInfo := bson.M{}
+	if event.TicketInformation.TotalNumberOfTicket != 0 {
+		tInfo["total_number_of_ticket"] = event.TicketInformation.TotalNumberOfTicket
+	}
+	if event.TicketInformation.TotalNumberOfAvailableTicket != 0 {
+		tInfo["total_number_of_available_ticket"] = event.TicketInformation.TotalNumberOfAvailableTicket
+	}
+	if event.TicketInformation.TotalNumberOFUnsoldTicket != 0 {
+		tInfo["total_number_of_unsold_ticket"] = event.TicketInformation.TotalNumberOFUnsoldTicket
+	}
+	if len(tInfo) > 0 {
+		update["ticket_information"] = tInfo
 	}
 
- 	if !reflect.DeepEqual(event.MerchantInformation, types.MerchantInformation{}) {
-		info := bson.M{}
-		if event.MerchantInformation.MerchantID != "" {
-			info["merchant_id"] = event.MerchantInformation.MerchantID
-		}
-		if event.MerchantInformation.MercahntName != "" {
-			info["merchant_name"] = event.MerchantInformation.MercahntName
-		}
-		if event.MerchantInformation.MerchantPhoneNumber != "" {
-			info["merchant_phone_number"] = event.MerchantInformation.MerchantPhoneNumber
-		}
-		if event.MerchantInformation.MerchantEmail != "" {
-			info["merchant_email"] = event.MerchantInformation.MerchantEmail
-		}
-		update["merchant_information"] = info
+	// MerchantInformation struct
+	mInfo := bson.M{}
+	if event.MerchantInformation.MerchantID != "" {
+		mInfo["merchant_id"] = event.MerchantInformation.MerchantID
+	}
+	if event.MerchantInformation.MercahntName != "" {
+		mInfo["merchant_name"] = event.MerchantInformation.MercahntName
+	}
+	if event.MerchantInformation.MerchantPhoneNumber != "" {
+		mInfo["merchant_phone_number"] = event.MerchantInformation.MerchantPhoneNumber
+	}
+	if event.MerchantInformation.MerchantEmail != "" {
+		mInfo["merchant_email"] = event.MerchantInformation.MerchantEmail
+	}
+	if len(mInfo) > 0 {
+		update["merchant_information"] = mInfo
 	}
 
-	 
 	update["has_restriction"] = event.HasRestriction
-
-  
 
 	return update
 }
-

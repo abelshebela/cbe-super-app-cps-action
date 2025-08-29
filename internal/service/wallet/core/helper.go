@@ -66,7 +66,6 @@ func ToWalletDoc(name, code, URL string) *model.Wallet {
 		LastModifiedAt: time.Now(),
 		Enabled:        false,
 		IsDeleted:      false,
-		DeletedAt:      time.Time{},
 	}
 }
 

@@ -2,20 +2,15 @@ package mini_app
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-
-
 func MiniAppDocumentMapper(miniApp model.MiniApp) *model.MiniApp {
 	if miniApp.ID == bson.NilObjectID {
 		miniApp.ID = bson.NewObjectID()
 	}
-
 	if miniApp.CreatedAt.IsZero() {
 		miniApp.CreatedAt = time.Now()
 	}
@@ -27,7 +22,6 @@ func MiniAppDocumentMapper(miniApp model.MiniApp) *model.MiniApp {
 	}
 	if miniApp.Enabled {
 		miniApp.Enabled = false
-
 	}
 	return &miniApp
 }
@@ -47,11 +41,13 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["banner_image"] = miniApp.BannerImage
 	}
 	if miniApp.CommissionGLAccount != "" {
-		update["commison_gl_account"] = miniApp.CommissionGLAccount
+		update["commission_gl_account"] = miniApp.CommissionGLAccount
 	}
 	if miniApp.AppType != "" {
 		update["app_type"] = miniApp.AppType
 	}
+
+	// Array field
 	if len(miniApp.ProductCode) > 0 {
 		productCodes := make([]bson.M, len(miniApp.ProductCode))
 		for i, pc := range miniApp.ProductCode {
@@ -65,42 +61,48 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		}
 		update["product_code"] = productCodes
 	}
-	if !reflect.DeepEqual(miniApp.Credential, types.CredentialInformation{}) {
-		cred := bson.M{
-			"id": bson.NewObjectID(),
+
+	// Credential struct: check if any field is non-empty
+	cred := miniApp.Credential
+	if cred.Environment != "" || cred.MerchantAppID != "" || cred.FabricAppID != "" ||
+		cred.ShortCode != "" || cred.AppSecret != "" || cred.PrivateKey != "" ||
+		cred.PublicKey != "" || cred.MiniAppCode != "" || cred.Signature != "" ||
+		!cred.Timestamp.IsZero() {
+
+		credMap := bson.M{"id": bson.NewObjectID()}
+		if cred.Environment != "" {
+			credMap["environment"] = cred.Environment
 		}
-		if miniApp.Credential.Environment != "" {
-			cred["environment"] = miniApp.Credential.Environment
+		if cred.MerchantAppID != "" {
+			credMap["merchant_appid"] = cred.MerchantAppID
 		}
-		if miniApp.Credential.MerchantAppID != "" {
-			cred["merchant_appid"] = miniApp.Credential.MerchantAppID
+		if cred.FabricAppID != "" {
+			credMap["fabric_appid"] = cred.FabricAppID
 		}
-		if miniApp.Credential.FabricAppID != "" {
-			cred["fabric_appid"] = miniApp.Credential.FabricAppID
+		if cred.ShortCode != "" {
+			credMap["short_code"] = cred.ShortCode
 		}
-		if miniApp.Credential.ShortCode != "" {
-			cred["short_code"] = miniApp.Credential.ShortCode
+		if cred.AppSecret != "" {
+			credMap["app_secret"] = cred.AppSecret
 		}
-		if miniApp.Credential.AppSecret != "" {
-			cred["app_secret"] = miniApp.Credential.AppSecret
+		if cred.PrivateKey != "" {
+			credMap["private_key"] = cred.PrivateKey
 		}
-		if miniApp.Credential.PrivateKey != "" {
-			cred["private_key"] = miniApp.Credential.PrivateKey
+		if cred.PublicKey != "" {
+			credMap["public_key"] = cred.PublicKey
 		}
-		if miniApp.Credential.PublicKey != "" {
-			cred["public_key"] = miniApp.Credential.PublicKey
+		if cred.MiniAppCode != "" {
+			credMap["miniapp_code"] = cred.MiniAppCode
 		}
-		if miniApp.Credential.MiniAppCode != "" {
-			cred["miniapp_code"] = miniApp.Credential.MiniAppCode
+		if cred.Signature != "" {
+			credMap["signature"] = cred.Signature
 		}
-		if miniApp.Credential.Signature != "" {
-			cred["signature"] = miniApp.Credential.Signature
+		if !cred.Timestamp.IsZero() {
+			credMap["timestamp"] = cred.Timestamp
 		}
-		if !miniApp.Credential.Timestamp.IsZero() {
-			cred["timestamp"] = miniApp.Credential.Timestamp
-		}
-		update["credential"] = cred
+		update["credential"] = credMap
 	}
+
 	if miniApp.MerchantID != "" {
 		update["merchant_id"] = miniApp.MerchantID
 	}
@@ -114,7 +116,7 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["stage"] = miniApp.Stage
 	}
 	if miniApp.IsEventMiniApp {
-		update["is_miniApp_mini_app"] = miniApp.IsEventMiniApp
+		update["is_event_mini_app"] = miniApp.IsEventMiniApp
 	}
 	if miniApp.IsThreeClick {
 		update["is_three_click"] = miniApp.IsThreeClick

@@ -36,25 +36,20 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 		})
 	}
 
-	credentials := types.CredentialInformation{
-		ID:            bson.NewObjectID(),
-		Environment:   constants.UatEnvironment,
-		MerchantAppID: req.Credential.MerchantAppID,
-		FabricAppID:   req.Credential.FabricAppID,
-		ShortCode:     req.Credential.ShortCode,
-		AppSecret:     req.Credential.AppSecret,
-		PrivateKey:    req.Credential.PrivateKey,
-		PublicKey:     req.Credential.PublicKey,
+	
+	var miniAppID bson.ObjectID
+	if req.ID != "" {
+		miniAppID, _ = bson.ObjectIDFromHex(req.ID)
+	} else {
+		miniAppID = bson.NewObjectID()
 	}
-
 	miniApp := model.MiniApp{
-		ID:                  bson.NewObjectID(),
+		ID:                  miniAppID,
 		AppName:             req.AppName,
 		CommissionGLAccount: req.CommissionGLAccount,
 		AppType:             req.AppType,
 		MerchantID:          req.MerchantID,
 		ProductCode:         productCodes,
-		Credential:          credentials,
 		IsEventMiniApp:      req.IsEventMiniApp,
 		IsThreeClick:        req.IsThreeClick,
 		URL:                 req.URL,
@@ -71,39 +66,6 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 	}
 
 	return miniApp
-}
-
-func MiniAppMapperForUpdate(prev *model.MiniApp, req miniappdto.MiniAppCreateRequest, appIconURL, bannerImageURL string) model.MiniApp {
-	return model.MiniApp{
-		ID:                  prev.ID,
-		AppName:             local_util.NonEmptyString(req.AppName, prev.AppName),
-		CommissionGLAccount: local_util.NonEmptyString(req.CommissionGLAccount, prev.CommissionGLAccount),
-		AppType:             constants.AppType(local_util.NonEmptyString(string(req.AppType), string(prev.AppType))),
-		MerchantID:          local_util.NonEmptyString(req.MerchantID, prev.MerchantID),
-		IsEventMiniApp:      local_util.NonEmptyBool(req.IsEventMiniApp, prev.IsEventMiniApp),
-		IsThreeClick:        local_util.NonEmptyBool(req.IsThreeClick, prev.IsThreeClick),
-		URL:                 local_util.NonEmptyString(req.URL, prev.URL),
-		Stage:               constants.Stage(local_util.NonEmptyString(string(req.Stage), string(prev.Stage))),
-		AppViewType:         constants.AppViewType(local_util.NonEmptyString(string(req.AppViewType), string(prev.AppViewType))),
-
-		AppIcon:     local_util.NonEmptyString(appIconURL, prev.AppIcon),
-		BannerImage: local_util.NonEmptyString(bannerImageURL, prev.BannerImage),
-		ProductCode: local_util.MergeProductCodes(req.ProductCode, prev.ProductCode),
-		Credential: types.CredentialInformation{
-			ID:            prev.Credential.ID,
-			Environment:   constants.EnvironmentType(local_util.NonEmptyString(string(req.Credential.Environment), string(prev.Credential.Environment))),
-			MerchantAppID: local_util.NonEmptyString(req.Credential.MerchantAppID, prev.Credential.MerchantAppID),
-			FabricAppID:   local_util.NonEmptyString(req.Credential.FabricAppID, prev.Credential.FabricAppID),
-			ShortCode:     local_util.NonEmptyString(req.Credential.ShortCode, prev.Credential.ShortCode),
-			AppSecret:     local_util.NonEmptyString(req.Credential.AppSecret, prev.Credential.AppSecret),
-			PrivateKey:    local_util.NonEmptyString(req.Credential.PrivateKey, prev.Credential.PrivateKey),
-			PublicKey:     local_util.NonEmptyString(req.Credential.PublicKey, prev.Credential.PublicKey),
-		},
-
-		CreatedAt:      prev.CreatedAt,
-		LastModifiedAt: time.Now(),
-		DeletedAt:      prev.DeletedAt,
-	}
 }
 
 func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, miniApp *miniappdto.MiniAppCreateRequest) error {
