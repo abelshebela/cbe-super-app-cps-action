@@ -274,6 +274,10 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
+	//service details
+	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
+	ErrorTotalMaxTransferCannotBeLessExistTransfers,
+	ErrorMinAmountCanNotBeGreaterThanCap,
 }
 
 // Success Response Codes
@@ -2152,6 +2156,12 @@ var (
 		Message:    MsgFeedbackIDRequired,
 		Type:       "error",
 	}
+	ErrorServiceDetailIDRequired = ResponseCode{
+		Code:       "ERROR_SERVICE_DETAIL_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgServiceIdRequered,
+		Type:       "error",
+	}
 
 	ErrorInvalidIDFormat = ResponseCode{
 		Code:       "ERROR_INVALID_ID_FORMAT",
@@ -3729,5 +3739,24 @@ var (
 		StatusCode: StatusOK,
 		Message:    "Bulk service disable request processed successfully",
 		Type:       "success",
+	}
+	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount = ResponseCode{
+		Code:       "ERROR_MAX_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "single max transfer can not be less or equal to min amount",
+		Type:       "error",
+	}
+
+	ErrorTotalMaxTransferCannotBeLessExistTransfers = ResponseCode{
+		Code:       "ERROR_TOTAL_CAP_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "total max transfer can not be less from existing service transfers",
+		Type:       "error",
+	}
+	ErrorMinAmountCanNotBeGreaterThanCap = ResponseCode{
+		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
 	}
 )

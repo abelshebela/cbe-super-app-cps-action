@@ -25,7 +25,7 @@ import (
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
-
+	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -76,6 +76,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
+	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

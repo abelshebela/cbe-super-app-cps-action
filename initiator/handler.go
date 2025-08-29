@@ -18,7 +18,7 @@ import (
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-
+	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 
@@ -42,6 +42,7 @@ import (
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
+	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -60,7 +61,7 @@ type Handler struct {
 	PortalCardHander  portalCardInterface.PortalCardAdapter
 	AccountValidation accountvalidationInterface.AccountValidation
 	AccountBlockHandler accountBlockHandlerInterface.AccountBlockAdapter
-
+	ServiceDetailsHandler service_details.ServiceAdapter
 	DepartmentHandler department.DepartmentHandler
 
 
@@ -91,5 +92,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
 		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
+		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 	}
 }

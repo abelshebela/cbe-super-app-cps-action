@@ -10,6 +10,7 @@ import (
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -335,7 +336,24 @@ func BindAction(source any, target any) error {
 	}
 	return json.Unmarshal(bytes, target)
 }
+func NoSpecialChars(value any) error {
+  str, ok := value.(string)
+  if !ok {
+    return errors.New(strings.ToLower(localization.MsgInvalidFormat))
+  }
 
+  str = strings.TrimSpace(str)
+  if str == "" {
+    return nil
+  }
+
+  re := regexp.MustCompile(`^[a-zA-Z0-9\s]+$`)
+  if !re.MatchString(str) {
+    return errors.New(strings.ToLower(localization.MsgInvalidFormat))
+  }
+
+  return nil
+}
 
 
 func JsonUnmarshal[T any](data any) (*T, error) {

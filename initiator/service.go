@@ -20,6 +20,7 @@ import (
 	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
+	service_details "cbe-super-app-cps-action/internal/service/service_details"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -49,6 +50,7 @@ type ServiceLayer struct {
 	PasswordRule      service.PasswordRuleService
 	HQService         service.HQService
 	Fayda             service.FaydaAccountService
+	ServiceDetails    service.ServiceService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -71,6 +73,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
+	serviceDetails := service_details.NewServiceDetailsService(mongoClient , persistence.ServiceDetailsPersistence,persistence.HQPersistence,cpsActionService,logger)
 
 	return ServiceLayer{
 		Bank:              bank_service,
@@ -92,5 +95,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		PasswordRule: passwordRule,
 		HQService:    hqService,
 		Fayda:        fayda,
+		ServiceDetails:serviceDetails,
 	}
 }

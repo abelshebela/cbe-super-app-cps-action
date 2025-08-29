@@ -28,3 +28,11 @@ type ServiceDetails struct {
 	LastModifiedAt     time.Time          `bson:"last_modified_at"`
 	DeletedAt          time.Time          `bson:"deleted_at"`
 }
+
+type Cap struct {
+	ISingleCap         uint64 `json:"individual_single_cap" bson:"individual_single_cap"`
+	IDailyCap          uint64 `json:"individual_daily_cap" bson:"individual_daily_cap"`
+	CorporateSingleCap uint64 `json:"corporate_single_cap" bson:"corporate_single_cap"`
+	CorporateDailyCap  uint64 `json:"corporate_daily_cap" bson:"corporate_daily_cap"`
+	MinAmount          uint64 `json:"min_amount" bson:"min_amount"`
+}
