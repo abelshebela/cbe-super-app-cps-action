@@ -6,9 +6,12 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -34,10 +37,34 @@ func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cps
 	}
 }
 
-// Authorize checks if the user has access to the amount based auth
+// Authorize handles persistence for amount-based auth actions
 func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Amount Based Auth service authorizing action: %s", action.ActionCode)
-	action.ActionStatus = "APPROVED"
+	s.logger.Infof("Authorizing amount-based auth action, action: %s", action.RequestAction)
+
+	var authTier *model.AuthTier
+	if err := local_util.BindAction(action.CurrentAction, &authTier); err != nil {
+		s.logger.Errorf("Failed to bind current action to auth tier: %v", err)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	}
+
+	var err error	
+	switch action.RequestAction {
+	case string(cpsaction.RequestUpdateAmountBasedAuth):
+		authTier.LastModified = time.Now()
+		err = s.Repository.Update(ctx, authTier.ID.Hex(), authTier)
+		
+	default:
+		s.logger.Errorf("Unsupported action requested, action: %s", action.RequestAction)
+		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+	}
+
+	if err != nil {
+		s.logger.Errorf("Failed to process amount-based auth action, action: %s, error: %v", action.RequestAction, err)
+		return nil, err
+	}
+
+	action.CurrentAction = authTier
+	s.logger.Infof("Authorization completed for action, action: %s, id: %s", action.RequestAction, authTier.ID)
 	return action, nil
 }
 

@@ -18,13 +18,16 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
 	"cbe-super-app-cps-action/internal/glue/routing/department"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini_app"
+	"cbe-super-app-cps-action/internal/glue/routing/wallet"
+	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
+
 	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
-	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -74,9 +77,11 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
+	miniappmerchant.Init(r, handlerLayer.MiniAppMerchantHandler, authMiddleware)
 	accountblock.Init(r, handlerLayer.AccountBlockHandler, authMiddleware)
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
+	miniapp.Init(r, handlerLayer.MiniAPPHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)

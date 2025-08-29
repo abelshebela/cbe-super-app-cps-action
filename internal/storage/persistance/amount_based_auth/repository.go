@@ -64,15 +64,7 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 	}
 	
 	// Use replacement document for update
-	update := bson.M{
-		"min_amount":    authTier.MinAmount,
-		"max_amount":    authTier.MaxAmount,
-		"method":        authTier.Method,
-		"last_modified": authTier.LastModified,
-		"enabled":       existingAuthTier.Enabled,      // Preserve existing values
-		"is_deleted":    existingAuthTier.IsDeleted,    // Preserve existing values
-		"created_at":    existingAuthTier.CreatedAt,    // Preserve existing values
-	}
+	update := AuthTierUpdateMapper(authTier, existingAuthTier)
 
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {

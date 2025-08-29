@@ -41,24 +41,6 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 			},
 		},
 
-		// {
-            //  Method:  http.MethodPatch,
-            //  Path:    "/approve/{id}",
-            //  Handler: handler.ApproveAmountBasedAuth,
-            //  Middlewares: []func(next http.Handler) http.Handler{
-            //      authMiddleware.AuthenticateToken,
-            //      authMiddleware.AccessControl([]string{role.Checker}),
-            //  },
-            // },
-            // {
-            //  Method:  http.MethodPatch,
-            //  Path:    "/reject/{id}",
-            //  Handler: handler.RejectAmountBasedAuth,
-            //  Middlewares: []func(next http.Handler) http.Handler{
-            //      authMiddleware.AuthenticateToken,
-            //      authMiddleware.AccessControl([]string{role.Checker}),
-            //  },
-            // },
 	}
 
 	glue.RegisterRoutes(router, routes)

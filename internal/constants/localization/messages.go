@@ -122,6 +122,7 @@ const (
 	MsgPermissionGroupsFetched       = "Permission groups fetched successfully"
 	MsgPermissionGroupFetched        = "Permission group fetched successfully"
 	MsgPermissionGroupRequestUpdated = "Permission group Request updated successfully"
+	MsgPermissionGroupRequestDeleted = "Permission group Request deleted successfully"
 	MsgPermissionCategoriesFetched   = "Permission categories fetched successfully"
 
 	// Mini App Merchant related success messages
@@ -130,6 +131,9 @@ const (
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
+	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
@@ -248,9 +252,20 @@ const (
 	// Mini App Handler related success messages
 	MsgUpdateMiniAppRequestCreatedSuccessfully  = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully = "Mini App deleted request created successfully"
+	MsgMiniAppDisableRequestSubmittedSuccessfully= "Mini App disable request submitted successfully"
+	MsgMiniAppEnableRequestSubmittedSuccessfully = "Mini App enable request submitted successfully"
 	MsgMiniAppsSuccessfullyRetrieved            = "Mini Apps successfully retrieved"
 	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
 	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
+
+	// cps_user related success messages
+	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
+	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
+	MsgCpsUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
+	MsgCpsUserRetrievedSuccessfully    = "CPS user retrieved successfully"
+	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
+	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
@@ -265,6 +280,9 @@ const (
 
 	// Wallet related success messages
 	MsgWalletActionRequestSentSuccessfully = "Wallet action request sent successfully"
+
+	// permission related error messages
+	MsgGroupNameRequired = "Group name is required"
 )
 
 // Error Messages
@@ -466,13 +484,15 @@ const (
 	MsgPasswordRuleInvalidFormat = "Invalid password rule format"
 
 	// Permission related error messages
-	MsgPermissionGroupNotFound       = "Permission group not found"
-	MsgPermissionGroupAlreadyExists  = "Permission group already exists"
-	MsgPermissionGroupCreationFailed = "Failed to create permission group"
-	MsgPermissionGroupUpdateFailed   = "Failed to update permission group"
-	MsgPermissionGroupFetchFailed    = "Failed to fetch permission groups"
-	MsgPermissionCategoryNotFound    = "Permission category not found"
-	MsgPermissionCategoryFetchFailed = "Failed to fetch permission categories"
+	MsgPermissionGroupNotFound         = "Permission group not found"
+	MsgPermissionGroupAlreadyExists    = "Permission group already exists"
+	MsgPermissionGroupCreationFailed   = "Failed to create permission group"
+	MsgPermissionGroupUpdateFailed     = "Failed to update permission group"
+	MsgPermissionGroupFetchFailed      = "Failed to fetch permission groups"
+	MsgPermissionCategoryNotFound      = "Permission category not found"
+	MsgPermissionCategoryFetchFailed   = "Failed to fetch permission categories"
+	MsgPermissionGroupValidationFailed = "Permission group validation failed"
+	MsgPermissionGroupRequired         = "Permission group is required"
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
@@ -607,8 +627,8 @@ const (
 	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
-	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group not found"
-	MsgInvalidDepartmentPortalCard              = "invalid portal card id or permission group not found"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group with id not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or portal card with id not found"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
@@ -647,7 +667,7 @@ const (
 	MsgMiniAppMerchantUnmarshalActionFailed  = "Failed to unmarshal action data"
 	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
-
+	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
 	MsgNotificationInsertFailed    = "Failed to insert notification"
@@ -803,10 +823,10 @@ const (
 	MsgRegionCodeRequired                = "Region code is required"
 	MsgCityCodeRequired                  = "City code is required"
 
-	MsgBranchNotFound         = "Branch not found"
-	MsgDistrictNotFound       = "District not found"
-	MsgRegionNotFound         = "Region not found"
-	MsgCityNotFound           = "City not found"
+	MsgBranchNotFound   = "Branch not found"
+	MsgDistrictNotFound = "District not found"
+	MsgRegionNotFound   = "Region not found"
+	MsgCityNotFound     = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 
