@@ -55,7 +55,6 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 }
 
 func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
-	// response, err := s.repo.FetchAll(ctx, filterParams)//info: this uses aggregation pipeline
 	fmt.Println()
 	response, err := s.repo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
