@@ -73,7 +73,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	result := core.CreateEventMapper(event, code,"", URL)
+	result := core.CreateEventMapper(event, code, URL)
 
 	e.logger.Infof("Event created successfully", "event_code", code)
 	if err := core.HandleCPSAction(ctx, e.cpsService, "", constants.RequestCreateEvent, result, nil, constants.ActionCreate); err != nil {
