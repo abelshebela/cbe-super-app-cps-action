@@ -190,7 +190,7 @@ func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, 
 	}
 }
 
-func CreateEventMapper(event eventdto.EventRequest, code string,id, coverURL string) *model.Event {
+func CreateEventMapper(event eventdto.EventRequest, code string, coverURL string) *model.Event {
 	return &model.Event{
 		ID:            bson.NewObjectID(),
 		EventCode:     code,
