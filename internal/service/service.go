@@ -1,18 +1,18 @@
 package service
 
 import (
-	"context"
-	"mime/multipart"
-    cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"context"
+	"mime/multipart"
 )
 
 type CPSActionService interface {
