@@ -90,7 +90,7 @@ type CPSActionRepository interface {
 	Save(ctx context.Context, cpsAction *model.CPSAction) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error)
-	Update(ctx context.Context, id string, update model.CPSAction) error
+	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -141,7 +141,7 @@ type AccountBlockRepository interface {
 	FindBranchByID(ctx context.Context, id string) (*model.Branch, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 
-	GetCityByCode(ctx context.Context, cityCode string)(*model.City, error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
 	CreateCity(ctx context.Context, city *model.City) error
 	UpdateCity(ctx context.Context, id string, city *model.City) error
 	DeleteCity(ctx context.Context, id string) error
@@ -149,7 +149,7 @@ type AccountBlockRepository interface {
 	FindCityByID(ctx context.Context, id string) (*model.City, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
 
-	GetRegionByCode(ctx context.Context, regionCode string)(*model.Region, error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
 	CreateRegion(ctx context.Context, region *model.Region) error
 	UpdateRegion(ctx context.Context, id string, region *model.Region) error
 	DeleteRegion(ctx context.Context, id string) error
@@ -157,14 +157,13 @@ type AccountBlockRepository interface {
 	FindRegionByID(ctx context.Context, id string) (*model.Region, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
 
-	GetDistrictByCode(ctx context.Context, districtCode string)(*model.District, error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
 	CreateDistrict(ctx context.Context, district *model.District) error
 	UpdateDistrict(ctx context.Context, id string, district *model.District) error
 	DeleteDistrict(ctx context.Context, id string) error
 	EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-	
 }
 
 type AdvertRepository interface {
@@ -343,8 +342,8 @@ type BranchRepository interface {
 }
 
 type MiniAppMerchantRepository interface {
-	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant,error)
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant,error)
+	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)

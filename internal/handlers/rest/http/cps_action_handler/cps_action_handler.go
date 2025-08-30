@@ -96,7 +96,7 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 
 	actions, err := a.cpsActionApplication.GetCPSActionsByDepartment(r.Context(), userData.Department, filterParams)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

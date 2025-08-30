@@ -77,7 +77,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 
 	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
 	if err != nil {
 		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
@@ -105,7 +105,7 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) 
 	r.logger.Infof("Finding one CPSAction with filter: %+v", filter)
 	filterMap := BuildCPSActionFilter(filter)
 
-	data, err := r.dal.FindOne(ctx, filterMap, nil)
+	data, err := r.dal.FindOne(ctx, filterMap, Projection)
 	if err != nil {
 		r.logger.Errorf("Error finding CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
@@ -115,19 +115,19 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) 
 	return data, nil
 }
 
-func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) error {
+func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
 	r.logger.Infof("Updating CPSAction with ActionCode: %s, Update: %+v", actionCode, update)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 
-	_, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
+	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("Error updating CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
-		return errors.New(code)
+		return nil, errors.New(code)
 	}
 	r.logger.Infof("Successfully updated CPSAction with ActionCode: %s", actionCode)
-	return nil
+	return &data, nil
 }
 
 func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {

@@ -51,10 +51,11 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
-	if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
+	cpsAction, err := ca.repo.Update(ctx, action.ActionCode, *action)
+	if err != nil {
 		return err
 	}
-	approve, err := ca.dispatcher.Authorize(ctx, action)
+	approve, err := ca.dispatcher.Authorize(ctx, cpsAction)
 	if err != nil && approve == nil {
 		ca.RollBack(ctx, action.ActionCode)
 		return err
@@ -64,7 +65,11 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 }
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 
-	return ca.repo.Update(ctx, action_code, *action)
+	_, err := ca.repo.Update(ctx, action_code, *action)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 
@@ -87,7 +92,12 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action_code string) error {
-	return ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
+	_, err := ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {

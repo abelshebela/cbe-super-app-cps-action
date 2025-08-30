@@ -9,13 +9,15 @@ import (
 )
 
 var Projection = bson.M{
-	"action_code":        1,
-	"action_name":        1,
-	"action_description": 1,
-	"action_type":        1,
-	"action_status":      1,
-	"action_created_at":  1,
-	"action_updated_at":  1,
+	"action_code":         1,
+	"action_name":         1,
+	"action_description":  1,
+	"action_type":         1,
+	"action_status":       1,
+	"request_action":      1,
+	"action_created_at":   1,
+	"maker_action_time":   1,
+	"checker_action_time": 1,
 }
 
 func BuildCPSActionFilter(cps model.CPSAction) bson.M {
