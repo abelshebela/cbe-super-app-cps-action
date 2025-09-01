@@ -11,6 +11,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"cbe-super-app-cps-action/internal/constants"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -39,19 +41,33 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customers)
 }
 
-func (a *AmountBasedAuthHandler) UpdateOpenTier(w http.ResponseWriter, r *http.Request) {
+func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	method, ok := common_util.GetParam(r, "method")
+	if !ok {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	var request amountauthdto.UpdateOpenTierRequest
+	var request amountauthdto.UpdateAmountBasedAuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
-	if !request.Validate() {
+
+	// Validate the method parameter
+	methodEnum := constants.Method(method)
+	if methodEnum != constants.OPEN && methodEnum != constants.PIN && methodEnum != constants.OTPANDPIN {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidMethod.Code)
+		return
+	}
+
+	if !request.Validate(methodEnum) {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
@@ -62,69 +78,7 @@ func (a *AmountBasedAuthHandler) UpdateOpenTier(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if err := a.Service.UpdateOpenTier(r.Context(), id, request); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-
-	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, nil)
-}
-
-func (a *AmountBasedAuthHandler) UpdatePinTier(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
-		return
-	}
-
-	var request amountauthdto.UpdatePinTierRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
-		return
-	}
-	if !request.Validate() {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
-		return
-	}
-
-	_, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Code)
-		return
-	}
-
-	if err := a.Service.UpdatePinTier(r.Context(), id, request); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-
-	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, nil)
-}
-
-func (a *AmountBasedAuthHandler) UpdateOtpPinTier(w http.ResponseWriter, r *http.Request) {
-	id, ok := common_util.GetParam(r, "id")
-	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
-		return
-	}
-
-	var request amountauthdto.UpdateOtpPinTierRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
-		return
-	}
-	if !request.Validate() {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
-		return
-	}
-
-	_, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Code)
-		return
-	}
-
-	if err := a.Service.UpdateOtpPinTier(r.Context(), id, request); err != nil {
+	if err := a.Service.UpdateAmountBasedAuth(r.Context(), id, methodEnum, request); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -141,7 +95,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 
 	var cpsReq model.CPSAction
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
-		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 

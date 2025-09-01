@@ -1,18 +1,27 @@
 package amount_based_auth
 
-// UpdateOpenTierRequest carries fields allowed for OPEN tier update
-type UpdateOpenTierRequest struct {
-	MaxAmount uint64 `json:"max_amount"`
+import "cbe-super-app-cps-action/internal/constants"
+
+// UpdateAmountBasedAuthRequest carries fields for updating any tier type
+type UpdateAmountBasedAuthRequest struct {
+	MinAmount uint64 `json:"min_amount,omitempty"`
+	MaxAmount uint64 `json:"max_amount,omitempty"`
 }
 
-// UpdatePinTierRequest carries fields allowed for PIN tier update
-type UpdatePinTierRequest struct {
-	MinAmount uint64 `json:"min_amount"`
-	MaxAmount uint64 `json:"max_amount"`
-}
-
-// UpdateOtpPinTierRequest carries fields allowed for OTP_PIN tier update
-type UpdateOtpPinTierRequest struct {
-	MinAmount uint64 `json:"min_amount"`
+// Validate ensures the request has valid data based on the method
+func (r UpdateAmountBasedAuthRequest) Validate(method constants.Method) bool {
+	switch method {
+	case constants.OPEN:
+		// OPEN tier only needs MaxAmount
+		return r.MaxAmount > 0
+	case constants.PIN:
+		// PIN tier needs both MinAmount and MaxAmount
+		return r.MinAmount > 0 && r.MaxAmount > 0
+	case constants.OTPANDPIN:
+		// OTP_PIN tier only needs MinAmount
+		return r.MinAmount > 0
+	default:
+		return false
+	}
 }
 

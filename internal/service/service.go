@@ -1,8 +1,6 @@
 package service
 
 import (
-
-	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
@@ -11,16 +9,17 @@ import (
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-
 
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	"context"
 	"mime/multipart"
 
+	"cbe-super-app-cps-action/internal/constants"
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 )
 
@@ -251,9 +250,7 @@ type AdvertService interface {
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
-	UpdateOpenTier(ctx context.Context, id string, request amountauthdto.UpdateOpenTierRequest) error
-	UpdatePinTier(ctx context.Context, id string, request amountauthdto.UpdatePinTierRequest) error
-	UpdateOtpPinTier(ctx context.Context, id string, request amountauthdto.UpdateOtpPinTierRequest) error
+	UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 
 type AvatarService interface {
