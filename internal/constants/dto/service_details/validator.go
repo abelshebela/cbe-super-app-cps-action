@@ -121,7 +121,7 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 		),
 		validation.Field(&dto.PaymentType,
 			validation.Required.Error("payment_type is required"),
-			validation.In("percentage", "flat_fee").Error("payment_type must be either 'percentage' or 'flat_fee'"),
+			// validation.In("percentage", "flat_fee").Error("payment_type must be either 'percentage' or 'flat_fee'"),
 		),
 		validation.Field(&dto.SingleCapLevelOne,
 			validation.Required.Error("single_cap_level_one is required"),

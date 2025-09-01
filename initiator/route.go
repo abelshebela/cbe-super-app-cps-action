@@ -18,17 +18,18 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/department"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini_app"
-	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
+	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
+	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
-	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -37,9 +38,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
 	r := chi.NewRouter()
-	cfg, _ := config.Load()
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
