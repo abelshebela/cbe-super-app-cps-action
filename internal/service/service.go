@@ -1,6 +1,8 @@
 package service
 
 import (
+
+	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
@@ -12,6 +14,10 @@ import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+
+	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
+
 	"context"
 	"mime/multipart"
 
@@ -167,11 +173,25 @@ type PortalCardService interface {
 }
 
 type ProductCodeService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	UpdateProductCode(ctx context.Context, request dton.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type ServiceService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
+	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.MinimumTransferCapResponse], error)
+	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.MaximumTransferCapResponse], error)
+	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.ServiceFeeResponse], error)
+	GetAllTotalTransferCap(ctx context.Context) (*dto.TotalTransferCapResponse, error)
+	GetServiceFeeDetail(ctx context.Context, id string) (*dto.ServiceFeeDetailResponse, error)
+	UpdateServiceFee(ctx context.Context, id string, req dto.ServiceFeeDetailDTO) error
+	UpdateSingleMaxTransfer(ctx context.Context, id string, req dto.SingleMaxTransferRequest) error
+	UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap dto.TotalMaxTransferUpdateRequest) error
+	UpdateMinimumTransferCap(ctx context.Context, id string, req dto.MinimumTransferUpdateRequest) error
+	DeleteServiceFeeTire(ctx context.Context, id string) error
 }
 
 type UnlinkService interface {

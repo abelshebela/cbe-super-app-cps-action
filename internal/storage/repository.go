@@ -38,7 +38,7 @@ type UserRepository interface {
 
 type HQRepository interface {
 	FindByID(ctx context.Context, id string) (*model.HQ, error)
-	Find(ctx context.Context) (*model.HQ, error)
+	Find(ctx context.Context,projections ...bson.M) (*model.HQ, error)
 	Update(ctx context.Context, field string, value interface{}, now time.Time) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
 }
@@ -348,10 +348,10 @@ type MiniAppMerchantRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (*model.MiniAppMerchant, error)
 	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
 	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
 	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
-	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (bool, error)
 }
 
 type NotificationRepository interface {
@@ -375,8 +375,8 @@ type ServiceDetailsRepository interface {
 	Create(ctx context.Context, details *model.ServiceDetails) error
 	Update(ctx context.Context, id string, details *model.ServiceDetails) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.ServiceDetails, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
+	FindByID(ctx context.Context,projection bson.M, id string) (*model.ServiceDetails, error)
+	FindAllWithPagination(ctx context.Context,projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
 }
 
 type ValidationRuleRepository interface {
@@ -394,6 +394,12 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+}
+type ProductCodeRepository interface {
+	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	Update(ctx context.Context, productCode *model.ProductCode) error
 }
 
 type FaydaRepository interface {

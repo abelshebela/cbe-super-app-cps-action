@@ -15,7 +15,6 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	"time"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -23,20 +22,6 @@ import (
 func NonEmptyString(s, fallback string) string {
 	if s != "" {
 		return s
-	}
-	return fallback
-}
-
-func NonZeroTime(t, fallback time.Time) time.Time {
-	if !t.IsZero() {
-		return t
-	}
-	return fallback
-}
-
-func NonZeroUint64(n, fallback uint64) uint64 {
-	if n != 0 {
-		return n
 	}
 	return fallback
 }
@@ -71,11 +56,9 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 func ToWalletDoc(name, code, URL string) *model.Wallet {
 	return &model.Wallet{
-		Name:           name,
-		Code:           code,
-		Avatar:         URL,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		Name:   name,
+		Code:   code,
+		Avatar: URL,
 	}
 }
 
@@ -86,7 +69,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Println("Failed to create CPS action", "error", err)

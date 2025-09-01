@@ -59,7 +59,7 @@ func (r *PermissionPersistence) Update(ctx context.Context, id string, permissio
 	}
 
 	filter := bson.M{"_id": objectID}
-	update := bson.M{"$set": permissionGroup}
+	update := PermissionGroupUpdateMapper(permissionGroup)
 
 	_, err = r.permissionGroupsDal.UpdateOne(ctx, filter, update)
 	return err
