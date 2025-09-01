@@ -163,8 +163,25 @@ func (s *amountBasedAuthService) UpdatePinTier(ctx context.Context, id string, r
 		return err
 	}
 
-	existingTier.LastModified = time.Now()
-	return s.Repository.Update(ctx, id, existingTier)
+	now := time.Now()
+	
+	// Persist all modified tiers: PIN, OPEN, and OTP_PIN
+	existingTier.LastModified = now
+	if err := s.Repository.Update(ctx, id, existingTier); err != nil {
+		return err
+	}
+
+	openTier.LastModified = now
+	if err := s.Repository.Update(ctx, openTier.ID.Hex(), openTier); err != nil {
+		return err
+	}
+
+	otpPinTier.LastModified = now
+	if err := s.Repository.Update(ctx, otpPinTier.ID.Hex(), otpPinTier); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateOtpPinTier updates OTP_PIN tier's min and cascades to PIN's max
