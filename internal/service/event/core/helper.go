@@ -20,6 +20,8 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/v2/mongo"
+
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -123,11 +125,11 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 
 	merchant, err := merchantService.FindByID(ctx, event.MerchantID)
 	if err != nil {
-		log.Println("Failed to get merchant details", "merchantID", event.MerchantID, "error", err)
-		if err.Error() == "No Mini App merchant with these merchant!" {
-			return errors.New(localization.ErrorMerchantNotFound.Code)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Println("Failed to get merchant details", "merchantID", event.MerchantID, "error", err)
+			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	log.Println("  merchant details merchant", merchant)
 	event.MercahntName = merchant.MerchantName
@@ -148,7 +150,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -177,7 +179,7 @@ func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, 
 			StartDate:   NonZeroTime(update.StartDate, prevEvent.EventInformation.StartDate),
 			DueDate:     NonZeroTime(update.DueDate, prevEvent.EventInformation.DueDate),
 			Description: NonEmptyString(update.EventDescription, prevEvent.EventInformation.Description),
-			Cover:       coverURL,
+			Cover:       NonEmptyString(coverURL, prevEvent.EventInformation.Cover),
 		},
 		TicketInformation: types.TicketInformation{
 			TotalNumberOfTicket: NonZeroUint64(uint64(update.TotalTicketCount), prevEvent.TicketInformation.TotalNumberOfTicket),

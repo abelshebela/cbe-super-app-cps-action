@@ -18,14 +18,20 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/department"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini_app"
-	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
+	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
+	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
+	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+
+	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
+
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
@@ -34,12 +40,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
+
 	r := chi.NewRouter()
-	cfg, _ := config.Load()
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -48,8 +55,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	router.Use(customeMiddleware.HandlePanic(logger))
 	router.Use(customeMiddleware.CORS())
 	router.Use(middleware.Timeout(30 * time.Second))
+	router.Use(middleware.Compress(5, "application/json"))
 
-	r.Get("/api/v1/cbesuperapp/cps_action/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
+	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(map[string]string{"status": "CPS ACTION IS ACTIVE"}); err != nil {
@@ -72,6 +80,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
+	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware, nil)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
@@ -81,6 +90,17 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	miniapp.Init(r, handlerLayer.MiniAPPHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
+	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
+	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
+	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+	// Serve swagger.json directly
+	router.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./docs/swagger.json")
+	})
+
+	router.Get("/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/docs/swagger.json"),
+	))
 }

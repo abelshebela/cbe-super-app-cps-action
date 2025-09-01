@@ -38,10 +38,11 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
-	"cbe-super-app-cps-action/internal/storage/persistance/password_rule"
+	
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
+	productcode "cbe-super-app-cps-action/internal/storage/persistance/product_code"
 	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
@@ -94,10 +95,11 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		// LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
 		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchant", logger),
 		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),
-		PasswordRulePersistence:    password_rule.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
-		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "service_details", logger),
+		PasswordRulePersistence:    password.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
+		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "services", logger),
 		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
 		BudgetPersistence:          budget.NewBudgetRepository(client, dbName, []string{"icons", "colors"}, logger),
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "users", logger),

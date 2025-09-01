@@ -97,12 +97,10 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	updatedWallet := model.Wallet{
-		ID:             prevWallet.ID,
-		Name:           core.NonEmptyString(req.Name, prevWallet.Name),
-		Code:           prevWallet.Code,
-		Avatar:         avatarURL,
-		CreatedAt:      prevWallet.CreatedAt,
-		LastModifiedAt: time.Now(),
+		ID:        prevWallet.ID,
+		Name:      req.Name,
+		Code:      req.Code,
+		Avatar:    avatarURL,
 	}
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, updatedWallet, *prevWallet, constants.ActionUpdate); err != nil {

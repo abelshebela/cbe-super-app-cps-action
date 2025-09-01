@@ -6,7 +6,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/factory"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -23,16 +22,11 @@ type cpsActionService struct {
 	dispatcher Dispatcher
 }
 
-func NewCPSActionService(repo storage.CPSActionRepository, persistence persistance.Persistence, logger utils.Logger) service.CPSActionService {
-	serviceFactory := factory.NewServiceFactory(persistence, logger)
-
-	services := serviceFactory.CreateServiceContainer()
-
-	dispatcherPersist := NewDispatcher(services)
+func NewCPSActionService(repo storage.CPSActionRepository, persistence persistance.Persistence, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
 	return &cpsActionService{
 		repo:       repo,
 		logger:     logger,
-		dispatcher: *dispatcherPersist,
+		dispatcher: dispatcher,
 	}
 }
 

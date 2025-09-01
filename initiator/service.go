@@ -25,6 +25,11 @@ import (
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
+
+	service_details "cbe-super-app-cps-action/internal/service/service_details"
+
+	"cbe-super-app-cps-action/internal/service/productcode"
+
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -56,38 +61,46 @@ type ServiceLayer struct {
 	HQService         service.HQService
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
-	Permission        service.PermissionService
-	CPSUser           service.CPSUserService
+
+
+	Permission     service.PermissionService
+	CPSUser        service.CPSUserService
+	ServiceDetails service.ServiceService
+
+
+	ProductCode       service.ProductCodeService
+
+
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
-	// Create CPS action service with the dispatcher
-	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
-	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
-
-	eventService := event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
-
-	bulkService := bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
+	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
+	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)                                                               // Will be updated after CPS action service is created
 	customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
-	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
-	walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
-	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
-	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
-	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
-	hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
+	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, cfg, "banks")                                                            // Will be updated after CPS action service is created
+	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, "wallets", cfg, logger)                                                          // Will be updated after CPS action service is created
+	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil)                                                                            // Will be updated after CPS action service is created
+	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger) // Will be updated after CPS action service is created
+	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)                                                                           // Will be updated after CPS action service is created
+	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)                                                                                                       // Will be updated after CPS action service is created
 	keygenService := keygen.NewKeyGenerator(logger, cfg)
 
-	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger)
-	fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
+	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, nil, logger)                                                                 // Will be updated after CPS action service is created
+	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger) // Will be updated after CPS action service is created
+	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)                                                                                                           // Will be updated after CPS action service is created
+
+	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger) // Will be updated after CPS action service is created
+
 	permissionService := permission.InitPermissionService(
 		persistence.PermissionPersistence,
-		cpsActionService,
+		nil, // Will be updated after CPS action service is created
 		logger,
 	)
 
@@ -95,19 +108,119 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		persistence.CpsUserPersistence,
 		persistence.AccessListPersistence, // temporary it will replaced by department repo
 		permissionService,
+		nil, // Will be updated after CPS action service is created
+		logger,
+	)
+
+	// Create the service container with all services
+	serviceContainer := service.ServiceContainer{
+		EventContainer:           eventService,
+		FeedbackContainer:        feedbackService,
+		UnlinkContainer:          nil, // Will be updated after CPS action service is created
+		BPSUserContainer:         nil, // Will be updated after CPS action service is created
+		AdContainer:              nil, // Will be updated after CPS action service is created
+		PortalCardContainer:      portalCardService,
+		ServiceCheckContainer:    serviceDetails,
+		BankContainer:            bank_service,
+		WalletContainer:          walletService,
+		PasswordRuleContainer:    passwordRule,
+		AccountBlockContainer:    accountBlockService,
+		DepartmentContainer:      departmentService,
+		HQContainer:              hqService,
+		MiniAppContainer:         miniAppService,
+		MiniAppMerchantContainer: miniAppMerchantService,
+		FaydaContainer:           faydaService,
+		BulkServiceContainer:     bulkService,
+		CustomerContainer:        customerSerice,
+		PermissionContainer:      permissionService,
+		CPSUserContainer:         cpsUserService,
+		BudgetContainer:          nil, // Will be updated after CPS action service is created
+		AccountContainer:         accountValidation,
+		AmountBasedAuthContainer: nil, // Not implemented yet
+		AvatarDomian:             nil, // Not implemented yet
+		BudgetCategoryContainer:  nil, // Not implemented yet
+		NotificationService:      nil, // Not implemented yet
+		ProductCodeService:       nil, // Not implemented yet
+		DonationContainer:        nil, // Not implemented yet
+	}
+
+	// Create the dispatcher with the service container
+	dispatcher := cpsaction.NewDispatcher(serviceContainer)
+
+	// Create CPS action service with the dispatcher
+	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+
+	// Now update all services that need the CPS action service
+	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
+	serviceContainer.EventContainer = eventService
+
+	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
+	serviceContainer.BulkServiceContainer = bulkService
+
+	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, cfg, "banks")
+	serviceContainer.BankContainer = bank_service
+
+	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
+	serviceContainer.WalletContainer = walletService
+
+	accountBlockService = accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
+	serviceContainer.AccountBlockContainer = accountBlockService
+
+	departmentService = department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
+	serviceContainer.DepartmentContainer = departmentService
+
+	passwordRule = password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
+	serviceContainer.PasswordRuleContainer = passwordRule
+
+	hqService = hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
+	serviceContainer.HQContainer = hqService
+
+	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger)
+	serviceContainer.MiniAppContainer = miniAppService
+
+	faydaService = fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
+	serviceContainer.FaydaContainer = faydaService
+
+	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
+	serviceContainer.ServiceCheckContainer = serviceDetails
+
+	permissionService = permission.InitPermissionService(
+		persistence.PermissionPersistence,
 		cpsActionService,
 		logger,
 	)
+	serviceContainer.PermissionContainer = permissionService
+
+	cpsUserService = cpsusersvc.NewCPSUserService(
+		persistence.CpsUserPersistence,
+		persistence.AccessListPersistence, // temporary it will replaced by department repo
+		permissionService,
+		cpsActionService,
+		logger,
+	)
+	serviceContainer.CPSUserContainer = cpsUserService
+
+	serviceContainer.BudgetContainer = budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger)
+
+	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
+
+	serviceContainer.BPSUserContainer = bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger)
+
+	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger)
+
+	// Update miniAppMerchantService with the CPS action service
+	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
+	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
 
 	return ServiceLayer{
 		CPSAction:         cpsActionService,
 		Feedback:          feedbackService,
 		EventService:      eventService,
-		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger),
-		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Advert:            serviceContainer.AdContainer,
+		BpsUser:           serviceContainer.BPSUserContainer,
 		Bank:              bank_service,
-		Unlink:            unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger),
-		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger),
+		Unlink:            serviceContainer.UnlinkContainer,
+		Budget:            serviceContainer.BudgetContainer,
 		PortalCard:        portalCardService,
 		ValidationService: accountValidation,
 		Wallet:            walletService,
@@ -119,8 +232,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Department:        departmentService,
 		BulkService:       bulkService,
 		CustomerService:   customerSerice,
-		Fayda:             fayda,
+		Fayda:             faydaService,
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
+
+		ServiceDetails:    serviceDetails,
+
+
+		ProductCode:       productService,
+
 	}
 }
