@@ -57,12 +57,10 @@ import (
 
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Handler struct {
-
 	CpsActionHandler       actionInbound.CPSActionAdapter
 	UnlinkHandler          unlinkInbound.UnlinkAdapter
 	EventHandler           eventInbound.EventAdapter
@@ -79,8 +77,7 @@ type Handler struct {
 	MiniAPPHandler         miniAppInbound.MiniAppInbound
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
-  ServiceDetailsHandler service_details.ServiceAdapter
-
+	ServiceDetailsHandler  service_details.ServiceAdapter
 
 	DepartmentHandler department.DepartmentHandler
 
@@ -109,20 +106,19 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 
-		DepartmentHandler:   department.NewDepartmentHandler(serviceLayer.Department, logger),
-		HqHandler:           hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-		MiniAPPHandler:      miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
-		bulkServiceHandler:  bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
-		customerHandler:     CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
-		FaydaHandler:        faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
-		Permission:          permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
-		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
+		DepartmentHandler:  department.NewDepartmentHandler(serviceLayer.Department, logger),
+		HqHandler:          hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
+		MiniAPPHandler:     miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
+		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
+		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
+		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
+		Permission:         permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
+		CPSUser:            cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 
-    ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
+		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 
-		ProductCodeHandler:     productCodeHandler.InitProductcodeAdapter(pcs, logger),
-
+		ProductCodeHandler: productCodeHandler.InitProductcodeAdapter(pcs, logger),
 	}
 }

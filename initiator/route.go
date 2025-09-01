@@ -21,12 +21,13 @@ import (
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
+	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
-
 	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
@@ -43,9 +44,7 @@ import (
 	"go.uber.org/zap"
 )
 
-
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
-
 
 	r := chi.NewRouter()
 
@@ -81,7 +80,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
-	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware, nil) 
+	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware, nil)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
@@ -92,6 +91,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	miniapp.Init(r, handlerLayer.MiniAPPHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
+	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
+	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// Serve swagger.json directly
@@ -101,6 +102,5 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 
 	router.Get("/docs/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/docs/swagger.json"),
-		
 	))
 }

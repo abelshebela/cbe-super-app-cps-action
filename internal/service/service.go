@@ -2,10 +2,10 @@ package service
 
 import (
 
-	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
 	"mime/multipart"
-    cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+    
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
@@ -14,7 +14,6 @@ import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
-	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -176,7 +175,7 @@ type PortalCardService interface {
 type ProductCodeService interface {
 	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
 	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
-	UpdateProductCode(ctx context.Context, request dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	UpdateProductCode(ctx context.Context, request dton.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
