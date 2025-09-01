@@ -25,7 +25,11 @@ import (
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
+
 	service_details "cbe-super-app-cps-action/internal/service/service_details"
+
+	"cbe-super-app-cps-action/internal/service/productcode"
+
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -58,9 +62,15 @@ type ServiceLayer struct {
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
 
+
 	Permission     service.PermissionService
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
+
+
+	ProductCode       service.ProductCodeService
+
+
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -68,6 +78,7 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
@@ -224,6 +235,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Fayda:             faydaService,
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
+
 		ServiceDetails:    serviceDetails,
+
+
+		ProductCode:       productService,
+
 	}
 }

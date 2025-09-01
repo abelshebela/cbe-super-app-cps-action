@@ -9,14 +9,12 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type miniAppMerchantService struct {
@@ -35,40 +33,44 @@ func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsServic
 
 // Create a new Mini App Merchant.
 func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
-	m.logger.Debugf(">>> Entered Service.Create with data: %+v", data)
 
+	// Validate bank account number
+	if data.BankAccountNumber == "" {
+		m.logger.Warnf("Bank account number is required")
+		return nil, errors.New(localization.ErrorAccountNumberRequired.Code)
+	}
+
+	// 🔎 Check if merchant exists by Bank Account Number
+	exist, err := m.repo.Exists(ctx, &model.CheckMiniAppMerchant{
+		BankAccountNumber: data.BankAccountNumber,
+	}, nil)
+	if err != nil {
+		m.logger.Errorf("failed checking merchant existence: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	if exist != nil {
+		m.logger.Warnf("Merchant already exists with BankAccountNumber: %s", data.BankAccountNumber)
+		return nil, errors.New(localization.ErrorWalletAlreadyExists.Code)
+	}
+
+	// Generate new ObjectID if not provided
 	if data.ID.IsZero() {
 		m.logger.Debugf("ID is empty, generating new ObjectID")
 		data.ID = bson.NewObjectID()
 	}
-	fmt.Println("New generated id:", data.ID)
 
-	// Check if merchant already exists
-	m.logger.Debugf("Checking if merchant exists with ID: %s", data.ID.Hex())
-	exist, err := m.repo.FindByID(ctx, data.ID.Hex())
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Debugf("No existing merchant found, proceeding to create new one")
-		} else {
-			m.logger.Errorf("repo.FindByID failed: %v", err)
-			return nil, errors.New(localization.ErrorUnhandledServer.Code)
-		}
-	}
-	if exist != nil {
-		m.logger.Warnf("Merchant already exists with ID: %s", exist.ID.Hex())
-		return nil, errors.New(localization.ErrorWalletAlreadyExists.Code)
-	}
-
+	// Prepare fields
 	now := time.Now()
 	data.Code = utils.RandomGenerator(10)
 	data.CreatedAt = now
 	data.LastModifiedAt = now
 	data.KYC.Status = model.KYCStatusComplete
-	m.logger.Debugf("Prepared data for repo.Create: %+v", data)
 
-	miniApp := core.MergeMiniAppMerchantData(data, data)
-	m.logger.Debugf("Merged miniApp data: %+v\n", miniApp)
-	fmt.Println("naskdgjnasdgm", data.ID.Hex())
+	// Merge (create mode just uses its own values)
+	miniApp := data
+	m.logger.Debugf("Merged miniApp data: %+v", miniApp)
+
+	// 🔄 CPS Action
 	if err := core.HandleCPSActionForMiniAppMerchant(
 		ctx,
 		m.cpsService,
@@ -82,7 +84,6 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		return nil, err
 	}
 
-	m.logger.Debugf("Successfully finished Service.Create")
 	return miniApp, nil
 }
 
@@ -93,22 +94,6 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// Check for conflicts with other merchants
-	exist, err := m.repo.Exists(ctx, &model.CheckMiniAppMerchant{
-		BankAccountNumber: data.BankAccountNumber,
-		Email:             data.Email,
-		PhoneNumber:       data.PhoneNumber,
-	}, &model.MiniAppMerchantExistOptions{
-		ExcludeID: id,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	if exist {
-		return nil, nil, fmt.Errorf("miniapp merchant already exists")
-	}
-
 	// Merge old and new data
 	updated := core.MergeMiniAppMerchantData(old, data)
 	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate); err != nil {

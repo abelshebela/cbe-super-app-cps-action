@@ -359,6 +359,7 @@ const (
 	MsgInvalidActionData                    = "Invalid action"
 	MsgUnsupportedAction                    = "Unsupported action"
 	MsgMissingFile                          = "Missing file"
+	MsgFileParseFailed                      = "Failed to parse file"
 	MsgInvalidID                            = "Invalid ID format"
 	MsgInvalidActionFormat                  = "Invalid action format"
 
@@ -781,6 +782,7 @@ const (
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"

@@ -53,7 +53,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 	}
 
 	event.LastModifiedAt = time.Now()
-	updateDoc := EventDocumentToBsonM(model.EventDocument(*event))
+	updateDoc := EventDocumentToUpdateBsonM(model.EventDocument(*event))
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 

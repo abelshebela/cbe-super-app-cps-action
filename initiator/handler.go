@@ -42,6 +42,8 @@ import (
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
+	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
+
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
 	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
@@ -87,10 +89,11 @@ type Handler struct {
 	customerHandler    customerInbound.CustomerDetail
 	Permission         permissionInbound.PermissionHandler
 	CPSUser            cpsUserInbound.CPSUserHandler
+	ProductCodeHandler productCodeHandler.ProductCodeAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
-
+	pcs := serviceLayer.ProductCode
 	return Handler{
 		UnlinkHandler:       unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler:          bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
@@ -116,7 +119,10 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
+
     ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
+
+		ProductCodeHandler:     productCodeHandler.InitProductcodeAdapter(pcs, logger),
 
 	}
 }

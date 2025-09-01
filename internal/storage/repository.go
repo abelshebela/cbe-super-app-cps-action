@@ -348,10 +348,10 @@ type MiniAppMerchantRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (*model.MiniAppMerchant, error)
 	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
 	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
 	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
-	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (bool, error)
 }
 
 type NotificationRepository interface {
@@ -394,6 +394,12 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
 	Find(ctx context.Context, name string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+}
+type ProductCodeRepository interface {
+	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	Update(ctx context.Context, productCode *model.ProductCode) error
 }
 
 type FaydaRepository interface {
