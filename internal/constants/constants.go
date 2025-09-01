@@ -252,6 +252,7 @@ const (
 	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestEnableMiniAppMerchant    RequestAction = "ENABLE_MINIAPP_MERCHANT"
 	RequestDisableMiniAppMerchant   RequestAction = "DISABLE_MINIAPP_MERCHANT"
+	RequestDeleteMiniAppMerchant    RequestAction = "DELETE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
 	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
@@ -307,16 +308,14 @@ const (
 	RequestUpdateBudgetIcon              RequestAction = "BUDGET_UPDATE_ICON"
 	RequestDeleteBudgetIcAdvertServiceon RequestAction = "BUDGET_DELETE_ICON"
 
-	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestBudgetDelete RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestCreateMiniApp RequestAction = "CREATE_MINIAPP"
-	RequestUpdateMiniApp RequestAction = "UPDATE_MINIAPP"
-	RequestDeleteMiniApp RequestAction = "DELETE_MINIAPP"
-	RequestEnableMiniApp RequestAction = "ENABLE_MINIAPP"
+	RequestBudgetUpdate   RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestBudgetCreate   RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestBudgetDelete   RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestCreateMiniApp  RequestAction = "CREATE_MINIAPP"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MINIAPP"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MINIAPP"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MINIAPP"
 	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
-
-
 
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"

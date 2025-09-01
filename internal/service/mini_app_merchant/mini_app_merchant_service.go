@@ -189,15 +189,20 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 
 	var err error
 	switch cpsAction.RequestAction {
-	case string(constants.RequestCreateWallet):
+	case string(constants.RequestCreateMiniAppMerchant):
+		miniAppMerchant, ok := cpsAction.CurrentAction.(*model.MiniAppMerchant)
+		if !ok || miniAppMerchant == nil {
+			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		}
 		_, err = m.repo.Create(ctx, miniAppMerchant)
-	case string(constants.RequestUpdateWallet):
+
+	case string(constants.RequestUpdateMiniAppMerchant):
 		_, err = m.repo.Update(ctx, miniAppMerchant.ID.Hex(), miniAppMerchant)
-	case string(constants.RequestDeleteWallet):
+	case string(constants.RequestDeleteMiniAppMerchant):
 		err = m.repo.Delete(ctx, miniAppMerchant.ID.Hex())
-	case string(constants.RequestEnableWallet):
+	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, miniAppMerchant.ID.Hex(), true)
-	case string(constants.RequestDisableWallet):
+	case string(constants.RequestDisableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, miniAppMerchant.ID.Hex(), false)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)

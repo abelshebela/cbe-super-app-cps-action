@@ -46,6 +46,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.FaydaContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniAppMerchant"):
+		fmt.Println("\n I am here !!! for testing in miniapp merchant !!!!")
 		return d.app.MiniAppMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniApp"):
