@@ -1,6 +1,7 @@
 package service_details
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -8,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -48,9 +50,200 @@ func ValidateTotalCapAgainstServices(ctx context.Context, serviceRepo storage.Se
 }
 
 func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData interface{}) (*model.ServiceDetails, error) {
+	// Start with a copy of the existing service to ensure unchanged fields persist
 	updatedService := *existingService
-	if err := BindAction(newData, &updatedService); err != nil {
+
+	// Try to directly cast to the expected DTO type first
+	if dto, ok := newData.(dto.ServiceFeeDetailDTO); ok {
+		// Direct mapping from DTO to model
+		if dto.ServiceType != "" {
+			updatedService.ServiceType = dto.ServiceType
+		}
+		if dto.PaymentType != "" {
+			updatedService.PaymentType = string(dto.PaymentType)
+		}
+		if dto.AboveServiceFee > 0 {
+			updatedService.AboveServiceFee = dto.AboveServiceFee
+		}
+
+		// Map GL entries from DTO
+		if dto.CBglEntry.CBglProductAccount != "" {
+			updatedService.CBEGLEntry.ProductAccount = dto.CBglEntry.CBglProductAccount
+		}
+		if dto.CBglEntry.CBglProductBranchcode != "" {
+			updatedService.CBEGLEntry.ProductBranchCode = dto.CBglEntry.CBglProductBranchcode
+		}
+		if dto.CBglEntry.CBglServiceAccount != "" {
+			updatedService.CBEGLEntry.ServiceAccount = dto.CBglEntry.CBglServiceAccount
+		}
+		if dto.CBglEntry.CBglServiceBranchcode != "" {
+			updatedService.CBEGLEntry.ServiceBranchCode = dto.CBglEntry.CBglServiceBranchcode
+		}
+
+		if dto.IFBglEntry.IFBglProductAccount != "" {
+			updatedService.CBEIFBGLEntry.ProductAccount = dto.IFBglEntry.IFBglProductAccount
+		}
+		if dto.IFBglEntry.IFBglProductBranchcode != "" {
+			updatedService.CBEIFBGLEntry.ProductBranchCode = dto.IFBglEntry.IFBglProductBranchcode
+		}
+		if dto.IFBglEntry.IFBglServiceAccount != "" {
+			updatedService.CBEIFBGLEntry.ServiceAccount = dto.IFBglEntry.IFBglServiceAccount
+		}
+		if dto.IFBglEntry.IFBglServiceBranchcode != "" {
+			updatedService.CBEIFBGLEntry.ServiceBranchCode = dto.IFBglEntry.IFBglServiceBranchcode
+		}
+
+		// Map tiers from DTO
+		if len(dto.Tiers) > 0 {
+			tiers := make([]types.Tier, len(dto.Tiers))
+			for i, tier := range dto.Tiers {
+				tiers[i] = types.Tier{
+					Min:       tier.Min,
+					Max:       tier.Max,
+					FeeAmount: tier.FeeAmount,
+				}
+			}
+			updatedService.Tiers = tiers
+			updatedService.AboveAmount = tiers[len(tiers)-1].Max
+		}
+
+		// Ensure the ID is preserved
+		updatedService.ID = existingService.ID
+		return &updatedService, nil
+	}
+
+	// Fallback to generic map handling if direct cast fails
+	var incoming map[string]interface{}
+	if err := BindAction(newData, &incoming); err != nil {
 		return nil, err
+	}
+
+	// Map simple scalar fields if present
+	if v, ok := incoming["service_type"].(string); ok && v != "" {
+		updatedService.ServiceType = v
+	}
+	if v, ok := incoming["payment_type"].(string); ok && v != "" {
+		updatedService.PaymentType = v
+	}
+	if v, ok := incoming["above_amount"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.AboveAmount = uint64(n)
+		case int:
+			updatedService.AboveAmount = uint64(n)
+		case int64:
+			updatedService.AboveAmount = uint64(n)
+		case uint64:
+			updatedService.AboveAmount = n
+		}
+	}
+	if v, ok := incoming["above_service_fee"]; ok {
+
+		switch n := v.(type) {
+		case float64:
+			fmt.Println("float")
+			updatedService.AboveServiceFee = uint64(n)
+		case int:
+			updatedService.AboveServiceFee = uint64(n)
+		case int64:
+			updatedService.AboveServiceFee = uint64(n)
+		case uint64:
+			updatedService.AboveServiceFee = n
+		}
+	}
+
+	// Map GL entries - accept either canonical keys or alternate cbgl_/ifbgl_ prefixed keys
+	if v, ok := incoming["cbe_gl_entry"].(map[string]interface{}); ok {
+		if acc, ok := v["product_account"].(string); ok && acc != "" {
+			updatedService.CBEGLEntry.ProductAccount = acc
+		}
+		if bc, ok := v["product_branch_code"].(string); ok && bc != "" {
+			updatedService.CBEGLEntry.ProductBranchCode = bc
+		}
+		if acc, ok := v["service_account"].(string); ok && acc != "" {
+			updatedService.CBEGLEntry.ServiceAccount = acc
+		}
+		if bc, ok := v["service_branch_code"].(string); ok && bc != "" {
+			updatedService.CBEGLEntry.ServiceBranchCode = bc
+		}
+		if acc, ok := v["vat_account"].(string); ok && acc != "" {
+			updatedService.CBEGLEntry.VatAccount = acc
+		}
+		if bc, ok := v["vat_branch_code"].(string); ok && bc != "" {
+			updatedService.CBEGLEntry.VatBranchCode = bc
+		}
+	}
+	if v, ok := incoming["cbgl_entry"].(map[string]interface{}); ok {
+		if acc, ok := v["cbgl_product_account"].(string); ok && acc != "" {
+			updatedService.CBEGLEntry.ProductAccount = acc
+		}
+		if bc, ok := v["cbgl_product_branchcode"].(string); ok && bc != "" {
+			updatedService.CBEGLEntry.ProductBranchCode = bc
+		}
+		if acc, ok := v["cbgl_service_account"].(string); ok && acc != "" {
+			updatedService.CBEGLEntry.ServiceAccount = acc
+		}
+		if bc, ok := v["cbgl_service_branchcode"].(string); ok && bc != "" {
+			updatedService.CBEGLEntry.ServiceBranchCode = bc
+		}
+	}
+
+	if v, ok := incoming["cbe_ifb_gl_entry"].(map[string]interface{}); ok {
+		if acc, ok := v["product_account"].(string); ok && acc != "" {
+			updatedService.CBEIFBGLEntry.ProductAccount = acc
+		}
+		if bc, ok := v["product_branch_code"].(string); ok && bc != "" {
+			updatedService.CBEIFBGLEntry.ProductBranchCode = bc
+		}
+		if acc, ok := v["service_account"].(string); ok && acc != "" {
+			updatedService.CBEIFBGLEntry.ServiceAccount = acc
+		}
+		if bc, ok := v["service_branch_code"].(string); ok && bc != "" {
+			updatedService.CBEIFBGLEntry.ServiceBranchCode = bc
+		}
+		if acc, ok := v["vat_account"].(string); ok && acc != "" {
+			updatedService.CBEIFBGLEntry.VatAccount = acc
+		}
+		if bc, ok := v["vat_branch_code"].(string); ok && bc != "" {
+			updatedService.CBEIFBGLEntry.VatBranchCode = bc
+		}
+	}
+	if v, ok := incoming["ifbgl_entry"].(map[string]interface{}); ok {
+		if acc, ok := v["ifbgl_product_account"].(string); ok && acc != "" {
+			updatedService.CBEIFBGLEntry.ProductAccount = acc
+		}
+		if bc, ok := v["ifbgl_product_branchcode"].(string); ok && bc != "" {
+			updatedService.CBEIFBGLEntry.ProductBranchCode = bc
+		}
+		if acc, ok := v["ifbgl_service_account"].(string); ok && acc != "" {
+			updatedService.CBEIFBGLEntry.ServiceAccount = acc
+		}
+		if bc, ok := v["ifbgl_service_branchcode"].(string); ok && bc != "" {
+			updatedService.CBEIFBGLEntry.ServiceBranchCode = bc
+		}
+	}
+
+	// Map tiers with ID preservation
+	if v, ok := incoming["tiers"].([]interface{}); ok {
+		incomingTiers := make([]types.Tier, 0, len(v))
+		for _, it := range v {
+			if tierMap, ok := it.(map[string]interface{}); ok {
+				var t types.Tier
+				if min, ok := tierMap["min"].(float64); ok {
+					t.Min = uint64(min)
+				}
+				if max, ok := tierMap["max"].(float64); ok {
+					t.Max = uint64(max)
+				}
+				if fee, ok := tierMap["fee_amount"].(float64); ok {
+					t.FeeAmount = uint64(fee)
+				}
+				incomingTiers = append(incomingTiers, t)
+			}
+		}
+
+		// Assign tiers as-is; persistence layer will omit any id fields during update
+		updatedService.Tiers = incomingTiers
 	}
 
 	// Ensure the ID is preserved
@@ -71,4 +264,20 @@ func BindAction(source any, target any) error {
 		return err
 	}
 	return json.Unmarshal(bytes, target)
+}
+
+func ValidateMinimumTransferCap(newMinAmount uint64, existingCaps types.Cap) error {
+	if newMinAmount >= existingCaps.ISingleCap {
+		return fmt.Errorf("min_amount (%d) must be less than individual_single_cap (%d)", newMinAmount, existingCaps.ISingleCap)
+	}
+	if newMinAmount >= existingCaps.IDailyCap {
+		return fmt.Errorf("min_amount (%d) must be less than individual_daily_cap (%d)", newMinAmount, existingCaps.IDailyCap)
+	}
+	if newMinAmount >= existingCaps.CorporateSingleCap {
+		return fmt.Errorf("min_amount (%d) must be less than corporate_single_cap (%d)", newMinAmount, existingCaps.CorporateSingleCap)
+	}
+	if newMinAmount >= existingCaps.CorporateDailyCap {
+		return fmt.Errorf("min_amount (%d) must be less than corporate_daily_cap (%d)", newMinAmount, existingCaps.CorporateDailyCap)
+	}
+	return nil
 }
