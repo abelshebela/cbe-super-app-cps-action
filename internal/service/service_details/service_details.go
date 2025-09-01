@@ -13,6 +13,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -234,16 +235,12 @@ func (s *ServiceDetails) DeleteServiceFeeTire(ctx context.Context, id string) er
 }
 
 func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *model.CPSAction) error {
-	var newData map[string]interface{}
-	if err := local_util.BindAction(cpsAction.CurrentAction, &newData); err != nil {
-		s.logger.Errorf("Failed to bind current action to service details: %v", err)
-		return errors.New(localization.ErrorInvalidActionData.Code)
+
+	serviceID := cpsAction.UniqueId
+	if serviceID == "" {
+		return errors.New("service ID is required (UniqueId field is empty)")
 	}
 
-	serviceID, ok := newData["id"].(string)
-	if !ok || serviceID == "" {
-		return errors.New("service ID is required")
-	}
 
 	existingService, err := s.serviceRepo.FindByID(ctx, bson.M{}, serviceID)
 	if err != nil {
@@ -276,6 +273,7 @@ func (s *ServiceDetails) applyTotalCapUpdate(ctx context.Context, cpsAction *mod
 }
 
 func (s *ServiceDetails) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	fmt.Println("ServiceDetails Authorize called")
 	if cpsAction.ActionStatus != constants.Approved {
 		s.logger.Errorf("Tried to authorize service action without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
