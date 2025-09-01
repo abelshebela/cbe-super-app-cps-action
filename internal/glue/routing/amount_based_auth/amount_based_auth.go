@@ -15,8 +15,26 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPatch,
-			Path:    "/amount_based_auth/update/{id}",
-			Handler: handler.UpdateAmountBasedAuth,
+			Path:    "/amount_based_auth/open/{id}",
+			Handler: handler.UpdateOpenTier,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/amount_based_auth/pin/{id}",
+			Handler: handler.UpdatePinTier,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/amount_based_auth/otp_pin/{id}",
+			Handler: handler.UpdateOtpPinTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker}),

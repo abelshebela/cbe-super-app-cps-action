@@ -3,8 +3,8 @@ package amount_based_auth
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -39,31 +39,92 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customers)
 }
 
-func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+func (a *AmountBasedAuthHandler) UpdateOpenTier(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	var request model.AuthTier
+	var request amountauthdto.UpdateOpenTierRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
+	if !request.Validate() {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
 
-	// Set the ID from URL parameter
-	objID, err := bson.ObjectIDFromHex(id)
+	_, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Code)
 		return
 	}
-	request.ID = objID
-	request.LastModified = time.Now()
 
-	// Update the auth tier through the service
-	err = a.Service.Update(r.Context(), id, &request)
+	if err := a.Service.UpdateOpenTier(r.Context(), id, request); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, nil)
+}
+
+func (a *AmountBasedAuthHandler) UpdatePinTier(w http.ResponseWriter, r *http.Request) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	var request amountauthdto.UpdatePinTierRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+	if !request.Validate() {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	_, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Code)
+		return
+	}
+
+	if err := a.Service.UpdatePinTier(r.Context(), id, request); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, nil)
+}
+
+func (a *AmountBasedAuthHandler) UpdateOtpPinTier(w http.ResponseWriter, r *http.Request) {
+	id, ok := common_util.GetParam(r, "id")
+	if !ok {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	var request amountauthdto.UpdateOtpPinTierRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+	if !request.Validate() {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	_, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Code)
+		return
+	}
+
+	if err := a.Service.UpdateOtpPinTier(r.Context(), id, request); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

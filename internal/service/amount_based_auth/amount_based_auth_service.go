@@ -15,6 +15,13 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	// added for cascading logic
+	core "cbe-super-app-cps-action/internal/service/amount_based_auth/core"
+
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type amountBasedAuthService struct {
@@ -73,19 +80,132 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 	return s.Repository.FindAllWithPagination(ctx, filterParam)
 }
 
-// Update updates an amount-based auth tier
-func (s *amountBasedAuthService) Update(ctx context.Context, id string, authTier *model.AuthTier) error {
-	// Validate Method value
-	if authTier.Method != constants.OPEN && authTier.Method != constants.PIN && authTier.Method != constants.OTPANDPIN {
-		return errors.New(localization.ErrorInvalidMethod.Code)
-	}
-	
-	// Validate amounts
-	if authTier.MinAmount >= authTier.MaxAmount {
+// UpdateOpenTier updates OPEN tier's max and cascades changes to PIN min
+func (s *amountBasedAuthService) UpdateOpenTier(ctx context.Context, id string, request amountauthdto.UpdateOpenTierRequest) error {
+	if request.MaxAmount == 0 {
 		return errors.New(localization.ErrorInvalidAmounts.Code)
 	}
-	
-	return s.Repository.Update(ctx, id, authTier)
+
+	existingTier, err := s.Repository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingTier.Method != constants.OPEN {
+		return errors.New(localization.ErrorInvalidMethod.Code)
+	}
+
+	existingTier.MaxAmount = request.MaxAmount
+
+	pinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.PIN, "is_deleted": false}, bson.M{})
+	if err != nil {
+		return err
+	}
+	if len(pinTiers) == 0 {
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	pinTier := pinTiers[0]
+
+	if err := core.ApplyOpenUpdate(existingTier, pinTier); err != nil {
+		return err
+	}
+
+	now := time.Now()
+	existingTier.LastModified = now
+	if err := s.Repository.Update(ctx, id, existingTier); err != nil {
+		return err
+	}
+	pinTier.LastModified = now
+	if err := s.Repository.Update(ctx, pinTier.ID.Hex(), pinTier); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdatePinTier updates PIN tier's min and max and validates against OPEN and OTP_PIN constraints
+func (s *amountBasedAuthService) UpdatePinTier(ctx context.Context, id string, request amountauthdto.UpdatePinTierRequest) error {
+	if request.MinAmount == 0 || request.MaxAmount == 0 {
+		return errors.New(localization.ErrorInvalidAmounts.Code)
+	}
+
+	existingTier, err := s.Repository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingTier.Method != constants.PIN {
+		return errors.New(localization.ErrorInvalidMethod.Code)
+	}
+
+	// Set the user's requested values
+	existingTier.MinAmount = request.MinAmount
+	existingTier.MaxAmount = request.MaxAmount
+
+	// Fetch OPEN and OTP_PIN tiers for validation constraints
+	openTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OPEN, "is_deleted": false}, bson.M{})
+	if err != nil {
+		return err
+	}
+	if len(openTiers) == 0 {
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	otpPinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OTPANDPIN, "is_deleted": false}, bson.M{})
+	if err != nil {
+		return err
+	}
+	if len(otpPinTiers) == 0 {
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	openTier := openTiers[0]
+	otpPinTier := otpPinTiers[0]
+
+	// Validate the user's PIN values against OPEN and OTP_PIN constraints
+	if err := core.ApplyPinUpdate(existingTier, openTier, otpPinTier); err != nil {
+		return err
+	}
+
+	existingTier.LastModified = time.Now()
+	return s.Repository.Update(ctx, id, existingTier)
+}
+
+// UpdateOtpPinTier updates OTP_PIN tier's min and cascades to PIN's max
+func (s *amountBasedAuthService) UpdateOtpPinTier(ctx context.Context, id string, request amountauthdto.UpdateOtpPinTierRequest) error {
+	if request.MinAmount == 0 {
+		return errors.New(localization.ErrorInvalidAmounts.Code)
+	}
+
+	existingTier, err := s.Repository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingTier.Method != constants.OTPANDPIN {
+		return errors.New(localization.ErrorInvalidMethod.Code)
+	}
+
+	existingTier.MinAmount = request.MinAmount
+
+	pinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.PIN, "is_deleted": false}, bson.M{})
+	if err != nil {
+		return err
+	}
+	if len(pinTiers) == 0 {
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	pinTier := pinTiers[0]
+
+	if err := core.ApplyOtpPinUpdate(existingTier, pinTier); err != nil {
+		return err
+	}
+
+	now := time.Now()
+	existingTier.LastModified = now
+	if err := s.Repository.Update(ctx, id, existingTier); err != nil {
+		return err
+	}
+	pinTier.LastModified = now
+	if err := s.Repository.Update(ctx, pinTier.ID.Hex(), pinTier); err != nil {
+		return err
+	}
+	return nil
 }
 
 
