@@ -78,7 +78,7 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
@@ -140,7 +140,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AvatarDomian:             nil, // Not implemented yet
 		BudgetCategoryContainer:  nil, // Not implemented yet
 		NotificationService:      nil, // Not implemented yet
-		ProductCodeService:       nil, // Not implemented yet
+		ProductCodeService:       productService, // Not implemented yet
 		DonationContainer:        nil, // Not implemented yet
 	}
 
@@ -211,6 +211,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Update miniAppMerchantService with the CPS action service
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
+
+	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 
 	return ServiceLayer{
 		CPSAction:         cpsActionService,

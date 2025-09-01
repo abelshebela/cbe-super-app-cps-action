@@ -253,6 +253,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
+	ErrorAlreadyEnabled,
+	ErrorAlreadyDisabled,
+	
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -3924,6 +3927,20 @@ var (
 		Code:       "ERROR_DUPLICATE_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDuplicateAction,
+		Type:       "error",
+	}
+
+	ErrorAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDisabled,
 		Type:       "error",
 	}
 

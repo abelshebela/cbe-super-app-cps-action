@@ -36,7 +36,7 @@ func BranchMapperForUpdate(branch model.Branch) bson.M {
 	// Booleans are tricky: include them only if they are explicitly meant to be updated
 	update["enabled"] = branch.Enabled
 
-	return bson.M{"$set": update}
+	return update
 }
 
 func RegionMapperForUpdate(region model.Region) bson.M {
@@ -55,7 +55,7 @@ func RegionMapperForUpdate(region model.Region) bson.M {
 	}
 	update["enabled"] = region.Enabled
 
-	return bson.M{"$set": update}
+	return update
 }
 
 func DistrictMapperForUpdate(district model.District) bson.M {
@@ -80,7 +80,7 @@ func DistrictMapperForUpdate(district model.District) bson.M {
 	}
 	update["enabled"] = district.Enabled
 
-	return bson.M{"$set": update}
+	return update
 }
 
 func CityMapperForUpdate(city model.City) bson.M {
@@ -111,5 +111,5 @@ func CityMapperForUpdate(city model.City) bson.M {
 	}
 	update["enabled"] = city.Enabled
 
-	return bson.M{"$set": update}
+	return update
 }
