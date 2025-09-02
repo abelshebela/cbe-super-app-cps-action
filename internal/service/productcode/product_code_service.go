@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/event/core"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/pkgs/utils"
 
@@ -38,7 +39,7 @@ func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPS
 	s.logger.Infof("Authorization requested for action: %s", cpsAction.RequestAction)
 	cpsAction.ActionStatus = "APPROVED"
 	var new model.ProductCode
-	err := BindAction(cpsAction.CurrentAction, &new)
+	err := core.BindAction(cpsAction.CurrentAction, &new)
 	if err != nil {
 		s.logger.Errorf("failed to bind current action to product code: %v", err)
 		return nil, fmt.Errorf("%v", localization.ErrorInvalidRequest.Code)

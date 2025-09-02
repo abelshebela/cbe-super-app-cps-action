@@ -1,4 +1,4 @@
-package productcode
+package coreeeeeeeeeeeeeeeeeeeeee
 
 import "encoding/json"
 
