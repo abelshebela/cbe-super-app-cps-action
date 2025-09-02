@@ -74,9 +74,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Budget"):
 		return d.app.BudgetContainer.Authorize(ctx, cpsAction)
-
-	// a
-
 	case IsActionInGroup(RequestAction(action), "BulkService"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 

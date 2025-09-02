@@ -250,13 +250,14 @@ const (
 	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
-	MsgUpdateMiniAppRequestCreatedSuccessfully  = "Update Mini App request created successfully"
-	MsgMiniAppDeletedRequestCreatedSuccessfully = "Mini App deleted request created successfully"
-	MsgMiniAppDisableRequestSubmittedSuccessfully= "Mini App disable request submitted successfully"
-	MsgMiniAppEnableRequestSubmittedSuccessfully = "Mini App enable request submitted successfully"
-	MsgMiniAppsSuccessfullyRetrieved            = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
+	MsgUpdateMiniAppRequestCreatedSuccessfully    = "Mini App Update request sent successfully"
+	MsgCreateMiniAppRequestCreatedSuccessfully    = "Mini App create request sent successfully"
+	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App delete request sent successfully"
+	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request sent successfully"
+	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request sent successfully"
+	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -650,7 +651,7 @@ const (
 	MsgNoDataProvidedForUpdate            = "No data provided for service update"
 	MsgServiceAuthorizeDeleteFailed       = "Failed to authorize service delete"
 	MsgServiceUnknownRequestAction        = "Unknown request action for service"
-	MsgServiceIdRequered				  = "Service ID is required"
+	MsgServiceIdRequered                  = "Service ID is required"
 
 	// Product Code related error messages
 	MsgProductCodeParseFailed          = "Failed to parse product code ID"
@@ -783,7 +784,6 @@ const (
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
 
-
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
 
@@ -826,10 +826,10 @@ const (
 	MsgRegionCodeRequired                = "Region code is required"
 	MsgCityCodeRequired                  = "City code is required"
 
-	MsgBranchNotFound   = "Branch not found"
-	MsgDistrictNotFound = "District not found"
-	MsgRegionNotFound   = "Region not found"
-	MsgCityNotFound     = "City not found"
+	MsgBranchNotFound         = "Branch not found"
+	MsgDistrictNotFound       = "District not found"
+	MsgRegionNotFound         = "Region not found"
+	MsgCityNotFound           = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 
