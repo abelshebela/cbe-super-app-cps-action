@@ -109,7 +109,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 		PortalCards: department.PortalCards,
 	}
 
-	new_department.DepartmentCode = "."
+	new_department.DepartmentCode = utils.RandomGenerator(20)
 
 	if all_valid, err := d.portal_card.ValidatePortalCardByID(ctx, department.PortalCards); !all_valid || err != nil {
 		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPortalCard.Code)
