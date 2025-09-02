@@ -25,7 +25,6 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
-	fmt.Println("acion:", RequestAction(action))
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
@@ -50,7 +49,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.MiniAppMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniApp"):
-		fmt.Print("falied to authorize")
 		return d.app.MiniAppContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "HQ"):
@@ -76,9 +74,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Budget"):
 		return d.app.BudgetContainer.Authorize(ctx, cpsAction)
-
-	// a
-
 	case IsActionInGroup(RequestAction(action), "BulkService"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 
