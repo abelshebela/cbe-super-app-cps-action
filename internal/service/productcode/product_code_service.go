@@ -80,7 +80,6 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		return nil, nil, err
 	}
 
-	fmt.Println("this is the data from the request", request)
 	updated := &model.ProductCode{
 		ID:                 existing.ID,
 		ProductName:        utils.NonEmptyString(request.ProductName, existing.ProductName),
@@ -100,8 +99,6 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, *existing, *updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
 		err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
 	} else {
-		fmt.Printf("No changes detected for ProductCode ID: %s. Update request ignored.\n", updated.ID)
-		fmt.Println("prev", existing, "new", updated)
 		return nil, nil, fmt.Errorf("%s", localization.ErrorNoChangesDetected.Code)
 	}
 	return existing, updated, err
