@@ -250,13 +250,15 @@ const (
 	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
+
 	MsgUpdateMiniAppRequestCreatedSuccessfully    = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
 	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
 	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
-	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
+
+	MsgMiniAppsSuccessfullyRetrieved      = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully     = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -842,6 +844,9 @@ const (
 	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
+
+	MsgAlreadyEnabled  = "Already enabled"
+	MsgAlreadyDisabled = "Already disabled"
 
 	MsgNoUpdateDetected = "No update detected"
 )

@@ -93,7 +93,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, nil, logger)                                                                 // Will be updated after CPS action service is created
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, "miniapps", cfg, logger) // Will be updated after CPS action service is created
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)                                                                                                           // Will be updated after CPS action service is created
-
+	
+	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, advertBucketName, cfg, logger)
+	
 	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger) // Will be updated after CPS action service is created
 
 	permissionService := permission.InitPermissionService(
@@ -119,7 +121,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSActionContainer:	   cpsactionService,
 		UnlinkContainer:          nil, // Will be updated after CPS action service is created
 		BPSUserContainer:         nil, // Will be updated after CPS action service is created
-		AdContainer:              nil, // Will be updated after CPS action service is created
+		AdContainer:              adService,
 		PortalCardContainer:      portalCardService,
 		ServiceCheckContainer:    serviceDetails,
 		BankContainer:            bank_service,
@@ -213,6 +215,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Update miniAppMerchantService with the CPS action service
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
+
+	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 
 	return ServiceLayer{
 		CPSAction:         cpsActionService,
