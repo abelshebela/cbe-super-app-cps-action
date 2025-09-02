@@ -103,6 +103,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppEnableRequestSubmitted,
 	SuccessMiniAppMerchantCreateRequestCreated,
 	SuccessUpdateMiniAppRequestCreated,
+	SuccessCreateMiniAppRequestCreated,
 	SuccessMiniAppDeletedRequestCreated,
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
@@ -253,6 +254,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
+	ErrorAlreadyEnabled,
+	ErrorAlreadyDisabled,
+	
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -273,6 +277,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
 	ErrorFailedToParseJson,
+
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
 
 	//miniapp related errors
 	ErrorMiniAppNotFound,
@@ -302,6 +316,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -833,6 +852,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAuthTierAlreadyExists = ResponseCode{
+		Code:       "ERROR_AUTH_TIER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Auth tier already exists with the same values",
+		Type:       "error",
+	}
+
+	ErrorInvalidMethod = ResponseCode{
+		Code:       "ERROR_INVALID_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid method value",
+		Type:       "error",
+	}
+	
+	ErrorInvalidAmounts = ResponseCode{
+		Code:       "ERROR_INVALID_AMOUNTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid amounts",
+		Type:       "error",
+	}
+	
 	ErrorCoverImageRequired = ResponseCode{
 		Code:       "ERROR_COVER_IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1058,7 +1098,7 @@ var (
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: 400,
-		Message:    "Invalid wallet ID",
+		Message:    "Invalid ID",
 		Type:       "error",
 	}
 
@@ -1781,6 +1821,12 @@ var (
 		Code:       "SUCCESS_UPDATE_MINI_APP_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUpdateMiniAppRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCreateMiniAppRequestCreated = ResponseCode{
+		Code:       "SUCCESS_CREATE_MINI_APP_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgCreateMiniAppRequestCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -3303,6 +3349,18 @@ var (
 		Message:    "MiniApp merchant not found",
 		Type:       "error",
 	}
+	ErrorMiniAppMerchantAlredyEnabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_ENABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already enabled",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantAlredyDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_DISABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already disabled",
+		Type:       "error",
+	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",
@@ -3926,6 +3984,20 @@ var (
 		Code:       "ERROR_DUPLICATE_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDuplicateAction,
+		Type:       "error",
+	}
+
+	ErrorAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDisabled,
 		Type:       "error",
 	}
 

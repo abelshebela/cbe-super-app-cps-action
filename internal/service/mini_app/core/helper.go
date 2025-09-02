@@ -36,7 +36,6 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 		})
 	}
 
-	
 	var miniAppID bson.ObjectID
 	if req.ID != "" {
 		miniAppID, _ = bson.ObjectIDFromHex(req.ID)
@@ -64,7 +63,7 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 	} else {
 		miniApp.LastModifiedAt = now
 	}
-
+	log.Printf("MINIAPP IN these service :", miniApp)
 	return miniApp
 }
 
@@ -91,7 +90,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {

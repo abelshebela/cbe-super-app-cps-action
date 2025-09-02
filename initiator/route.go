@@ -10,6 +10,7 @@ import (
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
@@ -78,6 +79,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
 
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
+	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware, nil)

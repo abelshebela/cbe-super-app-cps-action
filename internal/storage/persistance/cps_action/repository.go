@@ -122,6 +122,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 
 	_, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
+
 		r.logger.Errorf("Error updating CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
 		return errors.New(code)

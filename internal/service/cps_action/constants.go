@@ -128,16 +128,16 @@ const (
 	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
 
 	// Region
-	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
-	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+	RequestEnableRegions  RequestAction = "REQUEST_ENABLE_REGIONS"
+	RequestDisableRegions RequestAction = "REQUEST_DISABLE_REGIONS"
 
 	// District
-	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
-	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+	RequestEnableDistricts  RequestAction = "REQUEST_ENABLE_DISTRICTS"
+	RequestDisableDistricts RequestAction = "REQUEST_DISABLE_DISTRICTS"
 
 	// City
-	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
-	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
+	RequestEnableCities  RequestAction = "REQUEST_ENABLE_CITIES"
+	RequestDisableCities RequestAction = "REQUEST_DISABLE_CITIES"
 
 	RequestCreateEventCategory   RequestAction = "CREATE_EVENT_CATEGORY"
 	RequestUpdateEventCategory   RequestAction = "UPDATE_EVENT_CATEGORY"
@@ -166,11 +166,11 @@ const (
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
 
-	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
-	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
-	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
-	RequestEnableMiniApp  RequestAction = "ENABLE_MINI_APP"
-	RequestDisableMiniApp RequestAction = "DISABLE_MINI_APP"
+	RequestCreateMiniApp  RequestAction = "CREATE_MiniApp"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MiniApp"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MiniApp"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MiniApp"
+	RequestDisableMiniApp RequestAction = "DISABLE_MiniApp"
 
 	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
 	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
@@ -277,8 +277,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateEventCategory:    {},
 	RequestUpdateEventCategory:    {},
 	RequestDisableEvent:           {},
-	RequestCreateMiniAppMerchant:  {},
-	RequestUpdateMiniAppMerchant:  {},
 	RequestUpdateBlockTime:        {},
 	RequestDisableFaydaAccount:    {},
 	RequestEnableFaydaAccount:     {},
@@ -287,6 +285,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableAvatar:          {},
 	RequestEnableAvatar:           {},
 	RequestUpdateAvatar:           {},
+	RequestCreateMiniAppMerchant:  {},
+	RequestUpdateMiniAppMerchant:  {},
 	RequestEnableMiniAppMerchant:  {},
 	RequestDisableMiniAppMerchant: {},
 	RequestDeleteMiniAppMerchant:  {},
@@ -319,6 +319,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestMarkNotificationAsSeen:  {},
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
+	RequestEnableBranches:          {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -496,28 +497,21 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableMultiBranches,
 		RequestEnableMultiBranches,
 
-		RequestBlockRegion,
-		RequestEnableRegion,
-		RequestBlockDistrict,
-		RequestEnableDistrict,
-		RequestBlockCity,
-		RequestEnableCity,
-
 		// Branch
 		RequestEnableBranches,
 		RequestDisableBranches,
 
 		// Region
-		RequestEnableRegion,
-		RequestDisableRegion,
+		RequestEnableRegions,
+		RequestDisableRegions,
 
 		// District
-		RequestEnableDistrict,
-		RequestDisableDistrict,
+		RequestEnableDistricts,
+		RequestDisableDistricts,
 
 		// City
-		RequestEnableCity,
-		RequestDisableCity,
+		RequestEnableCities,
+		RequestDisableCities,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),

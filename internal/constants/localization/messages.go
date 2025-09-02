@@ -254,9 +254,11 @@ const (
 	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
 	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
 	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
-	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
+	MsgCreateMiniAppRequestCreatedSuccessfully    = "Mini App create request sent successfully"
+
+	MsgMiniAppsSuccessfullyRetrieved      = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully     = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -663,13 +665,13 @@ const (
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantCheckPendingFailed     = "Failed to check pending request"
 	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check permission group existence"
-	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch permission categories"
+	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch mini app merchant"
 	MsgMiniAppMerchantUnexpectedDBError      = "Unexpected database error occurred"
 	MsgMiniAppMerchantMarshalFailed          = "Failed to marshal current action"
 	MsgMiniAppMerchantUnmarshalFailed        = "Failed to unmarshal current action"
 	MsgMiniAppMerchantCreateFromActionFailed = "Failed to create permission group from action"
 	MsgMiniAppMerchantUnmarshalActionFailed  = "Failed to unmarshal action data"
-	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
+	MsgMiniAppMerchantUpdateFailed           = "Failed to update miniapp merchent failed"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages
@@ -844,4 +846,7 @@ const (
 	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
+
+	MsgAlreadyEnabled  = "Already enabled"
+	MsgAlreadyDisabled = "Already disabled"
 )
