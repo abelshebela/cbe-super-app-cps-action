@@ -110,8 +110,6 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 		searchKeys["service_name"] = searchRegex
 	}
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
-	fmt.Println("this is the data from the filter builder")
-	fmt.Println(filter)
 	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)

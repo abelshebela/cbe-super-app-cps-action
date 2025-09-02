@@ -318,6 +318,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
 	ErrorMinAmountCanNotBeGreaterThanCap,
+	ErrorNoChangesDetected,
 }
 
 // Success Response Codes
@@ -4104,4 +4105,11 @@ var (
 		Message:    "minimum transfer can not be greater from existing transfer caps",
 		Type:       "error",
 	}
+	ErrorNoChangesDetected = ResponseCode{
+		Code:       "ERROR_NO_CHANGES_DETECTED",
+		StatusCode: StatusBadRequest,
+		Message:    "no changes detected to update",
+		Type:       "error",
+	}
+	
 )

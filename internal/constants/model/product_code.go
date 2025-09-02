@@ -39,20 +39,18 @@ func (pc *ProductCodes) Validate() error {
 	pc.PRD = local_util.ExtraSpaceRemover(pc.PRD)
 	pc.VATPRD = local_util.ExtraSpaceRemover(pc.VATPRD)
 	pc.SFPRD = local_util.ExtraSpaceRemover(pc.SFPRD)
-
-	err := validation.ValidateStruct(&pc,
-		validation.Field(&pc.PRD,
-			validation.By(utils.NoSpecialChars),
-		),
-		validation.Field(&pc.VATPRD,
-			validation.By(utils.NoSpecialChars),
-		),
-		validation.Field(&pc.SFPRD,
-			validation.By(utils.NoSpecialChars),
-		),
+	pc.TRXN = local_util.ExtraSpaceRemover(pc.TRXN)
+	
+	err := validation.ValidateStruct(pc,
+		validation.Field(&pc.PRD, validation.By(utils.NoSpecialChars)),
+		validation.Field(&pc.VATPRD, validation.By(utils.NoSpecialChars)),
+		validation.Field(&pc.SFPRD, validation.By(utils.NoSpecialChars)),
+		validation.Field(&pc.TRXN, validation.By(utils.NoSpecialChars)),
 	)
-	if err!= nil{
-		err = fmt.Errorf(localization.ErrorProductCodesValidationError.Code)
+
+	if err != nil {
+		return fmt.Errorf("%s: %v", localization.ErrorProductCodesValidationError.Code, err)
 	}
-	return err
+	return nil
 }
+

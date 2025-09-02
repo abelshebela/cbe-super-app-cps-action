@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -25,7 +26,6 @@ type productCodeService struct {
 	logger     shared_utils.Logger
 }
 
-
 func NewProductCodeService(repo storage.ProductCodeRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.ProductCodeService {
 	return &productCodeService{
 		repo:       repo,
@@ -37,16 +37,21 @@ func NewProductCodeService(repo storage.ProductCodeRepository, cpsService servic
 func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("Authorization requested for action: %s", cpsAction.RequestAction)
 	cpsAction.ActionStatus = "APPROVED"
-	return cpsAction,s.repo.Update(ctx, cpsAction.CurrentAction.(*model.ProductCode))
+	var new model.ProductCode
+	err := BindAction(cpsAction.CurrentAction, &new)
+	if err != nil {
+		s.logger.Errorf("failed to bind current action to product code: %v", err)
+		return nil, fmt.Errorf("%v", localization.ErrorInvalidRequest.Code)
+	}
+	return cpsAction, s.repo.Update(ctx, &new)
 }
-
 
 func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error) {
 	productCode, err := s.repo.FetchByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("[ProductCode.FetchByID] failed to fetch product code, id: %s, error: %v", id, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, err
+			return nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
 		}
 		return nil, err
 	}
@@ -54,11 +59,10 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 }
 
 func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
-	fmt.Println()
 	response, err := s.repo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		s.logger.Errorf("[ProductCode.FetchAll] failed to fetch product codes, error: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
 	}
 
 	return response, nil
@@ -70,11 +74,12 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	if err != nil {
 		s.logger.Errorf("[ProductCode.Update] failed to fetch existing product code, id: %s, error: %v", request.ID, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
 		}
 		return nil, nil, err
 	}
 
+	fmt.Println("this is the data from the request", request)
 	updated := &model.ProductCode{
 		ID:                 existing.ID,
 		ProductName:        utils.NonEmptyString(request.ProductName, existing.ProductName),
@@ -90,14 +95,13 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		thereIsUpdate = false
 	}
 	if thereIsUpdate {
-		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, existing, updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
+		s.logger.Infof("ProductCode update detected, creating CPS action for approval. ProductCode ID: %s", updated.ID)
+		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, *existing, *updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
 		err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
 	} else {
-		return nil, nil, err
+		fmt.Printf("No changes detected for ProductCode ID: %s. Update request ignored.\n", updated.ID)
+		fmt.Println("prev", existing, "new", updated)
+		return nil, nil, fmt.Errorf("%s", localization.ErrorNoChangesDetected.Code)
 	}
 	return existing, updated, err
-}
-
-func (s *productCodeService) RollBack(ctx context.Context,  cpsAction *model.CPSAction) error {
-	return s.repo.Update(ctx, cpsAction.PreviousAction.(*model.ProductCode))
 }

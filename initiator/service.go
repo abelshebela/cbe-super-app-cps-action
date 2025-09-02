@@ -62,7 +62,6 @@ type ServiceLayer struct {
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
 
-
 	Permission     service.PermissionService
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
@@ -78,7 +77,6 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
@@ -111,11 +109,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		nil, // Will be updated after CPS action service is created
 		logger,
 	)
+	cpsactionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, cpsaction.Dispatcher{}) // Will be updated after dispatcher is created
+	productcodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger) // Will be updated after CPS action service is created
 
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 		EventContainer:           eventService,
 		FeedbackContainer:        feedbackService,
+		CPSActionContainer:	   cpsactionService,
 		UnlinkContainer:          nil, // Will be updated after CPS action service is created
 		BPSUserContainer:         nil, // Will be updated after CPS action service is created
 		AdContainer:              nil, // Will be updated after CPS action service is created
@@ -140,7 +141,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AvatarDomian:             nil, // Not implemented yet
 		BudgetCategoryContainer:  nil, // Not implemented yet
 		NotificationService:      nil, // Not implemented yet
-		ProductCodeService:       nil, // Not implemented yet
+		ProductCodeService:       productcodeService, // Not implemented yet
 		DonationContainer:        nil, // Not implemented yet
 	}
 
@@ -149,6 +150,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Create CPS action service with the dispatcher
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 
 	// Now update all services that need the CPS action service
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, "events", cfg, logger)
@@ -235,10 +237,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Fayda:             faydaService,
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
-
 		ServiceDetails:    serviceDetails,
-
-
 		ProductCode:       productService,
 
 	}
