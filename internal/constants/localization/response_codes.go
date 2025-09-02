@@ -1059,7 +1059,7 @@ var (
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: 400,
-		Message:    "Invalid wallet ID",
+		Message:    "Invalid ID",
 		Type:       "error",
 	}
 
