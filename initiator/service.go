@@ -241,10 +241,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSUser:           cpsUserService,
 
 		ServiceDetails: serviceDetails,
-<<<<<<< HEAD
 
 		ProductCode: productService,
-=======
->>>>>>> 6085c8bf3ae8a7c28338d25d357757e88c361502
 	}
 }
