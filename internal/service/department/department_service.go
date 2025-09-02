@@ -8,14 +8,17 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	department_core "cbe-super-app-cps-action/internal/service/department/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type DepartmentService struct {
@@ -39,11 +42,26 @@ func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.
 
 // Authorize implements service.DepartmentService.
 func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	var actionData model.Department
-	raw, _ := bson.Marshal(cpsAction.CurrentAction)
-	if err := bson.Unmarshal(raw, &actionData); err != nil {
-		d.logger.Errorf("failed to unmarshal action data for authorization, action_code: %s", (cpsAction.ActionCode))
-		return nil, fmt.Errorf("%s", localization.MsgDepartmentInvalidRequestAction)
+	var actionMap interface{}
+	b, err := json.Marshal(cpsAction.CurrentAction)
+	if err != nil {
+		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+	}
+	fmt.Printf("JSON bytes: %s\n", string(b))
+	err = json.Unmarshal(b, &actionMap)
+	if err != nil {
+		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+	}
+
+	actionData := department_core.Department_mapper(actionMap)
+	if cpsAction.UniqueId != "" {
+		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		actionData.ID = objID
 	}
 
 	switch string(cpsAction.RequestAction) {
@@ -51,25 +69,25 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		actionData.CreatedAt = time.Now()
 		err := d.repo.Create(ctx, &actionData)
 		if err != nil {
-			d.logger.Errorf("Bank Create action  failed", "error", err)
+			d.logger.Errorf("Department Create action  failed", "error", err)
 			return nil, err
 		}
 	case string(constants.RequestDeleteDepartment):
-		err := d.repo.Delete(ctx, actionData.ID)
+		err := d.repo.Delete(ctx, actionData.ID.Hex())
 		if err != nil {
-			d.logger.Errorf("Bank Delete action  failed", "error", err)
+			d.logger.Errorf("Department Delete action  failed", "error", err)
 			return nil, err
 		}
 	case string(constants.RequestEnableDisableDepartment):
-		err := d.repo.EnableOrDisable(ctx, actionData.ID, actionData.Enabled)
+		err := d.repo.EnableOrDisable(ctx, actionData.ID.Hex(), actionData.Enabled)
 		if err != nil {
-			d.logger.Errorf("Bank Enable Disable action  failed", "error", err)
+			d.logger.Errorf("Department Enable Disable action  failed", "error", err)
 			return nil, err
 		}
 	case string(constants.RequestUpdateDepartment):
-		err := d.repo.Update(ctx, actionData.ID, &actionData)
+		err := d.repo.Update(ctx, actionData.ID.Hex(), &actionData)
 		if err != nil {
-			d.logger.Errorf("Bank update action failed", "error", err)
+			d.logger.Errorf("Department update action failed", "error", err)
 			return nil, err
 		}
 	default:
@@ -82,26 +100,30 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 func (d *DepartmentService) CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		d.logger.Errorf("Create Bank failed incomplete user data")
+		d.logger.Errorf("Create Department failed incomplete user data")
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
 	new_department := model.Department{
-		Department:       department.Department,
-		PortalCards:      department.PortalCards,
-		PermissionGroups: department.PermissionGroups,
+		Department:  department.Department,
+		PortalCards: department.PortalCards,
 	}
-	if ids, err := d.permission_group.ValidatePermissionGroups(ctx, department.PermissionGroups); ids == nil || len(ids) != len(department.PermissionGroups) || err != nil {
-		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPermissionGroup.Code)
-	}
+
+	new_department.DepartmentCode = "."
 
 	if all_valid, err := d.portal_card.ValidatePortalCardByID(ctx, department.PortalCards); !all_valid || err != nil {
 		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPortalCard.Code)
 	}
 
+	existing_department, err := d.repo.FindByName(ctx, department.Department)
+	code, _ := local_util.HandleMongoError(err)
+	if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
+		return fmt.Errorf("%s", localization.ErrorDepartmentWithNameAlreadyExists.Code)
+	}
+
 	action := lib.CpsModelBuilder("", makerData, nil, new_department, string(constants.RequestCreateDepartment), constants.CREATE)
 
-	err := d.cpsService.CreateCPSAction(ctx, &action)
+	err = d.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
 		return err
 	}
@@ -118,6 +140,8 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
 		return fmt.Errorf("%s", code)
+	} else if err != nil {
+		return err
 	}
 
 	if department.Enabled && enableDisable {
@@ -130,7 +154,7 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 	new_department := *department
 	new_department.Enabled = enableDisable
 
-	action := lib.CpsModelBuilder(id, makerData, department, new_department, string(constants.RequestUpdateBank), constants.UPDATE)
+	action := lib.CpsModelBuilder(id, makerData, department, new_department, string(constants.RequestEnableDisableDepartment), constants.UPDATE)
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
@@ -172,7 +196,13 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 		return fmt.Errorf("%s", code)
 	}
 
-	updatedDepartment := department
+	existing_department, err := d.repo.FindByName(ctx, department_request.Department)
+	code, _ = local_util.HandleMongoError(err)
+	if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
+		return fmt.Errorf("%s", localization.ErrorDepartmentWithNameAlreadyExists.Code)
+	}
+
+	updatedDepartment := *department
 
 	if department.Department != "" {
 		updatedDepartment.Department = department_request.Department
@@ -182,19 +212,11 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 		updatedDepartment.PortalCards = department_request.PortalCards
 	}
 
-	if department.PermissionGroups != nil {
-		updatedDepartment.PermissionGroups = department_request.PermissionGroups
-	}
-
-	if ids, err := d.permission_group.ValidatePermissionGroups(ctx, department.PermissionGroups); ids == nil || len(ids) != len(department.PermissionGroups) || err != nil {
-		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPermissionGroup.Code)
-	}
-
 	if all_valid, err := d.portal_card.ValidatePortalCardByID(ctx, department_request.PortalCards); !all_valid || err != nil {
 		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPortalCard.Code)
 	}
 
-	action := lib.CpsModelBuilder(id, makerData, department, updatedDepartment, string(constants.RequestUpdateBank), constants.UPDATE)
+	action := lib.CpsModelBuilder(id, makerData, department, updatedDepartment, string(constants.RequestUpdateDepartment), constants.UPDATE)
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {

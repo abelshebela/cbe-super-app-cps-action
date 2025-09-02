@@ -54,6 +54,7 @@ const (
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
+	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
 	RequestDisableUser              RequestAction = "DISABLE_USER"
 	RequestBPSUser                  RequestAction = "BPS_USER"
@@ -310,13 +311,14 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateWallet:        {},
 	RequestDeleteWallet:        {},
 
-	RequestCreateNotification:     {},
-	RequestUpdateNotification:     {},
-	RequestDeleteNotification:     {},
-	RequestEnableNotification:     {},
-	RequestDisableNotification:    {},
-	RequestMarkNotificationAsSeen: {},
-	RequestUpdateProductCode:      {},
+	RequestCreateNotification:      {},
+	RequestUpdateNotification:      {},
+	RequestDeleteNotification:      {},
+	RequestEnableNotification:      {},
+	RequestDisableNotification:     {},
+	RequestMarkNotificationAsSeen:  {},
+	RequestUpdateProductCode:       {},
+	RequestEnableDisableDepartment: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -375,6 +377,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Department": {
 		RequestCreateDepartment,
 		RequestUpdateDepartment,
+		RequestEnableDisableDepartment,
 		// RequestDeleteDepartment,
 	},
 	"ServiceFee": {

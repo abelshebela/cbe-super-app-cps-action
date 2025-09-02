@@ -261,6 +261,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDepartmentPermissionGroup,
 	ErrorDepartmentAlreadyDisabled,
 	ErrorDepartmentAlreadyEnabled,
+	ErrorDepartmentInvalidID,
+	ErrorDepartmentWithNameAlreadyExists,
 	// Fayda
 	ErrorFaydaUserAccountEnabled,
 	ErrorFaydaUserAccountDisabled,
@@ -2956,7 +2958,7 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
-    Type:       "error",
+		Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{
@@ -3982,6 +3984,18 @@ var (
 		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDepartmentInvalidID = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentInvalidID,
+		Type:       "error",
+	}
+	ErrorDepartmentWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentWithNameAlreadyExists,
 		Type:       "error",
 	}
 	// fayda
