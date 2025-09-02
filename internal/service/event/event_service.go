@@ -10,6 +10,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/event/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"context"
 	"errors"
 	"time"
@@ -183,29 +185,33 @@ func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter)
 }
 func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	requestedAction := action.RequestAction
+	e.logger.Infof("CurrentAction of event:", action.CurrentAction)
 
-	event, ok := action.CurrentAction.(*model.Event)
-	if !ok || event == nil {
+	var event *model.Event
+
+	err := local_util.BindAction(action.CurrentAction, &event)
+	if err != nil {
+		e.logger.Errorf("failed to bind current action to event: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
-	var err error
+	e.logger.Infof("Event after marshal:", event)
+	id := action.UniqueId
 
 	switch requestedAction {
 	case string(constants.RequestCreateEvent):
 		err = e.repo.Create(ctx, event)
 
 	case string(constants.RequestUpdateEvent):
-		err = e.repo.Update(ctx, event.ID.String(), event)
+		err = e.repo.Update(ctx, id, event)
 
 	case string(constants.RequestDeleteEvent):
-		err = e.repo.Delete(ctx, event.ID.Hex())
+		err = e.repo.Delete(ctx, id)
 
 	case string(constants.RequestEnableEvent):
-		err = e.repo.EnableOrDisable(ctx, event.ID.Hex(), true)
+		err = e.repo.EnableOrDisable(ctx, id, true)
 
 	case string(constants.RequestDisableEvent):
-		err = e.repo.EnableOrDisable(ctx, event.ID.Hex(), false)
+		err = e.repo.EnableOrDisable(ctx, id, false)
 
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)

@@ -99,7 +99,6 @@ func ToMiniAppCreateRequest(r miniappdto.MiniAppRequest, isCreate bool) (*miniap
 		Stage:               constants.StageUat,
 	}
 
-	// Map ProductCode
 	result.ProductCode = make([]types.ProductCode, 0, 2)
 	products := []struct {
 		BranchType     constants.BranchType

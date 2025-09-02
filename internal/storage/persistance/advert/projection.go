@@ -44,5 +44,5 @@ func AdvertMapper(advert model.Advert) bson.M {
 	result["last_updated_at"] = time.Now()
 
 	// Wrap with $set to be used directly in UpdateOne
-	return bson.M{"$set": result}
+	return result
 }
