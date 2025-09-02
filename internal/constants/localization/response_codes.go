@@ -123,6 +123,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPadding,
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
+	ErrorPermissionGroupAlreadyExists,
+	ErrorPermissionCatagoryNotFound,
 	ErrorUserUnauthorized,
 	ErrorUserForbidden,
 	ErrorUserInvalidCredentials,
@@ -3661,6 +3663,19 @@ var (
 		Code:       "ERROR_PERMISSION_GROUP_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgPermissionGroupRequired,
+		Type:       "error",
+	}
+
+	ErrorPermissionGroupAlreadyExists = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionGroupAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPermissionCatagoryNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_CATAGORY_NOT_FOUND",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionCatagoryNotFound,
 		Type:       "error",
 	}
 

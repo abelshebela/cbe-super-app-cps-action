@@ -322,6 +322,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
 	RequestEnableBranches:          {},
+	RequestCpsUserEnable:           {},
+	RequestCpsUserDisable:          {},
+	// RequestCpsUserDelete:{},
+	// RequestCpsUserCreate:{},
 }
 
 func IsValidRequestAction(requestAction string) bool {

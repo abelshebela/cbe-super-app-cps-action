@@ -106,7 +106,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	cpsUserService := cpsusersvc.NewCPSUserService(
 		persistence.CpsUserPersistence,
-		persistence.AccessListPersistence, // temporary it will replaced by department repo
+		persistence.DepartmentPersistence, 
 		permissionService,
 		nil, // Will be updated after CPS action service is created
 		logger,
@@ -194,7 +194,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	cpsUserService = cpsusersvc.NewCPSUserService(
 		persistence.CpsUserPersistence,
-		persistence.AccessListPersistence, // temporary it will replaced by department repo
+		persistence.DepartmentPersistence, // Use actual department repository
 		permissionService,
 		cpsActionService,
 		logger,
