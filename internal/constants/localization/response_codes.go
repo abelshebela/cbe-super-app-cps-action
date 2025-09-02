@@ -254,6 +254,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
+	ErrorAlreadyEnabled,
+	ErrorAlreadyDisabled,
+	
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -1093,7 +1096,7 @@ var (
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: 400,
-		Message:    "Invalid wallet ID",
+		Message:    "Invalid ID",
 		Type:       "error",
 	}
 
@@ -3979,6 +3982,20 @@ var (
 		Code:       "ERROR_DUPLICATE_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDuplicateAction,
+		Type:       "error",
+	}
+
+	ErrorAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDisabled,
 		Type:       "error",
 	}
 

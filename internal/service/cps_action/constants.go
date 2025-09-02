@@ -127,16 +127,16 @@ const (
 	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
 
 	// Region
-	RequestEnableRegion  RequestAction = "REQUEST_ENABLE_REGION"
-	RequestDisableRegion RequestAction = "REQUEST_DISABLE_REGION"
+	RequestEnableRegions  RequestAction = "REQUEST_ENABLE_REGIONS"
+	RequestDisableRegions RequestAction = "REQUEST_DISABLE_REGIONS"
 
 	// District
-	RequestEnableDistrict  RequestAction = "REQUEST_ENABLE_DISTRICT"
-	RequestDisableDistrict RequestAction = "REQUEST_DISABLE_DISTRICT"
+	RequestEnableDistricts  RequestAction = "REQUEST_ENABLE_DISTRICTS"
+	RequestDisableDistricts RequestAction = "REQUEST_DISABLE_DISTRICTS"
 
 	// City
-	RequestEnableCity  RequestAction = "REQUEST_ENABLE_CITY"
-	RequestDisableCity RequestAction = "REQUEST_DISABLE_CITY"
+	RequestEnableCities  RequestAction = "REQUEST_ENABLE_CITIES"
+	RequestDisableCities RequestAction = "REQUEST_DISABLE_CITIES"
 
 	RequestCreateEventCategory   RequestAction = "CREATE_EVENT_CATEGORY"
 	RequestUpdateEventCategory   RequestAction = "UPDATE_EVENT_CATEGORY"
@@ -317,6 +317,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableNotification:    {},
 	RequestMarkNotificationAsSeen: {},
 	RequestUpdateProductCode:      {},
+	RequestEnableBranches:{},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -493,28 +494,22 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableMultiBranches,
 		RequestEnableMultiBranches,
 
-		RequestBlockRegion,
-		RequestEnableRegion,
-		RequestBlockDistrict,
-		RequestEnableDistrict,
-		RequestBlockCity,
-		RequestEnableCity,
 
 		// Branch
 		RequestEnableBranches,
 		RequestDisableBranches,
 
 		// Region
-		RequestEnableRegion,
-		RequestDisableRegion,
+		RequestEnableRegions,
+		RequestDisableRegions,
 
 		// District
-		RequestEnableDistrict,
-		RequestDisableDistrict,
+		RequestEnableDistricts,
+		RequestDisableDistricts,
 
 		// City
-		RequestEnableCity,
-		RequestDisableCity,
+		RequestEnableCities,
+		RequestDisableCities,
 	},
 	"BudgetCategory": {
 		RequestAction("CREATE_BUDGET_CATEGORY"),
