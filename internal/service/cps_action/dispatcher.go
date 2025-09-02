@@ -89,8 +89,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		}
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
 
-	// case IsActionInGroup(RequestAction(action), "BPSUser"):
-	// 	return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "BPSUser"):
+		return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Avatar"):
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)

@@ -136,12 +136,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSUserContainer:         cpsUserService,
 		BudgetContainer:          nil, // Will be updated after CPS action service is created
 		AccountContainer:         accountValidation,
-		AmountBasedAuthContainer: nil,            // Not implemented yet
-		AvatarDomian:             nil,            // Not implemented yet
-		BudgetCategoryContainer:  nil,            // Not implemented yet
-		NotificationService:      nil,            // Not implemented yet
-		ProductCodeService:       productService, // Not implemented yet
-		DonationContainer:        nil,            // Not implemented yet
+		AmountBasedAuthContainer: nil, // Not implemented yet
+		AvatarDomian:             nil, // Not implemented yet
+		BudgetCategoryContainer:  nil, // Not implemented yet
+		NotificationService:      nil, // Not implemented yet
+		// ProductCodeService:       productService, // Not implemented yet
+		DonationContainer: nil, // Not implemented yet
 	}
 
 	// Create the dispatcher with the service container
