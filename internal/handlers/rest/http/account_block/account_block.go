@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/account_block/core"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	ab_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
@@ -163,7 +162,6 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 
 func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-	fmt.Println("****************FindAllCitiesWithPagination****************")
 
 	cities, err := a.accountBlockApplication.GetAllCities(r.Context(), filterParams)
 	if err != nil {
@@ -364,7 +362,7 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
-	fmt.Println("*************************************")
+
 	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

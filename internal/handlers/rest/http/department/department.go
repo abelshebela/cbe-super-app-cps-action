@@ -6,6 +6,7 @@ import (
 	department_core "cbe-super-app-cps-action/internal/handlers/rest/http/department/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -39,16 +40,17 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	var departmentRequest department_dto.CreateDepartmentRequest
 
-	departmentRequest.Department = r.FormValue("department")
-	departmentRequest.Department = r.FormValue("portal_cards")
-	departmentRequest.Department = r.FormValue("permission_groups")
+	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
+		d.logger.Errorf("failed to decode department request", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
 
 	if response_code := department_core.ValidateDepartmentRequest(r, departmentRequest); response_code.Code != "" {
 		d.logger.Errorf("invalid input", response_code)
 		localization.SendErrorResponse(w, response_code, nil, nil)
 		return
 	}
-
 	err := d.departmentService.CreateDepartment(r.Context(), departmentRequest)
 	if err != nil {
 		d.logger.Errorf("department create request failed", err)
@@ -67,9 +69,11 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 
 	var departmentRequest department_dto.UpdateDepartmentRequest
 
-	departmentRequest.Department = r.FormValue("department")
-	departmentRequest.Department = r.FormValue("portal_cards")
-	departmentRequest.Department = r.FormValue("permission_groups")
+	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
+		d.logger.Errorf("failed to decode department request", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
 
 	if response_code := department_core.ValidateDepartmentRequest(r, departmentRequest); response_code.Code != "" {
 		d.logger.Errorf("invalid input", response_code)

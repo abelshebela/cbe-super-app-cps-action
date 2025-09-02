@@ -131,9 +131,9 @@ const (
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
-    MsgMiniAppMerchantDisable = "Create MiniAppMerchant request successfully created"
-	MsgMiniAppMerchantEnableSuccessfully = "Create MiniAppMerchant request successfully created"
-	MsgMiniAppMerchantCreatedSuccessfully = "Mini app merchant created successfully"
+	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
@@ -250,13 +250,13 @@ const (
 	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
-	MsgUpdateMiniAppRequestCreatedSuccessfully  = "Update Mini App request created successfully"
-	MsgMiniAppDeletedRequestCreatedSuccessfully = "Mini App deleted request created successfully"
-	MsgMiniAppDisableRequestSubmittedSuccessfully= "Mini App disable request submitted successfully"
-	MsgMiniAppEnableRequestSubmittedSuccessfully = "Mini App enable request submitted successfully"
-	MsgMiniAppsSuccessfullyRetrieved            = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully           = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully       = "Mini App action completed successfully"
+	MsgUpdateMiniAppRequestCreatedSuccessfully    = "Update Mini App request created successfully"
+	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
+	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
+	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
+	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -359,6 +359,7 @@ const (
 	MsgInvalidActionData                    = "Invalid action"
 	MsgUnsupportedAction                    = "Unsupported action"
 	MsgMissingFile                          = "Missing file"
+	MsgFileParseFailed                      = "Failed to parse file"
 	MsgInvalidID                            = "Invalid ID format"
 	MsgInvalidActionFormat                  = "Invalid action format"
 
@@ -397,8 +398,8 @@ const (
 	MsgBankNameTooLong           = "Bank name too long"
 	MsgBankNameInvalidCharacters = "Bank name contains invalid characters"
 	msgGetAllBanksFailed         = "Get all banks failed"
-	msgGetAllBanksSuccess        = "Successfully got all banks"
-	msgGetOneBankSuccess         = "Successfully got one bank"
+	msgGetAllBanksSuccess        = "Successfully banks retrived"
+	msgGetOneBankSuccess         = "Successfully bank retrived"
 	msgDeleteBankRequestSuccess  = "Successfully bank delete request created"
 	msgGetOneBankFailed          = "Get one bank failed"
 
@@ -627,8 +628,8 @@ const (
 	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPortalCards      = "invalid format for Portal cards: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestDepartmentPermissionGroups = "invalid format for permission group: only letters, numbers, and spaces are allowed"
-	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group not found"
-	MsgInvalidDepartmentPortalCard              = "invalid portal card id or permission group not found"
+	MsgInvalidDepartmentPermissionGroup         = "invalid permission group id or permission group with id not found"
+	MsgInvalidDepartmentPortalCard              = "invalid portal card id or portal card with id not found"
 
 	// Service related error messages
 	MsgServiceFetchFailed                 = "Failed to fetch service"
@@ -649,6 +650,7 @@ const (
 	MsgNoDataProvidedForUpdate            = "No data provided for service update"
 	MsgServiceAuthorizeDeleteFailed       = "Failed to authorize service delete"
 	MsgServiceUnknownRequestAction        = "Unknown request action for service"
+	MsgServiceIdRequered                  = "Service ID is required"
 
 	// Product Code related error messages
 	MsgProductCodeParseFailed          = "Failed to parse product code ID"
@@ -774,13 +776,14 @@ const (
 	MsgAdvertCreateError     = "Advert creation failed"
 	MsgAdvertUpdateError     = "Advert update failed"
 	MsgAdvertAlreadyEnabled  = "Advert already enabled"
+	MsgAvatarAlreadyEnabled  = "Avatar already enabled"
 	MsgAdvertAlreadyDisabled = "Advert already disabled"
+	MsgAvatarAlreadyDisabled = "Avatar already disabled"
 	MsgAdvertNotFound        = "Advert not found"
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
 	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
-
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
@@ -820,14 +823,22 @@ const (
 	MsgInvalidRegion                     = "Invalid region"
 	MsgInvalidDistrictOrRegionCodeLength = "Region and District codes must be at least 3 characters long"
 	MsgBranchCodeRequired                = "Branch code is required"
+	MsgBranchAlreadyEnabled              = "Branch already enabled"
+	MsgBranchAlreadyDisabled             = "Branch already disabled"
 	MsgDistrictCodeRequired              = "District code is required"
+	MsgDistrictAlreadyEnabled            = "District already enabled"
+	MsgDistrictAlreadyDisabled           = "District already disabled"
 	MsgRegionCodeRequired                = "Region code is required"
+	MsgRegionAlreadyEnabled              = "Region already enabled"
+	MsgRegionAlreadyDisabled             = "Region already disabled"
 	MsgCityCodeRequired                  = "City code is required"
+	MsgCityAlreadyEnabled                = "City already enabled"
+	MsgCityAlreadyDisabled               = "City already disabled"
 
-	MsgBranchNotFound   = "Branch not found"
-	MsgDistrictNotFound = "District not found"
-	MsgRegionNotFound   = "Region not found"
-	MsgCityNotFound     = "City not found"
+	MsgBranchNotFound         = "Branch not found"
+	MsgDistrictNotFound       = "District not found"
+	MsgRegionNotFound         = "Region not found"
+	MsgCityNotFound           = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 

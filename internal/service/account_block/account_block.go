@@ -68,7 +68,11 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		}
 
 		if branch.Enabled == enabled {
-			return errors.New(localization.ErrorDuplicateAction.Code)
+			if enabled {
+				return errors.New(localization.ErrorBranchAlreadyEnabled.Code)
+			} else {
+				return errors.New(localization.ErrorBranchAlreadyDisabled.Code)
+			}
 		}
 	}
 
@@ -93,10 +97,14 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 		}
 
 		if branch.Enabled == enabled {
-			return errors.New(localization.ErrorDuplicateAction.Code)
+			if enabled {
+				return errors.New(localization.ErrorRegionAlreadyEnabled.Code)
+			} else {
+				return errors.New(localization.ErrorRegionAlreadyDisabled.Code)
+			}
 		}
 	}
-	
+
 	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableRegions)
 
 	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
@@ -118,7 +126,11 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		}
 
 		if branch.Enabled == enabled {
-			return errors.New(localization.ErrorDuplicateAction.Code)
+			if enabled {
+				return errors.New(localization.ErrorDistrictAlreadyEnabled.Code)
+			} else {
+				return errors.New(localization.ErrorDistrictAlreadyDisabled.Code)
+			}
 		}
 	}
 
@@ -133,6 +145,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 }
 
 func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
+
 	for _, code := range citiesCode {
 		branch, err := s.repo.GetCityByCode(ctx, code)
 		if err != nil {
@@ -143,7 +156,11 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesC
 		}
 
 		if branch.Enabled == enabled {
-			return errors.New(localization.ErrorDuplicateAction.Code)
+			if enabled {
+				return errors.New(localization.ErrorCityAlreadyEnabled.Code)
+			} else {
+				return errors.New(localization.ErrorCityAlreadyDisabled.Code)
+			}
 		}
 	}
 

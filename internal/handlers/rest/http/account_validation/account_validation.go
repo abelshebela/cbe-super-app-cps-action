@@ -64,32 +64,16 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// ─── Extract User Context ────────────────────────────────────────────
-	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
-		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
-		return
-	}
-
-	maker := dto.User{
-		ID:          userContext.UserID,
-		FullName:    userContext.FullName,
-		PhoneNumber: userContext.PhoneNumber,
-		Department:  userContext.Department,
-	}
-
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := dto.ToModel(req)
 
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorValidationRuleUpdateFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	// ─── Success Response ────────────────────────────────────────────────
-	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, map[string]interface{}{
-		"maker": maker,
-	})
+	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, map[string]interface{}{})
 }
 
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {

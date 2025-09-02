@@ -137,9 +137,9 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 
 	return s.repo.FindAllWithPagination(ctx, *filterParams)
 }
-func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) (string, error) {
+func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) error {
 	if len(keys) == 0 {
-		return "", errors.New(localization.ErrorKeyRequiredForBulkService.Code)
+		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
@@ -150,7 +150,7 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) (str
 		Keys: keys,
 	}, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
 
-	return "", s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
+	return s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
 }
 
 func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) (string, error) {

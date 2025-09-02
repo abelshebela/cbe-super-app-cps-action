@@ -1,10 +1,12 @@
 package service
 
 import (
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
 	"mime/multipart"
-    cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
@@ -14,6 +16,8 @@ import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 )
 
 type CPSActionService interface {
@@ -43,7 +47,7 @@ type BudgetService interface {
 
 type BulkService interface {
 	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
-	EnableBulkService(ctx context.Context, keys []string) (string, error)
+	EnableBulkService(ctx context.Context, keys []string) error
 	DisableBulkService(ctx context.Context, keys []string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -165,11 +169,25 @@ type PortalCardService interface {
 }
 
 type ProductCodeService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
+	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+	UpdateProductCode(ctx context.Context, request dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type ServiceService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
+	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MinimumTransferCapResponse], error)
+	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MaximumTransferCapResponse], error)
+	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.ServiceFeeResponse], error)
+	GetAllTotalTransferCap(ctx context.Context) (*dtoService.TotalTransferCapResponse, error)
+	GetServiceFeeDetail(ctx context.Context, id string) (*dtoService.ServiceFeeDetailResponse, error)
+	UpdateServiceFee(ctx context.Context, id string, req dtoService.ServiceFeeDetailDTO) error
+	UpdateSingleMaxTransfer(ctx context.Context, id string, req dtoService.SingleMaxTransferRequest) error
+	UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap dtoService.TotalMaxTransferUpdateRequest) error
+	UpdateMinimumTransferCap(ctx context.Context, id string, req dtoService.MinimumTransferUpdateRequest) error
+	DeleteServiceFeeTire(ctx context.Context, id string) error
 }
 
 type UnlinkService interface {
@@ -232,7 +250,7 @@ type AmountBasedAuthService interface {
 
 type AvatarService interface {
 	CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
-	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
+	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader, fromEnabledDisable bool) error
 	DeleteAvatar(ctx context.Context, id string) error
 	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
 	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)

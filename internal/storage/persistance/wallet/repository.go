@@ -128,13 +128,9 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	wallet, err := ToWallet(doc)
-	if err != nil {
-		w.logger.Errorf("Failed to convert document to wallet: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	
 
-	return wallet, nil
+	return doc, nil
 }
 
 func (w *WalletStorage) Find(ctx context.Context, name string) (*model.Wallet, error) {
@@ -154,13 +150,12 @@ func (w *WalletStorage) Find(ctx context.Context, name string) (*model.Wallet, e
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	wallet, err := ToWallet(doc)
 	if err != nil {
 		w.logger.Errorf("Failed to convert document to wallet: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return wallet, nil
+	return doc, nil
 }
 
 func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
@@ -180,15 +175,7 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	var wallets []*model.Wallet
-	for _, doc := range docs {
-		wallet, err := ToWallet(doc)
-		if err != nil {
-			e.logger.Errorf("Failed to convert document to wallet: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		wallets = append(wallets, wallet)
-	}
+	
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
@@ -198,10 +185,10 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	e.logger.Infof("FindAllWithPagination returning %d wallets, total: %d", len(wallets), total)
+	e.logger.Infof("FindAllWithPagination returning %d wallets, total: %d", len(docs), total)
 
 	return &types.PaginatedResponse[[]*model.Wallet]{
-		Data: wallets,
+		Data: docs,
 		Meta: meta,
 	}, nil
 }

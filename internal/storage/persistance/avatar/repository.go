@@ -97,7 +97,7 @@ func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar,
 }
 
 func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Avatar, error) {
-	return a.dal.FindAll(ctx, filter, projection)
+	return a.dal.FindAll(ctx, filter, nil)
 }
 
 func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error) {

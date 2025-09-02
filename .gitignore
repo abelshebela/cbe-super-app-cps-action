@@ -30,3 +30,7 @@ reserve
 # Editor/IDE
 # .idea/
 # .vscode/
+
+docs/
+!docs/swagger/
+!docs/swagger.json

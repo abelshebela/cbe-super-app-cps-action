@@ -32,7 +32,7 @@ func Init(router chi.Router, handler bulk_service.BulkServiceHandler, authMiddle
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/bulk_service/enable",
+			Path:    "/bulk_services/enable",
 			Handler: handler.EnableBulkService,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

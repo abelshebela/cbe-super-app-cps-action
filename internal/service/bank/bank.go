@@ -22,22 +22,24 @@ import (
 )
 
 type BankService struct {
-	cpsService service.CPSActionService
-	logger     utils.Logger
-	repo       storage.BankRepository
-	cfg        *config.VaultConfig
-	minio      config.MinioClientInterface
-	bucketName string
+	cpsService  service.CPSActionService
+	logger      utils.Logger
+	repo        storage.BankRepository
+	cfg         *config.VaultConfig
+	minio       config.MinioClientInterface
+	minioPubUrl string
+	bucketName  string
 }
 
-func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio config.MinioClientInterface, cfg *config.VaultConfig, bucketName string) service.BankService {
+func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
-		logger:     logger,
-		repo:       repo,
-		cpsService: cpsService,
-		cfg:        cfg,
-		minio:      minio,
-		bucketName: bucketName,
+		logger:      logger,
+		repo:        repo,
+		cpsService:  cpsService,
+		cfg:         cfg,
+		minio:       minio,
+		minioPubUrl: minioPubUrl,
+		bucketName:  bucketName,
 	}
 }
 
@@ -59,25 +61,25 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 	case string(constants.RequestDeleteBank):
-		err := b.repo.Delete(ctx, actionData.ID)
+		err := b.repo.Delete(ctx, actionData.ID.Hex())
 		if err != nil {
 			b.logger.Errorf("Bank Delete action  failed", "error", err)
 			return nil, err
 		}
 	case string(constants.RequestEnableDisableBank):
-		err := b.repo.EnableOrDisable(ctx, actionData.ID, actionData.Enabled)
+		err := b.repo.EnableOrDisable(ctx, actionData.ID.Hex(), actionData.Enabled)
 		if err != nil {
 			b.logger.Errorf("Bank Enable Disable action  failed", "error", err)
 			return nil, err
 		}
 	case string(constants.RequestUpdateBankLogo):
-		err := b.repo.Update(ctx, actionData.ID, &actionData)
+		err := b.repo.Update(ctx, actionData.ID.Hex(), &actionData)
 		if err != nil {
 			b.logger.Errorf("Bank update Logo action  failed", "error", err)
 			return nil, err
 		}
 	case string(constants.RequestUpdateBank):
-		err := b.repo.Update(ctx, actionData.ID, &actionData)
+		err := b.repo.Update(ctx, actionData.ID.Hex(), &actionData)
 		if err != nil {
 			b.logger.Errorf("Bank update action failed", "error", err)
 			return nil, err
@@ -95,7 +97,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.cfg.MinioEndPoint, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -193,6 +195,7 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 }
 
 func (b *BankService) GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
+
 	return b.repo.FindAllWithPagination(ctx, *filterParams)
 }
 
@@ -212,7 +215,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return err
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.cfg.MinioEndPoint, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)

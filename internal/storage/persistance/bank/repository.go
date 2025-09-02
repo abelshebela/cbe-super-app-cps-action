@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -112,7 +113,6 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
-
 	// 2. Allowed filterable/searchable fields
 	allowedKeys := []string{"branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
@@ -134,6 +134,7 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		fmt.Println(err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 

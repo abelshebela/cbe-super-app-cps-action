@@ -18,7 +18,6 @@ import (
 	"strings"
 	"time"
 
-	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -37,25 +36,20 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 		})
 	}
 
-	credentials := types.CredentialInformation{
-		ID:            bson.NewObjectID(),
-		Environment:   constants.UatEnvironment,
-		MerchantAppID: req.Credential.MerchantAppID,
-		FabricAppID:   req.Credential.FabricAppID,
-		ShortCode:     req.Credential.ShortCode,
-		AppSecret:     req.Credential.AppSecret,
-		PrivateKey:    req.Credential.PrivateKey,
-		PublicKey:     req.Credential.PublicKey,
+	
+	var miniAppID bson.ObjectID
+	if req.ID != "" {
+		miniAppID, _ = bson.ObjectIDFromHex(req.ID)
+	} else {
+		miniAppID = bson.NewObjectID()
 	}
-
 	miniApp := model.MiniApp{
-		ID:                  bson.NewObjectID(),
+		ID:                  miniAppID,
 		AppName:             req.AppName,
 		CommissionGLAccount: req.CommissionGLAccount,
 		AppType:             req.AppType,
 		MerchantID:          req.MerchantID,
 		ProductCode:         productCodes,
-		Credential:          credentials,
 		IsEventMiniApp:      req.IsEventMiniApp,
 		IsThreeClick:        req.IsThreeClick,
 		URL:                 req.URL,
@@ -97,7 +91,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -108,7 +102,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
+func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, error) {
 	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
 
 	if prefix == "" || value == "" {
