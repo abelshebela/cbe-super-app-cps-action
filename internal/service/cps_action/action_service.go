@@ -6,7 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/factory"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -23,16 +23,11 @@ type cpsActionService struct {
 	dispatcher Dispatcher
 }
 
-func NewCPSActionService(repo storage.CPSActionRepository, persistence persistance.Persistence, logger utils.Logger) service.CPSActionService {
-	serviceFactory := factory.NewServiceFactory(persistence, logger)
-
-	services := serviceFactory.CreateServiceContainer()
-
-	dispatcherPersist := NewDispatcher(services)
+func NewCPSActionService(repo storage.CPSActionRepository, persistence persistance.Persistence, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
 	return &cpsActionService{
 		repo:       repo,
 		logger:     logger,
-		dispatcher: *dispatcherPersist,
+		dispatcher: dispatcher,
 	}
 }
 
@@ -51,21 +46,25 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
-	cpsAction, err := ca.repo.Update(ctx, action.ActionCode, *action)
+	err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
-		return err
-	}
-	approve, err := ca.dispatcher.Authorize(ctx, cpsAction)
-	if err != nil && approve == nil {
-		ca.RollBack(ctx, action.ActionCode)
-		return err
-	}
+		if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
+			fmt.Printf("Approve cps action: %v", err)
+			return err
+		}
+		approve, err := ca.dispatcher.Authorize(ctx, action)
+		if err != nil && approve == nil {
+			ca.RollBack(ctx, action.ActionCode)
+			return err
+		}
 
+	}
 	return nil
+
 }
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 
-	_, err := ca.repo.Update(ctx, action_code, *action)
+	err := ca.repo.Update(ctx, action_code, *action)
 	if err != nil {
 		return err
 	}
@@ -92,22 +91,5 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action_code string) error {
-	_, err := ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
 }
-
-// func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
-// 	_,err  := s.repo.FindOne(ctx, model.CPSAction{Department: user.Department,ActionStatus: string(constants.Pending),RequestAAction: })
-// 	if err != nil {
-// 		if err.Error() == localization.ErrorActionNotFound.Code{
-// 			return false,nil
-// 		}
-// 		return false,nil
-// 	}
-
-// 	return true,nil
-// }

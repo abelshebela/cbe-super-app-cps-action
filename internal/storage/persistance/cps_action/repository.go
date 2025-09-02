@@ -115,19 +115,19 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) 
 	return data, nil
 }
 
-func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
+func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) error {
 	r.logger.Infof("Updating CPSAction with ActionCode: %s, Update: %+v", actionCode, update)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 
-	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
+	_, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("Error updating CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
-		return nil, errors.New(code)
+		return errors.New(code)
 	}
 	r.logger.Infof("Successfully updated CPSAction with ActionCode: %s", actionCode)
-	return &data, nil
+	return nil
 }
 
 func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {

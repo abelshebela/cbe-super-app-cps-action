@@ -90,7 +90,7 @@ type CPSActionRepository interface {
 	Save(ctx context.Context, cpsAction *model.CPSAction) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error)
-	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
+	Update(ctx context.Context, actionCode string, update model.CPSAction) error
 	Delete(ctx context.Context, id string) error
 }
 
@@ -344,7 +344,7 @@ type BranchRepository interface {
 
 type MiniAppMerchantRepository interface {
 	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)

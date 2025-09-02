@@ -58,7 +58,7 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger)
 
 	r := chi.NewRouter()
-	InitRoute(ctx, r, handlerLayer, logger)
+	InitRoute(ctx, r, handlerLayer, logger, cfg)
 
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	go func() {

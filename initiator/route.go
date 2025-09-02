@@ -9,6 +9,7 @@ import (
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
+	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
@@ -22,13 +23,17 @@ import (
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
+	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
-	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+
+	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
+
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
@@ -41,10 +46,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
 
 	r := chi.NewRouter()
-	cfg, _ := config.Load()
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -77,6 +81,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
 
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
+	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware)
@@ -90,6 +95,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	miniapp.Init(r, handlerLayer.MiniAPPHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
+	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
+	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 
 	// Add swagger endpoints to the API router before mounting
 	r.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {

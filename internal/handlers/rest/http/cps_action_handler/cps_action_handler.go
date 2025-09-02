@@ -6,6 +6,7 @@ import (
 	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	core "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
@@ -36,14 +37,17 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), &model.CPSAction{
-		ActionCode:         actionCode,
-		ActionStatus:       constants.Approved,
-		CheckerID:          userData.UserID,
-		CheckerName:        userData.FullName,
-		CheckerPhoneNumber: userData.PhoneNumber,
-		Department:         userData.Department,
-	}); err != nil {
+	// First, retrieve the existing CPS action to get ALL the data
+	existingAction, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	// Map to approval action using helper
+	approvalAction := core.MapCPSActionToApproval(existingAction, &userData)
+
+	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), approvalAction); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
