@@ -55,7 +55,7 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 
 	// Try to directly cast to the expected DTO type first
 	if dto, ok := newData.(dto.ServiceFeeDetailDTO); ok {
-		// Direct mapping from DTO to model
+
 		if dto.ServiceType != "" {
 			updatedService.ServiceType = dto.ServiceType
 		}
@@ -263,11 +263,14 @@ func BindAction(source any, target any) error {
 	if err != nil {
 		return err
 	}
+	
 	return json.Unmarshal(bytes, target)
 }
 
 func ValidateMinimumTransferCap(newMinAmount uint64, existingCaps types.Cap) error {
+	
 	if newMinAmount >= existingCaps.ISingleCap {
+		
 		return fmt.Errorf("min_amount (%d) must be less than individual_single_cap (%d)", newMinAmount, existingCaps.ISingleCap)
 	}
 	if newMinAmount >= existingCaps.IDailyCap {
