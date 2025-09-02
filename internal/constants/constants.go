@@ -181,6 +181,9 @@ const (
 	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
 
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
+	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup    RequestAction = "DELETE_PERMISSION_GROUP"
 	RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestEnableUser               RequestAction = "ENABLE_USER"
 	RequestDisableUser              RequestAction = "DISABLE_USER"

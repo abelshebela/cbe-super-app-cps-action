@@ -46,7 +46,7 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.FetchUserByUserCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
