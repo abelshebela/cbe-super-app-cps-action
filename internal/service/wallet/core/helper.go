@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -69,7 +70,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Println("Failed to create CPS action", "error", err)
@@ -77,4 +78,12 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	}
 	log.Println("Successfully created CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID)
 	return nil
+}
+
+func BindAction(source any, target any) error {
+	bytes, err := json.Marshal(source)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, target)
 }

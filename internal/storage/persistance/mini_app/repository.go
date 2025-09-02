@@ -60,7 +60,7 @@ func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *model.M
 		return errors.New(localization.ErrorUpdateMiniAppEmptyPayload.Code)
 	}
 
-	_, err = m.dal.UpdateOne(ctx, filter, bson.M{"$set": update})
+	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			m.logger.Warnf("MiniApp not found for ID: %s", id)
@@ -181,7 +181,7 @@ func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"product_code.product_code": searchRegex},
 		}
 	}
-
+	filter["is_deleted"] = false
 	docs, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		m.logger.Errorf("FindAllWithPagination MiniApp failed: %v", err)

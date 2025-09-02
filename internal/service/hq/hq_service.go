@@ -147,13 +147,19 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 
 func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	requestedAction := action.RequestAction
+	s.logger.Infof("action.CurrentAction action: %v", action.CurrentAction)
 
-	hq, ok := action.CurrentAction.(*model.HQ)
-	if !ok || hq == nil {
+	if action.CurrentAction == nil {
+		s.logger.Errorf("CurrentAction is nil for action_code: %s", action.ActionCode)
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+	hq, err := core.ConvertToHQ(action.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("Failed to parse CurrentAction to HQ: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	var err error
+	s.logger.Infof("Authorizing HQ action", "action_code", action.ActionCode, "request", requestedAction)
 
 	switch requestedAction {
 	case string(constants.RequestUpdateHQBlockTime):

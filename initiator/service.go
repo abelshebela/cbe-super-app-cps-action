@@ -28,7 +28,7 @@ import (
 
 	service_details "cbe-super-app-cps-action/internal/service/service_details"
 
-	"cbe-super-app-cps-action/internal/service/productcode"
+	// "cbe-super-app-cps-action/internal/service/productcode"
 
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
@@ -78,7 +78,7 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
+	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
@@ -239,7 +239,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ServiceDetails:    serviceDetails,
 
 
-		ProductCode:       productService,
+		// ProductCode:       productService,
 
 	}
 }

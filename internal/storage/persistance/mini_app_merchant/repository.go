@@ -199,6 +199,17 @@ func (p *MiniAppMerchantStorage) AddMiniApp(ctx context.Context, merchantID stri
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
+	// First make sure mini_apps is initialized as an array if it’s null
+	_, initErr := p.client.Database(p.dbName).Collection(p.collection).UpdateOne(
+		ctx,
+		bson.M{"_id": objID, "mini_apps": bson.M{"$type": "null"}},
+		bson.M{"$set": bson.M{"mini_apps": bson.A{}}},
+	)
+	if initErr != nil {
+		p.logger.Debugf("AddMiniApp: no initialization needed for merchant_id=%s (mini_apps not null)", merchantID)
+	}
+
+	// Now safely push the new mini app
 	update := bson.M{"$push": bson.M{"mini_apps": miniApp}}
 	var result model.MiniAppMerchant
 	err = p.client.Database(p.dbName).Collection(p.collection).FindOneAndUpdate(
@@ -219,6 +230,7 @@ func (p *MiniAppMerchantStorage) AddMiniApp(ctx context.Context, merchantID stri
 	p.logger.Infof("AddMiniApp: successfully added mini app, merchant_id=%s, mini_app_id=%s", merchantID, miniApp.ID)
 	return nil
 }
+
 
 func (p *MiniAppMerchantStorage) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
 	p.logger.Infof("UpdateMiniAppEnabledState: merchant_id=%s, mini_app_id=%s, enabled=%v", merchantID, miniAppID, enabled)

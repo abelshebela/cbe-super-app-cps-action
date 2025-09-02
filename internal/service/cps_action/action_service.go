@@ -46,7 +46,9 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
 	if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
 	}
 	approve, err := ca.dispatcher.Authorize(ctx, action)
 	if err != nil && approve == nil {

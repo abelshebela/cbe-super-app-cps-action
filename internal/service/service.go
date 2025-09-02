@@ -1,15 +1,14 @@
 package service
 
 import (
-
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"context"
 	"mime/multipart"
-    
+
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
@@ -19,9 +18,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
-
 )
 
 type CPSActionService interface {

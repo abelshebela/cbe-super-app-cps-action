@@ -11,6 +11,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	cRand "crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -36,7 +37,6 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 		})
 	}
 
-	
 	var miniAppID bson.ObjectID
 	if req.ID != "" {
 		miniAppID, _ = bson.ObjectIDFromHex(req.ID)
@@ -64,7 +64,7 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 	} else {
 		miniApp.LastModifiedAt = now
 	}
-
+	log.Printf("MINIAPP IN these service :", miniApp)
 	return miniApp
 }
 
@@ -91,7 +91,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -128,4 +128,12 @@ func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, er
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
+}
+
+func BindAction(source any, target any) error {
+	bytes, err := json.Marshal(source)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, target)
 }

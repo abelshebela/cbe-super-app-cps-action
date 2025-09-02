@@ -308,16 +308,14 @@ const (
 	RequestUpdateBudgetIcon              RequestAction = "BUDGET_UPDATE_ICON"
 	RequestDeleteBudgetIcAdvertServiceon RequestAction = "BUDGET_DELETE_ICON"
 
-	RequestBudgetUpdate RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestBudgetCreate RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestBudgetDelete RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestCreateMiniApp RequestAction = "CREATE_MINIAPP"
-	RequestUpdateMiniApp RequestAction = "UPDATE_MINIAPP"
-	RequestDeleteMiniApp RequestAction = "DELETE_MINIAPP"
-	RequestEnableMiniApp RequestAction = "ENABLE_MINIAPP"
-	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
-
-
+	RequestBudgetUpdate   RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestBudgetCreate   RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestBudgetDelete   RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestCreateMiniApp  RequestAction = "CREATE_MiniApp"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MiniApp"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MiniApp"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MiniApp"
+	RequestDisableMiniApp RequestAction = "DISABLE_MiniApp"
 
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
