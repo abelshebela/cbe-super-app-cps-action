@@ -1,5 +1,7 @@
 package miniappmerchant
 
+import "go.mongodb.org/mongo-driver/v2/bson"
+
 type MiniAppMerchantRequest struct {
 	Type                       string
 	MerchantName               string
@@ -10,12 +12,13 @@ type MiniAppMerchantRequest struct {
 }
 
 type MiniAppMerchantDTO struct {
-	Type                       string `json:"type"`
-	MerchantName               string `json:"merchant_name"`
-	MerchantRepresentativeName string `json:"merchant_representative_name"`
-	PhoneNumber                string `json:"phone_number"`
-	Email                      string `json:"email"`
-	AccountNumber              string `json:"account_number"`
+	ID                         bson.ObjectID `json:"id"`
+	Type                       string        `json:"type"`
+	MerchantName               string        `json:"merchant_name"`
+	MerchantRepresentativeName string        `json:"merchant_representative_name"`
+	PhoneNumber                string        `json:"phone_number"`
+	Email                      string        `json:"email"`
+	AccountNumber              string        `json:"account_number"`
 }
 
 type KYCDTO struct {

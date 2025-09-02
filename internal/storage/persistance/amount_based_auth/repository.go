@@ -35,15 +35,36 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{
-		"$set": bson.M{
-			"min_amount":    authTier.MinAmount,
-			"max_amount":    authTier.MaxAmount,
-			"method":        authTier.Method,
-			"last_modified": authTier.LastModified,
-		},
+	
+	// First, fetch the existing document
+	existingAuthTier, err := a.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	
+	// Check if there are any changes
+	hasChanges := false
+	if existingAuthTier.MinAmount != authTier.MinAmount {
+		hasChanges = true
+	}
+	if existingAuthTier.MaxAmount != authTier.MaxAmount {
+		hasChanges = true
+	}
+	if existingAuthTier.Method != authTier.Method {
+		hasChanges = true
+	}
+	
+	if !hasChanges {
+		return errors.New(localization.ErrorAuthTierAlreadyExists.Code)
+	}
+	
+	// Use replacement document for update
+	update := AuthTierUpdateMapper(authTier, existingAuthTier)
 
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -52,6 +73,7 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	
 	return nil
 }
 

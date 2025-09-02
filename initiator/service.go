@@ -7,6 +7,7 @@ import (
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
+	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	"cbe-super-app-cps-action/internal/service/budget"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
@@ -64,13 +65,14 @@ type ServiceLayer struct {
 
 
 	Permission     service.PermissionService
-	CPSUser        service.CPSUserService
+	CPSUser        service.CPSUserService 
 	ServiceDetails service.ServiceService
 
 
 	ProductCode       service.ProductCodeService
 
 
+	AmountBasedAuth service.AmountBasedAuthService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -223,6 +225,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Advert:            serviceContainer.AdContainer,
 		BpsUser:           serviceContainer.BPSUserContainer,
 		Bank:              bank_service,
+		AmountBasedAuth:   amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
 		Unlink:            serviceContainer.UnlinkContainer,
 		Budget:            serviceContainer.BudgetContainer,
 		PortalCard:        portalCardService,

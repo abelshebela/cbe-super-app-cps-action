@@ -103,6 +103,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppEnableRequestSubmitted,
 	SuccessMiniAppMerchantCreateRequestCreated,
 	SuccessUpdateMiniAppRequestCreated,
+	SuccessCreateMiniAppRequestCreated,
 	SuccessMiniAppDeletedRequestCreated,
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
@@ -275,6 +276,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSActionFailed,
 	ErrorFailedToParseJson,
 
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
 	//miniapp related errors
 	ErrorMiniAppNotFound,
 	ErrorMiniAppAlreadyExists,
@@ -303,6 +314,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -834,6 +850,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAuthTierAlreadyExists = ResponseCode{
+		Code:       "ERROR_AUTH_TIER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Auth tier already exists with the same values",
+		Type:       "error",
+	}
+
+	ErrorInvalidMethod = ResponseCode{
+		Code:       "ERROR_INVALID_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid method value",
+		Type:       "error",
+	}
+	
+	ErrorInvalidAmounts = ResponseCode{
+		Code:       "ERROR_INVALID_AMOUNTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid amounts",
+		Type:       "error",
+	}
+	
 	ErrorCoverImageRequired = ResponseCode{
 		Code:       "ERROR_COVER_IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1782,6 +1819,12 @@ var (
 		Code:       "SUCCESS_UPDATE_MINI_APP_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUpdateMiniAppRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCreateMiniAppRequestCreated = ResponseCode{
+		Code:       "SUCCESS_CREATE_MINI_APP_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgCreateMiniAppRequestCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -2959,7 +3002,7 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
-    Type:       "error",
+		Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{
@@ -3302,6 +3345,18 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "MiniApp merchant not found",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantAlredyEnabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_ENABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already enabled",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantAlredyDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_DISABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already disabled",
 		Type:       "error",
 	}
 
