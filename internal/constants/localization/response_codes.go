@@ -2956,7 +2956,7 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
-    Type:       "error",
+		Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{
@@ -3299,6 +3299,18 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "MiniApp merchant not found",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantAlredyEnabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_ENABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already enabled",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantAlredyDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_DISABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already disabled",
 		Type:       "error",
 	}
 
