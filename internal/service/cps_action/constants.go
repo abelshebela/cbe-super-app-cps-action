@@ -71,6 +71,8 @@ const (
 	RequestCreateBank               RequestAction = "CREATE_BANK"
 	RequestUpdateBank               RequestAction = "UPDATE_BANK"
 	RequestDeleteBank               RequestAction = "DELETE_BANK"
+	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
+	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO"
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
@@ -243,8 +245,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteAdvert:             {},
 	RequestCreateBank:               {},
 	RequestUpdateBank:               {},
-	RequestEnableBank:               {},
-	RequestDisableBank:              {},
+	RequestEnableDisableBank:        {},
+	RequestUpdateBankLogo:           {},
 	RequestEnableWallet:             {},
 	RequestDisableWallet:            {},
 	RequestUpdatePasswordExpiry:     {},
@@ -470,8 +472,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateBank,
 		RequestUpdateBank,
 		RequestDeleteBank,
-		RequestEnableBank,
-		RequestDisableBank,
+		RequestUpdateBankLogo,
+		RequestEnableDisableBank,
 	},
 	"Wallet": {
 		RequestCreateWallet,
