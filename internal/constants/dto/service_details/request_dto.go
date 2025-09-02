@@ -9,9 +9,10 @@ type UpdateServiceFeeRequest struct {
 type PaymentType string
 
 const (
-	PaymentTypeFlatFee   PaymentType = "flat_fee"
+	PaymentTypeFlatFee    PaymentType = "flat_fee"
 	PaymentTypePercentage PaymentType = "percentage"
 )
+
 // TierDTO represents a fee tier structure
 type TierDTO struct {
 	Min       uint64 `json:"min" bson:"min"`
@@ -70,4 +71,3 @@ type MinimumTransferUpdateRequest struct {
 type DeleteServiceFeeTireRequest struct {
 	ID string `json:"tire_id" bson:"tire_id"`
 }
-

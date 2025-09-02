@@ -113,8 +113,9 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
+
 	projection := bson.M{
-		"tire": 1,
+		"tiers": 1,
 	}
 	serviceDetail, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
@@ -189,18 +190,8 @@ func (s *ServiceDetails) UpdateMinimumTransferCap(ctx context.Context, id string
 
 	newMinAmount := req.Minimum
 
-	updatedCap := model.Cap{
-		ISingleCap:         prev.Cap.ISingleCap,
-		IDailyCap:          prev.Cap.IDailyCap,
-		CorporateSingleCap: prev.Cap.CorporateSingleCap,
-		CorporateDailyCap:  prev.Cap.CorporateDailyCap,
-		MinAmount:          newMinAmount,
-	}
-	if updatedCap.MinAmount >= updatedCap.ISingleCap ||
-		updatedCap.MinAmount >= updatedCap.IDailyCap ||
-		updatedCap.MinAmount >= updatedCap.CorporateSingleCap ||
-		updatedCap.MinAmount >= updatedCap.CorporateDailyCap {
-		return errors.New(localization.ErrorMinAmountCanNotBeGreaterThanCap.Code)
+	if err := core.ValidateMinimumTransferCap(newMinAmount, prev.Cap); err != nil {
+		return err
 	}
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, prev, req, string(constants.RequestUpdateServiceMinCap), constants.UPDATE)
@@ -216,7 +207,7 @@ func (s *ServiceDetails) DeleteServiceFeeTire(ctx context.Context, id string) er
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	projection := bson.M{
-		"tier": 1,
+		"tiers": 1,
 	}
 	prev, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
@@ -240,7 +231,6 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 	if serviceID == "" {
 		return errors.New("service ID is required (UniqueId field is empty)")
 	}
-
 
 	existingService, err := s.serviceRepo.FindByID(ctx, bson.M{}, serviceID)
 	if err != nil {
@@ -289,6 +279,7 @@ func (s *ServiceDetails) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		string(constants.RequestUpdateServiceMinCap),
 		string(constants.RequestDeleteServiceFee):
 
+
 		err = s.applyServiceUpdate(ctx, cpsAction)
 
 	case string(constants.RequestUpdateServiceTotal):
@@ -307,3 +298,4 @@ func (s *ServiceDetails) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	s.logger.Infof("Service action authorization completed: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
+//18010670
