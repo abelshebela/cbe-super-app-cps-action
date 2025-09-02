@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -167,7 +168,7 @@ func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Fil
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	var wallet *model.Wallet
 
-	err := core.BindAction(action.CurrentAction, &wallet)
+	err := local_util.BindAction(action.CurrentAction, &wallet)
 	if err != nil {
 		s.logger.Errorf("failed to bind current action to wallet: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)

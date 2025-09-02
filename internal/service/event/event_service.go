@@ -10,6 +10,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/event/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"context"
 	"errors"
 	"time"
@@ -187,7 +189,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 
 	var event *model.Event
 
-	err := core.BindAction(action.CurrentAction, &event)
+	err := local_util.BindAction(action.CurrentAction, &event)
 	if err != nil {
 		e.logger.Errorf("failed to bind current action to event: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)

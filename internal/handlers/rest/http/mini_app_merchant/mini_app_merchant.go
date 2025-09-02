@@ -2,7 +2,6 @@ package miniappmerchant
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
@@ -107,7 +106,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	// Call service update
 	updatedMerchant, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantUpdateFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -143,9 +142,7 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppSoftDeleted, map[string]string{
-		"message": fmt.Sprintf("Mini App Merchant %s deleted successfully", id),
-	})
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDeletedRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -198,7 +195,7 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 
 	result, err := h.miniappMerchantService.FindByID(r.Context(), id)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantFetchCategoriesFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

@@ -12,7 +12,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	cRand "crypto/rand"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -212,12 +211,4 @@ func CreateEventMapper(event eventdto.EventRequest, code string, coverURL string
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
 	}
-}
-
-func BindAction(source any, target any) error {
-	bytes, err := json.Marshal(source)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(bytes, target)
 }

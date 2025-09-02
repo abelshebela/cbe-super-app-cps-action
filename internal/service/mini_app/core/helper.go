@@ -11,7 +11,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	cRand "crypto/rand"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -128,12 +127,4 @@ func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, er
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
-}
-
-func BindAction(source any, target any) error {
-	bytes, err := json.Marshal(source)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(bytes, target)
 }

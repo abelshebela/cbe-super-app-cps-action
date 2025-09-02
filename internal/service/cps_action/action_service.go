@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -46,9 +47,8 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
 	if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
-		if err.Error() != localization.ErrorResourceNotFound.Code {
-			return err
-		}
+		fmt.Printf("Approve cps action: %v", err)
+		return err
 	}
 	approve, err := ca.dispatcher.Authorize(ctx, action)
 	if err != nil && approve == nil {

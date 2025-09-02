@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -78,12 +77,4 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	}
 	log.Println("Successfully created CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID)
 	return nil
-}
-
-func BindAction(source any, target any) error {
-	bytes, err := json.Marshal(source)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(bytes, target)
 }

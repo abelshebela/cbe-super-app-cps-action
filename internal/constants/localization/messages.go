@@ -662,13 +662,13 @@ const (
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantCheckPendingFailed     = "Failed to check pending request"
 	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check permission group existence"
-	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch permission categories"
+	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch mini app merchant"
 	MsgMiniAppMerchantUnexpectedDBError      = "Unexpected database error occurred"
 	MsgMiniAppMerchantMarshalFailed          = "Failed to marshal current action"
 	MsgMiniAppMerchantUnmarshalFailed        = "Failed to unmarshal current action"
 	MsgMiniAppMerchantCreateFromActionFailed = "Failed to create permission group from action"
 	MsgMiniAppMerchantUnmarshalActionFailed  = "Failed to unmarshal action data"
-	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
+	MsgMiniAppMerchantUpdateFailed           = "Failed to update miniapp merchent failed"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages

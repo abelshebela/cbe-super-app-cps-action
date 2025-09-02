@@ -2,6 +2,7 @@ package initiator
 
 import (
 	// Inbound section
+	amountBasedAuthInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
@@ -54,9 +55,8 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
-
+	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -78,7 +78,7 @@ type Handler struct {
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler  service_details.ServiceAdapter
-
+	AmountBasedAuthHandler amountBasedAuthInbound.AmountBasedAuthAdapter
 	DepartmentHandler department.DepartmentHandler
 
 	FaydaHandler       FaydaInbound.FaydaAccount
@@ -114,7 +114,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
 		Permission:         permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
 		CPSUser:            cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
-
+		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
+		
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 
 		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),

@@ -1,6 +1,7 @@
 package miniapp
 
 import (
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -256,7 +257,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	var miniApp *model.MiniApp
 
-	err := miniappcore.BindAction(cpsAction.CurrentAction, &miniApp)
+	err := local_util.BindAction(cpsAction.CurrentAction, &miniApp)
 	if err != nil {
 		s.logger.Errorf("Failed to bind CurrentAction to MiniApp: %+v, error: %v", cpsAction.CurrentAction, err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
