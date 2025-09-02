@@ -33,6 +33,7 @@ func NewDepartmentRepository(client *mongo.Client, dbName string, collection str
 }
 
 func (b *DepartmentStorage) Create(ctx context.Context, Department *model.Department) error {
+	Department.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *Department)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
