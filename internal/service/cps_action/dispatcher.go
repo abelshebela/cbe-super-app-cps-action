@@ -2,6 +2,7 @@ package cpsaction
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -86,6 +87,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ProductCode"):
+		if d.app.ProductCodeService == nil {
+			return nil, errors.New("ProductCode service is not implemented")
+		}
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
 
 	// case IsActionInGroup(RequestAction(action), "BPSUser"):

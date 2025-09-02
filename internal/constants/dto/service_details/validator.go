@@ -121,7 +121,7 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 		),
 		validation.Field(&dto.PaymentType,
 			validation.Required.Error("payment_type is required"),
-			// validation.In("percentage", "flat_fee").Error("payment_type must be either 'percentage' or 'flat_fee'"),
+			validation.In(PaymentTypeFlatFee, PaymentTypePercentage).Error("payment_type must be either 'flat_fee' or 'percentage'"),
 		),
 		validation.Field(&dto.SingleCapLevelOne,
 			validation.Required.Error("single_cap_level_one is required"),
@@ -200,6 +200,14 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 			if tier.Max != nextTier.Min {
 				return fmt.Errorf("tier %d max (%d) must equal tier %d min (%d)", i+1, tier.Max, i+2, nextTier.Min)
 			}
+		}
+	}
+
+	// Validate that above amount matches the maximum value of the last tier
+	if len(dto.Tiers) > 0 {
+		lastTier := dto.Tiers[len(dto.Tiers)-1]
+		if dto.AboveAmount != lastTier.Max {
+			return fmt.Errorf("above_amount (%d) must match the maximum value of the last tier (%d)", dto.AboveAmount, lastTier.Max)
 		}
 	}
 
