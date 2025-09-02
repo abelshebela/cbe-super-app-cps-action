@@ -32,6 +32,7 @@ func NewBankRepository(client *mongo.Client, dbName string, collection string, l
 }
 
 func (b *BankStorage) Create(ctx context.Context, bank *model.Bank) error {
+	bank.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *bank)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -72,7 +73,7 @@ func (b *BankStorage) EnableOrDisable(ctx context.Context, id string, enable boo
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable}}
+	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
