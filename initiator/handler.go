@@ -80,7 +80,7 @@ type Handler struct {
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler  service_details.ServiceAdapter
-	// AmountBasedAuthHandler amountBasedAuthInbound.AmountBasedAuthAdapter
+	AmountBasedAuthHandler amountBasedAuthHandler.AmountBasedAuthHandler
 
 	DepartmentHandler  department.DepartmentHandler
 	AvatarHandler      avatarHandlerInterface.AvatarInbound

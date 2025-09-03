@@ -1,8 +1,10 @@
 package service
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
@@ -247,6 +249,8 @@ type AdvertService interface {
 
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
+	UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 
 type AvatarService interface {
