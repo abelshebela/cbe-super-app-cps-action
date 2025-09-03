@@ -241,6 +241,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletUpdateEmptyPayload,
 
 	ErrorInvalidRequestBody,
+	ErrorBulkServiceAlreadyDisabled,
 	ErrorInvalidPaginationParams,
 	ErrorInvalidDistrict,
 	ErrorInvalidRegion,
@@ -261,6 +262,10 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorInvalidBulkServiceKey,
+	ErrorInvalidRequiredAction,
+	ErrorFailToUpdateParent,
+	ErrorFailToUpdateChild,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -340,6 +345,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
+	ErrorBulkServiceAlreadyEnabled,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -4298,6 +4304,47 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from total cap",
+		Type:       "error",
+	}
+
+	ErrorBulkServiceAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Bulk service is already enabled for the given key.",
+		Type:       "error",
+	}
+
+	ErrorBulkServiceAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Bulk service is already disabled for the given key.",
+		Type:       "error",
+	}
+
+	ErrorInvalidBulkServiceKey = ResponseCode{
+		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
+		StatusCode: StatusBadRequest,
+		Message:    "One or more provided bulk service keys are invalid.",
+		Type:       "error",
+	}
+	ErrorInvalidRequiredAction = ResponseCode{
+		Code:       "ERROR_INVALID_REQUIRED_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    "The required action is invalid or missing.",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateChild = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_CHILD",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update child record.",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateParent = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_PARENT",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update parent record.",
 		Type:       "error",
 	}
 )

@@ -250,15 +250,15 @@ const (
 	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
+
 	MsgUpdateMiniAppRequestCreatedSuccessfully    = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
 	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
 	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
 	MsgCreateMiniAppRequestCreatedSuccessfully    = "Mini App create request sent successfully"
-
-	MsgMiniAppsSuccessfullyRetrieved      = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully     = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully = "Mini App action completed successfully"
+	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -794,6 +794,7 @@ const (
 	MsgDuplicateColorExists = "Duplicate color exists"
 
 	MsgInvalidRequestBody      = "Invalid request body"
+	MsgErrorBulkDisabled       = "Error Disabled password rule"
 	MsgInvalidPaginationParams = "Invalid pagination parameters"
 
 	MsgBranchSuccessfullyRetrieved   = "Branch retrieved successfully"
