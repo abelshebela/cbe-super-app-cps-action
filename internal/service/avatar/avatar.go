@@ -12,7 +12,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"mime/multipart"
 	"time"
 
@@ -47,13 +46,13 @@ func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, 
 	if len(existing) > 0 {
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
-
 	url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.minioEndPoint, a.logger)
 	if err != nil {
 		return err
 	}
 
 	cpsModel := lib.CpsModelBuilder("", makerData, nil, model.Avatar{Avatar: url, Label: avatar.Label, CreatedAt: time.Now()}, string(constants.RequestCreateAvatar), constants.CREATE)
+
 	if err := a.cpsService.CreateCPSAction(ctx, &cpsModel); err != nil {
 		return err
 	}
@@ -64,7 +63,6 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-	fmt.Println("------------checkpoint 1=======")
 
 	existed, update, err := core.UpdateDataBuilder(ctx, a.avatar, id, avatar.Label, fromEnabledDisable, avatar.Enable)
 	if err != nil {
@@ -91,6 +89,35 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 	}
 	return nil
 
+}
+
+func (a *avatarService) EnableDisable(ctx context.Context, id string, enable bool) error {
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplete := local_util.IsIncomplete(makerData); incomplete {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	data, err := a.avatar.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if data.Enable == enable {
+		if enable {
+			return errors.New(localization.ErrorAvatarAlreadyEnabled.Code)
+		}
+		return errors.New(localization.ErrorAvatarAlreadyEnabled.Code)
+	}
+	var requestAction string
+	if enable {
+		requestAction = string(constants.RequestEnableAvatar)
+	} else {
+		requestAction = string(constants.RequestDisableAvatar)
+	}
+	update := data
+
+	update.Enable = enable
+	cpsModel := lib.CpsModelBuilder(id, makerData, data, update, requestAction, string(constants.Pending))
+	return a.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -126,25 +153,27 @@ func (a *avatarService) FetchAvatarById(ctx context.Context, id string) (*model.
 }
 func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 
-	avatar, ok := cpsAction.CurrentAction.(model.Avatar)
-	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	avatar, err := local_util.JsonUnmarshal[model.Avatar](cpsAction.CurrentAction)
+	if err != nil {
+		return nil, err
 	}
-
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateAvatar):
-		a.avatar.Create(ctx, &avatar)
+		err = a.avatar.Create(ctx, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, CreatedAt: avatar.CreatedAt})
 	case string(constants.RequestUpdateAvatar):
-		a.avatar.Update(ctx, cpsAction.UniqueId, &avatar)
+		err = a.avatar.Update(ctx, cpsAction.UniqueId, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, Enable: avatar.Enable})
 	case string(constants.RequestDeleteAvatar):
-		a.avatar.Delete(ctx, avatar.ID.Hex())
-	case string(constants.RequestEnableAdvert):
-		a.avatar.EnableOrDisable(ctx, avatar.ID.Hex(), true)
+		err = a.avatar.Delete(ctx, cpsAction.UniqueId)
+	case string(constants.RequestEnableAvatar):
+		err = a.avatar.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 	case string(constants.RequestDisableAvatar):
-		a.avatar.EnableOrDisable(ctx, avatar.ID.Hex(), false)
+		err = a.avatar.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
 
+	if err != nil {
+		return nil, err
 	}
 	return cpsAction, nil
 }

@@ -84,7 +84,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	// miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
-	avatar := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
+	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
 
 	// customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
 	// bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, "banks")
@@ -160,7 +160,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BudgetContainer:          nil, // Will be updated after CPS action service is created
 		AccountContainer:         accountValidation,
 		AmountBasedAuthContainer: nil,            // Not implemented yet
-		AvatarDomian:             nil,            // Not implemented yet
+		AvatarDomian:             avatarService,  // Not implemented yet
 		BudgetCategoryContainer:  nil,            // Not implemented yet
 		NotificationService:      nil,            // Not implemented yet
 		ProductCodeService:       productService, // Not implemented yet
@@ -178,7 +178,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Now update all services that need the CPS action service
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, "events", cfg, logger)
 	serviceContainer.EventContainer = eventService
-
+	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	serviceContainer.BulkServiceContainer = bulkService
 
@@ -232,7 +232,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.BPSUserContainer = bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger)
 
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
-
+	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 	// Update miniAppMerchantService with the CPS action service
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
@@ -240,10 +240,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	serviceContainer.Unlink = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 	return ServiceLayer{
-		CPSAction:         cpsActionService,
+		CPSAction: cpsActionService,
+
 		Feedback:          feedbackService,
 		EventService:      eventService,
-		Avatar:            avatar,
+		Avatar:            avatarService,
 		Advert:            advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger),
 		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Bank:              bank_service,

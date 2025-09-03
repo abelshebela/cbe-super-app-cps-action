@@ -9,15 +9,21 @@ import (
 )
 
 var Projection = bson.M{
-	"action_code":         1,
-	"action_name":         1,
-	"action_description":  1,
-	"action_type":         1,
-	"action_status":       1,
-	"request_action":      1,
-	"action_created_at":   1,
-	"maker_action_time":   1,
-	"checker_action_time": 1,
+	"action_code":          1,
+	"action_name":          1,
+	"maker_id":             1,
+	"maker_name":           1,
+	"maker_phone_number":   1,
+	"checker_id":           1,
+	"checker_name":         1,
+	"checker_phone_number": 1,
+	"action_description":   1,
+	"action_type":          1,
+	"action_status":        1,
+	"request_action":       1,
+	"action_created_at":    1,
+	"maker_action_time":    1,
+	"checker_action_time":  1,
 }
 
 func BuildCPSActionFilter(cps model.CPSAction) bson.M {
@@ -58,6 +64,12 @@ func BuildCPSActionUpdateMap(cps model.CPSAction) bson.M {
 		}
 	}
 
+	addString("maker_id", cps.MakerID)
+	addString("maker_name", cps.MakerName)
+	addString("maker_phone_number", cps.MakerPhoneNumber)
+	update["checker_id"] = cps.CheckerID
+	update["checker_name"] = cps.CheckerName
+	update["checker_phone_number"] = cps.CheckerPhoneNumber
 	addString("action_code", cps.ActionCode)
 	addString("action_status", cps.ActionStatus)
 	addString("checker_id", cps.CheckerID)

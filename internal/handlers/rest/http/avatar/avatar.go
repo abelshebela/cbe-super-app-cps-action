@@ -66,7 +66,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: true}, nil, true); err != nil {
+	if err := a.avatarApplication.EnableDisable(r.Context(), id, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -80,7 +80,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: false}, nil, true); err != nil {
+	if err := a.avatarApplication.EnableDisable(r.Context(), id, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
