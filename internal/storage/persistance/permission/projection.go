@@ -16,10 +16,10 @@ func PermissionGroupUpdateMapper(permissionGroup *model.PermissionGroup) bson.M 
 		set["role"] = permissionGroup.Role
 	}
 	if permissionGroup.PermissionCategory != nil {
-		set["permission_category_list"] = permissionGroup.PermissionCategory
+		set["permission_category"] = permissionGroup.PermissionCategory
 	}
 	set["last_modified"] = time.Now()
-	return bson.M{"$set": set}
+	return set
 }
 func PermissionCategoryUpdateMapper(permissionCategory *model.PermissionCategory) bson.M {
 	set := bson.M{}
@@ -33,5 +33,5 @@ func PermissionCategoryUpdateMapper(permissionCategory *model.PermissionCategory
 		set["permissions"] = permissionCategory.Permissions
 	}
 	set["updatedAt"] = time.Now()
-	return bson.M{"$set": set}
+	return set
 }

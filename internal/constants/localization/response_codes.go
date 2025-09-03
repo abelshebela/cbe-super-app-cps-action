@@ -123,6 +123,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPadding,
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
+	ErrorPermissionGroupAlreadyExists,
+	ErrorPermissionCatagoryNotFound,
 	ErrorUserUnauthorized,
 	ErrorUserForbidden,
 	ErrorUserInvalidCredentials,
@@ -259,7 +261,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
-	
+
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -351,6 +353,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDistrictAlreadyEnabled,
 	ErrorBranchAlreadyDisabled,
 	ErrorBranchAlreadyEnabled,
+	ErrorSingleTransferCanNotBeGreaterThanCap,
+	ErrorMinAmountCanNotBeGreaterThanTotal,
 }
 
 // Success Response Codes
@@ -877,14 +881,14 @@ var (
 		Message:    "Invalid method value",
 		Type:       "error",
 	}
-	
+
 	ErrorInvalidAmounts = ResponseCode{
 		Code:       "ERROR_INVALID_AMOUNTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Invalid amounts",
 		Type:       "error",
 	}
-	
+
 	ErrorCoverImageRequired = ResponseCode{
 		Code:       "ERROR_COVER_IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -3676,6 +3680,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorPermissionGroupAlreadyExists = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionGroupAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPermissionCatagoryNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_CATAGORY_NOT_FOUND",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionCatagoryNotFound,
+		Type:       "error",
+	}
+
 	ErrorPermissionGroupRequestUpdateFailed = ResponseCode{
 		Code:       "ERROR_PERMISSION_GROUP_REQUEST_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -4269,6 +4286,18 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
+	}
+	ErrorSingleTransferCanNotBeGreaterThanCap = ResponseCode{
+		Code:       "ERROR_SINGLE_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "single transfer can not be greater from  total cap",
+		Type:       "error",
+	}
+	ErrorMinAmountCanNotBeGreaterThanTotal = ResponseCode{
+		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "minimum transfer can not be greater from total cap",
 		Type:       "error",
 	}
 )

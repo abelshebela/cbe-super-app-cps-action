@@ -496,6 +496,7 @@ const (
 	MsgPermissionCategoryFetchFailed   = "Failed to fetch permission categories"
 	MsgPermissionGroupValidationFailed = "Permission group validation failed"
 	MsgPermissionGroupRequired         = "Permission group is required"
+	MsgPermissionCatagoryNotFound      = "Permission category not found"
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"

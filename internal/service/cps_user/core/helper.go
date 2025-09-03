@@ -4,6 +4,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
 )
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
@@ -57,4 +58,58 @@ func CPSUUpdateModel(req cpsuser.UpdateUserRequest) *model.CPSUser {
 		PermissionCategory: req.PermissionCategory,
 		PermissionGroup:    req.PermissionGroups,
 	}
+}
+
+// BindCPSUserFromAction decodes action.CurrentAction into model.CPSUser
+func BindCPSUserFromAction(currentAction interface{}) (model.CPSUser, error) {
+	var user model.CPSUser
+
+	// Fast-path if already the correct type
+	if v, ok := currentAction.(model.CPSUser); ok {
+		return v, nil
+	}
+
+	// If stored as JSON string
+	if s, ok := currentAction.(string); ok {
+		if err := json.Unmarshal([]byte(s), &user); err == nil {
+			return user, nil
+		}
+	}
+
+	// Generic path: marshal then unmarshal
+	bytes, err := json.Marshal(currentAction)
+	if err != nil {
+		return user, err
+	}
+	if err := json.Unmarshal(bytes, &user); err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+// BindCPSUserUpdateFromAction decodes action.CurrentAction into cpsuser.UpdateUserRequest
+func BindCPSUserUpdateFromAction(currentAction interface{}) (cpsuser.UpdateUserRequest, error) {
+	var updateReq cpsuser.UpdateUserRequest
+
+	// Fast-path if already the correct type
+	if v, ok := currentAction.(cpsuser.UpdateUserRequest); ok {
+		return v, nil
+	}
+
+	// If stored as JSON string
+	if s, ok := currentAction.(string); ok {
+		if err := json.Unmarshal([]byte(s), &updateReq); err == nil {
+			return updateReq, nil
+		}
+	}
+
+	// Generic path: marshal then unmarshal
+	bytes, err := json.Marshal(currentAction)
+	if err != nil {
+		return updateReq, err
+	}
+	if err := json.Unmarshal(bytes, &updateReq); err != nil {
+		return updateReq, err
+	}
+	return updateReq, nil
 }

@@ -89,8 +89,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		}
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
 
-	// case IsActionInGroup(RequestAction(action), "BPSUser"):
-	// 	return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "BPSUser"):
+		return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Avatar"):
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
@@ -100,6 +100,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Department"):
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action),"CPSUser"):
+		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

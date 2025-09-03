@@ -1,10 +1,6 @@
 package permission
 
 import (
-	"context"
-	"errors"
-	"strings"
-
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/permission"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -15,6 +11,10 @@ import (
 	"cbe-super-app-cps-action/internal/service/permission/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"errors"
+	"fmt"
+	"strings"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -40,7 +40,7 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 	}
 
 	if s.repo.CheckPermissionGroupExists(req.GroupName) {
-		return errors.New("PERMISSION_GROUP_ALREADY_EXISTS")
+		return errors.New(localization.ErrorPermissionGroupAlreadyExists.Code)
 	}
 
 	if len(req.PermissionCategoryLists) > 0 {
@@ -49,7 +49,8 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 			return err
 		}
 		if len(validCategories) != len(req.PermissionCategoryLists) {
-			return errors.New("SOME_PERMISSION_CATEGORIES_NOT_FOUND")
+
+			return errors.New(localization.ErrorPermissionCatagoryNotFound.Code)
 		}
 	}
 
@@ -61,7 +62,7 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 		maker,
 		nil,
 		permissionGroup,
-		string(constants.CREATE),
+		string(constants.RequestCreatePermissionGroup),
 		constants.CREATE,
 	)
 
@@ -81,7 +82,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 
 	if req.NewGroupName != "" && req.NewGroupName != req.OldGroupName {
 		if s.repo.CheckPermissionGroupExists(req.NewGroupName) {
-			return errors.New("PERMISSION_GROUP_ALREADY_EXISTS")
+			return errors.New(localization.ErrorPermissionGroupAlreadyExists.Code)
 		}
 	}
 
@@ -91,7 +92,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 			return err
 		}
 		if len(validCategories) != len(req.PermissionCategoryLists) {
-			return errors.New("SOME_PERMISSION_CATEGORIES_NOT_FOUND")
+			return errors.New(localization.ErrorPermissionCatagoryNotFound.Code)
 		}
 	}
 
@@ -103,7 +104,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 		maker,
 		existingGroup,
 		updatedGroup,
-		string(constants.UPDATE),
+		string(constants.RequestUpdatePermissionGroup),
 		constants.UPDATE,
 	)
 
@@ -166,25 +167,41 @@ func (s *permissionService) ValidatePermissionGroups(ctx context.Context, groupI
 }
 
 func (s *permissionService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	fmt.Println("//// here to authorize", action)
 	switch action.ActionType {
 	case string(constants.CREATE):
-		cur, ok := action.CurrentAction.(model.PermissionGroup)
-		if !ok {
+		cur, err := core.BindPermissionGroupFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
+		fmt.Println("cuuuuuuuuuuuuurrrrrrr")
+
 		if err := s.repo.Create(ctx, &cur); err != nil {
 			return nil, err
 		}
 		return action, nil
 
 	case string(constants.UPDATE):
-		upd, ok := action.CurrentAction.(model.PermissionGroup)
-		if !ok {
+		upd, err := core.BindPermissionGroupFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		if err := s.repo.Update(ctx, upd.GroupName, &upd); err != nil {
+		existingGroup, err := s.repo.GetPermissionGroup(action.UniqueId)
+		if err != nil {
+			fmt.Println("Error getting existing group:", err)
 			return nil, err
 		}
+		if existingGroup == nil {
+			fmt.Println("Existing group not found")
+			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+		}
+
+		// Update using the existing group's ObjectID
+		if err := s.repo.Update(ctx, existingGroup.ID.Hex(), &upd); err != nil {
+			fmt.Println("Repository update error:", err)
+			return nil, err
+		}
+		fmt.Println("this <<<<<<<<<<<<<<<<<<<<this is error>>>>>>>on repo >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 		return action, nil
 
 	default:

@@ -7,13 +7,17 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	bps_user_core "cbe-super-app-cps-action/internal/service/bps_user/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type bpsUserService struct {
@@ -31,18 +35,40 @@ func NewBPSUserService(repo storage.BPSUserRepository, cpsService service.CPSAct
 }
 
 // Authorize implements service.BPSUserService.
-func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSAction) error {
+func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	var actionMap interface{}
+	marshaled, err := json.Marshal(cpsAction.CurrentAction)
+	if err != nil {
+		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+	}
+	fmt.Printf("JSON bytes: %s\n", string(marshaled))
+	err = json.Unmarshal(marshaled, &actionMap)
+	if err != nil {
+		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+	}
 
-	updateData := cpsAction.CurrentAction.(model.BPSUser)
+	actionData := bps_user_core.BPSUser_mapper(actionMap.(map[string]interface{}))
+	if cpsAction.UniqueId != "" {
+		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		actionData.ID = objID
+	}
+
+	actionData.LastModifiedAt = time.Now()
+
 	switch cpsAction.RequestAction {
 	case string(constants.RequestEnableBPSUser):
-		updateData.Enabled = true
+		actionData.Enabled = true
 	case string(constants.RequestDisableBPSUser):
-		updateData.Enabled = false
+		actionData.Enabled = false
 	default:
-		return errors.New(localization.ErrorActionNotFound.Code)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
-	return b.repo.Update(ctx, &updateData)
+	return nil, b.repo.Update(ctx, &actionData)
 }
 
 // FetchUserByUserCode implements service.BPSUserService.
