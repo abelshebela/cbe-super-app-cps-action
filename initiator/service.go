@@ -119,7 +119,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, "", advertBucketName, cfg, logger)
 
 	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger) // Will be updated after CPS action service is created
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
+	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
 	permissionService := permission.InitPermissionService(
 		persistence.PermissionPersistence,
