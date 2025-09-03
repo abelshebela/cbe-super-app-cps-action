@@ -12,7 +12,7 @@ import (
 
 type ProductCode struct {
 	ID                 string       `json:"id" bson:"_id"`
-	ProductName        string       `json:"product_name" bson:"service_name"`
+	ProductName        string       `json:"service_name" bson:"service_name"`
 	CBEProductCodes    ProductCodes `json:"cbe_product_codes" bson:"cbe_product_codes"`
 	CBEIFBProductCodes ProductCodes `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
 	CreatedAt          time.Time    `json:"created_at" bson:"created_at"`
@@ -21,8 +21,8 @@ type ProductCode struct {
 
 type ProductCodes struct {
 	PRD    string `json:"prd" bson:"prd"`
-	VATPRD string `json:"vat_prd" bson:"vatprd"`
-	SFPRD  string `json:"sf_prd" bson:"sfprd"`
+	VATPRD string `json:"vatprd" bson:"vatprd"`
+	SFPRD  string `json:"sfprd" bson:"sfprd"`
 	TRXN   string `json:"trxn" bson:"trxn"`
 }
 

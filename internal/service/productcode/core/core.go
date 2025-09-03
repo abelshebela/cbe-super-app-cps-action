@@ -1,4 +1,4 @@
-package coreeeeeeeeeeeeeeeeeeeeee
+package core
 
 import "encoding/json"
 
