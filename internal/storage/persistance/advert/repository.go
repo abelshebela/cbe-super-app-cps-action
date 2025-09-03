@@ -72,7 +72,7 @@ func (a *AdvertStorage) EnableOrDisable(ctx context.Context, id string, enable b
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable}}
+	update := bson.M{"enabled": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

@@ -254,9 +254,11 @@ const (
 	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
 	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
 	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
-	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
+	MsgCreateMiniAppRequestCreatedSuccessfully    = "Mini App create request sent successfully"
+
+	MsgMiniAppsSuccessfullyRetrieved      = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully     = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -513,17 +515,19 @@ const (
 	MsgNotificationRequired       = "Notification is required"
 
 	// department related error messages
-	MsgDepartmentNotFound             = "Department not found"
-	MsgDepartmentAlreadyExists        = "Department already exists"
-	MsgDepartmentCreationFailed       = "Failed to create department"
-	MsgDepartmentUpdateFailed         = "Failed to update department"
-	MsgDepartmentInvalidFormat        = "Invalid department format"
-	MsgDepartmentRequired             = "Department is required"
-	msgGetAllDepartmentsSuccess       = "Successfully got all Departments"
-	msgGetDepartmentsSuccess          = "Successfully got a Department"
-	MsgDepartmentAlreadyEnabled       = "Department already enabled"
-	MsgDepartmentAlreadyDisabled      = "Department already disabled"
-	MsgDepartmentInvalidRequestAction = "Invalid request action"
+	MsgDepartmentNotFound              = "Department not found"
+	MsgDepartmentAlreadyExists         = "Department already exists"
+	MsgDepartmentCreationFailed        = "Failed to create department"
+	MsgDepartmentUpdateFailed          = "Failed to update department"
+	MsgDepartmentInvalidFormat         = "Invalid department format"
+	MsgDepartmentRequired              = "Department is required"
+	msgGetAllDepartmentsSuccess        = "Successfully got all Departments"
+	msgGetDepartmentsSuccess           = "Successfully got a Department"
+	MsgDepartmentAlreadyEnabled        = "Department already enabled"
+	MsgDepartmentAlreadyDisabled       = "Department already disabled"
+	MsgDepartmentInvalidID             = "Department Invalid or Missing id"
+	MsgDepartmentWithNameAlreadyExists = "Department with name already exists"
+	MsgDepartmentInvalidRequestAction  = "Invalid request action"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryNotFound       = "Budget category not found"
@@ -852,4 +856,7 @@ const (
 	MsgUserFaydaAccountAlreadyEnabled         = "Fayda user account already enabled"
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
+
+	MsgAlreadyEnabled  = "Already enabled"
+	MsgAlreadyDisabled = "Already disabled"
 )

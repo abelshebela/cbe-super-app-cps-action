@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -77,14 +78,8 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return errors.New(localization.ErrorWalletNotFound.Code)
 	}
 
-	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, req.Name)
-		if err != nil {
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		if exist != nil {
-			return errors.New(localization.ErrorWalletAlreadyExists.Code)
-		}
+	if prevWallet == nil {
+		return errors.New(localization.ErrorWalletNotFound.Code)
 	}
 
 	var avatarURL string
@@ -174,23 +169,25 @@ func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Fil
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	wallet, ok := action.CurrentAction.(*model.Wallet)
-	if !ok || wallet == nil {
+	var wallet *model.Wallet
+
+	err := local_util.BindAction(action.CurrentAction, &wallet)
+	if err != nil {
+		s.logger.Errorf("failed to bind current action to wallet: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
-	var err error
+	id := action.UniqueId
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		err = s.repo.Create(ctx, wallet)
 	case string(constants.RequestUpdateWallet):
-		err = s.repo.Update(ctx, wallet.ID.Hex(), wallet)
+		err = s.repo.Update(ctx, id, wallet)
 	case string(constants.RequestDeleteWallet):
-		err = s.repo.Delete(ctx, wallet.ID.Hex())
+		err = s.repo.Delete(ctx, id)
 	case string(constants.RequestEnableWallet):
-		err = s.repo.EnableOrDisable(ctx, wallet.ID.Hex(), true)
+		err = s.repo.EnableOrDisable(ctx, id, true)
 	case string(constants.RequestDisableWallet):
-		err = s.repo.EnableOrDisable(ctx, wallet.ID.Hex(), false)
+		err = s.repo.EnableOrDisable(ctx, id, false)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}

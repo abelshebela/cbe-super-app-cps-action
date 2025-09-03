@@ -63,6 +63,8 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
+			w.logger.Errorf("WALLET NOT FOUND: ", err, objID, update)
+
 			return errors.New(localization.ErrorWalletNotFound.Code)
 		}
 		w.logger.Errorf("Failed to update wallet: %v", err)
@@ -128,8 +130,6 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	
-
 	return doc, nil
 }
 
@@ -169,13 +169,12 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 			{"code": searchRegex},
 		}
 	}
+	filter["is_deleted"] = false
 	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		e.logger.Errorf("FindAllWithPagination Wallet failed", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {

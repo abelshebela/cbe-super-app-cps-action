@@ -103,6 +103,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppEnableRequestSubmitted,
 	SuccessMiniAppMerchantCreateRequestCreated,
 	SuccessUpdateMiniAppRequestCreated,
+	SuccessCreateMiniAppRequestCreated,
 	SuccessMiniAppDeletedRequestCreated,
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
@@ -256,6 +257,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
+	ErrorAlreadyEnabled,
+	ErrorAlreadyDisabled,
+	
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -264,6 +268,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDepartmentPermissionGroup,
 	ErrorDepartmentAlreadyDisabled,
 	ErrorDepartmentAlreadyEnabled,
+	ErrorDepartmentInvalidID,
+	ErrorDepartmentWithNameAlreadyExists,
 	// Fayda
 	ErrorFaydaUserAccountEnabled,
 	ErrorFaydaUserAccountDisabled,
@@ -1104,7 +1110,7 @@ var (
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: 400,
-		Message:    "Invalid wallet ID",
+		Message:    "Invalid ID",
 		Type:       "error",
 	}
 
@@ -1827,6 +1833,12 @@ var (
 		Code:       "SUCCESS_UPDATE_MINI_APP_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUpdateMiniAppRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCreateMiniAppRequestCreated = ResponseCode{
+		Code:       "SUCCESS_CREATE_MINI_APP_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgCreateMiniAppRequestCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -4056,6 +4068,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
 		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
@@ -4111,6 +4137,18 @@ var (
 		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDepartmentInvalidID = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentInvalidID,
+		Type:       "error",
+	}
+	ErrorDepartmentWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentWithNameAlreadyExists,
 		Type:       "error",
 	}
 	// fayda

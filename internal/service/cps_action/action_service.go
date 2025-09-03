@@ -81,13 +81,13 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return ca.repo.FindOne(ctx, model.CPSAction{ID: objID})
+	return ca.repo.FindOne(ctx, bson.M{"_id": objID})
 }
 func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
-	return ca.repo.FindOne(ctx, model.CPSAction{Department: department, ActionStatus: string(constants.Pending), RequestAction: requestAction})
+	return ca.repo.FindOne(ctx, bson.M{"department": department, "action_status": string(constants.Pending), "request_action": requestAction})
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
-	return ca.repo.FindOne(ctx, model.CPSAction{ActionCode: uniqueID, Department: department})
+	return ca.repo.FindOne(ctx, bson.M{"action_code": uniqueID, "department": department})
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action_code string) error {

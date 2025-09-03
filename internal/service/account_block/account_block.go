@@ -69,26 +69,30 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 
 		if branch.Enabled == enabled {
 			if enabled {
-				return errors.New(localization.ErrorBranchAlreadyEnabled.Code)
-			} else {
-				return errors.New(localization.ErrorBranchAlreadyDisabled.Code)
+				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
+			return errors.New(localization.ErrorAlreadyDisabled.Code)
 		}
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, branchCodes, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableBranches)
-
-	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
-		return err
+	var actionType constants.ActionType
+	var requestActionType constants.RequestAction
+	if enabled {
+		actionType = constants.ActionType(cps_constants.ActionEnable)
+		requestActionType = constants.RequestEnableBranches
+	} else {
+		actionType = constants.ActionType(cps_constants.ActionDisable)
+		requestActionType = constants.RequestDisableBranches
 	}
 
-	return nil
+	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, branchCodes, actionType, requestActionType)
+
+	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
 func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
 	for _, code := range regionsCode {
-		branch, err := s.repo.GetRegionByCode(ctx, code)
+		region, err := s.repo.GetRegionByCode(ctx, code)
 		if err != nil {
 			if err.Error() == localization.ErrorRegionNotFound.Code {
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
@@ -96,28 +100,32 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if branch.Enabled == enabled {
+		if region.Enabled == enabled {
 			if enabled {
-				return errors.New(localization.ErrorRegionAlreadyEnabled.Code)
-			} else {
-				return errors.New(localization.ErrorRegionAlreadyDisabled.Code)
+				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
+			return errors.New(localization.ErrorAlreadyDisabled.Code)
 		}
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableRegions)
-
-	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
-		return err
+	var actionType constants.ActionType
+	var requestActionType constants.RequestAction
+	if enabled {
+		actionType = constants.ActionType(cps_constants.ActionEnable)
+		requestActionType = constants.RequestEnableRegions
+	} else {
+		actionType = constants.ActionType(cps_constants.ActionDisable)
+		requestActionType = constants.RequestDisableRegions
 	}
 
-	return nil
+	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, actionType, requestActionType)
+
+	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
 func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
 	for _, code := range districtsCode {
-		branch, err := s.repo.GetDistrictByCode(ctx, code)
+		district, err := s.repo.GetDistrictByCode(ctx, code)
 		if err != nil {
 			if err.Error() == localization.ErrorDistrictNotFound.Code {
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
@@ -125,29 +133,33 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if branch.Enabled == enabled {
+		if district.Enabled == enabled {
 			if enabled {
-				return errors.New(localization.ErrorDistrictAlreadyEnabled.Code)
-			} else {
-				return errors.New(localization.ErrorDistrictAlreadyDisabled.Code)
+				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
+			return errors.New(localization.ErrorAlreadyDisabled.Code)
 		}
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableDistricts)
-
-	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
-		return err
+	var actionType constants.ActionType
+	var requestActionType constants.RequestAction
+	if enabled {
+		actionType = constants.ActionType(cps_constants.ActionEnable)
+		requestActionType = constants.RequestEnableDistricts
+	} else {
+		actionType = constants.ActionType(cps_constants.ActionDisable)
+		requestActionType = constants.RequestDisableDistricts
 	}
 
-	return nil
+	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, actionType, requestActionType)
+
+	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
 func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
 
 	for _, code := range citiesCode {
-		branch, err := s.repo.GetCityByCode(ctx, code)
+		city, err := s.repo.GetCityByCode(ctx, code)
 		if err != nil {
 			if err.Error() == localization.ErrorCityNotFound.Code {
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
@@ -155,36 +167,41 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesC
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if branch.Enabled == enabled {
+		if city.Enabled == enabled {
 			if enabled {
-				return errors.New(localization.ErrorCityAlreadyEnabled.Code)
-			} else {
-				return errors.New(localization.ErrorCityAlreadyDisabled.Code)
+				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
+			return errors.New(localization.ErrorAlreadyDisabled.Code)
 		}
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, constants.ActionType(cps_constants.ActionEnable), constants.RequestEnableCities)
-
-	err := s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
-		return err
+	var actionType constants.ActionType
+	var requestActionType constants.RequestAction
+	if enabled {
+		actionType = constants.ActionType(cps_constants.ActionEnable)
+		requestActionType = constants.RequestEnableCities
+	} else {
+		actionType = constants.ActionType(cps_constants.ActionDisable)
+		requestActionType = constants.RequestDisableCities
 	}
 
-	return nil
+	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, actionType, requestActionType)
+
+	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
 func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-
-	switch constants.RequestAction(action.ActionType) {
+	switch constants.RequestAction(action.RequestAction) {
 	case constants.RequestEnableBranches:
+
 		branches, err := local_util.JsonUnmarshal[[]model.Branch](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, branch := range *branches {
-			err = s.repo.EnableOrDisableBranch(ctx, branch.ID.Hex(), true)
+			err = s.repo.EnableOrDisableBranch(ctx, branch.BranchCode, true)
+
 			if err != nil {
 				return nil, err
 			}
@@ -197,7 +214,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, branch := range *branches {
-			err = s.repo.EnableOrDisableBranch(ctx, branch.ID.Hex(), false)
+			err = s.repo.EnableOrDisableBranch(ctx, branch.BranchCode, false)
 			if err != nil {
 				return nil, err
 			}
@@ -210,7 +227,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, region := range *regions {
-			err = s.repo.EnableOrDisableRegion(ctx, region.ID.Hex(), true)
+			err = s.repo.EnableOrDisableRegion(ctx, region.RegionCode, true)
 			if err != nil {
 				return nil, err
 			}
@@ -223,7 +240,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, region := range *regions {
-			err = s.repo.EnableOrDisableRegion(ctx, region.ID.Hex(), false)
+			err = s.repo.EnableOrDisableRegion(ctx, region.RegionCode, false)
 			if err != nil {
 				return nil, err
 			}
@@ -236,7 +253,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, district := range *districts {
-			err = s.repo.EnableOrDisableDistrict(ctx, district.ID.Hex(), true)
+			err = s.repo.EnableOrDisableDistrict(ctx, district.DistrictCode, true)
 			if err != nil {
 				return nil, err
 			}
@@ -249,7 +266,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, district := range *districts {
-			err = s.repo.EnableOrDisableDistrict(ctx, district.ID.Hex(), false)
+			err = s.repo.EnableOrDisableDistrict(ctx, district.DistrictCode, false)
 			if err != nil {
 				return nil, err
 			}
@@ -262,7 +279,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, city := range *cities {
-			err = s.repo.EnableOrDisableCity(ctx, city.ID.Hex(), true)
+			err = s.repo.EnableOrDisableCity(ctx, city.CityCode, true)
 			if err != nil {
 				return nil, err
 			}
@@ -275,7 +292,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 		for _, city := range *cities {
-			err = s.repo.EnableOrDisableCity(ctx, city.ID.Hex(), false)
+			err = s.repo.EnableOrDisableCity(ctx, city.CityCode, false)
 			if err != nil {
 				return nil, err
 			}

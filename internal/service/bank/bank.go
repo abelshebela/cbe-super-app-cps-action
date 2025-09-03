@@ -4,7 +4,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	bank_core "cbe-super-app-cps-action/internal/service/bank/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -18,7 +20,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type BankService struct {
@@ -45,11 +47,26 @@ func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService
 
 func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 
-	var actionData model.Bank
-	raw, _ := bson.Marshal(cpsAction.CurrentAction)
-	if err := bson.Unmarshal(raw, &actionData); err != nil {
-		b.logger.Errorf("failed to unmarshal action data for authorization, action_code: %s", (cpsAction.ActionCode))
-		return nil, fmt.Errorf("%s", localization.MsgBankInvalidRequestAction)
+	var actionMap interface{}
+	marshaled, err := json.Marshal(cpsAction.CurrentAction)
+	if err != nil {
+		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+	}
+	fmt.Printf("JSON bytes: %s\n", string(marshaled))
+	err = json.Unmarshal(marshaled, &actionMap)
+	if err != nil {
+		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+	}
+
+	actionData := bank_core.Bank_mapper(actionMap.(map[string]interface{}))
+	if cpsAction.UniqueId != "" {
+		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		actionData.ID = objID
 	}
 
 	switch string(cpsAction.RequestAction) {

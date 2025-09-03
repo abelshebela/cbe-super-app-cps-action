@@ -101,9 +101,9 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	}, nil
 }
 
-func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error) {
+func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
 	r.logger.Infof("Finding one CPSAction with filter: %+v", filter)
-	filterMap := BuildCPSActionFilter(filter)
+	filterMap := filter
 
 	data, err := r.dal.FindOne(ctx, filterMap, Projection)
 	if err != nil {
@@ -122,6 +122,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 
 	_, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
+
 		r.logger.Errorf("Error updating CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
 		return errors.New(code)
