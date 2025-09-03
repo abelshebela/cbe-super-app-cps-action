@@ -38,7 +38,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
-	
+
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
@@ -65,7 +65,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ResetSessionPersistence:      reset_session.NewResetSessionRepository(client, dbName, "pin_reset_sessions", logger),
 		SMSSenderApi:                 *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
 		CPSAction:                    cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
-		AmountBasedAuthPersistence:   amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tiers", logger),
+		AmountBasedAuthPersistence:   amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tier", logger),
 		AccountBlockPersistence:      account_block.NewAccountBlockRepository(client, dbName, logger),
 		PortalCardPersistence:        portal_card.NewPortalCardRepository(client, dbName, "cards", logger),
 		MiniAppPersistence:           mini_app.NewMiniAppRepository(client, dbName, "mini_app", logger),
@@ -79,7 +79,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "branch_user", logger),
 		AdvertRepositoryPersistence: advert.NewAdvertRepository(client, dbName, "adverts", logger),
 		// ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
-		AuthTierPersistence: auth_tier.NewAuthTierRepository(client, dbName, "auth_tiers", logger),
+		AuthTierPersistence: auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
 		BankPersistence:     bank.NewBankRepository(client, dbName, "banks", logger),
 		ColorPersistence:    color.NewColorRepository(client, dbName, "colors", logger),
 		BulkService:         bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
@@ -90,7 +90,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
 		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
 		PasswordRulePersistent:     password.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
-		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
+		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedback", logger),
 		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
 		// LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
 		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchant", logger),

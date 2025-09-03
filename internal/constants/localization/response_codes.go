@@ -103,6 +103,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppEnableRequestSubmitted,
 	SuccessMiniAppMerchantCreateRequestCreated,
 	SuccessUpdateMiniAppRequestCreated,
+	SuccessCreateMiniAppRequestCreated,
 	SuccessMiniAppDeletedRequestCreated,
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
@@ -122,6 +123,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPadding,
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
+	ErrorPermissionGroupAlreadyExists,
+	ErrorPermissionCatagoryNotFound,
 	ErrorUserUnauthorized,
 	ErrorUserForbidden,
 	ErrorUserInvalidCredentials,
@@ -147,6 +150,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
 	ErrorAdvertUpdate,
+	ErrorAvatarAlreadyEnabled,
+	ErrorAvatarAlreadyDisabled,
 	ErrorAdvertAlreadyEnabled,
 	ErrorAdvertAlreadyDisabled,
 	ErrorValidationRuleApproved,
@@ -227,6 +232,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
+	ErrorAvatarAlreadyExist,
 	ErrorWalletAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
@@ -254,6 +260,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateAction,
 	ErrorOneOrMoreInvalidCodes,
 
+	ErrorAlreadyEnabled,
+	ErrorAlreadyDisabled,
+
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -262,6 +271,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDepartmentPermissionGroup,
 	ErrorDepartmentAlreadyDisabled,
 	ErrorDepartmentAlreadyEnabled,
+	ErrorDepartmentInvalidID,
+	ErrorDepartmentWithNameAlreadyExists,
 	// Fayda
 	ErrorFaydaUserAccountEnabled,
 	ErrorFaydaUserAccountDisabled,
@@ -272,6 +283,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
 	ErrorFailedToParseJson,
+
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
 
 	//miniapp related errors
 	ErrorMiniAppNotFound,
@@ -301,6 +322,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
+	// Auth tier related error codes
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
+	ErrorInvalidAmounts,
+
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -320,6 +346,17 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
 	ErrorMinAmountCanNotBeGreaterThanCap,
+
+	ErrorCityAlreadyDisabled,
+	ErrorCityAlreadyEnabled,
+	ErrorRegionAlreadyDisabled,
+	ErrorRegionAlreadyEnabled,
+	ErrorDistrictAlreadyDisabled,
+	ErrorDistrictAlreadyEnabled,
+	ErrorBranchAlreadyDisabled,
+	ErrorBranchAlreadyEnabled,
+	ErrorSingleTransferCanNotBeGreaterThanCap,
+	ErrorMinAmountCanNotBeGreaterThanTotal,
 }
 
 // Success Response Codes
@@ -833,6 +870,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAuthTierAlreadyExists = ResponseCode{
+		Code:       "ERROR_AUTH_TIER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Auth tier already exists with the same values",
+		Type:       "error",
+	}
+
+	ErrorInvalidMethod = ResponseCode{
+		Code:       "ERROR_INVALID_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid method value",
+		Type:       "error",
+	}
+
+	ErrorInvalidAmounts = ResponseCode{
+		Code:       "ERROR_INVALID_AMOUNTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid amounts",
+		Type:       "error",
+	}
+
 	ErrorCoverImageRequired = ResponseCode{
 		Code:       "ERROR_COVER_IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1058,7 +1116,7 @@ var (
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
 		StatusCode: 400,
-		Message:    "Invalid wallet ID",
+		Message:    "Invalid ID",
 		Type:       "error",
 	}
 
@@ -1781,6 +1839,12 @@ var (
 		Code:       "SUCCESS_UPDATE_MINI_APP_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUpdateMiniAppRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCreateMiniAppRequestCreated = ResponseCode{
+		Code:       "SUCCESS_CREATE_MINI_APP_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgCreateMiniAppRequestCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -3303,6 +3367,18 @@ var (
 		Message:    "MiniApp merchant not found",
 		Type:       "error",
 	}
+	ErrorMiniAppMerchantAlredyEnabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_ENABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already enabled",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantAlredyDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_DISABLED",
+		StatusCode: StatusFound,
+		Message:    "MiniApp merchant already disabled",
+		Type:       "error",
+	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",
@@ -3606,6 +3682,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorPermissionGroupAlreadyExists = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionGroupAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPermissionCatagoryNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_CATAGORY_NOT_FOUND",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionCatagoryNotFound,
+		Type:       "error",
+	}
+
 	ErrorPermissionGroupRequestUpdateFailed = ResponseCode{
 		Code:       "ERROR_PERMISSION_GROUP_REQUEST_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -3782,6 +3871,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAvatarAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAvatarAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAvatarAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_Enabled",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAvatarAlreadyDisabled,
+		Type:       "error",
+	}
+
 	// Account Validation Service related error response codes
 	ErrorValidationRuleApproved = ResponseCode{
 		Code:       "ERROR_VALIDATION_RULE_APPROVED",
@@ -3873,10 +3976,38 @@ var (
 		Type:       "error",
 	}
 
+	ErrorBranchAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BRANCH_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorBranchAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BRANCH_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorDistrictCodeRequired = ResponseCode{
 		Code:       "ERROR_DISTRICT_CODE_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDistrictCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorDistrictAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DISTRICT_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorDistrictAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DISTRICT_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -3887,10 +4018,37 @@ var (
 		Type:       "error",
 	}
 
+	ErrorRegionAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_REGION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorRegionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_REGION_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorCityCodeRequired = ResponseCode{
 		Code:       "ERROR_CITY_CODE_REQUIRED",
-		StatusCode: StatusBadRequest,
+		StatusCode: StatusConflict,
 		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCityAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_CITY_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorCityAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_CITY_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -3926,6 +4084,20 @@ var (
 		Code:       "ERROR_DUPLICATE_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDuplicateAction,
+		Type:       "error",
+	}
+
+	ErrorAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -3984,6 +4156,18 @@ var (
 		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDepartmentInvalidID = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentInvalidID,
+		Type:       "error",
+	}
+	ErrorDepartmentWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentWithNameAlreadyExists,
 		Type:       "error",
 	}
 	// fayda
@@ -4106,53 +4290,16 @@ var (
 		Message:    "minimum transfer can not be greater from existing transfer caps",
 		Type:       "error",
 	}
-
-	ErrorInvalidRequiredAction = ResponseCode{
-		Code:       "ERROR_INVALID_REQUIRED_ACTION",
+	ErrorSingleTransferCanNotBeGreaterThanCap = ResponseCode{
+		Code:       "ERROR_SINGLE_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
-		Message:    "Invalid or missing required action",
+		Message:    "single transfer can not be greater from  total cap",
 		Type:       "error",
 	}
-
-	ErrorFailToUpdateChild = ResponseCode{
-		Code:       "ERROR_FAIL_TO_UPDATE_CHILD",
-		StatusCode: StatusInternalServerError,
-		Message:    "Failed to update child record",
-		Type:       "error",
-	}
-
-	ErrorFailToUpdateParent = ResponseCode{
-		Code:       "ERROR_FAIL_TO_UPDATE_PARENT",
-		StatusCode: StatusInternalServerError,
-		Message:    "Failed to update parent record",
-		Type:       "error",
-	}
-
-	ErrorInvalidBulkServiceKey = ResponseCode{
-		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
+	ErrorMinAmountCanNotBeGreaterThanTotal = ResponseCode{
+		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
-		Message:    "One or more given keys are not valid",
-		Type:       "error",
-	}
-
-	ErrorBulkServiceActionNotSatisfied = ResponseCode{
-		Code:       "ERROR_BULK_SERVICE_ACTION_NOT_SATISFIED",
-		StatusCode: StatusBadRequest,
-		Message:    MsgkeyNotSatisfy,
-		Type:       "error",
-	}
-
-	ErrorBulkServiceAlreadyEnabled = ResponseCode{
-		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
-		StatusCode: StatusBadRequest,
-		Message:    "One or more given services are already enabled",
-		Type:       "error",
-	}
-
-	ErrorBulkServiceAlreadyDisabled = ResponseCode{
-		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
-		StatusCode: StatusBadRequest,
-		Message:    "One or more given services are already DISabled",
+		Message:    "minimum transfer can not be greater from total cap",
 		Type:       "error",
 	}
 )

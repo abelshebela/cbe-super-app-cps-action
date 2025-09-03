@@ -141,6 +141,19 @@ func (s *ServiceDetails) UpdateSingleMaxTransfer(ctx context.Context, id string,
 	if req.CDailyCap <= prev.Cap.MinAmount || req.CSingleCap <= prev.Cap.MinAmount || req.IDailyCap <= prev.Cap.MinAmount || req.ISingleCap <= prev.Cap.MinAmount {
 		return errors.New(localization.ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount.Code)
 	}
+	projection = bson.M{
+		"total_cap": 1,
+		"_id":       1,
+	}
+	hq, err := s.hqRepo.Find(ctx, nil, projection)
+	if err!=nil{
+		s.logger.Errorf("error fetching HQ data for updat single transfer cap: %v", err)
+		return err
+	}
+	
+	if req.CDailyCap > hq.TotalCap || req.IDailyCap > hq.TotalCap {
+		return errors.New(localization.ErrorSingleTransferCanNotBeGreaterThanCap.Code)
+	}
 	cpsAction := lib.CpsModelBuilder(id, makerData, prev, req, string(constants.RequestUpdateServiceSingle), constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -148,7 +161,7 @@ func (s *ServiceDetails) UpdateSingleMaxTransfer(ctx context.Context, id string,
 
 	return nil
 }
-func (s *ServiceDetails) UpdateTotalMaxTransferCap(ctx context.Context, id string, req dto.TotalMaxTransferUpdateRequest) error {
+func (s *ServiceDetails) UpdateTotalMaxTransferCap(ctx context.Context, req dto.TotalMaxTransferUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
@@ -168,7 +181,7 @@ func (s *ServiceDetails) UpdateTotalMaxTransferCap(ctx context.Context, id strin
 		return err
 	}
 
-	cpsAction := lib.CpsModelBuilder(id, makerData, prev, req, string(constants.RequestUpdateServiceTotal), constants.UPDATE)
+	cpsAction := lib.CpsModelBuilder(prev.ID.String(), makerData, prev, req, string(constants.RequestUpdateServiceTotal), constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
@@ -192,6 +205,19 @@ func (s *ServiceDetails) UpdateMinimumTransferCap(ctx context.Context, id string
 
 	if err := core.ValidateMinimumTransferCap(newMinAmount, prev.Cap); err != nil {
 		return err
+	}
+	projection = bson.M{
+		"total_cap": 1,
+		"_id":       1,
+	}
+	hq, err := s.hqRepo.Find(ctx, nil, projection)
+	if err!=nil{
+		s.logger.Errorf("error fetching HQ data for update minimum: %v", err)
+		return err
+	}
+	
+	if req.Minimum >= hq.TotalCap  {
+		return errors.New(localization.ErrorMinAmountCanNotBeGreaterThanTotal.Code)
 	}
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, prev, req, string(constants.RequestUpdateServiceMinCap), constants.UPDATE)
@@ -248,18 +274,20 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 }
 
 func (s *ServiceDetails) applyTotalCapUpdate(ctx context.Context, cpsAction *model.CPSAction) error {
-	var newData map[string]interface{}
-	if err := local_util.BindAction(cpsAction.CurrentAction, &newData); err != nil {
-		s.logger.Errorf("Failed to bind current action to HQ: %v", err)
-		return errors.New(localization.ErrorInvalidActionData.Code)
+	projection:=bson.M{}
+	hq, err := s.hqRepo.Find(ctx, nil, projection)
+	if err!=nil{
+		s.logger.Errorf("error fetching HQ data for updattotal maximum cap: %v", err)
+		return err
 	}
 
-	totalCap, ok := newData["total_cap"].(uint64)
-	if !ok {
-		return errors.New("total_cap value is required")
+	totalCap, err :=core.TotalCapMapper(hq,cpsAction.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("Failed to map service details for update: %v", err)
+		return err
 	}
 
-	return s.hqRepo.Update(ctx, "total_cap", totalCap, time.Now())
+	return s.hqRepo.Update(ctx, "total_cap", totalCap.TotalCap, time.Now())
 }
 
 func (s *ServiceDetails) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {

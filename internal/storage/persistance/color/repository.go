@@ -82,6 +82,17 @@ func (c *ColorStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 	return nil
 }
 
+func (c *ColorStorage) Find(ctx context.Context, filter bson.M) (*model.Color, error) {
+
+	data, err := c.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		return nil, errors.New(code)
+	}
+
+	return data, nil
+}
+
 func (c *ColorStorage) FindByID(ctx context.Context, id string) (*model.Color, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -91,7 +102,8 @@ func (c *ColorStorage) FindByID(ctx context.Context, id string) (*model.Color, e
 
 	result, err := c.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		code, _ := local_util.HandleMongoError(err)
+		return nil, errors.New(code)
 	}
 	return result, nil
 }

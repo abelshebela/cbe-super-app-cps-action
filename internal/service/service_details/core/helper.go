@@ -55,7 +55,7 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 
 	// Try to directly cast to the expected DTO type first
 	if dto, ok := newData.(dto.ServiceFeeDetailDTO); ok {
-		// Direct mapping from DTO to model
+
 		if dto.ServiceType != "" {
 			updatedService.ServiceType = dto.ServiceType
 		}
@@ -112,6 +112,39 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 		return &updatedService, nil
 	}
 
+	// Handle SingleMaxTransferRequest DTO
+	if singleCapReq, ok := newData.(dto.SingleMaxTransferRequest); ok {
+		// Map cap values from SingleMaxTransferRequest
+		if singleCapReq.ISingleCap > 0 {
+			updatedService.Cap.ISingleCap = singleCapReq.ISingleCap
+		}
+		if singleCapReq.IDailyCap > 0 {
+			updatedService.Cap.IDailyCap = singleCapReq.IDailyCap
+		}
+		if singleCapReq.CSingleCap > 0 {
+			updatedService.Cap.CorporateSingleCap = singleCapReq.CSingleCap
+		}
+		if singleCapReq.CDailyCap > 0 {
+			updatedService.Cap.CorporateDailyCap = singleCapReq.CDailyCap
+		}
+
+		// Ensure the ID is preserved
+		updatedService.ID = existingService.ID
+		return &updatedService, nil
+	}
+
+	// Handle MinimumTransferUpdateRequest DTO
+	if minCapReq, ok := newData.(dto.MinimumTransferUpdateRequest); ok {
+		// Map minimum amount from MinimumTransferUpdateRequest
+		if minCapReq.Minimum > 0 {
+			updatedService.Cap.MinAmount = minCapReq.Minimum
+		}
+
+		// Ensure the ID is preserved
+		updatedService.ID = existingService.ID
+		return &updatedService, nil
+	}
+
 	// Fallback to generic map handling if direct cast fails
 	var incoming map[string]interface{}
 	if err := BindAction(newData, &incoming); err != nil {
@@ -149,6 +182,68 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 			updatedService.AboveServiceFee = uint64(n)
 		case uint64:
 			updatedService.AboveServiceFee = n
+		}
+	}
+
+	// Map cap fields if present
+	if v, ok := incoming["individual_single_cap"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.Cap.ISingleCap = uint64(n)
+		case int:
+			updatedService.Cap.ISingleCap = uint64(n)
+		case int64:
+			updatedService.Cap.ISingleCap = uint64(n)
+		case uint64:
+			updatedService.Cap.ISingleCap = n
+		}
+	}
+	if v, ok := incoming["individual_daily_cap"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.Cap.IDailyCap = uint64(n)
+		case int:
+			updatedService.Cap.IDailyCap = uint64(n)
+		case int64:
+			updatedService.Cap.IDailyCap = uint64(n)
+		case uint64:
+			updatedService.Cap.IDailyCap = n
+		}
+	}
+	if v, ok := incoming["corporate_single_cap"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.Cap.CorporateSingleCap = uint64(n)
+		case int:
+			updatedService.Cap.CorporateSingleCap = uint64(n)
+		case int64:
+			updatedService.Cap.CorporateSingleCap = uint64(n)
+		case uint64:
+			updatedService.Cap.CorporateSingleCap = n
+		}
+	}
+	if v, ok := incoming["corporate_daily_cap"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.Cap.CorporateDailyCap = uint64(n)
+		case int:
+			updatedService.Cap.CorporateDailyCap = uint64(n)
+		case int64:
+			updatedService.Cap.CorporateDailyCap = uint64(n)
+		case uint64:
+			updatedService.Cap.CorporateDailyCap = n
+		}
+	}
+	if v, ok := incoming["min_amount"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.Cap.MinAmount = uint64(n)
+		case int:
+			updatedService.Cap.MinAmount = uint64(n)
+		case int64:
+			updatedService.Cap.MinAmount = uint64(n)
+		case uint64:
+			updatedService.Cap.MinAmount = n
 		}
 	}
 
@@ -263,11 +358,14 @@ func BindAction(source any, target any) error {
 	if err != nil {
 		return err
 	}
+
 	return json.Unmarshal(bytes, target)
 }
 
 func ValidateMinimumTransferCap(newMinAmount uint64, existingCaps types.Cap) error {
+
 	if newMinAmount >= existingCaps.ISingleCap {
+
 		return fmt.Errorf("min_amount (%d) must be less than individual_single_cap (%d)", newMinAmount, existingCaps.ISingleCap)
 	}
 	if newMinAmount >= existingCaps.IDailyCap {
@@ -280,4 +378,26 @@ func ValidateMinimumTransferCap(newMinAmount uint64, existingCaps types.Cap) err
 		return fmt.Errorf("min_amount (%d) must be less than corporate_daily_cap (%d)", newMinAmount, existingCaps.CorporateDailyCap)
 	}
 	return nil
+}
+func TotalCapMapper(existingService *model.HQ, newData interface{}) (*model.HQ, error) {
+updatedService := *existingService
+var incoming map[string]interface{}
+	if err := BindAction(newData, &incoming); err != nil {
+		return nil, err
+	}
+
+if v, ok := incoming["total_cap"]; ok {
+		switch n := v.(type) {
+		case float64:
+			updatedService.TotalCap = uint64(n)
+		case int:
+			updatedService.TotalCap= uint64(n)
+		case int64:
+			updatedService.TotalCap = uint64(n)
+		case uint64:
+			updatedService.TotalCap = n
+		}
+	}
+	return &updatedService,nil
+
 }

@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "strings"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -45,12 +46,11 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{}
-
+	allowedKeys := []string{"ussd_enabled", "enabled"}
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex // choose your searchable field(s)
+		searchKeys["access_list_name"] = searchRegex
 	}
 
 	// 4. Build filter, skip, limit

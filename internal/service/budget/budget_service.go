@@ -16,16 +16,18 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type BudgetService struct {
-	colorRepo  storage.ColorRepository
-	iconRepo   storage.IconRepository
-	cpsService service.CPSActionService
-	bucketName string
-	minio      config.MinioClientInterface
-	logger     utils.Logger
-	cfg        *config.VaultConfig
+	colorRepo   storage.ColorRepository
+	iconRepo    storage.IconRepository
+	cpsService  service.CPSActionService
+	bucketName  string
+	minio       config.MinioClientInterface
+	minioPubUrl string
+	logger      utils.Logger
+	cfg         *config.VaultConfig
 }
 
 // Constructor
@@ -35,17 +37,19 @@ func NewBudgetService(
 	cpsService service.CPSActionService,
 	bucketName string,
 	minio config.MinioClientInterface,
+	minioPubUrl string,
 	cfg *config.VaultConfig,
 	logger utils.Logger,
 ) service.BudgetService {
 	return &BudgetService{
-		iconRepo:   iconRepo,
-		colorRepo:  colorRepo,
-		cpsService: cpsService,
-		bucketName: bucketName,
-		minio:      minio,
-		logger:     logger,
-		cfg:        cfg,
+		iconRepo:    iconRepo,
+		colorRepo:   colorRepo,
+		cpsService:  cpsService,
+		bucketName:  bucketName,
+		minio:       minio,
+		minioPubUrl: minioPubUrl,
+		logger:      logger,
+		cfg:         cfg,
 	}
 }
 
@@ -95,7 +99,7 @@ func (b *BudgetService) CreateBudgetIcon(ctx context.Context, fileHeader *multip
 		return nil
 	}
 
-	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.cfg.MinioEndPoint, b.logger)
+	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.minioPubUrl, b.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -135,7 +139,7 @@ func (b *BudgetService) BudgetUpdateIcon(ctx context.Context, id string, fileHea
 		return nil
 	}
 
-	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.cfg.MinioEndPoint, b.logger)
+	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.minioPubUrl, b.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -164,7 +168,9 @@ func (b *BudgetService) BudgetCreateColor(ctx context.Context, color *model.Colo
 
 	exists, err := b.colorRepo.FindByID(ctx, color.ID.Hex())
 	if err != nil {
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
 	}
 	if exists != nil {
 		return errors.New(localization.ErrorDuplicateColorExists.Code)
@@ -199,10 +205,13 @@ func (b *BudgetService) BudgetUpdateColor(ctx context.Context, id string, color 
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 
-	exists, err := b.colorRepo.FindByID(ctx, color.Color)
+	exists, err := b.colorRepo.Find(ctx, bson.M{"color": color.Color, "is_deleted": false})
 	if err != nil {
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
 	}
+
 	if exists != nil {
 		return errors.New(localization.ErrorDuplicateColorExists.Code)
 	}

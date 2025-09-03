@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -57,7 +58,7 @@ func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *m
 
 func (r *CPSUserStorage) Delete(ctx context.Context, userCode string) error {
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
-	update := bson.M{"$set": bson.M{"is_deleted": true}}
+	update := bson.M{"is_deleted": true}
 
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -69,7 +70,7 @@ func (r *CPSUserStorage) Delete(ctx context.Context, userCode string) error {
 
 func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, enable bool) error {
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
-	update := bson.M{"$set": bson.M{"enabled": enable}}
+	update := bson.M{"enabled": enable, "last_modified": time.Now()}
 
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {

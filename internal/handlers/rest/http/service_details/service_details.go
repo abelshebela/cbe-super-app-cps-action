@@ -182,12 +182,7 @@ func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.
 }
 
 func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *http.Request) {
-	service_id := chi.URLParam(r, "id")
-	if service_id == "" {
-		s.logger.Errorf("service ID is required to fetch one")
-		localization.SendErrorResponse(w, localization.ErrorServiceDetailIDRequired, nil, nil)
-		return
-	}
+
 
 	var req dto.TotalMaxTransferUpdateRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
@@ -201,7 +196,7 @@ func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *htt
 	}
 	ctx := r.Context()
 
-	err:= s.serviceApp.UpdateTotalMaxTransferCap(ctx, service_id, req)
+	err:= s.serviceApp.UpdateTotalMaxTransferCap(ctx, req)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -233,7 +228,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 
 	err:= s.serviceApp.UpdateMinimumTransferCap(ctx, service_id, req)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

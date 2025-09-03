@@ -61,6 +61,9 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ensure the request carries the target user code from the path
+	req.UserCode = userCode
+
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[UpdateUserRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())

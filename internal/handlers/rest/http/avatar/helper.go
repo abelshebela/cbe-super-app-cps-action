@@ -10,6 +10,7 @@ import (
 
 func ReqFileParse(r *http.Request) (avatar.AvatarDTO, error) {
 	var req avatar.AvatarDTO
+
 	file, fileHeader, err := local_util.ParseMultipartFormFile(r, "avatar", 10<<20)
 	if err != nil && (err.Error() != localization.ErrorFileNotFound.Code) {
 		return avatar.AvatarDTO{}, errors.New(localization.ErrorFileNotFound.Code)

@@ -45,14 +45,14 @@ type District struct {
 
 type City struct {
 	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	CityCode     string        `json:"city_code" bson:"city_code"`
-	CityName     string        `json:"city_name" bson:"city_name"`
-	CityAddress  string        `json:"city_address" bson:"city_address"`
-	DistrictID   string        `json:"district_id" bson:"district_id"`
-	DistrictName string        `json:"district_name" bson:"district_name"`
-	RegionID     string        `json:"region_id" bson:"region_id"`
-	RegionName   string        `json:"region_name" bson:"region_name"`
-	CreatedAt    time.Time     `json:"created_at" bson:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at" bson:"updated_at"`
+	CityCode     string        `json:"city_code" bson:"city_code,omitempty"`
+	CityName     string        `json:"city_name" bson:"city_name,omitempty"`
+	CityAddress  string        `json:"city_address" bson:"city_address,omitempty"`
+	DistrictID   string        `json:"district_id" bson:"district_id,omitempty"`
+	DistrictName string        `json:"district_name" bson:"district_name,omitempty"`
+	RegionID     string        `json:"region_id" bson:"region_id,omitempty"`
+	RegionName   string        `json:"region_name" bson:"region_name,omitempty"`
+	CreatedAt    time.Time     `json:"created_at" bson:"created_at,omitempty"`
+	UpdatedAt    time.Time     `json:"updated_at" bson:"updated_at,omitempty"`
 	Enabled      bool          `json:"enabled" bson:"enabled"`
 }

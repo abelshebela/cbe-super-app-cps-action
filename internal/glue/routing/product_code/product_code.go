@@ -11,8 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-
-func Init(router chi.Router, handler productcode.ProductCodeAdapter, authMiddleware middleware.AuthMiddleware, cpsGuard *middleware.CPSActionMiddlewareFactory) {
+func Init(router chi.Router, handler productcode.ProductCodeAdapter, authMiddleware middleware.AuthMiddleware) {
 	router.Route("/productcodes", func(r chi.Router) {
 		routes := []glue.Route{
 			{
