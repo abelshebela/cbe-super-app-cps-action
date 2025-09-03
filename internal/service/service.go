@@ -188,7 +188,7 @@ type ServiceService interface {
 	GetServiceFeeDetail(ctx context.Context, id string) (*dto.ServiceFeeDetailResponse, error)
 	UpdateServiceFee(ctx context.Context, id string, req dto.ServiceFeeDetailDTO) error
 	UpdateSingleMaxTransfer(ctx context.Context, id string, req dto.SingleMaxTransferRequest) error
-	UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap dto.TotalMaxTransferUpdateRequest) error
+	UpdateTotalMaxTransferCap(ctx context.Context,  newTotalCap dto.TotalMaxTransferUpdateRequest) error
 	UpdateMinimumTransferCap(ctx context.Context, id string, req dto.MinimumTransferUpdateRequest) error
 	DeleteServiceFeeTire(ctx context.Context, id string) error
 }

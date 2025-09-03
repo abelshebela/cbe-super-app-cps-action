@@ -341,6 +341,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
 	ErrorMinAmountCanNotBeGreaterThanCap,
+	ErrorSingleTransferCanNotBeGreaterThanCap,
+	ErrorMinAmountCanNotBeGreaterThanTotal,
 }
 
 // Success Response Codes
@@ -4203,6 +4205,18 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
+	}
+	ErrorSingleTransferCanNotBeGreaterThanCap = ResponseCode{
+		Code:       "ERROR_SINGLE_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "single transfer can not be greater from  total cap",
+		Type:       "error",
+	}
+	ErrorMinAmountCanNotBeGreaterThanTotal  = ResponseCode{
+		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "minimum transfer can not be greater from total cap",
 		Type:       "error",
 	}
 )

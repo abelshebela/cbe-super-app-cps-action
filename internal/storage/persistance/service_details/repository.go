@@ -91,7 +91,7 @@ func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, proje
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"payment_type", "min_amount", "enabled", "service_type"}
+	allowedKeys := []string{"payment_type", "min_amount", "enabled", "service_type","service_code","service_name"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
