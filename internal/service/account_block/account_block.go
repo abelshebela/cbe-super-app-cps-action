@@ -157,6 +157,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 }
 
 func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
+
 	for _, code := range citiesCode {
 		city, err := s.repo.GetCityByCode(ctx, code)
 		if err != nil {

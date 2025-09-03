@@ -16,7 +16,7 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/avatar/",
+			Path:    "/avatar",
 			Handler: handler.CreateAvatar,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -49,12 +49,12 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/avatar/",
+			Path:    "/avatar",
 			Handler: handler.FetchAvatars,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

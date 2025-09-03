@@ -77,7 +77,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 
 	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
 	if err != nil {
 		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
@@ -101,11 +101,11 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	}, nil
 }
 
-func (r *CPSActionStorage) FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error) {
+func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
 	r.logger.Infof("Finding one CPSAction with filter: %+v", filter)
-	filterMap := BuildCPSActionFilter(filter)
+	filterMap := filter
 
-	data, err := r.dal.FindOne(ctx, filterMap, nil)
+	data, err := r.dal.FindOne(ctx, filterMap, Projection)
 	if err != nil {
 		r.logger.Errorf("Error finding CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)

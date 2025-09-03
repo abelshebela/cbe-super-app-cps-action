@@ -147,10 +147,6 @@ func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []st
 		return false, fmt.Errorf("DB_ERROR: %w", err)
 	}
 
-	for _, card := range cards {
-		fmt.Println(card)
-	}
-
 	if len(ids) != len(cards) {
 		return false, fmt.Errorf("PORTAL_CARD_NOT_FOUND")
 	}

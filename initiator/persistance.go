@@ -38,7 +38,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
-	
+
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
@@ -90,7 +90,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
 		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
 		PasswordRulePersistent:     password.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
-		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedbacks", logger),
+		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedback", logger),
 		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
 		// LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_accounts", logger),
 		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchant", logger),

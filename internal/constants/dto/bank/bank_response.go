@@ -3,7 +3,7 @@ package bank_dto
 import "time"
 
 type BankResponse struct {
-	ID             string    `json:"id" bson:"id"`
+	ID             string    `json:"_id" bson:"_id"`
 	Name           string    `json:"name" bson:"name"`
 	Logo           string    `json:"logo" bson:"logo"`
 	Code           string    `json:"code" bson:"code"`

@@ -46,7 +46,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"branch_code", "branch_name", "enabled"}
+	allowedKeys := []string{"branch_code", "branch_name", "enabled", "role", "first_password_set"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
@@ -54,6 +54,8 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		searchKeys["$or"] = []bson.M{
 			{"full_name": searchRegex},
 			{"username": searchRegex},
+			{"user_code": searchRegex},
+			{"phone_number": searchRegex},
 		}
 	}
 	// 4. Build filter, skip, limit

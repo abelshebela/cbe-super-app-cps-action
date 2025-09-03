@@ -7,10 +7,12 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/avatar/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"time"
 
@@ -57,25 +59,25 @@ func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, 
 	}
 	return nil
 }
-func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader) error {
+func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader, fromEnabledDisable bool) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	existing, err := a.avatar.FindAll(ctx, bson.M{"label": avatar}, nil)
+	if incomplete := local_util.IsIncomplete(makerData); incomplete {
+		return errors.New(localization.ErrorAccountNumberRequired.Code)
+	}
+	fmt.Println("------------checkpoint 1=======")
+
+	existed, update, err := core.UpdateDataBuilder(ctx, a.avatar, id, avatar.Label, fromEnabledDisable, avatar.Enable)
 	if err != nil {
 		return err
 	}
 
-	if len(existing) < 0 {
-		return errors.New(localization.ErrorAvatarNotExist.Code)
-	}
-
-	update := existing[0]
-
+	// update := existed
 	if fileHeader != nil {
 		url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.minioEndPoint, a.logger)
 		if err != nil {
 			return err
 		}
-		update.Avatar = url
+		existed.Avatar = url
 	}
 	if avatar.Label != "" {
 		update.Label = avatar.Label
@@ -83,7 +85,7 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 
 	update.LastModifiedAt = time.Now()
 
-	cpsModel := lib.CpsModelBuilder("", makerData, existing, update, string(constants.RequestUpdateAvatar), constants.UPDATE)
+	cpsModel := lib.CpsModelBuilder(id, makerData, existed, update, string(constants.RequestUpdateAvatar), constants.UPDATE)
 	if err := a.cpsService.CreateCPSAction(ctx, &cpsModel); err != nil {
 		return err
 	}
@@ -101,7 +103,7 @@ func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorAvatarNotExist.Code)
 	}
 
-	cpsModel := lib.CpsModelBuilder("", makerData, existing, nil, string(constants.RequestDeleteAvatar), constants.DELETE)
+	cpsModel := lib.CpsModelBuilder(id, makerData, existing, nil, string(constants.RequestDeleteAvatar), constants.DELETE)
 	if err := a.cpsService.CreateCPSAction(ctx, &cpsModel); err != nil {
 		return err
 	}

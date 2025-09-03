@@ -122,6 +122,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPadding,
 	ErrorUserNotFound,
 	ErrorUserAlreadyExists,
+	ErrorPermissionGroupAlreadyExists,
+	ErrorPermissionCatagoryNotFound,
 	ErrorUserUnauthorized,
 	ErrorUserForbidden,
 	ErrorUserInvalidCredentials,
@@ -147,6 +149,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
 	ErrorAdvertUpdate,
+	ErrorAvatarAlreadyEnabled,
+	ErrorAvatarAlreadyDisabled,
 	ErrorAdvertAlreadyEnabled,
 	ErrorAdvertAlreadyDisabled,
 	ErrorValidationRuleApproved,
@@ -227,6 +231,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
+	ErrorAvatarAlreadyExist,
 	ErrorWalletAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
@@ -255,7 +260,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
-	
+
 	// department related error
 	ErrorDepartmentCreateRequest,
 	ErrorInvalidFormatForDepartmentPermissionGroups,
@@ -264,6 +269,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDepartmentPermissionGroup,
 	ErrorDepartmentAlreadyDisabled,
 	ErrorDepartmentAlreadyEnabled,
+	ErrorDepartmentInvalidID,
+	ErrorDepartmentWithNameAlreadyExists,
 	// Fayda
 	ErrorFaydaUserAccountEnabled,
 	ErrorFaydaUserAccountDisabled,
@@ -321,6 +328,17 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
 	ErrorMinAmountCanNotBeGreaterThanCap,
+
+	ErrorCityAlreadyDisabled,
+	ErrorCityAlreadyEnabled,
+	ErrorRegionAlreadyDisabled,
+	ErrorRegionAlreadyEnabled,
+	ErrorDistrictAlreadyDisabled,
+	ErrorDistrictAlreadyEnabled,
+	ErrorBranchAlreadyDisabled,
+	ErrorBranchAlreadyEnabled,
+	ErrorSingleTransferCanNotBeGreaterThanCap,
+	ErrorMinAmountCanNotBeGreaterThanTotal,
 	ErrorNoChangesDetected,
 }
 
@@ -832,6 +850,27 @@ var (
 		Code:       "ERROR_EVENT_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    "An event with this name already exists",
+		Type:       "error",
+	}
+
+	ErrorAuthTierAlreadyExists = ResponseCode{
+		Code:       "ERROR_AUTH_TIER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Auth tier already exists with the same values",
+		Type:       "error",
+	}
+
+	ErrorInvalidMethod = ResponseCode{
+		Code:       "ERROR_INVALID_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid method value",
+		Type:       "error",
+	}
+
+	ErrorInvalidAmounts = ResponseCode{
+		Code:       "ERROR_INVALID_AMOUNTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid amounts",
 		Type:       "error",
 	}
 
@@ -3608,6 +3647,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorPermissionGroupAlreadyExists = ResponseCode{
+		Code:       "ERROR_PERMISSION_GROUP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionGroupAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPermissionCatagoryNotFound = ResponseCode{
+		Code:       "ERROR_PERMISSION_CATAGORY_NOT_FOUND",
+		StatusCode: StatusConflict,
+		Message:    MsgPermissionCatagoryNotFound,
+		Type:       "error",
+	}
+
 	ErrorPermissionGroupRequestUpdateFailed = ResponseCode{
 		Code:       "ERROR_PERMISSION_GROUP_REQUEST_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -3784,6 +3836,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAvatarAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAvatarAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAvatarAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_AVATAR_ALREADY_Enabled",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAvatarAlreadyDisabled,
+		Type:       "error",
+	}
+
 	// Account Validation Service related error response codes
 	ErrorValidationRuleApproved = ResponseCode{
 		Code:       "ERROR_VALIDATION_RULE_APPROVED",
@@ -3875,10 +3941,38 @@ var (
 		Type:       "error",
 	}
 
+	ErrorBranchAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BRANCH_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorBranchAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BRANCH_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorDistrictCodeRequired = ResponseCode{
 		Code:       "ERROR_DISTRICT_CODE_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDistrictCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorDistrictAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DISTRICT_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorDistrictAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DISTRICT_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDistrictAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -3889,10 +3983,37 @@ var (
 		Type:       "error",
 	}
 
+	ErrorRegionAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_REGION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorRegionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_REGION_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRegionAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorCityCodeRequired = ResponseCode{
 		Code:       "ERROR_CITY_CODE_REQUIRED",
-		StatusCode: StatusBadRequest,
+		StatusCode: StatusConflict,
 		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCityAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_CITY_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorCityAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_CITY_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -4000,6 +4121,18 @@ var (
 		Code:       "ERROR_DEPARTMENT_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgDepartmentAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDepartmentInvalidID = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentInvalidID,
+		Type:       "error",
+	}
+	ErrorDepartmentWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentWithNameAlreadyExists,
 		Type:       "error",
 	}
 	// fayda
@@ -4120,6 +4253,18 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
+	}
+	ErrorSingleTransferCanNotBeGreaterThanCap = ResponseCode{
+		Code:       "ERROR_SINGLE_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "single transfer can not be greater from  total cap",
+		Type:       "error",
+	}
+	ErrorMinAmountCanNotBeGreaterThanTotal = ResponseCode{
+		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
+		StatusCode: StatusBadRequest,
+		Message:    "minimum transfer can not be greater from total cap",
 		Type:       "error",
 	}
 	ErrorNoChangesDetected = ResponseCode{

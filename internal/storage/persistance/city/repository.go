@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -97,9 +98,7 @@ func (c *CityStorage) FindByID(ctx context.Context, id string) (*model.City, err
 }
 
 func (c *CityStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+	filter := bson.M{}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -112,6 +111,8 @@ func (c *CityStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
 	limit := int64(filterParam.PerPage)
 
+	fmt.Println("*********************")
+	fmt.Println(filter)
 	data, err := c.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, err

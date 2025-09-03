@@ -87,6 +87,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 		handler := map[string]func(interface{}) interface{}{}
 		includedKeys := []string{
 			"enabled",
+			"enable",
 			"is_deleted",
 			"is_blocked",
 			"ussd_enabled",

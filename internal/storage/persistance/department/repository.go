@@ -2,6 +2,7 @@ package department
 
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -32,6 +33,7 @@ func NewDepartmentRepository(client *mongo.Client, dbName string, collection str
 }
 
 func (b *DepartmentStorage) Create(ctx context.Context, Department *model.Department) error {
+	Department.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *Department)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -42,7 +44,7 @@ func (b *DepartmentStorage) Create(ctx context.Context, Department *model.Depart
 func (b *DepartmentStorage) Update(ctx context.Context, id string, Department *model.Department) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorDepartmentInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := DepartmentMapper(*Department)
@@ -72,12 +74,10 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable}}
+	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
+		return err
 	}
 	return nil
 }
@@ -88,6 +88,20 @@ func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Dep
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
+
+	result, err := b.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model.Department, error) {
+	filter := bson.M{
+		"department": bson.M{
+			"$regex":   "^" + strings.ToLower(name) + "$",
+			"$options": "i",
+		},
+	}
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {

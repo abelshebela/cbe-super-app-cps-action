@@ -250,11 +250,11 @@ const (
 	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
-
 	MsgUpdateMiniAppRequestCreatedSuccessfully    = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
 	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
 	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
+	MsgCreateMiniAppRequestCreatedSuccessfully    = "Mini App create request sent successfully"
 
 	MsgMiniAppsSuccessfullyRetrieved      = "Mini Apps successfully retrieved"
 	MsgMiniAppFetchedByIDSuccessfully     = "Mini App fetched by ID successfully"
@@ -400,8 +400,8 @@ const (
 	MsgBankNameTooLong           = "Bank name too long"
 	MsgBankNameInvalidCharacters = "Bank name contains invalid characters"
 	msgGetAllBanksFailed         = "Get all banks failed"
-	msgGetAllBanksSuccess        = "Successfully got all banks"
-	msgGetOneBankSuccess         = "Successfully got one bank"
+	msgGetAllBanksSuccess        = "Successfully banks retrived"
+	msgGetOneBankSuccess         = "Successfully bank retrived"
 	msgDeleteBankRequestSuccess  = "Successfully bank delete request created"
 	msgGetOneBankFailed          = "Get one bank failed"
 
@@ -496,6 +496,7 @@ const (
 	MsgPermissionCategoryFetchFailed   = "Failed to fetch permission categories"
 	MsgPermissionGroupValidationFailed = "Permission group validation failed"
 	MsgPermissionGroupRequired         = "Permission group is required"
+	MsgPermissionCatagoryNotFound      = "Permission category not found"
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
@@ -515,17 +516,19 @@ const (
 	MsgNotificationRequired       = "Notification is required"
 
 	// department related error messages
-	MsgDepartmentNotFound             = "Department not found"
-	MsgDepartmentAlreadyExists        = "Department already exists"
-	MsgDepartmentCreationFailed       = "Failed to create department"
-	MsgDepartmentUpdateFailed         = "Failed to update department"
-	MsgDepartmentInvalidFormat        = "Invalid department format"
-	MsgDepartmentRequired             = "Department is required"
-	msgGetAllDepartmentsSuccess       = "Successfully got all Departments"
-	msgGetDepartmentsSuccess          = "Successfully got a Department"
-	MsgDepartmentAlreadyEnabled       = "Department already enabled"
-	MsgDepartmentAlreadyDisabled      = "Department already disabled"
-	MsgDepartmentInvalidRequestAction = "Invalid request action"
+	MsgDepartmentNotFound              = "Department not found"
+	MsgDepartmentAlreadyExists         = "Department already exists"
+	MsgDepartmentCreationFailed        = "Failed to create department"
+	MsgDepartmentUpdateFailed          = "Failed to update department"
+	MsgDepartmentInvalidFormat         = "Invalid department format"
+	MsgDepartmentRequired              = "Department is required"
+	msgGetAllDepartmentsSuccess        = "Successfully got all Departments"
+	msgGetDepartmentsSuccess           = "Successfully got a Department"
+	MsgDepartmentAlreadyEnabled        = "Department already enabled"
+	MsgDepartmentAlreadyDisabled       = "Department already disabled"
+	MsgDepartmentInvalidID             = "Department Invalid or Missing id"
+	MsgDepartmentWithNameAlreadyExists = "Department with name already exists"
+	MsgDepartmentInvalidRequestAction  = "Invalid request action"
 
 	// Budget Category related error messages
 	MsgBudgetCategoryNotFound       = "Budget category not found"
@@ -778,7 +781,9 @@ const (
 	MsgAdvertCreateError     = "Advert creation failed"
 	MsgAdvertUpdateError     = "Advert update failed"
 	MsgAdvertAlreadyEnabled  = "Advert already enabled"
+	MsgAvatarAlreadyEnabled  = "Avatar already enabled"
 	MsgAdvertAlreadyDisabled = "Advert already disabled"
+	MsgAvatarAlreadyDisabled = "Avatar already disabled"
 	MsgAdvertNotFound        = "Advert not found"
 
 	// Account Validation Service related error messages
@@ -823,9 +828,17 @@ const (
 	MsgInvalidRegion                     = "Invalid region"
 	MsgInvalidDistrictOrRegionCodeLength = "Region and District codes must be at least 3 characters long"
 	MsgBranchCodeRequired                = "Branch code is required"
+	MsgBranchAlreadyEnabled              = "Branch already enabled"
+	MsgBranchAlreadyDisabled             = "Branch already disabled"
 	MsgDistrictCodeRequired              = "District code is required"
+	MsgDistrictAlreadyEnabled            = "District already enabled"
+	MsgDistrictAlreadyDisabled           = "District already disabled"
 	MsgRegionCodeRequired                = "Region code is required"
+	MsgRegionAlreadyEnabled              = "Region already enabled"
+	MsgRegionAlreadyDisabled             = "Region already disabled"
 	MsgCityCodeRequired                  = "City code is required"
+	MsgCityAlreadyEnabled                = "City already enabled"
+	MsgCityAlreadyDisabled               = "City already disabled"
 
 	MsgBranchNotFound         = "Branch not found"
 	MsgDistrictNotFound       = "District not found"

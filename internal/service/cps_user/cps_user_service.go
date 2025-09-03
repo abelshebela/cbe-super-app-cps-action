@@ -3,6 +3,7 @@ package cpsuser
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -12,7 +13,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/cps_user/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -24,12 +24,12 @@ import (
 type cpsUserService struct {
 	repo              storage.CpsUserRepository
 	permissionService service.PermissionService
-	departmentRepo    storage.AppAccessListRepository
+	departmentRepo    storage.DepartmentRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, departmentRepo storage.AppAccessListRepository, permission service.PermissionService, cps service.CPSActionService, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		permissionService: permission,
@@ -46,6 +46,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	if _, err := s.departmentRepo.FindByID(ctx, req.Department.Hex()); err != nil {
+		fmt.Println("<<<<<<<<<<<<<<<<<<checking department>>>>>>>>>>>>>>>>>>>>")
 		return err
 	}
 
@@ -252,13 +253,15 @@ func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filte
 }
 
 func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	fmt.Println("//// here to authorize..... ", action)
 	action.MakerActionTime = time.Now()
 	action.LastModifiedAt = action.MakerActionTime
 
-	switch action.ActionType {
-	case string(cpsaction.ActionCreate):
-		cur, ok := action.CurrentAction.(model.CPSUser)
-		if !ok {
+	switch action.RequestAction {
+	case string(constants.RequestCpsUserCreate):
+
+		cur, err := core.BindCPSUserFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.Create(ctx, &cur); err != nil {
@@ -266,43 +269,45 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		}
 		return action, nil
 
-	case string(cpsaction.ActionUpdate):
-		upd, ok := action.CurrentAction.(cpsuser.UpdateUserRequest)
-		if !ok {
+	case string(constants.RequestCpsUserUpdate):
+		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		update := core.CPSUUpdateModel(upd)
-		if err := s.repo.Update(ctx, upd.UserCode, update); err != nil {
+
+		update := core.CPSUUpdateModel(cur)
+		if err := s.repo.Update(ctx, action.UniqueId, update); err != nil {
 			return nil, err
 		}
 		return action, nil
 
-	case string(cpsaction.ActionDelete):
-		cur, ok := action.CurrentAction.(model.CPSUser)
-		if !ok {
+	case string(constants.RequestCpsUserDelete):
+		_, err := core.BindCPSUserFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		if err := s.repo.Delete(ctx, cur.UserCode); err != nil {
+		if err := s.repo.Delete(ctx, action.UniqueId); err != nil {
 			return nil, err
 		}
 		return action, nil
 
-	case string(cpsaction.ActionEnable):
-		cur, ok := action.CurrentAction.(model.CPSUser)
-		if !ok {
+	case string(constants.RequestCpsUserEnable):
+		fmt.Println("this<<<<<<<<<<<<<<<<<<enable>>>>>>>>>>>>>>>>>>>>>>")
+		_, err := core.BindCPSUserFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		if err := s.repo.EnableOrDisable(ctx, cur.UserCode, true); err != nil {
+		if err := s.repo.EnableOrDisable(ctx, action.UniqueId, true); err != nil {
 			return nil, err
 		}
 		return action, nil
 
-	case string(cpsaction.ActionDisable):
-		cur, ok := action.CurrentAction.(model.CPSUser)
-		if !ok {
+	case string(constants.RequestCpsUserDisable):
+		_, err := core.BindCPSUserFromAction(action.CurrentAction)
+		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		if err := s.repo.EnableOrDisable(ctx, cur.UserCode, false); err != nil {
+		if err := s.repo.EnableOrDisable(ctx, action.UniqueId, false); err != nil {
 			return nil, err
 		}
 		return action, nil

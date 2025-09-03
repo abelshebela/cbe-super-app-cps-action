@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -99,9 +100,8 @@ func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APP
 
 func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
 	searchKeys := bson.M{}
-	filter := bson.M{"is_deleted": false}
-	allowedKeys := []string{"access_list_name", "is_deleted", "ussd_enabled", "enabled"}
-
+	allowedKeys := []string{"access_list_name", "ussd_enabled", "enabled"}
+	fmt.Println("*********************FindAllWithPagination**********************")
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["access_list_name"] = searchRegex

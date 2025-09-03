@@ -53,12 +53,16 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		ca.RollBack(ctx, action.ActionCode)
 		return err
 	}
-
 	return nil
+
 }
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 
-	return ca.repo.Update(ctx, action_code, *action)
+	err := ca.repo.Update(ctx, action_code, *action)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 
@@ -71,27 +75,15 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return ca.repo.FindOne(ctx, model.CPSAction{ID: objID})
+	return ca.repo.FindOne(ctx, bson.M{"_id": objID})
 }
 func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
-	return ca.repo.FindOne(ctx, model.CPSAction{Department: department, ActionStatus: string(constants.Pending), RequestAction: requestAction})
+	return ca.repo.FindOne(ctx, bson.M{"department": department, "action_status": string(constants.Pending), "request_action": requestAction})
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
-	return ca.repo.FindOne(ctx, model.CPSAction{ActionCode: uniqueID, Department: department})
+	return ca.repo.FindOne(ctx, bson.M{"action_code": uniqueID, "department": department})
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action_code string) error {
 	return ca.repo.Update(ctx, action_code, model.CPSAction{ActionStatus: string(constants.Pending)})
 }
-
-// func (s *cpsActionService) CPSActionExists(ctx context.Context, user model.CheckCPSAction) (bool, error) {
-// 	_,err  := s.repo.FindOne(ctx, model.CPSAction{Department: user.Department,ActionStatus: string(constants.Pending),RequestAAction: })
-// 	if err != nil {
-// 		if err.Error() == localization.ErrorActionNotFound.Code{
-// 			return false,nil
-// 		}
-// 		return false,nil
-// 	}
-
-// 	return true,nil
-// }

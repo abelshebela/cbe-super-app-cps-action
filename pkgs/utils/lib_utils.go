@@ -258,7 +258,7 @@ func HandleMongoError(err error) (string, string) {
 func GenerateCPSUserCode() string {
 	const (
 		prefix  = "CBECPSUSER_"
-		codeLen = 10
+		codeLen = 15
 		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	)
 

@@ -1,27 +1,24 @@
 package service
 
 import (
-
-	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
-	"context"
-	"mime/multipart"
-    
-	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
+	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
-	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
-
+	"context"
+	"mime/multipart"
 )
 
 type CPSActionService interface {
@@ -51,7 +48,7 @@ type BudgetService interface {
 
 type BulkService interface {
 	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
-	EnableBulkService(ctx context.Context, keys []string) (string, error)
+	EnableBulkService(ctx context.Context, keys []string) error
 	DisableBulkService(ctx context.Context, keys []string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -175,22 +172,22 @@ type PortalCardService interface {
 type ProductCodeService interface {
 	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
 	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
-	UpdateProductCode(ctx context.Context, request dton.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	UpdateProductCode(ctx context.Context, request productcode_dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type ServiceService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
-	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.MinimumTransferCapResponse], error)
-	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.MaximumTransferCapResponse], error)
-	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.ServiceFeeResponse], error)
-	GetAllTotalTransferCap(ctx context.Context) (*dto.TotalTransferCapResponse, error)
-	GetServiceFeeDetail(ctx context.Context, id string) (*dto.ServiceFeeDetailResponse, error)
-	UpdateServiceFee(ctx context.Context, id string, req dto.ServiceFeeDetailDTO) error
-	UpdateSingleMaxTransfer(ctx context.Context, id string, req dto.SingleMaxTransferRequest) error
-	UpdateTotalMaxTransferCap(ctx context.Context, id string, newTotalCap dto.TotalMaxTransferUpdateRequest) error
-	UpdateMinimumTransferCap(ctx context.Context, id string, req dto.MinimumTransferUpdateRequest) error
+	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MinimumTransferCapResponse], error)
+	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MaximumTransferCapResponse], error)
+	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.ServiceFeeResponse], error)
+	GetAllTotalTransferCap(ctx context.Context) (*dtoService.TotalTransferCapResponse, error)
+	GetServiceFeeDetail(ctx context.Context, id string) (*dtoService.ServiceFeeDetailResponse, error)
+	UpdateServiceFee(ctx context.Context, id string, req dtoService.ServiceFeeDetailDTO) error
+	UpdateSingleMaxTransfer(ctx context.Context, id string, req dtoService.SingleMaxTransferRequest) error
+	UpdateTotalMaxTransferCap(ctx context.Context, newTotalCap dtoService.TotalMaxTransferUpdateRequest) error
+	UpdateMinimumTransferCap(ctx context.Context, id string, req dtoService.MinimumTransferUpdateRequest) error
 	DeleteServiceFeeTire(ctx context.Context, id string) error
 }
 
@@ -254,7 +251,7 @@ type AmountBasedAuthService interface {
 
 type AvatarService interface {
 	CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
-	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
+	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader, fromEnabledDisable bool) error
 	DeleteAvatar(ctx context.Context, id string) error
 	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
 	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)
@@ -280,7 +277,7 @@ type BudgetCategoryService interface {
 }
 
 type BPSUserService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
@@ -327,4 +324,5 @@ type ServiceContainer struct {
 	NotificationService      NotificationService
 	ProductCodeService       ProductCodeService
 	DonationContainer        DonationService
+	Unlink                   UnlinkService
 }

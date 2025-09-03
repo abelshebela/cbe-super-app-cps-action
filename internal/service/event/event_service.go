@@ -26,10 +26,11 @@ type eventService struct {
 	bucketName      string
 	logger          utils.Logger
 	minio           config.MinioClientInterface
+	minioPubUrl     string
 	cfg             *config.VaultConfig
 }
 
-func NewEventService(repo storage.EventRepository, cpsActionService service.CPSActionService, merchantService service.MiniAppMerchantService, userRepo storage.UserRepository, minio config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.EventService {
+func NewEventService(repo storage.EventRepository, cpsActionService service.CPSActionService, merchantService service.MiniAppMerchantService, userRepo storage.UserRepository, minio config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.EventService {
 	return &eventService{
 		repo:            repo,
 		cpsService:      cpsActionService,
@@ -38,6 +39,7 @@ func NewEventService(repo storage.EventRepository, cpsActionService service.CPSA
 		minio:           minio,
 		cfg:             cfg,
 		bucketName:      bucketName,
+		minioPubUrl:     minioPubUrl,
 		logger:          logger,
 	}
 }
@@ -67,7 +69,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.cfg.MinioEndPoint, e.logger)
+	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.minioPubUrl, e.logger)
 	if err != nil {
 		e.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -98,7 +100,7 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 
 	var URL string
 	if event.CoverImage != nil {
-		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.cfg.MinioEndPoint, e.logger)
+		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.minioPubUrl, e.logger)
 		if err != nil {
 			e.logger.Errorf("UploadFileToMinio failed", "event_id", id, "error", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)

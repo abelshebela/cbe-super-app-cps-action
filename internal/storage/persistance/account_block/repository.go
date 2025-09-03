@@ -43,7 +43,7 @@ func NewAccountBlockRepository(client *mongo.Client, dbName string, logger utils
 // Standard CRUD operations for Branch
 
 func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error) {
-	filter := bson.M{"branch_code": branchCode, "is_deleted": false}
+	filter := bson.M{"branch_code": branchCode}
 
 	result, err := a.branchDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -159,7 +159,7 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	// Always exclude deleted branches
-	filter["is_deleted"] = false
+	// filter["is_deleted"] = false
 
 	data, err := a.branchDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

@@ -19,15 +19,16 @@ import (
 )
 
 type walletService struct {
-	repo       storage.WalletRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
-	minio      config.MinioClientInterface
-	bucketName string
-	cfg        *config.VaultConfig
+	repo        storage.WalletRepository
+	cpsService  service.CPSActionService
+	logger      utils.Logger
+	minio       config.MinioClientInterface
+	bucketName  string
+	minioPubUrl string
+	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:       repo,
 		cpsService: cps,
@@ -54,7 +55,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioEndPoint, s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -88,7 +89,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 
 	var avatarURL string
 	if req.Avatar != nil {
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioEndPoint, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
@@ -97,10 +98,12 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	updatedWallet := model.Wallet{
-		ID:        prevWallet.ID,
-		Name:      req.Name,
-		Code:      req.Code,
-		Avatar:    avatarURL,
+		ID:             prevWallet.ID,
+		Name:           core.NonEmptyString(req.Name, prevWallet.Name),
+		Code:           prevWallet.Code,
+		Avatar:         avatarURL,
+		CreatedAt:      prevWallet.CreatedAt,
+		LastModifiedAt: time.Now(),
 	}
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, updatedWallet, *prevWallet, constants.ActionUpdate); err != nil {
