@@ -253,6 +253,7 @@ type AvatarService interface {
 	CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error
 	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader, fromEnabledDisable bool) error
 	DeleteAvatar(ctx context.Context, id string) error
+	EnableDisable(ctx context.Context, id string, enable bool) error
 	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
 	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
