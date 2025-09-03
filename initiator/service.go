@@ -82,6 +82,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger) // cpsActionService updefine
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	// miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
@@ -118,7 +119,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, "", advertBucketName, cfg, logger)
 
 	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger) // Will be updated after CPS action service is created
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
+	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
 	permissionService := permission.InitPermissionService(
 		persistence.PermissionPersistence,

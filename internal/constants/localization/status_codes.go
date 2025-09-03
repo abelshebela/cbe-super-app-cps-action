@@ -73,4 +73,6 @@ const (
 	StatusLoopDetected                  = 508
 	StatusNotExtended                   = 510
 	StatusNetworkAuthenticationRequired = 511
+
+	MsgkeyNotSatisfy = 404
 )
