@@ -157,6 +157,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if err != nil {
 		return nil, err
 	}
+
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateAvatar):
 		err = a.avatar.Create(ctx, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, CreatedAt: avatar.CreatedAt})
