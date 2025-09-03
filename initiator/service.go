@@ -6,7 +6,7 @@ import (
 	accountblock "cbe-super-app-cps-action/internal/service/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
-	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
+	// amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	"cbe-super-app-cps-action/internal/service/budget"
@@ -133,7 +133,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		logger,
 	)
 	cpsactionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, cpsaction.Dispatcher{}) // Will be updated after dispatcher is created
-	productcodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger) // Will be updated after CPS action service is created
 
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	// Create the service container with all services
@@ -252,7 +251,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Unlink:            unlinkService,
 		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger),
 		PortalCard:        portalCardService,
-		AmountBasedAuth:   amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
+		// AmountBasedAuth:   amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
 		ValidationService: accountValidation,
 		Wallet:            walletService,
 		PasswordRule:      passwordRule,

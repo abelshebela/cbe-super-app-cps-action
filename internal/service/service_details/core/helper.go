@@ -1,6 +1,7 @@
 package service_details
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -8,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -377,24 +379,24 @@ func ValidateMinimumTransferCap(newMinAmount uint64, existingCaps types.Cap) err
 	return nil
 }
 func TotalCapMapper(existingService *model.HQ, newData interface{}) (*model.HQ, error) {
-updatedService := *existingService
-var incoming map[string]interface{}
+	updatedService := *existingService
+	var incoming map[string]interface{}
 	if err := BindAction(newData, &incoming); err != nil {
 		return nil, err
 	}
 
-if v, ok := incoming["total_cap"]; ok {
+	if v, ok := incoming["total_cap"]; ok {
 		switch n := v.(type) {
 		case float64:
 			updatedService.TotalCap = uint64(n)
 		case int:
-			updatedService.TotalCap= uint64(n)
+			updatedService.TotalCap = uint64(n)
 		case int64:
 			updatedService.TotalCap = uint64(n)
 		case uint64:
 			updatedService.TotalCap = n
 		}
 	}
-	return &updatedService,nil
+	return &updatedService, nil
 
 }

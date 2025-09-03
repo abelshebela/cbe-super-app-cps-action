@@ -192,7 +192,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	case string(constants.RequestCreateWallet):
 		_, err = m.repo.Create(ctx, miniAppMerchant)
 	case string(constants.RequestUpdateWallet):
-		_, err = m.repo.Update(ctx, miniAppMerchant.ID.Hex(), miniAppMerchant)
+		err = m.repo.Update(ctx, miniAppMerchant.ID.Hex(), miniAppMerchant)
 	case string(constants.RequestDeleteWallet):
 		err = m.repo.Delete(ctx, miniAppMerchant.ID.Hex())
 	case string(constants.RequestEnableWallet):
