@@ -235,6 +235,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletUpdateEmptyPayload,
 
 	ErrorInvalidRequestBody,
+	ErrorBulkServiceAlreadyDisabled,
 	ErrorInvalidPaginationParams,
 	ErrorInvalidDistrict,
 	ErrorInvalidRegion,
@@ -314,6 +315,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
+	ErrorBulkServiceAlreadyEnabled,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -2956,7 +2958,7 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
-    Type:       "error",
+		Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{
@@ -4102,6 +4104,55 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
+	}
+
+	ErrorInvalidRequiredAction = ResponseCode{
+		Code:       "ERROR_INVALID_REQUIRED_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid or missing required action",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateChild = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_CHILD",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update child record",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateParent = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_PARENT",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update parent record",
+		Type:       "error",
+	}
+
+	ErrorInvalidBulkServiceKey = ResponseCode{
+		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
+		StatusCode: StatusBadRequest,
+		Message:    "One or more given keys are not valid",
+		Type:       "error",
+	}
+
+	ErrorBulkServiceActionNotSatisfied = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ACTION_NOT_SATISFIED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgkeyNotSatisfy,
+		Type:       "error",
+	}
+
+	ErrorBulkServiceAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "One or more given services are already enabled",
+		Type:       "error",
+	}
+
+	ErrorBulkServiceAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "One or more given services are already DISabled",
 		Type:       "error",
 	}
 )

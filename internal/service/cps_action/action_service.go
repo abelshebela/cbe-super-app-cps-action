@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -46,13 +47,19 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 
 	if err := ca.repo.Update(ctx, action.ActionCode, *action); err != nil {
+		fmt.Println("approver service update repo___________________________________________")
+		fmt.Printf("errrors1 :%v", err)
 		return err
 	}
 	approve, err := ca.dispatcher.Authorize(ctx, action)
+	fmt.Println("approver service update repo___________________________________________")
+	fmt.Printf("errrors2 :%v", err)
 	if err != nil && approve == nil {
 		ca.RollBack(ctx, action.ActionCode)
 		return err
 	}
+	fmt.Println("approver service update repo___________________________________________")
+	fmt.Printf("no error found")
 
 	return nil
 }
@@ -77,6 +84,7 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 	return ca.repo.FindOne(ctx, model.CPSAction{Department: department, ActionStatus: string(constants.Pending), RequestAction: requestAction})
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
+	fmt.Println("am in get by action code")
 	return ca.repo.FindOne(ctx, model.CPSAction{ActionCode: uniqueID, Department: department})
 }
 

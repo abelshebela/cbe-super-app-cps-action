@@ -51,7 +51,7 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 	action_code, err := h.bulkService.EnableBulkService(r.Context(), req.Keys)
 	if err != nil {
 		h.logger.Errorf("Enable bulk service request failed: %v\n", err)
-		localization.SendBadRequestResponse(w, localization.MsgBadRequest)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

@@ -62,15 +62,11 @@ type ServiceLayer struct {
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
 
-
 	Permission     service.PermissionService
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
 
-
-	ProductCode       service.ProductCodeService
-
-
+	ProductCode service.ProductCodeService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -78,7 +74,7 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger) // cpsActionService updefine
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
@@ -236,10 +232,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
 
-		ServiceDetails:    serviceDetails,
+		ServiceDetails: serviceDetails,
 
-
-		ProductCode:       productService,
-
+		ProductCode: productService,
 	}
 }
