@@ -3,7 +3,6 @@ package initiator
 import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
-	// amountBasedAuthInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
