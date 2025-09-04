@@ -38,5 +38,5 @@ func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
 	}
 
 	set["last_modified"] = time.Now()
-	return bson.M{"$set": set}
+	return set
 }

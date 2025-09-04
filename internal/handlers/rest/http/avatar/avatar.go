@@ -33,13 +33,15 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 	// avatarUrl, err := lib.UploadFileToMinio(r.Context(),a)
 	if err := a.avatarApplication.CreateAvatar(r.Context(), &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 
 	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 }
@@ -64,7 +66,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: true}, nil); err != nil {
+	if err := a.avatarApplication.EnableDisable(r.Context(), id, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -78,7 +80,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Enable: false}, nil); err != nil {
+	if err := a.avatarApplication.EnableDisable(r.Context(), id, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -130,7 +132,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		inputData = req.Avatar
 		label = req.Label
 	}
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Label: label}, inputData); err != nil {
+	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Label: label}, inputData, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

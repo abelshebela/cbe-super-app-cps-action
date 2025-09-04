@@ -28,17 +28,19 @@ type advertService struct {
 	logger      utils.Logger
 	minioClient config.MinioClientInterface
 	bucketName  string
+	minioPubUrl string
 	cfg         *config.VaultConfig
 }
 
 // NewAdvertService creates a new advert service instance
-func NewAdvertService(repository storage.AdvertRepository, cpsService service.CPSActionService, minioClient config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AdvertService {
+func NewAdvertService(repository storage.AdvertRepository, cpsService service.CPSActionService, minioClient config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AdvertService {
 	return &advertService{
 		Repository:  repository,
 		cpsService:  cpsService,
 		logger:      logger,
 		minioClient: minioClient,
 		bucketName:  bucketName,
+		minioPubUrl: minioPubUrl,
 		cfg:         cfg,
 	}
 }
@@ -65,7 +67,7 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Creating advert, title: %s", ad.Title)
 
-	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
+	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
 		return errors.New(localization.MsgFileUploadFailed)
@@ -108,7 +110,7 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 
 	var url string
 	if bannerImage != nil {
-		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.cfg.MinioEndPoint, s.logger)
+		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.logger)
 		if err != nil {
 			s.logger.Errorf("Failed to upload banner image: %v", err)
 			return err

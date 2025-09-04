@@ -3,7 +3,6 @@ package bulk_service
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/bulk_service"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
-	"fmt"
 
 	// "fmt"
 
@@ -48,14 +47,14 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 		h.logger.Errorf("failed to decode payload")
 	}
 
-	action_code, err := h.bulkService.EnableBulkService(r.Context(), req.Keys)
+	err := h.bulkService.EnableBulkService(r.Context(), req.Keys)
 	if err != nil {
 		h.logger.Errorf("Enable bulk service request failed: %v\n", err)
-		localization.SendBadRequestResponse(w, localization.MsgBadRequest)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, action_code)
+	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, nil)
 }
 
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +64,6 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 		h.logger.Errorf("failed to decode payload")
 	}
 	action_code, err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
-	fmt.Println(err)
 	if err != nil {
 		h.logger.Errorf("Disable bulk service request failed: %v\n", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

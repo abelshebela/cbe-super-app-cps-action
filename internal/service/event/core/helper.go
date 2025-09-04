@@ -12,7 +12,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	cRand "crypto/rand"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -80,13 +79,6 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
 }
-func BindAction(source any, target any) error {
-	bytes, err := json.Marshal(source)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(bytes, target)
-}
 
 func GenerateEvent(event model.Event) *model.Event {
 	return &model.Event{
@@ -150,7 +142,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {

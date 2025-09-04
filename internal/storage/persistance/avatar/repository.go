@@ -34,6 +34,7 @@ func NewAvatarRepository(client *mongo.Client, dbName string, collection string,
 func (a *AvatarStorage) Create(ctx context.Context, avatar *model.Avatar) error {
 	_, err := a.dal.InsertOne(ctx, *avatar)
 	if err != nil {
+		a.logger.Errorf("Unable to create avatar with error: %s", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -72,7 +73,7 @@ func (a *AvatarStorage) EnableOrDisable(ctx context.Context, id string, enable b
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable}}
+	update := bson.M{"enabled": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -97,7 +98,7 @@ func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar,
 }
 
 func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Avatar, error) {
-	return a.dal.FindAll(ctx, filter, projection)
+	return a.dal.FindAll(ctx, filter, nil)
 }
 
 func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error) {

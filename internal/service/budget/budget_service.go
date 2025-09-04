@@ -20,13 +20,14 @@ import (
 )
 
 type BudgetService struct {
-	colorRepo  storage.ColorRepository
-	iconRepo   storage.IconRepository
-	cpsService service.CPSActionService
-	bucketName string
-	minio      config.MinioClientInterface
-	logger     utils.Logger
-	cfg        *config.VaultConfig
+	colorRepo   storage.ColorRepository
+	iconRepo    storage.IconRepository
+	cpsService  service.CPSActionService
+	bucketName  string
+	minio       config.MinioClientInterface
+	minioPubUrl string
+	logger      utils.Logger
+	cfg         *config.VaultConfig
 }
 
 // Constructor
@@ -36,17 +37,19 @@ func NewBudgetService(
 	cpsService service.CPSActionService,
 	bucketName string,
 	minio config.MinioClientInterface,
+	minioPubUrl string,
 	cfg *config.VaultConfig,
 	logger utils.Logger,
 ) service.BudgetService {
 	return &BudgetService{
-		iconRepo:   iconRepo,
-		colorRepo:  colorRepo,
-		cpsService: cpsService,
-		bucketName: bucketName,
-		minio:      minio,
-		logger:     logger,
-		cfg:        cfg,
+		iconRepo:    iconRepo,
+		colorRepo:   colorRepo,
+		cpsService:  cpsService,
+		bucketName:  bucketName,
+		minio:       minio,
+		minioPubUrl: minioPubUrl,
+		logger:      logger,
+		cfg:         cfg,
 	}
 }
 
@@ -115,7 +118,7 @@ func (b *BudgetService) CreateBudgetIcon(ctx context.Context, fileHeader *multip
 		return nil
 	}
 
-	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.cfg.MinioEndPoint, b.logger)
+	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.minioPubUrl, b.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -155,7 +158,7 @@ func (b *BudgetService) BudgetUpdateIcon(ctx context.Context, id string, fileHea
 		return nil
 	}
 
-	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.cfg.MinioEndPoint, b.logger)
+	iconURL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, fileHeader, "budget-icons", b.minioPubUrl, b.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -233,7 +236,9 @@ func (b *BudgetService) BudgetUpdateColor(ctx context.Context, id string, color 
 
 	exists, err := b.colorRepo.FindByID(ctx, id)
 	if err != nil {
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
 	}
 
 	color.UpdatedAt = time.Now()

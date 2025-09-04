@@ -43,7 +43,7 @@ func NewAccountBlockRepository(client *mongo.Client, dbName string, logger utils
 // Standard CRUD operations for Branch
 
 func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error) {
-	filter := bson.M{"branch_code": branchCode, "is_deleted": false}
+	filter := bson.M{"branch_code": branchCode}
 
 	result, err := a.branchDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -109,16 +109,11 @@ func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, id string, enable bool) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, code string, enabled bool) error {
+	filter := bson.M{"branch_code": code}
+	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
 
-	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable, "updated_at": time.Now()}}
-
-	_, err = a.branchDal.UpdateOne(ctx, filter, update)
+	_, err := a.branchDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error enabling/disabling branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -164,7 +159,7 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	// Always exclude deleted branches
-	filter["is_deleted"] = false
+	// filter["is_deleted"] = false
 
 	data, err := a.branchDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -251,16 +246,11 @@ func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, id string, enable bool) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, code string, enabled bool) error {
+	filter := bson.M{"region_code": code}
+	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
 
-	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable, "updated_at": time.Now()}}
-
-	_, err = a.regionDal.UpdateOne(ctx, filter, update)
+	_, err := a.regionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error enabling/disabling region: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -394,16 +384,11 @@ func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) err
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, code string, enabled bool) error {
+	filter := bson.M{"district_code": code}
+	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
 
-	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"enabled": enable, "updated_at": time.Now()}}
-
-	_, err = a.districtDal.UpdateOne(ctx, filter, update)
+	_, err := a.districtDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error enabling/disabling district: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -539,16 +524,11 @@ func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableCity(ctx context.Context, id string, enable bool) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+func (a *AccountBlockStorage) EnableOrDisableCity(ctx context.Context, code string, enabled bool) error {
+	filter := bson.M{"city_code": code}
+	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
 
-	filter := bson.M{"_id": objID}
-	update := bson.M{"enabled": enable, "updated_at": time.Now()}
-
-	_, err = a.cityDal.UpdateOne(ctx, filter, update)
+	_, err := a.cityDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error enabling/disabling city: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)

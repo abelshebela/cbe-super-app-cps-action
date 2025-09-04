@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -19,15 +20,16 @@ import (
 )
 
 type walletService struct {
-	repo       storage.WalletRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
-	minio      config.MinioClientInterface
-	bucketName string
-	cfg        *config.VaultConfig
+	repo        storage.WalletRepository
+	cpsService  service.CPSActionService
+	logger      utils.Logger
+	minio       config.MinioClientInterface
+	bucketName  string
+	minioPubUrl string
+	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:       repo,
 		cpsService: cps,
@@ -54,7 +56,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioEndPoint, s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -76,19 +78,13 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return errors.New(localization.ErrorWalletNotFound.Code)
 	}
 
-	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, req.Name)
-		if err != nil {
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		if exist != nil {
-			return errors.New(localization.ErrorWalletAlreadyExists.Code)
-		}
+	if prevWallet == nil {
+		return errors.New(localization.ErrorWalletNotFound.Code)
 	}
 
 	var avatarURL string
 	if req.Avatar != nil {
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioEndPoint, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
@@ -97,10 +93,12 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	updatedWallet := model.Wallet{
-		ID:        prevWallet.ID,
-		Name:      req.Name,
-		Code:      req.Code,
-		Avatar:    avatarURL,
+		ID:             prevWallet.ID,
+		Name:           core.NonEmptyString(req.Name, prevWallet.Name),
+		Code:           prevWallet.Code,
+		Avatar:         avatarURL,
+		CreatedAt:      prevWallet.CreatedAt,
+		LastModifiedAt: time.Now(),
 	}
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, updatedWallet, *prevWallet, constants.ActionUpdate); err != nil {
@@ -171,23 +169,25 @@ func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Fil
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	wallet, ok := action.CurrentAction.(*model.Wallet)
-	if !ok || wallet == nil {
+	var wallet *model.Wallet
+
+	err := local_util.BindAction(action.CurrentAction, &wallet)
+	if err != nil {
+		s.logger.Errorf("failed to bind current action to wallet: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
-	var err error
+	id := action.UniqueId
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		err = s.repo.Create(ctx, wallet)
 	case string(constants.RequestUpdateWallet):
-		err = s.repo.Update(ctx, wallet.ID.Hex(), wallet)
+		err = s.repo.Update(ctx, id, wallet)
 	case string(constants.RequestDeleteWallet):
-		err = s.repo.Delete(ctx, wallet.ID.Hex())
+		err = s.repo.Delete(ctx, id)
 	case string(constants.RequestEnableWallet):
-		err = s.repo.EnableOrDisable(ctx, wallet.ID.Hex(), true)
+		err = s.repo.EnableOrDisable(ctx, id, true)
 	case string(constants.RequestDisableWallet):
-		err = s.repo.EnableOrDisable(ctx, wallet.ID.Hex(), false)
+		err = s.repo.EnableOrDisable(ctx, id, false)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}

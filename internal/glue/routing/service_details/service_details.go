@@ -88,7 +88,7 @@ func Init(router chi.Router, serviceHandler serviceHandler.ServiceAdapter, authM
 			},
 			{
 				Method:  http.MethodPatch,
-				Path:    "/service/total_transfer_max/update/{id}",
+				Path:    "/service/total_transfer_max/update",
 				Handler: serviceHandler.UpdateTotalMaxTransferCap,
 				Middlewares: []func(next http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

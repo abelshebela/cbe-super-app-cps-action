@@ -8,7 +8,7 @@ import (
 
 func ValidateDepartmentRequest(r *http.Request, data interface{}) localization.ResponseCode {
 	var department string
-	var portal_cards, permission_groups []string
+	var portal_cards []string
 
 	if department != "" && isInvalidFormat(department) {
 		return localization.ErrorInvalidFormatForDepartmentName
@@ -17,12 +17,6 @@ func ValidateDepartmentRequest(r *http.Request, data interface{}) localization.R
 	for _, portal_card := range portal_cards {
 		if portal_card != "" && isInvalidFormat(portal_card) {
 			return localization.ErrorInvalidFormatForDepartmentPortalCards
-		}
-
-	}
-	for _, permission_group := range permission_groups {
-		if permission_group != "" && isInvalidFormat(permission_group) {
-			return localization.ErrorInvalidFormatForDepartmentPermissionGroups
 		}
 
 	}

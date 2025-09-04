@@ -89,8 +89,9 @@ type AccountAPIPort interface {
 type CPSActionRepository interface {
 	Save(ctx context.Context, cpsAction *model.CPSAction) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
-	FindOne(ctx context.Context, filter model.CPSAction) (*model.CPSAction, error)
-	Update(ctx context.Context, id string, update model.CPSAction) error
+	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
+	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 }
 
@@ -137,7 +138,7 @@ type AccountBlockRepository interface {
 	CreateBranch(ctx context.Context, branch *model.Branch) error
 	UpdateBranch(ctx context.Context, id string, branch *model.Branch) error
 	DeleteBranch(ctx context.Context, id string) error
-	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
+	EnableOrDisableBranch(ctx context.Context, code string, enabled bool) error
 	FindBranchByID(ctx context.Context, id string) (*model.Branch, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 
@@ -145,7 +146,7 @@ type AccountBlockRepository interface {
 	CreateCity(ctx context.Context, city *model.City) error
 	UpdateCity(ctx context.Context, id string, city *model.City) error
 	DeleteCity(ctx context.Context, id string) error
-	EnableOrDisableCity(ctx context.Context, id string, enable bool) error
+	EnableOrDisableCity(ctx context.Context, code string, enabled bool) error
 	FindCityByID(ctx context.Context, id string) (*model.City, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
 
@@ -153,7 +154,7 @@ type AccountBlockRepository interface {
 	CreateRegion(ctx context.Context, region *model.Region) error
 	UpdateRegion(ctx context.Context, id string, region *model.Region) error
 	DeleteRegion(ctx context.Context, id string) error
-	EnableOrDisableRegion(ctx context.Context, id string, enable bool) error
+	EnableOrDisableRegion(ctx context.Context, code string, enabled bool) error
 	FindRegionByID(ctx context.Context, id string) (*model.Region, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
 
@@ -161,7 +162,7 @@ type AccountBlockRepository interface {
 	CreateDistrict(ctx context.Context, district *model.District) error
 	UpdateDistrict(ctx context.Context, id string, district *model.District) error
 	DeleteDistrict(ctx context.Context, id string) error
-	EnableOrDisableDistrict(ctx context.Context, id string, enable bool) error
+	EnableOrDisableDistrict(ctx context.Context, code string, enabled bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
 }
@@ -208,6 +209,7 @@ type DepartmentRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Department, error)
+	FindByName(ctx context.Context, name string) (*model.Department, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
 }
 
@@ -220,6 +222,7 @@ type PortalCardRepository interface {
 type ColorRepository interface {
 	Create(ctx context.Context, color *model.Color) error
 	Update(ctx context.Context, id string, color *model.Color) error
+	Find(ctx context.Context, filter bson.M) (*model.Color, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Color, error)
@@ -343,7 +346,7 @@ type BranchRepository interface {
 
 type MiniAppMerchantRepository interface {
 	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)

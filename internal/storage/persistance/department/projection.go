@@ -17,9 +17,7 @@ func DepartmentMapper(data model.Department) bson.M {
 	if data.PortalCards != nil {
 		result["portal_cards"] = data.PortalCards
 	}
-	if data.PermissionGroups != nil {
-		result["permission_groups"] = data.PermissionGroups
-	}
+
 	result["enabled"] = data.Enabled
 	result["is_deleted"] = data.IsDeleted
 	if !data.CreatedAt.IsZero() {

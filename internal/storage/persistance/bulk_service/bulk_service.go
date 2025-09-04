@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	// "strings"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -45,12 +46,11 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{}
-
+	allowedKeys := []string{"ussd_enabled", "enabled"}
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex // choose your searchable field(s)
+		searchKeys["access_list_name"] = searchRegex
 	}
 
 	// 4. Build filter, skip, limit
@@ -91,63 +91,46 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccess
 	return bulkServices, nil
 }
 func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
+
 	parentKeys := []string{}
 
 	for _, key := range keys {
 		// Try updating parent
 		parentFilter := bson.M{"key": key}
-		parentUpdate := bson.M{"$set": bson.M{"enabled": state}}
+		parentUpdate := bson.M{"enabled": state}
 
 		result, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				// Parent not found → update child
 				childFilter := bson.M{"subAccessList.key": key}
-				childUpdate := bson.M{"$set": bson.M{"subAccessList.$.enabled": state}}
+				childUpdate := bson.M{"subAccessList.$.enabled": state}
 				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
 					b.logger.Errorf("failed to update child: %v", err)
-					return fmt.Errorf("FAILED_TO_UPDATE_CHILD")
+					return fmt.Errorf(localization.ErrorFailToUpdateChild.Code)
 				}
 				continue
 			}
-
 			// Other parent update errors
 			b.logger.Errorf("failed to update parent: %v", err)
-			return fmt.Errorf("FAILED_TO_UPDATE_PARENT")
+			return fmt.Errorf(localization.ErrorFailToUpdateParent.Code)
 		}
 
 		// Parent exists → manually loop over children and update each one
 		for _, sub := range result.SubAccessList {
 			childFilter := bson.M{"subAccessList.key": sub.Key}
-			childUpdate := bson.M{"$set": bson.M{"subAccessList.$.enabled": state}}
+			childUpdate := bson.M{"subAccessList.$.enabled": state}
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {
 				b.logger.Errorf("failed to update child %s: %v", sub.Key, err)
-				return fmt.Errorf("FAILED_TO_UPDATE_CHILD")
+				return fmt.Errorf(localization.ErrorFailToUpdateChild.Code)
 			}
 		}
 
 		// Collect parent keys for final consistency check
 		parentKeys = append(parentKeys, key)
-	}
-
-	// Final step: enable parent only if all children are enabled
-	for _, parentKey := range parentKeys {
-		filter := bson.M{
-			"key": parentKey,
-			"subAccessList": bson.M{
-				"$not": bson.M{"$elemMatch": bson.M{"enabled": false}},
-			},
-		}
-		update := bson.M{"$set": bson.M{"enabled": true}}
-
-		_, err := b.mongoDalbulkService.UpdateOne(ctx, filter, update)
-		if err != nil && err != mongo.ErrNoDocuments {
-			b.logger.Errorf("failed to enable parent %s: %v", parentKey, err)
-			return fmt.Errorf("FAILED_TO_UPDATE_PARENT")
-		}
 	}
 	return nil
 }

@@ -41,7 +41,7 @@ func GenerateCPSAction(ctx context.Context, codeType string, enabled bool, codes
 
 	uniqueID := bson.NewObjectID().Hex()
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, maker, nil, actions, string(requestActionType), string(actionType) )
+	cpsAction := lib.CpsModelBuilder(uniqueID, maker, nil, actions, string(requestActionType), string(actionType))
 
 	return cpsAction
 }

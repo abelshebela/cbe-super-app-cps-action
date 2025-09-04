@@ -3,6 +3,7 @@ package initiator
 import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
+	amountBasedAuthInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
@@ -27,10 +28,12 @@ import (
 
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
+	avatarHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/avatar"
 
 	// Handler section
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
+	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget"
@@ -50,12 +53,12 @@ import (
 	permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
 
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
+	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
+	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
-
-	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -78,9 +81,10 @@ type Handler struct {
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler  service_details.ServiceAdapter
+	AmountBasedAuthHandler amountBasedAuthInbound.AmountBasedAuthAdapter
 
-	DepartmentHandler department.DepartmentHandler
-
+	DepartmentHandler  department.DepartmentHandler
+	AvatarHandler      avatarHandlerInterface.AvatarInbound
 	FaydaHandler       FaydaInbound.FaydaAccount
 	bulkServiceHandler bulk_service_inbound.BulkServiceHandler
 	customerHandler    customerInbound.CustomerDetail
@@ -101,6 +105,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		BudgetHandler:       budgetHandler.InitBudgetAdapter(serviceLayer.Budget, logger),
 		PortalCardHander:    portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
 		AdvertHandler:       advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		AvatarHandler:       avatarHandlerImpl.InitAvatarAdapter(serviceLayer.Avatar, logger),
 		WalletHandler:       walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		PasswordHandler:     passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
@@ -114,6 +119,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
 		Permission:         permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
 		CPSUser:            cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
+
+		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 

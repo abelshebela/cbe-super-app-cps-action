@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
+
 func Init(
 	router chi.Router,
 	handler account_block.AccountBlockAdapter,
@@ -72,7 +73,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/cities",
+				Path:    "/city",
 				Handler: handler.GetAllCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -81,7 +82,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/cities/{city_code}",
+				Path:    "/city/{city_code}",
 				Handler: handler.GetCityByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -144,7 +145,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/cities/enable",
+				Path:    "/city/enable",
 				Handler: handler.EnableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -153,7 +154,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/cities/disable",
+				Path:    "/city/disable",
 				Handler: handler.DisableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
