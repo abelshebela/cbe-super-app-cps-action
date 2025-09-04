@@ -85,39 +85,43 @@ func (c *ColorStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 func (c *ColorStorage) FindByID(ctx context.Context, id string) (*model.Color, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := c.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }
 
 func (s *ColorStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Color], error) {
-	filter := bson.M{"is_deleted": false}
-	searchKeys := bson.M{}
+    searchKeys := bson.M{}
+    allowedKeys := []string{"color"} 
 
-	allowedKeys := []string{}
+    fbFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
-	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+    fbFilter["is_deleted"] = false
 
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
+    data, err := s.dal.FindAllWithPagination(ctx, fbFilter, bson.M{}, skip, limit)
+    if err != nil {
+        return nil, errors.New(localization.ErrorUnexpectedError.Message)
+    }
 
-	total, err := s.dal.TotalCount(ctx, filter)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
+    total, err := s.dal.TotalCount(ctx, fbFilter)
+    if err != nil {
+        return nil, errors.New(localization.ErrorUnexpectedError.Message)
+    }
 
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+    meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.Color]{
-		Data: data,
-		Meta: meta,
-	}, nil
+    return &types.PaginatedResponse[[]*model.Color]{
+        Data: data,
+        Meta: meta,
+    }, nil
 }
+

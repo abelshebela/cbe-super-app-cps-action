@@ -62,15 +62,11 @@ type ServiceLayer struct {
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
 
-
 	Permission     service.PermissionService
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
 
-
-	ProductCode       service.ProductCodeService
-
-
+	ProductCode service.ProductCodeService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -78,7 +74,7 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
-	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
+	productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, "events", cfg, logger) // Will be updated after CPS action service is created
@@ -104,6 +100,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		logger,
 	)
 
+	budgetService := budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, nil, "budget", minioClient, cfg, logger) // Will be updated after CPS action service is created
 	cpsUserService := cpsusersvc.NewCPSUserService(
 		persistence.CpsUserPersistence,
 		persistence.AccessListPersistence, // temporary it will replaced by department repo
@@ -134,7 +131,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CustomerContainer:        customerSerice,
 		PermissionContainer:      permissionService,
 		CPSUserContainer:         cpsUserService,
-		BudgetContainer:          nil, // Will be updated after CPS action service is created
+		BudgetContainer:          budgetService, // Will be updated after CPS action service is created
 		AccountContainer:         accountValidation,
 		AmountBasedAuthContainer: nil, // Not implemented yet
 		AvatarDomian:             nil, // Not implemented yet
@@ -208,6 +205,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, advertBucketName, cfg, logger)
 
+	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
+
+	serviceContainer.BudgetContainer = budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, cfg, logger)
+
 	// Update miniAppMerchantService with the CPS action service
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
@@ -236,10 +237,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
 
-		ServiceDetails:    serviceDetails,
+		ServiceDetails: serviceDetails,
 
-
-		ProductCode:       productService,
-
+		ProductCode: productService,
 	}
 }

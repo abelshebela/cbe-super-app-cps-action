@@ -16,6 +16,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type BudgetService struct {
@@ -50,36 +51,55 @@ func NewBudgetService(
 }
 
 func (b *BudgetService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	color, ok := action.CurrentAction.(*model.Color)
-	if !ok || color == nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
-	}
-
-	icon, ok := action.CurrentAction.(*model.Icon)
-	if !ok || icon == nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
-	}
-
 	var err error
 	switch action.RequestAction {
 	case string(constants.RequestCreateBudgetColor):
+		color, marshal_err := local_util.JsonUnmarshal[model.Color](action.CurrentAction)
+		if marshal_err != nil || color == nil {
+			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		}
 		err = b.colorRepo.Create(ctx, color)
 	case string(constants.RequestUpdateBudgetColor):
-		err = b.colorRepo.Update(ctx, color.ID.Hex(), color)
+		currentActionBytes, errr := bson.MarshalExtJSON(action.CurrentAction, false, false)
+		if errr != nil {
+			return nil, errr
+		}
+
+		var color model.Color
+		if err := bson.UnmarshalExtJSON(currentActionBytes, false, &color); err != nil {
+			return nil, err
+		}
+
+		err = b.colorRepo.Update(ctx, color.ID.Hex(), &color)
+
 	case string(constants.RequestCreateBudgetIcon):
+		icon, marshal_err := local_util.JsonUnmarshal[model.Icon](action.CurrentAction)
+		if marshal_err != nil || icon == nil {
+			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		}
 		err = b.iconRepo.Create(ctx, icon)
+
 	case string(constants.RequestUpdateBudgetIcon):
-		err = b.iconRepo.Update(ctx, icon.ID.Hex(), icon)
+		currentActionBytes, errr := bson.MarshalExtJSON(action.CurrentAction, false, false)
+		if errr != nil {
+			return nil, errr
+		}
+
+		var icon model.Icon
+		if err := bson.UnmarshalExtJSON(currentActionBytes, false, &icon); err != nil {
+			return nil, err
+		}
+		err = b.iconRepo.Update(ctx, icon.ID.Hex(), &icon)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	if err != nil {
+
 		return nil, err
 	}
 
-	action.CurrentAction = color
-	action.CurrentAction = icon
+	action.ActionStatus = (string)(constants.Approved)
 	return action, nil
 }
 
@@ -140,7 +160,13 @@ func (b *BudgetService) BudgetUpdateIcon(ctx context.Context, id string, fileHea
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	budgetObjID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
 	cpsAction.CurrentAction = model.Icon{
+		ID:        budgetObjID,
 		Icon:      iconURL,
 		CreatedAt: time.Now(),
 	}
@@ -161,12 +187,18 @@ func (b *BudgetService) BudgetCreateColor(ctx context.Context, color *model.Colo
 		b.logger.Errorf("color cannot be empty")
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
+	filter := types.Filter{
+		Filters: map[string]interface{}{
+			"color": color.Color,
+		},
+	}
 
-	exists, err := b.colorRepo.FindByID(ctx, color.ID.Hex())
-	if err != nil {
+	exists, err := b.colorRepo.FindAllWithPagination(ctx, &filter)
+	if err != nil && err.Error() != localization.ErrorFileNotFound.Code {
 		return err
 	}
-	if exists != nil {
+
+	if len(exists.Data) != 0 {
 		return errors.New(localization.ErrorDuplicateColorExists.Code)
 	}
 
@@ -199,15 +231,13 @@ func (b *BudgetService) BudgetUpdateColor(ctx context.Context, id string, color 
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 
-	exists, err := b.colorRepo.FindByID(ctx, color.Color)
+	exists, err := b.colorRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
-	if exists != nil {
-		return errors.New(localization.ErrorDuplicateColorExists.Code)
-	}
 
 	color.UpdatedAt = time.Now()
+	color.ID = exists.ID
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, color, string(constants.RequestUpdateBudgetColor), constants.UPDATE)
 
