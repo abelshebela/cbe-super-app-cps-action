@@ -12,7 +12,7 @@ import (
 func PermissionGroupModel(req permission.CreatePermissionGroupRequest) model.PermissionGroup {
 	return model.PermissionGroup{
 		GroupName:          strings.ToUpper(req.GroupName),
-		Role:               req.Role,
+		Role:               strings.ToUpper(req.Role),
 		PermissionCategory: req.PermissionCategoryLists,
 		Realm:              "bank",
 		Enabled:            true,
@@ -24,7 +24,7 @@ func PermissionGroupModel(req permission.CreatePermissionGroupRequest) model.Per
 func PermissionGroupUpdateModel(req permission.UpdatePermissionGroupRequest) model.PermissionGroup {
 	return model.PermissionGroup{
 		GroupName:          strings.ToUpper(req.NewGroupName),
-		Role:               req.Role,
+		Role:               strings.ToUpper(req.Role),
 		PermissionCategory: req.PermissionCategoryLists,
 		Realm:              "bank",
 		Enabled:            true,
