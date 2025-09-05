@@ -32,9 +32,6 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 
 	file, fileHeader, err := r.FormFile(key)
 	if err != nil {
-		if err == http.ErrMissingFile || strings.Contains(err.Error(), "no such file") {
-			return nil, nil, errors.New(localization.ErrorMissingFile.Code)
-		}
 		return nil, nil, err
 	}
 

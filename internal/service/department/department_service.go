@@ -148,7 +148,7 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 		return fmt.Errorf("%s", localization.ErrorDepartmentAlreadyEnabled.Code)
 	}
 	if !department.Enabled && !enableDisable {
-		return fmt.Errorf("%s", localization.ErrorDepartmentAlreadyEnabled.Code)
+		return fmt.Errorf("%s", localization.ErrorDepartmentAlreadyDisabled.Code)
 	}
 
 	new_department := *department

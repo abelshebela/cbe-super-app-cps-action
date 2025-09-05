@@ -115,19 +115,32 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 	return data, nil
 }
 
-func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) error {
+func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
 	r.logger.Infof("Updating CPSAction with ActionCode: %s, Update: %+v", actionCode, update)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 
-	_, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
+	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 
 		r.logger.Errorf("Error updating CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
-		return errors.New(code)
+		return nil, errors.New(code)
 	}
 	r.logger.Infof("Successfully updated CPSAction with ActionCode: %s", actionCode)
+	return &data, nil
+}
+
+func (r *CPSActionStorage) UpdateCustome(ctx context.Context, filter, update bson.M) error {
+	r.logger.Infof("Updating CPSAction with ActionCode: %s, Update: %+v", filter, update)
+
+	_, err := r.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("Error updating CPSAction: %v", err)
+		code, _ := local_utils.HandleMongoError(err)
+		return errors.New(code)
+	}
+	r.logger.Infof("Successfully updated CPSAction with ")
 	return nil
 }
 

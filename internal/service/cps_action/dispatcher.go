@@ -2,7 +2,6 @@ package cpsaction
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -25,7 +24,9 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
-	fmt.Println("/////////////////////////on the cps authorize")
+
+	fmt.Printf("RequestAction: %v", action)
+
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
 		return d.app.BankContainer.Authorize(ctx, cpsAction)
@@ -74,6 +75,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Budget"):
 		return d.app.BudgetContainer.Authorize(ctx, cpsAction)
+
+	// a
+
 	case IsActionInGroup(RequestAction(action), "BulkService"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 
@@ -84,9 +88,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ProductCode"):
-		if d.app.ProductCodeService == nil {
-			return nil, errors.New("ProductCode service is not implemented")
-		}
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "BPSUser"):
@@ -102,7 +103,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.DonationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Department"):
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action),"CPSUser"):
+	case IsActionInGroup(RequestAction(action), "CPSUser"):
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")

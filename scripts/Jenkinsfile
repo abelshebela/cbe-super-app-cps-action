@@ -1,0 +1,211 @@
+pipeline {
+    agent any
+
+    environment {
+        SERVICE_NAME = "member-auth"
+        FILE_PATH = "scripts/docker-compose.yml"
+        DOCKER_FILE_PATH = "scripts/Dockerfile"
+        ENV_FILE_PATH = "./env"
+        HARBOR_PRODJECT = "cbe-supperapp"
+        REGISTRY_ADDRESS = credentials("REGISTRY_ADDRESS")
+        REPO_ADDRESS = "git@github.com:CBE-Super-App/cbe-super-app-cps-action.git"
+        PROJECT_ROOT_PATH = "/data/cbe-super-app/"
+        SONAR_HOST_URL=credentials("SONAR_HOST_URL")
+        SONAR_TOKEN=credentials("SONAR_TOKEN")
+        SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
+        SHARED_GITHLAB_USER = credentials("SHARED_GITLAB_USER")
+        SHARED_GITLAB_PAT = credentials("SHARED_GITLAB_PAT")
+    }
+
+    stages {
+        // Initializing Env Variales
+        stage('Initialize Environment') {
+            steps {
+                script {
+                    // Set branch name fallback if not set
+                    if (!env.BRANCH_NAME) {
+                        if (env.GIT_BRANCH) {
+                            env.BRANCH_NAME = env.GIT_BRANCH.tokenize('/').last()
+                        } else {
+                            error "BRANCH_NAME and GIT_BRANCH are not set!"
+                        }
+                    }
+                    // Determine environment based on branch
+                    if (env.BRANCH_NAME == 'staging') {
+                        env.ENV_TYPE = 'STG'
+                        env.IMAGE_NAME = 'cbe-supperapp-member-auth-stg'
+                        env.SSH_KEY = 'STG_SSH_KEY'
+                    } 
+                    else if (env.BRANCH_NAME == 'prod') {
+                        env.ENV_TYPE = 'PROD'
+                        env.IMAGE_NAME = 'cbe-supperapp-member-auth-prod'
+                        env.SSH_KEY = 'PROD_SSH_KEY'
+                    }
+                    else if (env.BRANCH_NAME == 'qa') {
+                        env.ENV_TYPE = 'QA'
+                        env.IMAGE_NAME = 'cbe-supperapp-member-auth-qa'
+                        env.SSH_KEY = 'QA_SSH_KEY'
+                    }
+                    else if (env.BRANCH_NAME == 'dev') {
+                        env.ENV_TYPE = 'DEV'
+                        env.IMAGE_NAME = 'cbe-supperapp-member-auth-dev'
+                        env.SSH_KEY = 'DEV_SSH_KEY'
+                    }
+                    else {
+                        error "Unsupported branch: ${env.BRANCH_NAME}"
+                    }
+                    
+                    // Load dynamic credentials using withCredentials
+                    def creds = [
+                        string(credentialsId: "REGISTRY_USER", variable: 'REGISTRY_USER'),
+                        string(credentialsId: "REGISTRY_PASSWORD", variable: 'REGISTRY_PASSWORD'),
+                        string(credentialsId: "${ENV_TYPE}_VAULT_ADDR", variable: 'VAULT_ADDR'),
+                        string(credentialsId: "${ENV_TYPE}_VAULT_PATH", variable: 'VAULT_PATH'),
+                        string(credentialsId: "${ENV_TYPE}_VAULT_TOKEN", variable: 'VAULT_TOKEN'),
+                        string(credentialsId: "${ENV_TYPE}_SERVER_IP", variable: 'SERVER_IP'),
+                        string(credentialsId: "${ENV_TYPE}_SERVER_USER", variable: 'SERVER_USER'),
+                        // usernamePassword(credentialsId: "${ENV_TYPE}_GITHUB_CRED", usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD'),
+
+                    ]
+                    withCredentials(creds) {
+                        env.REGISTRY_USER = env.REGISTRY_USER
+                        env.REGISTRY_PASSWORD = env.REGISTRY_PASSWORD
+                        env.VAULT_ADDR = env.VAULT_ADDR
+                        env.VAULT_PATH = env.VAULT_PATH
+                        env.VAULT_ADDR = env.VAULT_ADDR
+                        env.VAULT_TOKEN = env.VAULT_TOKEN
+                        env.SERVER_IP = env.SERVER_IP
+                        env.SERVER_USER = env.SERVER_USER
+                        echo "Building for environment: ${env.ENV_TYPE}"
+                    }
+                }
+            }
+        }
+        // Stage to clone the Git repository
+        stage('Cloning Git') {
+            steps {
+                checkout([
+                    $class: 'GitSCM', 
+                    branches: [[name: "*/${env.BRANCH_NAME}"]], 
+                    doGenerateSubmoduleConfigurations: false, 
+                    extensions: [], 
+                    submoduleCfg: [], 
+                    userRemoteConfigs: [[
+                        credentialsId:  'GITHUB_CRED', 
+                        url: env.REPO_ADDRESS
+                    ]]
+                ])  
+            }
+        }
+        // sonarqube stage
+        stage('Build & SonarQube Analysis') {
+            steps {
+                echo 'Starting build and SonarQube analysis...'
+                script {
+                    try {
+                        withSonarQubeEnv('CSA-sonar') {
+                            sh '''
+                            ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                            -Dsonar.projectKey=cbesuperapp-member-auth \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.token=${SONAR_TOKEN}
+                            '''
+                        }
+                        echo 'SonarQube analysis completed successfully.'
+                    } catch (Exception e) {
+                        echo "Error during build or SonarQube analysis: ${e.message}"
+                        error 'Build or SonarQube analysis failed.'
+                    }
+                }
+            }
+        }
+        // Stage to set the commit SHA as the image tag
+        stage('Set Commit SHA') {
+            steps {
+                script {
+                    def sha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim() 
+                    env.IMAGE_TAG = sha
+                    echo "Image tag set to ${env.IMAGE_TAG}"
+                }
+            }
+        }
+        // Stage to build the Container image
+        stage('Building Image and Define environmental variables') {
+            steps {
+                script {
+                    // Create .env file
+                    writeFile file: '.env', text: """
+                        IMAGE_TAG=${env.IMAGE_TAG}
+                        IMAGE_NAME=${env.IMAGE_NAME}
+                        VAULT_ADDR=${env.VAULT_ADDR}
+                        VAULT_TOKEN=${env.VAULT_TOKEN}
+                        VAULT_PATH=${env.VAULT_PATH}
+                    """
+                }
+
+
+                script {
+                    docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}", "-f ${env.DOCKER_FILE_PATH} --build-arg  GITLAB_USER=${env.SHARED_GITLAB_USER} --build-arg  GITLAB_PAT=${env.SHARED_GITLAB_PAT} .")
+                }
+            }
+        }
+
+        // Stage to push the image to the registry
+        stage('Push Image to registry') {
+            steps {
+                script {
+                    // Login to Docker registry
+                    sh """
+                        echo "Logging in to Docker registry at ${env.REGISTRY_ADDRESS}"
+                        docker login ${env.REGISTRY_ADDRESS} -u ${env.REGISTRY_USER} -p ${env.REGISTRY_PASSWORD}
+                        docker image tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                        docker image tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:latest
+                        docker push ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                        docker push  ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:latest
+                        echo "Image pushed successfully to ${env.REGISTRY_ADDRESS}"
+                    """
+                }
+            }
+        }
+
+        // Stage build environment variables file
+        stage('Build Environment Variables File') {
+            steps {
+                script {
+                    // Create .env file
+                    writeFile file: 'scripts/.env', text: """
+                        IMAGE_TAG=${env.IMAGE_TAG}
+                        IMAGE_NAME=${env.IMAGE_NAME}
+                        VAULT_ADDR=${env.VAULT_ADDR}
+                        VAULT_TOKEN=${env.VAULT_TOKEN}
+                        VAULT_PATH=${env.VAULT_PATH}
+                    """
+                }
+            }
+        }
+
+        // Stage to deploy the application
+        stage('Deploy Application') {
+            steps {
+                script {
+                    sshagent([env.SSH_KEY]) { 
+                        sh """
+                            echo "Deploying application to ${env.ENV_TYPE} server"
+                            ssh -o StrictHostKeyChecking=no  ${env.SERVER_USER}@${env.SERVER_IP} "mkdir -p ${PROJECT_ROOT_PATH}${env.SERVICE_NAME}"
+                            scp -o StrictHostKeyChecking=no  ${env.FILE_PATH} ${env.SERVER_USER}@${env.SERVER_IP}:${PROJECT_ROOT_PATH}${env.SERVICE_NAME}/
+                            scp -o StrictHostKeyChecking=no  .env ${env.SERVER_USER}@${env.SERVER_IP}:/data/cbe-super-app/${env.SERVICE_NAME}/
+                            ssh -o StrictHostKeyChecking=no  ${env.SERVER_USER}@${env.SERVER_IP} << EOF
+                            cd ${PROJECT_ROOT_PATH}${env.SERVICE_NAME}
+                            docker compose down
+                            docker compose up -d
+                            EOF
+                            echo "Application deployed successfully to ${env.ENV_TYPE} server"
+                        """
+                    }
+                }
+            }
+        }
+        
+    }
+}

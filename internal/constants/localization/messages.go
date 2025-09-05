@@ -250,15 +250,15 @@ const (
 	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
+
 	MsgUpdateMiniAppRequestCreatedSuccessfully    = "Update Mini App request created successfully"
 	MsgMiniAppDeletedRequestCreatedSuccessfully   = "Mini App deleted request created successfully"
 	MsgMiniAppDisableRequestSubmittedSuccessfully = "Mini App disable request submitted successfully"
 	MsgMiniAppEnableRequestSubmittedSuccessfully  = "Mini App enable request submitted successfully"
 	MsgCreateMiniAppRequestCreatedSuccessfully    = "Mini App create request sent successfully"
-
-	MsgMiniAppsSuccessfullyRetrieved      = "Mini Apps successfully retrieved"
-	MsgMiniAppFetchedByIDSuccessfully     = "Mini App fetched by ID successfully"
-	MsgMiniAppActionCompletedSuccessfully = "Mini App action completed successfully"
+	MsgMiniAppsSuccessfullyRetrieved              = "Mini Apps successfully retrieved"
+	MsgMiniAppFetchedByIDSuccessfully             = "Mini App fetched by ID successfully"
+	MsgMiniAppActionCompletedSuccessfully         = "Mini App action completed successfully"
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
@@ -666,13 +666,13 @@ const (
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantCheckPendingFailed     = "Failed to check pending request"
 	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check permission group existence"
-	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch mini app merchant"
+	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch permission categories"
 	MsgMiniAppMerchantUnexpectedDBError      = "Unexpected database error occurred"
 	MsgMiniAppMerchantMarshalFailed          = "Failed to marshal current action"
 	MsgMiniAppMerchantUnmarshalFailed        = "Failed to unmarshal current action"
 	MsgMiniAppMerchantCreateFromActionFailed = "Failed to create permission group from action"
 	MsgMiniAppMerchantUnmarshalActionFailed  = "Failed to unmarshal action data"
-	MsgMiniAppMerchantUpdateFailed           = "Failed to update miniapp merchent failed"
+	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages
@@ -797,6 +797,7 @@ const (
 	MsgDuplicateColorExists = "Duplicate color exists"
 
 	MsgInvalidRequestBody      = "Invalid request body"
+	MsgErrorBulkDisabled       = "Error Disabled password rule"
 	MsgInvalidPaginationParams = "Invalid pagination parameters"
 
 	MsgBranchSuccessfullyRetrieved   = "Branch retrieved successfully"
@@ -863,5 +864,9 @@ const (
 
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
+
 	MsgBucketNotFOund= "bucket not found"
+
+	MsgNoUpdateDetected = "No update detected"
+
 )

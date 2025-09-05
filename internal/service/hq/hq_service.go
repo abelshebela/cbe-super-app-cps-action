@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/hq/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -147,19 +148,11 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 
 func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	requestedAction := action.RequestAction
-	s.logger.Infof("action.CurrentAction action: %v", action.CurrentAction)
 
-	if action.CurrentAction == nil {
-		s.logger.Errorf("CurrentAction is nil for action_code: %s", action.ActionCode)
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
-	}
-	hq, err := core.ConvertToHQ(action.CurrentAction)
+	hq, err := local_util.JsonUnmarshal[model.HQ](action.CurrentAction)
 	if err != nil {
-		s.logger.Errorf("Failed to parse CurrentAction to HQ: %v", err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
-	s.logger.Infof("Authorizing HQ action", "action_code", action.ActionCode, "request", requestedAction)
 
 	switch requestedAction {
 	case string(constants.RequestUpdateHQBlockTime):

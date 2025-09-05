@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -36,7 +37,6 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
 		return
 	}
-
 	// First, retrieve the existing CPS action to get ALL the data
 	existingAction, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
 	if err != nil {
@@ -46,8 +46,10 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Map to approval action using helper
 	approvalAction := core.MapCPSActionToApproval(existingAction, &userData)
-
+	fmt.Println("_____________________________________________________________________________")
+	fmt.Println("approvedAction:%v", *approvalAction)
 	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), approvalAction); err != nil {
+		fmt.Println("errorsss : %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

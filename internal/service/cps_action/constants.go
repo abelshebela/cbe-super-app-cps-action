@@ -168,11 +168,11 @@ const (
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
 
-	RequestCreateMiniApp  RequestAction = "CREATE_MiniApp"
-	RequestUpdateMiniApp  RequestAction = "UPDATE_MiniApp"
-	RequestDeleteMiniApp  RequestAction = "DELETE_MiniApp"
-	RequestEnableMiniApp  RequestAction = "ENABLE_MiniApp"
-	RequestDisableMiniApp RequestAction = "DISABLE_MiniApp"
+	RequestCreateMiniApp  RequestAction = "CREATE_MINIAPP"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MINIAPP"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MINIAPP"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MINIAPP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
 
 	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
 	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
@@ -279,6 +279,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateEventCategory:    {},
 	RequestUpdateEventCategory:    {},
 	RequestDisableEvent:           {},
+	RequestCreateMiniAppMerchant:  {},
+	RequestUpdateMiniAppMerchant:  {},
 	RequestUpdateBlockTime:        {},
 	RequestDisableFaydaAccount:    {},
 	RequestEnableFaydaAccount:     {},
@@ -287,8 +289,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableAvatar:          {},
 	RequestEnableAvatar:           {},
 	RequestUpdateAvatar:           {},
-	RequestCreateMiniAppMerchant:  {},
-	RequestUpdateMiniAppMerchant:  {},
 	RequestEnableMiniAppMerchant:  {},
 	RequestDisableMiniAppMerchant: {},
 	RequestDeleteMiniAppMerchant:  {},

@@ -108,7 +108,6 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppEnableRequestSubmitted,
 	SuccessMiniAppMerchantCreateRequestCreated,
 	SuccessUpdateMiniAppRequestCreated,
-	SuccessCreateMiniAppRequestCreated,
 	SuccessMiniAppDeletedRequestCreated,
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
@@ -248,6 +247,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletUpdateEmptyPayload,
 
 	ErrorInvalidRequestBody,
+	ErrorInvalidRequest,
+	ErrorBulkServiceAlreadyDisabled,
 	ErrorInvalidPaginationParams,
 	ErrorInvalidDistrict,
 	ErrorInvalidRegion,
@@ -268,6 +269,10 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorInvalidBulkServiceKey,
+	ErrorInvalidRequiredAction,
+	ErrorFailToUpdateParent,
+	ErrorFailToUpdateChild,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -289,16 +294,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidHQRequest,
 	ErrorCPSActionFailed,
 	ErrorFailedToParseJson,
-
-	// Auth tier related error codes
-	ErrorAuthTierAlreadyExists,
-	ErrorInvalidMethod,
-	ErrorInvalidAmounts,
-
-	// Auth tier related error codes
-	ErrorAuthTierAlreadyExists,
-	ErrorInvalidMethod,
-	ErrorInvalidAmounts,
 
 	//miniapp related errors
 	ErrorMiniAppNotFound,
@@ -328,11 +323,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
-	// Auth tier related error codes
-	ErrorAuthTierAlreadyExists,
-	ErrorInvalidMethod,
-	ErrorInvalidAmounts,
-
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -347,6 +337,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceEnableRequestSuccess,
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
+	ErrorBulkServiceAlreadyEnabled,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -362,6 +353,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBranchAlreadyEnabled,
 	ErrorSingleTransferCanNotBeGreaterThanCap,
 	ErrorMinAmountCanNotBeGreaterThanTotal,
+	ErrorNoChangesDetected,
 }
 
 // Success Response Codes
@@ -1844,12 +1836,6 @@ var (
 		Code:       "SUCCESS_UPDATE_MINI_APP_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgUpdateMiniAppRequestCreatedSuccessfully,
-		Type:       "success",
-	}
-	SuccessCreateMiniAppRequestCreated = ResponseCode{
-		Code:       "SUCCESS_CREATE_MINI_APP_REQUEST_CREATED",
-		StatusCode: StatusCreated,
-		Message:    MsgCreateMiniAppRequestCreatedSuccessfully,
 		Type:       "success",
 	}
 
@@ -3372,18 +3358,6 @@ var (
 		Message:    "MiniApp merchant not found",
 		Type:       "error",
 	}
-	ErrorMiniAppMerchantAlredyEnabled = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_ENABLED",
-		StatusCode: StatusFound,
-		Message:    "MiniApp merchant already enabled",
-		Type:       "error",
-	}
-	ErrorMiniAppMerchantAlredyDisabled = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_DISABLED",
-		StatusCode: StatusFound,
-		Message:    "MiniApp merchant already disabled",
-		Type:       "error",
-	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",
@@ -4337,6 +4311,53 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from total cap",
+		Type:       "error",
+	}
+
+	ErrorBulkServiceAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Bulk service is already enabled for the given key.",
+		Type:       "error",
+	}
+
+	ErrorBulkServiceAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Bulk service is already disabled for the given key.",
+		Type:       "error",
+	}
+
+	ErrorInvalidBulkServiceKey = ResponseCode{
+		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
+		StatusCode: StatusBadRequest,
+		Message:    "One or more provided bulk service keys are invalid.",
+		Type:       "error",
+	}
+	ErrorInvalidRequiredAction = ResponseCode{
+		Code:       "ERROR_INVALID_REQUIRED_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    "The required action is invalid or missing.",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateChild = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_CHILD",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update child record.",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateParent = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_PARENT",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update parent record.",
+		Type:       "error",
+	}
+	ErrorNoChangesDetected = ResponseCode{
+		Code:       "ERROR_NO_CHANGES_DETECTED",
+		StatusCode: StatusBadRequest,
+		Message:    "no changes detected to update",
 		Type:       "error",
 	}
 )

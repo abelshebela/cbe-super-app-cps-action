@@ -53,20 +53,20 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		a.logger.Errorf("event ID is required for update")
-		localization.SendErrorResponse(w, localization.ErrorEventIDRequired, nil, nil)
+		localization.SendBadRequestResponse(w, localization.ErrorEventIDRequired.Message)
 		return
 	}
 
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, false)
 	if err != nil {
 		a.logger.Errorf("failed to parse event update request: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
 		a.logger.Warnf("no data provided for event update, event ID: %s", id)
-		localization.SendErrorResponse(w, localization.ErrorUpdateEventEmptyPayload, nil, nil)
+		localization.SendBadRequestResponse(w, localization.ErrorUpdateEventEmptyPayload.Message)
 		return
 	}
 

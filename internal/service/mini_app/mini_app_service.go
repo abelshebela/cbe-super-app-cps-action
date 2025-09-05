@@ -1,7 +1,6 @@
 package miniapp
 
 import (
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -18,6 +17,7 @@ import (
 	miniappcore "cbe-super-app-cps-action/internal/service/mini_app/core"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/pkgs/keygen"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -255,86 +255,55 @@ func (s *miniAppService) ListMiniApp(ctx context.Context, filter types.Filter) (
 }
 
 func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Authorize called. CurrentAction (raw): %+v", cpsAction.CurrentAction)
-	s.logger.Infof("RequestAction: %s, UniqueId: %s", cpsAction.RequestAction, cpsAction.UniqueId)
+	s.logger.Infof("Authorize called, action: %s", cpsAction.RequestAction)
 
-	var miniApp *model.MiniApp
-
-	err := local_util.BindAction(cpsAction.CurrentAction, &miniApp)
+	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
-		s.logger.Errorf("Failed to bind CurrentAction to MiniApp: %+v, error: %v", cpsAction.CurrentAction, err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	s.logger.Infof("MiniApp after marshaling: %+v", miniApp)
-
-	id := cpsAction.UniqueId
-
-	// Trace repository operations with more granular logs
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
-		s.logger.Infof("Processing CreateMiniApp for MiniApp: %s", miniApp.AppName)
-		miniApp.ID = bson.NewObjectID()
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			if repoErr := s.repo.Create(ctx, miniApp); repoErr != nil {
-				s.logger.Errorf("Create MiniApp failed: %v", repoErr)
-				return repoErr
+			if err := s.repo.Create(ctx, miniApp); err != nil {
+				return err
 			}
-			if merchantErr := s.merchantService.AddMiniApp(ctx, miniApp.MerchantID, model.MiniApps{
-				ID:        miniApp.ID.Hex(),
+			return s.merchantService.AddMiniApp(ctx, miniApp.MerchantID, model.MiniApps{
+				ID:        cpsAction.UniqueId,
 				Enabled:   miniApp.Enabled,
 				IsDeleted: miniApp.IsDeleted,
-			}); merchantErr != nil {
-				s.logger.Errorf("AddMiniApp to merchant failed: %v", merchantErr)
-				return merchantErr
-			}
-			return nil
+			})
 		})
 
 	case string(constants.RequestUpdateMiniApp):
-		s.logger.Infof("Processing UpdateMiniApp for ID: %s", id)
-		err = s.repo.Update(ctx, id, miniApp)
+		err = s.repo.Update(ctx, cpsAction.UniqueId, miniApp)
 
 	case string(constants.RequestDeleteMiniApp):
-		s.logger.Infof("Processing DeleteMiniApp for ID: %s", id)
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			if repoErr := s.repo.Delete(ctx, id); repoErr != nil {
-				s.logger.Errorf("Delete MiniApp repo failed: %v", repoErr)
-				return repoErr
+			if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
+				s.logger.Errorf("Failed DeleteMiniAppAction repo: %v", err)
+				return err
 			}
-			if merchantErr := s.merchantService.SoftDeleteMiniApp(ctx, miniApp.MerchantID, id); merchantErr != nil {
-				s.logger.Errorf("SoftDeleteMiniApp in merchant service failed: %v", merchantErr)
-				return merchantErr
-			}
-			return nil
+			return s.merchantService.SoftDeleteMiniApp(ctx, miniApp.MerchantID, cpsAction.UniqueId)
 		})
 
 	case string(constants.RequestEnableMiniApp):
-		s.logger.Infof("Processing EnableMiniApp for ID: %s", miniApp.ID.Hex())
+
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			if repoErr := s.repo.EnableOrDisable(ctx, id, true); repoErr != nil {
-				s.logger.Errorf("EnableOrDisable MiniApp repo failed: %v", repoErr)
-				return repoErr
+			s.logger.Debugf("Processing EnableMiniApp for ID: %s", cpsAction.UniqueId)
+			if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
+				return err
 			}
-			if merchantErr := s.merchantService.UpdateMiniAppEnabledState(ctx, miniApp.MerchantID, id, true); merchantErr != nil {
-				s.logger.Errorf("UpdateMiniAppEnabledState failed: %v", merchantErr)
-				return merchantErr
-			}
-			return nil
+			return s.merchantService.UpdateMiniAppEnabledState(ctx, miniApp.MerchantID, cpsAction.UniqueId, true)
 		})
 
 	case string(constants.RequestDisableMiniApp):
-		s.logger.Infof("Processing DisableMiniApp for ID: %s", miniApp.ID.Hex())
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			if repoErr := s.repo.EnableOrDisable(ctx, id, false); repoErr != nil {
-				s.logger.Errorf("EnableOrDisable MiniApp repo failed: %v", repoErr)
-				return repoErr
+			s.logger.Debugf("Processing DisableMiniApp for ID: %s", cpsAction.UniqueId)
+			if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+				return err
 			}
-			if merchantErr := s.merchantService.UpdateMiniAppEnabledState(ctx, miniApp.MerchantID, id, false); merchantErr != nil {
-				s.logger.Errorf("UpdateMiniAppEnabledState failed: %v", merchantErr)
-				return merchantErr
-			}
-			return nil
+			return s.merchantService.UpdateMiniAppEnabledState(ctx, miniApp.MerchantID, cpsAction.UniqueId, false)
 		})
 
 	default:
@@ -343,13 +312,13 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	}
 
 	if err != nil {
-		s.logger.Errorf("Authorize action failed for RequestAction %s, MiniApp ID %s: %v", cpsAction.RequestAction, miniApp.ID.Hex(), err)
+		s.logger.Errorf("Failed to process action %s: %v", cpsAction.RequestAction, err)
 		return nil, err
 	}
 
 	cpsAction.ActionStatus = "APPROVED"
 	cpsAction.CurrentAction = miniApp
-	s.logger.Infof("Action %s approved for MiniApp %s (ID: %s)", cpsAction.RequestAction, miniApp.AppName, miniApp.ID.Hex())
+	s.logger.Infof("Action %s approved for MiniApp %s", cpsAction.RequestAction, miniApp.AppName)
 
 	return cpsAction, nil
 }
