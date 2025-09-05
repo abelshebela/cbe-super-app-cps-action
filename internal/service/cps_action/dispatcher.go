@@ -101,7 +101,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Department"):
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action),"CPSUser"):
+	case IsActionInGroup(RequestAction(action), "CPSUser"):
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")

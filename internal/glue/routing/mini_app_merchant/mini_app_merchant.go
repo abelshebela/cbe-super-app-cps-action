@@ -22,7 +22,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 
 		{
 			Method:  http.MethodGet,
-			Path:    "/mini_app_merchant/get_all",
+			Path:    "/mini_app_merchant",
 			Handler: handler.FindAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

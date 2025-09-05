@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/hq/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -148,12 +149,10 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	requestedAction := action.RequestAction
 
-	hq, ok := action.CurrentAction.(*model.HQ)
-	if !ok || hq == nil {
+	hq, err := local_util.JsonUnmarshal[model.HQ](action.CurrentAction)
+	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
-	var err error
 
 	switch requestedAction {
 	case string(constants.RequestUpdateHQBlockTime):

@@ -240,6 +240,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletUpdateEmptyPayload,
 
 	ErrorInvalidRequestBody,
+	ErrorInvalidRequest,
 	ErrorBulkServiceAlreadyDisabled,
 	ErrorInvalidPaginationParams,
 	ErrorInvalidDistrict,
@@ -3005,7 +3006,7 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
-    Type:       "error",
+		Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{
@@ -4320,5 +4321,4 @@ var (
 		Message:    "no changes detected to update",
 		Type:       "error",
 	}
-	
 )
