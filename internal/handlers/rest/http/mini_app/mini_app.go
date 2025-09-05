@@ -46,7 +46,6 @@ func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Create MIninAP  DTO: %+v", dto)
 
 	if err := h.miniAppSrvc.CreateMiniApp(r.Context(), dto); err != nil {
 		h.logger.Errorf("failed to create mini app: %v", err)
@@ -55,7 +54,7 @@ func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Infof("mini app creation request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessCreateMiniAppRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
 }
 
 func (h *HttpStore) UpdateMiniApp(w http.ResponseWriter, r *http.Request) {

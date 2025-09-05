@@ -270,4 +270,3 @@ func (nc *NumericConverter) IsPositiveFloat(value interface{}, fieldName string)
 func (nc *NumericConverter) IsNonNegativeFloat(value interface{}, fieldName string) (float64, error) {
 	return nc.ValidateFloat64Range(value, fieldName, 0, 1e308)
 }
-

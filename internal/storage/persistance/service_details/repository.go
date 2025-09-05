@@ -46,9 +46,9 @@ func (s *ServiceDetailsStorage) Update(ctx context.Context, id string, details *
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := ServiceDetailsMapper(*details)
+
 	_, err = s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
@@ -66,7 +66,7 @@ func (s *ServiceDetailsStorage) Delete(ctx context.Context, id string) error {
 	return s.dal.DeleteOne(ctx, filter)
 }
 
-func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M, id string) (*model.ServiceDetails, error) {
+func (s *ServiceDetailsStorage) FindByID(ctx context.Context,projection bson.M, id string) (*model.ServiceDetails, error) {
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
 		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
@@ -82,10 +82,11 @@ func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M,
 	}
 	s.logger.Infof("Successfully found ServiceDetails: %+v", result)
 	return result, nil
-
+	
 }
 
-func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
+
+func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context,projection  bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -123,3 +124,4 @@ func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, proje
 		Meta: meta,
 	}, nil
 }
+

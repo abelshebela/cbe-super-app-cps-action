@@ -103,7 +103,6 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppEnableRequestSubmitted,
 	SuccessMiniAppMerchantCreateRequestCreated,
 	SuccessUpdateMiniAppRequestCreated,
-	SuccessCreateMiniAppRequestCreated,
 	SuccessMiniAppDeletedRequestCreated,
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
@@ -288,16 +287,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSActionFailed,
 	ErrorFailedToParseJson,
 
-	// Auth tier related error codes
-	ErrorAuthTierAlreadyExists,
-	ErrorInvalidMethod,
-	ErrorInvalidAmounts,
-
-	// Auth tier related error codes
-	ErrorAuthTierAlreadyExists,
-	ErrorInvalidMethod,
-	ErrorInvalidAmounts,
-
 	//miniapp related errors
 	ErrorMiniAppNotFound,
 	ErrorMiniAppAlreadyExists,
@@ -326,11 +315,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
-	// Auth tier related error codes
-	ErrorAuthTierAlreadyExists,
-	ErrorInvalidMethod,
-	ErrorInvalidAmounts,
-
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -361,6 +345,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBranchAlreadyEnabled,
 	ErrorSingleTransferCanNotBeGreaterThanCap,
 	ErrorMinAmountCanNotBeGreaterThanTotal,
+	ErrorNoChangesDetected,
 }
 
 // Success Response Codes
@@ -1845,12 +1830,6 @@ var (
 		Message:    MsgUpdateMiniAppRequestCreatedSuccessfully,
 		Type:       "success",
 	}
-	SuccessCreateMiniAppRequestCreated = ResponseCode{
-		Code:       "SUCCESS_CREATE_MINI_APP_REQUEST_CREATED",
-		StatusCode: StatusCreated,
-		Message:    MsgCreateMiniAppRequestCreatedSuccessfully,
-		Type:       "success",
-	}
 
 	SuccessMiniAppDeletedRequestCreated = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_DELETED_REQUEST_CREATED",
@@ -3026,7 +3005,7 @@ var (
 		Code:       "ERROR_FILE_PARSE_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgFileParseFailed,
-		Type:       "error",
+    Type:       "error",
 	}
 
 	ErrorInvalidAction = ResponseCode{
@@ -3369,18 +3348,6 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "MiniApp merchant not found",
-		Type:       "error",
-	}
-	ErrorMiniAppMerchantAlredyEnabled = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_ENABLED",
-		StatusCode: StatusFound,
-		Message:    "MiniApp merchant already enabled",
-		Type:       "error",
-	}
-	ErrorMiniAppMerchantAlredyDisabled = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_ALREDY_DISABLED",
-		StatusCode: StatusFound,
-		Message:    "MiniApp merchant already disabled",
 		Type:       "error",
 	}
 
@@ -4347,4 +4314,11 @@ var (
 		Message:    "Failed to update parent record.",
 		Type:       "error",
 	}
+	ErrorNoChangesDetected = ResponseCode{
+		Code:       "ERROR_NO_CHANGES_DETECTED",
+		StatusCode: StatusBadRequest,
+		Message:    "no changes detected to update",
+		Type:       "error",
+	}
+	
 )

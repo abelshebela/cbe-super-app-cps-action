@@ -81,7 +81,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
 
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
-	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
 	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware)
@@ -97,6 +96,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
+	amountBasedAuth.Init(r, &handlerLayer.AmountBasedAuthHandler, authMiddleware)
 
 	// Add swagger endpoints to the API router before mounting
 	r.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
