@@ -1,6 +1,7 @@
 package mini_app_merchant
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -118,32 +119,39 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 	return result, nil
 }
 
-func (m *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
-	filter := bson.M{"is_deleted": nil}
+func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
+	// 1. Base filter (only active records)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
 
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{"merchant_type"}
+
+	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
-			{"name": searchRegex},
-			{"merchant_id": searchRegex},
-		}
+		searchKeys["merchant_id"] = searchRegex // choose your searchable field(s)
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	// 4. Build filter, skip, limit
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	// 5. Fetch data
+	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	total, err := m.dal.TotalCount(ctx, filter)
+	// 6. Count total
+	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
+	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
+	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.MiniAppMerchant]{
 		Data: data,
 		Meta: meta,
