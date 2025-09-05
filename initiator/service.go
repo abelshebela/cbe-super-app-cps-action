@@ -134,14 +134,16 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		nil, // Will be updated after CPS action service is created
 		logger,
 	)
-
+	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient, "amount_based_auth", cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
+	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
+
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 		EventContainer:           eventService,
 		FeedbackContainer:        feedbackService,
-		UnlinkContainer:          nil, // Will be updated after CPS action service is created
-		BPSUserContainer:         nil, // Will be updated after CPS action service is created
+		UnlinkContainer:          unlinkService,  // Will be updated after CPS action service is created
+		BPSUserContainer:         bpsUserService, // Will be updated after CPS action service is created
 		AdContainer:              adService,
 		PortalCardContainer:      portalCardService,
 		ServiceCheckContainer:    serviceDetails,
@@ -160,7 +162,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSUserContainer:         cpsUserService,
 		BudgetContainer:          nil, // Will be updated after CPS action service is created
 		AccountContainer:         accountValidation,
-		AmountBasedAuthContainer: nil,            // Not implemented yet
+		AmountBasedAuthContainer: amountBased,    // Not implemented yet
 		AvatarDomian:             avatarService,  // Not implemented yet
 		BudgetCategoryContainer:  nil,            // Not implemented yet
 		NotificationService:      nil,            // Not implemented yet
@@ -239,7 +241,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
 
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
-	serviceContainer.Unlink = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
+	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
+	serviceContainer.Unlink = unlinkService
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 

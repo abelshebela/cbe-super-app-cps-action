@@ -29,6 +29,7 @@ import (
 	// "cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	// "cbe-super-app-cps-action/internal/storage/persistance/event"
+	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/budget"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
@@ -58,7 +59,7 @@ import (
 
 func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) persistance.Persistence {
 	data := persistance.Persistence{
-		UserPersistence:              users.NewUserRepository(client, dbName, "users", logger),
+		UserPersistence:              users.NewUserRepository(client, dbName, "members", logger),
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
 		DeviceLinkHistoryPersistence: device_history.NewDeviceLinkHistoryRepository(client, dbName, "member_device_histories", logger),
@@ -78,14 +79,14 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		AvatarPersistence:           avatar.NewAvatarRepository(client, dbName, "avatars", logger),
 		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "branch_user", logger),
 		AdvertRepositoryPersistence: advert.NewAdvertRepository(client, dbName, "adverts", logger),
-		// ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
-		AuthTierPersistence: auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
-		BankPersistence:     bank.NewBankRepository(client, dbName, "banks", logger),
-		ColorPersistence:    color.NewColorRepository(client, dbName, "colors", logger),
-		BulkService:         bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
-		CustomerService:     customer.InitCustomerDetail(client, dbName, "users", logger),
-		CpsUserPersistence:  cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
-		DonationPersistence: donation.NewDonationRepository(client, dbName, "donations", logger),
+		ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
+		AuthTierPersistence:         auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
+		BankPersistence:             bank.NewBankRepository(client, dbName, "banks", logger),
+		ColorPersistence:            color.NewColorRepository(client, dbName, "colors", logger),
+		BulkService:                 bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
+		CustomerService:             customer.InitCustomerDetail(client, dbName, "members", logger),
+		CpsUserPersistence:          cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
+		DonationPersistence:         donation.NewDonationRepository(client, dbName, "donations", logger),
 		// DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
 		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
 		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
@@ -102,7 +103,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
 		BudgetPersistence:          budget.NewBudgetRepository(client, dbName, []string{"icons", "colors"}, logger),
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
-		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "users", logger),
+		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "members", logger),
 		PermissionPersistence:      permission.InitPermission(client, dbName, 30*time.Second, logger),
 	}
 
