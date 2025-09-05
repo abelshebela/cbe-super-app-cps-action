@@ -49,7 +49,7 @@ func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.Min
 	return &createdMerchant, nil
 }
 
-func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *model.MiniAppMerchant)  error {
+func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -61,12 +61,12 @@ func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant
 	_, err = m.dal.UpdateOne(ctx, filter, bson.M{"$set": updateData})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return  errors.New(localization.ErrorFileNotFound.Code)
+			return errors.New(localization.ErrorFileNotFound.Code)
 		}
-		return  errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return  nil
+	return nil
 }
 
 func (m *MiniAppMerchantStorage) Delete(ctx context.Context, id string) error {
