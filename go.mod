@@ -17,6 +17,8 @@ require (
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	go.uber.org/mock v0.5.2
+	google.golang.org/grpc v1.65.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.25
@@ -36,8 +38,8 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/viper v1.20.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 )
 
 require (

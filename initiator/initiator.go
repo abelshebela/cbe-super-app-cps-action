@@ -10,6 +10,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/responseutil"
 	app_middleware "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+	grpcServer "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/grpc"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -73,7 +74,13 @@ func Initiator() {
 	InitRoutes(r, adapter, cfg.JwtSecretKey, cfg.Key, cfg.IV, domain.CPSActionDomain, logger)
 	logger.Infof("Routes initialized")
 
-	server := http.Server{
+	// Initialize gRPC server
+	logger.Infof("Initializing gRPC server...")
+	grpcSrv := grpcServer.NewGRPCServer(application.BankApplication, logger)
+	logger.Infof("gRPC server initialized")
+
+	// HTTP server
+	httpServer := http.Server{
 		Addr:    ":8080",
 		Handler: r,
 	}
@@ -82,20 +89,34 @@ func Initiator() {
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, syscall.SIGTERM)
 
+	// Start HTTP server
 	go func() {
-		logger.Infof("🚀 Server started")
-		logger.Infof("Server stopped with error: %v\n", server.ListenAndServe())
+		logger.Infof("🚀 HTTP Server starting on port 8080")
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Errorf("HTTP Server stopped with error: %v", err)
+		}
+	}()
+
+	// Start gRPC server
+	go func() {
+		if err := grpcSrv.Start("9090"); err != nil {
+			logger.Errorf("gRPC Server failed to start: %v", err)
+		}
 	}()
 
 	sig := <-quit
 
-	logger.Infof("server shutting down with signal: %v\n", sig)
+	logger.Infof("Servers shutting down with signal: %v", sig)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
-		logger.Fatalf("failed to shutdown gracefully with error %v", err)
+	// Shutdown gRPC server
+	go grpcSrv.Stop()
+
+	// Shutdown HTTP server
+	if err := httpServer.Shutdown(ctx); err != nil {
+		logger.Fatalf("Failed to shutdown HTTP server gracefully: %v", err)
 	}
 
-	logger.Infof("Server shutdown successfully")
+	logger.Infof("Servers shutdown successfully")
 }
