@@ -1,8 +1,10 @@
 package service
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	// dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
@@ -11,7 +13,6 @@ import (
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
-	dton "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -20,9 +21,6 @@ import (
 
 	"context"
 	"mime/multipart"
-
-	"cbe-super-app-cps-action/internal/constants"
-	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 )
 
 type CPSActionService interface {
@@ -176,7 +174,7 @@ type PortalCardService interface {
 type ProductCodeService interface {
 	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
 	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
-	UpdateProductCode(ctx context.Context, request dton.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+	UpdateProductCode(ctx context.Context, request productcode_dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -251,7 +249,7 @@ type AdvertService interface {
 
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
 	UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 

@@ -136,7 +136,6 @@ func (r *CPSActionStorage) UpdateCustome(ctx context.Context, filter, update bso
 
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-
 		r.logger.Errorf("Error updating CPSAction: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
 		return errors.New(code)

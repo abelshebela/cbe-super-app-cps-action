@@ -228,7 +228,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 
 	err:= s.serviceApp.UpdateMinimumTransferCap(ctx, service_id, req)
 	if err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
