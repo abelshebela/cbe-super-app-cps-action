@@ -50,7 +50,6 @@ func ValidateTotalCapAgainstServices(ctx context.Context, serviceRepo storage.Se
 }
 
 func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData interface{}) (*model.ServiceDetails, error) {
-	// Start with a copy of the existing service to ensure unchanged fields persist
 	updatedService := *existingService
 
 	// Try to directly cast to the expected DTO type first
@@ -380,24 +379,24 @@ func ValidateMinimumTransferCap(newMinAmount uint64, existingCaps types.Cap) err
 	return nil
 }
 func TotalCapMapper(existingService *model.HQ, newData interface{}) (*model.HQ, error) {
-updatedService := *existingService
-var incoming map[string]interface{}
+	updatedService := *existingService
+	var incoming map[string]interface{}
 	if err := BindAction(newData, &incoming); err != nil {
 		return nil, err
 	}
 
-if v, ok := incoming["total_cap"]; ok {
+	if v, ok := incoming["total_cap"]; ok {
 		switch n := v.(type) {
 		case float64:
 			updatedService.TotalCap = uint64(n)
 		case int:
-			updatedService.TotalCap= uint64(n)
+			updatedService.TotalCap = uint64(n)
 		case int64:
 			updatedService.TotalCap = uint64(n)
 		case uint64:
 			updatedService.TotalCap = n
 		}
 	}
-	return &updatedService,nil
+	return &updatedService, nil
 
 }

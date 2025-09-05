@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -34,6 +33,7 @@ func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsServic
 
 // Create a new Mini App Merchant.
 func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
+
 	// Validate bank account number
 	if data.BankAccountNumber == "" {
 		m.logger.Warnf("Bank account number is required")
@@ -68,8 +68,9 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 
 	// Merge (create mode just uses its own values)
 	miniApp := data
+	m.logger.Debugf("Merged miniApp data: %+v", miniApp)
+
 	// 🔄 CPS Action
-	fmt.Println("data.ID.Hex(),", data.ID)
 	if err := core.HandleCPSActionForMiniAppMerchant(
 		ctx,
 		m.cpsService,
@@ -88,43 +89,17 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 
 // Update modifies an existing Mini App Merchant by ID.
 func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
-
 	// Fetch existing merchant
 	old, err := m.repo.FindByID(ctx, id)
 	if err != nil {
-		m.logger.Errorf("Error fetching old MiniAppMerchant with ID %s: %v", id, err)
 		return nil, nil, err
 	}
-	m.logger.Infof("Fetched old MiniAppMerchant: %+v", old)
-
 	// Merge old and new data
-	// updated := core.MergeMiniAppMerchantData(old, data)
-	updated := &model.MiniAppMerchant{
-		ID:                old.ID,
-		Code:              old.Code,
-		MerchantName:      data.MerchantName,
-		MerchantType:      data.MerchantType,
-		KYC:               data.KYC,
-		BankAccountNumber: data.BankAccountNumber,
-		Branches:          data.Branches,
-		Email:             data.Email,
-		PhoneNumber:       data.PhoneNumber,
-		MiniApps:          data.MiniApps,
-		Enabled:           data.Enabled,
-		IsDeleted:         data.IsDeleted,
-		CreatedAt:         old.CreatedAt,
-		LastModifiedAt:    time.Now(),
-		DeletedAt:         data.DeletedAt,
-	}
-	m.logger.Infof("Merged MiniAppMerchant data: %+v", updated)
-
-	// Create CPS action
+	updated := core.MergeMiniAppMerchantData(old, data)
 	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate); err != nil {
-		m.logger.Errorf("CPS action failed for MiniAppMerchant %s: %v", updated.Code, err)
+		m.logger.Errorf("CPS action failed for miniapp %m: %v", updated.Code, err)
 		return nil, nil, err
 	}
-	m.logger.Infof("CPS action successfully created for MiniAppMerchant: %s", updated.Code)
-
 	return updated, old, nil
 }
 
@@ -136,11 +111,7 @@ func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filt
 
 // FindByID fetches a merchant by its ID.
 func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
-	data, err := m.repo.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return m.repo.FindByID(ctx, id)
 }
 
 // Delete removes a merchant (soft delete / archive).
@@ -154,7 +125,7 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	deletedMiniApp.IsDeleted = true
 	deletedMiniApp.DeletedAt = now
 
-	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMiniApp, *prev, constants.ActionDelete); err != nil {
+	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteWallet, deletedMiniApp, *prev, constants.ActionDelete); err != nil {
 		m.logger.Errorf("CPS action failed for  miniapp %m: %v", deletedMiniApp.Code, err)
 		return err
 	}
@@ -164,6 +135,7 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 
 // EnableOrDisable toggles merchant active status.
 func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	m.logger.Debugf(">>> EnableOrDisable called with id=%s, enable=%v", id, enable)
 
 	// Fetch existing merchant
 	prevMiniApp, err := m.repo.FindByID(ctx, id)
@@ -171,14 +143,16 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 		m.logger.Errorf("Failed to find miniAppMerchant by ID=%s: %v", id, err)
 		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 	}
+	m.logger.Debugf("Found miniAppMerchant: %+v", prevMiniApp)
+
 	// Check current status
 	if enable && prevMiniApp.Enabled {
 		m.logger.Warnf("Merchant already enabled: ID=%s", id)
-		return errors.New(localization.ErrorMiniAppMerchantAlredyEnabled.Code)
+		return errors.New(localization.ErrorMiniAppMerchantEnableFailed.Code)
 	}
 	if !enable && !prevMiniApp.Enabled {
 		m.logger.Warnf("Merchant already disabled: ID=%s", id)
-		return errors.New(localization.ErrorMiniAppMerchantAlredyDisabled.Code)
+		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
 	}
 
 	// Prepare updated data
@@ -208,34 +182,23 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 // Authorize validates and approves/rejects CPS actions related to mini-app merchants.
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Printf("We are here there in authorization")
-	var current *model.MiniAppMerchant
-	err := core.BindAction(cpsAction.CurrentAction, &current)
-	if err != nil {
-		m.logger.Errorf("failed to bind current action to wallet: %v", err)
+	miniAppMerchant, ok := cpsAction.CurrentAction.(*model.MiniAppMerchant)
+	if !ok || miniAppMerchant == nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	id := cpsAction.UniqueId
-	fmt.Printf("Id for delete is here for test too %s", id)
-
+	var err error
 	switch cpsAction.RequestAction {
-	case string(constants.RequestCreateMiniAppMerchant):
-		_, err = m.repo.Create(ctx, current)
-
-	case string(constants.RequestUpdateMiniAppMerchant):
-		err = m.repo.Update(ctx, id, current)
-
-	case string(constants.RequestDeleteMiniAppMerchant):
-		fmt.Println("deleteting id", id)
-		err = m.repo.Delete(ctx, id)
-
-	case string(constants.RequestEnableMiniAppMerchant):
-		err = m.repo.EnableOrDisable(ctx, id, true)
-
-	case string(constants.RequestDisableMiniAppMerchant):
-		err = m.repo.EnableOrDisable(ctx, id, false)
-
+	case string(constants.RequestCreateWallet):
+		_, err = m.repo.Create(ctx, miniAppMerchant)
+	case string(constants.RequestUpdateWallet):
+		err = m.repo.Update(ctx, miniAppMerchant.ID.Hex(), miniAppMerchant)
+	case string(constants.RequestDeleteWallet):
+		err = m.repo.Delete(ctx, miniAppMerchant.ID.Hex())
+	case string(constants.RequestEnableWallet):
+		err = m.repo.EnableOrDisable(ctx, miniAppMerchant.ID.Hex(), true)
+	case string(constants.RequestDisableWallet):
+		err = m.repo.EnableOrDisable(ctx, miniAppMerchant.ID.Hex(), false)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
@@ -244,8 +207,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		return nil, err
 	}
 
-	// put the merged struct back into cpsAction
-	cpsAction.CurrentAction = current
+	cpsAction.CurrentAction = miniAppMerchant
 	return cpsAction, nil
 }
 

@@ -168,7 +168,7 @@ func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 			{"account_number": searchRegex},
 		}
 	}
-	filter["is_deleted"] = false
+
 	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		e.logger.Errorf("FindAllWithPagination Event failed", err)

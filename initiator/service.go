@@ -64,14 +64,13 @@ type ServiceLayer struct {
 	MiniAppService    service.MiniAppService
 	Fayda             service.FaydaAccountService
 	Avatar            service.AvatarService
+	AmountBasedAuth   service.AmountBasedAuthService
 
 	Permission     service.PermissionService
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
 
 	ProductCode service.ProductCodeService
-
-	AmountBasedAuth service.AmountBasedAuthService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -135,6 +134,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		logger,
 	)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient, "amount_based_auth", cfg, logger)
+	cpsactionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, cpsaction.Dispatcher{}) // Will be updated after dispatcher is created
+
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
 
@@ -144,6 +145,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		FeedbackContainer:        feedbackService,
 		UnlinkContainer:          unlinkService,  // Will be updated after CPS action service is created
 		BPSUserContainer:         bpsUserService, // Will be updated after CPS action service is created
+		CPSActionContainer:       cpsactionService,
 		AdContainer:              adService,
 		PortalCardContainer:      portalCardService,
 		ServiceCheckContainer:    serviceDetails,

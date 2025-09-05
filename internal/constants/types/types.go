@@ -177,11 +177,11 @@ type Restriction struct {
 }
 
 type ProductCode struct {
-	ID             string               `json:"id" bson:"id"`
-	BranchType     constants.BranchType `json:"branch_type" bson:"branch_type"`
-	ProductCode    string               `json:"product_code" bson:"product_code"`
-	VATCode        string               `json:"vat_code" bson:"vat_code"`
-	ServiceFeeCode string               `json:"service_fee_code" bson:"service_fee_code"`
+	ID             string               `bson:"id"`
+	BranchType     constants.BranchType `bson:"branch_type"`
+	ProductCode    string               `bson:"product_code"`
+	VATCode        string               `bson:"vat_code"`
+	ServiceFeeCode string               `bson:"service_fee_code"`
 }
 
 type CredentialInformation struct {

@@ -4,6 +4,8 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // Convert domain model to Response DTO
@@ -33,7 +35,7 @@ func ToMiniAppMerchantResponseDTO(domain *model.MiniAppMerchant) *dto.MiniAppMer
 // Convert DTO to Domain model for service layer
 func ToMiniAppMerchantDomainFromUpdateDTO(d *dto.MiniAppMerchantDTO) *model.MiniAppMerchant {
 	return &model.MiniAppMerchant{
-		ID:                d.ID,
+		ID:                bson.NewObjectID(),
 		MerchantType:      d.Type,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,

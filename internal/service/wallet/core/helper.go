@@ -69,7 +69,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Println("Failed to create CPS action", "error", err)

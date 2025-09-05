@@ -23,9 +23,6 @@ func MiniAppDocumentMapper(miniApp model.MiniApp) *model.MiniApp {
 	if miniApp.Enabled {
 		miniApp.Enabled = false
 	}
-	if miniApp.Credential.ID == bson.NilObjectID {
-		miniApp.Credential.ID = bson.NewObjectID()
-	}
 	return &miniApp
 }
 

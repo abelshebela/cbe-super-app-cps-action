@@ -3,11 +3,10 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
@@ -36,30 +35,31 @@ func NonZeroUint64(n, fallback uint64) uint64 {
 	return fallback
 }
 
-func MergeMiniAppMerchant(data model.MiniAppMerchant) *model.MiniAppMerchant {
+// MergeMiniAppMerchantData merges old and new data for an update
+func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMerchant {
 	now := time.Now()
 	return &model.MiniAppMerchant{
-		ID:                data.ID,
-		Code:              data.Code,
-		MerchantName:      local_util.NonEmptyString(data.MerchantName, data.MerchantName),
-		MerchantType:      local_util.NonEmptyString(data.MerchantType, data.MerchantType),
-		PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, data.PhoneNumber),
-		Email:             local_util.NonEmptyString(data.Email, data.Email),
-		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, data.BankAccountNumber),
-		Enabled:           data.Enabled,
-		IsDeleted:         data.IsDeleted,
-		CreatedAt:         data.CreatedAt,
+		ID:                old.ID,
+		Code:              old.Code,
+		MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
+		MerchantType:      local_util.NonEmptyString(data.MerchantType, old.MerchantType),
+		PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
+		Email:             local_util.NonEmptyString(data.Email, old.Email),
+		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
+		Enabled:           old.Enabled,
+		IsDeleted:         old.IsDeleted,
+		CreatedAt:         old.CreatedAt,
 		LastModifiedAt:    now,
 		KYC: model.KYC{
-			Status: data.KYC.Status,
+			Status: old.KYC.Status,
 			Representative: model.KYCInformation{
-				Name:  local_util.NonEmptyString(data.KYC.Representative.Name, data.KYC.Representative.Name),
-				Email: local_util.NonEmptyString(data.KYC.Representative.Email, data.KYC.Representative.Email),
-				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, data.KYC.Representative.Phone),
+				Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
+				Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
+				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
 			},
 		},
-		Branches: data.Branches,
-		MiniApps: data.MiniApps,
+		Branches: old.Branches,
+		MiniApps: old.MiniApps,
 	}
 }
 
@@ -72,19 +72,11 @@ func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.C
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, curData, prevData, string(requestAction), string(actionType))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Printf("Failed to create CPS action for Mini App Merchant: %v", err)
 		return err
 	}
 	return nil
-}
-
-func BindAction(source any, target any) error {
-	bytes, err := json.Marshal(source)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(bytes, target)
 }
