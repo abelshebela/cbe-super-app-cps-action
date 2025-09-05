@@ -32,20 +32,6 @@ func PermissionGroupUpdateModel(req permission.UpdatePermissionGroupRequest) mod
 	}
 }
 
-// UnmarshalActionToType marshals and unmarshals action.CurrentAction to the target type
-// func UnmarshalActionToType[T any](currentAction interface{}) (T, error) {
-// 	var result T
-// 	bytes, err := json.Marshal(currentAction)
-// 	if err != nil {
-// 		return result, err
-// 	}
-// 	if err := json.Unmarshal(bytes, &result); err != nil {
-// 		return result, err
-// 	}
-// 	return result, nil
-
-// }
-
 // BindPermissionGroupFromAction decodes action.CurrentAction into model.PermissionGroup
 func BindPermissionGroupFromAction(currentAction interface{}) (model.PermissionGroup, error) {
 	var pg model.PermissionGroup
