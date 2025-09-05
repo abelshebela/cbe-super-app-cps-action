@@ -9,11 +9,14 @@ import (
 
 // IconMapper maps an Icon model to a bson.M for updates
 func IconMapper(icon model.Icon) bson.M {
-	return bson.M{
-		"$set": bson.M{
-			"icon":          icon.Icon,
-			"enabled":       icon.Enabled,
-			"last_modified": time.Now(),
-		},
+	update := bson.M{
+		"enabled":       icon.Enabled,
+		"last_modified": time.Now(),
 	}
+
+	if icon.Icon != "" {
+		update["icon"] = icon.Icon
+	}
+
+	return update
 }
