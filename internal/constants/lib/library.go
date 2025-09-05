@@ -145,14 +145,14 @@ func UploadFileToMinio(
 	exist, err := uploader.BucketExist(ctx, bucketName)
 	if err != nil {
 		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorBucketNotFound.Code)
 	}
 
 	if !exist {
 		created, err := uploader.MakeBucket(ctx, bucketName)
 		if err != nil || !created {
 			logger.Errorf("failed to create bucket '%s': %v", bucketName, err)
-			return "", errors.New(localization.ErrorUnexpectedError.Code)
+			return "", errors.New(localization.ErrorFailedToBucket.Code)
 		}
 	}
 

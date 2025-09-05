@@ -3,9 +3,9 @@ package service
 import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	// dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
-
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
+	donationCat_dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
@@ -85,6 +85,13 @@ type DepartmentService interface {
 
 type DonationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+type DonationCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDonationCategory(ctx context.Context, donation donationCat_dto.DonationCategoryRequest) error
+	FetchDonationCategory(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationCat_dto.DonationCategoryListResponse], error)
+	FetchDonationCategoryByID(ctx context.Context, id string) (*donationCat_dto.DonationCategoryListResponse, error)
+	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
 }
 
 type EventService interface {
@@ -298,37 +305,38 @@ type KeyGeneratorService interface {
 }
 
 type ServiceContainer struct {
-	AccountBlockContainer    AccountBlockService
-	AccountContainer         AccountValidationService
-	ActionContainer          ActionService
-	AdContainer              AdvertService
-	AmountBasedAuthContainer AmountBasedAuthService
-	AvatarDomian             AvatarService
-	BankContainer            BankService
-	BPSUserContainer         BPSUserService
-	BudgetCategoryContainer  BudgetCategoryService
-	BudgetContainer          BudgetService
-	CPSActionContainer       CPSActionService
-	CPSUserContainer         CPSUserService
-	CustomerContainer        CustomerService
-	DepartmentContainer      DepartmentService
-	EventContainer           EventService // fully not ready
-	FaydaContainer           FaydaAccountService
-	FeedbackContainer        FeedbackService
-	HQContainer              HQService
-	MiniAppContainer         MiniAppService
-	PasswordRuleContainer    PasswordRuleService
-	PermissionContainer      PermissionService
-	PortalCardContainer      PortalCardService
-	UnlinkContainer          UnlinkService
-	WalletContainer          WalletService
-	MiniAppMerchantContainer MiniAppMerchantService
-	AccountLookup            AccountSearchService
-	BulkServiceContainer     BulkService
-	ServiceCheckContainer    ServiceService
-	KeyGenService            KeyGeneratorService
-	NotificationService      NotificationService
-	ProductCodeService       ProductCodeService
-	DonationContainer        DonationService
-	Unlink                   UnlinkService
+	AccountBlockContainer     AccountBlockService
+	AccountContainer          AccountValidationService
+	ActionContainer           ActionService
+	AdContainer               AdvertService
+	AmountBasedAuthContainer  AmountBasedAuthService
+	AvatarDomian              AvatarService
+	BankContainer             BankService
+	BPSUserContainer          BPSUserService
+	BudgetCategoryContainer   BudgetCategoryService
+	BudgetContainer           BudgetService
+	CPSActionContainer        CPSActionService
+	CPSUserContainer          CPSUserService
+	CustomerContainer         CustomerService
+	DepartmentContainer       DepartmentService
+	EventContainer            EventService // fully not ready
+	FaydaContainer            FaydaAccountService
+	FeedbackContainer         FeedbackService
+	HQContainer               HQService
+	MiniAppContainer          MiniAppService
+	PasswordRuleContainer     PasswordRuleService
+	PermissionContainer       PermissionService
+	PortalCardContainer       PortalCardService
+	UnlinkContainer           UnlinkService
+	WalletContainer           WalletService
+	MiniAppMerchantContainer  MiniAppMerchantService
+	AccountLookup             AccountSearchService
+	BulkServiceContainer      BulkService
+	ServiceCheckContainer     ServiceService
+	KeyGenService             KeyGeneratorService
+	NotificationService       NotificationService
+	ProductCodeService        ProductCodeService
+	DonationContainer         DonationService
+	Unlink                    UnlinkService
+	DonationCategoryContainer DonationCategoryService
 }

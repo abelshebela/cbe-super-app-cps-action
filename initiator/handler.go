@@ -59,6 +59,9 @@ import (
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
+	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
+	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -91,6 +94,7 @@ type Handler struct {
 	Permission         permissionInbound.PermissionHandler
 	CPSUser            cpsUserInbound.CPSUserHandler
 	ProductCodeHandler productCodeHandler.ProductCodeAdapter
+	DonationCategoryHandler donation_category.DonationCategoryAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -127,5 +131,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 
 		ProductCodeHandler: productCodeHandler.InitProductcodeAdapter(pcs, logger),
+		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory,logger),
+
 	}
 }

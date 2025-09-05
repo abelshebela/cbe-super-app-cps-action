@@ -25,7 +25,7 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
-
+	fmt.Println("/////////////////////////on the cps authorize")
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
 		return d.app.BankContainer.Authorize(ctx, cpsAction)
@@ -95,9 +95,11 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Avatar"):
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "donationCategory"):
+		fmt.Println("////on case")
+		return d.app.DonationCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Donation"):
 		return d.app.DonationContainer.Authorize(ctx, cpsAction)
-
 	case IsActionInGroup(RequestAction(action), "Department"):
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action),"CPSUser"):

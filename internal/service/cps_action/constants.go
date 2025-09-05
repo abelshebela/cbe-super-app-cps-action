@@ -567,12 +567,17 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateProductCode,
 	},
 	"Donation": {
-		RequestCreateDonationCategory,
-		RequestUpdateDonationCategory,
-		RequestCreateDonationCompany,
-		RequestUpdateDonationCompany,
 		RequestCreateDonation,
 		RequestUpdateDonation,
+	},
+		"donationCategory": {
+		RequestCreateDonationCategory,
+		RequestUpdateDonationCategory,
+
+	},
+	"donationCompany":{
+		RequestCreateDonationCompany,
+		RequestUpdateDonationCompany,
 	},
 }
 

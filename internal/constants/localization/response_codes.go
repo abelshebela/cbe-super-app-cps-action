@@ -8,6 +8,11 @@ type ResponseCode struct {
 	Type       string `json:"type"` // "success", "error", "warning", "info"
 }
 
+// Error implements error.
+func (r ResponseCode) Error() string {
+	panic("unimplemented")
+}
+
 var ResponseCodesList = []ResponseCode{
 	// Success codes
 	SuccessUserCreated,
@@ -223,6 +228,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateColorExists,
 	ErrorInvalidActionFormat,
 	ErrorMissingFile,
+	ErrorBucketNotFound,
+	ErrorFailedToBucket,
 
 	// Add more as needed...
 	//wallet related error codes
@@ -3542,6 +3549,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDonationCategoryIDRequired = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCategoryIdRequired,
+		Type:       "error",
+	}
+
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -3553,6 +3567,19 @@ var (
 		Code:       "ERROR_DONATION_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgDonationLookupFailed,
+		Type:       "error",
+	}
+	ErrorDonationCategoryNameDuplicated = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NAME_DUPLICATED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCategoryNameDuplicated,
+		Type:       "error",
+	}
+
+	ErrorNoChangesToUpdate = ResponseCode{
+		Code:       "ERROR_NO_CHANGES_TO_UPDATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNoChangesToUpdate,
 		Type:       "error",
 	}
 
@@ -4185,6 +4212,18 @@ var (
 		Code:       "USER_IS_NOT_FAYDA_USER",
 		StatusCode: StatusNotFound,
 		Message:    MsgNotFaydaUser,
+		Type:       "error",
+	}
+	ErrorBucketNotFound = ResponseCode{
+		Code:       "BUCKET NOT FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBucketNotFOund,
+		Type:       "error",
+	}
+	ErrorFailedToBucket = ResponseCode{
+		Code:       "ERROR_FAILED_TO_STORE_IN_BUCKET",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to get store in bucket",
 		Type:       "error",
 	}
 
