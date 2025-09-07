@@ -33,6 +33,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/service/productcode"
 
+	"cbe-super-app-cps-action/internal/service/notification"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -71,10 +72,15 @@ type ServiceLayer struct {
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
 
+<<<<<<< HEAD
 	ProductCode service.ProductCodeService
 
 	DonationCategory service.DonationCategoryService
 
+=======
+	ProductCode         service.ProductCodeService
+	NotificationService service.NotificationService
+>>>>>>> f3e878c8 (wire the notfication)
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -89,6 +95,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	// miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
+	notificationService := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
 
 	// customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
 	// bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, "banks")
@@ -243,6 +250,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	)
 	serviceContainer.CPSUserContainer = cpsUserService
 
+	serviceContainer.NotificationService = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService)
+
 	serviceContainer.BudgetContainer = budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger)
 
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
@@ -265,6 +274,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
+<<<<<<< HEAD
 		Feedback:          feedbackService,
 		EventService:      eventService,
 		Avatar:            avatarService,
@@ -292,5 +302,33 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ServiceDetails: serviceDetails,
 		DonationCategory: donationCategoryService,
 		ProductCode: productService,
+=======
+		Feedback:            feedbackService,
+		EventService:        eventService,
+		Avatar:              avatarService,
+		Advert:              advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger),
+		BpsUser:             bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
+		Bank:                bank_service,
+		Unlink:              unlinkService,
+		Budget:              budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger),
+		PortalCard:          portalCardService,
+		AmountBasedAuth:     amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
+		ValidationService:   accountValidation,
+		Wallet:              walletService,
+		PasswordRule:        passwordRule,
+		HQService:           hqService,
+		AccountBlock:        accountBlockService,
+		MiniAppService:      miniAppService,
+		MiniAppMerchant:     miniAppMerchantService,
+		Department:          departmentService,
+		BulkService:         bulkService,
+		CustomerService:     customerSerice,
+		Fayda:               faydaService,
+		Permission:          permissionService,
+		CPSUser:             cpsUserService,
+		ServiceDetails:      serviceDetails,
+		ProductCode:         productService,
+		NotificationService: notificationService,
+>>>>>>> f3e878c8 (wire the notfication)
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, handler notification.NotificationHandler, authMiddleware middleware.AuthMiddleware){
+func Init(router chi.Router, handler notification.NotificationHandler, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
@@ -27,7 +27,7 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.FetchNotificationByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker,role.IFBChecker,role.Maker,role.IFBMaker}),
+				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker, role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -67,8 +67,8 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			},
 		},
 		{
-			Method: http.MethodDelete,
-			Path:   "/notifications/{id}",
+			Method:  http.MethodDelete,
+			Path:    "/notifications/{id}",
 			Handler: handler.DeleteNotification,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

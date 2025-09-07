@@ -32,12 +32,15 @@ func InitNotificationService(repo storage.NotificationRepository, logger shared_
 
 func (s *notificationService) CreateNotification(ctx context.Context, req notify.NotificationRequest) (*notify.NotificationResponse, error) {
 	s.logger.Infof("Creating notification request")
+	s.logger.Infof("Create payload: type=%s for=%s title=%s", req.NotificationType, req.For, req.Title)
 
 	// uniqueness check
 	exist, err := s.repo.NotificationExists(ctx, req.NotificationType, constants.NotificationFor(req.For), nil)
 	if err != nil {
+		s.logger.Errorf("Exists check error: %v", err)
 		return nil, err
 	}
+	s.logger.Infof("Exists=%v for type=%s for=%s", exist, req.NotificationType, req.For)
 	if exist {
 		return nil, fmt.Errorf("NOTIFICATION_ALREADY_EXISTS")
 	}

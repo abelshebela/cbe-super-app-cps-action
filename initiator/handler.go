@@ -10,6 +10,7 @@ import (
 	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 	miniAppInbound "cbe-super-app-cps-action/internal/constants/interfaces/mini_app"
+	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
@@ -44,6 +45,7 @@ import (
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
+	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
 
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
@@ -85,6 +87,7 @@ type Handler struct {
 	ServiceDetailsHandler  service_details.ServiceAdapter
 	AmountBasedAuthHandler amountBasedAuthHandler.AmountBasedAuthHandler
 
+<<<<<<< HEAD
 	DepartmentHandler  department.DepartmentHandler
 	AvatarHandler      avatarHandlerInterface.AvatarInbound
 	FaydaHandler       FaydaInbound.FaydaAccount
@@ -94,6 +97,17 @@ type Handler struct {
 	CPSUser            cpsUserInbound.CPSUserHandler
 	ProductCodeHandler productCodeHandler.ProductCodeAdapter
 	DonationCategoryHandler donation_category.DonationCategoryAdapter
+=======
+	DepartmentHandler   department.DepartmentHandler
+	AvatarHandler       avatarHandlerInterface.AvatarInbound
+	FaydaHandler        FaydaInbound.FaydaAccount
+	bulkServiceHandler  bulk_service_inbound.BulkServiceHandler
+	customerHandler     customerInbound.CustomerDetail
+	Permission          permissionInbound.PermissionHandler
+	CPSUser             cpsUserInbound.CPSUserHandler
+	ProductCodeHandler  productCodeHandler.ProductCodeAdapter
+	NotificationHandler notificationInbound.NotificationHandler
+>>>>>>> f3e878c8 (wire the notfication)
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -114,14 +128,15 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 
-		DepartmentHandler:  department.NewDepartmentHandler(serviceLayer.Department, logger),
-		HqHandler:          hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-		MiniAPPHandler:     miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
-		bulkServiceHandler: bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
-		customerHandler:    CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
-		FaydaHandler:       faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
-		Permission:         permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
-		CPSUser:            cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
+		DepartmentHandler:   department.NewDepartmentHandler(serviceLayer.Department, logger),
+		HqHandler:           hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
+		MiniAPPHandler:      miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
+		bulkServiceHandler:  bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
+		customerHandler:     CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
+		FaydaHandler:        faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
+		Permission:          permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
+		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
+		NotificationHandler: notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
 
 		// AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 
