@@ -318,6 +318,13 @@ func NonEmptyString(s, fallback string) string {
 	}
 	return fallback
 }
+func NonEmptyNotificationFor(newFor string, oldFor constants.NotificationFor) constants.NotificationFor {
+	if newFor != "" {
+		return constants.NotificationFor(newFor)
+	}
+	return oldFor
+}
+
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 

@@ -3461,6 +3461,12 @@ var (
 		Message:    MsgNotificationFetchFailed,
 		Type:       "error",
 	}
+	ErrorNotificationDeleteFailed = ResponseCode{
+		Code:       "ERROR_NOTIFICATION_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgNotificationDeleteFailed,
+		Type:       "error",
+	}
 
 	// Customer related error response codes
 	ErrorCustomerCountFailed = ResponseCode{
@@ -3795,6 +3801,12 @@ var (
 
 	ErrorNotificationUpdated = ResponseCode{
 		Code:       "ERROR_NOTIFICATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgNotificationUpdateSuccess,
+		Type:       "error",
+	}
+	ErrorNotificationCreated = ResponseCode{
+		Code:       "ERROR_NOTIFICATION_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgNotificationUpdateSuccess,
 		Type:       "error",

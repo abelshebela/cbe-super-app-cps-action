@@ -680,6 +680,7 @@ const (
 	MsgNotificationInsertFailed    = "Failed to insert notification"
 	MsgNotificationInvalidIDFormat = "Invalid notification ID format"
 	MsgNotificationFetchFailed     = "Failed to fetch notification"
+	MsgNotificationDeleteFailed    = "Failed to delete notification"
 
 	// Customer related error messages
 	MsgCustomerCountFailed     = "Failed to count customers"
