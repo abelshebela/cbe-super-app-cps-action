@@ -12,7 +12,7 @@ const (
 	MsgAvatarRetrievedSuccessfully = "Avatar retrieved successfully"
 	MsgUserUpdatedSuccessfully     = "User update request sent successfully"
 	MsgUserDeletedSuccessfully     = "User delete request sent successfully"
-	MsgUserRetrievedSuccessfully   = "User retrieved successfully"
+	MsgUserRetrievedSuccessfully   = "User retriErrorFileNotFoundeved successfully"
 	MsgUserLoginSuccessfully       = "User logged in successfully"
 	MsgUserLogoutSuccessfully      = "User logged out successfully"
 	MsgUserProfileUpdated          = "User profile updated successfully"

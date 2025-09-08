@@ -355,6 +355,30 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleTransferCanNotBeGreaterThanCap,
 	ErrorMinAmountCanNotBeGreaterThanTotal,
 	ErrorNoChangesDetected,
+	ErrorDonationCategoryLookupFailed,
+	ErrorNoChangesToUpdate,
+	ErrorDonationParseStartDateFailed,
+	ErrorDonationParseEndDateFailed,
+	ErrorDonationFetchCompanyFailed,
+	ErrorDonationFetchCategoryFailed,
+	ErrorDonationUpdateFailed,
+	ErrorDonationImageUpdateFailed,
+	ErrorDonationImageDeleteFailed,
+	ErrorDonationImageAddFailed,
+	ErrorBankFileParseFailed,
+	ErrorBankRejectionPayloadDecodeFailed,
+	ErrorBankLogoUpdateFailed,
+	ErrorBankUpdateFailed,
+	ErrorDonationCategoryNameDuplicated,
+	ErrorDonationCompanyLookupFailed,
+	ErrorDonationCategoryIDRequired,
+	
+
+
+
+
+
+
 }
 
 // Success Response Codes
