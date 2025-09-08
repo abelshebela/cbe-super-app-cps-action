@@ -95,7 +95,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	// miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
-	notificationService := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
 
 	// customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
 	// bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, "banks")
@@ -149,6 +148,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		nil, // Will be updated after CPS action service is created
 		logger,
 	)
+	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient, "amount_based_auth", cfg, logger)
 	cpsactionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, cpsaction.Dispatcher{}) // Will be updated after dispatcher is created
 
@@ -181,12 +181,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSUserContainer:         cpsUserService,
 		BudgetContainer:          budgetService, // Will be updated after CPS action service is created
 		AccountContainer:         accountValidation,
-		AmountBasedAuthContainer: amountBased,    // Not implemented yet
-		AvatarDomian:             avatarService,  // Not implemented yet
-		BudgetCategoryContainer:  nil,            // Not implemented yet
-		NotificationService:      nil,            // Not implemented yet
-		ProductCodeService:       productService, // Not implemented yet
-		DonationContainer:        nil,            // Not implemented yet
+		AmountBasedAuthContainer: amountBased,     // Not implemented yet
+		AvatarDomian:             avatarService,   // Not implemented yet
+		BudgetCategoryContainer:  nil,             // Not implemented yet
+		NotificationService:      notificationsvc, // Not implemented yet
+		ProductCodeService:       productService,  // Not implemented yet
+		DonationContainer:        nil,             // Not implemented yet
 		Unlink:                   unlinkService,
     DonationCategoryContainer: donationCategoryService,
 
@@ -224,6 +224,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	hqService = hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 	serviceContainer.HQContainer = hqService
 
+	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService)
+	serviceContainer.NotificationService = notificationsvc
+
 	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, "miniapps", cfg, logger)
 	serviceContainer.MiniAppContainer = miniAppService
 
@@ -249,8 +252,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		logger,
 	)
 	serviceContainer.CPSUserContainer = cpsUserService
-
-	serviceContainer.NotificationService = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService)
 
 	serviceContainer.BudgetContainer = budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger)
 
@@ -328,7 +329,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSUser:             cpsUserService,
 		ServiceDetails:      serviceDetails,
 		ProductCode:         productService,
-		NotificationService: notificationService,
->>>>>>> f3e878c8 (wire the notfication)
+		NotificationService: notificationsvc,
 	}
 }

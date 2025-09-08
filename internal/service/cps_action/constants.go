@@ -52,65 +52,73 @@ const (
 	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
-	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
-	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
-	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
-	RequestEnableUser               RequestAction = "ENABLE_USER"
-	RequestDisableUser              RequestAction = "DISABLE_USER"
-	RequestBPSUser                  RequestAction = "BPS_USER"
-	RequestDisableBPSUser           RequestAction = "DISABLE_BPS_USER"
-	RequestEnableBPSUser            RequestAction = "ENABLE_BPS_USER"
-	RequestUpdateUser               RequestAction = "UPDATE_USER"
-	RequestTotalDailyLimit          RequestAction = "TOTAL_DAILY_LIMIT"
-	RequestUpdateVAT                RequestAction = "UPDATE_VAT"
-	RequestAuthTier                 RequestAction = "AUTHTIER"
-	RequestCreateAdvert             RequestAction = "CREATE_ADVERT"
-	RequestUpdateAdvert             RequestAction = "UPDATE_ADVERT"
-	RequestEnableAdvert             RequestAction = "ENABLE_ADVERT"
-	RequestDisableAdvert            RequestAction = "DISABLE_ADVERT"
-	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
-	RequestCreateBank               RequestAction = "CREATE_BANK"
-	RequestUpdateBank               RequestAction = "UPDATE_BANK"
-	RequestDeleteBank               RequestAction = "DELETE_BANK"
-	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
-	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO"
-	RequestEnableBank               RequestAction = "ENABLE_BANK"
-	RequestDisableBank              RequestAction = "DISABLE_BANK"
-	RequestCreateWallet             RequestAction = "CREATE_WALLET"
-	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
-	RequestDeleteWallet             RequestAction = "DELETE_WALLET"
-	RequestEnableWallet             RequestAction = "ENABLE_WALLET"
-	RequestDisableWallet            RequestAction = "DISABLE_WALLET"
-	RequestUpdatePasswordExpiry     RequestAction = "UPDATE_PASSWORD_EXPIRY"
-	RequestCreateValidation         RequestAction = "CREATE_VALIDATION"
-	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
-	RequestDeleteValidation         RequestAction = "DELETE_VALIDATION"
-	RequestUpdateArchiveExpiry      RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestUpdateServiceSingle      RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
-	RequestUpdateServiceTotal       RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
-	RequestUpdateServiceMinCap      RequestAction = "UPDATE_SERVICE_MIN_CAP"
-	RequestBudgetColor              RequestAction = "BUDGET_COLOR"
-	RequestBudgetIcon               RequestAction = "BUDGET_ICON"
-	RequestUpdateProduct            RequestAction = "UPDATE_PRODUCT"
+	RequestCreateDepartment        RequestAction = "CREATE_DEPARTMENT"
+	RequestUpdateDepartment        RequestAction = "UPDATE_DEPARTMENT"
+	RequestEnableDisableDepartment RequestAction = "ENABLE_DISABLE_DEPARTMENT"
+	RequestEnableUser              RequestAction = "ENABLE_USER"
+	RequestDisableUser             RequestAction = "DISABLE_USER"
+	RequestBPSUser                 RequestAction = "BPS_USER"
+	RequestDisableBPSUser          RequestAction = "DISABLE_BPS_USER"
+	RequestEnableBPSUser           RequestAction = "ENABLE_BPS_USER"
+	RequestUpdateUser              RequestAction = "UPDATE_USER"
+	RequestTotalDailyLimit         RequestAction = "TOTAL_DAILY_LIMIT"
+	RequestUpdateVAT               RequestAction = "UPDATE_VAT"
+	RequestAuthTier                RequestAction = "AUTHTIER"
+	RequestCreateAdvert            RequestAction = "CREATE_ADVERT"
+	RequestUpdateAdvert            RequestAction = "UPDATE_ADVERT"
+	RequestEnableAdvert            RequestAction = "ENABLE_ADVERT"
+	RequestDisableAdvert           RequestAction = "DISABLE_ADVERT"
+	RequestDeleteAdvert            RequestAction = "DELETE_ADVERT"
+	RequestCreateBank              RequestAction = "CREATE_BANK"
+	RequestUpdateBank              RequestAction = "UPDATE_BANK"
+	RequestDeleteBank              RequestAction = "DELETE_BANK"
+	RequestEnableDisableBank       RequestAction = "ENABLE_DISABLE_BANK"
+	RequestUpdateBankLogo          RequestAction = "UPDATE_BANK_LOGO"
+	RequestEnableBank              RequestAction = "ENABLE_BANK"
+	RequestDisableBank             RequestAction = "DISABLE_BANK"
+	RequestCreateWallet            RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet            RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet            RequestAction = "DELETE_WALLET"
+	RequestEnableWallet            RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet           RequestAction = "DISABLE_WALLET"
+	RequestUpdatePasswordExpiry    RequestAction = "UPDATE_PASSWORD_EXPIRY"
+	RequestCreateValidation        RequestAction = "CREATE_VALIDATION"
+	RequestUpdateValidation        RequestAction = "UPDATE_VALIDATION"
+	RequestDeleteValidation        RequestAction = "DELETE_VALIDATION"
+	RequestUpdateArchiveExpiry     RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle     RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal      RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap     RequestAction = "UPDATE_SERVICE_MIN_CAP"
+	RequestBudgetColor             RequestAction = "BUDGET_COLOR"
+	RequestBudgetIcon              RequestAction = "BUDGET_ICON"
+	RequestUpdateProduct           RequestAction = "UPDATE_PRODUCT"
+
+	// Notification
 	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
-	RequestArchiveUser              RequestAction = "ARCHIVE_USER"
-	RequestUpdatePasswordRule       RequestAction = "UPDATE_PASSWORD_RULE"
-	RequestUpdateMinimumService     RequestAction = "UPDATE_MINIMUM_SERVICE"
-	RequestUpdateServiceRule        RequestAction = "UPDATE_SERVICE_RULE"
-	RequestUpdateTotal              RequestAction = "UPDATE_TOTAL"
-	RequestUpdateAccessConfig       RequestAction = "UPDATE_ACCESS_CONFIG"
-	RequestEnableSingleBranch       RequestAction = "ENABLE_SINGLE_BRANCH"
-	RequestDisableSingleBranch      RequestAction = "DISABLE_SINGLE_BRANCH"
-	RequestUpdateAccountValidation  RequestAction = "UPDATE_ACCOUNT_VALIDATION"
-	RequestEnableMultiUsers         RequestAction = "ENABLE_MULTI_USERS"
-	RequestDisableMultiUsers        RequestAction = "DISABLE_MULTI_USERS"
-	RequestCreateBusiness           RequestAction = "CREATE_BUSINESS"
-	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
-	RequestCreateEvent              RequestAction = "CREATE_EVENT"
-	RequestUpdateEvent              RequestAction = "UPDATE_EVENT"
-	RequestDeleteEvent              RequestAction = "DELETE_EVENT"
-	RequestEnableEvent              RequestAction = "ENABLE_EVENT"
-	RequestDisableEvent             RequestAction = "DISABLE_EVENT"
+	RequestUpdatePublicNotification RequestAction = "UPDATE_PUBLIC_NOTIFICATION"
+	RequestDeleteNotification       RequestAction = "DELETE_NOTIFICATION"
+	RequestEnableNotification       RequestAction = "ENABLE_NOTIFICATION"
+	RequestDisableNotification      RequestAction = "DISABLE_NOTIFICATION"
+	RequestMarkNotificationAsSeen   RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+
+	RequestArchiveUser             RequestAction = "ARCHIVE_USER"
+	RequestUpdatePasswordRule      RequestAction = "UPDATE_PASSWORD_RULE"
+	RequestUpdateMinimumService    RequestAction = "UPDATE_MINIMUM_SERVICE"
+	RequestUpdateServiceRule       RequestAction = "UPDATE_SERVICE_RULE"
+	RequestUpdateTotal             RequestAction = "UPDATE_TOTAL"
+	RequestUpdateAccessConfig      RequestAction = "UPDATE_ACCESS_CONFIG"
+	RequestEnableSingleBranch      RequestAction = "ENABLE_SINGLE_BRANCH"
+	RequestDisableSingleBranch     RequestAction = "DISABLE_SINGLE_BRANCH"
+	RequestUpdateAccountValidation RequestAction = "UPDATE_ACCOUNT_VALIDATION"
+	RequestEnableMultiUsers        RequestAction = "ENABLE_MULTI_USERS"
+	RequestDisableMultiUsers       RequestAction = "DISABLE_MULTI_USERS"
+	RequestCreateBusiness          RequestAction = "CREATE_BUSINESS"
+	RequestUpdateBusiness          RequestAction = "UPDATE_BUSINESS"
+	RequestCreateEvent             RequestAction = "CREATE_EVENT"
+	RequestUpdateEvent             RequestAction = "UPDATE_EVENT"
+	RequestDeleteEvent             RequestAction = "DELETE_EVENT"
+	RequestEnableEvent             RequestAction = "ENABLE_EVENT"
+	RequestDisableEvent            RequestAction = "DISABLE_EVENT"
 
 	RequestUpdateBlockTime RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar    RequestAction = "CREATE_AVATAR"
@@ -188,12 +196,12 @@ const (
 	RequestUpdateDailyLimit RequestAction = "UPDATE DAILY LIMIT"
 	RequestDeleteDailyLimit RequestAction = "DELETE DAILY LIMIT"
 
-	RequestCreateNotification     RequestAction = "CREATE_NOTIFICATION"
-	RequestUpdateNotification     RequestAction = "UPDATE_NOTIFICATION"
-	RequestDeleteNotification     RequestAction = "DELETE_NOTIFICATION"
-	RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
-	RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
-	RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+	// RequestCreateNotification     RequestAction = "CREATE_NOTIFICATION"
+	// RequestUpdateNotification     RequestAction = "UPDATE_NOTIFICATION"
+	// RequestDeleteNotification     RequestAction = "DELETE_NOTIFICATION"
+	// RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
+	// RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
+	// RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
 	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
 	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
 	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
@@ -259,6 +267,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestBudgetIcon:               {},
 	RequestUpdateProduct:            {},
 	RequestCreatePublicNotification: {},
+	RequestUpdatePublicNotification: {},
+	RequestDeleteNotification:       {},
+	RequestEnableNotification:       {},
+	RequestDisableNotification:      {},
+	RequestMarkNotificationAsSeen:   {},
 	RequestArchiveUser:              {},
 	RequestUpdatePasswordRule:       {},
 	RequestUpdateMinimumService:     {},
@@ -313,12 +326,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateWallet:        {},
 	RequestDeleteWallet:        {},
 
-	RequestCreateNotification:      {},
-	RequestUpdateNotification:      {},
-	RequestDeleteNotification:      {},
-	RequestEnableNotification:      {},
-	RequestDisableNotification:     {},
-	RequestMarkNotificationAsSeen:  {},
+	// RequestCreateNotification:      {},
+	// RequestUpdateNotification:      {},
+	// RequestDeleteNotification:      {},
+	// RequestEnableNotification:      {},
+	// RequestDisableNotification:     {},
+	// RequestMarkNotificationAsSeen:  {},
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
 	RequestEnableBranches:          {},
@@ -556,8 +569,10 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableMiniApp,
 	},
 	"Notification": {
-		RequestCreateNotification,
-		RequestUpdateNotification,
+		// RequestCreateNotification,
+		// RequestUpdateNotification,
+		RequestCreatePublicNotification,
+		RequestUpdatePublicNotification,
 		RequestDeleteNotification,
 		RequestEnableNotification,
 		RequestDisableNotification,

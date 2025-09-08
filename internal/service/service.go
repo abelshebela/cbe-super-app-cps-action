@@ -72,8 +72,11 @@ type NotificationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateNotification(ctx context.Context, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
 	UpdateNotification(ctx context.Context, id string, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
+	CreateNotification(ctx context.Context, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
+	UpdateNotification(ctx context.Context, id string, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
 	DeleteNotification(ctx context.Context, id string) error
-	EnableDisableNotification(ctx context.Context, id string) error
+	EnableNotification(ctx context.Context, id string) error
+	DisableNotification(ctx context.Context, id string) error
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
 	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error)
 }

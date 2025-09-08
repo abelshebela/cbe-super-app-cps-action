@@ -149,6 +149,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMiniAppMerchantUpdateFailed,
 	ErrorMiniAppMerchantFetchPermissionsFailed,
 	ErrorNotificationMapFailed,
+	ErrorNotificationAlreadyExists,
 	ErrorFeedbackSavedToDatabase,
 	ErrorHQApproved,
 	ErrorCPSActionStatusInvalid,
@@ -3438,6 +3439,12 @@ var (
 		Code:       "ERROR_NOTIFICATION_MAP_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgNotificationMapFailed,
+		Type:       "error",
+	}
+	ErrorNotificationAlreadyExists = ResponseCode{
+		Code:       "ERROR_NOTIFICATION_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgNotificationAlreadyExists,
 		Type:       "error",
 	}
 

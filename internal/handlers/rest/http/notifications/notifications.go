@@ -40,7 +40,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
+	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 }
 
 // UpdateNotification handles updating an existing notification
@@ -100,7 +100,7 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.EnableDisableNotification(r.Context(), id); err != nil {
+	if err := h.service.EnableNotification(r.Context(), id); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
 		return
 	}
@@ -119,7 +119,7 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.EnableDisableNotification(r.Context(), id); err != nil {
+	if err := h.service.DisableNotification(r.Context(), id); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
 		return
 	}

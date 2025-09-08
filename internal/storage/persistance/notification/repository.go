@@ -49,7 +49,7 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := NotificationMapper(*notification)
 
-	_, err = n.dal.UpdateOne(ctx, filter, bson.M{"$set": updateData})
+	_, err = n.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
@@ -147,36 +147,22 @@ func (n *NotificationStorage) NotificationExists(ctx context.Context, notificati
 }
 
 func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id string, enable bool) (*model.Notification, error) {
-	objID, err := local_util.ParsePrimitiveObjectID(id)
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		n.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
-		return nil, errors.New(localization.ErrorInvalidIDFormat.Code)
-	}
-
-	filter := bson.M{
-		"_id":        objID,
-		"is_deleted": false,
-	}
-
-	update := bson.M{
-		"enabled":       enable,
-		"last_modified": time.Now(),
-	}
-
-	_, err = n.dal.UpdateOne(ctx, filter, bson.M{"$set": update})
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			n.logger.Errorf("Notification with ID %s not found for enable/disable", id)
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		n.logger.Errorf("Failed to update enabled state for notification ID %s: %v", id, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	// Fetch and return the updated document
-	updated, err := n.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{
+		"enabled":          enable,
+		"last_modified_at": time.Now(),
 	}
-	return updated, nil
+	_, err = n.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		n.logger.Errorf("EnableOrDisable Event failed", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil, nil
 }
