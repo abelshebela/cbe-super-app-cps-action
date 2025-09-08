@@ -247,7 +247,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
     }
     
     if donationCategory.Icon == nil {
-        return errors.New(localization.ErrorDonationCategoryIDRequired.Code)
+        return errors.New(localization.ErrorMissingFile.Code)
     }
     
     url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.Avatar), d.minioEndPoint, d.logger)

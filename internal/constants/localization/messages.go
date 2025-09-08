@@ -865,7 +865,7 @@ const (
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
 
-	MsgBucketNotFOund= "bucket not found"
+	MsgBucketNotFound= "bucket not found"
 
 	MsgNoUpdateDetected = "No update detected"
 

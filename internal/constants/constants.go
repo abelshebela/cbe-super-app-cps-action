@@ -335,7 +335,7 @@ const (
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
 	RequestCreateDonation         RequestAction = "CREATE_DONATION"
 	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
-	R
+
 
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"

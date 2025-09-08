@@ -10,7 +10,8 @@ type ResponseCode struct {
 
 // Error implements error.
 func (r ResponseCode) Error() string {
-	panic("unimplemented")
+	// panic("unimplemented")
+	return r.Message
 }
 
 var ResponseCodesList = []ResponseCode{
@@ -4191,7 +4192,7 @@ var (
 	ErrorBucketNotFound = ResponseCode{
 		Code:       "BUCKET NOT FOUND",
 		StatusCode: StatusNotFound,
-		Message:    MsgBucketNotFOund,
+		Message:    MsgBucketNotFound,
 		Type:       "error",
 	}
 	ErrorFailedToBucket = ResponseCode{
