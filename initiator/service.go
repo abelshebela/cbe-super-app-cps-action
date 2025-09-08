@@ -72,15 +72,11 @@ type ServiceLayer struct {
 	CPSUser        service.CPSUserService
 	ServiceDetails service.ServiceService
 
-<<<<<<< HEAD
 	ProductCode service.ProductCodeService
 
 	DonationCategory service.DonationCategoryService
 
-=======
-	ProductCode         service.ProductCodeService
 	NotificationService service.NotificationService
->>>>>>> f3e878c8 (wire the notfication)
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -133,7 +129,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
-
 	permissionService := permission.InitPermissionService(
 		persistence.PermissionPersistence,
 		nil, // Will be updated after CPS action service is created
@@ -158,38 +153,37 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
-		EventContainer:           eventService,
-		FeedbackContainer:        feedbackService,
-		UnlinkContainer:          unlinkService,  // Will be updated after CPS action service is created
-		BPSUserContainer:         bpsUserService, // Will be updated after CPS action service is created
-		CPSActionContainer:       cpsactionService,
-		AdContainer:              adService,
-		PortalCardContainer:      portalCardService,
-		ServiceCheckContainer:    serviceDetails,
-		BankContainer:            bank_service,
-		WalletContainer:          walletService,
-		PasswordRuleContainer:    passwordRule,
-		AccountBlockContainer:    accountBlockService,
-		DepartmentContainer:      departmentService,
-		HQContainer:              hqService,
-		MiniAppContainer:         miniAppService,
-		MiniAppMerchantContainer: miniAppMerchantService,
-		FaydaContainer:           faydaService,
-		BulkServiceContainer:     bulkService,
-		CustomerContainer:        customerSerice,
-		PermissionContainer:      permissionService,
-		CPSUserContainer:         cpsUserService,
-		BudgetContainer:          budgetService, // Will be updated after CPS action service is created
-		AccountContainer:         accountValidation,
-		AmountBasedAuthContainer: amountBased,     // Not implemented yet
-		AvatarDomian:             avatarService,   // Not implemented yet
-		BudgetCategoryContainer:  nil,             // Not implemented yet
-		NotificationService:      notificationsvc, // Not implemented yet
-		ProductCodeService:       productService,  // Not implemented yet
-		DonationContainer:        nil,             // Not implemented yet
-		Unlink:                   unlinkService,
-    DonationCategoryContainer: donationCategoryService,
-
+		EventContainer:            eventService,
+		FeedbackContainer:         feedbackService,
+		UnlinkContainer:           unlinkService,  // Will be updated after CPS action service is created
+		BPSUserContainer:          bpsUserService, // Will be updated after CPS action service is created
+		CPSActionContainer:        cpsactionService,
+		AdContainer:               adService,
+		PortalCardContainer:       portalCardService,
+		ServiceCheckContainer:     serviceDetails,
+		BankContainer:             bank_service,
+		WalletContainer:           walletService,
+		PasswordRuleContainer:     passwordRule,
+		AccountBlockContainer:     accountBlockService,
+		DepartmentContainer:       departmentService,
+		HQContainer:               hqService,
+		MiniAppContainer:          miniAppService,
+		MiniAppMerchantContainer:  miniAppMerchantService,
+		FaydaContainer:            faydaService,
+		BulkServiceContainer:      bulkService,
+		CustomerContainer:         customerSerice,
+		PermissionContainer:       permissionService,
+		CPSUserContainer:          cpsUserService,
+		BudgetContainer:           budgetService, // Will be updated after CPS action service is created
+		AccountContainer:          accountValidation,
+		AmountBasedAuthContainer:  amountBased,     // Not implemented yet
+		AvatarDomian:              avatarService,   // Not implemented yet
+		BudgetCategoryContainer:   nil,             // Not implemented yet
+		NotificationService:       notificationsvc, // Not implemented yet
+		ProductCodeService:        productService,  // Not implemented yet
+		DonationContainer:         nil,             // Not implemented yet
+		Unlink:                    unlinkService,
+		DonationCategoryContainer: donationCategoryService,
 	}
 
 	// Create the dispatcher with the service container
@@ -275,7 +269,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
-<<<<<<< HEAD
 		Feedback:          feedbackService,
 		EventService:      eventService,
 		Avatar:            avatarService,
@@ -300,34 +293,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
 
-		ServiceDetails: serviceDetails,
-		DonationCategory: donationCategoryService,
-		ProductCode: productService,
-=======
-		Feedback:            feedbackService,
-		EventService:        eventService,
-		Avatar:              avatarService,
-		Advert:              advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger),
-		BpsUser:             bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
-		Bank:                bank_service,
-		Unlink:              unlinkService,
-		Budget:              budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger),
-		PortalCard:          portalCardService,
-		AmountBasedAuth:     amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
-		ValidationService:   accountValidation,
-		Wallet:              walletService,
-		PasswordRule:        passwordRule,
-		HQService:           hqService,
-		AccountBlock:        accountBlockService,
-		MiniAppService:      miniAppService,
-		MiniAppMerchant:     miniAppMerchantService,
-		Department:          departmentService,
-		BulkService:         bulkService,
-		CustomerService:     customerSerice,
-		Fayda:               faydaService,
-		Permission:          permissionService,
-		CPSUser:             cpsUserService,
 		ServiceDetails:      serviceDetails,
+		DonationCategory:    donationCategoryService,
 		ProductCode:         productService,
 		NotificationService: notificationsvc,
 	}

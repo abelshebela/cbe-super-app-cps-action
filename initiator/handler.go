@@ -53,16 +53,15 @@ import (
 	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
 
+	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
 	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
+	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
-	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
-	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
-
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -87,27 +86,16 @@ type Handler struct {
 	ServiceDetailsHandler  service_details.ServiceAdapter
 	AmountBasedAuthHandler amountBasedAuthHandler.AmountBasedAuthHandler
 
-<<<<<<< HEAD
-	DepartmentHandler  department.DepartmentHandler
-	AvatarHandler      avatarHandlerInterface.AvatarInbound
-	FaydaHandler       FaydaInbound.FaydaAccount
-	bulkServiceHandler bulk_service_inbound.BulkServiceHandler
-	customerHandler    customerInbound.CustomerDetail
-	Permission         permissionInbound.PermissionHandler
-	CPSUser            cpsUserInbound.CPSUserHandler
-	ProductCodeHandler productCodeHandler.ProductCodeAdapter
+	DepartmentHandler       department.DepartmentHandler
+	AvatarHandler           avatarHandlerInterface.AvatarInbound
+	FaydaHandler            FaydaInbound.FaydaAccount
+	bulkServiceHandler      bulk_service_inbound.BulkServiceHandler
+	customerHandler         customerInbound.CustomerDetail
+	Permission              permissionInbound.PermissionHandler
+	CPSUser                 cpsUserInbound.CPSUserHandler
+	ProductCodeHandler      productCodeHandler.ProductCodeAdapter
 	DonationCategoryHandler donation_category.DonationCategoryAdapter
-=======
-	DepartmentHandler   department.DepartmentHandler
-	AvatarHandler       avatarHandlerInterface.AvatarInbound
-	FaydaHandler        FaydaInbound.FaydaAccount
-	bulkServiceHandler  bulk_service_inbound.BulkServiceHandler
-	customerHandler     customerInbound.CustomerDetail
-	Permission          permissionInbound.PermissionHandler
-	CPSUser             cpsUserInbound.CPSUserHandler
-	ProductCodeHandler  productCodeHandler.ProductCodeAdapter
-	NotificationHandler notificationInbound.NotificationHandler
->>>>>>> f3e878c8 (wire the notfication)
+	NotificationHandler     notificationInbound.NotificationHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -144,8 +132,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 
 		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 
-		ProductCodeHandler: productCodeHandler.InitProductcodeAdapter(pcs, logger),
-		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory,logger),
-
+		ProductCodeHandler:      productCodeHandler.InitProductcodeAdapter(pcs, logger),
+		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
 	}
 }
