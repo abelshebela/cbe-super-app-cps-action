@@ -1,14 +1,126 @@
 package donation_category
 
 import (
+	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"errors"
+	"fmt"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type Repository = storage.GenericRepository[model.DonationCategory]
+type DonationCategoryStorage struct {
+	dal    dal.MongoDal[model.DonationCategory, model.DonationCategory]
+	client *mongo.Client
+	logger utils.Logger
+}
 
-func NewDonationCategoryRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) {
+func NewDonationCategoryRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DonationCategoryRepository {
+	return &DonationCategoryStorage{
+		dal:    dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, dbName, collection),
+		client: client,
+		logger: logger,
+	}
+}
+
+func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.DonationCategory) error {
+	fmt.Println("////////////////CREATE")
+	_, err := s.dal.InsertOne(ctx, *details)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details *model.DonationCategory) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	updateData := DonationCategoryMapper(*details)
+	_, err = s.dal.UpdateOne(ctx, filter, updateData)
+	if err != nil {
+
+		if err == mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+func (s *DonationCategoryStorage) FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error) {
+	idObj, ok := local_util.StringToObjectID(id)
+	if !ok {
+		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": idObj, "is_deleted": false}
+	projection := bson.M{}
+
+	result, err := s.dal.FindOne(ctx, filter, projection)
+	if err != nil {
+		s.logger.Errorf("Error finding donation category: %v", err)
+		code, _ := local_util.HandleMongoError(err)
+		return nil, errors.New(code)
+	}
+	s.logger.Infof("Successfully found donation category: %+v", result)
+	return MapToDonationCategoryListResponse(result), nil
+}
+func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_category.DonationCategoryListResponse], error) {
+	// 1. Base filter (only active records)
+	filter := bson.M{"is_deleted": false}
+	searchKeys := bson.M{}
+
+	// 2. Allowed filterable/searchable fields
+	allowedKeys := []string{"category_name"}
+	// 3. Add search (if provided)
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{{"category_name": searchRegex}}
+	}
+
+	projection := bson.M{}
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	// 5. Fetch data
+	data, err := s.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	// 6. Count total
+	total, err := s.dal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	// 7. Build pagination metadata
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	// 8. Map to DTOs
+	dtoData := MapToDonationCategoryListResponses(data)
+
+	// 9. Return standard paginated response
+	return &types.PaginatedResponse[[]donation_category.DonationCategoryListResponse]{
+		Data: dtoData,
+		Meta: meta,
+	}, nil
+}
+func (s *DonationCategoryStorage) Delete(ctx context.Context, id string) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	return s.dal.DeleteOne(ctx, filter)
 }

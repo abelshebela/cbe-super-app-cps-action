@@ -18,6 +18,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
+	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"time"
 
@@ -79,15 +80,19 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		AvatarPersistence:           avatar.NewAvatarRepository(client, dbName, "avatars", logger),
 		BPSUserPersistence:          bps_user.NewBPSUserRepository(client, dbName, "branch_user", logger),
 		AdvertRepositoryPersistence: advert.NewAdvertRepository(client, dbName, "adverts", logger),
+
+		// ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
+		AuthTierPersistence: auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
+		BankPersistence:     bank.NewBankRepository(client, dbName, "banks", logger),
+		ColorPersistence:    color.NewColorRepository(client, dbName, "colors", logger),
+		BulkService:         bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
+		CustomerService:     customer.InitCustomerDetail(client, dbName, "users", logger),
+		CpsUserPersistence:  cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
+		DonationPersistence: donation.NewDonationRepository(client, dbName, "donations", logger),
+		DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
+
 		ArchivedUserPersistence:     archived_user.NewArchivedUserRepository(client, dbName, "archived_users", logger),
-		AuthTierPersistence:         auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
-		BankPersistence:             bank.NewBankRepository(client, dbName, "banks", logger),
-		ColorPersistence:            color.NewColorRepository(client, dbName, "colors", logger),
-		BulkService:                 bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
-		CustomerService:             customer.InitCustomerDetail(client, dbName, "members", logger),
-		CpsUserPersistence:          cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
-		DonationPersistence:         donation.NewDonationRepository(client, dbName, "donations", logger),
-		// DonationCategoryPersistence:  donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
+
 		DonationCompanyPersistence: donation_company.NewDonationCompanyRepository(client, dbName, "donation_companies", logger),
 		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
 		PasswordRulePersistent:     password.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
