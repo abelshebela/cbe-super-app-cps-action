@@ -84,7 +84,7 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 	}
 
 	d.logger.Infof("event creation request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessEventCreationRequestSubmitted, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreateRequestSent, nil)
 }
 
 func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, r *http.Request) {
@@ -115,6 +115,6 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 		return
 	}
 
-	d.logger.Infof("donation category update request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, updatedDonationCategory)
+	d.logger.Infof("donation category update request submitted successfully",updatedDonationCategory)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, nil)
 }
