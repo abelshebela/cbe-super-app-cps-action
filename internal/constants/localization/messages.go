@@ -677,9 +677,11 @@ const (
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
+	MsgNotificationAlreadyExists   = "Notification already exists"
 	MsgNotificationInsertFailed    = "Failed to insert notification"
 	MsgNotificationInvalidIDFormat = "Invalid notification ID format"
 	MsgNotificationFetchFailed     = "Failed to fetch notification"
+	MsgNotificationDeleteFailed    = "Failed to delete notification"
 
 	// Customer related error messages
 	MsgCustomerCountFailed     = "Failed to count customers"
