@@ -12,7 +12,7 @@ import (
 func PermissionGroupModel(req permission.CreatePermissionGroupRequest) model.PermissionGroup {
 	return model.PermissionGroup{
 		GroupName:          strings.ToUpper(req.GroupName),
-		Role:               req.Role,
+		Role:               strings.ToUpper(req.Role),
 		PermissionCategory: req.PermissionCategoryLists,
 		Realm:              "bank",
 		Enabled:            true,
@@ -24,27 +24,13 @@ func PermissionGroupModel(req permission.CreatePermissionGroupRequest) model.Per
 func PermissionGroupUpdateModel(req permission.UpdatePermissionGroupRequest) model.PermissionGroup {
 	return model.PermissionGroup{
 		GroupName:          strings.ToUpper(req.NewGroupName),
-		Role:               req.Role,
+		Role:               strings.ToUpper(req.Role),
 		PermissionCategory: req.PermissionCategoryLists,
 		Realm:              "bank",
 		Enabled:            true,
 		IsDeleted:          false,
 	}
 }
-
-// UnmarshalActionToType marshals and unmarshals action.CurrentAction to the target type
-// func UnmarshalActionToType[T any](currentAction interface{}) (T, error) {
-// 	var result T
-// 	bytes, err := json.Marshal(currentAction)
-// 	if err != nil {
-// 		return result, err
-// 	}
-// 	if err := json.Unmarshal(bytes, &result); err != nil {
-// 		return result, err
-// 	}
-// 	return result, nil
-
-// }
 
 // BindPermissionGroupFromAction decodes action.CurrentAction into model.PermissionGroup
 func BindPermissionGroupFromAction(currentAction interface{}) (model.PermissionGroup, error) {
