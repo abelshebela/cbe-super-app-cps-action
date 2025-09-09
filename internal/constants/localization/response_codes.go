@@ -974,7 +974,7 @@ var (
 		Type:       "error",
 	}
 	ErrorInvalidFileUpload = ResponseCode{
-		Code:       "IMAGE REQUIRED",
+		Code:       "IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    "image is required",
 		Type:       "error",

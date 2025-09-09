@@ -33,7 +33,7 @@ func NewDonationCategoryRepository(client *mongo.Client, dbName string, collecti
 }
 
 func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.DonationCategory) error {
-	fmt.Println("////////////////CREATE")
+	
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
