@@ -15,9 +15,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// server implements bankpb.BankServiceServer
-// Embed UnimplementedBankServiceServer for forward compatibility
-
 type server struct {
 	bankpb.UnimplementedBankServiceServer
 	bankHandler bank.BankHandlerService
