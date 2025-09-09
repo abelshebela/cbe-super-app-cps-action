@@ -49,6 +49,7 @@ const (
 	OtpExpirationTime                 = 3 * time.Minute
 	ActionCode                        = "action_code"
 	Avatar                            = "avatar"
+	DonationIcon					= "donation_icon"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"
@@ -326,8 +327,15 @@ const (
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
 
-	RequestDisableFaydaAccount RequestAction = "DISABLE_FAYDA_ACCOUNT"
-	RequestEnableFaydaAccount  RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestDisableFaydaAccount    RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount     RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation         RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
+
 
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"

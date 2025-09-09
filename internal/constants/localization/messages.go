@@ -696,17 +696,20 @@ const (
 	MsgValidationRuleActionsFetchFailed       = "Failed to fetch actions"
 
 	// Donation related error messages
-	MsgDonationCategoryLookupFailed = "Category lookup failed"
-	MsgDonationCompanyLookupFailed  = "Company lookup failed"
-	MsgDonationLookupFailed         = "Donation lookup failed"
-	MsgDonationParseStartDateFailed = "Failed to parse start date"
-	MsgDonationParseEndDateFailed   = "Failed to parse end date"
-	MsgDonationFetchCompanyFailed   = "Failed to fetch company"
-	MsgDonationFetchCategoryFailed  = "Failed to fetch category"
-	MsgDonationUpdateFailed         = "Failed to update donation"
-	MsgDonationImageUpdateFailed    = "Failed to update donation image"
-	MsgDonationImageDeleteFailed    = "Failed to delete donation image"
-	MsgDonationImageAddFailed       = "Failed to add donation image"
+	MsgDonationCategoryLookupFailed   = "Category lookup failed"
+	MsgDonationCategoryIdRequired     = "category id is required"
+	MsgDonationCompanyLookupFailed    = "Company lookup failed"
+	MsgDonationLookupFailed           = "Donation lookup failed"
+	MsgDonationCategoryNameDuplicated = "donation category name already exist"
+	MsgNoChangesToUpdate              = "no changes to update"
+	MsgDonationParseStartDateFailed   = "Failed to parse start date"
+	MsgDonationParseEndDateFailed     = "Failed to parse end date"
+	MsgDonationFetchCompanyFailed     = "Failed to fetch company"
+	MsgDonationFetchCategoryFailed    = "Failed to fetch category"
+	MsgDonationUpdateFailed           = "Failed to update donation"
+	MsgDonationImageUpdateFailed      = "Failed to update donation image"
+	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
+	MsgDonationImageAddFailed         = "Failed to add donation image"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
@@ -862,5 +865,8 @@ const (
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
 
+	MsgBucketNotFound= "bucket not found"
+
 	MsgNoUpdateDetected = "No update detected"
+
 )
