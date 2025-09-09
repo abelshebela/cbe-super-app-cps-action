@@ -21,6 +21,7 @@ import (
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini_app"
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
+	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
@@ -102,6 +103,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	donation_company.Init(r, handlerLayer.DonationCompanyHandler, authMiddleware)
 
 	amountBasedAuth.Init(r, &handlerLayer.AmountBasedAuthHandler, authMiddleware)
+	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
 
 	// Add swagger endpoints to the API router before mounting
 	r.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {

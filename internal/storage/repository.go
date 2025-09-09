@@ -6,7 +6,11 @@ import (
 
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
+
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
+
+	"cbe-super-app-cps-action/internal/constants"
+
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
@@ -367,6 +371,8 @@ type NotificationRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.Notification, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Notification], error)
+	EnableDisableNotification(ctx context.Context, id string, enable bool) (*model.Notification, error)
+	NotificationExists(ctx context.Context, notificationType string, forValue constants.NotificationFor, id *string) (bool, error)
 }
 
 type PasswordRuleRepository interface {

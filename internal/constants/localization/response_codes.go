@@ -149,6 +149,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMiniAppMerchantUpdateFailed,
 	ErrorMiniAppMerchantFetchPermissionsFailed,
 	ErrorNotificationMapFailed,
+	ErrorNotificationAlreadyExists,
 	ErrorFeedbackSavedToDatabase,
 	ErrorHQApproved,
 	ErrorCPSActionStatusInvalid,
@@ -3456,6 +3457,12 @@ var (
 		Message:    MsgNotificationMapFailed,
 		Type:       "error",
 	}
+	ErrorNotificationAlreadyExists = ResponseCode{
+		Code:       "ERROR_NOTIFICATION_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgNotificationAlreadyExists,
+		Type:       "error",
+	}
 
 	ErrorNotificationInsertFailed = ResponseCode{
 		Code:       "ERROR_NOTIFICATION_INSERT_FAILED",
@@ -3475,6 +3482,12 @@ var (
 		Code:       "ERROR_NOTIFICATION_FETCH_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgNotificationFetchFailed,
+		Type:       "error",
+	}
+	ErrorNotificationDeleteFailed = ResponseCode{
+		Code:       "ERROR_NOTIFICATION_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgNotificationDeleteFailed,
 		Type:       "error",
 	}
 
@@ -3846,6 +3859,12 @@ var (
 
 	ErrorNotificationUpdated = ResponseCode{
 		Code:       "ERROR_NOTIFICATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgNotificationUpdateSuccess,
+		Type:       "error",
+	}
+	ErrorNotificationCreated = ResponseCode{
+		Code:       "ERROR_NOTIFICATION_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgNotificationUpdateSuccess,
 		Type:       "error",

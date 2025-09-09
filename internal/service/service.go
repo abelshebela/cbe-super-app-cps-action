@@ -5,6 +5,9 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+
+	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
+
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
@@ -68,7 +71,16 @@ type CPSUserService interface {
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
 }
-
+type NotificationService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateNotification(ctx context.Context, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
+	UpdateNotification(ctx context.Context, id string, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
+	DeleteNotification(ctx context.Context, id string) error
+	EnableNotification(ctx context.Context, id string) error
+	DisableNotification(ctx context.Context, id string) error
+	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
+	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error)
+}
 type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
@@ -158,10 +170,6 @@ type MiniAppMerchantService interface {
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-}
-
-type NotificationService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type PasswordRuleService interface {

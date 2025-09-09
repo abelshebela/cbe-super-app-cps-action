@@ -51,7 +51,6 @@ func Init(ctx context.Context) {
 	logger.Infof("initialize service layer")
 	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService)
 
-	// Start feedback Kafka consumer (non-blocking)
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
 			logger.Errorf("Failed to start feedback consumer: %v", err)
@@ -69,10 +68,17 @@ func Init(ctx context.Context) {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	}()
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	grpcServer := server.NewGrpcBankServer(serviceLayer.Bank, logger)
 	srv := server.NewHTTPServer(cfg, r)
+
+	// Start servers
+	go func() {
+		server.StartGrpcServer(grpcServer)
+	}()
 
 	go func() {
 		srv.HTTPServerStart(ctx, logger)
 	}()
 	srv.HTTPServerStop(ctx, logger)
+	server.StopGrpcServer(grpcServer)
 }

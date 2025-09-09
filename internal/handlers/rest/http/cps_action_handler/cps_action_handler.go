@@ -47,9 +47,11 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// Map to approval action using helper
 	approvalAction := core.MapCPSActionToApproval(existingAction, &userData)
 	fmt.Println("_____________________________________________________________________________")
-	fmt.Println("approvedAction:%v", *approvalAction)
+	fmt.Printf("approvedAction:%v\n", *approvalAction)
+	fmt.Println("_____________________________________________________________________________")
+	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), approvalAction); err != nil {
-		fmt.Println("errorsss : %v", err)
+		fmt.Printf("errorsss : %v\n", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
