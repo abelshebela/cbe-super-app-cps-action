@@ -14,7 +14,7 @@ func Init(router chi.Router, portalHander portal_card.PortalCardAdapter, authMid
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/portal_card/get_all",
+			Path:    "/portal_cards",
 			Handler: portalHander.GetAllPortalCard,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

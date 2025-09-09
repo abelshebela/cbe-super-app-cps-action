@@ -33,8 +33,8 @@ func Init(router chi.Router, handler unlink.UnlinkAdapter, authMiddleware middle
 			},
 		},
 		{
-			Method:  http.MethodPost,
-			Path:    "/unlink/user_cif",
+			Method:  http.MethodPatch,
+			Path:    "/unlink/user_cif/{user_code}",
 			Handler: handler.UnlinkUserCif,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

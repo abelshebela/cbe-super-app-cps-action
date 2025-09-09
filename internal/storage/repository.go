@@ -5,8 +5,8 @@ import (
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
-	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -33,6 +33,7 @@ type UserRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*model.User, error)
 	FindByUserCode(ctx context.Context, userCode string) (*model.User, error)
+	FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.User, error)
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error)
 	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error)
 	Update(ctx context.Context, id string, update *model.User) error

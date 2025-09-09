@@ -13,6 +13,7 @@ func UserProjection() bson.M {
 	return bson.M{
 		"_id":                           1,
 		"username":                      1,
+		"user_code":                     1,
 		"full_name":                     1,
 		"login_pin":                     1,
 		"is_blocked":                    1,
@@ -21,7 +22,7 @@ func UserProjection() bson.M {
 		"avatar":                        1,
 		"blocked_on_cps":                1,
 		"profile_theme_type":            1,
-		"kyc_level":                     1,
+		"level":                         1,
 		"is_verified":                   1,
 		"application_installation_date": 1,
 		"login_attempt_count":           1,
@@ -30,6 +31,7 @@ func UserProjection() bson.M {
 		"enabled":                       1,
 		"first_pin_set":                 1,
 		"device_uuid":                   1,
+		"customer_number":               1,
 	}
 }
 

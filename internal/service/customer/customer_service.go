@@ -27,9 +27,9 @@ func (c *customerService) GetCustomersDetail(ctx context.Context, kyc_level int,
 	filter := &types.Filter{
 		Page:    1,
 		PerPage: 10,
-		Search:  "searchTerm",
+		Search:  filterParams.Search,
 		Filters: map[string]interface{}{
-			"kyc_level": kyc_level,
+			"level": kyc_level,
 		},
 	}
 

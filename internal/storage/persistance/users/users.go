@@ -134,6 +134,21 @@ func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*
 	return user, nil
 }
 
+func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.User, error) {
+	filter := bson.M{
+		"customer_number": customerNumber,
+	}
+	projection := UserProjection()
+	user, err := r.userDal.FindOne(ctx, filter, projection)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorUserNotFound.Code)
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
 func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
 	linkedAccountCollection := r.client.Database(r.dbName).Collection("linked_accounts")
 	linkedAccountFilter := bson.M{"account_number": accNumber}

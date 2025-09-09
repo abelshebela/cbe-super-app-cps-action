@@ -1,4 +1,4 @@
-package linked_account
+package archived_linked_account
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -15,21 +15,27 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type LinkedAccountStorage struct {
-	dal    dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+type ArchivedLinkedAccountStorage struct {
+	dal    dal.MongoDal[model.LinkedAccount, model.ArchivedLinkedAccount]
 	client *mongo.Client
 	logger utils.Logger
 }
 
-func NewLinkedAccountRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.LinkedAccountRepository {
-	return &LinkedAccountStorage{
-		dal:    dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collection),
+type ArchivedLinkedAccountRepository interface {
+	Create(ctx context.Context, user *model.LinkedAccount) error
+	FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
+}
+
+func NewArchivedLinkedAccountRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
+	return &ArchivedLinkedAccountStorage{
+		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client, dbName, collection),
 		client: client,
 		logger: logger,
 	}
 }
 
-func (l *LinkedAccountStorage) FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.LinkedAccount, error) {
+func (l *ArchivedLinkedAccountStorage) FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.ArchivedLinkedAccount, error) {
 	filter := bson.M{
 		"customer_number": customerNumber,
 	}
@@ -44,7 +50,7 @@ func (l *LinkedAccountStorage) FindByCustomerNumber(ctx context.Context, custome
 	return result, nil
 }
 
-func (l *LinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
+func (l *ArchivedLinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
 	_, err := l.dal.InsertOne(ctx, *account)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -52,25 +58,7 @@ func (l *LinkedAccountStorage) Create(ctx context.Context, account *model.Linked
 	return nil
 }
 
-func (l *LinkedAccountStorage) Update(ctx context.Context, id string, account *model.LinkedAccount) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	updateData := LinkedAccountMapper(*account)
-
-	_, err = l.dal.UpdateOne(ctx, filter, updateData)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return nil
-}
-
-func (l *LinkedAccountStorage) Delete(ctx context.Context, id string) error {
+func (l *ArchivedLinkedAccountStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -79,7 +67,7 @@ func (l *LinkedAccountStorage) Delete(ctx context.Context, id string) error {
 	return l.dal.DeleteOne(ctx, filter)
 }
 
-func (l *LinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.LinkedAccount, error) {
+func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -94,7 +82,7 @@ func (l *LinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.
 	return result, nil
 }
 
-func (l *LinkedAccountStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*model.LinkedAccount, error) {
+func (l *ArchivedLinkedAccountStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*model.ArchivedLinkedAccount, error) {
 	filter := bson.M{
 		"account_number": accountNumber,
 	}
@@ -109,7 +97,7 @@ func (l *LinkedAccountStorage) FindByAccountNumber(ctx context.Context, accountN
 	return result, nil
 }
 
-func (l *LinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error) {
+func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -137,7 +125,7 @@ func (l *LinkedAccountStorage) FindAllWithPagination(ctx context.Context, filter
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.LinkedAccount]{
+	return &types.PaginatedResponse[[]*model.ArchivedLinkedAccount]{
 		Data: data,
 		Meta: meta,
 	}, nil

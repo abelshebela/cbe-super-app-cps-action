@@ -62,11 +62,11 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	user, err := u.userRepo.FindByUserCode(ctx, userCode)
+	user, err := u.userRepo.FindByCustomerNumber(ctx, userCode)
 	if err != nil {
 		return err
 	}
-	cpsAction := lib.CpsModelBuilder(userCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
+	cpsAction := lib.CpsModelBuilder(user.UserCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
 
 	if err := u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -87,18 +87,23 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		return nil, err
 	}
 
+	fmt.Println("_-----------------------user old data", userOldData.CustomerNumber)
 	linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
+	fmt.Println("---------------------------Linked acc============", linkedAccountOldData)
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
 
 	if archUserErr != nil || archLinkedAccErr != nil {
+		u.logger.Errorf("error occurred during archiving user %v / %v", archUserErr, archLinkedAccErr)
 		return nil, archUserErr
 	}
 
 	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
 	if userErr != nil || linkedErr != nil {
+		u.logger.Errorf("error occurred during deleting user %v / %v", userErr, linkedErr)
+
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 

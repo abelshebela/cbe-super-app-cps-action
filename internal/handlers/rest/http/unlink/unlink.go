@@ -8,6 +8,7 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -39,9 +40,31 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {
+	accNumber := chi.URLParam(r, "account_number")
+	if accNumber == "" {
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+	user, err := a.unlinkApp.GetUserByAccount(r.Context(), accNumber)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
+	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
 func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 
+	userCode := chi.URLParam(r, "user_code")
+	if userCode == "" {
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+	err := a.unlinkApp.UnlinkUserCif(r.Context(), userCode)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)
 }

@@ -36,16 +36,11 @@ func InitCustomerDetail(client *mongo.Client, database string, collection string
 }
 
 func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
-	// 1. Base filter (only active records)
-	// filter := bson.M{"is_deleted": false}
-	// Add additional filters from filterParam.Filters if provided
-	// for k, v := range filterParam.Filters {
-	// 	filter[k] = v
-	// }
+
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
+	allowedKeys := []string{"gender", "branch_code", "level", "is_blocked", "enabled", "bps_reject_status"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
@@ -63,7 +58,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, UserProjection(), skip, limit)
 
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -88,14 +83,17 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
 	objID, err := bson.ObjectIDFromHex(id)
-	filter := map[string]interface{}{"_id": objID}
-	user, err := p.mongoDal.FindOne(ctx, filter, nil)
-
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{"_id": objID}
+	user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
 	if err != nil {
 		p.logger.Errorf("Failed to fetch user by ID: %v", err)
 		return nil, err
 	}
-	if user != nil {
+
+	if user == nil {
 		p.logger.Infof("no user found for given id: %v", id)
 		return nil, fmt.Errorf("no user found for given id")
 	}

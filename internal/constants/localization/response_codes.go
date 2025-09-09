@@ -152,6 +152,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorNotificationAlreadyExists,
 	ErrorFeedbackSavedToDatabase,
 	ErrorHQApproved,
+	ErrorUnlinkFaild,
 	ErrorCPSActionStatusInvalid,
 	ErrorAdvertCreated,
 	ErrorAdvertUpdate,
@@ -373,7 +374,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCategoryNameDuplicated,
 	ErrorDonationCompanyLookupFailed,
 	ErrorDonationCategoryIDRequired,
-
 }
 
 // Success Response Codes
