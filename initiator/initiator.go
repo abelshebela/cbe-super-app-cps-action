@@ -34,6 +34,10 @@ func Init(ctx context.Context) {
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
 
+	logger.Infof("Initializing account lookup service...")
+	accountLookupService := InitAccountLookupService(cfg, logger)
+	logger.Infof("Account lookup service initialized")
+
 	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
@@ -45,7 +49,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService)
 
 	// Start feedback Kafka consumer (non-blocking)
 	go func() {

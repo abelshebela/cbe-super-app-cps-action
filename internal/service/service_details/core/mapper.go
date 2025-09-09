@@ -12,7 +12,7 @@ func MapToMinimumTransferCapResponse(service *model.ServiceDetails) *dto.Minimum
 		ServiceName: service.ServiceName,
 		ServiceCode: service.ServiceCode,
 		ServiceType: service.ServiceType,
-		Cap:         service.Cap,
+		MinimumAmount:service.Cap.MinAmount,
 		CreatedAt:   service.CreatedAt,
 	}
 }

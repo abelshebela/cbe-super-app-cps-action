@@ -372,7 +372,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCategoryNameDuplicated,
 	ErrorDonationCompanyLookupFailed,
 	ErrorDonationCategoryIDRequired,
+	
+	// Donation Company Error Codes
+	ErrorCompanyNameAlreadyExists,
+	ErrorAccountNumberAlreadyExists,
+	ErrorLogoIsRequired,
+	ErrorAccountNumberValidationFailed,
+	ErrorDonationCompanyIdRequired,
+	ErrorDonationCompanyLookupFailed,
 
+	SuccessDonationCompanyUpdated,
 }
 
 // Success Response Codes
@@ -642,6 +651,13 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgDonationCompanyUpdatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDonationCompanyUpdated = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgSuccessDonationCompanyUpdated,
 		Type:       "success",
 	}
 
@@ -957,9 +973,9 @@ var (
 		Type:       "error",
 	}
 	ErrorInvalidFileUpload = ResponseCode{
-		Code:       "ERROR_INVALID_FILE_UPLOAD",
+		Code:       "IMAGE REQUIRED",
 		StatusCode: StatusBadRequest,
-		Message:    "Invalid or corrupted file upload",
+		Message:    "image is required",
 		Type:       "error",
 	}
 	ErrorInvalidBooleanFormat = ResponseCode{
@@ -3549,10 +3565,45 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDonationCompanyIdRequired = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCompanyIdRequired,
+		Type:       "error",
+	}
+
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgDonationCompanyLookupFailed,
+		Type:       "error",
+	}
+
+	ErrorCompanyNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCompanyNameAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAccountNumberAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNumberAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorLogoIsRequired = ResponseCode{
+		Code:       "ERROR_LOGO_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogoIsRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountNumberValidationFailed = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_VALIDATION_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNumberValidationFailed,
 		Type:       "error",
 	}
 
