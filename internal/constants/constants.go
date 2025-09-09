@@ -50,6 +50,7 @@ const (
 	ActionCode                        = "action_code"
 	Avatar                            = "avatar"
 	DonationIcon					= "donation_icon"
+	CampanyLogo 					="company_logo"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"

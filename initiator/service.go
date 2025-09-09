@@ -17,6 +17,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
+	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
 
 	avatar "cbe-super-app-cps-action/internal/service/avatar"
@@ -29,6 +30,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
+	donation_company "cbe-super-app-cps-action/internal/service/donation_company"
 	service_details "cbe-super-app-cps-action/internal/service/service_details"
 
 	"cbe-super-app-cps-action/internal/service/productcode"
@@ -76,12 +78,15 @@ type ServiceLayer struct {
 
 	DonationCategory service.DonationCategoryService
 
+	DonationCompany  service.DonationCompanyService
+
 	NotificationService service.NotificationService
+
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 	// Create CPS action service with the dispatcher
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
@@ -125,7 +130,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger) // Will be updated after CPS action service is created
 
-	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donations", cfg, minioPubUrl)
+	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation_icon", cfg, minioPubUrl)
+	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation_company_logo", cfg, minioPubUrl, accountLookupService)
 
 	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
@@ -176,14 +182,19 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSUserContainer:          cpsUserService,
 		BudgetContainer:           budgetService, // Will be updated after CPS action service is created
 		AccountContainer:          accountValidation,
+
 		AmountBasedAuthContainer:  amountBased,   // Not implemented yet
 		AvatarDomian:              avatarService, // Not implemented yet
 		BudgetCategoryContainer:   nil,           // Not implemented yet
 		NotificationService:       notificationsvc,
+
 		ProductCodeService:        productService, // Not implemented yet
 		DonationContainer:         nil,            // Not implemented yet
 		Unlink:                    unlinkService,
 		DonationCategoryContainer: donationCategoryService,
+
+		DonationCompanyContainer:  donationCompanyService,
+
 	}
 
 	// Create the dispatcher with the service container
@@ -226,8 +237,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	faydaService = fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
 	serviceContainer.FaydaContainer = faydaService
-	donationCategoryService = donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, cpsActionService, logger, minioClient, "donations", cfg, minioPubUrl)
+	donationCategoryService = donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, cpsActionService, logger, minioClient, "donation", cfg, minioPubUrl)
 	serviceContainer.DonationCategoryContainer = donationCategoryService
+	donationCompanyService = donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation", cfg, minioPubUrl, accountLookupService)
+	serviceContainer.DonationCompanyContainer = donationCompanyService
 	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
 	serviceContainer.ServiceCheckContainer = serviceDetails
 
@@ -293,9 +306,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
 
-		ServiceDetails:      serviceDetails,
-		DonationCategory:    donationCategoryService,
+
+		ServiceDetails:   serviceDetails,
+		DonationCategory: donationCategoryService,
+		DonationCompany:  donationCompanyService,
+		
 		ProductCode:         productService,
 		NotificationService: notificationsvc,
+
 	}
 }

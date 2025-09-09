@@ -13,7 +13,7 @@ type MinimumTransferCapResponse struct {
 	ServiceName string        `json:"service_name" bson:"service_name"`
 	ServiceCode string        `json:"service_code" bson:"service_code"`
 	ServiceType string        `json:"service_type" bson:"service_type"`
-	Cap         types.Cap     `json:"cap" bson:"cap"`
+	MinimumAmount         uint64   `json:"min_amount" bson:"min_amount"`
 	CreatedAt   time.Time     `json:"created_at" bson:"created_at"`
 }
 

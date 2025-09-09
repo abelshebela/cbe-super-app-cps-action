@@ -54,9 +54,13 @@ import (
 	permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
 
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
+
+	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
 	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
+	donationCompanyHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_company"
+
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
@@ -95,7 +99,11 @@ type Handler struct {
 	CPSUser                 cpsUserInbound.CPSUserHandler
 	ProductCodeHandler      productCodeHandler.ProductCodeAdapter
 	DonationCategoryHandler donation_category.DonationCategoryAdapter
+
+	DonationCompanyHandler  donation_company.DonationCompanyAdapter
+
 	NotificationHandler     notificationInbound.NotificationHandler
+
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -134,5 +142,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 
 		ProductCodeHandler:      productCodeHandler.InitProductcodeAdapter(pcs, logger),
 		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
+
+		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
+
 	}
 }

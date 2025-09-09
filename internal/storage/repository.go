@@ -6,9 +6,14 @@ import (
 
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
+
+	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
+
 	"cbe-super-app-cps-action/internal/constants"
+
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -86,6 +91,7 @@ type SessionGRPCPort interface {
 
 type AccountAPIPort interface {
 	LookupAccountByPhone(ctx context.Context, phoneNumber string, PhoneLookupUrl string) (bool, error)
+	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error)
 }
 
 type CPSActionRepository interface {
@@ -260,8 +266,8 @@ type DonationCompanyRepository interface {
 	Create(ctx context.Context, donationCompany *model.DonationCompany) error
 	Update(ctx context.Context, id string, donationCompany *model.DonationCompany) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.DonationCompany, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.DonationCompany], error)
+	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
 }
 
 type MiniAppRepository interface {
@@ -440,3 +446,6 @@ type PermissionRepository interface {
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
 }
+
+// ExternalCallServices type alias for external call services
+type ExternalCallServices = external_call.ExternalCallServices

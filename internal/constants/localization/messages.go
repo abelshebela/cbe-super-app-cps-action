@@ -73,6 +73,7 @@ const (
 	MsgDonationCompaniesFetched          = "Donation companies fetched successfully"
 	MsgDonationCompanyFetched            = "Donation company fetched successfully"
 	MsgDonationCompanyUpdatedRequestSent = "Donation company updated request sent successfully"
+	MsgSuccessDonationCompanyUpdated     = "Donation company updated successfully"
 	MsgDonationCreateRequestSent         = "Donation create request sent successfully"
 	MsgDonationsFetched                  = "Donations fetched successfully"
 	MsgDonationFetched                   = "Donation fetched successfully"
@@ -408,8 +409,12 @@ const (
 	// Donation related error messages
 	MsgDonationCategoryNameAlreadyExists  = "Category name already exists"
 	MsgDonationCompanyNameAlreadyExists   = "Company name already exists"
+	MsgCompanyNameAlreadyExists           = "Company name already exists"
 	MsgDonationTitleAlreadyExists         = "Donation title already exists"
 	MsgDonationAccountNumberAlreadyExists = "Account number already exists"
+	MsgAccountNumberAlreadyExists         = "Account number already exists"
+	MsgLogoIsRequired                     = "Company logo is required"
+	MsgAccountNumberValidationFailed      = "Account number validation failed"
 	MsgDonationIconRequired               = "Icon is required"
 	MsgDonationLogoRequired               = "Logo is required"
 	MsgDonationImagesRequired             = "Donation images are required"
@@ -700,6 +705,7 @@ const (
 	// Donation related error messages
 	MsgDonationCategoryLookupFailed   = "Category lookup failed"
 	MsgDonationCategoryIdRequired     = "category id is required"
+	MsgDonationCompanyIdRequired      = "company id is required"
 	MsgDonationCompanyLookupFailed    = "Company lookup failed"
 	MsgDonationLookupFailed           = "Donation lookup failed"
 	MsgDonationCategoryNameDuplicated = "donation category name already exist"
@@ -867,8 +873,7 @@ const (
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
 
-	MsgBucketNotFound= "bucket not found"
+	MsgBucketNotFound = "bucket not found"
 
 	MsgNoUpdateDetected = "No update detected"
-
 )
