@@ -52,7 +52,13 @@ type DonationService interface {
 	ValidateCompanyExists(ctx context.Context, companyID string) error
 	ValidateCategoryExists(ctx context.Context, categoryID string) error
 	DonationTitleExists(ctx context.Context, title string) (bool, error)
+	DonationNameExists(ctx context.Context, categoryName string) (bool, error)
 	GenerateImageID() string
+
+	// Data similarity validation methods
+	IsDonationCategoryDataSimilar(ctx context.Context, id string, categoryName string, iconURL string) (bool, error)
+	IsDonationCompanyDataSimilar(ctx context.Context, id string, companyName string, logoURL string, accountNumber string) (bool, error)
+	IsDonationDataSimilar(ctx context.Context, id string, companyID string, categoryID string, title string, isFeatured bool, target int, donationDescription string, endDate time.Time, startDate time.Time, coverImageURL string) (bool, error)
 }
 
 type Service struct {
@@ -272,12 +278,26 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		if donationCPS.CategoryName != "" {
 			updateRequest.CategoryName = donationCPS.CategoryName
 		}
-		// Icon is handled separately and will be nil in the update request
 
-		_, err := e.Repository.UpdateDonationCategory(ctx, categoryID, updateRequest)
-		if err != nil {
-			e.logger.Errorf("failed to update donation category: %v", err)
-			return nil, err
+		// Only update icon if a new icon URL is provided
+		if donationCPS.Icon != "" {
+			// Use the repository method that handles icon URL updates
+			_, err := e.Repository.UpdateDonationCategoryWithIconURL(ctx, categoryID, updateRequest, donationCPS.Icon)
+			if err != nil {
+				e.logger.Errorf("failed to update donation category with icon: %v", err)
+				return nil, err
+			}
+		} else if donationCPS.CategoryName != "" {
+			// Only category name is being updated, no icon change
+			_, err := e.Repository.UpdateDonationCategory(ctx, categoryID, updateRequest)
+			if err != nil {
+				e.logger.Errorf("failed to update donation category: %v", err)
+				return nil, err
+			}
+		} else {
+			// No fields provided for update
+			e.logger.Errorf("no fields provided for donation category update")
+			return nil, fmt.Errorf("NO_FIELDS_TO_UPDATE")
 		}
 
 	case cps_const.RequestCreateDonationCompany:
@@ -335,22 +355,34 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 			}
 		}
 
-		// Build patch request with only non-empty fields to avoid overwriting existing data
 		updateRequest := dto.DonationCompanyRequest{}
 
-		// Only include fields that are actually being updated (not empty)
 		if companyCPS.CompanyName != "" {
 			updateRequest.CompanyName = companyCPS.CompanyName
 		}
 		if companyCPS.AccountNumber != "" {
 			updateRequest.AccountNumber = companyCPS.AccountNumber
 		}
-		// Logo is handled separately and will be nil in the update request
 
-		_, err := e.Repository.UpdateDonationCompany(ctx, companyID, updateRequest)
-		if err != nil {
-			e.logger.Errorf("failed to update donation company: %v", err)
-			return nil, err
+		// Only update logo if a new logo URL is provided
+		if companyCPS.CompanyLogo != "" {
+			// Use the repository method that handles logo URL updates
+			_, err := e.Repository.UpdateDonationCompanyWithLogoURL(ctx, companyID, updateRequest, companyCPS.CompanyLogo)
+			if err != nil {
+				e.logger.Errorf("failed to update donation company with logo: %v", err)
+				return nil, err
+			}
+		} else if companyCPS.CompanyName != "" || companyCPS.AccountNumber != "" {
+			// Only company name or account number is being updated, no logo change
+			_, err := e.Repository.UpdateDonationCompany(ctx, companyID, updateRequest)
+			if err != nil {
+				e.logger.Errorf("failed to update donation company: %v", err)
+				return nil, err
+			}
+		} else {
+			// No fields provided for update
+			e.logger.Errorf("no fields provided for donation company update")
+			return nil, fmt.Errorf("NO_FIELDS_TO_UPDATE")
 		}
 
 	case cps_const.RequestCreateDonation:
@@ -422,7 +454,6 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		// Build patch request with only non-empty fields to avoid overwriting existing data
 		updateRequest := dto.DonationRequest{}
 
-		// Only include fields that are actually being updated (not empty)
 		if donationCPS.CompanyID != "" {
 			updateRequest.CompanyID = donationCPS.CompanyID
 		}
@@ -432,8 +463,12 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 		if donationCPS.Title != "" {
 			updateRequest.Title = donationCPS.Title
 		}
-		// Always include boolean fields as they can be false
-		updateRequest.IsFeatured = donationCPS.IsFeatured
+
+		if donationCPS.IsFeatured != false || donationCPS.IsFeatured != true {
+		} else {
+			updateRequest.IsFeatured = donationCPS.IsFeatured
+		}
+
 		if donationCPS.Target > 0 {
 			updateRequest.Target = donationCPS.Target
 		}
@@ -454,12 +489,20 @@ func (e *Service) Authorize(ctx context.Context, action *entities.CPSAction) (*e
 				updateRequest.EndDate = endDate
 			}
 		}
-
+		
+		if donationCPS.CoverImage != "" {
+			if err := e.Repository.UpdateDonationCoverImage(ctx, donationID, donationCPS.CoverImage); err != nil {
+				e.logger.Errorf("failed to update donation cover image: %v", err)
+				return nil, fmt.Errorf("failed to update donation cover image: %v", err)
+			}
+		}
 		_, err := e.Repository.UpdateDonation(ctx, donationID, updateRequest)
 		if err != nil {
 			e.logger.Errorf("failed to update donation: %v", err)
 			return nil, fmt.Errorf("failed to update donation: %v", err)
 		}
+
+		
 
 		// Handle image operations if present
 		if len(donationCPS.DonationImages) > 0 {
@@ -836,8 +879,9 @@ func (e *Service) UpdateDonation(ctx context.Context, id string, donation dto.Do
 		return nil, err
 	}
 
-	var imageURLs []string
-	if len(donation.DonationImages) > 0 {
+	// Handle cover image upload if provided
+	var coverImageURL string
+	if donation.CoverImage != nil {
 		if e.minio == nil {
 			e.logger.Errorf("MinIO client is nil")
 			return nil, fmt.Errorf("MINIO_CLIENT_NOT_CONFIGURED")
@@ -848,12 +892,12 @@ func (e *Service) UpdateDonation(ctx context.Context, id string, donation dto.Do
 			return nil, fmt.Errorf("CONFIGURATION_NOT_LOADED")
 		}
 
-		e.logger.Infof("Starting updated donation images upload to MinIO bucket: %s", e.bucketName)
+		e.logger.Infof("Starting cover image upload to MinIO bucket: %s", e.bucketName)
 		e.logger.Infof("MinIO endpoint: %s", e.cfg.MinioEndPoint)
 
-		imageURLs, err = e.UploadDonationImages(ctx, donation.DonationImages)
+		coverImageURLs, err := e.UploadDonationImages(ctx, []*multipart.FileHeader{donation.CoverImage})
 		if err != nil {
-			e.logger.Errorf("Failed to upload images to MinIO bucket '%s': %v", e.bucketName, err)
+			e.logger.Errorf("Failed to upload cover image to MinIO bucket '%s': %v", e.bucketName, err)
 			if strings.Contains(err.Error(), "time") || strings.Contains(err.Error(), "server") || strings.Contains(err.Error(), "difference") {
 				return nil, fmt.Errorf("MINIO_TIME_SYNC_ERROR")
 			}
@@ -863,11 +907,14 @@ func (e *Service) UpdateDonation(ctx context.Context, id string, donation dto.Do
 			if strings.Contains(err.Error(), "UNHANDLED_SERVER_ERROR") {
 				return nil, fmt.Errorf("MINIO_TIME_SYNC_ERROR")
 			}
-			return nil, fmt.Errorf("FAILED_TO_UPLOAD_IMAGES")
+			return nil, fmt.Errorf("FAILED_TO_UPLOAD_COVER_IMAGE")
 		}
-		e.logger.Infof("Successfully uploaded updated donation images with URLs: %v", imageURLs)
+		if len(coverImageURLs) > 0 {
+			coverImageURL = coverImageURLs[0]
+		}
+		e.logger.Infof("Successfully uploaded cover image with URL: %s", coverImageURL)
 
-		donation.DonationImages = nil
+		donation.CoverImage = nil
 	}
 
 	if donation.Title != "" {
@@ -893,7 +940,7 @@ func (e *Service) UpdateDonation(ctx context.Context, id string, donation dto.Do
 		}
 	}
 
-	updatedDonation, err := e.Repository.UpdateDonationWithImageURLs(ctx, id, donation, imageURLs)
+	updatedDonation, err := e.Repository.UpdateDonationWithCoverImage(ctx, id, donation, coverImageURL)
 	if err != nil {
 		e.logger.Errorf("Failed to update donation in database: %v", err)
 		return nil, err
@@ -952,6 +999,14 @@ func (e *Service) DonationTitleExists(ctx context.Context, title string) (bool, 
 	return exist, nil
 }
 
+func (e *Service) DonationNameExists(ctx context.Context, categoryName string) (bool, error) {
+	exist, err := e.Repository.DonationNameExists(ctx, categoryName)
+	if err != nil {
+		return false, err
+	}
+	return exist, nil
+}
+
 func (e *Service) DonationCompanyNameExists(ctx context.Context, companyName string) (bool, error) {
 	exist, err := e.Repository.DonationCompanyNameExists(ctx, companyName)
 	if err != nil {
@@ -970,4 +1025,99 @@ func (e *Service) DonationCompanyAccountExists(ctx context.Context, accountNumbe
 
 func (e *Service) GenerateImageID() string {
 	return uuid.New().String()
+}
+
+func (e *Service) IsDonationCategoryDataSimilar(ctx context.Context, id string, categoryName string, iconURL string) (bool, error) {
+	existingCategory, err := e.FetchDonationCategoryByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	isSimilar := true
+
+	if categoryName != "" && categoryName != existingCategory.CategoryName {
+		isSimilar = false
+	}
+
+	if iconURL != "" && iconURL != existingCategory.Icon {
+		isSimilar = false
+	}
+
+	return isSimilar, nil
+}
+
+func (e *Service) IsDonationCompanyDataSimilar(ctx context.Context, id string, companyName string, logoURL string, accountNumber string) (bool, error) {
+	existingCompany, err := e.FetchDonationCompanyByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	isSimilar := true
+
+	if companyName != "" && companyName != existingCompany.CompanyName {
+		isSimilar = false
+	}
+
+	if logoURL != "" && logoURL != existingCompany.CompanyLogo {
+		isSimilar = false
+	}
+
+	if accountNumber != "" && accountNumber != existingCompany.AccountNumber {
+		isSimilar = false
+	}
+
+	return isSimilar, nil
+}
+
+func (e *Service) IsDonationDataSimilar(ctx context.Context, id string, companyID string, categoryID string, title string, isFeatured bool, target int, donationDescription string, endDate time.Time, startDate time.Time, coverImageURL string) (bool, error) {
+	existingDonation, err := e.FetchDonationByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	isSimilar := true
+
+	if companyID != "" && companyID != existingDonation.Company.ID {
+		isSimilar = false
+	}
+
+	if categoryID != "" && categoryID != existingDonation.Category.ID {
+		isSimilar = false
+	}
+
+	if title != "" && title != existingDonation.Title {
+		isSimilar = false
+	}
+
+	if isFeatured != existingDonation.IsFeatured {
+		isSimilar = false
+	}
+
+	if target > 0 && target != existingDonation.Target {
+		isSimilar = false
+	}
+
+	if donationDescription != "" && donationDescription != existingDonation.DonationDescription {
+		isSimilar = false
+	}
+
+	if !endDate.IsZero() {
+		existingEndDate, err := time.Parse("2006-01-02T15:04:05Z07:00", existingDonation.EndDate)
+		if err == nil && !endDate.Equal(existingEndDate) {
+			isSimilar = false
+		}
+	}
+
+	if !startDate.IsZero() {
+		existingStartDate, err := time.Parse("2006-01-02T15:04:05Z07:00", existingDonation.StartDate)
+		if err == nil && !startDate.Equal(existingStartDate) {
+			isSimilar = false
+		}
+	}
+
+	if coverImageURL != "" && coverImageURL != existingDonation.CoverImage {
+		isSimilar = false
+	}
+
+	return isSimilar, nil
 }

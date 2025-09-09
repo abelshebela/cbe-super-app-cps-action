@@ -164,6 +164,9 @@ pipeline {
                         docker push ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
                         docker push  ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:latest
                         echo "Image pushed successfully to ${env.REGISTRY_ADDRESS}"
+                        docker image rm  ${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                        docker image rm  ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                        docker image rm  ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:latest
                     """
                 }
             }

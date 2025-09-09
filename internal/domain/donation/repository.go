@@ -15,6 +15,7 @@ type DonationRepository interface {
 	FetchDonationCategory(ctx context.Context, filterParams *constant.MongoFilter) (*common_util.PaginatedResponse[[]*dto.DonationCategoryListResponse], error)
 	FetchDonationCategoryByID(ctx context.Context, id string) (*dto.DonationCategoryListResponse, error)
 	UpdateDonationCategory(ctx context.Context, id string, donation dto.DonationCategoryRequest) (*dto.DonationCategoryRequest, error)
+	UpdateDonationCategoryWithIconURL(ctx context.Context, id string, donation dto.DonationCategoryRequest, iconURL string) (*dto.DonationCategoryRequest, error)
 
 	// Donation Company methods
 	DonationCompanyNameExists(ctx context.Context, companyName string) (bool, error)
@@ -36,9 +37,9 @@ type DonationRepository interface {
 	FetchDonationByID(ctx context.Context, id string) (*dto.DonationListResponse, error)
 	FetchDonationByCode(ctx context.Context, donationCode string) (*dto.DonationListResponse, error)
 	UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) (*dto.DonationRequest, error)
-	UpdateDonationWithImageURLs(ctx context.Context, id string, donation dto.DonationRequest, imageURLs []string) (*dto.DonationRequest, error)
-
+	UpdateDonationWithCoverImage(ctx context.Context, id string, donation dto.DonationRequest, coverImageURL string) (*dto.DonationRequest, error)
 	UpdateDonationImage(ctx context.Context, donationID, imageID, photoURL string) error
 	DeleteDonationImage(ctx context.Context, donationID, imageID string) error
 	AddDonationImage(ctx context.Context, donationID string, image dto.DonationImage) error
+	UpdateDonationCoverImage(ctx context.Context, donationID, coverImageURL string) error
 }

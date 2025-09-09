@@ -21,7 +21,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"encoding/json"
-	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type BudgetPersistence struct {
@@ -45,21 +44,19 @@ func InitBudget(client *mongo.Client, dbName string, collections []string, logge
 }
 
 func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
-
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":      makerData.UserCode,
-		"department":    makerData.Department,
-		"action_status": "PENDING",
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": "BUDGET_CREATE_ICON",
 	}
-	_, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
-	if err == nil {
+	pendingAction, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
-
-	// if existingAction != nil {
-	// 	return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
-	// }
 
 	cpsAction.MakerActionTime = time.Now()
 	cpsAction.CreatedAt = time.Now()
@@ -68,7 +65,7 @@ func (b *BudgetPersistence) CreateIconAction(ctx context.Context, cpsAction enti
 	cps, err := b.cpsDal.InsertOne(ctx, cpsAction)
 	if err != nil {
 		b.logger.Errorf("failed to create cps action", err)
-		return nil, fmt.Errorf(error_codes.FailedToCreateAction)
+		return nil, fmt.Errorf(common_util.FailedToCreateAction)
 	}
 
 	return &cps, nil
@@ -118,14 +115,16 @@ func (b *BudgetPersistence) FetchIcons(ctx context.Context, filterParams *consta
 func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":       makerData.UserCode,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
-		"request_action": cpsAction.RequestAction,
+		"request_action": "BUDGET_UPDATE_ICON",
 	}
-	_, err := b.cpsDal.FindOne(ctx, filter, nil)
 
-	if err == nil {
+	pendingAction, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
@@ -178,16 +177,19 @@ func (b *BudgetPersistence) UpdateIcon(ctx context.Context, id string, cpsAction
 }
 
 func (b *BudgetPersistence) CreateColor(ctx context.Context, color string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
-
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":      makerData.UserCode,
-		"department":    makerData.Department,
-		"action_status": "PENDING",
+		"maker_id":       makerData.UserID,
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": "BUDGET_CREATE_COLOR",
 	}
-	_, err := b.cpsDal.FindOne(ctx, filter, nil)
 
-	if err == nil {
+	pendingAction, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
@@ -260,6 +262,7 @@ func (b *BudgetPersistence) ListAllColor(ctx context.Context, filterParams *cons
 	}, nil
 }
 
+/*
 func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entities.Color, error) {
 	objectId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -278,6 +281,7 @@ func (b *BudgetPersistence) GetByIDColor(ctx context.Context, id string) (*entit
 
 	return colors, nil
 }
+*/
 
 func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (bool, error) {
 	colors, err := b.colorDal.FindOne(ctx, bson.M{"color": color}, bson.M{})
@@ -292,14 +296,13 @@ func (b *BudgetPersistence) CheckColorExist(ctx context.Context, color string) (
 	return colors != nil, nil
 }
 
+/*
 func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSAction) (*entities.CPSAction, error) {
-
 	colorData, err := common_util.JsonUnmarshal[entities.Color](color.CurrentAction)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(colorData.Color)
 	dataColor, err := b.colorDal.FindOne(ctx, bson.M{"name": colorData.Color}, nil)
 	if err != nil {
 		if err.Error() != "mongo: no documents in result " {
@@ -313,13 +316,16 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 	}
 	makerData := contexts.ExtractContext(ctx)
 	filter := bson.M{
-		"maker_id":      makerData.UserCode,
-		"department":    makerData.Department,
-		"action_status": "PENDING",
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": "BUDGET_UPDATE_COLOR",
 	}
-	_, err = b.cpsDal.FindOne(ctx, filter, nil)
 
-	if err == nil {
+	pendingAction, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
 		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
 	}
 
@@ -343,7 +349,73 @@ func (b *BudgetPersistence) UpdateColor(ctx context.Context, color entities.CPSA
 	}
 	return &action, nil
 }
+*/
 
+func (b *BudgetPersistence) CreateColorUpdateAction(ctx context.Context, id string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
+	makerData := contexts.ExtractContext(ctx)
+	filter := bson.M{
+		"department":     makerData.Department,
+		"action_status":  "PENDING",
+		"request_action": "BUDGET_UPDATE_COLOR",
+	}
+
+	pendingAction, err := b.cpsDal.FindOne(ctx, filter, bson.M{})
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("DATABASE_ERROR_CHECKING_PENDING_ACTION")
+	}
+	if pendingAction != nil {
+		return nil, fmt.Errorf("PENDING_ACTION_EXISTS")
+	}
+
+	cpsAction.MakerActionTime = time.Now()
+	cpsAction.ID = bson.NewObjectID()
+	cpsAction.LastModifiedAt = time.Now()
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid object ID")
+	}
+
+	filter = bson.M{
+		"_id":        objectID,
+		"is_deleted": false,
+	}
+	existingColor, err := b.colorDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Errorf("color not found: %s", id)
+			return nil, fmt.Errorf("NOT_FOUND")
+		}
+		b.logger.Errorf("color not found or db error: %v", err)
+		return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
+	}
+
+	cpsAction.PreviousAction = map[string]interface{}{
+		"color_id":   existingColor.ID,
+		"color_code": existingColor.Color,
+	}
+	currentMap, ok := cpsAction.CurrentAction.(map[string]interface{})
+	if existingColor.Color == currentMap["color"] {
+		return nil, fmt.Errorf("NO_NEW_UPDATE_SENT")
+	}
+
+	if !ok {
+		currentMap = make(map[string]interface{})
+	}
+	currentMap["color_id"] = existingColor.ID
+	cpsAction.CurrentAction = currentMap
+
+	createdAction, err := b.cpsDal.InsertOne(ctx, cpsAction)
+	if err != nil {
+		b.logger.Errorf("failed to create CPSAction update request: %v", err)
+		err = fmt.Errorf("UNHANDLED_SERVER_ERROR")
+		return nil, err
+	}
+
+	return &createdAction, nil
+}
+
+/*
 func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 
 	if cpsAction.RequestAction == "BUDGET_UPDATE_COLOR" {
@@ -375,6 +447,7 @@ func (b *BudgetPersistence) CreateAction(ctx context.Context, cpsAction entities
 
 	return &createdAction, nil
 }
+*/
 
 func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
 	action, err := b.cpsDal.FindOne(ctx, bson.M{"action_code": cpsAction.ActionCode}, bson.M{})
@@ -434,8 +507,6 @@ func (b *BudgetPersistence) ApproveAction(ctx context.Context, cpsAction entitie
 			}
 
 		case entities.ActionUpdate:
-			fmt.Println("----------KKKKKKKKKKKK-----------")
-
 			prev, err := castToBsonM(action.PreviousAction)
 			if err != nil {
 				b.logger.Errorf("invalid previousAction format for icon update: %v", err)

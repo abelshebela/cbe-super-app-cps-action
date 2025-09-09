@@ -78,12 +78,7 @@ func (s *BudgetService) FetchColors(ctx context.Context, filterParams *constant.
 }
 
 func (s *BudgetService) UpdateColor(ctx context.Context, id, hexCode string, cpsAction entities.CPSAction) (*entities.CPSAction, error) {
-	existing, err := s.repo.GetByIDColor(ctx, id)
-	if err != nil || existing == nil {
-		return nil, err
-	}
-
-	colors, err := s.repo.CreateAction(ctx, cpsAction)
+	colors, err := s.repo.CreateColorUpdateAction(ctx, id, cpsAction)
 	if err != nil {
 		return nil, err
 	}

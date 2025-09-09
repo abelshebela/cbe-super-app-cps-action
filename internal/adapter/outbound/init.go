@@ -18,6 +18,7 @@ import (
 
 	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
 	contexts "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/context"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/entities"
 	error_codes "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -36,7 +37,7 @@ import (
 	userDTO "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/cps_user/dto"
 
 	// serviceDomain "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/service"
-	passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
+	// passwordRuleOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	userOutbound "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/port/outbound"
 	common_util "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
@@ -58,7 +59,7 @@ type outboundStore struct {
 	MongoDalPortalCard        *infra_mongo.MongoDal[model.Card, model.Card]
 }
 
-func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectionNames []string) passwordRuleOutbound.OutboundPasswordRuleInfra {
+func NewOutboundPasswordRuleInfra(client *mongo.Client, dbName string, collectionNames []string) userOutbound.OutboundPasswordRuleInfra {
 	mongoDalPasswordRule := infra_mongo.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collectionNames[0])
 	mongoDalCPSAction := infra_mongo.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[1])
 	return &outboundStore{MongoDalPasswordRule: mongoDalPasswordRule, MongoDalCPSAction: mongoDalCPSAction}
@@ -133,7 +134,6 @@ func (o *outboundStore) GetAllHqServices(ctx context.Context) ([]domain.ServiceD
 			ServiceType: "",
 			Key:         v.Key,
 			Cap: domain.Cap{
-				KYCLevel:  domain.KYCLevel(v.Cap.KYCLevel),
 				SingleCap: v.Cap.ISingleCap,
 				DailyCap:  v.Cap.IDailyCap,
 				MinAmount: v.Cap.MinAmount,
@@ -209,7 +209,6 @@ func (o *outboundStore) GetAllHqServicesPaginated(ctx context.Context, offset, l
 			ServiceType: "",
 			Key:         v.Key,
 			Cap: domain.Cap{
-				KYCLevel:  domain.KYCLevel(v.Cap.KYCLevel),
 				SingleCap: v.Cap.ISingleCap,
 				DailyCap:  v.Cap.IDailyCap,
 				MinAmount: v.Cap.MinAmount,
@@ -289,7 +288,6 @@ func (o *outboundStore) GetHqServiceById(ctx context.Context, id string) (domain
 		ServiceType: "",
 		Key:         data.Key,
 		Cap: domain.Cap{
-			KYCLevel:  domain.KYCLevel(data.Cap.KYCLevel),
 			SingleCap: data.Cap.ISingleCap,
 			DailyCap:  data.Cap.IDailyCap,
 			MinAmount: data.Cap.MinAmount,
@@ -359,7 +357,6 @@ func (o *outboundStore) UpdateHqService(ctx context.Context, service domain.Serv
 		"serviceName": service.ServiceName,
 		"serviceType": service.ServiceType,
 		"cap": bson.M{
-			"kyc_level":  service.Cap.KYCLevel,
 			"single_cap": service.Cap.SingleCap,
 			"daily_cap":  service.Cap.DailyCap,
 			"min_amount": service.Cap.MinAmount,
@@ -789,7 +786,7 @@ func (o *outboundStore) FetchLinkedAccountById(ctx context.Context, ids []string
 			if errors.Is(err, mongo.ErrNoDocuments) {
 				return nil, fmt.Errorf(error_codes.AccountNotFound)
 			}
-			return nil, fmt.Errorf(err.Error())
+			return nil, fmt.Errorf("GENERAL_DB_QUERY_FAILED")
 		}
 		result = append(result, domain.LinkedAccount{
 			ID:                stringToPointer(item.ID.Hex()),
@@ -848,7 +845,6 @@ func stringToPointer(s string) *string {
 func (o *outboundStore) CreateUserRequest(ctx context.Context, cpsAction model.CPSAction) (*model.CPSAction, error) {
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": "CREATE_CPS_USER",
@@ -912,7 +908,6 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 	makerData := contexts.ExtractContext(ctx)
 
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": "UPDATE_CPS_USER",
@@ -980,32 +975,43 @@ func (o *outboundStore) UpdateUserRequest(ctx context.Context, cpsAction model.C
 		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_EXISTING_USER")
 	}
 
-	// Convert incoming user to map
 	incomingBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("FAILED_TO_MARSHAL_INCOMING_USER")
 	}
+
 	var incomingMap map[string]interface{}
 	if err := json.Unmarshal(incomingBytes, &incomingMap); err != nil {
 		return nil, fmt.Errorf("FAILED_TO_UNMARSHAL_INCOMING_USER")
 	}
 
-	// Compare
+	allowedFields := []string{
+		"username",
+		"full_name",
+		"department",
+		"phone_number",
+		"role",
+		"gender",
+		"email",
+	}
+
 	changedFields := bson.M{}
 	unchangedFields := []string{}
 
-	for key, newVal := range incomingMap {
+	for _, key := range allowedFields {
+		newVal, hasNew := incomingMap[key]
+		if !hasNew {
+			continue
+		}
+
 		oldVal, exists := existingMap[key]
+
 		if !exists || !reflect.DeepEqual(oldVal, newVal) {
 			changedFields[key] = newVal
 		} else {
 			unchangedFields = append(unchangedFields, key)
 		}
 	}
-	unchangedFields = removeField(unchangedFields, "id")
-	unchangedFields = removeField(unchangedFields, "user_code")
-	unchangedFields = removeField(unchangedFields, "permission_category")
-	unchangedFields = removeField(unchangedFields, "permission_groups")
 
 	if len(unchangedFields) > 0 {
 		return nil, fmt.Errorf("NO_CHANGES: the following fields are unchanged. Remove from the payload and try again: %v", unchangedFields)
@@ -1037,7 +1043,6 @@ func (o *outboundStore) DeleteUserRequest(ctx context.Context, userCode string, 
 	// Check if there is a pending action
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": "DELETE_CPS_USER",
@@ -1067,7 +1072,6 @@ func (o *outboundStore) EnableDisableUser(ctx context.Context, userCode string, 
 	// Check if there is a pending action
 	makerData := contexts.ExtractContext(ctx)
 	pendingFilter := bson.M{
-		"maker_id":       makerData.UserID,
 		"department":     makerData.Department,
 		"action_status":  "PENDING",
 		"request_action": requestActionType,
@@ -1122,6 +1126,7 @@ func (o *outboundStore) AuthorizeUserCreate(ctx context.Context, action *cps_ent
 	}
 
 	now := time.Now()
+	data.ID = bson.NewObjectID()
 	data.Realm = "BANK"
 	data.PasswordDisable = true
 	data.SyncDisabled = false
@@ -1714,7 +1719,6 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 			return model.Cap{}
 		}
 		return model.Cap{
-			KYCLevel:   model.KYCLevel(safeStringFromMap(capMap, "kyc_level")),
 			ISingleCap: safeUint64FromMap(capMap, "single_cap"),
 			IDailyCap:  safeUint64FromMap(capMap, "daily_cap"),
 			MinAmount:  safeUint64FromMap(capMap, "min_amount"),
@@ -1801,6 +1805,16 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 		}
 		return time.Time{}
 	}
+	// Helper for safe PaymentType
+	safePaymentType := func(key string) entities.PaymentType {
+		if v, ok := data[key].(string); ok {
+			if pt, err := entities.ParsePaymentType(v); err == nil {
+				return pt
+			}
+		}
+		// Return default value if parsing fails
+		return entities.PaymentTypeFlatFee
+	}
 
 	return model.Service{
 		ServiceCode:        safeString("service_code"),
@@ -1812,7 +1826,7 @@ func (o *outboundStore) serviceMapper(data map[string]interface{}) model.Service
 		CBEIFBProductCodes: parseProductCodes(data["cbe_ifb_product_codes"]),
 		AboveAmount:        safeUint64("above_amount"),
 		AboveServiceFee:    safeUint64("above_service_fee"),
-		PaymentType:        safeString("payment_type"),
+		PaymentType:        safePaymentType("payment_type"),
 		Tiers:              parseTiers(data["tiers"]),
 		CBEGLEntry:         parseGLEntry(data["cbe_gl_entry"]),
 		CBEIFBGLEntry:      parseGLEntry(data["cbe_ifb_gl_entry"]),

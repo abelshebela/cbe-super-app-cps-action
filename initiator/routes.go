@@ -78,7 +78,7 @@ func InitRoutes(r chi.Router, adapter Adapter, secretKey, key, iv string, cpsSer
 		cps_action_inbound.InitCPSActionsRoutes(sub, adapter.CPSActionAdapter, authMiddleware)
 		mini_app_merchant_inbound.InitMiniAppMerchantHandlerMaker(sub, adapter.MiniAppMerchantAdapter, authMiddleware, cpsGuard)
 		account_inbound.InitAccountLookUpRoutes(sub, adapter.AccountLookUp, authMiddleware)
-		service_handler.InteServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware)
+		service_handler.InitServiceRoute(sub, adapter.ServiceCheckAdapter, authMiddleware, cpsGuard)
 		notificationhandler.InitNotificationsHandlerRoutes(sub, adapter.NotificationAdapter, authMiddleware, cpsGuard)
 		productcodehandler.InitProductCodeHandlerRoutes(sub, adapter.ProductCodeAdapter, authMiddleware, cpsGuard)
 

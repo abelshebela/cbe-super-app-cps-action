@@ -17,7 +17,7 @@ type Service struct {
 	CBEIFBProductCodes type_definition.ProductCodes `json:"cbe_ifb_product_codes" bson:"cbe_ifb_product_codes"`
 	AboveAmount        uint64                       `json:"above_amount" bson:"above_amount"`
 	AboveServiceFee    uint64                       `json:"above_service_fee" bson:"above_service_fee"`
-	PaymentType        string                       `json:"payment_type" bson:"payment_type"`
+	PaymentType        PaymentType                  `json:"payment_type" bson:"payment_type"`
 	Tiers              []type_definition.Tier       `json:"tiers" bson:"tiers"`
 	CBEGLEntry         type_definition.GLEntry      `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
 	CBEIFBGLEntry      type_definition.GLEntry      `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`

@@ -37,28 +37,31 @@ type ErrorDefinition struct {
 type ErrorGroup map[string]ErrorDefinition
 
 type ErrorDefinitions struct {
-	General     ErrorGroup
-	Auth        ErrorGroup
-	User        ErrorGroup
-	Transaction ErrorGroup
-	Account     ErrorGroup
-	OTP         ErrorGroup
-	File        ErrorGroup
-	Branch      ErrorGroup
-	Region      ErrorGroup
-	District    ErrorGroup
-	City        ErrorGroup
-	Department  ErrorGroup
-	Bank        ErrorGroup
-	Action      ErrorGroup
-	Wallet      ErrorGroup
-	AD          ErrorGroup
-	BulkService ErrorGroup
-	Permission  ErrorGroup
-	MiniApp     ErrorGroup
-	Event       ErrorGroup
-	Donation    ErrorGroup
-	Avatar      ErrorGroup
+	General      ErrorGroup
+	Auth         ErrorGroup
+	User         ErrorGroup
+	Transaction  ErrorGroup
+	Account      ErrorGroup
+	OTP          ErrorGroup
+	File         ErrorGroup
+	Branch       ErrorGroup
+	Region       ErrorGroup
+	District     ErrorGroup
+	City         ErrorGroup
+	Department   ErrorGroup
+	Bank         ErrorGroup
+	Action       ErrorGroup
+	Wallet       ErrorGroup
+	AD           ErrorGroup
+	BulkService  ErrorGroup
+	Permission   ErrorGroup
+	MiniApp      ErrorGroup
+	Event        ErrorGroup
+	Service      ErrorGroup
+	Donation     ErrorGroup
+	Avatar       ErrorGroup
+	Budget       ErrorGroup
+	Amount_Based ErrorGroup
 }
 
 var DefineError = ErrorDefinitions{
@@ -1000,11 +1003,6 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 			Message: "missing action data",
 		},
-		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
-			Code:    "GEN_166",
-			Status:  StatusBadRequest,
-			Message: "current max can not be greter than",
-		},
 		"INVALID_IMG_FORMAT": {
 			Code:    "GEN_167",
 			Status:  StatusBadRequest,
@@ -1015,10 +1013,10 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusInternalServerError,
 			Message: "invalid object id",
 		},
-		"TIER_CAN_BE_UPDATED": {
+		"TIER_CANNOT_BE_UPDATED": {
 			Code:    "GEN_169",
 			Status:  StatusBadRequest,
-			Message: "tier can't be updated",
+			Message: "tier can't be updated. Only 'OPEN' and 'OTP_PIN' max_amount can be updated",
 		},
 		"MAX_NOT_BE_LESS": {
 			Code:    "GEN_168",
@@ -1043,7 +1041,7 @@ var DefineError = ErrorDefinitions{
 		"UNSUPPORTED_PHONE_NUMBER_FORMAT": {
 			Code:    "GEN_172",
 			Status:  StatusBadRequest,
-			Message: "Only Ethiopian numbers in local or international format are acceptable",
+			Message: "Only local Ethiopian or international number formatting is accepted",
 		},
 		"NO_DOC_FOUND": {
 			Code:    "GEN_171	",
@@ -1114,6 +1112,11 @@ var DefineError = ErrorDefinitions{
 			Code:    "GEN_182",
 			Status:  http.StatusConflict,
 			Message: "You are requesting a duplicate action",
+		},
+		"NO_TOTAL_CAP_FOUND": {
+			Code:    "GEN_183",
+			Status:  http.StatusNotFound,
+			Message: "no total cap data found",
 		},
 	},
 	Auth: ErrorGroup{
@@ -2180,6 +2183,58 @@ var DefineError = ErrorDefinitions{
 			Status:  StatusBadRequest,
 		},
 	},
+	Service: ErrorGroup{
+		"SERVICE_FEE_VALIDATION_FAILED": {
+			Code:    "SRV_001",
+			Message: "Service fee validation failed",
+			Status:  StatusBadRequest,
+		},
+		"SERVICE_FEE_UPDATE_FAILED": {
+			Code:    "SRV_002",
+			Message: "Failed to update service fee",
+			Status:  StatusInternalServerError,
+		},
+		"SERVICE_FEE_NOT_FOUND": {
+			Code:    "SRV_003",
+			Message: "Service fee not found",
+			Status:  StatusNotFound,
+		},
+		"INVALID_TIER_STRUCTURE": {
+			Code:    "SRV_004",
+			Message: "Invalid tier structure provided",
+			Status:  StatusBadRequest,
+		},
+		"TIER_CONTINUITY_VIOLATION": {
+			Code:    "SRV_005",
+			Message: "Tier continuity violation: each tier's max must equal next tier's min",
+			Status:  StatusBadRequest,
+		},
+		"INVALID_TRANSFER_CAP": {
+			Code:    "SRV_006",
+			Message: "Invalid transfer cap configuration",
+			Status:  StatusBadRequest,
+		},
+		"TRANSFER_CAP_EXCEEDS_TOTAL": {
+			Code:    "SRV_007",
+			Message: "Transfer cap cannot exceed total cap",
+			Status:  StatusBadRequest,
+		},
+		"GL_ENTRY_VALIDATION_FAILED": {
+			Code:    "SRV_008",
+			Message: "GL entry validation failed",
+			Status:  StatusBadRequest,
+		},
+		"PENDING_SERVICE_FEE_ACTION": {
+			Code:    "SRV_009",
+			Message: "A pending service fee action already exists",
+			Status:  StatusConflict,
+		},
+		"TOTAL_CAP_VALIDATION_FAILED": {
+			Code:    "SRV_010",
+			Message: "Total cap validation failed",
+			Status:  StatusBadRequest,
+		},
+	},
 	Donation: ErrorGroup{
 		"CATEGORY_NAME_ALREADY_EXISTS": {
 			Code:    "DON_001",
@@ -2487,6 +2542,25 @@ var DefineError = ErrorDefinitions{
 			Code:    "AVT_001",
 			Message: "Avatar label already exists",
 			Status:  StatusConflict,
+		},
+	},
+	Budget: ErrorGroup{
+		"NO_NEW_UPDATE_SENT": {
+			Code:    "BGT_001",
+			Message: "Entry already exist. No new updated",
+			Status:  StatusBadRequest,
+		},
+	},
+	Amount_Based: ErrorGroup{
+		"MAX_TIER_CANNOT_BE_LESS_THAN_MIN_TIER": {
+			Code:    "AMT_001",
+			Status:  StatusBadRequest,
+			Message: "Maximum tier cannot be less than minimum tier amount",
+		},
+		"CURENT_MAX_CAN_NOT_BE_GRETER_THAN_NEXT": {
+			Code:    "AMT_002",
+			Status:  StatusBadRequest,
+			Message: "Current maximum value cannot be greater than next auth tier",
 		},
 	},
 }
