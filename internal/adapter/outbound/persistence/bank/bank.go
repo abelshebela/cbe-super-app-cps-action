@@ -210,7 +210,7 @@ func (b *Bank) GetAllBanks(ctx context.Context, filterParams *constant.MongoFilt
 
 		}
 	}
-	mongoFilter := bson.M{"$and": filter}
+	mongoFilter := filter
 
 	page := filterParams.Page
 	limit := filterParams.PerPage
