@@ -10,7 +10,7 @@ import (
 
 	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/responseutil"
 	app_middleware "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
-	grpcServer "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/grpc"
+	grpcServer "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/grpc/server"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -76,7 +76,7 @@ func Initiator() {
 
 	// Initialize gRPC server
 	logger.Infof("Initializing gRPC server...")
-	grpcSrv := grpcServer.NewGRPCServer(application.BankApplication, logger)
+	grpcSrv := grpcServer.NewGrpcBankServer(application.BankApplication, logger)
 	logger.Infof("gRPC server initialized")
 
 	// HTTP server
@@ -97,11 +97,10 @@ func Initiator() {
 		}
 	}()
 
+	// grpcSrv := .NewGRPCServer(application.BankApplication, logger)
 	// Start gRPC server
 	go func() {
-		if err := grpcSrv.Start("9090"); err != nil {
-			logger.Errorf("gRPC Server failed to start: %v", err)
-		}
+		grpcServer.StartGrpcServer(grpcSrv)
 	}()
 
 	sig := <-quit
@@ -111,7 +110,7 @@ func Initiator() {
 	defer cancel()
 
 	// Shutdown gRPC server
-	go grpcSrv.Stop()
+	go grpcServer.StopGrpcServer(grpcSrv)
 
 	// Shutdown HTTP server
 	if err := httpServer.Shutdown(ctx); err != nil {

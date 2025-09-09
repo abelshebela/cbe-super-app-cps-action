@@ -14,8 +14,6 @@ message Bank {
   string code = 4;
   string bic = 5;
   bool enabled = 6;
-  google.protobuf.Timestamp created_at = 7;
-  google.protobuf.Timestamp last_modified_at = 8;
 }
 
 // Request messages
@@ -29,34 +27,6 @@ message GetAllBanksRequest {
   string search = 3;
   string sort_by = 4;
   string sort_order = 5;
-}
-
-message CreateBankRequest {
-  string name = 1;
-  string code = 2;
-  string bic = 3;
-  bytes logo = 4;
-}
-
-message UpdateBankRequest {
-  string id = 1;
-  string name = 2;
-  string code = 3;
-  string bic = 4;
-}
-
-message DeleteBankRequest {
-  string id = 1;
-}
-
-message EnableDisableBankRequest {
-  string id = 1;
-  bool enable = 2;
-}
-
-message UpdateBankLogoRequest {
-  string id = 1;
-  bytes logo = 2;
 }
 
 // Response messages
@@ -74,30 +44,7 @@ message GetAllBanksResponse {
   string message = 6;
 }
 
-message CreateBankResponse {
-  string message = 1;
-  string action_code = 2;
-}
 
-message UpdateBankResponse {
-  string message = 1;
-  string action_code = 2;
-}
-
-message DeleteBankResponse {
-  string message = 1;
-  string action_code = 2;
-}
-
-message EnableDisableBankResponse {
-  string message = 1;
-  string action_code = 2;
-}
-
-message UpdateBankLogoResponse {
-  string message = 1;
-  string action_code = 2;
-}
 
 // Bank service definition
 service BankService {
@@ -107,18 +54,4 @@ service BankService {
   // Get all banks with pagination and filtering
   rpc GetAllBanks(GetAllBanksRequest) returns (GetAllBanksResponse);
   
-  // Create a new bank
-  rpc CreateBank(CreateBankRequest) returns (CreateBankResponse);
-  
-  // Update an existing bank
-  rpc UpdateBank(UpdateBankRequest) returns (UpdateBankResponse);
-  
-  // Delete a bank
-  rpc DeleteBank(DeleteBankRequest) returns (DeleteBankResponse);
-  
-  // Enable or disable a bank
-  rpc EnableDisableBank(EnableDisableBankRequest) returns (EnableDisableBankResponse);
-  
-  // Update bank logo
-  rpc UpdateBankLogo(UpdateBankLogoRequest) returns (UpdateBankLogoResponse);
 }
