@@ -14,6 +14,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	mock "cbe-super-app-cps-action/internal/constants/mocks"
 )
 
 type accountAPIClient struct {
@@ -21,28 +22,6 @@ type accountAPIClient struct {
 	cbeBaseURL string
 }
 
-// MockAccountData represents the structure of our mock JSON file
-type MockAccountData struct {
-	Accounts []MockAccount `json:"accounts"`
-}
-
-type MockAccount struct {
-	AccountNumber string  `json:"account_number"`
-	AccountName   string  `json:"account_name"`
-	AccountType   string  `json:"account_type"`
-	Status        string  `json:"status"`
-	Balance       float64 `json:"balance"`
-	Currency      string  `json:"currency"`
-ActiveAccount 	bool `json:"active_account"`
-AccountDormant  bool `json:"account_dormant"`
-AccountFrozen   bool `json:"account_frozen"`
-
-
-}
-
-type AccountResponse struct {
-	Data model.AccountInfo `json:"data"`
-}
 type Account interface {
 	LookupAccountByPhone(ctx context.Context, phone string) (bool, error)
 	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error)
@@ -75,7 +54,7 @@ func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, acc
 	}
 
 	// Parse the JSON data
-	var mockData MockAccountData
+	var mockData mock.MockAccountData
 	if err := json.Unmarshal(jsonData, &mockData); err != nil {
 		b.logger.Errorf("failed to unmarshal mock account data: %v", err)
 		return nil, errors.New(localization.ErrorExternalServiceError.Code)
@@ -127,7 +106,7 @@ func (b *accountAPIClient) LookupAccountByPhone(ctx context.Context, phone strin
 	}
 
 	// Parse the JSON data
-	var mockData MockAccountData
+	var mockData mock.MockAccountData
 	if err := json.Unmarshal(jsonData, &mockData); err != nil {
 		b.logger.Errorf("failed to unmarshal mock account data: %v", err)
 		return false, errors.New(localization.ErrorExternalServiceError.Code)
