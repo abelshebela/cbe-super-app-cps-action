@@ -65,13 +65,14 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
-	validataRull, ok := cpsAction.CurrentAction.(model.ValidationRule)
-	if !ok {
-		f.logger.Errorf("Failed to assert current action into the model validation rule")
+	validationRule, err := local_util.JsonUnmarshal[model.ValidationRule](cpsAction.CurrentAction)
+	if err != nil {
+		f.logger.Errorf("Failed to unmarshal current action into the model validation rule")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	if err := f.validationRule.Update(ctx, cpsAction.UniqueId, &validataRull); err != nil {
+	if err := f.validationRule.Update(ctx, cpsAction.UniqueId, validationRule); err != nil {
+
 		return nil, err
 	}
 	return cpsAction, nil

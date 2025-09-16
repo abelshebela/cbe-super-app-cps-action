@@ -253,7 +253,6 @@ func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filte
 }
 
 func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Println("//// here to authorize..... ", action)
 	action.MakerActionTime = time.Now()
 	action.LastModifiedAt = action.MakerActionTime
 
@@ -292,7 +291,6 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserEnable):
-		fmt.Println("this<<<<<<<<<<<<<<<<<<enable>>>>>>>>>>>>>>>>>>>>>>")
 		_, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)

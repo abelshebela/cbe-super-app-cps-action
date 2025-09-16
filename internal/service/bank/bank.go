@@ -90,7 +90,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 	case string(constants.RequestUpdateBankLogo):
-		err := b.repo.Update(ctx, actionData.ID.Hex(), &actionData)
+		err := b.repo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
 			b.logger.Errorf("Bank update Logo action  failed", "error", err)
 			return nil, err

@@ -33,8 +33,8 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 
-	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
+	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
@@ -98,11 +98,10 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 
-	donation_category.Init(r,handlerLayer.DonationCategoryHandler, authMiddleware)
+	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)
 
-	amountBasedAuth.Init(r, &handlerLayer.AmountBasedAuthHandler, authMiddleware)
+	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
-
 
 	// Add swagger endpoints to the API router before mounting
 	r.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {

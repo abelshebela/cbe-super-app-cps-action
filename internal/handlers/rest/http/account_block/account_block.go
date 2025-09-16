@@ -333,7 +333,6 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 
 	// Trim any whitespace
 	req.Clean()
-
 	if len(req.CitiesCode) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return

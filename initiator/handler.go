@@ -13,6 +13,7 @@ import (
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 
+	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
@@ -21,10 +22,9 @@ import (
 	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
+	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-
-	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
@@ -84,7 +84,7 @@ type Handler struct {
 	MiniAppMerchantHandler miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler    accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler  service_details.ServiceAdapter
-	AmountBasedAuthHandler amountBasedAuthHandler.AmountBasedAuthHandler
+	AmountBasedAuthHandler amountBasedInbound.AmountBasedAuthAdapter
 
 	DepartmentHandler       department.DepartmentHandler
 	AvatarHandler           avatarHandlerInterface.AvatarInbound
@@ -126,7 +126,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 		NotificationHandler: notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
 
-		// AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
+		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 

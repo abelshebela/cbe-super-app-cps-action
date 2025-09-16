@@ -101,7 +101,7 @@ func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *ty
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{}
+	allowedKeys := []string{"enabled"}
 
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 

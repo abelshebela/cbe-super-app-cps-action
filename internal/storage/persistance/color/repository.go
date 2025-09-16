@@ -111,28 +111,27 @@ func (c *ColorStorage) FindByID(ctx context.Context, id string) (*model.Color, e
 }
 
 func (s *ColorStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Color], error) {
-    searchKeys := bson.M{}
-    allowedKeys := []string{"color"} 
+	searchKeys := bson.M{}
+	allowedKeys := []string{"color", "enabled"}
 
-    fbFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+	fbFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
-    fbFilter["is_deleted"] = false
+	fbFilter["is_deleted"] = false
 
-    data, err := s.dal.FindAllWithPagination(ctx, fbFilter, bson.M{}, skip, limit)
-    if err != nil {
-        return nil, errors.New(localization.ErrorUnexpectedError.Message)
-    }
+	data, err := s.dal.FindAllWithPagination(ctx, fbFilter, bson.M{}, skip, limit)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
 
-    total, err := s.dal.TotalCount(ctx, fbFilter)
-    if err != nil {
-        return nil, errors.New(localization.ErrorUnexpectedError.Message)
-    }
+	total, err := s.dal.TotalCount(ctx, fbFilter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
 
-    meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-    return &types.PaginatedResponse[[]*model.Color]{
-        Data: data,
-        Meta: meta,
-    }, nil
+	return &types.PaginatedResponse[[]*model.Color]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }
-

@@ -49,7 +49,7 @@ const (
 	OtpExpirationTime                 = 3 * time.Minute
 	ActionCode                        = "action_code"
 	Avatar                            = "avatar"
-	DonationIcon					= "donation_icon"
+	DonationIcon                      = "donation_icon"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"
@@ -205,7 +205,7 @@ const (
 	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
 	RequestCreateBank               RequestAction = "CREATE_BANK"
 	RequestUpdateBank               RequestAction = "UPDATE_BANK"
-	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO	"
+	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO"
 	RequestDeleteBank               RequestAction = "DELETE_BANK"
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
@@ -338,7 +338,6 @@ const (
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
 	RequestCreateDonation         RequestAction = "CREATE_DONATION"
 	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
-
 
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"

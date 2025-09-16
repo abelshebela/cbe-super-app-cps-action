@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
@@ -158,6 +159,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 
 func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
 
+	fmt.Println("===============EnableOrDisableCities===================")
 	for _, code := range citiesCode {
 		city, err := s.repo.GetCityByCode(ctx, code)
 		if err != nil {

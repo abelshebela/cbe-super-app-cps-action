@@ -32,11 +32,13 @@ func NewAvatarRepository(client *mongo.Client, dbName string, collection string,
 }
 
 func (a *AvatarStorage) Create(ctx context.Context, avatar *model.Avatar) error {
+	avatar.ID = bson.NewObjectID()
 	_, err := a.dal.InsertOne(ctx, *avatar)
 	if err != nil {
 		a.logger.Errorf("Unable to create avatar with error: %s", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	return nil
 }
 
@@ -50,6 +52,7 @@ func (a *AvatarStorage) Update(ctx context.Context, id string, avatar *model.Ava
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
+		a.logger.Errorf("Unable to update avator error: %v", err)
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
@@ -72,8 +75,8 @@ func (a *AvatarStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID}
-	update := bson.M{"enabled": enable}
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"enable": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -86,12 +89,18 @@ func (a *AvatarStorage) EnableOrDisable(ctx context.Context, id string, enable b
 func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		if err.Error() == mongo.ErrNoDocuments.Error() {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
 		return nil, err
 	}
 	return result, nil
@@ -99,6 +108,19 @@ func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar,
 
 func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Avatar, error) {
 	return a.dal.FindAll(ctx, filter, nil)
+}
+
+func (a *AvatarStorage) Find(ctx context.Context, filter bson.M, projection bson.M) (*model.Avatar, error) {
+	filter = bson.M{"is_deleted": false}
+	avatar, err := a.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return avatar, nil
 }
 
 func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error) {

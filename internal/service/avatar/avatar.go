@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type avatarService struct {
@@ -42,10 +43,17 @@ func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSAct
 
 func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	existing, err := a.avatar.FindAll(ctx, bson.M{"label": avatar}, nil)
-	if len(existing) > 0 {
+	existing, err := a.avatar.Find(ctx, bson.M{"label": avatar.Label}, nil)
+	if err != nil {
+		if err.Error() != mongo.ErrNoDocuments.Error() {
+			return errors.New(localization.ErrorAvatarAlreadyExist.Code)
+		}
+	}
+
+	if existing != nil {
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
+
 	url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.minioEndPoint, a.logger)
 	if err != nil {
 		return err
@@ -62,6 +70,18 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
+	}
+
+	existing, err := a.avatar.Find(ctx, bson.M{"label": avatar.Label}, nil)
+	if err != nil {
+		a.logger.Infof("Error happen from repo %v", err)
+		if err.Error() != localization.ErrorFileNotFound.Code {
+			return errors.New(localization.ErrorAvatarAlreadyExist.Code)
+		}
+	}
+
+	if existing == nil {
+		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
 
 	existed, update, err := core.UpdateDataBuilder(ctx, a.avatar, id, avatar.Label, fromEnabledDisable, avatar.Enable)
@@ -105,7 +125,7 @@ func (a *avatarService) EnableDisable(ctx context.Context, id string, enable boo
 		if enable {
 			return errors.New(localization.ErrorAvatarAlreadyEnabled.Code)
 		}
-		return errors.New(localization.ErrorAvatarAlreadyEnabled.Code)
+		return errors.New(localization.ErrorAvatarAlreadyDisabled.Code)
 	}
 	var requestAction string
 	if enable {
@@ -116,7 +136,7 @@ func (a *avatarService) EnableDisable(ctx context.Context, id string, enable boo
 	update := data
 
 	update.Enable = enable
-	cpsModel := lib.CpsModelBuilder(id, makerData, data, update, requestAction, string(constants.Pending))
+	cpsModel := lib.CpsModelBuilder(id, makerData, data, update, requestAction, string(constants.UPDATE))
 	return a.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {

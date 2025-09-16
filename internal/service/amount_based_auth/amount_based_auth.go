@@ -11,6 +11,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -131,11 +132,14 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 
+		fmt.Printf("existingTier: %v\n", existingTier)
+
 		// Fetch OPEN and OTP_PIN tiers for validation constraints
 		openTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OPEN, "is_deleted": false}, bson.M{})
 		if err != nil {
 			return err
 		}
+		fmt.Printf("openTiers: %v\n", &openTiers)
 		if len(openTiers) == 0 {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}

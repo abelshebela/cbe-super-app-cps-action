@@ -105,6 +105,7 @@ type AvatarRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Avatar, error)
+	Find(ctx context.Context, filter bson.M, projection bson.M) (*model.Avatar, error)
 	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Avatar, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
 }

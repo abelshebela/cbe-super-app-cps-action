@@ -44,9 +44,9 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 		Message: responseCode.Message,
 		Data:    data,
 	}
-	if responseCode.Type == "error" {
-		response.Ok = false
-	}
+	// if responseCode.Type == "error" {
+	// 	response.Ok = false
+	// }
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		SendErrorResponse(w, ErrorUnexpectedError, nil, nil)

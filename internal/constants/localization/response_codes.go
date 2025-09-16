@@ -184,6 +184,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
 	ErrorCoverImageRequired,
+	ErrorInvalidAmounts,
+	ErrorAuthTierAlreadyExists,
+	ErrorInvalidMethod,
 	ErrorMerchantNotFound,
 	ErrorEventNotFound,
 	ErrorEventAlreadyEnabled,
@@ -3918,7 +3921,7 @@ var (
 	ErrorAvatarAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_AVATAR_ALREADY_Enabled",
 		StatusCode: StatusBadRequest,
-		Message:    MsgAvatarAlreadyDisabled,
+		Message:    MsgAvatarAlreadyEnabled,
 		Type:       "error",
 	}
 

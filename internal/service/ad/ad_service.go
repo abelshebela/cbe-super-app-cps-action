@@ -211,24 +211,23 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("Authorizing advert action, action: %s", action.RequestAction)
 
-	var advert *model.Advert
-	if err := local_util.BindAction(action.CurrentAction, &advert); err != nil {
-		s.logger.Errorf("Failed to bind current action to advert: %v", err)
+	advert, err := local_util.JsonUnmarshal[model.Advert](action.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("Failed to unmarshal current action into advert: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	var err error
 	switch action.RequestAction {
 	case string(cpsaction.RequestCreateAdvert):
 		err = s.Repository.Create(ctx, advert)
 	case string(cpsaction.RequestUpdateAdvert):
-		err = s.Repository.Update(ctx, advert.ID.Hex(), advert)
+		err = s.Repository.Update(ctx, action.UniqueId, advert)
 	case string(cpsaction.RequestDeleteAdvert):
-		err = s.Repository.Delete(ctx, advert.ID.Hex())
+		err = s.Repository.Delete(ctx, action.UniqueId)
 	case string(cpsaction.RequestEnableAdvert):
-		err = s.Repository.EnableOrDisable(ctx, advert.ID.Hex(), true)
+		err = s.Repository.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(cpsaction.RequestDisableAdvert):
-		err = s.Repository.EnableOrDisable(ctx, advert.ID.Hex(), false)
+		err = s.Repository.EnableOrDisable(ctx, action.UniqueId, false)
 	default:
 		s.logger.Errorf("Unsupported action requested, action: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

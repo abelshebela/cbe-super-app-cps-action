@@ -50,7 +50,10 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["access_list_name"] = searchRegex
+		searchKeys["$or"] = []bson.M{
+			{"access_list_name": searchRegex},
+			{"key": searchRegex},
+		}
 	}
 
 	// 4. Build filter, skip, limit

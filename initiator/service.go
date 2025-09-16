@@ -68,11 +68,11 @@ type ServiceLayer struct {
 	Avatar            service.AvatarService
 	AmountBasedAuth   service.AmountBasedAuthService
 
-	Permission     service.PermissionService
-	CPSUser        service.CPSUserService
-	ServiceDetails service.ServiceService
-
-	ProductCode service.ProductCodeService
+	Permission        service.PermissionService
+	CPSUser           service.CPSUserService
+	ServiceDetails    service.ServiceService
+	AccountValidation service.AccountValidationService
+	ProductCode       service.ProductCodeService
 
 	DonationCategory service.DonationCategoryService
 
@@ -199,7 +199,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	serviceContainer.BulkServiceContainer = bulkService
-
+	accountValidation = accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, cpsActionService, logger)
+	serviceContainer.AccountContainer = accountValidation
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, "banks")
 	serviceContainer.BankContainer = bank_service
 
@@ -260,6 +261,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 
+	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
+	serviceContainer.AmountBasedAuthContainer = amountBased
 	// Update miniAppMerchantService with the CPS action service
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
@@ -280,6 +283,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		PortalCard:        portalCardService,
 		AmountBasedAuth:   amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
 		ValidationService: accountValidation,
+		AccountValidation: accountValidation,
 		Wallet:            walletService,
 		PasswordRule:      passwordRule,
 		HQService:         hqService,

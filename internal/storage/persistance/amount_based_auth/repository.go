@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -60,6 +61,7 @@ func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, pro
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("FindAll result: %v\n", result)
 	return result, nil
 }
 
