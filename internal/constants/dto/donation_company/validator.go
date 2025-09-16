@@ -84,7 +84,7 @@ func validateAccountNumberFormat(value interface{}) error {
 
 	// Check if contains only alphanumeric characters
 	for _, char := range accountNumber {
-		if !((char >= '0' && char <= '9')) {
+		if !(char >= '0' && char <= '9') {
 			return validation.NewError("validation_account_number_format", "account number must contain only numbers")
 		}
 	}
@@ -105,3 +105,5 @@ func hasAllowedExtension(filename string, allowed []string) bool {
 	}
 	return false
 }
+
+

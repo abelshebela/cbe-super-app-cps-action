@@ -33,6 +33,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 
+	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
@@ -99,6 +100,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 
+	donation.Init(r, handlerLayer.DonationHandler, authMiddleware)
 	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)
 	donation_company.Init(r, handlerLayer.DonationCompanyHandler, authMiddleware)
 

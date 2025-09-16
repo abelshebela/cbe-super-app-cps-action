@@ -373,7 +373,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCategoryNameDuplicated,
 	ErrorDonationCompanyLookupFailed,
 	ErrorDonationCategoryIDRequired,
-	
+
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
@@ -383,6 +383,15 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyLookupFailed,
 
 	SuccessDonationCompanyUpdated,
+	ErrorDonationTitleDuplicated,
+	ErrorDonationImageUploaded,
+	ErrorDonationImagesUpdated,
+	ErrorImageRequired,
+	ErrorDonationCompanyNotFound,
+	ErrorDonationCategoryNotFound,
+	ErrorDonationLookupFailed,
+	
+
 }
 
 // Success Response Codes
@@ -708,6 +717,20 @@ var (
 		Code:       "SUCCESS_DONATION_IMAGE_ADD_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgDonationImageAddRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDonationEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDonationDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDisableRequestSent,
 		Type:       "success",
 	}
 
@@ -3620,12 +3643,7 @@ var (
 		Type:       "error",
 	}
 
-	ErrorDonationLookupFailed = ResponseCode{
-		Code:       "ERROR_DONATION_LOOKUP_FAILED",
-		StatusCode: StatusInternalServerError,
-		Message:    MsgDonationLookupFailed,
-		Type:       "error",
-	}
+	
 	ErrorDonationCategoryNameDuplicated = ResponseCode{
 		Code:       "ERROR_DONATION_CATEGORY_NAME_DUPLICATED",
 		StatusCode: StatusBadRequest,
@@ -3846,6 +3864,41 @@ var (
 		Code:       "ERROR_DONATION_IMAGES_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationImagesUpdateSuccess,
+		Type:       "error",
+	}
+
+	ErrorDonationTitleDuplicated = ResponseCode{
+		Code:       "ERROR_DONATION_TITLE_DUPLICATED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationTitleDuplicated,
+		Type:       "error",
+	}
+
+	ErrorDonationCategoryNotFound = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDonationCategoryNotFound,
+		Type:       "error",
+	}
+
+	ErrorDonationCompanyNotFound = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDonationCompanyNotFound,
+		Type:       "error",
+	}
+
+	ErrorImageRequired = ResponseCode{
+		Code:       "ERROR_IMAGE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgImageRequired,
+		Type:       "error",
+	}
+
+	ErrorDonationLookupFailed = ResponseCode{
+		Code:       "ERROR_DONATION_LOOKUP_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDonationLookupFailed,
 		Type:       "error",
 	}
 

@@ -12,6 +12,7 @@ import (
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
+	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	donationCat_dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	donationComp_dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
@@ -98,6 +99,15 @@ type DepartmentService interface {
 
 type DonationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDonation(ctx context.Context, donation donation_dto.DonationRequest) error
+	UpdateDonation(ctx context.Context, id string, donation donation_dto.DonationRequest) error
+	FetchDonation(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error)
+	FetchDonationByID(ctx context.Context, id string) (*donation_dto.DonationListResponse, error)
+	UpdateDonationImage(ctx context.Context, id string, image donation_dto.DonationImageUpdateRequest) error
+	DeleteDonationImage(ctx context.Context, id string, imageID string) error
+	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
+	EnableDonation(ctx context.Context, id string) error
+	DisableDonation(ctx context.Context, id string) error
 }
 type DonationCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

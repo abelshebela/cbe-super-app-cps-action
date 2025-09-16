@@ -1,12 +1,14 @@
 package donation
 
 import (
+	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -14,19 +16,24 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"cbe-super-app-cps-action/internal/constants/lib"
 )
 
 type DonationStorage struct {
-	dal    dal.MongoDal[model.Donation, model.Donation]
-	client *mongo.Client
-	logger utils.Logger
+	dal                 dal.MongoDal[model.Donation, model.Donation]
+	donationCompanyDal  dal.MongoDal[model.DonationCompany, model.DonationCompany]
+	donationCategoryDal dal.MongoDal[model.DonationCategory, model.DonationCategory]
+	client              *mongo.Client
+	logger              utils.Logger
 }
 
 func NewDonationRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
-		dal:    dal.NewMongoDal[model.Donation, model.Donation](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:                 dal.NewMongoDal[model.Donation, model.Donation](client, dbName, collection),
+		donationCompanyDal:  dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, dbName, "donation_companies"),
+		donationCategoryDal: dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, dbName, "donation_categories"),
+		client:              client,
+		logger:              logger,
 	}
 }
 
@@ -44,9 +51,9 @@ func (d *DonationStorage) Update(ctx context.Context, id string, donation *model
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	updateData := DonationMapper(*donation)
+	updatedData := DonationMapper(*donation)
 
-	_, err = d.dal.UpdateOne(ctx, filter, updateData)
+	_, err = d.dal.UpdateOne(ctx, filter, updatedData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
@@ -65,31 +72,55 @@ func (d *DonationStorage) Delete(ctx context.Context, id string) error {
 	return d.dal.DeleteOne(ctx, filter)
 }
 
-func (d *DonationStorage) FindByID(ctx context.Context, id string) (*model.Donation, error) {
+func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dto.DonationListResponse, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := d.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
 		return nil, err
 	}
-	return result, nil
+
+	companyFilter := bson.M{"_id": result.CompanyID}
+	company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch company: %v", err)
+	}
+
+	categoryFilter := bson.M{"_id": result.CategoryID}
+	category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch category: %v", err)
+	}
+
+	return MapToDonationListResponse(result, company, category), nil
 }
 
-func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Donation], error) {
-	filter := bson.M{"is_deleted": false}
+func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
+
+	searchKeys := bson.M{}
+	allowedKeys := []string{"title", "is_featured", "enabled","donation_code","target","end_date"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["name"] = searchRegex
+		searchKeys["$or"] = []bson.M{
+			{"title": searchRegex},
+			{"is_featured": searchRegex},
+			{"donation_description": searchRegex},
+			{"donation_code": searchRegex},
+			{"target": searchRegex},
+			{"end_date": searchRegex},
+			{"start_date": searchRegex},
+			
+		}
 	}
-
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
-
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	data, err := d.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, err
@@ -102,8 +133,25 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.Donation]{
-		Data: data,
+	var result []donation_dto.DonationListResponse
+	for _, donation := range data {
+		companyFilter := bson.M{"_id": donation.CompanyID}
+		company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch company: %v", err)
+		}
+
+		categoryFilter := bson.M{"_id": donation.CategoryID}
+		category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch category: %v", err)
+		}
+
+		result = append(result, *MapToDonationListResponse(donation, company, category))
+	}
+
+	return &types.PaginatedResponse[[]donation_dto.DonationListResponse]{
+		Data: result,
 		Meta: meta,
 	}, nil
 }

@@ -54,3 +54,4 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 
 	glue.RegisterRoutes(router, routes)
 }
+

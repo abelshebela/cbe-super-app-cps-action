@@ -99,6 +99,46 @@ func (nc *NumericConverter) ToInt(value interface{}, fieldName string) (int, err
 	return result, nil
 }
 
+// ToInt32 converts interface{} to int32 with validation
+func (nc *NumericConverter) ToInt32(value interface{}, fieldName string) (int32, error) {
+	var result int32
+
+	switch v := value.(type) {
+	case string:
+		parsed, err := strconv.ParseInt(v, 10, 32)
+		if err != nil {
+			return 0, fmt.Errorf("%s must be a valid number", fieldName)
+		}
+		result = int32(parsed)
+	case float64:
+		result = int32(v)
+	case int:
+		result = int32(v)
+	case int64:
+		result = int32(v)
+	case uint:
+		result = int32(v)
+	case uint64:
+		result = int32(v)
+	case uint32:
+		result = int32(v)
+	case uint16:
+		result = int32(v)
+	case uint8:
+		result = int32(v)
+	case int32:
+		result = v
+	case int16:
+		result = int32(v)
+	case int8:
+		result = int32(v)
+	default:
+		return 0, fmt.Errorf("%s must be a valid number, got %T", fieldName, value)
+	}
+
+	return result, nil
+}
+
 // ToInt64 converts interface{} to int64 with validation
 func (nc *NumericConverter) ToInt64(value interface{}, fieldName string) (int64, error) {
 	var result int64

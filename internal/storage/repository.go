@@ -5,6 +5,7 @@ import (
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
+	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
@@ -250,8 +251,8 @@ type DonationRepository interface {
 	Create(ctx context.Context, donation *model.Donation) error
 	Update(ctx context.Context, id string, donation *model.Donation) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.Donation, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Donation], error)
+	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
 }
 
 type DonationCategoryRepository interface {
