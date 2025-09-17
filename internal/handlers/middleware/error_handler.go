@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"cbe-super-app-budget/platform/logger"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
@@ -273,7 +274,7 @@ func NewTimeoutError(operation string) *AppError {
 	}
 }
 
-func HandlePanic(logger logger.Logger) func(next http.Handler) http.Handler {
+func HandlePanic(logger utils.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
@@ -342,7 +343,7 @@ func convertToAppErr(err error, requestID string) *AppError {
 		WithDetail("request_id", requestID)
 }
 
-func handlePanic(w http.ResponseWriter, r *http.Request, panicErr interface{}, logger logger.Logger) {
+func handlePanic(w http.ResponseWriter, r *http.Request, panicErr interface{}, logger utils.Logger) {
 	requestID := getRequestID(r)
 
 	// Create panic error
@@ -352,7 +353,7 @@ func handlePanic(w http.ResponseWriter, r *http.Request, panicErr interface{}, l
 		WithDetail("stack_trace", string(debug.Stack()))
 
 		// Log the panic with stack trace
-	logger.Error(r.Context(), "[Panic recovered]",
+	logger.Errorf("[Panic recovered]",
 		zap.String("request_id", requestID),
 		zap.String("method", r.Method),
 		zap.String("path", r.URL.Path),

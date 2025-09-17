@@ -1,19 +1,22 @@
 package config
 
 import (
-	"cbe-super-app-budget/platform/logger"
 	"context"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	// "go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
 )
 
 type Config struct {
 }
 
-func ConnectMongo(logger logger.Logger, env *VaultConfig) (*mongo.Client, *mongo.Database, error) {
+func ConnectMongo(logger utils.Logger, env *config.VaultConfig) (*mongo.Client, *mongo.Database, error) {
 	ctx, cancle := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancle()
 
@@ -24,7 +27,7 @@ func ConnectMongo(logger logger.Logger, env *VaultConfig) (*mongo.Client, *mongo
 		SetMaxConnIdleTime(5 * time.Minute).
 		SetConnectTimeout(10 * time.Second)
 
-	client, err := mongo.Connect(ctx, options)
+	client, err := mongo.Connect(options)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -33,14 +36,14 @@ func ConnectMongo(logger logger.Logger, env *VaultConfig) (*mongo.Client, *mongo
 		return nil, nil, err
 	}
 
-	logger.Info(ctx, "Successfully Connected to MongoDB!")
+	logger.Infof("Successfully Connected to MongoDB!")
 	return client, client.Database(env.MongoDBDatabase), nil
 }
 
-func DisconnectMongo(ctx context.Context, client *mongo.Client, logger logger.Logger) {
+func DisconnectMongo(ctx context.Context, client *mongo.Client, logger utils.Logger) {
 	if err := client.Disconnect(ctx); err != nil {
-		logger.Error(ctx, "Error disconnecting MongoDB", zap.Error(err))
+		logger.Errorf("Error disconnecting MongoDB", zap.Error(err))
 	} else {
-		logger.Info(ctx, "Disconnected MongoDB successfully")
+		logger.Infof("Disconnected MongoDB successfully")
 	}
 }

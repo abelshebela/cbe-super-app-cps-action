@@ -2,15 +2,20 @@
 version: "3.8"
 
 services:
-  cbe-supperapp-cps-action:
+  cbe-supperapp-member-user:
     image: registry.eaglelionsystems.com/cbe-supperapp/${IMAGE_NAME}:${IMAGE_TAG}
-    container_name: cbe-supperapp-cps-action
+    container_name: cbe-supperapp-member-auth
     ports:
-      - 5005:8080
-      - 50054:50051
+      - 5004:8080
     restart: always
+    env_file:
+      - .env
+    environment:
+      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_TOKEN=${VAULT_TOKEN}
+      - VAULT_PATH=${VAULT_PATH}
     deploy:
-      resources:
+      resources:  
         limits:
           cpus: '0.50'
           memory: 100M

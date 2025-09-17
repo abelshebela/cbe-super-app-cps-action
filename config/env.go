@@ -1,8 +1,9 @@
 package config
 
 import (
-	"cbe-super-app-budget/platform/logger"
 	"fmt"
+
+	"cbe-super-app-cps-action/platform/logger"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/hashicorp/vault/api"
@@ -23,7 +24,13 @@ type VaultConfig struct {
 	IdleTimeout           uint8  `mapstructure:"IDLE_TIMEOUT"`
 	MenuServicePort       string `mapstructure:"cbe-super-app-budget_PORT"`
 	ServerPublicKey       string `mapstructure:"SERVER_PUBLIC_KEY"`
+	JWTSecretKey          string `mapstructure:"JWT_SECRET_KEY"`
 	ServerTimeout         int    `mapstructure:"SERVER_TIMEOUT"`
+	RedisConfig           RedisConfig
+	Key                   string `mapstructure:"KEY"`
+	IV                    string `mapstructure:"IV"`
+	CBEBaseURL            string `mapstructure:"CBE_BASE_URL"`
+	SMSBaseURL            string `mapstructure:"SMS_BASEURL"`
 }
 
 func LoadVault(logger logger.Logger) (*VaultConfig, error) {
