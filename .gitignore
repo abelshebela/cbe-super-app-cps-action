@@ -1,31 +1,38 @@
-tmp
-bin
-shared
+# If you prefer the allow list template instead of the deny list, see community template:
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+#
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+examples
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
 .env
-test.go
-aiso/env
-.env
-docs
-.vscode
-# for running using Air package
-.air.toml
-tracer.go
-KAFKA_FEEDBACK_IMPLEMENTATION.md
-docker-compose.kafka.yml
-scripts/start_kafka_infrastructure.sh
-scripts/send_test_messages.sh
-scripts/run_feedback_consumer.sh
-scripts/README_DOCKER.md
-DONATION_FEATURE_ANALYSIS.md
-main
-main
-FILTER_USAGE_EXAMPLES.md
-pkgs/utils/filter_params_test.go
-internal/domain/account_validation/README.md
-main.exe
-NUMERIC_CONVERTER_UTILITY.md
-SERVICE_FEATURE_ISSUES_FIXED.md
-SERVICE_FEE_ANALYSIS.md
-SERVICE_FEE_ERROR_HANDLING_IMPROVEMENTS.md
-tests/domain/service_persistence_test.go
-pkgs/entities/payment_type_test.go
+reserve
+# Editor/IDE
+# .idea/
+# .vscode/
+
+docs/
+!docs/swagger/
+!docs/swagger.json
+donation_category.md
+DONATION_CATEGORY_PATTERN_GUIDE.md

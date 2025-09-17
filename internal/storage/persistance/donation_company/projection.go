@@ -1,0 +1,40 @@
+package donation_company
+
+import (
+	"time"
+
+	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
+	"cbe-super-app-cps-action/internal/constants/model"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
+
+func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.DonationCompanyListResponse {
+	return &dto.DonationCompanyListResponse{
+		ID:             company.ID.Hex(),
+		CompanyName:    company.CompanyName,
+		CompanyLogo:    company.CompanyLogo,
+		AccountNumber:  company.AccountNumber,
+		IsDeleted:      company.IsDeleted,
+		CreatedAt:      company.CreatedAt.Format(time.RFC3339),
+		LastModifiedAt: company.LastModifiedAt.Format(time.RFC3339),
+	}
+}
+
+func MapToDonationCompanyListResponses(companies []*model.DonationCompany) []dto.DonationCompanyListResponse {
+	responses := make([]dto.DonationCompanyListResponse, len(companies))
+	for i, company := range companies {
+		responses[i] = *MapToDonationCompanyListResponse(company)
+	}
+	return responses
+}
+
+func DonationCompanyMapper(company model.DonationCompany) bson.M {
+	return bson.M{
+		"company_name":     company.CompanyName,
+		"company_logo":     company.CompanyLogo,
+		"account_number":   company.AccountNumber,
+		"is_deleted":       company.IsDeleted,
+		"last_modified_at": company.LastModifiedAt,
+	}
+}

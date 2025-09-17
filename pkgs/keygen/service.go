@@ -1,16 +1,16 @@
 package keygen
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
+	"errors"
 	"io"
 	"math/big"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -59,7 +59,7 @@ func (g *Ed25519KeyGen) GenerateKeyPair() (KeyPair, error) {
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		g.logger.Errorf("Failed to generate Ed25519 key pair", "error", err)
-		return KeyPair{}, fmt.Errorf(utils.UnhandledServerError)
+		return KeyPair{}, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	keyPair := KeyPair{
 		PublicKey:  base64.StdEncoding.EncodeToString(publicKey),
@@ -74,11 +74,11 @@ func (g *Ed25519KeyGen) Sign(data []byte, privateKey string) ([]byte, error) {
 	privateKeyBytes, err := base64.StdEncoding.DecodeString(privateKey)
 	if err != nil {
 		g.logger.Errorf("Failed to decode private key", "error", err)
-		return nil, fmt.Errorf(utils.UnhandledServerError)
+		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	if len(privateKeyBytes) != ed25519.PrivateKeySize {
 		g.logger.Errorf("Invalid private key size", "expected", ed25519.PrivateKeySize, "got", len(privateKeyBytes))
-		return nil, fmt.Errorf(utils.UnhandledServerError)
+		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	signature := ed25519.Sign(privateKeyBytes, data)
 	g.logger.Infof("Successfully signed data", "signatureLength", len(signature))
@@ -90,11 +90,11 @@ func (g *Ed25519KeyGen) Verify(data, signature []byte, publicKey string) (bool, 
 	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
 		g.logger.Errorf("Failed to decode public key", "error", err)
-		return false, fmt.Errorf(utils.UnhandledServerError)
+		return false, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	if len(publicKeyBytes) != ed25519.PublicKeySize {
 		g.logger.Errorf("Invalid public key size", "expected", ed25519.PublicKeySize, "got", len(publicKeyBytes))
-		return false, fmt.Errorf(utils.UnhandledServerError)
+		return false, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	isValid := ed25519.Verify(publicKeyBytes, data, signature)
 	if isValid {
@@ -116,7 +116,7 @@ func (g *Ed25519KeyGen) GenerateNumericCode(length int) (string, error) {
 	g.logger.Infof("Generating numeric code", "length", length)
 	if length <= 0 {
 		g.logger.Errorf("Invalid code length", "length", length)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	digits := "0123456789"
@@ -127,7 +127,7 @@ func (g *Ed25519KeyGen) GenerateNumericCode(length int) (string, error) {
 		n, err := rand.Int(rand.Reader, max)
 		if err != nil {
 			g.logger.Errorf("Failed to generate random digit", "error", err)
-			return "", fmt.Errorf(utils.UnhandledServerError)
+			return "", errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		code[i] = digits[n.Int64()]
 	}
@@ -140,14 +140,14 @@ func (g *Ed25519KeyGen) GenerateAppSecret(byteLength int) (string, error) {
 	g.logger.Infof("Generating app secret", "byteLength", byteLength)
 	if byteLength < 32 {
 		g.logger.Errorf("Invalid byte length for app secret", "byteLength", byteLength)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	secret := make([]byte, byteLength)
 	_, err := rand.Read(secret)
 	if err != nil {
 		g.logger.Errorf("Failed to generate app secret", "error", err)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	encodedSecret := base64.StdEncoding.EncodeToString(secret)
@@ -186,26 +186,26 @@ func (g *Ed25519KeyGen) DecryptAppSecret(encrypted string) (string, error) {
 	block, err := aes.NewCipher(secretKey)
 	if err != nil {
 		g.logger.Errorf("Failed to create AES cipher", "error", err)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
 		g.logger.Errorf("Failed to create AES GCM", "error", err)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	nonceSize := aesGCM.NonceSize()
 	if len(cipherData) < nonceSize {
 		g.logger.Errorf("Ciphertext too short", "cipherDataLength", len(cipherData), "nonceSize", nonceSize)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	nonce, cipherText := cipherData[:nonceSize], cipherData[nonceSize:]
 	plainText, err := aesGCM.Open(nil, nonce, cipherText, nil)
 	if err != nil {
 		g.logger.Errorf("Failed to open AES GCM", "error", err)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	return string(plainText), nil
@@ -215,13 +215,13 @@ func (g *Ed25519KeyGen) EncryptAppSecret(plainText string) (string, error) {
 	block, err := aes.NewCipher(secretKey)
 	if err != nil {
 		g.logger.Errorf("Failed to create AES cipher", "error", err)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
 		g.logger.Errorf("Failed to create AES GCM", "error", err)
-		return "", fmt.Errorf(utils.UnhandledServerError)
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	nonce := make([]byte, aesGCM.NonceSize())

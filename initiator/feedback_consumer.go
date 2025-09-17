@@ -6,27 +6,38 @@ import (
 	"os/signal"
 	"syscall"
 
-	feedbackRepo "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/persistence/feedback"
-	feedbackConfig "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/config"
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/domain/feedback/kafka"
+	feedbackConfig "cbe-super-app-cps-action/config"
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/storage/kafka"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitFeedbackConsumer(mongoClient *mongo.Client, cfg *config.VaultConfig, logger utils.Logger) error {
+// feedbackServiceAdapter adapts service.FeedbackService to kafka.FeedbackRepository interface
+type feedbackServiceAdapter struct {
+	svc service.FeedbackService
+}
+
+func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error) {
+	return a.svc.CreateFeedback(ctx, req, userID)
+}
+
+func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.VaultConfig, logger utils.Logger) error {
 	kafkaConfig := feedbackConfig.LoadKafkaConfig(cfg)
 	if kafkaConfig.Brokers == "" {
 		logger.Infof("Kafka brokers not configured, skipping feedback consumer")
 		return nil
 	}
 
-	feedbackRepository := feedbackRepo.InitFeedback(mongoClient, cfg.MongoDBDatabase, "feedback", logger)
+	adapter := &feedbackServiceAdapter{svc: feedbackSvc}
 
 	// Create dead letter queue
 	deadLetterQueue := kafka.NewSimpleDeadLetterQueue(logger)
 
-	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, feedbackRepository, deadLetterQueue)
+	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, adapter, deadLetterQueue)
 	if err != nil {
 		logger.Errorf("Failed to create Kafka consumer: %v", err)
 		return err

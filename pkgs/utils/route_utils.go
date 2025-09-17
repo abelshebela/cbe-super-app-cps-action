@@ -1,7 +1,8 @@
 package utils
 
 import (
-	"fmt"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"errors"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -23,37 +24,25 @@ func GetParam(r *http.Request, key string) (string, bool) {
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
 	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return nil, nil, fmt.Errorf(ErrMissingFile)
+		return nil, nil, errors.New(localization.ErrorMissingFile.Code)
 	}
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
+		return nil, nil, errors.New(localization.ErrorFileParseFailed.Code)
 	}
 
 	file, fileHeader, err := r.FormFile(key)
 	if err != nil {
-		if err == http.ErrMissingFile {
-			return nil, nil, fmt.Errorf(ErrMissingFile)
-		}
-		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
+		return nil, nil, err
 	}
 
 	return file, fileHeader, nil
 }
 
-// func UserContextToModel(userContext ctx_util.UserContext) model.User {
-// 	return model.User{
-// 		UserCode:    userContext.UserCode,
-// 		FullName:    userContext.FullName,
-// 		PhoneNumber: userContext.PhoneNumber,
-// 		Department:  userContext.Department,
-// 	}
-// }
-
 func ParsePrimitiveObjectID(ID string) (bson.ObjectID, error) {
 	objectID, err := bson.ObjectIDFromHex(ID)
 
 	if err != nil {
-		return bson.ObjectID{}, fmt.Errorf(InvalidID)
+		return bson.ObjectID{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 	return objectID, nil
 }
