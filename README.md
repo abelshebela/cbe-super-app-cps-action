@@ -74,30 +74,3 @@ To ensure consistency and maintain code quality, adhere to the following rules:
 3. After you push you code to Git lab, don't forget to send a PR Request for reviews
   
 > For any questions or contributions, please contact the project leads.
-
-## Development with Air (Live Reload)
-
-This project uses [Air](https://github.com/air-verse/air) for live reloading, similar to nodemon in Node.js projects.
-
-### Setup
-1. Install Air (requires Go 1.16+):
-   ```sh
-   go install github.com/air-verse/air@latest
-   ```
-   Ensure your $GOPATH/bin is in your PATH.
-
-2. Initialize Air config (already done in this repo):
-   ```sh
-   air init
-   ```
-   This creates a `.air.toml` file in the project root.
-
-3. The `.air.toml` is configured to build from `cmd/main.go` and output to `tmp/main.exe`.
-
-### Usage
-To start the development server with live reload:
-```sh
-air
-```
-
-Air will watch for file changes and automatically rebuild and restart the server.

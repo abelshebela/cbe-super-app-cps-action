@@ -1,0 +1,23 @@
+# supper app bps service compose file
+version: "3.8"
+
+services:
+  cbe-supperapp-cps-action:
+    image: registry.eaglelionsystems.com/cbe-supperapp/${IMAGE_NAME}:${IMAGE_TAG}
+    container_name: cbe-supperapp-cps-action
+    ports:
+      - 5005:8080
+      - 50054:50051
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 100M
+        reservations:
+          cpus: '0.25'
+          memory: 75M
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://10.224.221.177:3100/loki/api/v1/push"

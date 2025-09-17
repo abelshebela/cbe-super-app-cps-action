@@ -1,10 +1,10 @@
 package main
 
 import (
-	"cbe-super-app-budget/initiator"
-	"context"
+	"github.com/CBE-Super-App/cbe-super-app-cps-action/initiator"
 )
 
 func main() {
-	initiator.Init(context.Background())
+	initiator.Initiator()
+
 }
