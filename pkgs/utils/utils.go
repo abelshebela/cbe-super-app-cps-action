@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
+	// "math/rand"
 	mathrand "math/rand"
 	"mime/multipart"
 	"net/http"
@@ -331,7 +331,7 @@ func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
-		return "", fmt.Errorf(localization.ErrorInvalidID.Code)
+		return "", errors.New(localization.ErrorInvalidID.Code)
 	}
 	return id, nil
 }
@@ -433,7 +433,7 @@ func RandomGenerator(length uint8) string {
 	entropy := fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
 	hash := sha256.Sum256([]byte(entropy))
 	seed := int64(binary.LittleEndian.Uint64(hash[:8]))
-	r := rand.New(rand.NewSource(seed))
+	r := mathrand.New(mathrand.NewSource(seed))
 
 	result := make([]byte, length)
 	for i := range result {

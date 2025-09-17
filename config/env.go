@@ -29,6 +29,8 @@ type VaultConfig struct {
 	RedisConfig           RedisConfig
 	Key                   string `mapstructure:"KEY"`
 	IV                    string `mapstructure:"IV"`
+	CBEBaseURL            string `mapstructure:"CBE_BASE_URL"`
+	SMSBaseURL            string `mapstructure:"SMS_BASEURL"`
 }
 
 func LoadVault(logger logger.Logger) (*VaultConfig, error) {

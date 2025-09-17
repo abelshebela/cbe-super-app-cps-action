@@ -143,7 +143,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 		updateData.CategoryName = existingCategory.CategoryName
 	}
 
-	cpsAction := lib.CpsModelBuilder("", makerData, "", updateData, string(constants.RequestUpdateDonationCategory), constants.UPDATE)
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingCategory, updateData, string(constants.RequestUpdateDonationCategory), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return donationCategory, err
 	}

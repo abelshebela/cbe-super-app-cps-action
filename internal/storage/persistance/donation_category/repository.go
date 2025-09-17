@@ -10,7 +10,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
+	
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -33,7 +33,7 @@ func NewDonationCategoryRepository(client *mongo.Client, dbName string, collecti
 }
 
 func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.DonationCategory) error {
-	fmt.Println("////////////////CREATE")
+	
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -77,7 +77,7 @@ func (s *DonationCategoryStorage) FindByID(ctx context.Context, id string) (*don
 	return MapToDonationCategoryListResponse(result), nil
 }
 func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_category.DonationCategoryListResponse], error) {
-	// 1. Base filter (only active records)
+	
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 

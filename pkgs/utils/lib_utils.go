@@ -274,3 +274,23 @@ func GenerateCPSUserCode() string {
 
 	return prefix + string(b)
 }
+
+func ParseDateString(dateStr string) (time.Time, error) {
+	formats := []string{
+		"02/01/2006",                // DD/MM/YYYY
+		"01/02/2006",                // MM/DD/YYYY
+		"2006-01-02",                // YYYY-MM-DD
+		"2006-01-02T15:04:05Z07:00", // ISO format
+		"2006-01-02T15:04:05",       // ISO format without timezone
+		"02-01-2006",                // DD-MM-YYYY
+		"01-02-2006",                // MM-DD-YYYY
+	}
+
+	for _, format := range formats {
+		if parsed, err := time.Parse(format, dateStr); err == nil {
+			return parsed, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
+}

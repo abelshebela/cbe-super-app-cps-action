@@ -1,50 +1,75 @@
 package donation
 
 import (
+	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// DonationMapper maps Donation model to BSON for database operations
-func DonationMapper(data model.Donation) bson.M {
-	result := bson.M{}
-
-	if data.DonationCode != "" {
-		result["donation_code"] = data.DonationCode
-	}
-	if !data.CompanyID.IsZero() {
-		result["company_id"] = data.CompanyID
-	}
-	if !data.CategoryID.IsZero() {
-		result["category_id"] = data.CategoryID
-	}
-	if data.Title != "" {
-		result["title"] = data.Title
-	}
-	result["is_featured"] = data.IsFeatured
-	if data.Target != 0 {
-		result["target"] = data.Target
-	}
-	if data.DonationDescription != "" {
-		result["donation_description"] = data.DonationDescription
-	}
-	if len(data.DonationImages) > 0 {
-		result["donation_images"] = data.DonationImages
-	}
-	if data.CoverImage != "" {
-		result["cover_image"] = data.CoverImage
-	}
-	if !data.EndDate.IsZero() {
-		result["end_date"] = data.EndDate
-	}
-	if !data.StartDate.IsZero() {
-		result["start_date"] = data.StartDate
-	}
-	result["is_deleted"] = data.IsDeleted
-	if !data.CreatedAt.IsZero() {
-		result["created_at"] = data.CreatedAt
+func MapToDonationListResponse(donation *model.Donation, company *model.DonationCompany, category *model.DonationCategory) *donation_dto.DonationListResponse {
+	donationImages := make([]donation_dto.DonationImage, len(donation.DonationImages))
+	for i, img := range donation.DonationImages {
+		donationImages[i] = donation_dto.DonationImage{
+			ID:        img.ID,
+			PhotoURL:  img.PhotoURL,
+			CreatedAt: img.CreatedAt.Format(time.RFC3339),
+		}
 	}
 
-	return result
+	companyResponse := donation_dto.Company{
+		ID:            company.ID.Hex(),
+		CompanyName:   company.CompanyName,
+		CompanyLogo:   company.CompanyLogo,
+		AccountNumber: company.AccountNumber,
+	}
+
+	categoryResponse := donation_dto.Category{
+		ID:           category.ID.Hex(),
+		CategoryName: category.CategoryName,
+		Icon:         category.Icon,
+	}
+
+	return &donation_dto.DonationListResponse{
+		ID:                  donation.ID.Hex(),
+		DonationCode:        donation.DonationCode,
+		Company:             companyResponse,
+		Category:            categoryResponse,
+		Title:               donation.Title,
+		IsFeatured:          donation.IsFeatured,
+		Target:              donation.Target,
+		DonationDescription: donation.DonationDescription,
+		DonationImages:      donationImages,
+		CoverImage:          donation.CoverImage,
+		EndDate:             donation.EndDate.Format(time.RFC3339),
+		StartDate:           donation.StartDate.Format(time.RFC3339),
+		IsDeleted:           donation.IsDeleted,
+		CreatedAt:           donation.CreatedAt.Format(time.RFC3339),
+		LastModifiedAt:      donation.LastModifiedAt.Format(time.RFC3339),
+		Enabled:             donation.Enabled,
+	}
+}
+
+func DonationMapper(donation model.Donation) bson.M {
+	updateData := bson.M{
+		
+			"donation_code":        donation.DonationCode,
+			"company_id":           donation.CompanyID,
+			"category_id":          donation.CategoryID,
+			"title":                donation.Title,
+			"is_featured":          donation.IsFeatured,
+			"target":               donation.Target,
+			"donation_description": donation.DonationDescription,
+			"donation_images":      donation.DonationImages,
+			"cover_image":          donation.CoverImage,
+			"end_date":             donation.EndDate,
+			"start_date":           donation.StartDate,
+			"enabled":              donation.Enabled,
+			"last_modified_at":     donation.LastModifiedAt,
+		
+	}
+	
+
+	return updateData
 }

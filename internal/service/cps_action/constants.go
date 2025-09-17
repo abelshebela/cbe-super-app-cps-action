@@ -209,6 +209,13 @@ const (
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
 	RequestCreateDonation         RequestAction = "CREATE_DONATION"
 	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
+	RequestUpdateDonationImage    RequestAction = "UPDATE_DONATION_IMAGE"
+	RequestDeleteDonationImage    RequestAction = "DELETE_DONATION_IMAGE"
+	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
+	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
+	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+
+
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -218,6 +225,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateDonationCompany:  {},
 	RequestCreateDonation:         {},
 	RequestUpdateDonation:         {},
+	RequestUpdateDonationImage:{},
+	RequestDeleteDonationImage:{},
+	RequestAddDonationImage:{},
+	RequestEnableDonation:{},
+	RequestDisableDonation:{},
 	RequestAccountUpdate:          {},
 	RequestDeleteAmountBasedAuth:  {},
 	RequestCreateAmountBasedAuth:  {},
@@ -584,6 +596,12 @@ var RequestActionGroups = map[string][]RequestAction{
 	"Donation": {
 		RequestCreateDonation,
 		RequestUpdateDonation,
+		RequestDisableDonation,
+		RequestAddDonationImage,
+		RequestUpdateDonationImage,
+		RequestDeleteDonationImage,
+		RequestEnableDonation,
+
 	},
 		"donationCategory": {
 		RequestCreateDonationCategory,

@@ -5,12 +5,16 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
+
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
+	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	donationCat_dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
+	donationComp_dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
@@ -95,6 +99,15 @@ type DepartmentService interface {
 
 type DonationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDonation(ctx context.Context, donation donation_dto.DonationRequest) error
+	UpdateDonation(ctx context.Context, id string, donation donation_dto.DonationRequest) error
+	FetchDonation(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error)
+	FetchDonationByID(ctx context.Context, id string) (*donation_dto.DonationListResponse, error)
+	UpdateDonationImage(ctx context.Context, id string, image donation_dto.DonationImageUpdateRequest) error
+	DeleteDonationImage(ctx context.Context, id string, imageID string) error
+	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
+	EnableDonation(ctx context.Context, id string) error
+	DisableDonation(ctx context.Context, id string) error
 }
 type DonationCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -102,6 +115,14 @@ type DonationCategoryService interface {
 	FetchDonationCategory(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationCat_dto.DonationCategoryListResponse], error)
 	FetchDonationCategoryByID(ctx context.Context, id string) (*donationCat_dto.DonationCategoryListResponse, error)
 	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
+}
+
+type DonationCompanyService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDonationCompany(ctx context.Context, donationCompany donationComp_dto.DonationCompanyRequest) error
+	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
+	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
+	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (donationComp_dto.DonationCompanyRequest, error)
 }
 
 type EventService interface {
@@ -346,4 +367,5 @@ type ServiceContainer struct {
 	DonationContainer         DonationService
 	Unlink                    UnlinkService
 	DonationCategoryContainer DonationCategoryService
+	DonationCompanyContainer  DonationCompanyService
 }

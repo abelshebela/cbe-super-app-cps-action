@@ -3,7 +3,7 @@ package model
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	
 	"fmt"
 	"time"
 
@@ -36,10 +36,10 @@ func NonEmptyProductCodes(request, existing ProductCodes) ProductCodes {
 }
 
 func (pc *ProductCodes) Validate() error {
-	pc.PRD = local_util.ExtraSpaceRemover(pc.PRD)
-	pc.VATPRD = local_util.ExtraSpaceRemover(pc.VATPRD)
-	pc.SFPRD = local_util.ExtraSpaceRemover(pc.SFPRD)
-	pc.TRXN = local_util.ExtraSpaceRemover(pc.TRXN)
+	pc.PRD = utils.ExtraSpaceRemover(pc.PRD)
+	pc.VATPRD = utils.ExtraSpaceRemover(pc.VATPRD)
+	pc.SFPRD = utils.ExtraSpaceRemover(pc.SFPRD)
+	pc.TRXN = utils.ExtraSpaceRemover(pc.TRXN)
 	
 	err := validation.ValidateStruct(pc,
 		validation.Field(&pc.PRD, validation.By(utils.NoSpecialChars)),

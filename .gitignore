@@ -34,3 +34,5 @@ reserve
 docs/
 !docs/swagger/
 !docs/swagger.json
+donation_category.md
+DONATION_CATEGORY_PATTERN_GUIDE.md
