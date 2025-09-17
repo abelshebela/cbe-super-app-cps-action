@@ -29,6 +29,7 @@ import (
 	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 
+	donation "cbe-super-app-cps-action/internal/service/donation"
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/service/donation_company"
 	service_details "cbe-super-app-cps-action/internal/service/service_details"
@@ -78,10 +79,11 @@ type ServiceLayer struct {
 
 	DonationCategory service.DonationCategoryService
 
-	DonationCompany  service.DonationCompanyService
+	DonationCompany service.DonationCompanyService
+
+	Donation service.DonationService
 
 	NotificationService service.NotificationService
-
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -132,6 +134,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation_icon", cfg, minioPubUrl)
 	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation_company_logo", cfg, minioPubUrl, accountLookupService)
+	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
 
 	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
@@ -159,42 +162,41 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
-		EventContainer:            eventService,
-		FeedbackContainer:         feedbackService,
-		UnlinkContainer:           unlinkService,  // Will be updated after CPS action service is created
-		BPSUserContainer:          bpsUserService, // Will be updated after CPS action service is created
-		CPSActionContainer:        cpsactionService,
-		AdContainer:               adService,
-		PortalCardContainer:       portalCardService,
-		ServiceCheckContainer:     serviceDetails,
-		BankContainer:             bank_service,
-		WalletContainer:           walletService,
-		PasswordRuleContainer:     passwordRule,
-		AccountBlockContainer:     accountBlockService,
-		DepartmentContainer:       departmentService,
-		HQContainer:               hqService,
-		MiniAppContainer:          miniAppService,
-		MiniAppMerchantContainer:  miniAppMerchantService,
-		FaydaContainer:            faydaService,
-		BulkServiceContainer:      bulkService,
-		CustomerContainer:         customerSerice,
-		PermissionContainer:       permissionService,
-		CPSUserContainer:          cpsUserService,
-		BudgetContainer:           budgetService, // Will be updated after CPS action service is created
-		AccountContainer:          accountValidation,
+		EventContainer:           eventService,
+		FeedbackContainer:        feedbackService,
+		UnlinkContainer:          unlinkService,  // Will be updated after CPS action service is created
+		BPSUserContainer:         bpsUserService, // Will be updated after CPS action service is created
+		CPSActionContainer:       cpsactionService,
+		AdContainer:              adService,
+		PortalCardContainer:      portalCardService,
+		ServiceCheckContainer:    serviceDetails,
+		BankContainer:            bank_service,
+		WalletContainer:          walletService,
+		PasswordRuleContainer:    passwordRule,
+		AccountBlockContainer:    accountBlockService,
+		DepartmentContainer:      departmentService,
+		HQContainer:              hqService,
+		MiniAppContainer:         miniAppService,
+		MiniAppMerchantContainer: miniAppMerchantService,
+		FaydaContainer:           faydaService,
+		BulkServiceContainer:     bulkService,
+		CustomerContainer:        customerSerice,
+		PermissionContainer:      permissionService,
+		CPSUserContainer:         cpsUserService,
+		BudgetContainer:          budgetService, // Will be updated after CPS action service is created
+		AccountContainer:         accountValidation,
 
-		AmountBasedAuthContainer:  amountBased,   // Not implemented yet
-		AvatarDomian:              avatarService, // Not implemented yet
-		BudgetCategoryContainer:   nil,           // Not implemented yet
-		NotificationService:       notificationsvc,
+		AmountBasedAuthContainer: amountBased,   // Not implemented yet
+		AvatarDomian:             avatarService, // Not implemented yet
+		BudgetCategoryContainer:  nil,           // Not implemented yet
+		NotificationService:      notificationsvc,
 
 		ProductCodeService:        productService, // Not implemented yet
-		DonationContainer:         nil,            // Not implemented yet
+		DonationContainer:         donationService,
 		Unlink:                    unlinkService,
 		DonationCategoryContainer: donationCategoryService,
 
-		DonationCompanyContainer:  donationCompanyService,
-
+		DonationCompanyContainer: donationCompanyService,
 	}
 
 	// Create the dispatcher with the service container
@@ -241,6 +243,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.DonationCategoryContainer = donationCategoryService
 	donationCompanyService = donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation", cfg, minioPubUrl, accountLookupService)
 	serviceContainer.DonationCompanyContainer = donationCompanyService
+	donationService = donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation", cfg, minioPubUrl)
+	serviceContainer.DonationContainer = donationService
 	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
 	serviceContainer.ServiceCheckContainer = serviceDetails
 
@@ -306,13 +310,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,
 
-
 		ServiceDetails:   serviceDetails,
+		Donation:         donationService,
 		DonationCategory: donationCategoryService,
 		DonationCompany:  donationCompanyService,
-		
+
 		ProductCode:         productService,
 		NotificationService: notificationsvc,
-
 	}
 }

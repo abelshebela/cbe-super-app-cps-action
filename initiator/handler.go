@@ -53,11 +53,12 @@ import (
 	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
 
+	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
-
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
 	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
+	donationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation"
 	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
 	donationCompanyHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_company"
 
@@ -98,12 +99,11 @@ type Handler struct {
 	Permission              permissionInbound.PermissionHandler
 	CPSUser                 cpsUserInbound.CPSUserHandler
 	ProductCodeHandler      productCodeHandler.ProductCodeAdapter
+	DonationHandler         donation.DonationHandler
 	DonationCategoryHandler donation_category.DonationCategoryAdapter
-
 	DonationCompanyHandler  donation_company.DonationCompanyAdapter
 
-	NotificationHandler     notificationInbound.NotificationHandler
-
+	NotificationHandler notificationInbound.NotificationHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -141,9 +141,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 
 		ProductCodeHandler:      productCodeHandler.InitProductcodeAdapter(pcs, logger),
+		DonationHandler:         donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
 		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
-
 		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
-
 	}
 }
