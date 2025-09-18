@@ -46,7 +46,7 @@ pipeline {
                         env.IMAGE_NAME = 'cbe-supperapp-member-auth-qa'
                         env.SSH_KEY = 'QA_SSH_KEY'
                     }
-                    else if (env.BRANCH_NAME == 'dev') {
+                    else if (env.BRANCH_NAME == 'ref/new_struct_extend') {
                         env.ENV_TYPE = 'DEV'
                         env.IMAGE_NAME = 'cbe-supperapp-member-auth-dev'
                         env.SSH_KEY = 'DEV_SSH_KEY'
