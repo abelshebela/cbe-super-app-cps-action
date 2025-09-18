@@ -82,8 +82,8 @@ func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 	}
 }
 
-func StartGrpcServer(server bankpb.BankServiceServer) {
-	lis, err := net.Listen("tcp", ":50051")
+func StartGrpcServer(server bankpb.BankServiceServer, port string) {
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
