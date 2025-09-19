@@ -1,11 +1,14 @@
 package localization
 
+import "time"
+
 // ResponseCode represents a standardized response code with status and message
 type ResponseCode struct {
-	Code       string `json:"code"`
-	StatusCode int    `json:"status_code"`
-	Message    string `json:"message"`
-	Type       string `json:"type"` // "success", "error", "warning", "info"
+	Code       string    `json:"code"`
+	StatusCode int       `json:"status_code"`
+	TimeStamp  time.Time `json:"timestamp"`
+	Message    string    `json:"message"`
+	Type       string    `json:"type"` // "success", "error", "warning", "info"
 }
 
 // Error implements error.

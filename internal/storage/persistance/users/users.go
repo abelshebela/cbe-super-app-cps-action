@@ -35,7 +35,7 @@ func NewUserRepository(client *mongo.Client, dbName string, collection string, l
 func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 
 	if _, err := r.userDal.InsertOne(ctx, *user); err != nil {
-		r.logger.Errorf("failed to insert user")
+		r.logger.Errorf("failed to insert user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
 	r.logger.Infof("user saved successfully")
@@ -183,12 +183,26 @@ func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string)
 	return user, nil
 }
 
+func (r *userRepository) DeleteHard(ctx context.Context, id string) error {
+	// objId, err := bson.ObjectIDFromHex(id)
+	// if err != nil {
+	// 	return localization.ErrorUnexpectedError
+	// }
+	filter := bson.M{
+		"_id": id,
+	}
+	return r.userDal.DeleteOneH(ctx, filter)
+}
 func (r *userRepository) Delete(ctx context.Context, id string) error {
+	objId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return localization.ErrorUnexpectedError
+	}
 	db := r.client.Database(r.dbName)
 	collection := db.Collection(r.collection)
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": objId}
 
-	_, err := collection.DeleteOne(ctx, filter)
+	_, err = collection.DeleteOne(ctx, filter)
 	if err != nil {
 		r.logger.Errorf("failed to hard delete document from %s: %v", r.collection, err)
 		return errors.New(localization.ErrorInternalServerError.Code)
