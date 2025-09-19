@@ -14,9 +14,12 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
+	"log"
 )
 
 func Init(ctx context.Context) {
+	done := make(chan struct{})
+
 	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
@@ -68,17 +71,25 @@ func Init(ctx context.Context) {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	}()
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	grpcServer := server.NewGrpcBankServer(serviceLayer.Bank, logger)
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank,serviceLayer.Wallet,serviceLayer.ServiceDetails, logger)
 	srv := server.NewHTTPServer(cfg, r)
+	
+	grpcServer,lis := server.StartGrpcServer(grpcHandlers)
 
-	// Start servers
-	go func() {
-		server.StartGrpcServer(grpcServer)
-	}()
 
-	go func() {
-		srv.HTTPServerStart(ctx, logger)
+
+go func() {
+    if err := grpcServer.Serve(lis); err != nil {
+        log.Fatalf("gRPC serve error: %v", err)
+    }
+    done <- struct{}{}
+}()
+	go func(){
+		 srv.HTTPServerStart(ctx, logger)
+		done<- struct{}{}
 	}()
+	<-done
+logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer)
 }
