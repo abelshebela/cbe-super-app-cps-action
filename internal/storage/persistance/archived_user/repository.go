@@ -72,10 +72,12 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["full_name"] = searchRegex    // choose your searchable field(s)
-		searchKeys["username"] = searchRegex     // choose your searchable field(s)
-		searchKeys["user_code"] = searchRegex    // choose your searchable field(s)
-		searchKeys["phone_number"] = searchRegex // choose your searchable field(s)
+		searchKeys["$or"] = []bson.M{
+			{"full_name": searchRegex},
+			{"username": searchRegex},
+			{"user_code": searchRegex},
+			{"phone_number": searchRegex},
+		}
 	}
 
 	// 4. Build filter, skip, limit

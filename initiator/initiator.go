@@ -67,13 +67,14 @@ func Init(ctx context.Context) {
 	go func() {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	}()
+
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	grpcServer := server.NewGrpcBankServer(serviceLayer.Bank, logger)
 	srv := server.NewHTTPServer(cfg, r)
 
 	// Start servers
 	go func() {
-		server.StartGrpcServer(grpcServer)
+		server.StartGrpcServer(grpcServer, cfg.GRPCPort)
 	}()
 
 	go func() {

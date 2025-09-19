@@ -138,7 +138,7 @@ type BudgetRepository interface {
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
 	Update(ctx context.Context, id string, update *model.AuthTier) error
-	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.AuthTier, error)
+	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.AuthTier, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
 	FindByID(ctx context.Context, id string) (*model.AuthTier, error)
 }
