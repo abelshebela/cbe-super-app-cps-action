@@ -37,6 +37,7 @@ type UserRepository interface {
 	Save(ctx context.Context, user *model.User) error
 	GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error)
 	Delete(ctx context.Context, id string) error
+	DeleteHard(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*model.User, error)
 	FindByUserCode(ctx context.Context, userCode string) (*model.User, error)
 	FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.User, error)

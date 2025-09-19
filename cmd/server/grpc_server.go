@@ -160,6 +160,7 @@ func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneS
 
 
 
+
 func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 	return &servicepb.Meta{
 		TotalPages:  int32(meta.TotalPages),
@@ -210,6 +211,7 @@ func  (s *server)MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servic
 
 func StartGrpcServer(s *server) (*grpc.Server, net.Listener) {
 	lis, err := net.Listen("tcp", ":50051")
+
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

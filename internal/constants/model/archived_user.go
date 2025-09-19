@@ -9,85 +9,86 @@ import (
 )
 
 type ArchivedUser struct {
-	ID                bson.ObjectID           `json:"id,omitempty" bson:"_id,omitempty"`
-	UserCode          string                  `json:"user_code,omitempty" bson:"user_code"`
-	FullName          string                  `json:"full_name,omitempty" bson:"full_name"`
-	MotherName        string                  `json:"mother_name,omitempty" bson:"mother_name"`
-	Nationality       string                  `json:"nationality,omitempty" bson:"nationality"`
-	BirthDate         time.Time               `json:"birth_date,omitempty" bson:"birth_date"`
-	ResidentialStatus string                  `json:"residential_status,omitempty" bson:"residential_status"`
-	IssuedDate        time.Time               `json:"issued_date,omitempty" bson:"isssued_date"`
-	PhoneNumber       string                  `json:"phone_number,omitempty" bson:"phone_number"`
-	Gender            constants.Gender        `json:"gender,omitempty" bson:"gender"`
-	MaritalStatus     constants.MaritalStatus `json:"marital_status,omitempty" bson:"marital_status"`
-	Fayda             struct {
-		FaydaID          string `json:"id_number,omitempty" bson:"id_number"`
-		FaydaAccessToken string `json:"fayda_access_token,omitempty" bson:"fayda_access_token"`
-		EmploymentStatus string `json:"employment_status,omitempty" bson:"employement_status"`
-		EmployerName     string `json:"employer_name,omitempty" bson:"employer_name"`
-		IssuedBy         string `json:"issued_by,omitempty" bson:"issued_by"`
-		MonthlyIncome    uint64 `json:"monthly_incode,omitempty" bson:"monthly_incode"`
-	} `json:"fayda,omitempty" bson:"fayda"`
-	Address          types.Address              `json:"address,omitempty" bson:"address"`
-	DocumentFront    string                     `json:"document_front,omitempty" bson:"document_front"`
-	DocumentBack     string                     `json:"document_back,omitempty" bson:"document_back"`
-	Photo            string                     `json:"photo,omitempty" bson:"photo"`
-	Signature        string                     `json:"signature,omitempty" bson:"signature"`
-	Avatar           string                     `json:"avater,omitempty" bson:"avater"`
-	Email            string                     `json:"email,omitempty" bson:"email"`
-	PushToken        string                     `json:"push_token,omitempty" bson:"push_token"`
-	Realm            constants.Realm            `json:"realm,omitempty" bson:"realm"`
-	PermissionGroup  []bson.ObjectID            `json:"permission_group,omitempty" bson:"permission_group"`
-	Permissions      []bson.ObjectID            `json:"permissions,omitempty" bson:"persmissions"`
-	IsAccountBlocked bool                       `json:"is_account_blocked,omitempty" bson:"is_account_blocked"`
-	IsAccountLinked  bool                       `json:"is_account_linked,omitempty" bson:"is_account_linked"`
-	MemberType       constants.MemberType       `json:"account_branch_type,omitempty" bson:"account_branch_type"`
-	RegistrationType constants.RegistrationType `json:"account_type,omitempty" bson:"account_type"`
-	AccountStatus    constants.AccountStatus    `json:"account_status,omitempty" bson:"account_status"`
-	KYCLevel         uint8                      `json:"kyc_level,omitempty" bson:"kyc_level"`
-	KYC              struct {
-		KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed,omitempty" bson:"kyc_reject_reason_failed"`
-		KYCStatus            constants.KYCStatus `json:"kyc_status,omitempty" bson:"kyc_status"`
-		KYCRejectReason      string              `json:"kyc_reject_reason,omitempty" bson:"kyc_reject_reason"`
-		KYCIsApproved        bool                `json:"kyc_approved,omitempty" bson:"kyc_approved"`
-		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by,omitempty" bson:"kyc_activity_by"`
-	} `json:"kyc,omitempty" bson:"kyc"`
-	IsBranchApproved   bool      `json:"is_branch_approved,omitempty" bson:"is_branch_approved"`
-	IsVerified         bool      `json:"is_verfied,omitempty" bson:"is_verfied"`
-	IsBlocked          bool      `json:"is_blocked,omitempty" bson:"is_blocked"`                     // default: false
-	IsAccessRestricted bool      `json:"is_access_restricted,omitempty" bson:"is_access_restricted"` // default: false
-	BlockedAt          time.Time `json:"blocked_at,omitempty" bson:"blocked_at"`
-	RegisterBy         struct{}  `json:"register_by,omitempty" bson:"register_By"`
-	LoginAttemptCount  uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count"`
-	LastLoginAttempt   time.Time `json:"last_login_attempt,omitempty" bson:"last_login_attempt"`
-	LastOnlineDate     time.Time `json:"last_online_date,omitempty" bson:"last_online_date"`
-	LastLogin          time.Time `json:"last_login,omitempty" bson:"last_login"`
+	ID                bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
+	UserCode          string           `json:"user_code,omitempty" bson:"user_code,omitempty"`
+	FullName          string           `json:"full_name,omitempty" bson:"full_name,omitempty"`
+	MotherName        string           `json:"mother_name,omitempty" bson:"mother_name,omitempty"`
+	Nationality       string           `json:"nationality,omitempty" bson:"nationality,omitempty"`
+	BirthDate         time.Time        `json:"birth_date,omitempty" bson:"birth_date,omitempty"`
+	BranchName        string           `json:"branch_name" bson:"branch_name,omitempty"`
+	DistrictName      string           `json:"district_name" bson:"district_name,omitempty"`
+	BranchCode        string           `json:"branch_code,omitempty" bson:"branch_code,omitempty"`
+	DistrictCode      string           `json:"district_code,omitempty" bson:"district_code,omitempty"`
+	ResidentialStatus string           `json:"residential_status,omitempty" bson:"residential_status,omitempty"`
+	IssuedDate        time.Time        `json:"issued_date,omitempty" bson:"isssued_date,omitempty"`
+	PhoneNumber       string           `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
+	Gender            constants.Gender `json:"gender,omitempty" bson:"gender,omitempty"`
+	ProfileThemeType  string           `json:"profile_theme_type,omitempty" bson:"profile_theme_type,omitempty"`
 
-	// move BPS Status and realted field to new collection
-	BPSStatus constants.BPSStatus `json:"bps_reject_status,omitempty" bson:"bps_reject_status"`
-	// BPSRejectionReason string    `json:"bps_reject_reason,omitempty" bson:"bps_reject_reason"`
-	// BPSRejectionField  []string  `json:"bps_reject_failed,omitempty" bson:"bps_reject_failed"`
+	Fayda struct {
+		FaydaID          string `json:"id_number,omitempty" bson:"id_number,omitempty"`
+		FaydaAccessToken string `json:"fayda_access_token,omitempty" bson:"fayda_access_token,omitempty"`
+		EmploymentStatus string `json:"employment_status,omitempty" bson:"employement_status,omitempty"`
+		EmployerName     string `json:"employer_name,omitempty" bson:"employer_name,omitempty"`
+		IssuedBy         string `json:"issued_by,omitempty" bson:"issued_by,omitempty"`
+		MonthlyIncome    uint64 `json:"monthly_incode,omitempty" bson:"monthly_incode,omitempty"`
+	} `json:"fayda,omitempty" bson:"fayda,omitempty"`
+	Address           types.Address           `json:"address,omitempty" bson:"address,omitempty"`
+	DocumentFront     string                  `json:"document_front,omitempty" bson:"document_front,omitempty"`
+	DocumentBack      string                  `json:"document_back,omitempty" bson:"document_back,omitempty"`
+	Photo             string                  `json:"photo,omitempty" bson:"photo,omitempty"`
+	Signature         string                  `json:"signature,omitempty" bson:"signature,omitempty"`
+	Avatar            string                  `json:"avater,omitempty" bson:"avater,omitempty"`
+	Email             string                  `json:"email,omitempty" bson:"email,omitempty"`
+	Username          string                  `json:"username,omitempty" bson:"username,omitempty"`
+	PushToken         string                  `json:"push_token,omitempty" bson:"push_token,omitempty"`
+	Realm             constants.Realm         `json:"realm,omitempty" bson:"realm,omitempty"`
+	IsAccountBlocked  bool                    `json:"is_account_blocked,omitempty" bson:"is_account_blocked,omitempty"`
+	MainAccount       string                  `json:"main_account" bson:"main_account,omitempty"`
+	LastMainAccount   string                  `json:"last_main_account,omitempty" bson:"last_main_account,omitempty"`
+	AccountLinked     bool                    `json:"account_linked,omitempty" bson:"account_linked,omitempty"`
+	LastAccountLinked bool                    `json:"last_account_linked,omitempty" bson:"last_account_linked,omitempty"`
+	MemberType        constants.MemberType    `json:"account_branch_type,omitempty" bson:"account_branch_type,omitempty"`
+	AccountStatus     constants.AccountStatus `json:"account_status,omitempty" bson:"account_status,omitempty"`
+	KYC               struct {
+		KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed,omitempty" bson:"kyc_reject_reason_failed,omitempty"`
+		KYCStatus            constants.KYCStatus `json:"kyc_status,omitempty" bson:"kyc_status,omitempty"`
+		KYCRejectReason      string              `json:"kyc_reject_reason,omitempty" bson:"kyc_reject_reason,omitempty"`
+		KYCApproved          bool                `json:"kyc_approved,omitempty" bson:"kyc_approved,omitempty"`
+		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by,omitempty" bson:"kyc_activity_by,omitempty"`
+	} `json:"kyc,omitempty" bson:"kyc,omitempty"`
+	KYCLevel uint8 `json:"level,omitempty" bson:"level,omitempty"`
 
-	LoginPIN   types.LoginPIN `json:"pin,omitempty" bson:"login_pin"`
-	DeviceUUID string         `json:"device_uuid,omitempty" bson:"device_uuid"`
-	Device     struct {
-		DevicePlatform      string    `json:"device_platform,omitempty" bson:"device_platform"`
-		AppVersion          string    `json:"app_version,omitempty" bson:"app_version"`
-		APPInstallationDate time.Time `json:"application_installation_date,omitempty" bson:"application_installation_date"`
-	} `json:"device,omitempty" bson:"device"`
-	CustomerNumber        string                          `json:"customer_number,omitempty" bson:"customer_number"`
-	InitialLinkedDate     time.Time                       `json:"initial_linked_date,omitempty" bson:"initiali_linked_date"`
-	PrimaryAuthentication constants.PrimaryAuthentication `json:"primary_authentication,omitempty" bson:"primary_authentication"`
-	// LoanScore             uint8                 `json:"loan_score,omitempty" bson:"loan_score"`
-	DeviceStatus      constants.DeviceStatus `json:"device_status,omitempty" bson:"device_status"`
-	Enabled           bool                   `json:"enabled,omitempty" bson:"enabled"`
-	IsDeleted         bool                   `json:"is_deleted,omitempty" bson:"is_deleted"`
-	PINChangedAt      time.Time              `json:"pin_changed_at,omitempty" bson:"pin_changed_at"`
-	OTPLastTriedAt    time.Time              `json:"otp_last_tried_at,omitempty" bson:"otp_last_tried_at"`
-	OTPLastVerifiedAt time.Time              `json:"otp_last_verified_at,omitempty" bson:"otp_last_verified_at"`
-	OTPVerifyCount    uint8                  `json:"otp_verify_count,omitempty" bson:"otp_verify_count"`
-	InitialiLinkedAt  time.Time              `json:"initial_linked_at,omitempty" bson:"initial_linked_at"`
-	CreatedAt         time.Time              `json:"created_at,omitempty" bson:"created_at"`
-	DeletedAt         time.Time              `json:"delete_at,omitempty" bson:"deleted_at"`
-	LastModifiedAt    time.Time              `json:"last_modified_at,omitempty" bson:"last_modified_at"`
+	BranchApproved    bool      `json:"branch_approved,omitempty" bson:"branch_approved,omitempty"`
+	IsVerified        bool      `json:"is_verified,omitempty" bson:"is_verified,omitempty"`
+	IsSelfRegister    bool      `json:"is_self_register,omitempty" bson:"is_self_register,omitempty"`
+	BlockedOnCPS      bool      `json:"blocked_on_cps,omitempty" bson:"blocked_on_cps,omitempty"` // default: false
+	IsBlocked         bool      `json:"is_blocked,omitempty" bson:"is_blocked,omitempty"`         // default: false
+	RegisterBy        struct{}  `json:"register_by,omitempty" bson:"register_By,omitempty"`
+	LoginAttemptCount uint8     `json:"login_attempt_count,omitempty" bson:"login_attempt_count,omitempty"`
+	NextLoginAttempt  time.Time `json:"next_attempt_count,omitempty" bson:"next_attempt_count,omitempty"`
+	LastLoginAttempt  time.Time `json:"last_login_attempt,omitempty" bson:"last_login_attempt,omitempty"`
+	LastOnlineDate    time.Time `json:"last_online_date,omitempty" bson:"last_online_date,omitempty"`
+	LastLogin         time.Time `json:"last_login,omitempty" bson:"last_login,omitempty"`
+
+	BPSStatus           constants.BPSStatus    `json:"bps_reject_status,omitempty" bson:"bps_reject_status,omitempty"` // questioned
+	BPSRejectionReason  string                 `json:"bps_reject_reason,omitempty" bson:"bps_reject_reason,omitempty"`
+	BPSRejectionField   []string               `json:"bps_reject_failed,omitempty" bson:"bps_reject_failed,omitempty"` // questioned
+	LoginPIN            types.LoginPIN         `json:"login_pin,omitempty" bson:"login_pin,omitempty"`
+	DeviceUUID          string                 `json:"device_uuid,omitempty" bson:"device_uuid,omitempty"`
+	AppVersion          string                 `json:"app_version,omitempty" bson:"app_version,omitempty"`
+	Platform            constants.Platform     `json:"platform,omitempty" bson:"platform,omitempty"`
+	APPInstallationDate time.Time              `json:"application_installation_date,omitempty" bson:"application_installation_date,omitempty"`
+	CustomerNumber      string                 `json:"customer_number,omitempty" bson:"customer_number,omitempty"`
+	InitialLinkedDate   time.Time              `json:"initial_linked_date,omitempty" bson:"initiali_linked_date,omitempty"`
+	LoanScore           uint16                 `json:"loan_score,omitempty" bson:"loan_score,omitempty"`
+	DeviceStatus        constants.DeviceStatus `json:"device_status,omitempty" bson:"device_status,omitempty"`
+	Enabled             bool                   `json:"enabled,omitempty" bson:"enabled,omitempty"`
+	FirstPinSet         bool                   `json:"first_pin_set,omitempty" bson:"first_pin_set,omitempty"`
+	PINChangedAt        time.Time              `json:"pin_changed_at,omitempty" bson:"pin_changed_at,omitempty"`
+	OTPVerifyCount      uint8                  `json:"otp_verify_count,omitempty" bson:"otp_verify_count,omitempty"`
+	InitialiLinkedAt    time.Time              `json:"initial_linked_at,omitempty" bson:"initial_linked_at,omitempty"`
+	CreatedAt           time.Time              `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	LastModifiedAt      time.Time              `json:"last_modified_at,omitempty" bson:"last_modified_at,omitempty"`
+	IsDeleted           bool                   `json:"is_deleted,omitempty" bson:"is_deleted,omitempty"`
 }

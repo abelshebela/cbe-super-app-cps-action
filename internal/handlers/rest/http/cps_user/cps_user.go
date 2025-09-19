@@ -8,6 +8,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -97,7 +98,9 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.svc.GetAllCPSUsers(r.Context(), nil)
+	filterParasm := local_util.ExtractFilterParams(r)
+
+	users, err := h.svc.GetAllCPSUsers(r.Context(), filterParasm)
 	if err != nil {
 		h.logger.Errorf("[GetAllCPSUsers] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
