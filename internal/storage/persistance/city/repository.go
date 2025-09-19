@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -111,8 +110,6 @@ func (c *CityStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
 	limit := int64(filterParam.PerPage)
 
-	fmt.Println("*********************")
-	fmt.Println(filter)
 	data, err := c.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, err

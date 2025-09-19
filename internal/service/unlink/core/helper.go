@@ -25,6 +25,8 @@ func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo
 
 func DeleteUserDataWithLinkedAccount(ctx context.Context, userRepo storage.UserRepository, LinkedAccountRepo storage.LinkedAccountRepository, userID string, likedAccountId string) (error, error) {
 	var archUserErr, archLinkedAccErr error
+	// archUserErr = userRepo.Delete(ctx, userID)
+	// archLinkedAccErr = LinkedAccountRepo.Delete(ctx, likedAccountId)
 
 	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
 		func() {

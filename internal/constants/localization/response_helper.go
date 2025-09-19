@@ -4,15 +4,17 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // StandardResponse represents the standardized API response structure
 type StandardResponse struct {
-	Ok      bool         `json:"ok"`
-	Status  int          `json:"status"`
-	Message string       `json:"message"`
-	Data    interface{}  `json:"data,omitempty"`
-	Error   *ErrorDetail `json:"error,omitempty"`
+	Ok        bool         `json:"ok"`
+	Status    int          `json:"status"`
+	TimeStamp time.Time    `json:"timestamp,omitempty"`
+	Message   string       `json:"message"`
+	Data      interface{}  `json:"data,omitempty"`
+	Error     *ErrorDetail `json:"error,omitempty"`
 }
 
 // ErrorDetail represents error details in the response
@@ -39,10 +41,11 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:      true,
-		Status:  responseCode.StatusCode,
-		Message: responseCode.Message,
-		Data:    data,
+		Ok:        true,
+		Status:    responseCode.StatusCode,
+		TimeStamp: time.Now(),
+		Message:   responseCode.Message,
+		Data:      data,
 	}
 	// if responseCode.Type == "error" {
 	// 	response.Ok = false
@@ -59,9 +62,10 @@ func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldEr
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:      false,
-		Status:  responseCode.StatusCode,
-		Message: responseCode.Message,
+		Ok:        false,
+		TimeStamp: time.Now(),
+		Status:    responseCode.StatusCode,
+		Message:   responseCode.Message,
 		// Error:   errorDetail,
 	}
 
@@ -100,6 +104,7 @@ func SendUnauthorizedResponse(w http.ResponseWriter, message string) {
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_UNAUTHORIZED",
 		StatusCode: StatusUnauthorized,
+		TimeStamp:  time.Now(),
 		Message:    message,
 		Type:       "error",
 	}
@@ -115,6 +120,7 @@ func SendForbiddenResponse(w http.ResponseWriter, message string) {
 
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_FORBIDDEN",
+		TimeStamp:  time.Now(),
 		StatusCode: StatusForbidden,
 		Message:    message,
 		Type:       "error",
@@ -131,6 +137,7 @@ func SendNotFoundResponse(w http.ResponseWriter, message string) {
 
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_NOT_FOUND",
+		TimeStamp:  time.Now(),
 		StatusCode: StatusNotFound,
 		Message:    message,
 		Type:       "error",
@@ -147,6 +154,7 @@ func SendBadRequestResponse(w http.ResponseWriter, message string) {
 
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_BAD_REQUEST",
+		TimeStamp:  time.Now(),
 		StatusCode: StatusBadRequest,
 		Message:    message,
 		Type:       "error",
@@ -163,6 +171,7 @@ func SendInternalServerErrorResponse(w http.ResponseWriter, message string) {
 
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_INTERNAL_SERVER_ERROR",
+		TimeStamp:  time.Now(),
 		StatusCode: StatusInternalServerError,
 		Message:    message,
 		Type:       "error",
@@ -203,6 +212,7 @@ func ErrorToResponseCode(err string, statusCode int, message string) ResponseCod
 	if !ok {
 		new_resp := ResponseCode{
 			Code:       strings.ToUpper(strings.Join(strings.Split(err, " "), "_")),
+			TimeStamp:  time.Now(),
 			StatusCode: statusCode,
 			Message:    message,
 			Type:       "error",
