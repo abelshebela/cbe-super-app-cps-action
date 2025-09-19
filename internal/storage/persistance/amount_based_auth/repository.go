@@ -57,7 +57,7 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 }
 
 func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.AuthTier, error) {
-	result, err := a.dal.FindAllN(ctx, filter, projection)
+	result, err := a.dal.FindAll(ctx, filter, projection)
 	if err != nil {
 		return nil, err
 	}
