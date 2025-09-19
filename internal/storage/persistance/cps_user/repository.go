@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -99,17 +100,25 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*model.CPSUse
 }
 
 func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSUser], error) {
-	filter := bson.M{"is_deleted": false}
+	filter := bson.M{}
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"enabled", "department", "role"}
-
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{{"full_name": searchRegex}, {"username": searchRegex}, {"user_code": searchRegex}, {"phone_number": searchRegex}}
+		searchKeys["$or"] = []bson.M{
+			{"full_name": searchRegex},
+			{"username": searchRegex},
+			{"user_code": searchRegex},
+			{"phone_number": searchRegex},
+		}
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = false
+	fmt.Println(filter)
+	fmt.Println("999999999999999999999999999999999999-----------------")
+
 	data, err := r.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)

@@ -62,7 +62,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	user, err := u.userRepo.FindByCustomerNumber(ctx, userCode)
+	user, err := u.userRepo.FindByUserCode(ctx, userCode)
 	if err != nil {
 		return err
 	}
