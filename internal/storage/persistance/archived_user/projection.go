@@ -21,7 +21,7 @@ func Projection() bson.M {
 		"email":              1,
 		"created_at":         1,
 		"account_status":     1,
-		"mainaccount":        1,
+		"main_account":       1,
 		"branch_name":        1,
 		"district_name":      1,
 		"kyc_level":          1,
