@@ -16,7 +16,7 @@ func BankMapper(data model.Bank) bson.M {
 		result["code"] = data.Code
 	}
 	if data.BIC != "" {
-		result["description"] = data.BIC
+		result["bic"] = data.BIC
 	}
 	if data.Logo != "" {
 		result["logo"] = data.Logo
