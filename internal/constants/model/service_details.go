@@ -12,21 +12,21 @@ type ServiceDetails struct {
 	ServiceCode        string             `bson:"service_code"`
 	ServiceName        string             `bson:"service_name"`
 	ServiceType        string             `bson:"service_type"`
-	Key                string             `bson:"key omitempty"`
-	Cap                types.Cap          `bson:"cap omitempty"`
-	CBEProductCodes    types.ProductCodes `bson:"cbe_product_codes omitempty"`
-	CBEIFBProductCodes types.ProductCodes `bson:"cbe_ifb_product_codes omitempty"`
-	AboveAmount        uint64             `bson:"above_amount omitempty"`
-	AboveServiceFee    uint64             `bson:"above_service_fee omitempty"`
-	PaymentType        string             `bson:"payment_type omitempty"`
-	Tiers              []types.Tier       `bson:"tiers omitempty"`
-	CBEGLEntry         types.GLEntry      `bson:"cbe_gl_entry omitempty"`
-	CBEIFBGLEntry      types.GLEntry      `bson:"cbe_ifb_gl_entry omitempty"`
+	Key                string             `bson:"key"`
+	Cap                types.Cap          `bson:"cap"`
+	CBEProductCodes    types.ProductCodes `bson:"cbe_product_codes"`
+	CBEIFBProductCodes types.ProductCodes `bson:"cbe_ifb_product_codes"`
+	AboveAmount        uint64             `bson:"above_amount"`
+	AboveServiceFee    uint64             `bson:"above_service_fee"`
+	PaymentType        string             `bson:"payment_type"`
+	Tiers              []types.Tier       `bson:"tiers"`
+	CBEGLEntry         types.GLEntry      `bson:"cbe_gl_entry"`
+	CBEIFBGLEntry      types.GLEntry      `bson:"cbe_ifb_gl_entry "`
 	Enabled            bool               `bson:"enabled"`
 	IsDeleted          bool               `bson:"is_deleted"`
-	CreatedAt          time.Time          `bson:"created_at omitempty"`
-	LastModifiedAt     time.Time          `bson:"last_modified_at omitempty"`
-	DeletedAt          time.Time          `bson:"deleted_at omitempty"`
+	CreatedAt          time.Time          `bson:"created_at"`
+	LastModifiedAt     time.Time          `bson:"last_modified_at "`
+	DeletedAt          time.Time          `bson:"deleted_at "`
 }
 
 type Cap struct {
