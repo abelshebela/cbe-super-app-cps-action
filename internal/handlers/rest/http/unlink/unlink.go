@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
+	"strconv"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -25,6 +26,16 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 }
 
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
+	page, err := strconv.Atoi(chi.URLParam(r, "page"))
+	per_page, pgerr := strconv.Atoi(chi.URLParam(r, "per_page"))
+	if err != nil || pgerr != nil {
+		localization.SendInternalServerErrorResponse(w, "Parsing Error Occured")
+		return
+	}
+	if page < 0 || per_page < 0 {
+		localization.SendErrorResponse(w, localization.ErrorInvalidPaginationParams, nil, nil)
+		return
+	}
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
