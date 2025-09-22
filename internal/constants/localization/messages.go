@@ -171,9 +171,9 @@ const (
 
 	// HQ related success messages
 	MsgHQApprovedSuccessfully                 = "HQ approved successfully"
-	MsgHQArchiveTimeUpdateRequestSubmitted    = "HQ archive time update request submitted successfully"
-	MsgHQPasswordExpiryUpdateRequestSubmitted = "HQ password expiry update request submitted successfully"
-	MsgHQBlockTimeUpdateRequestSubmitted      = "HQ block time update request submitted successfully"
+	MsgHQArchiveTimeUpdateRequestSubmitted    = "Update archive time request submitted for approval"
+	MsgHQPasswordExpiryUpdateRequestSubmitted = "Update password expiry request submitted for approval"
+	MsgHQBlockTimeUpdateRequestSubmitted      = "Update block time request submitted for approval"
 
 	// Mini App related success messages
 	MsgMiniAppDetailsFetchedSuccessfully = "MiniApp details fetched successfully"
@@ -287,9 +287,9 @@ const (
 	// HQ related success messages
 	MsgHQFetchedSuccessfully               = "HQ fetched successfully"
 	MsgHQsFetchedSuccessfully              = "HQs fetched successfully"
-	MsgHQBlockTImeFetchedSuccessfully      = "HQ BlockTime fetched successfully"
-	MsgHQArchiveTimeFetchedSuccessfully    = "HQ ArchiveTime fetched successfully"
-	MsgHQPasswordExpiryFetchedSuccessfully = "HQ PasswordExpiry fetched successfully"
+	MsgHQBlockTImeFetchedSuccessfully      = "Block time fetched successfully"
+	MsgHQArchiveTimeFetchedSuccessfully    = "Archive time fetched successfully"
+	MsgHQPasswordExpiryFetchedSuccessfully = "Password expiry fetched successfully"
 
 	// Wallet related success messages
 	MsgWalletActionRequestSentSuccessfully = "Wallet action request sent successfully"
@@ -764,9 +764,9 @@ const (
 	MsgDonationCompanyLogoUploadSuccess              = "Successfully uploaded donation company logo"
 	MsgBudgetIconRequestSubmittedForApprovalSuccess  = "Successfully budget icon request submitted for approval"
 	MsgBudgetCheckerActionApprovedSuccess            = "Successfully budget icon checker submitted for approval"
-	MsgBudgetColorUpdateSubmittedForApprovalSuccess  = "Successfully budget color request submitted for approval"
+	MsgBudgetColorUpdateSubmittedForApprovalSuccess  = "Color creation request submitted for approval"
 	MsgBudgetIconUpdateSubmittedForApprovalSuccess   = "Successfully budget icon update submitted for approval"
-	MsgBudgetColorRequestSubmittedForApprovalSuccess = "Successfully budget color request submitted for approval"
+	MsgBudgetColorRequestSubmittedForApprovalSuccess = "Color creation request submitted for approval"
 	MsgBudgetIconsFetchedSuccessfully                = "Successfully fetched budget icons"
 	MsgBudgetColorsFetchedSuccessfully               = "Successfully fetched budget colors"
 	MsgDonationCompanyLogoUpdateSuccess              = "Successfully uploaded updated donation company logo"

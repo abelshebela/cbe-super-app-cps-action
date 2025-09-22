@@ -79,7 +79,7 @@ func (a *hqAdapter) GetPasswordExpiry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessHQFetched, resp)
+	localization.SendSuccessResponse(w, localization.SuccessHQPasswordExpiryFetched, resp)
 }
 
 func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
