@@ -74,14 +74,14 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 
 	page := constants.DefaultPage
 	if v := query.Get("page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+		if n, err := strconv.Atoi(v); err == nil {
 			page = n
 		}
 	}
 
 	perPage := constants.DefaultPerPage
 	if v := query.Get("per_page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+		if n, err := strconv.Atoi(v); err == nil  {
 			perPage = n
 		}
 	}

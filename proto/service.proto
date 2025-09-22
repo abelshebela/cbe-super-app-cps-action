@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package service;
+
+option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/service;service";
+
+// Tier message
+message Tier {
+  string id = 1;            
+  uint64 min = 2;
+  uint64 max = 3;
+  uint64 fee_amount = 4;
+}
+
+// Cap message
+message Cap {
+  string kyc_level = 1;
+  uint64 individual_single_cap = 2;
+  uint64 individual_daily_cap = 3;
+  uint64 corporate_single_cap = 4;
+  uint64 corporate_daily_cap = 5;
+  uint64 min_amount = 6;
+}
+
+// ProductCodes message
+message ProductCodes {
+  string prd = 1;
+  string vatprd = 2;
+  string sfprd = 3;
+  string trxn = 4;
+}
+
+// GLEntry message
+message GLEntry {
+  string product_account = 1;
+  string product_branch_code = 2;
+  string service_account = 3;
+  string service_branch_code = 4;
+  string vat_account = 5;
+  string vat_branch_code = 6;
+}
+
+// ServiceDetails message
+message ServiceDetails {
+  string id = 1;  
+  string service_code = 2;
+  string service_name = 3;
+  string service_type = 4;
+  string key = 5;
+  uint64 above_amount = 6;
+  uint64 above_service_fee = 7;
+  string payment_type = 8;
+  bool enabled = 9;
+  bool is_deleted = 10;
+
+}
+message docs {
+    repeated ServiceDetails services =1;
+
+}
+
+
+message GetOneServiceDetailRequest {
+    string id = 1;
+
+}
+message GetAllServiceDetailsRequest {
+      int32 page = 1;
+  int32 per_page = 2;
+  string search = 3;
+}
+message GetServiceDetailResponse {
+    ServiceDetails service =1;
+
+}
+message Meta {
+  int32 limit = 1;
+  int32 total_pages = 2;
+  int32 total_docs = 3;
+  int32 page = 4;
+  bool has_next_page = 5;
+  bool has_prev_page = 6;
+  int32 next_page = 7;
+}
+
+message GetAllServiceDetailsResponse {
+    repeated ServiceDetails services =1;
+    Meta metadata =2;
+
+}
+
+service ServiceDetailsService {
+    rpc GetOneServiceDetail(GetOneServiceDetailRequest) returns(GetServiceDetailResponse);
+    rpc GetAllServices(GetAllServiceDetailsRequest) returns(GetAllServiceDetailsResponse);
+}

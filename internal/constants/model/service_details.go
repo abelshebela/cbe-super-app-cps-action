@@ -21,12 +21,12 @@ type ServiceDetails struct {
 	PaymentType        string             `bson:"payment_type"`
 	Tiers              []types.Tier       `bson:"tiers"`
 	CBEGLEntry         types.GLEntry      `bson:"cbe_gl_entry"`
-	CBEIFBGLEntry      types.GLEntry      `bson:"cbe_ifb_gl_entry"`
+	CBEIFBGLEntry      types.GLEntry      `bson:"cbe_ifb_gl_entry "`
 	Enabled            bool               `bson:"enabled"`
 	IsDeleted          bool               `bson:"is_deleted"`
 	CreatedAt          time.Time          `bson:"created_at"`
-	LastModifiedAt     time.Time          `bson:"last_modified_at"`
-	DeletedAt          time.Time          `bson:"deleted_at"`
+	LastModifiedAt     time.Time          `bson:"last_modified_at "`
+	DeletedAt          time.Time          `bson:"deleted_at "`
 }
 
 type Cap struct {
