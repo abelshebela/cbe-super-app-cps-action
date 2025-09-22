@@ -161,7 +161,7 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, true); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantEnableFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -182,7 +182,7 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, false); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantDisableFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

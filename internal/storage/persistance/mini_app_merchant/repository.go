@@ -120,38 +120,35 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 }
 
 func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
-	// 1. Base filter (only active records)
-	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
+	allowedKeys := []string{"merchant_type", "merchant_code", "merchant_name", "email", "phone_number", "enabled"}
 
-	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"merchant_type"}
-
-	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["merchant_id"] = searchRegex // choose your searchable field(s)
+		searchKeys["$or"] = []bson.M{
+			{"merchant_id": searchRegex},
+			{"merchant_name": searchRegex},
+			{"merchant_code": searchRegex},
+			{"email": searchRegex},
+			{"phone_number": searchRegex},
+		}
 	}
 
-	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = false
 
-	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.MiniAppMerchant]{
 		Data: data,
 		Meta: meta,
