@@ -46,13 +46,22 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
+
 	if exist != nil {
 		return errors.New(localization.ErrorWalletAlreadyExists.Code)
 	}
 
-	code, err := core.GeneratePrefixedName("WAL", req.Name, s.logger)
+	code, err := core.GeneratePrefixedName("WAL", req.Code, s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	existCode, err := s.repo.Find(ctx, req.Code)
+	if err != nil {
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if existCode != nil {
+		return errors.New(localization.ErrorWalletAlreadyExists.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
