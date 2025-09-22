@@ -13,7 +13,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/mini_app_merchant/create",
+			Path:    "/mini_app_merchants/create",
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -22,7 +22,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 
 		{
 			Method:  http.MethodGet,
-			Path:    "/mini_app_merchant",
+			Path:    "/mini_app_merchants",
 			Handler: handler.FindAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -30,7 +30,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/mini_app_merchant/{id}",
+			Path:    "/mini_app_merchants/{id}",
 			Handler: handler.FindByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -38,7 +38,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/mini_app_merchant/enable/{id}",
+			Path:    "/mini_app_merchants/enable/{id}",
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -46,7 +46,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/mini_app_merchant/disable/{id}",
+			Path:    "/mini_app_merchants/disable/{id}",
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -54,7 +54,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/mini_app_merchant/update/{id}",
+			Path:    "/mini_app_merchants/update/{id}",
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -62,7 +62,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/mini_app_merchant/delete/{id}",
+			Path:    "/mini_app_merchants/delete/{id}",
 			Handler: handler.Delete,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
