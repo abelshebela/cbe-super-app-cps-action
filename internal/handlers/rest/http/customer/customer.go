@@ -27,12 +27,19 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 }
 
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
+	var kycLevelInt int
+	var err error
 	kycLevel := r.URL.Query().Get("kyc_level")
 	filterParams := util.ExtractFilterParams(r)
-	kycLevelInt, err := strconv.Atoi(kycLevel)
-	if err != nil {
-		localization.SendBadRequestResponse(w, "Invalid kyc_level parameter")
-		return
+
+	if kycLevel != "" {
+		kycLevelInt, err = strconv.Atoi(kycLevel)
+		if err != nil {
+			localization.SendBadRequestResponse(w, "Invalid kyc_level parameter")
+			return
+		}
+	} else {
+		kycLevelInt = 0
 	}
 
 	customers, err := c.customerService.GetCustomersDetail(r.Context(), kycLevelInt, filterParams)

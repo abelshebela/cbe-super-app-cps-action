@@ -53,7 +53,13 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"user_code": searchRegex},
 		}
 	}
-
+	// If filterParam.Filters contains "kyc_level", change it to "level"
+	if filterParam.Filters != nil {
+		if val, ok := filterParam.Filters["kyc_level"]; ok {
+			filterParam.Filters["level"] = val
+			delete(filterParam.Filters, "kyc_level")
+		}
+	}
 	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
