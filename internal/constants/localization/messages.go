@@ -412,7 +412,7 @@ const (
 	MsgBankNameInvalidCharacters = "Bank name contains invalid characters"
 	msgGetAllBanksFailed         = "Get all banks failed"
 	msgGetAllBanksSuccess        = "Successfully banks retrived"
-	msgGetOneBankSuccess         = "Bank retrieved successfully"
+	msgGetOneBankSuccess         = "Successfully bank retrived"
 	msgDeleteBankRequestSuccess  = "Successfully bank delete request created"
 	msgGetOneBankFailed          = "Get one bank failed"
 
