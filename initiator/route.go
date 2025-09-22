@@ -112,9 +112,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 		http.ServeFile(w, r, "./docs/swagger.json")
 	})
 
-	r.Get("/docs/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/api/v1/cbesuperapp/cps_action/docs/swagger.json"),
-	))
-
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+
+	router.Get("/api/v1/cbesuperapp/cps_action/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/docs/swagger.json"),
+	))
 }
