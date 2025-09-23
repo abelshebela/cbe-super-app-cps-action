@@ -109,12 +109,12 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 
 	// Add swagger endpoints to the API router before mounting
 	r.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json")
+		http.ServeFile(w, r, "./docs/swagger.yaml")
 	})
 
-	router.Mount("/api/v1/cbesuperapp/cps_action", r)
-
-	router.Get("/api/v1/cbesuperapp/cps_action/docs/*", httpSwagger.Handler(
-		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/docs/swagger.json"),
+	r.Get("/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8000/api/v1/cbesuperapp/cps_action/docs/swagger.json"),
 	))
+
+	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }
