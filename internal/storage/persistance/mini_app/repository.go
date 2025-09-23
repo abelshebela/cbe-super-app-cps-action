@@ -166,11 +166,11 @@ func (m *MiniAppStorage) Find(ctx context.Context, name string) (*model.MiniApp,
 
 func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error) {
 	allowedKeys := []string{"app_type", "enabled", "is_event_mini_app", "is_three_click"}
-	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{"is_deleted": false}, allowedKeys)
+	searchKeys := bson.M{}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		searchKeys["$or"] = []bson.M{
 			{"app_name": searchRegex},
 			{"commison_gl_account": searchRegex},
 			{"app_type.uat": searchRegex},
@@ -181,6 +181,9 @@ func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"product_code.product_code": searchRegex},
 		}
 	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = false
 
 	docs, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -195,7 +198,6 @@ func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
 	m.logger.Infof("FindAllWithPagination returning %d MiniApps, total: %d", len(docs), total)
 
 	return &types.PaginatedResponse[[]*model.MiniApp]{

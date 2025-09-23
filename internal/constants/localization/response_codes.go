@@ -1315,6 +1315,18 @@ var (
 		Message:    MsgPermissionCategoriesFetched,
 		Type:       "success",
 	}
+	SuccessMiniAppCreateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_CREATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgMiniAppCreateRequestSuccessfully,
+		Type:       "success",
+	}
+	SuccessMiniAppUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgMiniAppMerchantUpdateRequestSuccessfully,
+		Type:       "success",
+	}
 
 	// Mini App Merchant related success response codes
 	SuccessMiniAppMerchantCreateRequestCreated = ResponseCode{
@@ -1930,20 +1942,20 @@ var (
 	SuccessMiniAppDeletedRequestCreated = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_DELETED_REQUEST_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgMiniAppDeletedRequestCreatedSuccessfully,
+		Message:    MsgDeleteRequestSuccessfullyCreated,
 		Type:       "success",
 	}
 
 	SuccessMiniAppDisableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgMiniAppDisableRequestSubmittedSuccessfully,
+		Message:    MsgDisableRequestSuccessfullyCreated,
 		Type:       "success",
 	}
 	SuccessMiniAppEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgMiniAppEnableRequestSubmittedSuccessfully,
+		Message:    MsgEnableRequestSuccessfullyCreated,
 		Type:       "success",
 	}
 	SuccessMiniAppsRetrieved = ResponseCode{

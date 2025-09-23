@@ -147,6 +147,9 @@ const (
 	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
 
+	// mini app
+	MsgMiniAppCreateRequestSuccessfully = "mini App request successfully created"
+
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
 	MsgNotificationUpdateRequestSubmitted   = "Notification update request submitted successfully"
