@@ -45,7 +45,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 	id, err := utils.ExtractID(w, r)
 	if err != nil {
 		h.logger.Errorf("[productcode.UpdateProductCode] failed to extract ID: %v", err)
-		localization.SendErrorByCodeResponse(w,err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("[productcode.UpdateProductCode] failed to parse JSON: %v", err)
-		localization.SendErrorByCodeResponse(w,err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -72,10 +72,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Type:       "success",
-		StatusCode: 200,
-	}, map[string]*model.ProductCode{
+	localization.SendSuccessResponse(w, localization.SuccessProductCodeUpdated, map[string]*model.ProductCode{
 		"old": old,
 		"new": new,
 	})
@@ -101,14 +98,11 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 
 	data, err := h.productCodeApplication.FetchProductCodeByID(r.Context(), id)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w,err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	res := dto.ToProductCodeResponse(*data)
-	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Type:       "success",
-		StatusCode: 200,
-	}, res)
+	localization.SendSuccessResponse(w, localization.SuccessProductCodeFetched, res)
 }
 
 type ProductCodePaginatedResponse types.PaginatedResponse[[]*dto.ProductCodeResponse]
@@ -131,7 +125,7 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 	filterParams := utils.ExtractFilterParams(r)
 	list, err := h.productCodeApplication.FetchAllProductCodes(r.Context(), filterParams)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w,err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	docs := dto.ToProductCodeResponses(list.Data)
@@ -139,8 +133,5 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 		Data: docs,
 		Meta: list.Meta,
 	}
-	localization.SendSuccessResponse(w, localization.ResponseCode{
-		Type:       "success",
-		StatusCode: 200,
-	}, res)
+	localization.SendSuccessResponse(w, localization.SuccessProductCodesFetched, res)
 }
