@@ -1323,6 +1323,24 @@ var (
 		Message:    MsgMiniAppMerchantCreateRequestSuccessfully,
 		Type:       "success",
 	}
+	SuccessMiniAppMerchantUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_MERCHANT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgMiniAppMerchantUpdateRequestSuccessfully,
+		Type:       "success",
+	}
+	SuccessMiniAppMerchantEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_MERCHANT_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgEnableRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+	SuccessMiniAppMerchantDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_MERCHANT_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDisableRequestSuccessfullyCreated,
+		Type:       "success",
+	}
 	SuccessMiniAppMerchantCreated = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_MERCHANT_CREATED",
 		StatusCode: StatusCreated,

@@ -38,7 +38,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Validate DTO
 	if err := reqDTO.Validate(true); err != nil {
 		h.logger.Errorf("Validation failed: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorValidationFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -90,7 +90,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 
 	// Validate input fields
 	if err := reqDTO.Validate(true); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorValidationFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -119,7 +119,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	// Map to response DTO
 	respDTO := ToMiniAppMerchantResponseDTO(updatedMerchant)
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppEnabledStateUpdated, respDTO)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantUpdateRequestCreated, respDTO)
 }
 
 func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +139,7 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 	err := h.miniappMerchantService.Delete(r.Context(), id)
 	if err != nil {
 		h.logger.Errorf("failed to delete merchant %s: %v", id, err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantDeleteFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppEnabledStateUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantEnableRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -186,7 +186,7 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDesable, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDisableRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
