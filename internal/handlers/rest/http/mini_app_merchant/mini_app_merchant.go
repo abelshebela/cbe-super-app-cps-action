@@ -56,7 +56,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	createdMerchant, err := h.miniappMerchantService.Create(r.Context(), merchantDomain)
 	if err != nil {
 		h.logger.Errorf("Failed to create merchant: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantCreateFromActionFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	h.logger.Debugf("Created merchant: %+v", createdMerchant)
@@ -85,7 +85,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Validate input fields
-	if err := reqDTO.Validate(true); err != nil {
+	if err := reqDTO.Validate(false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

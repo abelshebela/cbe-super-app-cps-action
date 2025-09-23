@@ -78,8 +78,12 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			))
 		}
 		if strings.TrimSpace(dto.Email) != "" {
-			rules = append(rules, validation.Field(&dto.Email, is.Email.Error("email must be a valid email address"), validation.By(utils.NoSpecialChars)))
+			validation.Field(&dto.Email,
+				is.Email.Error("email must be a valid email address"),
+				validation.By(utils.TrimWhiteSpace),
+			)
 		}
+
 		if strings.TrimSpace(dto.AccountNumber) != "" {
 			rules = append(rules, validation.Field(&dto.AccountNumber, validation.By(utils.NoSpecialChars)))
 		}
