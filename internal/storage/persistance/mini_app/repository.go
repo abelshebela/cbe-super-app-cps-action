@@ -194,7 +194,7 @@ func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	meta := local_util.BuildPaginationMeta(total, filterParam.PerPage, filterParam.Page)
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	m.logger.Infof("FindAllWithPagination returning %d MiniApps, total: %d", len(docs), total)
 
