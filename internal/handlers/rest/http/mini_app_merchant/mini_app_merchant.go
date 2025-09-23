@@ -2,7 +2,6 @@ package miniappmerchant
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
@@ -62,11 +61,8 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	}
 	h.logger.Debugf("Created merchant: %+v", createdMerchant)
 
-	// Convert domain → response DTO
-	responseDTO := ToMiniAppMerchantResponseDTO(createdMerchant)
-	h.logger.Debugf("Response DTO: %+v", responseDTO)
 	// Send success response
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, responseDTO)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +101,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	merchantReq := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
 
 	// Call service update
-	updatedMerchant, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
+	_, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
 	if err != nil {
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantUpdateFailed, nil, nil)
 		return
@@ -116,10 +112,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Map to response DTO
-	respDTO := ToMiniAppMerchantResponseDTO(updatedMerchant)
-
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantUpdateRequestCreated, respDTO)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantUpdateRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
@@ -143,9 +136,7 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppSoftDeleted, map[string]string{
-		"message": fmt.Sprintf("Mini App Merchant %s deleted successfully", id),
-	})
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDeleteRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {

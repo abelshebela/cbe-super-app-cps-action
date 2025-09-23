@@ -1341,6 +1341,12 @@ var (
 		Message:    MsgDisableRequestSuccessfullyCreated,
 		Type:       "success",
 	}
+	SuccessMiniAppMerchantDeleteRequestCreated = ResponseCode{
+		Code:       "SUCCESS_MINI_APP_MERCHANT_DELETE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDeleteRequestSuccessfullyCreated,
+		Type:       "success",
+	}
 	SuccessMiniAppMerchantCreated = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_MERCHANT_CREATED",
 		StatusCode: StatusCreated,
