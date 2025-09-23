@@ -103,7 +103,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	// Call service update
 	_, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantUpdateFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -189,7 +189,7 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 
 	result, err := h.miniappMerchantService.FindByID(r.Context(), id)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantFetchCategoriesFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
