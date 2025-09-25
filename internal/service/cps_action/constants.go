@@ -72,7 +72,6 @@ const (
 	RequestCreateBank              RequestAction = "CREATE_BANK"
 	RequestUpdateBank              RequestAction = "UPDATE_BANK"
 	RequestDeleteBank              RequestAction = "DELETE_BANK"
-	RequestEnableDisableBank       RequestAction = "ENABLE_DISABLE_BANK"
 	RequestUpdateBankLogo          RequestAction = "UPDATE_BANK_LOGO"
 	RequestEnableBank              RequestAction = "ENABLE_BANK"
 	RequestDisableBank             RequestAction = "DISABLE_BANK"
@@ -214,8 +213,6 @@ const (
 	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
-
-
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -225,11 +222,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateDonationCompany:  {},
 	RequestCreateDonation:         {},
 	RequestUpdateDonation:         {},
-	RequestUpdateDonationImage:{},
-	RequestDeleteDonationImage:{},
-	RequestAddDonationImage:{},
-	RequestEnableDonation:{},
-	RequestDisableDonation:{},
+	RequestUpdateDonationImage:    {},
+	RequestDeleteDonationImage:    {},
+	RequestAddDonationImage:       {},
+	RequestEnableDonation:         {},
+	RequestDisableDonation:        {},
 	RequestAccountUpdate:          {},
 	RequestDeleteAmountBasedAuth:  {},
 	RequestCreateAmountBasedAuth:  {},
@@ -266,7 +263,6 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteAdvert:             {},
 	RequestCreateBank:               {},
 	RequestUpdateBank:               {},
-	RequestEnableDisableBank:        {},
 	RequestUpdateBankLogo:           {},
 	RequestEnableWallet:             {},
 	RequestDisableWallet:            {},
@@ -506,7 +502,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateBank,
 		RequestDeleteBank,
 		RequestUpdateBankLogo,
-		RequestEnableDisableBank,
+		RequestEnableBank,
+		RequestDisableBank,
 	},
 	"Wallet": {
 		RequestCreateWallet,
@@ -601,14 +598,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateDonationImage,
 		RequestDeleteDonationImage,
 		RequestEnableDonation,
-
 	},
-		"donationCategory": {
+	"donationCategory": {
 		RequestCreateDonationCategory,
 		RequestUpdateDonationCategory,
-
 	},
-	"donationCompany":{
+	"donationCompany": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
 	},

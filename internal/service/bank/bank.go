@@ -50,13 +50,13 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	var actionMap interface{}
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
-		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
+		b.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
 		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
 	}
-	fmt.Printf("JSON bytes: %s\n", string(marshaled))
+
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
-		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
+		b.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
 		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
 	}
 
@@ -83,7 +83,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			b.logger.Errorf("Bank Delete action  failed", "error", err)
 			return nil, err
 		}
-	case string(constants.RequestEnableDisableBank):
+	case string(constants.RequestEnableBank), string(constants.RequestDisableBank):
 		err := b.repo.EnableOrDisable(ctx, actionData.ID.Hex(), actionData.Enabled)
 		if err != nil {
 			b.logger.Errorf("Bank Enable Disable action  failed", "error", err)
@@ -202,7 +202,12 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	newBankData := *bank
 	newBankData.Enabled = enableDisable
 
-	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, string(constants.RequestEnableDisableBank), constants.UPDATE)
+	enable := string(constants.RequestEnableBank)
+	if !enableDisable {
+		enable = string(constants.RequestDisableBank)
+	}
+
+	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, enable, constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
