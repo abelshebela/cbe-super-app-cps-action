@@ -10,6 +10,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"context"
 	"errors"
 	"time"
@@ -183,24 +185,26 @@ func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Fil
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	wallet, ok := action.CurrentAction.(*model.Wallet)
-	if !ok || wallet == nil {
+
+	wallet, err := local_util.JsonUnmarshal[model.Wallet](action.CurrentAction)
+	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	var err error
+	// var err error
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		err = s.repo.Create(ctx, wallet)
 	case string(constants.RequestUpdateWallet):
-		err = s.repo.Update(ctx, wallet.ID.Hex(), wallet)
+		err = s.repo.Update(ctx, action.UniqueId, wallet)
 	case string(constants.RequestDeleteWallet):
-		err = s.repo.Delete(ctx, wallet.ID.Hex())
+		err = s.repo.Delete(ctx, action.UniqueId)
 	case string(constants.RequestEnableWallet):
-		err = s.repo.EnableOrDisable(ctx, wallet.ID.Hex(), true)
+		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableWallet):
-		err = s.repo.EnableOrDisable(ctx, wallet.ID.Hex(), false)
+		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 	default:
+
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
