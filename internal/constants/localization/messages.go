@@ -164,7 +164,7 @@ const (
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
 	// Account Validation related success messages
-	MsgValidationRuleApprovedSuccessfully = "Validation rule approved successfully"
+	MsgValidationRuleApprovedSuccessfully = "Update request submitted for approval"
 
 	// Feedback related success messages
 	MsgFeedbackSavedSuccessfully = "Feedback saved successfully"
@@ -814,7 +814,7 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
-	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+	MsgValidationRuleSuccessFech     = "Account fetched successfully"
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
