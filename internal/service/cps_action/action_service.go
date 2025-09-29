@@ -50,7 +50,6 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		return err
 	}
 
-
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		ca.RollBack(ctx, action)

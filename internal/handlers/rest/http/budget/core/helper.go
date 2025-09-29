@@ -42,7 +42,9 @@ func FileValidator(w http.ResponseWriter, file multipart.File, fileHeader multip
 		"image/svg+xml": true,
 	}
 
-	if !allowedImageTypes[fileHeader.Header.Get("Content-Type")] {
+	ct := fileHeader.Header.Get("Content-Type")
+
+	if !allowedImageTypes[ct] {
 		logger.Errorf("invalid file type: %v", fileHeader.Header.Get("Content-Type"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
 		return errors.New(localization.ErrorInvalidFormat.Code)

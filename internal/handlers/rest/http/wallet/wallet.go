@@ -1,7 +1,9 @@
 package wallet
 
 import (
+	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
+	"fmt"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -26,13 +28,21 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 }
 
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
-	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
+
+	var req walletDto.WalletRequest
+
+	file, fileHeader, err := walletcore.ParseMultipartFormFile(r, "avatar", 10<<20)
 	if err != nil {
-		a.logger.Errorf("failed to parse wallet request from multipart form: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		a.logger.Errorf("error parsing file: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorWalletImageMissingOrInvalid, nil, nil)
 		return
 	}
+	defer file.Close()
+	req.Name = r.FormValue("name")
+	req.Code = r.FormValue("code")
+	req.Avatar = fileHeader
 
+	fmt.Println("wallet req", req)
 	if err := req.Validate(true); err != nil {
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())

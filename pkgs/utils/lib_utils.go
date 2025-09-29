@@ -77,13 +77,25 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		if n, err := strconv.Atoi(v); err == nil {
 			page = n
 		}
+
+	} else {
+		page = 1
 	}
 
 	perPage := constants.DefaultPerPage
 	if v := query.Get("per_page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil  {
+		if n, err := strconv.Atoi(v); err == nil {
 			perPage = n
 		}
+	} else {
+		perPage = 10
+	}
+
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 10
 	}
 
 	filters := make(map[string]interface{}, len(query))
@@ -224,7 +236,7 @@ func StringToObjectID(id string) (bson.ObjectID, bool) {
 // GenerateActionCode generates a unique action code of length 20 with prefix "CBE_"
 func GenerateActionCode() string {
 	const (
-		prefix  = "CBE_"
+		prefix  = "BANK_"
 		codeLen = 20
 		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	)
@@ -257,7 +269,7 @@ func HandleMongoError(err error) (string, string) {
 }
 func GenerateCPSUserCode() string {
 	const (
-		prefix  = "CBECPSUSER_"
+		prefix  = "BANKCPSUSER_"
 		codeLen = 15
 		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	)
