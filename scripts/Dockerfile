@@ -22,9 +22,9 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o supperapp-cps-action cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o supperapp-cps-action cmd/main.go
 
-FROM ubuntu:latest
+FROM scratch
 
 COPY --from=builder /app/supperapp-cps-action  .
 
