@@ -2,7 +2,6 @@ package miniappmerchant
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
@@ -38,7 +37,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Validate DTO
 	if err := reqDTO.Validate(true); err != nil {
 		h.logger.Errorf("Validation failed: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorValidationFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -57,16 +56,13 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	createdMerchant, err := h.miniappMerchantService.Create(r.Context(), merchantDomain)
 	if err != nil {
 		h.logger.Errorf("Failed to create merchant: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantCreateFromActionFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	h.logger.Debugf("Created merchant: %+v", createdMerchant)
 
-	// Convert domain → response DTO
-	responseDTO := ToMiniAppMerchantResponseDTO(createdMerchant)
-	h.logger.Debugf("Response DTO: %+v", responseDTO)
 	// Send success response
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, responseDTO)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -89,8 +85,8 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Validate input fields
-	if err := reqDTO.Validate(true); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorValidationFailed, nil, nil)
+	if err := reqDTO.Validate(false); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -105,9 +101,9 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	merchantReq := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
 
 	// Call service update
-	updatedMerchant, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
+	_, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantUpdateFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -116,10 +112,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Map to response DTO
-	respDTO := ToMiniAppMerchantResponseDTO(updatedMerchant)
-
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppEnabledStateUpdated, respDTO)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantUpdateRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
@@ -139,13 +132,11 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 	err := h.miniappMerchantService.Delete(r.Context(), id)
 	if err != nil {
 		h.logger.Errorf("failed to delete merchant %s: %v", id, err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantDeleteFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppSoftDeleted, map[string]string{
-		"message": fmt.Sprintf("Mini App Merchant %s deleted successfully", id),
-	})
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDeleteRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -161,11 +152,11 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, true); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantEnableFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppEnabledStateUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantEnableRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -182,11 +173,11 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, false); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantDisableFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDesable, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDisableRequestCreated, nil)
 }
 
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
@@ -198,7 +189,7 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 
 	result, err := h.miniappMerchantService.FindByID(r.Context(), id)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantFetchCategoriesFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

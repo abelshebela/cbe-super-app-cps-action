@@ -137,7 +137,8 @@ const (
 	MsgPermissionCategoriesFetched   = "Permission categories fetched successfully"
 
 	// Mini App Merchant related success messages
-	MsgMiniAppMerchantCreateRequestSuccessfully = "Create MiniAppMerchant request successfully created"
+	MsgMiniAppMerchantCreateRequestSuccessfully = "Create MiniAppMerchant request submitted"
+	MsgMiniAppMerchantUpdateRequestSuccessfully = "Update request submitted for approval"
 	MsgUpdateRequestSuccessfullyCreated         = "Update request successfully created"
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
 	MsgEnableRequestSuccessfullyCreated         = "Bank enable request sent successfully"
@@ -145,6 +146,9 @@ const (
 	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
+
+	// mini app
+	MsgMiniAppCreateRequestSuccessfully = "mini App request successfully created"
 
 	// Notification related success messages
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
