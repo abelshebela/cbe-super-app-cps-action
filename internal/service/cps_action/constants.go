@@ -73,6 +73,7 @@ const (
 	RequestUpdateBank              RequestAction = "UPDATE_BANK"
 	RequestDeleteBank              RequestAction = "DELETE_BANK"
 	RequestUpdateBankLogo          RequestAction = "UPDATE_BANK_LOGO"
+	RequestEnableDisableBank       RequestAction = "ENABLE_DISABLE_BANK"
 	RequestEnableBank              RequestAction = "ENABLE_BANK"
 	RequestDisableBank             RequestAction = "DISABLE_BANK"
 	RequestCreateWallet            RequestAction = "CREATE_WALLET"
@@ -501,6 +502,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateBank,
 		RequestUpdateBank,
 		RequestDeleteBank,
+		RequestEnableDisableBank,
 		RequestUpdateBankLogo,
 		RequestEnableBank,
 		RequestDisableBank,
