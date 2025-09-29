@@ -204,10 +204,10 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	newBankData := *bank
 	newBankData.Enabled = enableDisable
 
-	enable := string(constants.RequestEnableBank)
-	if !enableDisable {
-		enable = string(constants.RequestDisableBank)
-	}
+	enable := string(constants.RequestEnableDisableBank)
+	// if !enableDisable {
+	// 	enable = string(constants.RequestDisableBank)
+	// }
 
 	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, enable, constants.UPDATE)
 
