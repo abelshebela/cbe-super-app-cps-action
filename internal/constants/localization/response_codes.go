@@ -857,14 +857,14 @@ var (
 	SuccessWalletEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Wallet enable request submitted successfully",
+		Message:    "Wallet enable request sent successfully",
 		Type:       "success",
 	}
 
 	SuccessWalletDisableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Wallet disable request submitted successfully",
+		Message:    "Wallet disable request sent successfully",
 		Type:       "success",
 	}
 
@@ -2771,7 +2771,7 @@ var (
 	ErrorInvalidRequest = ResponseCode{
 		Code:       "ERROR_INVALID_REQUEST",
 		StatusCode: StatusBadRequest,
-		Message:    MsgInvalidRequestOnParam,
+		Message:    MsgInvalidRequest,
 		Type:       "error",
 	}
 
@@ -3051,6 +3051,13 @@ var (
 		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBankImageRequiredOrMissing,
+		Type:       "error",
+	}
+
+	ErrorWalletImageMissingOrInvalid = ResponseCode{
+		Code:       "ERROR_WALLET_IMAGE_MISSING_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgWalletImageRequiredOrMissing,
 		Type:       "error",
 	}
 

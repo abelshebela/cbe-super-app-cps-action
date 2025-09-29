@@ -27,17 +27,25 @@ func InitBudgetAdapter(budgetApplication service.BudgetService, logger utils.Log
 }
 
 func (b *budgetAdapter) CreateBudgetIcon(w http.ResponseWriter, r *http.Request) {
+	// file, fileHeader, err := core.ParseMultipartFormFile(r, "icons_image", 10<<20)
+	// if err != nil {
+	// 	b.logger.Errorf("error parsing file: %v", err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
 	file, fileHeader, err := core.ParseMultipartFormFile(r, "icons_image", 10<<20)
 	if err != nil {
 		b.logger.Errorf("error parsing file: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 		return
 	}
+	defer file.Close()
 
-	if err := core.FileValidator(w, file, *fileHeader, b.logger); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+	// if err := core.FileValidator(w, file, *fileHeader, b.logger); err != nil {
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
 
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {
@@ -82,10 +90,10 @@ func (b *budgetAdapter) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := core.FileValidator(w, file, *fileHeader, b.logger); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+	// if err := core.FileValidator(w, file, *fileHeader, b.logger); err != nil {
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
 
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {

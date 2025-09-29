@@ -2,6 +2,7 @@ package walletDto
 
 import (
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"strings"
 
@@ -48,21 +49,23 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	}
 
 	if isCreate {
+		fmt.Println("validating code", w.Code)
+
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, true, localization.ErrorWalletCodeRequired.Code))))
 	} else if w.Code != "" {
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, false, localization.ErrorWalletCodeRequired.Code))))
 	}
 
-	if isCreate {
-		rules = append(rules, validation.Field(&w.Avatar,
-			validation.Required.Error(localization.ErrorWalletAvatarRequired.Code),
-			validation.By(func(value interface{}) error { return validateAvatar(value) }),
-		))
-	} else if w.Avatar != nil {
-		rules = append(rules, validation.Field(&w.Avatar,
-			validation.By(func(value interface{}) error { return validateAvatar(value) }),
-		))
-	}
+	// if isCreate {
+	// 	rules = append(rules, validation.Field(&w.Avatar,
+	// 		validation.Required.Error(localization.ErrorWalletAvatarRequired.Code),
+	// 		validation.By(func(value interface{}) error { return validateAvatar(value) }),
+	// 	))
+	// } else if w.Avatar != nil {
+	// 	rules = append(rules, validation.Field(&w.Avatar,
+	// 		validation.By(func(value interface{}) error { return validateAvatar(value) }),
+	// 	))
+	// }
 
 	if len(rules) > 0 {
 		if err := validation.ValidateStruct(&w, rules...); err != nil {

@@ -66,7 +66,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorWalletAlreadyExists.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint, s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -100,7 +100,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 
 	var avatarURL string
 	if req.Avatar != nil {
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.minioPubUrl, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
@@ -191,7 +191,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	// var err error
+
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		err = s.repo.Create(ctx, wallet)

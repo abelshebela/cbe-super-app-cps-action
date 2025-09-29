@@ -45,7 +45,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
@@ -107,14 +106,5 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
 
-	// Add swagger endpoints to the API router before mounting
-	r.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json")
-	})
-
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
-
-	router.Get("/api/v1/cbesuperapp/cps_action/docs/*", httpSwagger.Handler(
-		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/docs/swagger.json"),
-	))
 }

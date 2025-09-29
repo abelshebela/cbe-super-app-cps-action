@@ -78,13 +78,15 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 	case string(constants.RequestDeleteBank):
-		err := b.repo.Delete(ctx, actionData.ID.Hex())
+		err := b.repo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
 			b.logger.Errorf("Bank Delete action  failed", "error", err)
 			return nil, err
 		}
-	case string(constants.RequestEnableBank), string(constants.RequestDisableBank):
-		err := b.repo.EnableOrDisable(ctx, actionData.ID.Hex(), actionData.Enabled)
+
+	case string(constants.RequestEnableDisableBank):
+		err := b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
+
 		if err != nil {
 			b.logger.Errorf("Bank Enable Disable action  failed", "error", err)
 			return nil, err
@@ -96,7 +98,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 	case string(constants.RequestUpdateBank):
-		err := b.repo.Update(ctx, actionData.ID.Hex(), &actionData)
+		err := b.repo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
 			b.logger.Errorf("Bank update action failed", "error", err)
 			return nil, err

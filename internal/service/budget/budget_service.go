@@ -63,17 +63,13 @@ func (b *BudgetService) Authorize(ctx context.Context, action *model.CPSAction) 
 		}
 		err = b.colorRepo.Create(ctx, color)
 	case string(constants.RequestUpdateBudgetColor):
-		currentActionBytes, errr := bson.MarshalExtJSON(action.CurrentAction, false, false)
-		if errr != nil {
-			return nil, errr
+
+		color, err := local_util.JsonUnmarshal[model.Color](action.CurrentAction)
+		if err != nil {
+			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
-		var color model.Color
-		if err := bson.UnmarshalExtJSON(currentActionBytes, false, &color); err != nil {
-			return nil, err
-		}
-
-		err = b.colorRepo.Update(ctx, color.ID.Hex(), &color)
+		err = b.colorRepo.Update(ctx, color.ID.Hex(), color)
 
 	case string(constants.RequestCreateBudgetIcon):
 		icon, marshal_err := local_util.JsonUnmarshal[model.Icon](action.CurrentAction)

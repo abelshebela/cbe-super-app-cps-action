@@ -141,8 +141,8 @@ const (
 	MsgMiniAppMerchantUpdateRequestSuccessfully = "Update request submitted for approval"
 	MsgUpdateRequestSuccessfullyCreated         = "Update request successfully created"
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
-	MsgEnableRequestSuccessfullyCreated         = "Enable request successfully created"
-	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
+	MsgEnableRequestSuccessfullyCreated         = "Bank enable request sent successfully"
+	MsgDisableRequestSuccessfullyCreated        = "Bank disable request sent successfully"
 	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
@@ -168,7 +168,7 @@ const (
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
 	// Account Validation related success messages
-	MsgValidationRuleApprovedSuccessfully = "Validation rule approved successfully"
+	MsgValidationRuleApprovedSuccessfully = "Update request submitted for approval"
 
 	// Feedback related success messages
 	MsgFeedbackSavedSuccessfully = "Feedback saved successfully"
@@ -358,6 +358,7 @@ const (
 	// Validation error messages
 	MsgBankDeleteRequestFailed               = "Bank delete request failed"
 	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
+	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
 	MsgInvalidFormat                         = "Invalid format"
@@ -643,13 +644,13 @@ const (
 	MsgResourceNetworkError        = "Resource network error"
 	MsgResourceConfigurationError  = "Resource configuration error"
 	MsgResourceMaintenanceMode     = "Resource in maintenance mode"
+	MsgInvalidRequest              = "Invalid request data"
 	MsgInvalidRequestOnParam       = "Invalid request on page and per page"
 	MsgInvalidBankRequest          = "Invalid bank request"
 	MsgInvalidRequestBankName      = "invalid format for Name: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankCode      = "invalid format for Code: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankBIC       = "invalid format for BIC: only letters, numbers, and spaces are allowed"
 	MsgNoDataProvidedForBankUpdate = "No data provided for Bank update"
-	MsgInvalidRequest              = "Invalid request"
 	MsgInvalidToken                = "Invalid token"
 
 	// DEPARTMENT RELATED MESSAGES
@@ -817,7 +818,7 @@ const (
 
 	// Account Validation Service related error messages
 	MsgValidationRuleApprovedSuccess = "Validation rule approved successfully"
-	MsgValidationRuleSuccessFech     = "Validation rule feched successfully"
+	MsgValidationRuleSuccessFech     = "Account fetched successfully"
 
 	MsgPendingActionExists  = "Pending action exists"
 	MsgDuplicateColorExists = "Duplicate color exists"
