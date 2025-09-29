@@ -89,7 +89,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		BankPersistence:                  bank.NewBankRepository(client, dbName, "banks", logger),
 		ColorPersistence:                 color.NewColorRepository(client, dbName, "colors", logger),
 		BulkService:                      bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
-		CustomerService:                  customer.InitCustomerDetail(client, dbName, "users", logger),
+		CustomerService:                  customer.InitCustomerDetail(client, dbName, "members", logger),
 		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
 		DonationPersistence:              donation.NewDonationRepository(client, dbName, "donations", logger),
 		DonationCategoryPersistence:      donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
