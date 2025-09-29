@@ -210,6 +210,7 @@ const (
 	RequestUpdateBank               RequestAction = "UPDATE_BANK"
 	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO"
 	RequestDeleteBank               RequestAction = "DELETE_BANK"
+	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
 	RequestEnableBank               RequestAction = "ENABLE_BANK"
 	RequestDisableBank              RequestAction = "DISABLE_BANK"
 	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"

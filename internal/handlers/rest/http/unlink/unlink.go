@@ -25,7 +25,7 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 }
 
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
-
+	// filter parameter
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
