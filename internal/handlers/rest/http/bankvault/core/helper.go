@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// map dto to model
+// map dto to model for create
 
 func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lockPeriodDays time.Duration) *model.BankVaultProduct {
 	return &model.BankVaultProduct{

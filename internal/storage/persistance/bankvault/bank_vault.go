@@ -60,9 +60,7 @@ func (r *bankVaultRepositary) ExecuteInTransaction(ctx context.Context, fn func(
 	return tx.Commit()
 }
 
-// -----------------------------
-// Product methods
-// -----------------------------
+
 func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVaultProduct) (string, error) {
 	// Convert time.Duration to days for Oracle NUMBER(19,0) constraint
 	lockPeriodDays := int64(product.LockPeriod.Hours() / 24)
