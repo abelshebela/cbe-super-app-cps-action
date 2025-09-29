@@ -21,7 +21,7 @@ func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lo
 		MinAmount:         req.MinAmount,
 		MaxAmount:         req.MaxAmount,
 		EarlyUnlockFeeBps: req.EarlyUnlockFeeBps,
-		IsActive:          false, // Always false when creating - must be enabled separately
+		IsActive:          false,
 	}
 }
 

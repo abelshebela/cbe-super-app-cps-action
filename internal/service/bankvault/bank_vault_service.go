@@ -36,7 +36,6 @@ func NewBankVaultService(re storage.BankVaultRepository, cpsS service.CPSActionS
 
 func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error) {
 	makerData := local_util.ExtractUserFromContext(ctx)
-
 	// Convert to MongoDB-safe format to prevent decimal serialization issues
 	mongoSafeReq := helperr.ConvertBankVaultToMongoSafe(req)
 
@@ -192,7 +191,6 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 	case string(constants.RequestCreateBankVault):
 		bankvault, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
-			fmt.Println("Error binding bank vault from CPS action:⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 

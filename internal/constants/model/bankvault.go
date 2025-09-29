@@ -23,10 +23,9 @@ type BankVaultProduct struct {
 	CreatedAt         time.Time                  `json:"created_at"`
 	UpdatedAt         time.Time                  `json:"updated_at"`
 	DeletedAt         *time.Time                 `json:"deleted_at,omitempty"`
-	// this is added mine
-	CreatedBy string `json:"created_by"`
-	UpdatedBy string `json:"updated_by"`
-	IsDeleted bool   `json:"is_deleted"`
+	CreatedBy         string                     `json:"created_by"`
+	UpdatedBy         string                     `json:"updated_by"`
+	IsDeleted         bool                       `json:"is_deleted"`
 }
 type BankVaultProductPatch struct {
 	Description *string          `json:"description,omitempty"`
