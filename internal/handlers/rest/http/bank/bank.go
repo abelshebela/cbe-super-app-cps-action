@@ -93,7 +93,7 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessDisableRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
 }
 
 // Enable implements bank.BankAdapter.
@@ -111,7 +111,7 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessEnableRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
 // GetAllBank implements bank.BankAdapter.

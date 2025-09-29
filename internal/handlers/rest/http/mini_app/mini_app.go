@@ -54,7 +54,7 @@ func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Infof("mini app creation request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppCreateRequestCreated, nil)
 }
 
 func (h *HttpStore) UpdateMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +103,7 @@ func (h *HttpStore) UpdateMiniApp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Infof("mini app update request submitted successfully, mini app ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessUpdateMiniAppRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppUpdateRequestCreated, nil)
 }
 
 func (h *HttpStore) DeleteMiniApp(w http.ResponseWriter, r *http.Request) {

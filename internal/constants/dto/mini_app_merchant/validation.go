@@ -44,11 +44,8 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			),
 			validation.Field(&dto.PhoneNumber,
 				validation.Required.Error("phone number is required"),
-				is.Digit.Error("phone number must contain only digits"),
-				validation.Length(9, 15).Error("phone number must be between 9 and 15 digits"),
 				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)9\d{8}$`)).Error("invalid phone number format"),
 				validation.By(utils.TrimWhiteSpace),
-				validation.By(utils.NoSpecialChars),
 			),
 			validation.Field(&dto.Email,
 				validation.Required.Error("email is required"),
@@ -76,15 +73,17 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 		}
 		if strings.TrimSpace(dto.PhoneNumber) != "" {
 			rules = append(rules, validation.Field(&dto.PhoneNumber,
-				is.Digit.Error("phone number must contain only digits"),
 				validation.Length(9, 15).Error("phone number must be between 9 and 15 digits"),
 				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)9\d{8}$`)).Error("invalid phone number format"),
-				validation.By(utils.NoSpecialChars),
 			))
 		}
 		if strings.TrimSpace(dto.Email) != "" {
-			rules = append(rules, validation.Field(&dto.Email, is.Email.Error("email must be a valid email address"), validation.By(utils.NoSpecialChars)))
+			validation.Field(&dto.Email,
+				is.Email.Error("email must be a valid email address"),
+				validation.By(utils.TrimWhiteSpace),
+			)
 		}
+
 		if strings.TrimSpace(dto.AccountNumber) != "" {
 			rules = append(rules, validation.Field(&dto.AccountNumber, validation.By(utils.NoSpecialChars)))
 		}

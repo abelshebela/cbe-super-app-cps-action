@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -116,8 +115,6 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
-	fmt.Println(filter)
-	fmt.Println("999999999999999999999999999999999999-----------------")
 
 	data, err := r.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

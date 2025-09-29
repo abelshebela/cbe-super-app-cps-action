@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"context"
 	"errors"
 	"time"
@@ -190,6 +191,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
+
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		err = s.repo.Create(ctx, wallet)
@@ -202,6 +204,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(constants.RequestDisableWallet):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 	default:
+
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 

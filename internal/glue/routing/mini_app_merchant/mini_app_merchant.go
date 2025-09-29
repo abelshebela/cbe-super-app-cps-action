@@ -13,7 +13,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/mini-app-merchants/create",
+			Path:    "/mini-app-merchants",
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -54,7 +54,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/mini-app-merchants/update/{id}",
+			Path:    "/mini-app-merchants/{id}",
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -62,7 +62,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/mini-app-merchants/delete/{id}",
+			Path:    "/mini-app-merchants/{id}",
 			Handler: handler.Delete,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
