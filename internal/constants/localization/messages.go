@@ -892,6 +892,10 @@ const (
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
 
+	// bank vault
+	MsgCannotDeleteActiveBankVault    = "Cannot delete active bank vault"
+	MsgBankVaultProductAlreadyDeleted = "Bank vault product already deleted"
+
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
 	MsgFaydaAccountDisableCreatedSuccessfully = "Fayda Account disable action submitted successfully"

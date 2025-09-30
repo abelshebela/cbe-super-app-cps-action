@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -81,14 +80,14 @@ func BindBankVaultFromCPSAction(current interface{}) (model.BankVaultProduct, er
 		return v, nil
 	}
 
-	// If stored as JSON string
+	
 	if s, ok := current.(string); ok {
 		if err := json.Unmarshal([]byte(s), &BV); err == nil {
 			return BV, nil
 		}
 	}
 
-	// Generic path: marshal then unmarshal
+	
 	bytes, err := json.Marshal(current)
 	if err != nil {
 		return BV, err
@@ -108,7 +107,7 @@ func MapCamelCaseToBankVaultProduct(jsonBytes []byte) (model.BankVaultProduct, e
 		return BV, err
 	}
 
-	// Map camelCase fields to snake_case fields manually
+	// Map camelCase fields to snake_case fields
 	BV.ID = getString(data, "id")
 	BV.Name = getString(data, "name")
 	BV.Description = getString(data, "description")
@@ -293,14 +292,27 @@ func BankUpdateVault(req *model.UpdateBankVault) model.BankVaultProduct {
 }
 
 func MapBankVaultToCreate(bankVault bankvault.CreateBankVaultProductRequest) (*model.BankVaultProduct, error) {
-	// Convert string days → int
-	days, err := strconv.Atoi(bankVault.LockPeriodDays)
-	if err != nil {
-		return nil, fmt.Errorf("invalid lock period days: %w", err)
-	}
+	// Parse duration string (e.g., "180d") and convert to nanoseconds 
+	var lockPeriod time.Duration
+	var err error
 
-	// Convert days → time.Duration
-	lockPeriod := time.Duration(days) * 24 * time.Hour
+	
+	if len(bankVault.LockPeriodDays) > 1 && bankVault.LockPeriodDays[len(bankVault.LockPeriodDays)-1] == 'd' {
+		// Extract number part and convert to hours
+		daysStr := bankVault.LockPeriodDays[:len(bankVault.LockPeriodDays)-1]
+		lockPeriod, err = time.ParseDuration(daysStr + "h")
+		if err != nil {
+			return nil, fmt.Errorf("invalid lock period format '%s': %w", bankVault.LockPeriodDays, err)
+		}
+		// Convert hours to days * 24
+		lockPeriod = lockPeriod * 24
+	} else {
+		
+		lockPeriod, err = time.ParseDuration(bankVault.LockPeriodDays)
+		if err != nil {
+			return nil, fmt.Errorf("invalid lock period format '%s': %w", bankVault.LockPeriodDays, err)
+		}
+	}
 
 	return &model.BankVaultProduct{
 		Name:              bankVault.Name,

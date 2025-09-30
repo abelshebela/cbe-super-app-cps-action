@@ -255,7 +255,7 @@ type BankVaultRepository interface {
 	FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error)
 	Update(ctx context.Context, id string, bankVault *model.BankVaultProduct) error
 	Delete(ctx context.Context, id string) (string, error)
-	EnableOrDisable(ctx context.Context, id string, enable bool)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type DonationRepository interface {

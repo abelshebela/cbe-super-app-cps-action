@@ -113,6 +113,16 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 		s.logger.Errorf("Error fetching bank vault product: %v", err)
 		return "", nil
 	}
+
+	if exist.IsActive {
+		s.logger.Errorf("Cannot delete active bank vault product: %s", id)
+		return "", errors.New(localization.ErrorCannotDeleteActiveBankVault.Code)
+	}
+
+	if exist.IsDeleted {
+		s.logger.Errorf("Bank vault product already deleted: %s", id)
+		return "", errors.New(localization.ErrorBankVaultProductAlreadyDeleted.Code)
+	}
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		if s.logger != nil {
@@ -224,14 +234,18 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
+			return nil, err
+		}
 		return cpsAction, nil
 	case string(constants.RequestDisAbleBankVault):
 		_, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+			return nil, err
+		}
 		return cpsAction, nil
 	}
 
