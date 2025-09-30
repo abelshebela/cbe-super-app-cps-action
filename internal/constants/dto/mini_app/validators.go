@@ -26,7 +26,7 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 			validation.Field(&r.AppIcon, validation.Required.Error(localization.ErrorAppIconRequired.Code), validation.By(validateFile)),
 			validation.Field(&r.AppViewType, validation.Required.Error(localization.ErrorAppViewTypeRequired.Code), validation.By(ValidateAppViewType(r, isCreate))),
 			validation.Field(&r.URL, validation.Required.Error(localization.ErrorMiniAppURLRequired.Code), validation.By(validateURL)),
-			validation.Field(&r.BannerImage, validation.Required.Error(localization.ErrorBannerImageRequired.Code), validation.By(validateFile)),
+			validation.Field(&r.BannerImage, validation.By(validateFile)),
 	
 		}
 	} else {
