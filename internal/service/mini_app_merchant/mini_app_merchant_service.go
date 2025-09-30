@@ -9,8 +9,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	
 	"time"
-
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -50,7 +51,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	}
 	if exist != nil {
 		m.logger.Warnf("Merchant already exists with BankAccountNumber: %s", data.BankAccountNumber)
-		return nil, errors.New(localization.ErrorWalletAlreadyExists.Code)
+		return nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
 	// Generate new ObjectID if not provided
@@ -125,7 +126,7 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	deletedMiniApp.IsDeleted = true
 	deletedMiniApp.DeletedAt = now
 
-	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteWallet, deletedMiniApp, *prev, constants.ActionDelete); err != nil {
+	if err := core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMiniApp, *prev, constants.ActionDelete); err != nil {
 		m.logger.Errorf("CPS action failed for  miniapp %m: %v", deletedMiniApp.Code, err)
 		return err
 	}
@@ -182,24 +183,25 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 // Authorize validates and approves/rejects CPS actions related to mini-app merchants.
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	miniAppMerchant, ok := cpsAction.CurrentAction.(*model.MiniAppMerchant)
-	if !ok || miniAppMerchant == nil {
+	
+
+	miniAppMerchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
+	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
-	var err error
 	switch cpsAction.RequestAction {
-	case string(constants.RequestCreateWallet):
+	case string(constants.RequestCreateMiniAppMerchant):
 		_, err = m.repo.Create(ctx, miniAppMerchant)
-	case string(constants.RequestUpdateWallet):
-		err = m.repo.Update(ctx, miniAppMerchant.ID.Hex(), miniAppMerchant)
-	case string(constants.RequestDeleteWallet):
-		err = m.repo.Delete(ctx, miniAppMerchant.ID.Hex())
-	case string(constants.RequestEnableWallet):
-		err = m.repo.EnableOrDisable(ctx, miniAppMerchant.ID.Hex(), true)
-	case string(constants.RequestDisableWallet):
-		err = m.repo.EnableOrDisable(ctx, miniAppMerchant.ID.Hex(), false)
+	case string(constants.RequestUpdateMiniAppMerchant):
+		err = m.repo.Update(ctx, cpsAction.UniqueId, miniAppMerchant)
+	case string(constants.RequestDeleteMiniAppMerchant):
+		err = m.repo.Delete(ctx, cpsAction.UniqueId)
+	case string(constants.RequestEnableMiniAppMerchant):
+		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+	case string(constants.RequestDisableMiniAppMerchant):
+		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 	default:
+	
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
