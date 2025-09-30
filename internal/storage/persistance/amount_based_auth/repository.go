@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -34,34 +33,32 @@ func NewAmountBasedAuthRepository(client *mongo.Client, dbName string, collectio
 func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier *model.AuthTier) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("Failed to convert id to ObjectID: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{
-		"$set": bson.M{
-			"min_amount":    authTier.MinAmount,
-			"max_amount":    authTier.MaxAmount,
-			"method":        authTier.Method,
-			"last_modified": authTier.LastModified,
-		},
-	}
+	updateData := AuthTierMapper(*authTier)
 
-	_, err = a.dal.UpdateOne(ctx, filter, update)
+	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		a.logger.Errorf("UpdateOne failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	
 	return nil
 }
 
 func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.AuthTier, error) {
 	result, err := a.dal.FindAll(ctx, filter, projection)
 	if err != nil {
+		a.logger.Errorf("FindAll failed with filter %v: %v", filter, err)
 		return nil, err
 	}
-	fmt.Printf("FindAll result: %v\n", result)
+	
 	return result, nil
 }
 
