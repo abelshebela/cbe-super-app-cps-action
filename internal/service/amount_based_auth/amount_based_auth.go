@@ -168,7 +168,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["otp_pin"])
+		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](result["otp_pin"])
 		if err != nil {
 			s.logger.Errorf("Failed to unmarshal OTP_PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
