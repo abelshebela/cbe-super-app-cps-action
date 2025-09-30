@@ -47,26 +47,54 @@ func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cps
 
 // Authorize handles persistence for amount-based auth actions
 func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Authorizing amount-based auth action, action: %s", action.RequestAction)
+	s.logger.Infof("Authorizing amount-based auth action, action:************* %s", action.RequestAction)
+
+	// Unmarshal the current action data
+	// Try direct type assertion first
 
 	currentAction, err := local_util.JsonUnmarshal[map[string]interface{}](action.CurrentAction)
 	if err != nil {
-		s.logger.Errorf("Failed to unmarshal auth tier from action: %v", err)
+		s.logger.Errorf("Failed to extract currentAction from action.CurrentAction: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
-	result := *(currentAction)
+	s.logger.Errorf("Failed to extract currentAction from action.CurrentAction--------------------: %v", currentAction)
+
+	// currentAction, ok := action.CurrentAction.(map[string]interface{})
+	// if !ok {
+	// 	// If not, try to unmarshal from JSON string
+
+	// 	// If the "data" field is present and is a JSON string, unmarshal it as well
+	// 	// if dataRaw, exists := currentAction["data"]; exists {
+	// 	// 	if dataStr, ok := dataRaw.(string); ok {
+	// 	// 		dataMap, err := local_util.JsonUnmarshal[map[string]interface{}](dataStr)
+	// 	// 		if err == nil {
+	// 	// 			currentAction["data"] = dataMap
+	// 	// 		}
+	// 	// 	}
+	// 	// }
+	// }
+	// currentAction, err := local_util.JsonUnmarshal[map[string]interface{}](action.CurrentAction)
+	// if err != nil {
+	// 	s.logger.Errorf("Failed to unmarshal auth tier from action: %v", err)
+	// 	return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	// }
+	s.logger.Infof("Authorizing amount-based auth action, pass action:************* %s", action.RequestAction)
+
+	result := (*currentAction)
 
 	switch result["method"] {
 	case "OPEN":
+		s.logger.Infof("Processing OPEN tier update===================")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
-			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
+			s.logger.Errorf("Error occurred when extracting data tier: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+		s.logger.Infof("Processing OPEN tier update=======////////////============")
 
 		openTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["open"])
 		if err != nil {
-			s.logger.Errorf("Error occcure when extracting open tier error: %v", err)
+			s.logger.Errorf("Error occurred when extracting open tier: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
@@ -86,6 +114,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 	case "PIN":
+		s.logger.Infof("Processing PIN tier update================")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
@@ -125,6 +154,8 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 	case "OTP_PIN":
+		s.logger.Infof("Processing OTP_PIN tier update================")
+		s.logger.Infof("Authorizing amount-based auth action, pass OTP_PIN action:************* %s", action.RequestAction)
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
