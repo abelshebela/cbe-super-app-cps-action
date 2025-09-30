@@ -11,7 +11,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -132,49 +131,82 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 
-		fmt.Printf("existingTier: %v\n", existingTier)
+		s.logger.Infof("Updating PIN tier - existingTier: ID=%s, MinAmount=%d, MaxAmount=%d",
+			existingTier.ID.Hex(), existingTier.MinAmount, existingTier.MaxAmount)
 
 		// Fetch OPEN and OTP_PIN tiers for validation constraints
+		s.logger.Infof("Fetching OPEN tiers...")
 		openTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OPEN, "is_deleted": false}, bson.M{})
 		if err != nil {
+			s.logger.Errorf("Failed to fetch OPEN tiers: %v", err)
 			return err
 		}
-		fmt.Printf("openTiers: %v\n", &openTiers)
+		s.logger.Infof("Found %d OPEN tiers", len(openTiers))
+
 		if len(openTiers) == 0 {
+			s.logger.Errorf("No OPEN tiers found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		if openTiers[0] == nil {
+			s.logger.Errorf("First OPEN tier is nil")
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		s.logger.Infof("Fetching OTP_PIN tiers...")
 		otpPinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OTPANDPIN, "is_deleted": false}, bson.M{})
 		if err != nil {
+			s.logger.Errorf("Failed to fetch OTP_PIN tiers: %v", err)
 			return err
 		}
+		s.logger.Infof("Found %d OTP_PIN tiers", len(otpPinTiers))
+
 		if len(otpPinTiers) == 0 {
+			s.logger.Errorf("No OTP_PIN tiers found")
 			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		if otpPinTiers[0] == nil {
+			s.logger.Errorf("First OTP_PIN tier is nil")
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		openTier := openTiers[0]
 		otpPinTier := otpPinTiers[0]
 
+		s.logger.Infof("OPEN tier: ID=%s, MinAmount=%d, MaxAmount=%d",
+			openTier.ID.Hex(), openTier.MinAmount, openTier.MaxAmount)
+		s.logger.Infof("OTP_PIN tier: ID=%s, MinAmount=%d, MaxAmount=%d",
+			otpPinTier.ID.Hex(), otpPinTier.MinAmount, otpPinTier.MaxAmount)
+
 		// Validate the user's PIN values against OPEN and OTP_PIN constraints
+		s.logger.Infof("Applying PIN update validation...")
 		if err := core.ApplyPinUpdate(existingTier, openTier, otpPinTier); err != nil {
+			s.logger.Errorf("PIN update validation failed: %v", err)
 			return err
 		}
 
 		// Persist all modified tiers: PIN, OPEN, and OTP_PIN
+		s.logger.Infof("Updating existing tier...")
 		existingTier.LastModified = now
 		if err := s.Repository.Update(ctx, id, existingTier); err != nil {
+			s.logger.Errorf("Failed to update existing tier: %v", err)
 			return err
 		}
 
+		s.logger.Infof("Updating OPEN tier...")
 		openTier.LastModified = now
 		if err := s.Repository.Update(ctx, openTier.ID.Hex(), openTier); err != nil {
+			s.logger.Errorf("Failed to update OPEN tier: %v", err)
 			return err
 		}
 
+		s.logger.Infof("Updating OTP_PIN tier...")
 		otpPinTier.LastModified = now
 		if err := s.Repository.Update(ctx, otpPinTier.ID.Hex(), otpPinTier); err != nil {
+			s.logger.Errorf("Failed to update OTP_PIN tier: %v", err)
 			return err
 		}
 
+		s.logger.Infof("PIN tier update completed successfully")
 		return nil
 
 	case constants.OTPANDPIN:
