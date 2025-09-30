@@ -121,14 +121,13 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	p.logger.Infof("Authorizing password rule action: %s", cpsAction.ActionCode)
 
-	var passwordRule *model.PasswordRule
-
-	if err := local_util.BindAction(cpsAction.CurrentAction, &passwordRule); err != nil {
-		p.logger.Errorf("Failed to bind current action to fayda: %v", err)
+	passwordRule, err := local_util.JsonUnmarshal[model.PasswordRule](cpsAction.CurrentAction)
+	if err != nil {
+		p.logger.Errorf("Failed to unmarshal password rule from action: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	err := p.repo.Update(ctx, passwordRule.ID.Hex(), passwordRule)
+	err = p.repo.Update(ctx, cpsAction.UniqueId, passwordRule)
 	if err != nil {
 		p.logger.Errorf("Failed to process password rule authorization with request action: %s and error: %v", cpsAction.RequestAction, err)
 		return nil, err

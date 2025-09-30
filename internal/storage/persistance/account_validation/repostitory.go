@@ -78,7 +78,9 @@ func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filt
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"validation_rule": searchRegex},
+			{"service_id": searchRegex},
+			{"enabled": searchRegex},
+			{"validation_for": searchRegex},
 			{"entity_type": searchRegex},
 		} // choose your searchable field(s)
 	}
