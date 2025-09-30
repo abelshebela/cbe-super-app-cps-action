@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	constant "github.com/CBE-Super-App/cbe-super-app-cps-action/utils"
-	// constant "github.com/CBE-Super-App/cbe-super-app-cps-action/pkgs/utils"
+	"cbe-super-app-cps-action/internal/constants"
 )
 
 type UserContext struct {
@@ -23,7 +22,7 @@ type UserContext struct {
 func ExtractUserContext(r *http.Request) UserContext {
 	// This method extracts users data from the middleware context
 	get := func(key string) string {
-		val, _ := r.Context().Value(constant.ContextKey(key)).(string)
+		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
 		return val
 	}
 
@@ -43,7 +42,7 @@ func ExtractUserContext(r *http.Request) UserContext {
 func ExtractContext(c context.Context) UserContext {
 	// This method extracts users data from the middleware context
 	get := func(key string) string {
-		val, _ := c.Value(constant.ContextKey(key)).(string)
+		val, _ := c.Value(constants.ContextKey(key)).(string)
 		return val
 	}
 

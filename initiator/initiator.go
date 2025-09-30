@@ -2,23 +2,25 @@ package initiator
 
 import (
 	"context"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"fmt"
+	"runtime"
 
-	"github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/inbound/http/responseutil"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
+	"cbe-super-app-cps-action/cmd/server"
+	local "cbe-super-app-cps-action/config"
+	"cbe-super-app-cps-action/internal/storage/api"
+
+	// "cbe-super-app-cps-action/platform/logger"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	app_middleware "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/application/middleware"
+
+	"github.com/go-chi/chi/v5"
+	"log"
 )
 
-func Initiator() {
-	logger := utils.NewLogger()
+func Init(ctx context.Context) {
+	done := make(chan struct{})
 
+	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
 	logger.Infof("Configuration initialized")
@@ -32,62 +34,64 @@ func Initiator() {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("Initializing persistence...")
-	persitence := InitPersistence(mongoClient, cfg.MongoDBDatabase, logger, cfg)
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
 
-	logger.Infof("Initializing domain services...")
-	domain := InitDomain(minioClient, persitence, logger, cfg)
-	logger.Infof("Domain services initialized")
+	logger.Infof("Initializing account lookup service...")
+	accountLookupService := InitAccountLookupService(cfg, logger)
+	logger.Infof("Account lookup service initialized")
 
-	logger.Infof("Initializing application services...")
-	application := InitApplication(domain, minioClient, logger, cfg)
-	logger.Infof("Application services initialized")
-
-	logger.Infof("Initializing adapter services...")
-	adapter := InitAdapter(application, minioClient, logger)
-	logger.Infof("Adapter services initialized")
-
-	logger.Infof("Initializing Chi router.....")
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(app_middleware.RecoveryMiddleware(logger))
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST"},
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
-	}))
-	r.NotFound(responseutil.NotFoundHandler)
-	logger.Infof("Chi router initialized")
-
-	logger.Infof("Initializing routes...")
-	InitRoutes(r, adapter, cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
-	logger.Infof("Routes initialized")
-
-	server := http.Server{
-		Addr:    ":8080",
-		Handler: r,
+	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
 	}
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	signal.Notify(quit, syscall.SIGTERM)
-
-	go func() {
-		logger.Infof("🚀 Server started")
-		logger.Infof("Server stopped with error: %v\n", server.ListenAndServe())
+	defer func() {
+		clientStore.Close()
 	}()
 
-	sig := <-quit
+	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
-	logger.Infof("server shutting down with signal: %v\n", sig)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	logger.Infof("initialize service layer")
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService)
 
-	if err := server.Shutdown(ctx); err != nil {
-		logger.Fatalf("failed to shutdown gracefully with error %v", err)
-	}
+	go func() {
+		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
+			logger.Errorf("Failed to start feedback consumer: %v", err)
+		}
+	}()
 
-	logger.Infof("Server shutdown successfully")
+	logger.Infof("initialize handler layer")
+	handlerLayer := InitHandler(serviceLayer, logger)
+
+	r := chi.NewRouter()
+	InitRoute(ctx, r, handlerLayer, logger, cfg)
+
+	fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	go func() {
+		fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	}()
+
+	fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank,serviceLayer.Wallet,serviceLayer.ServiceDetails, logger)
+	srv := server.NewHTTPServer(cfg, r)
+	
+	grpcServer,lis := server.StartGrpcServer(grpcHandlers)
+
+
+
+
+go func() {
+    if err := grpcServer.Serve(lis); err != nil {
+        log.Fatalf("gRPC serve error: %v", err)
+    }
+    done <- struct{}{}
+}()
+	go func(){
+		 srv.HTTPServerStart(ctx, logger)
+		done<- struct{}{}
+	}()
+	<-done
+logger.Infof("Shutdown signal received. Stopping servers...")
+	srv.HTTPServerStop(ctx, logger)
+	server.StopGrpcServer(grpcServer)
 }

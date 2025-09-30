@@ -7,6 +7,7 @@ services:
     container_name: cbe-supperapp-cps-action
     ports:
       - 5005:8080
+      - 50054:50051
     restart: always
     deploy:
       resources:

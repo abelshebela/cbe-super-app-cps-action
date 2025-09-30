@@ -1,0 +1,55 @@
+package customer
+
+import (
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/storage"
+	"context"
+
+	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type customerService struct {
+	repo   storage.CustomerRepository
+	logger utils.Logger
+}
+
+func NewCustomerService(repo storage.CustomerRepository, logger utils.Logger) service.CustomerService {
+	return &customerService{
+		repo:   repo,
+		logger: logger,
+	}
+}
+
+func (c *customerService) GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+
+	customers, err := c.repo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return customers, nil
+}
+
+func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*model.User, error) {
+	customer, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
+}
+
+func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+	if filterParams.Filters == nil {
+		filterParams.Filters = make(map[string]interface{})
+	}
+	filterParams.Filters["is_blocked"] = true
+	customers, err := s.repo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		return nil, err
+	}
+	return customers, nil
+}
