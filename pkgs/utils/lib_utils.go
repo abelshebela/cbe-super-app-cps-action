@@ -267,6 +267,7 @@ func HandleMongoError(err error) (string, string) {
 
 	return localization.ErrorUnexpectedError.Code, localization.ErrorUnexpectedError.Message
 }
+
 func GenerateCPSUserCode() string {
 	const (
 		prefix  = "BANKCPSUSER_"
