@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	
 	"mime/multipart"
 	"time"
 
@@ -210,9 +211,10 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 // Authorize handles persistence for advert actions
 func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("Authorizing advert action, action: %s", action.RequestAction)
-
+	
 	advert, err := local_util.JsonUnmarshal[model.Advert](action.CurrentAction)
 	if err != nil {
+		
 		s.logger.Errorf("Failed to unmarshal current action into advert: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
