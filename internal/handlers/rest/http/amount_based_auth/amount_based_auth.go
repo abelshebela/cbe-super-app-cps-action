@@ -77,7 +77,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
 }
 
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {

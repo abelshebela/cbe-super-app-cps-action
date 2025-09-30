@@ -11,6 +11,7 @@ const (
 	MsgAvatarDeletedSuccessfully   = "Avatar delete request sent successfully"
 	MsgAvatarRetrievedSuccessfully = "Avatar retrieved successfully"
 	MsgUserUpdatedSuccessfully     = "User update request sent successfully"
+	MsgAmountBasedSuccessfullySent = "Amount-based authentication update request sent successfully"
 	MsgUserDeletedSuccessfully     = "User delete request sent successfully"
 	MsgUserRetrievedSuccessfully   = "User retrieved successfully"
 	MsgUserLoginSuccessfully       = "User logged in successfully"

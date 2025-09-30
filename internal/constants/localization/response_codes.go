@@ -457,6 +457,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessAmountBasedAuthRequestSent = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedSuccessfullySent,
+		Type:       "success",
+	}
+
 	SuccessUserDeleted = ResponseCode{
 		Code:       "SUCCESS_USER_DELETED",
 		StatusCode: StatusOK,
