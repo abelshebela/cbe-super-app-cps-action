@@ -77,9 +77,9 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 // @Tags Wallet
 // @Accept multipart/form-data
 // @Produce json
-// @Param name formData string true "Name of the wallet"
-// @Param code formData string true "Code of the wallet"
-// @Param avatar formData file true "Avatar image file"
+// @Param name formData string false "Name of the wallet"
+// @Param code formData string false "Code of the wallet"
+// @Param avatar formData file false "Avatar image file"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Wallet update request sent successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"

@@ -4437,22 +4437,19 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Name of the wallet",
                         "name": "name",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "string",
                         "description": "Code of the wallet",
                         "name": "code",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "file",
                         "description": "Avatar image file",
                         "name": "avatar",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -5147,6 +5144,50 @@ const docTemplate = `{
                 }
             }
         },
+        "localization.ErrorDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "field_errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/localization.FieldError"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "localization.FieldError": {
+            "type": "object",
+            "properties": {
+                "constraint": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "localization.ResponseCode": {
             "type": "object",
             "properties": {
@@ -5172,6 +5213,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {},
+                "error": {
+                    "$ref": "#/definitions/localization.ErrorDetail"
+                },
                 "message": {
                     "type": "string"
                 },
@@ -5884,7 +5928,7 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "deletd_at": {
+                "deleted_at": {
                     "type": "string"
                 },
                 "enabled": {
