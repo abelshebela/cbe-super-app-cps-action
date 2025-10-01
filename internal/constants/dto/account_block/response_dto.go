@@ -2,6 +2,7 @@ package accountblock
 
 import "time"
 
+// BranchResponse represents a branch entity
 type BranchResponse struct {
 	ID            string    `json:"id,omitempty"`
 	BranchCode    string    `json:"branch_code"`
@@ -17,6 +18,7 @@ type BranchResponse struct {
 	Enabled       bool      `json:"enabled"`
 }
 
+// RegionResponse represents a region entity
 type RegionResponse struct {
 	ID            string    `json:"id,omitempty"`
 	RegionCode    string    `json:"region_code"`
@@ -27,6 +29,7 @@ type RegionResponse struct {
 	Enabled       bool      `json:"enabled"`
 }
 
+// DistrictResponse represents a district entity
 type DistrictResponse struct {
 	ID              string    `json:"id,omitempty"`
 	DistrictCode    string    `json:"district_code"`
@@ -39,6 +42,7 @@ type DistrictResponse struct {
 	Enabled         bool      `json:"enabled"`
 }
 
+// CityResponse represents a city entity
 type CityResponse struct {
 	ID           string    `json:"id,omitempty"`
 	CityCode     string    `json:"city_code"`

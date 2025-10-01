@@ -1,0 +1,961 @@
+basePath: /api/v1/cbesuperapp/cps_action
+definitions:
+  accountblock.EnableOrDisableBranches:
+    properties:
+      branches_code:
+        example:
+        - BR001
+        - BR002
+        items:
+          type: string
+        type: array
+    type: object
+  accountblock.EnableOrDisableCities:
+    properties:
+      city_code:
+        example:
+        - CT001
+        - CT002
+        items:
+          type: string
+        type: array
+    type: object
+  accountblock.EnableOrDisableDistricts:
+    properties:
+      districts_code:
+        example:
+        - DS001
+        - DS002
+        items:
+          type: string
+        type: array
+    type: object
+  accountblock.EnableOrDisableRegions:
+    properties:
+      regions_code:
+        example:
+        - RG001
+        - RG002
+        items:
+          type: string
+        type: array
+    type: object
+  accountvalidation.ValidationRuleDTO:
+    properties:
+      enabled:
+        type: boolean
+      entity_type:
+        type: string
+      id:
+        type: string
+      identifier:
+        type: string
+      is_deleted:
+        type: boolean
+      max_length:
+        type: integer
+      min_length:
+        type: integer
+      service_id:
+        type: string
+      validation_for:
+        type: string
+    type: object
+  localization.ResponseCode:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      status_code:
+        type: integer
+      timestamp:
+        type: string
+      type:
+        description: '"success", "error", "warning", "info"'
+        type: string
+    type: object
+  model.ProductCode:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      created_at:
+        type: string
+      id:
+        type: string
+      last_modified_at:
+        type: string
+      service_name:
+        type: string
+    type: object
+  model.ProductCodes:
+    properties:
+      prd:
+        type: string
+      sfprd:
+        type: string
+      trxn:
+        type: string
+      vatprd:
+        type: string
+    type: object
+  productcode.ProductCodePaginatedResponse:
+    type: object
+  productcode.ProductCodeResponse:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      created_at:
+        type: string
+      id:
+        type: string
+      last_modified_at:
+        type: string
+      product_name:
+        type: string
+    type: object
+  productcode.UpdateProductCodeRequest:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      id:
+        type: string
+      product_name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: contact@eaglelionsystems.com
+    name: API Support
+  description: API documentation for CPS Action service
+  title: CPS Action API
+  version: 1.0.0
+paths:
+  /account_block/branches:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all branches with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Branches retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all branches
+      tags:
+      - Account Block - Branches
+  /account_block/branches/{branch_code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific branch by its branch code
+      parameters:
+      - description: Branch Code
+        in: path
+        name: branch_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Branch retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get branch by code
+      tags:
+      - Account Block - Branches
+  /account_block/branches/disable:
+    post:
+      consumes:
+      - application/json
+      description: Disable one or more branches by their branch codes
+      parameters:
+      - description: Branch codes to disable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Branches disabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disable branches
+      tags:
+      - Account Block - Branches
+  /account_block/branches/enable:
+    post:
+      consumes:
+      - application/json
+      description: Enable one or more branches by their branch codes
+      parameters:
+      - description: Branch codes to enable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Branches enabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Enable branches
+      tags:
+      - Account Block - Branches
+  /account_block/city:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all cities with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cities retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all cities
+      tags:
+      - Account Block - Cities
+  /account_block/city/{city_code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific city by its city code
+      parameters:
+      - description: City Code
+        in: path
+        name: city_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: City retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get city by code
+      tags:
+      - Account Block - Cities
+  /account_block/city/disable:
+    post:
+      consumes:
+      - application/json
+      description: Disable one or more cities by their city codes
+      parameters:
+      - description: City codes to disable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cities disabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disable cities
+      tags:
+      - Account Block - Cities
+  /account_block/city/enable:
+    post:
+      consumes:
+      - application/json
+      description: Enable one or more cities by their city codes
+      parameters:
+      - description: City codes to enable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cities enabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Enable cities
+      tags:
+      - Account Block - Cities
+  /account_block/districts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all districts with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Districts retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all districts
+      tags:
+      - Account Block - Districts
+  /account_block/districts/{district_code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific district by its district code
+      parameters:
+      - description: District Code
+        in: path
+        name: district_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: District retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get district by code
+      tags:
+      - Account Block - Districts
+  /account_block/districts/disable:
+    post:
+      consumes:
+      - application/json
+      description: Disable one or more districts by their district codes
+      parameters:
+      - description: District codes to disable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Districts disabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disable districts
+      tags:
+      - Account Block - Districts
+  /account_block/districts/enable:
+    post:
+      consumes:
+      - application/json
+      description: Enable one or more districts by their district codes
+      parameters:
+      - description: District codes to enable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Districts enabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Enable districts
+      tags:
+      - Account Block - Districts
+  /account_block/regions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all regions with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Regions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all regions
+      tags:
+      - Account Block - Regions
+  /account_block/regions/{region_code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific region by its region code
+      parameters:
+      - description: Region Code
+        in: path
+        name: region_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Region retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get region by code
+      tags:
+      - Account Block - Regions
+  /account_block/regions/disable:
+    post:
+      consumes:
+      - application/json
+      description: Disable one or more regions by their region codes
+      parameters:
+      - description: Region codes to disable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Regions disabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disable regions
+      tags:
+      - Account Block - Regions
+  /account_block/regions/enable:
+    post:
+      consumes:
+      - application/json
+      description: Enable one or more regions by their region codes
+      parameters:
+      - description: Region codes to enable
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Regions enabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Enable regions
+      tags:
+      - Account Block - Regions
+  /account_validation:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all account validation rules with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Validation rules retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all account validation rules
+      tags:
+      - Account Validation
+  /account_validation/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific account validation rule by its ID
+      parameters:
+      - description: Validation Rule ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Validation rule retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get account validation by ID
+      tags:
+      - Account Validation
+  /account_validation/update/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing account validation rule by its ID
+      parameters:
+      - description: Validation Rule ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Validation rule data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accountvalidation.ValidationRuleDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Validation rule updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update account validation rule
+      tags:
+      - Account Validation
+  /productcodes:
+    get:
+      description: Retrieves a paginated list of product codes. Search using service_name.Filter
+        using {_id,service_name,created_at,...}
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: filter term
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/productcode.ProductCodePaginatedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Fetch all product codes
+      tags:
+      - Product Code
+  /productcodes/{id}:
+    get:
+      description: Retrieves a single product code by its unique ID.
+      parameters:
+      - description: Product Code ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/productcode.ProductCodeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Fetch a product code by ID
+      tags:
+      - Product Code
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing product code by its ID. This is a pending action
+        that requires approval.
+      parameters:
+      - description: Product Code ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Product Code Request
+        in: body
+        name: productCode
+        required: true
+        schema:
+          $ref: '#/definitions/productcode.UpdateProductCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/model.ProductCode'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update a product code
+      tags:
+      - Product Code
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -45,7 +45,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
+
+	_ "cbe-super-app-cps-action/docs" // Import generated docs
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
@@ -106,18 +109,13 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
 
-	// Initialize Swagger documentation routes
-	swaggerHandler := NewSwaggerHandler(logger)
-	router.Get("/swagger/*", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/swagger/" || r.URL.Path == "/swagger" {
-			swaggerHandler.ServeSwaggerUI(w, r)
-		} else {
-			swaggerHandler.ServeSwaggerSpec(w, r)
-		}
-	})
-	router.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/swagger/", http.StatusMovedPermanently)
-	})
-
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+
+	// Swagger documentation routes
+	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/swagger/doc.json"),
+	))
+	router.Get("/api/v1/cbesuperapp/cps_action/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/api/v1/cbesuperapp/cps_action/swagger/index.html", http.StatusMovedPermanently)
+	})
 }
