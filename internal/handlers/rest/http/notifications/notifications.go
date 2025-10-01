@@ -22,6 +22,18 @@ func InitNotificationHandler(svc service.NotificationService, logger utils.Logge
 	return &handler{service: svc, logger: logger}
 }
 
+// CreateNotification godoc
+// @Summary Create a new notification
+// @Description Create a new notification with the provided information
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param request body notification.NotificationRequest true "Notification payload"
+// @Success 200 {object} model.APIResponse{data=nil} "Notification creation request submitted"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications [post]
 func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	req, ok := core.ParseAndValidateNotificationRequest(w, r, true)
 	if !ok {
@@ -43,7 +55,20 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 }
 
-// UpdateNotification handles updating an existing notification
+// UpdateNotification godoc
+// @Summary Update a notification
+// @Description Update an existing notification by ID
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param id path string true "Notification ID"
+// @Param request body notification.NotificationRequest true "Notification payload"
+// @Success 200 {object} model.APIResponse{data=nil} "Notification update request submitted"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Notification not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications/{id} [patch]
 func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -69,7 +94,19 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
 }
 
-// DeleteNotification handles deleting a notification
+// DeleteNotification godoc
+// @Summary Delete a notification
+// @Description Permanently delete a notification by ID
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param id path string true "Notification ID"
+// @Success 200 {object} model.APIResponse{data=nil} "Notification delete request submitted"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Notification not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications/{id} [delete]
 func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -88,7 +125,19 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
 }
 
-// EnableNotification handles enabling a notification
+// EnableNotification godoc
+// @Summary Enable a notification
+// @Description Enable a notification by ID
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param id path string true "Notification ID"
+// @Success 200 {object} model.APIResponse{data=nil} "Notification enable request submitted"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Notification not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications/enable/{id} [patch]
 func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -107,7 +156,19 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
 }
 
-// DisableNotification handles disabling a notification
+// DisableNotification godoc
+// @Summary Disable a notification
+// @Description Disable a notification by ID
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param id path string true "Notification ID"
+// @Success 200 {object} model.APIResponse{data=nil} "Notification disable request submitted"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Notification not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications/disable/{id} [patch]
 func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -126,7 +187,19 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
 }
 
-// FetchNotificationByID fetches a notification by its ID
+// FetchNotificationByID godoc
+// @Summary Get notification by ID
+// @Description Retrieve a notification's details by ID
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param id path string true "Notification ID"
+// @Success 200 {object} model.APIResponse{data=notification.NotificationResponse} "Notification retrieved successfully"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications/{id} [get]
 func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) {
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -142,7 +215,19 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 	localization.SendSuccessResponse(w, localization.SuccessNotificationRetrieved, data)
 }
 
-// FetchNotifications fetches notifications with pagination and filtering
+// FetchNotifications godoc
+// @Summary List notifications
+// @Description Retrieve notifications with pagination and optional search
+// @Tags Notification
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} model.APIResponse{data=[]notification.NotificationResponse} "Notifications retrieved successfully"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /notifications [get]
 func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	data, err := h.service.FetchNotifications(r.Context(), &types.Filter{})

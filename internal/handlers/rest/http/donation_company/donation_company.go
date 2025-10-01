@@ -25,6 +25,19 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 	}
 }
 
+// FetchDonationCompany godoc
+// @Summary List donation companies
+// @Description Retrieve donation companies with pagination and optional search
+// @Tags Donation Company
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} model.APIResponse{data=[]donation_company.DonationCompanyListResponse} "Donation companies retrieved successfully"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_company [get]
 func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -42,6 +55,19 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompaniesFetched, donationCompanies)
 }
 
+// FetchDonationCompanyByID godoc
+// @Summary Get donation company by ID
+// @Description Retrieve a donation company's details by ID
+// @Tags Donation Company
+// @Accept json
+// @Produce json
+// @Param id path string true "Donation Company ID"
+// @Success 200 {object} model.APIResponse{data=donation_company.DonationCompanyResponse} "Donation company retrieved successfully"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_company/{id} [get]
 func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -60,6 +86,20 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyFetched, donationCompany)
 }
 
+// CreateDonationCompany godoc
+// @Summary Create a new donation company
+// @Description Create a new donation company with the provided information
+// @Tags Donation Company
+// @Accept multipart/form-data
+// @Produce json
+// @Param company_name formData string true "Company name"
+// @Param company_logo formData file true "Company logo image file"
+// @Param account_number formData string true "Account number"
+// @Success 200 {object} model.APIResponse{data=nil} "Donation company creation request sent successfully"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_company [post]
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -84,6 +124,22 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
 }
 
+// UpdateDonationCompany godoc
+// @Summary Update a donation company
+// @Description Update a donation company with the provided information
+// @Tags Donation Company
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Donation Company ID"
+// @Param company_name formData string false "Company name"
+// @Param company_logo formData file false "Company logo image file"
+// @Param account_number formData string false "Account number"
+// @Success 200 {object} model.APIResponse{data=nil} "Donation company updated successfully"
+// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
+// @Failure 404 {object} model.APIResponse{data=nil} "Not found"
+// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_company/{id} [patch]
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
